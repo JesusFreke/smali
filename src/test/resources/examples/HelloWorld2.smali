@@ -26,27 +26,72 @@
 .end method
 
 .method public onCreate(Landroid/os/Bundle;)V
-	.registers 5
+	.registers 6
 
-	invoke-super	{v3,v4} android/app/Activity.onCreate(Landroid/os/Bundle;)V
+	invoke-super	{v4,v5} android/app/Activity.onCreate(Landroid/os/Bundle;)V
 
-	new-instance	v0 android/widget/TextView
-	invoke-direct	{v0,v3} android/widget/TextView.<init>(Landroid/content/Context;)V
+	const-string    v3 "\n"
 
-	iget-object v1 v3 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+	new-instance	v0 Landroid/widget/TextView;
+	invoke-direct	{v0,v4} android/widget/TextView.<init>(Landroid/content/Context;)V
+
+	iget-object v1 v4 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+
+	invoke-virtual {v1, v3} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v1
 
     sget-object v2 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorldStatic Ljava/lang/String;	
 	invoke-virtual {v1, v2} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v1
 
+	invoke-virtual {v1, v3} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
 	move-result-object v1
 
 	sget-object v2 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorldStatic2 Ljava/lang/String;
 	invoke-virtual/range {v1 .. v2} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v1
 
+
+    invoke-virtual {v1, v3} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
 	move-result-object v1
 
+	const-class v2 Lorg/JesusFreke/HelloWorld2/HelloWorld2;
+    invoke-virtual	{v2} java/lang/Class.getName()Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual/range {v1 .. v2} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v1
+
+
+
+    invoke-virtual {v1, v3} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v1
+
+	const-class v2 [Lorg/JesusFreke/HelloWorld2/HelloWorld2;
+    invoke-virtual	{v2} java/lang/Class.getName()Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual/range {v1 .. v2} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v1
+
+
+
+    invoke-virtual {v1, v3} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v1
+
+	const-class v2 [I
+    invoke-virtual	{v2} java/lang/Class.getName()Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual/range {v1 .. v2} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v1
+
+
+    
+
+
 	invoke-virtual	{v0,v1} android/widget/TextView.setText(Ljava/lang/CharSequence;)V
-	invoke-virtual	{v3,v0} org/JesusFreke/HelloWorld2/HelloWorld2.setContentView(Landroid/view/View;)V
+	invoke-virtual	{v4,v0} org/JesusFreke/HelloWorld2/HelloWorld2.setContentView(Landroid/view/View;)V
 
 	return-void
 .end method

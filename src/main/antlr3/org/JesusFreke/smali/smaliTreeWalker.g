@@ -320,13 +320,23 @@ instruction returns[Instruction instruction]
 
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, stringIdItem);
 		}
+	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
+		^(I_CONST_CLASS_STATEMENT CONST_CLASS_INSTRUCTION_NAME REGISTER class_or_array_type_descriptor)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($CONST_CLASS_INSTRUCTION_NAME.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
+			
+			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
+		}	
 	|	//e.g. new-instance v1 android/widget/TextView
-		^(I_NEW_INSTANCE_STATEMENT NEW_INSTANCE_INSTRUCTION_NAME REGISTER class_name)
+		^(I_NEW_INSTANCE_STATEMENT NEW_INSTANCE_INSTRUCTION_NAME REGISTER class_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($NEW_INSTANCE_INSTRUCTION_NAME.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
-			TypeIdItem typeIdItem = $class_name.type;
+			TypeIdItem typeIdItem = $class_type_descriptor.type;
 			
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
 		}
@@ -388,6 +398,7 @@ instruction_name returns[String value]
 	|	INSTANCE_FIELD_INSTRUCTION_NAME
 	|	BARE_INSTRUCTION_NAME
 	|	CONST_STRING_INSTRUCTION_NAME
+	|	CONST_CLASS_INSTRUCTION_NAME
 	|	NEW_INSTANCE_INSTRUCTION_NAME
 	;
 
@@ -408,6 +419,19 @@ field_type_descriptor returns [TypeIdItem type]
 	|	ARRAY_TYPE)
 	{
 		$type = new TypeIdItem(dexFile, $token.text);
+	};
+	
+class_or_array_type_descriptor returns [TypeIdItem type]
+	:	token=(CLASS_DESCRIPTOR
+	|	ARRAY_TYPE)
+	{
+		$type = new TypeIdItem(dexFile, $token.text);
+	};
+
+class_type_descriptor returns [TypeIdItem type]
+	:	CLASS_DESCRIPTOR
+	{
+		$type = new TypeIdItem(dexFile, $CLASS_DESCRIPTOR.text);
 	};
 
 type_descriptor returns [TypeIdItem type]
