@@ -93,16 +93,14 @@ tokens {
 	I_METHOD_RETURN_TYPE;
 	I_REGISTERS;
 	I_STATEMENTS;
-	I_INVOKE_STATEMENT;
-	I_INVOKE_RANGE_STATEMENT;
-	I_BARE_STATEMENT;
-	I_STATIC_FIELD_STATEMENT;
-	I_INSTANCE_FIELD_STATEMENT;
-	I_CONST_STRING_STATEMENT;
-	I_CONST_CLASS_STATEMENT;
-	I_CHECK_CAST_STATEMENT;
-	I_NEW_INSTANCE_STATEMENT;
-	I_SINGLE_REGISTER_STATEMENT;
+	I_STATEMENT_FORMAT35c_METHOD;
+	I_STATEMENT_FORMAT3rc_METHOD;
+	I_STATEMENT_FORMAT10x;
+	I_STATEMENT_FORMAT11x;
+	I_STATEMENT_FORMAT21c_TYPE;
+	I_STATEMENT_FORMAT21c_FIELD;
+	I_STATEMENT_FORMAT22c_FIELD;
+	I_STATEMENT_FORMAT21c_STRING;
 	I_REGISTER_RANGE;
 	I_REGISTER_LIST;
 }
@@ -228,35 +226,29 @@ statement
 	
 instruction
 		//e.g. return
-	:	BARE_INSTRUCTION_NAME
-		-> ^(I_BARE_STATEMENT[$start, "I_BARE_STATEMENT"] BARE_INSTRUCTION_NAME)
-	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		INVOKE_INSTRUCTION_NAME '{' register_list '}' full_method_name_and_prototype
-		-> ^(I_INVOKE_STATEMENT[$start, "I_INVOKE_STATEMENT"] INVOKE_INSTRUCTION_NAME register_list full_method_name_and_prototype)
-	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		INVOKE_RANGE_INSTRUCTION_NAME '{' register_range '}' full_method_name_and_prototype
-		-> ^(I_INVOKE_RANGE_STATEMENT[$start, "I_INVOKE_RANGE_STATEMENT"] INVOKE_RANGE_INSTRUCTION_NAME register_range full_method_name_and_prototype)
-	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
-		STATIC_FIELD_INSTRUCTION_NAME REGISTER full_field_name_and_type
-		-> ^(I_STATIC_FIELD_STATEMENT[$start, "I_STATIC_FIELD_STATEMENT"] STATIC_FIELD_INSTRUCTION_NAME REGISTER full_field_name_and_type)
-	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		INSTANCE_FIELD_INSTRUCTION_NAME REGISTER REGISTER full_field_name_and_type
-		-> ^(I_INSTANCE_FIELD_STATEMENT[$start, "I_INSTANCE_FIELD_STATEMENT"] INSTANCE_FIELD_INSTRUCTION_NAME REGISTER REGISTER full_field_name_and_type)
-	|	//e.g. const-string v1 "Hello World!"
-		CONST_STRING_INSTRUCTION_NAME REGISTER STRING_LITERAL
-		-> ^(I_CONST_STRING_STATEMENT[$start, "I_CONST_STRING_STATMENT"] CONST_STRING_INSTRUCTION_NAME REGISTER STRING_LITERAL)
-	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
-		CONST_CLASS_INSTRUCTION_NAME REGISTER class_or_array_type_descriptor
-		-> ^(I_CONST_CLASS_STATEMENT[$start, "I_CONST_CLASS_STATEMENT"] CONST_CLASS_INSTRUCTION_NAME REGISTER class_or_array_type_descriptor)
-	|	//e.g. check-cast  v4  Landroid/app/Activity;
-		CHECK_CAST_INSTRUCTION_NAME REGISTER class_or_array_type_descriptor
-		-> ^(I_CHECK_CAST_STATEMENT[$start, "I_CHECK_CAST_STATEMENT"] CHECK_CAST_INSTRUCTION_NAME REGISTER class_or_array_type_descriptor)
-	|	//e.g. new-instance v1 android/widget/TextView
-		NEW_INSTANCE_INSTRUCTION_NAME REGISTER CLASS_DESCRIPTOR
-		-> ^(I_NEW_INSTANCE_STATEMENT[$start, "I_NEW_INSTANCE_STATEMENT"] NEW_INSTANCE_INSTRUCTION_NAME REGISTER CLASS_DESCRIPTOR)
+	:	INSTRUCTION_NAME_FORMAT10x
+		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_NAME_FORMAT10x)
 	|	//e.g. move-result-object v1
-		SINGLE_REGISTER_INSTRUCTION_NAME REGISTER
-		-> ^(I_SINGLE_REGISTER_STATEMENT[$start, "I_SINGLE_REGISTER_STATEMENT"] SINGLE_REGISTER_INSTRUCTION_NAME REGISTER)		
+		INSTRUCTION_NAME_FORMAT11x REGISTER
+		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_NAME_FORMAT11x REGISTER)		
+	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
+		INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type
+		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type)
+	|	//e.g. const-string v1 "Hello World!"
+		INSTRUCTION_NAME_FORMAT21c_STRING REGISTER STRING_LITERAL
+		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_NAME_FORMAT21c_STRING REGISTER STRING_LITERAL)
+	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
+		INSTRUCTION_NAME_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor
+		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_NAME_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
+	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+		INSTRUCTION_NAME_FORMAT22c_FIELD REGISTER REGISTER full_field_name_and_type
+		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_INSTANCE_FIELD_STATEMENT"] INSTRUCTION_NAME_FORMAT22c_FIELD REGISTER REGISTER full_field_name_and_type)
+	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
+		INSTRUCTION_NAME_FORMAT35c_METHOD '{' register_list '}' full_method_name_and_prototype
+		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_NAME_FORMAT35c_METHOD register_list full_method_name_and_prototype)
+	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+		INSTRUCTION_NAME_FORMAT3rc_METHOD '{' register_range '}' full_method_name_and_prototype
+		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_NAME_FORMAT3rc_METHOD register_range full_method_name_and_prototype)
 	;
 
 
@@ -286,16 +278,14 @@ simple_name
 	;
 
 instruction_name
-	:	INVOKE_INSTRUCTION_NAME
-	|	INVOKE_RANGE_INSTRUCTION_NAME
-	|	STATIC_FIELD_INSTRUCTION_NAME
-	|	INSTANCE_FIELD_INSTRUCTION_NAME	
-	|	BARE_INSTRUCTION_NAME
-	|	CONST_STRING_INSTRUCTION_NAME
-	|	CONST_CLASS_INSTRUCTION_NAME
-	|	CHECK_CAST_INSTRUCTION_NAME
-	|	NEW_INSTANCE_INSTRUCTION_NAME
-	|	SINGLE_REGISTER_INSTRUCTION_NAME
+	:	INSTRUCTION_NAME_FORMAT10x
+	|	INSTRUCTION_NAME_FORMAT11x
+	|	INSTRUCTION_NAME_FORMAT21c_FIELD
+	|	INSTRUCTION_NAME_FORMAT21c_STRING
+	|	INSTRUCTION_NAME_FORMAT21c_TYPE
+	|	INSTRUCTION_NAME_FORMAT22c_FIELD
+	|	INSTRUCTION_NAME_FORMAT35c_METHOD
+	|	INSTRUCTION_NAME_FORMAT3rc_METHOD
 	;
 
 member_name
@@ -340,7 +330,7 @@ double_literal
 ACCESS_SPEC
 	:	'public' | 'private' | 'static' | 'constructor' | 'final';
 
-INVOKE_INSTRUCTION_NAME
+INSTRUCTION_NAME_FORMAT35c_METHOD
 	:	'invoke-virtual'
 	|	'invoke-super'
 	|	'invoke-direct'
@@ -348,7 +338,7 @@ INVOKE_INSTRUCTION_NAME
 	|	'invoke-interface'
 	;
 	
-INVOKE_RANGE_INSTRUCTION_NAME
+INSTRUCTION_NAME_FORMAT3rc_METHOD
 	:	'invoke-virtual/range'
 	|	'invoke-super/range'
 	|	'invoke-direct/range'
@@ -356,24 +346,7 @@ INVOKE_RANGE_INSTRUCTION_NAME
 	|	'invoke-interface/range'
 	;
 
-STATIC_FIELD_INSTRUCTION_NAME
-	:	'sget'
-	|	'sget-wide'
-	|	'sget-object'
-	|	'sget-boolean'
-	|	'sget-byte'
-	|	'sget-char'
-	|	'sget-short'
-	|	'sput'
-	|	'sput-wide'
-	|	'sput-object'
-	|	'sput-boolean'
-	|	'sput-byte'
-	|	'sput-char'
-	|	'sput-short'
-	;
-	
-INSTANCE_FIELD_INSTRUCTION_NAME
+INSTRUCTION_NAME_FORMAT22c_FIELD
 	:	'iget'
 	|	'iget-wide'
 	|	'iget-object'
@@ -390,24 +363,11 @@ INSTANCE_FIELD_INSTRUCTION_NAME
 	|	'iput-short'
 	;
 	
-BARE_INSTRUCTION_NAME
+INSTRUCTION_NAME_FORMAT10x
 	:	'return-void'
 	|	'nop';
-	
-	
-CONST_STRING_INSTRUCTION_NAME
-	:	'const-string';
 
-CONST_CLASS_INSTRUCTION_NAME
-	:	'const-class';
-	
-CHECK_CAST_INSTRUCTION_NAME
-	:	'check-cast';
-	
-NEW_INSTANCE_INSTRUCTION_NAME
-	:	'new-instance';
-	
-SINGLE_REGISTER_INSTRUCTION_NAME
+INSTRUCTION_NAME_FORMAT11x
 	:	'move-result'
 	|	'move-result-wide'
 	|	'move-result-object'
@@ -418,7 +378,31 @@ SINGLE_REGISTER_INSTRUCTION_NAME
 	|	'monitor-enter'
 	|	'monitor-exit'
 	|	'throw';
+	
+INSTRUCTION_NAME_FORMAT21c_FIELD
+	:	'sget'
+	|	'sget-wide'
+	|	'sget-object'
+	|	'sget-boolean'
+	|	'sget-byte'
+	|	'sget-char'
+	|	'sget-short'
+	|	'sput'
+	|	'sput-wide'
+	|	'sput-object'
+	|	'sput-boolean'
+	|	'sput-byte'
+	|	'sput-char'
+	|	'sput-short'
+	;
+	
+INSTRUCTION_NAME_FORMAT21c_STRING
+	:	'const-string';
 
+INSTRUCTION_NAME_FORMAT21c_TYPE
+	:	'check-cast'
+	|	'new-instance'
+	|	'const-class';
 
 /*since SIMPLE_NAME is so all-encompassing, it includes all integer literals
 and a subset of the possible floating point literals. For floating point

@@ -249,15 +249,53 @@ statements returns[ArrayList<Instruction> instructions]
 	
 instruction returns[Instruction instruction]
 		//e.g. return
-	:	^(I_BARE_STATEMENT BARE_INSTRUCTION_NAME)
+	:	^(I_STATEMENT_FORMAT10x INSTRUCTION_NAME_FORMAT10x)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($BARE_INSTRUCTION_NAME.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT10x.text);
 			$instruction = Format10x.Format.make(dexFile, opcode.value);
 		}
-	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		^(I_INVOKE_STATEMENT INVOKE_INSTRUCTION_NAME register_list full_method_name_and_prototype)
+	|	//e.g. move-result-object v1
+		^(I_STATEMENT_FORMAT11x INSTRUCTION_NAME_FORMAT11x REGISTER)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INVOKE_INSTRUCTION_NAME.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT11x.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			$instruction = Format11x.Format.make(dexFile, opcode.value, regA);
+		}	
+	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
+		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT21c_FIELD.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			FieldIdItem fieldIdItem = $full_field_name_and_type.fieldIdItem;
+
+			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, fieldIdItem);
+		}
+	|	//e.g. const-string v1 "Hello World!"
+		^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_NAME_FORMAT21c_STRING REGISTER string_literal)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT21c_STRING.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
+
+			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, stringIdItem);
+		}
+	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
+		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_NAME_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT21c_TYPE.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
+			
+			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
+		}	
+	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
+		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_NAME_FORMAT35c_METHOD register_list full_method_name_and_prototype)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT35c_METHOD.text);
 
 			//this depends on the fact that register_list returns a byte[5]
 			byte[] registers = $register_list.registers;
@@ -268,9 +306,9 @@ instruction returns[Instruction instruction]
 			$instruction = Format35c.Format.make(dexFile, opcode.value, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem);
 		}
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		^(I_INVOKE_RANGE_STATEMENT INVOKE_RANGE_INSTRUCTION_NAME register_range full_method_name_and_prototype)
+		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_NAME_FORMAT3rc_METHOD register_range full_method_name_and_prototype)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INVOKE_RANGE_INSTRUCTION_NAME.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT3rc_METHOD.text);
 			int startRegister = $register_range.startRegister;
 			int endRegister = $register_range.endRegister;
 			
@@ -289,20 +327,10 @@ instruction returns[Instruction instruction]
 			//not supported yet
 			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, methodIdItem);
 		}
-	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
-		^(I_STATIC_FIELD_STATEMENT STATIC_FIELD_INSTRUCTION_NAME REGISTER full_field_name_and_type)
-		{
-			Opcode opcode = Opcode.getOpcodeByName($STATIC_FIELD_INSTRUCTION_NAME.text);
-			short regA = parseRegister_byte($REGISTER.text);
-			
-			FieldIdItem fieldIdItem = $full_field_name_and_type.fieldIdItem;
-
-			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, fieldIdItem);
-		}
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		^(I_INSTANCE_FIELD_STATEMENT INSTANCE_FIELD_INSTRUCTION_NAME registerA=REGISTER registerB=REGISTER full_field_name_and_type)
+		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_NAME_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER full_field_name_and_type)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTANCE_FIELD_INSTRUCTION_NAME.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT22c_FIELD.text);
 			byte regA = parseRegister_nibble($registerA.text);
 			byte regB = parseRegister_nibble($registerB.text);
 			
@@ -310,55 +338,6 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, fieldIdItem);			
 		}
-	|	//e.g. const-string v1 "Hello World!"
-		^(I_CONST_STRING_STATEMENT CONST_STRING_INSTRUCTION_NAME REGISTER string_literal)
-		{
-			Opcode opcode = Opcode.getOpcodeByName($CONST_STRING_INSTRUCTION_NAME.text);
-			short regA = parseRegister_byte($REGISTER.text);
-			
-			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
-
-			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, stringIdItem);
-		}
-	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
-		^(I_CONST_CLASS_STATEMENT CONST_CLASS_INSTRUCTION_NAME REGISTER class_or_array_type_descriptor)
-		{
-			Opcode opcode = Opcode.getOpcodeByName($CONST_CLASS_INSTRUCTION_NAME.text);
-			short regA = parseRegister_byte($REGISTER.text);
-			
-			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
-			
-			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
-		}
-	|	//e.g. check-cast  v4  Landroid/app/Activity;
-		^(I_CHECK_CAST_STATEMENT CHECK_CAST_INSTRUCTION_NAME REGISTER class_or_array_type_descriptor)
-		{
-			//TODO: this should be merged with I_CONST_CLASS_STATEMENT
-			Opcode opcode = Opcode.getOpcodeByName($CHECK_CAST_INSTRUCTION_NAME.text);
-			short regA = parseRegister_byte($REGISTER.text);
-			
-			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
-			
-			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
-		}
-	|	//e.g. new-instance v1 android/widget/TextView
-		^(I_NEW_INSTANCE_STATEMENT NEW_INSTANCE_INSTRUCTION_NAME REGISTER class_type_descriptor)
-		{
-			Opcode opcode = Opcode.getOpcodeByName($NEW_INSTANCE_INSTRUCTION_NAME.text);
-			short regA = parseRegister_byte($REGISTER.text);
-			
-			TypeIdItem typeIdItem = $class_type_descriptor.type;
-			
-			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
-		}
-	|	//e.g. move-result-object v1
-		^(I_SINGLE_REGISTER_STATEMENT SINGLE_REGISTER_INSTRUCTION_NAME REGISTER)
-		{
-			Opcode opcode = Opcode.getOpcodeByName($SINGLE_REGISTER_INSTRUCTION_NAME.text);
-			short regA = parseRegister_byte($REGISTER.text);
-			
-			$instruction = Format11x.Format.make(dexFile, opcode.value, regA);
-		}		
 	;
 
 
@@ -403,15 +382,14 @@ simple_name
 	;
 
 instruction_name returns[String value]
-	:	INVOKE_INSTRUCTION_NAME
-	|	INVOKE_RANGE_INSTRUCTION_NAME
-	|	STATIC_FIELD_INSTRUCTION_NAME
-	|	INSTANCE_FIELD_INSTRUCTION_NAME
-	|	BARE_INSTRUCTION_NAME
-	|	CONST_STRING_INSTRUCTION_NAME
-	|	CONST_CLASS_INSTRUCTION_NAME
-	|	CHECK_CAST_INSTRUCTION_NAME
-	|	NEW_INSTANCE_INSTRUCTION_NAME
+	:	INSTRUCTION_NAME_FORMAT10x
+	|	INSTRUCTION_NAME_FORMAT11x
+	|	INSTRUCTION_NAME_FORMAT21c_FIELD
+	|	INSTRUCTION_NAME_FORMAT21c_STRING
+	|	INSTRUCTION_NAME_FORMAT21c_TYPE
+	|	INSTRUCTION_NAME_FORMAT22c_FIELD
+	|	INSTRUCTION_NAME_FORMAT35c_METHOD
+	|	INSTRUCTION_NAME_FORMAT3rc_METHOD
 	;
 
 member_name returns[String memberName]

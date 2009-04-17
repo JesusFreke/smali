@@ -32,6 +32,8 @@ import org.JesusFreke.dexlib.code.Instruction;
 import org.JesusFreke.dexlib.code.Opcode;
 import org.JesusFreke.dexlib.DexFile;
 import org.JesusFreke.dexlib.IndexedItem;
+import org.JesusFreke.dexlib.FieldIdItem;
+import org.JesusFreke.dexlib.TypeIdItem;
 
 public class Format21c extends Format
 {
@@ -49,6 +51,10 @@ public class Format21c extends Format
 
         if (regA >= 2<<8) {
             throw new RuntimeException("The register number must be less than v256");
+        }
+
+        if (opcode == Opcode.NEW_INSTANCE.value && ((TypeIdItem)item).toString().charAt(0) != 'L') {
+            throw new RuntimeException("Only class references can be used with the new-instance opcode"); 
         }
 
         bytes[0] = opcode;
