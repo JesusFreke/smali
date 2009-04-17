@@ -47,14 +47,14 @@ public class Format3rc extends Format
 
         checkOpcodeFormat(op);
 
-        if (regCount >= 2<<8) {
+        if (regCount >= 1<<8) {
             throw new RuntimeException("regCount must be less than 256");
         }
         if (regCount < 0) {
             throw new RuntimeException("regCount cannot be negative");
         }
 
-        if (startReg >= 2<<16) {
+        if (startReg >= 1<<16) {
             throw new RuntimeException("The beginning register of the range must be less than 65536");
         }
         if (startReg < 0) {

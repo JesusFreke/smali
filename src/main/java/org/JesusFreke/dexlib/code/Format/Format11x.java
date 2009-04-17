@@ -44,7 +44,7 @@ public class Format11x extends Format
 
         checkOpcodeFormat(op);
 
-        if (regA >= 2<<8) {
+        if (regA >= 1<<8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 

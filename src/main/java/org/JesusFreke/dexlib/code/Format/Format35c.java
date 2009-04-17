@@ -50,11 +50,11 @@ public class Format35c extends Format
         if (regCount > 5) {
             throw new RuntimeException("regCount cannot be greater than 5");
         }
-        if (regD >= 16 ||
-            regE >= 16 ||
-            regF >= 16 ||
-            regG >= 16 ||
-            regA >= 16) {
+        if (regD >= 1<<4 ||
+            regE >= 1<<4 ||
+            regF >= 1<<4 ||
+            regG >= 1<<4 ||
+            regA >= 1<<4) {
             throw new RuntimeException("All register args must fit in 4 bits");
         }
 

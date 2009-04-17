@@ -47,8 +47,8 @@ public class Format22c extends Format
 
         checkOpcodeFormat(op);
 
-        if (regA >= 16 ||
-            regB >= 16) {
+        if (regA >= 1<<4 ||
+            regB >= 1<<4) {
             throw new RuntimeException("The register number must be less than v16");
         }
 
