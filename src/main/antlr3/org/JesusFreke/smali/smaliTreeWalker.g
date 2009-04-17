@@ -329,7 +329,18 @@ instruction returns[Instruction instruction]
 			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
 			
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
-		}	
+		}
+	|	//e.g. check-cast  v4  Landroid/app/Activity;
+		^(I_CHECK_CAST_STATEMENT CHECK_CAST_INSTRUCTION_NAME REGISTER class_or_array_type_descriptor)
+		{
+			//TODO: this should be merged with I_CONST_CLASS_STATEMENT
+			Opcode opcode = Opcode.getOpcodeByName($CHECK_CAST_INSTRUCTION_NAME.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
+			
+			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
+		}
 	|	//e.g. new-instance v1 android/widget/TextView
 		^(I_NEW_INSTANCE_STATEMENT NEW_INSTANCE_INSTRUCTION_NAME REGISTER class_type_descriptor)
 		{
@@ -399,6 +410,7 @@ instruction_name returns[String value]
 	|	BARE_INSTRUCTION_NAME
 	|	CONST_STRING_INSTRUCTION_NAME
 	|	CONST_CLASS_INSTRUCTION_NAME
+	|	CHECK_CAST_INSTRUCTION_NAME
 	|	NEW_INSTANCE_INSTRUCTION_NAME
 	;
 

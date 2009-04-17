@@ -89,6 +89,7 @@
 
     
 
+    check-cast  v4  Landroid/app/Activity;
 
 	invoke-virtual	{v0,v1} android/widget/TextView.setText(Ljava/lang/CharSequence;)V
 	invoke-virtual	{v4,v0} org/JesusFreke/HelloWorld2/HelloWorld2.setContentView(Landroid/view/View;)V
