@@ -261,7 +261,16 @@ instruction returns[Instruction instruction]
 			short regA = parseRegister_byte($REGISTER.text);
 			
 			$instruction = Format11x.Format.make(dexFile, opcode.value, regA);
-		}	
+		}
+	|	//e.g. move v1 v2
+		^(I_STATEMENT_FORMAT12x INSTRUCTION_NAME_FORMAT12x registerA=REGISTER registerB=REGISTER)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT12x.text);
+			byte regA = parseRegister_nibble($registerA.text);
+			byte regB = parseRegister_nibble($registerB.text);
+			
+			$instruction = Format12x.Format.make(dexFile, opcode.value, regA, regB);
+		}
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
 		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type)
 		{
@@ -384,6 +393,7 @@ simple_name
 instruction_name returns[String value]
 	:	INSTRUCTION_NAME_FORMAT10x
 	|	INSTRUCTION_NAME_FORMAT11x
+	|	INSTRUCTION_NAME_FORMAT12x
 	|	INSTRUCTION_NAME_FORMAT21c_FIELD
 	|	INSTRUCTION_NAME_FORMAT21c_STRING
 	|	INSTRUCTION_NAME_FORMAT21c_TYPE

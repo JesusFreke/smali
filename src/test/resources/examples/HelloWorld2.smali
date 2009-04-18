@@ -86,12 +86,14 @@
     invoke-virtual/range {v1 .. v2} java/lang/String.concat(Ljava/lang/String;)Ljava/lang/String;
     move-result-object v1
 
+    move-object v2 v1
+
 
     
 
     check-cast  v4  Landroid/app/Activity;
 
-	invoke-virtual	{v0,v1} android/widget/TextView.setText(Ljava/lang/CharSequence;)V
+	invoke-virtual	{v0,v2} android/widget/TextView.setText(Ljava/lang/CharSequence;)V
 	invoke-virtual	{v4,v0} org/JesusFreke/HelloWorld2/HelloWorld2.setContentView(Landroid/view/View;)V
 
 	return-void

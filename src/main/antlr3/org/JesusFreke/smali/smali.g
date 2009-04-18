@@ -93,14 +93,15 @@ tokens {
 	I_METHOD_RETURN_TYPE;
 	I_REGISTERS;
 	I_STATEMENTS;
-	I_STATEMENT_FORMAT35c_METHOD;
-	I_STATEMENT_FORMAT3rc_METHOD;
 	I_STATEMENT_FORMAT10x;
 	I_STATEMENT_FORMAT11x;
+	I_STATEMENT_FORMAT12x;
 	I_STATEMENT_FORMAT21c_TYPE;
 	I_STATEMENT_FORMAT21c_FIELD;
 	I_STATEMENT_FORMAT22c_FIELD;
 	I_STATEMENT_FORMAT21c_STRING;
+	I_STATEMENT_FORMAT35c_METHOD;
+	I_STATEMENT_FORMAT3rc_METHOD;
 	I_REGISTER_RANGE;
 	I_REGISTER_LIST;
 }
@@ -230,7 +231,10 @@ instruction
 		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_NAME_FORMAT10x)
 	|	//e.g. move-result-object v1
 		INSTRUCTION_NAME_FORMAT11x REGISTER
-		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_NAME_FORMAT11x REGISTER)		
+		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_NAME_FORMAT11x REGISTER)
+	|	//e.g. move v1 v2
+		INSTRUCTION_NAME_FORMAT12x REGISTER REGISTER
+		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] INSTRUCTION_NAME_FORMAT12x REGISTER REGISTER)		
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
 		INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type)
@@ -280,6 +284,7 @@ simple_name
 instruction_name
 	:	INSTRUCTION_NAME_FORMAT10x
 	|	INSTRUCTION_NAME_FORMAT11x
+	|	INSTRUCTION_NAME_FORMAT12x
 	|	INSTRUCTION_NAME_FORMAT21c_FIELD
 	|	INSTRUCTION_NAME_FORMAT21c_STRING
 	|	INSTRUCTION_NAME_FORMAT21c_TYPE
@@ -330,39 +335,6 @@ double_literal
 ACCESS_SPEC
 	:	'public' | 'private' | 'static' | 'constructor' | 'final';
 
-INSTRUCTION_NAME_FORMAT35c_METHOD
-	:	'invoke-virtual'
-	|	'invoke-super'
-	|	'invoke-direct'
-	|	'invoke-static'
-	|	'invoke-interface'
-	;
-	
-INSTRUCTION_NAME_FORMAT3rc_METHOD
-	:	'invoke-virtual/range'
-	|	'invoke-super/range'
-	|	'invoke-direct/range'
-	|	'invoke-static/range'
-	|	'invoke-interface/range'
-	;
-
-INSTRUCTION_NAME_FORMAT22c_FIELD
-	:	'iget'
-	|	'iget-wide'
-	|	'iget-object'
-	|	'iget-boolean'
-	|	'iget-byte'
-	|	'iget-char'
-	|	'iget-short'
-	|	'iput'
-	|	'iput-wide'
-	|	'iput-object'
-	|	'iput-boolean'
-	|	'iput-byte'
-	|	'iput-char'
-	|	'iput-short'
-	;
-	
 INSTRUCTION_NAME_FORMAT10x
 	:	'return-void'
 	|	'nop';
@@ -378,6 +350,65 @@ INSTRUCTION_NAME_FORMAT11x
 	|	'monitor-enter'
 	|	'monitor-exit'
 	|	'throw';
+	
+INSTRUCTION_NAME_FORMAT12x
+	:	'move'
+	|	'move-wide'
+	|	'move-object'
+	|	'array-length'
+	|	'neg-int'
+	|	'not-int'
+	|	'neg-long'
+	|	'not-long'
+	|	'neg-float'
+	|	'neg-double'
+	|	'int-to-long'
+	|	'int-to-float'
+	|	'int-to-double'
+	|	'long-to-int'
+	|	'long-to-float'
+	|	'long-to-double'
+	|	'float-to-int'
+	|	'float-to-long'
+	|	'float-to-double'
+	|	'double-to-int'
+	|	'double-to-long'
+	|	'double-to-float'
+	|	'int-to-byte'
+	|	'int-to-char'
+	|	'int-to-short'
+	|	'add-int/2addr'
+	|	'sub-int/2addr'
+	|	'mul-int/2addr'
+	|	'div-int/2addr'
+	|	'rem-int/2addr'
+	|	'and-int/2addr'
+	|	'or-int/2addr'
+	|	'xor-int/2addr'
+	|	'shl-int/2addr'
+	|	'shr-int/2addr'
+	|	'ushr-int/2addr'
+	|	'add-long/2addr'
+	|	'sub-long/2addr'
+	|	'mul-long/2addr'
+	|	'div-long/2addr'
+	|	'rem-long/2addr'
+	|	'and-long/2addr'
+	|	'or-long/2addr'
+	|	'xor-long/2addr'
+	|	'shl-long/2addr'
+	|	'shr-long/2addr'
+	|	'ushr-long/2addr'
+	|	'add-float/2addr'
+	|	'sub-float/2addr'
+	|	'mul-float/2addr'
+	|	'div-float/2addr'
+	|	'rem-float/2addr'
+	|	'add-double/2addr'
+	|	'sub-double/2addr'
+	|	'mul-double/2addr'
+	|	'div-double/2addr'
+	|	'rem-double/2addr';
 	
 INSTRUCTION_NAME_FORMAT21c_FIELD
 	:	'sget'
@@ -403,6 +434,39 @@ INSTRUCTION_NAME_FORMAT21c_TYPE
 	:	'check-cast'
 	|	'new-instance'
 	|	'const-class';
+	
+INSTRUCTION_NAME_FORMAT22c_FIELD
+	:	'iget'
+	|	'iget-wide'
+	|	'iget-object'
+	|	'iget-boolean'
+	|	'iget-byte'
+	|	'iget-char'
+	|	'iget-short'
+	|	'iput'
+	|	'iput-wide'
+	|	'iput-object'
+	|	'iput-boolean'
+	|	'iput-byte'
+	|	'iput-char'
+	|	'iput-short'
+	;
+
+INSTRUCTION_NAME_FORMAT35c_METHOD
+	:	'invoke-virtual'
+	|	'invoke-super'
+	|	'invoke-direct'
+	|	'invoke-static'
+	|	'invoke-interface'
+	;
+	
+INSTRUCTION_NAME_FORMAT3rc_METHOD
+	:	'invoke-virtual/range'
+	|	'invoke-super/range'
+	|	'invoke-direct/range'
+	|	'invoke-static/range'
+	|	'invoke-interface/range'
+	;
 
 /*since SIMPLE_NAME is so all-encompassing, it includes all integer literals
 and a subset of the possible floating point literals. For floating point
