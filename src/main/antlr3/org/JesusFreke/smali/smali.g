@@ -23,7 +23,22 @@
  * are met:
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
+ * 2. Redistributions in binary form mmaven-2.0.9" -Didea.launcher.port=7538 "-Didea.launcher.bin.path=C:\Program Files\JetBrains\IntelliJ IDEA 8.1\bin" -Dfile.encoding=windows-1252 -classpath "C:\Program Files\Apache Software Foundation\apache-maven-2.0.9\boot\classworlds-1.1.jar;C:\Program Files\JetBrains\IntelliJ IDEA 8.1\lib\idea_rt.jar" com.intellij.rt.execution.application.AppMain org.codehaus.classworlds.Launcher --no-plugin-registry --fail-fast --no-plugin-updates --strict-checksums -f D:\Android\smali\pom.xml compile
++ Enabling strict checksum verification on all artifact downloads.
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Unnamed - smali:smali:jar:1.0
+[INFO]    task-segment: [compile]
+[INFO] ------------------------------------------------------------------------
+[INFO] [antlr3:antlr {execution: smali}]
+[INFO] ANTLR: Processing source directory D:\Android\smali\src\main\antlr3
+ANTLR Parser Generator  Version 3.1.3 Mar 17, 2009 19:23:44
+org\JesusFreke\smali\smali.g
+[INFO] [antlr3:antlr {execution: smaliTreeWalker}]
+[INFO] ANTLR: Processing source directory D:\Android\smali\src\main\antlr3
+ANTLR Parser Generator  Version 3.1.3 Mar 17, 2009 19:23:44
+org\JesusFreke\smali\smaliTreeWalker.g
+[INFO] [resources:resources]ust reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
@@ -233,25 +248,25 @@ instruction
 		INSTRUCTION_NAME_FORMAT11x REGISTER
 		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_NAME_FORMAT11x REGISTER)
 	|	//e.g. move v1 v2
-		INSTRUCTION_NAME_FORMAT12x REGISTER REGISTER
+		INSTRUCTION_NAME_FORMAT12x REGISTER ',' REGISTER
 		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] INSTRUCTION_NAME_FORMAT12x REGISTER REGISTER)		
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
-		INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type
+		INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER ',' full_field_name_and_type
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type)
 	|	//e.g. const-string v1 "Hello World!"
-		INSTRUCTION_NAME_FORMAT21c_STRING REGISTER STRING_LITERAL
+		INSTRUCTION_NAME_FORMAT21c_STRING REGISTER ',' STRING_LITERAL
 		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_NAME_FORMAT21c_STRING REGISTER STRING_LITERAL)
 	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
-		INSTRUCTION_NAME_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor
+		INSTRUCTION_NAME_FORMAT21c_TYPE REGISTER ',' class_or_array_type_descriptor
 		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_NAME_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		INSTRUCTION_NAME_FORMAT22c_FIELD REGISTER REGISTER full_field_name_and_type
+		INSTRUCTION_NAME_FORMAT22c_FIELD REGISTER ',' REGISTER ',' full_field_name_and_type
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_INSTANCE_FIELD_STATEMENT"] INSTRUCTION_NAME_FORMAT22c_FIELD REGISTER REGISTER full_field_name_and_type)
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		INSTRUCTION_NAME_FORMAT35c_METHOD '{' register_list '}' full_method_name_and_prototype
+		INSTRUCTION_NAME_FORMAT35c_METHOD '{' register_list '}' ',' full_method_name_and_prototype
 		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_NAME_FORMAT35c_METHOD register_list full_method_name_and_prototype)
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		INSTRUCTION_NAME_FORMAT3rc_METHOD '{' register_range '}' full_method_name_and_prototype
+		INSTRUCTION_NAME_FORMAT3rc_METHOD '{' register_range '}' ',' full_method_name_and_prototype
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_NAME_FORMAT3rc_METHOD register_range full_method_name_and_prototype)
 	;
 
