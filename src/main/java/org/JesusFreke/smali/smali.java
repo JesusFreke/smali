@@ -32,6 +32,7 @@ import org.JesusFreke.dexlib.DexFile;
 import org.JesusFreke.dexlib.util.ByteArrayOutput;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.Token;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 
@@ -48,11 +49,12 @@ public class smali
 
         List l = tokens.getTokens();*/
 
-
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(args[0]));
         smaliLexer lexer = new smaliLexer(input);
+
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         smaliParser parser = new smaliParser(tokens);
+      
         smaliParser.smali_file_return result = parser.smali_file();
         CommonTree t = (CommonTree) result.getTree();
 

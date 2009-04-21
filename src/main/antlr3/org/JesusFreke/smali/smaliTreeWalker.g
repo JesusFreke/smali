@@ -29,7 +29,7 @@
 tree grammar smaliTreeWalker;
 
 options {
-	tokenVocab=smali;
+	tokenVocab=smaliParser;
 	ASTLabelType=CommonTree;
 }
 
@@ -96,16 +96,16 @@ header	:	class_spec super_spec
 	};
 
 class_spec returns[TypeIdItem type, int accessFlags]
-	:	class_name access_list
+	:	class_type_descriptor access_list
 	{
-		$type = $class_name.type;
+		$type = $class_type_descriptor.type;
 		$accessFlags = $access_list.value;
 	};
 
 super_spec returns[TypeIdItem type]
-	:	^(I_SUPER class_name)
+	:	^(I_SUPER class_type_descriptor)
 	{
-		$type = $class_name.type;
+		$type = $class_type_descriptor.type;
 	};
 
 access_list returns [int value]
@@ -134,10 +134,10 @@ methods	:	^(I_METHODS
 			})*);
 
 field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue]
-	:^(I_FIELD member_name access_list ^(I_FIELD_TYPE field_type_descriptor) field_initial_value)
+	:^(I_FIELD MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) field_initial_value)
 	{
 		TypeIdItem classType = classDefItem.getClassType();
-		StringIdItem memberName = new StringIdItem(dexFile, $member_name.memberName);
+		StringIdItem memberName = new StringIdItem(dexFile, $MEMBER_NAME.text);
 		TypeIdItem fieldType = $field_type_descriptor.type;
 
 		FieldIdItem fieldIdItem = new FieldIdItem(dexFile, classType, memberName, fieldType);
@@ -157,7 +157,7 @@ field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue
 
 field_initial_value returns[EncodedValue encodedValue]
 	:	^(I_FIELD_INITIAL_VALUE 
-			(	int_literal { $encodedValue = new EncodedValue(dexFile, new IntEncodedValueSubField($int_literal.value)); }
+			(	integer_literal { $encodedValue = new EncodedValue(dexFile, new IntEncodedValueSubField($integer_literal.value)); }
 			|	long_literal { $encodedValue = new EncodedValue(dexFile, new LongEncodedValueSubField($long_literal.value)); }
 			|	float_literal { $encodedValue = new EncodedValue(dexFile, new FloatEncodedValueSubField($float_literal.value)); }
 			|	double_literal { $encodedValue = new EncodedValue(dexFile, new DoubleEncodedValueSubField($double_literal.value)); }
@@ -169,10 +169,10 @@ field_initial_value returns[EncodedValue encodedValue]
 
 	
 method returns[ClassDataItem.EncodedMethod encodedMethod]
-	:	^(I_METHOD method_name_and_prototype access_list locals_directive statements)
+	:	^(I_METHOD method_name_and_prototype access_list registers_directive statements)
 	{
 		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
-		int registers = $locals_directive.registers;
+		int registers = $registers_directive.registers;
 		int access = $access_list.value;
 		boolean isStatic = (access & AccessFlags.STATIC) != 0; 
 		ArrayList<Instruction> instructions = $statements.instructions;
@@ -192,10 +192,10 @@ method_prototype returns[ProtoIdItem protoIdItem]
 	};
 
 method_name_and_prototype returns[MethodIdItem methodIdItem]
-	:	member_name method_prototype
+	:	MEMBER_NAME method_prototype
 	{
 		TypeIdItem classType = classDefItem.getClassType();
-		String methodNameString = $member_name.memberName;
+		String methodNameString = $MEMBER_NAME.text;
 		StringIdItem methodName = new StringIdItem(dexFile, methodNameString);
 		ProtoIdItem protoIdItem = $method_prototype.protoIdItem;
 
@@ -214,23 +214,25 @@ field_type_list returns[ArrayList<TypeIdItem> types]
 			}
 		)*;
 	
-locals_directive returns[int registers]
-	:	^(I_REGISTERS INT_LITERAL) {$registers = Integer.parseInt($INT_LITERAL.text);};
+registers_directive returns[int registers]
+	:	^(I_REGISTERS INTEGER_LITERAL) {$registers = Integer.parseInt($INTEGER_LITERAL.text);};
 
-full_method_name_and_prototype returns[MethodIdItem methodIdItem]
-	:	QUALIFIED_MEMBER__CLASS_NAME QUALIFIED_MEMBER__MEMBER_NAME method_prototype
+
+
+fully_qualified_method returns[MethodIdItem methodIdItem]
+	:	CLASS_NAME MEMBER_NAME method_prototype
 	{
-		TypeIdItem classType = new TypeIdItem(dexFile, "L" + $QUALIFIED_MEMBER__CLASS_NAME.text + ";");
-		StringIdItem methodName = new StringIdItem(dexFile, $QUALIFIED_MEMBER__MEMBER_NAME.text);
+		TypeIdItem classType = new TypeIdItem(dexFile, "L" + $CLASS_NAME.text + ";");
+		StringIdItem methodName = new StringIdItem(dexFile, $MEMBER_NAME.text);
 		ProtoIdItem prototype = $method_prototype.protoIdItem;
 		$methodIdItem = new MethodIdItem(dexFile, classType, methodName, prototype);		
 	};
 
-full_field_name_and_type returns[FieldIdItem fieldIdItem]
-	:	QUALIFIED_MEMBER__CLASS_NAME QUALIFIED_MEMBER__MEMBER_NAME field_type_descriptor
+fully_qualified_field returns[FieldIdItem fieldIdItem]
+	:	CLASS_NAME MEMBER_NAME field_type_descriptor
 	{
-		TypeIdItem classType = new TypeIdItem(dexFile, "L" + $QUALIFIED_MEMBER__CLASS_NAME.text + ";");
-		StringIdItem fieldName = new StringIdItem(dexFile, $QUALIFIED_MEMBER__MEMBER_NAME.text);
+		TypeIdItem classType = new TypeIdItem(dexFile, "L" + $CLASS_NAME.text + ";");
+		StringIdItem fieldName = new StringIdItem(dexFile, $MEMBER_NAME.text);
 		TypeIdItem fieldType = $field_type_descriptor.type;
 		$fieldIdItem = new FieldIdItem(dexFile, classType, fieldName, fieldType);
 	};
@@ -249,42 +251,42 @@ statements returns[ArrayList<Instruction> instructions]
 	
 instruction returns[Instruction instruction]
 		//e.g. return
-	:	^(I_STATEMENT_FORMAT10x INSTRUCTION_NAME_FORMAT10x)
+	:	^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT10x.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
 			$instruction = Format10x.Format.make(dexFile, opcode.value);
 		}
 	|	//e.g. move-result-object v1
-		^(I_STATEMENT_FORMAT11x INSTRUCTION_NAME_FORMAT11x REGISTER)
+		^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT11x.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
 			$instruction = Format11x.Format.make(dexFile, opcode.value, regA);
 		}
 	|	//e.g. move v1 v2
-		^(I_STATEMENT_FORMAT12x INSTRUCTION_NAME_FORMAT12x registerA=REGISTER registerB=REGISTER)
+		^(I_STATEMENT_FORMAT12x INSTRUCTION_FORMAT12x registerA=REGISTER registerB=REGISTER)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT12x.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT12x.text);
 			byte regA = parseRegister_nibble($registerA.text);
 			byte regB = parseRegister_nibble($registerB.text);
 			
 			$instruction = Format12x.Format.make(dexFile, opcode.value, regA, regB);
 		}
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
-		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_NAME_FORMAT21c_FIELD REGISTER full_field_name_and_type)
+		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT21c_FIELD.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_FIELD.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
-			FieldIdItem fieldIdItem = $full_field_name_and_type.fieldIdItem;
+			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, fieldIdItem);
 		}
 	|	//e.g. const-string v1 "Hello World!"
-		^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_NAME_FORMAT21c_STRING REGISTER string_literal)
+		^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT21c_STRING.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
 			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
@@ -292,9 +294,9 @@ instruction returns[Instruction instruction]
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, stringIdItem);
 		}
 	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
-		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_NAME_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
+		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT21c_TYPE.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
 			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
@@ -302,22 +304,22 @@ instruction returns[Instruction instruction]
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
 		}	
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_NAME_FORMAT35c_METHOD register_list full_method_name_and_prototype)
+		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT35c_METHOD.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT35c_METHOD.text);
 
 			//this depends on the fact that register_list returns a byte[5]
 			byte[] registers = $register_list.registers;
 			byte registerCount = $register_list.registerCount;
 			
-			MethodIdItem methodIdItem = $full_method_name_and_prototype.methodIdItem;
+			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 			
 			$instruction = Format35c.Format.make(dexFile, opcode.value, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem);
 		}
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_NAME_FORMAT3rc_METHOD register_range full_method_name_and_prototype)
+		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT3rc_METHOD.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_METHOD.text);
 			int startRegister = $register_range.startRegister;
 			int endRegister = $register_range.endRegister;
 			
@@ -331,19 +333,19 @@ instruction returns[Instruction instruction]
 				throw new RuntimeException("A register range must have the lower register listed first");
 			}
 			
-			MethodIdItem methodIdItem = $full_method_name_and_prototype.methodIdItem;
+			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 
 			//not supported yet
 			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, methodIdItem);
 		}
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_NAME_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER full_field_name_and_type)
+		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_NAME_FORMAT22c_FIELD.text);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD.text);
 			byte regA = parseRegister_nibble($registerA.text);
 			byte regB = parseRegister_nibble($registerB.text);
 			
-			FieldIdItem fieldIdItem = $full_field_name_and_type.fieldIdItem;
+			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 			
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, fieldIdItem);			
 		}
@@ -378,54 +380,19 @@ register_range returns[int startRegister, int endRegister]
 		}
 	;
 
-simple_name
-	:	SIMPLE_NAME 
-	|	ACCESS_SPEC
-	|	INT_LITERAL
-	|	LONG_LITERAL
-	|	FLOAT_LITERAL_SIMPLE_NAME
-	|	DOUBLE_LITERAL_SIMPLE_NAME
-	|	BOOL_LITERAL
-	|	PRIMITIVE_TYPE
-	|	instruction_name
-	;
-
-instruction_name returns[String value]
-	:	INSTRUCTION_NAME_FORMAT10x
-	|	INSTRUCTION_NAME_FORMAT11x
-	|	INSTRUCTION_NAME_FORMAT12x
-	|	INSTRUCTION_NAME_FORMAT21c_FIELD
-	|	INSTRUCTION_NAME_FORMAT21c_STRING
-	|	INSTRUCTION_NAME_FORMAT21c_TYPE
-	|	INSTRUCTION_NAME_FORMAT22c_FIELD
-	|	INSTRUCTION_NAME_FORMAT35c_METHOD
-	|	INSTRUCTION_NAME_FORMAT3rc_METHOD
-	;
-
-member_name returns[String memberName]
-	:	(simple_name
-	|	MEMBER_NAME) {$memberName = $start.getText();}
-	; 
-	
-class_name returns [TypeIdItem type]
-	:	token=(SIMPLE_NAME | CLASS_WITH_PACKAGE_NAME)
-		{
-			$type = new TypeIdItem(dexFile, 'L'+$token.text+';');
-		};
-	
 field_type_descriptor returns [TypeIdItem type]
-	:	token=(PRIMITIVE_TYPE
+	:	(PRIMITIVE_TYPE
 	|	CLASS_DESCRIPTOR	
-	|	ARRAY_TYPE)
+	|	ARRAY_DESCRIPTOR)
 	{
-		$type = new TypeIdItem(dexFile, $token.text);
+		$type = new TypeIdItem(dexFile, $start.getText());
 	};
 	
 class_or_array_type_descriptor returns [TypeIdItem type]
-	:	token=(CLASS_DESCRIPTOR
-	|	ARRAY_TYPE)
+	:	(CLASS_DESCRIPTOR
+	|	ARRAY_DESCRIPTOR)
 	{
-		$type = new TypeIdItem(dexFile, $token.text);
+		$type = new TypeIdItem(dexFile, $start.getText());
 	};
 
 class_type_descriptor returns [TypeIdItem type]
@@ -439,8 +406,8 @@ type_descriptor returns [TypeIdItem type]
 	|	field_type_descriptor {$type = $field_type_descriptor.type;}
 	;
 	
-int_literal returns[int value]
-	:	INT_LITERAL { $value = Integer.parseInt($INT_LITERAL.text); };
+integer_literal returns[int value]
+	:	INTEGER_LITERAL { $value = Integer.parseInt($INTEGER_LITERAL.text); };
 
 long_literal returns[long value]
 	:	LONG_LITERAL { $value = Long.parseLong($LONG_LITERAL.text); };
@@ -455,7 +422,11 @@ char_literal returns[char value]
 	:	CHAR_LITERAL { $value = $CHAR_LITERAL.text.charAt(0); };
 
 string_literal returns[String value]
-	:	STRING_LITERAL { $value = $STRING_LITERAL.text; };
+	:	STRING_LITERAL
+		{
+			$value = $STRING_LITERAL.text;
+			$value = $value.substring(1,$value.length()-1);
+		};
 
 bool_literal returns[boolean value]
 	:	BOOL_LITERAL { $value = Boolean.parseBoolean($BOOL_LITERAL.text); };

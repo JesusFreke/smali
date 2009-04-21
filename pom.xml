@@ -23,12 +23,21 @@
                 <version>3.1.3-1</version>
                 <executions>
                      <execution>
-                         <id>smali</id>
+                         <id>smaliLexer</id>
                         <goals>
                             <goal>antlr</goal>
                         </goals>
-                        <configuration>                           
-                             <excludes><exclude>org/JesusFreke/smali/smaliTreeWalker.g</exclude></excludes>
+                        <configuration>
+                            <includes><include>org/JesusFreke/smali/smaliLexer.g</include></includes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                         <id>smaliParser</id>
+                        <goals>
+                            <goal>antlr</goal>
+                        </goals>
+                        <configuration>
+                            <includes><include>org/JesusFreke/smali/smaliParser.g</include></includes>
                         </configuration>
                     </execution>
                     <execution>
@@ -37,7 +46,7 @@
                             <goal>antlr</goal>
                         </goals>
                         <configuration>
-                             <excludes><exclude>org/JesusFreke/smali/smali.g</exclude></excludes>
+                            <includes><include>org/JesusFreke/smali/smaliTreeWalker.g</include></includes>
                         </configuration>
                     </execution>
                 </executions>
