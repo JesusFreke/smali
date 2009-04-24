@@ -1,13 +1,13 @@
 /* 
- * The number, string and character constant lexical rules are derived from rules
- * from the Java 1.6 grammar which can be found here:
+ * The comment, number, string and character constant lexical rules are
+ derived from rules from the Java 1.6 grammar which can be found here:
  * http://openjdk.java.net/projects/compiler-grammar/antlrworks/Java.g
  * 
  * Specifically, these rules:
  * 
  * STRING_LITERAL, ESCAPE_SEQUENCE, HEX_DIGITS, HEX_DIGIT, INTEGER_LITERAL,
  * HEX_PREFIX, LONG_LITERAL, FLOATING_POINT_NUMBER, DECIMAL_EXPONENT,
- * HEX_EXPONENT, FLOAT_LITERAL, DOUBLE_LITERAL, CHAR_LITERAL
+ * HEX_EXPONENT, FLOAT_LITERAL, DOUBLE_LITERAL, CHAR_LITERAL, LINE_COMMENT
  * 
  * These rules were originally copyrighted by Terence Parr, and are used here in
  * accordance with the following license
@@ -747,3 +747,9 @@ fragment WS
 
 WHITE_SPACE
 	:	(' '|'\t'|'\n'|'\r')+ {$channel = HIDDEN;};
+
+
+LINE_COMMENT
+	:	(';' ~('\n'|'\r')*  ('\r\n' | '\r' | '\n') 
+	|	';' ~('\n'|'\r')*)
+		{$channel = HIDDEN;};   

@@ -6,11 +6,22 @@
 
 .field private static helloWorldStatic2 Ljava/lang/String; = "Static Initializer Hello World!"
 
-.method static constructor <clinit>()V
+
+;This class should display the following text to the screen:
+;
+;Hello World!
+;Static Hello World!
+;Static Initializer Hello World!
+;org/JesusFreke/HelloWorld2/HelloWorld2
+;[Lorg/JesusFreke/HelloWorld2/HelloWorld2;
+;[I
+
+
+.method static constructor <clinit>()V ;test
     .registers 1
 
     const-string v0, "Static Hello World!"
-    sput-object v0, org/JesusFreke/HelloWorld2/HelloWorld2/helloWorldStatic Ljava/lang/String;
+    sput-object v0, org/JesusFreke/HelloWorld2/HelloWorld2/helloWorldStatic Ljava/lang/String; ;test
 
     return-void
 .end method
@@ -20,7 +31,7 @@
 	invoke-direct	{v1}, android/app/Activity/<init>()V
 
 	const-string	v0, "Hello World!"
-	iput-object v0, v1, org/JesusFreke/HelloWorld2/HelloWorld2/helloWorld Ljava/lang/String;
+	iput-object v0, v1, org/JesusFreke/HelloWorld2/HelloWorld2/helloWorld Ljava/lang/String;;test
 
 	return-void
 .end method
