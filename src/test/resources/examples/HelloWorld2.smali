@@ -15,6 +15,9 @@
 ;org/JesusFreke/HelloWorld2/HelloWorld2
 ;[Lorg/JesusFreke/HelloWorld2/HelloWorld2;
 ;[I
+;0
+;-8
+;7
 
 
 .method static constructor <clinit>()V ;test
@@ -98,6 +101,48 @@
     move-result-object v1
 
     move-object v2, v1
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+    ;test out Format11n, with various literals
+    ;with 0
+    const/4 v1, 0
+    invoke-static	{v1}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v1
+
+    invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+    ;with -8
+    const/4 v1, -8
+    invoke-static	{v1}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v1
+
+    invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+    ;with 7
+    const/4 v1, 7
+    invoke-static	{v1}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v1
+
+    invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
 
 
 

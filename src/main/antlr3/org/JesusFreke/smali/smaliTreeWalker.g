@@ -48,6 +48,14 @@ import org.JesusFreke.dexlib.code.Format.*;
 	public ClassDefItem classDefItem;
 	public ClassDataItem classDataItem;
 	
+	private static byte parseIntLiteral_nibble(String intLiteral) {
+		byte val = Byte.parseByte(intLiteral);
+		if (val < -(1<<3) || val >= 1<<3) {
+			//TODO: throw correct exception type
+			throw new RuntimeException("The literal integer value must be between -8 and 7, inclusive");
+		}
+		return val;
+	}
 	
 	private static byte parseRegister_nibble(String register) {
 		//register should be in the format "v12"		
@@ -256,6 +264,15 @@ instruction returns[Instruction instruction]
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
 			$instruction = Format10x.Format.make(dexFile, opcode.value);
 		}
+	|	//e.g. const/4 v0, 5
+		^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER INTEGER_LITERAL)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11n.text);
+			byte regA = parseRegister_nibble($REGISTER.text);
+			byte litB = parseIntLiteral_nibble($INTEGER_LITERAL.text);
+			
+			$instruction = Format11n.Format.make(dexFile, opcode.value, regA, litB);
+		}				
 	|	//e.g. move-result-object v1
 		^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
 		{

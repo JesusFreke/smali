@@ -51,7 +51,7 @@ public enum Opcode
     RETURN((byte)0x0f, "RETURN", (byte)2, ReferenceType.none, "11x"),
     RETURN_WIDE((byte)0x10, "RETURN-WIDE", (byte)2, ReferenceType.none, "11x"),
     RETURN_OBJECT((byte)0x11, "RETURN-OBJECT", (byte)2, ReferenceType.none, "11x"),
-    CONST_4((byte)0x12, "CONST-4", (byte)2, ReferenceType.none, "11n"),
+    CONST_4((byte)0x12, "CONST/4", (byte)2, ReferenceType.none, "11n"),
     CONST_16((byte)0x13, "CONST/16", (byte)4, ReferenceType.none, "21s"),
     CONST((byte)0x14, "CONST", (byte)6, ReferenceType.none, "31i"),
     CONST_HIGH16((byte)0x15, "CONST/HIGH16", (byte)4, ReferenceType.none, "21h"),
