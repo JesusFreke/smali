@@ -61,6 +61,7 @@ tokens {
 	I_STATEMENT_FORMAT21c_FIELD;
 	I_STATEMENT_FORMAT22c_FIELD;
 	I_STATEMENT_FORMAT21c_STRING;
+	I_STATEMENT_FORMAT30t;
 	I_STATEMENT_FORMAT35c_METHOD;
 	I_STATEMENT_FORMAT3rc_METHOD;
 	I_REGISTER_RANGE;
@@ -161,6 +162,9 @@ instruction returns [int size]
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format22c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_INSTANCE_FIELD_STATEMENT"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
+	|	//e.g. goto/32 endloop:
+		INSTRUCTION_FORMAT30t (LABEL | OFFSET) {$size = Format30t.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t LABEL? OFFSET?)
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
 		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACKET register_list CLOSE_BRACKET fully_qualified_method {$size = Format35c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
