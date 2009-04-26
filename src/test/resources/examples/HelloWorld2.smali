@@ -19,6 +19,7 @@
 ;-8
 ;7
 ;But this should!
+;But this should!
 
 
 .method static constructor <clinit>()V ;test
@@ -145,6 +146,7 @@
 
 
 
+    ;test format10t with a label
     goto SKIP:
 
     const-string	v1, "This shouldn't be displayed!"
@@ -158,6 +160,19 @@
     invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
 	move-result-object v2
 
+
+	;test format10t with an offset
+	goto +3
+
+    const-string	v1, "This shouldn't be displayed!"
+
+    const-string v1,"But this should!"
+
+    invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
 
 
 

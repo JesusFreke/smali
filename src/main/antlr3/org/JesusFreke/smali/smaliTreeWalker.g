@@ -305,22 +305,38 @@ label returns[String labelName]
 			String label = $LABEL.text;
 			return label.substring(0, label.length()-1);
 		};
-
-	
-instruction returns[Instruction instruction]
-	:	//e.g. goto endloop:
-		^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t label_ref)
+		
+offset	returns[int offsetValue]
+	:	OFFSET
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10t.text);
-			
+			String offsetText = $OFFSET.text;
+			if (offsetText.startsWith("+")) {
+				offsetText = offsetText.substring(1);
+			}
+			$offsetValue = Integer.parseInt(offsetText);
+		};
+		
+offset_or_label returns[int offsetValue]
+	:	offset {$offsetValue = $offset.offsetValue;}
+	|	label_ref
+		{
 			int labelAddress = $label_ref.labelAddress;
 			int currentAddress = $method::currentAddress;
 			
-			int addressOffset = labelAddress - currentAddress;
+			$offsetValue = labelAddress-currentAddress;
+		};
+	
+instruction returns[Instruction instruction]
+	:	//e.g. goto endloop:
+		^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10t.text);
+			
+			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Byte.MIN_VALUE || addressOffset > Byte.MAX_VALUE) {
 				//TODO: throw correct exception type
-				throw new RuntimeException("The offset to the given label is out of range. The offset is " + Integer.toString(addressOffset) + ". The range for this opcode is [-128, 127].");
+				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-128, 127].");
 			}
 			
 			$instruction = Format10t.Format.make(dexFile, opcode.value, (byte)addressOffset);

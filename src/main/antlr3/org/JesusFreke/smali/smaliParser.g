@@ -130,8 +130,9 @@ label
 	
 instruction returns [int size]
 	:	//e.g. goto endloop:
-		INSTRUCTION_FORMAT10t LABEL {$size = Format10t.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t LABEL)
+		//e.g. goto +3
+		INSTRUCTION_FORMAT10t (LABEL | OFFSET){$size = Format10t.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t LABEL? OFFSET?)
 	|	//e.g. return
 		INSTRUCTION_FORMAT10x {$size = Format10x.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x)
