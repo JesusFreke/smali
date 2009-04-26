@@ -59,9 +59,11 @@ tokens {
 	I_STATEMENT_FORMAT20t;
 	I_STATEMENT_FORMAT21c_TYPE;
 	I_STATEMENT_FORMAT21c_FIELD;
-	I_STATEMENT_FORMAT22c_FIELD;
 	I_STATEMENT_FORMAT21c_STRING;
+	I_STATEMENT_FORMAT22c_FIELD;
+	I_STATEMENT_FORMAT22x;
 	I_STATEMENT_FORMAT30t;
+	I_STATEMENT_FORMAT32x;
 	I_STATEMENT_FORMAT35c_METHOD;
 	I_STATEMENT_FORMAT3rc_METHOD;
 	I_REGISTER_RANGE;
@@ -162,9 +164,15 @@ instruction returns [int size]
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format22c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_INSTANCE_FIELD_STATEMENT"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
+	|	//e.g. move/from16 v1, v1234
+		INSTRUCTION_FORMAT22x REGISTER REGISTER {$size = Format22x.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT22x[$start, "I_STATEMENT_FORMAT22x"] INSTRUCTION_FORMAT22x REGISTER REGISTER)		
 	|	//e.g. goto/32 endloop:
 		INSTRUCTION_FORMAT30t (LABEL | OFFSET) {$size = Format30t.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t LABEL? OFFSET?)
+	|	//e.g. move/16 v4567, v1234
+		INSTRUCTION_FORMAT32x REGISTER REGISTER {$size = Format32x.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER)		
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
 		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACKET register_list CLOSE_BRACKET fully_qualified_method {$size = Format35c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)

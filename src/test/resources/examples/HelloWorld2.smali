@@ -22,6 +22,8 @@
 ;Format10t with an offset
 ;Format20t with a label
 ;Format30t with a label
+;Testing Format22x and Format32x
+
 
 
 .method static constructor <clinit>()V ;test
@@ -41,6 +43,19 @@
 	iput-object v0, v1, org/JesusFreke/HelloWorld2/HelloWorld2/helloWorld Ljava/lang/String;;test
 
 	return-void
+.end method
+
+
+.method public largeRegisterTest()Ljava/lang/String;
+    .registers 1235
+
+    const-string v1, "Testing Format22x and Format32x"
+	move-object/16 v1234, v1
+
+    const-string v1, "This shouldn't be displayed!"
+    move-object/from16 v1, v1234
+
+    return-object v1
 .end method
 
 .method public onCreate(Landroid/os/Bundle;)V
@@ -207,6 +222,17 @@
     invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
 	move-result-object v2
 
+
+
+	;test format22x and format32x
+    invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/largeRegisterTest()Ljava/lang/String;
+    move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
 
 
     check-cast  v4, Landroid/app/Activity;

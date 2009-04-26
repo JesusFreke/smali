@@ -428,6 +428,15 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, fieldIdItem);			
 		}		
+	|	//e.g. move/from16 v1, v1234
+		^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22x.text);
+			short regA = parseRegister_byte($registerA.text);
+			int regB = parseRegister_short($registerB.text);
+			
+			$instruction = Format22x.Format.make(dexFile, opcode.value, regA, regB);
+		}
 	|	//e.g. goto/32 endloop:
 		^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
 		{
@@ -436,6 +445,15 @@ instruction returns[Instruction instruction]
 			int addressOffset = $offset_or_label.offsetValue;
 	
 			$instruction = Format30t.Format.make(dexFile, opcode.value, addressOffset);
+		}
+	|	//e.g. move/16 v5678, v1234
+		^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT32x.text);
+			int regA = parseRegister_short($registerA.text);
+			int regB = parseRegister_short($registerB.text);
+			
+			$instruction = Format32x.Format.make(dexFile, opcode.value, regA, regB);
 		}
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
 		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
