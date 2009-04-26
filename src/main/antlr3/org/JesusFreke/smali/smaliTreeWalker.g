@@ -373,6 +373,20 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format12x.Format.make(dexFile, opcode.value, regA, regB);
 		}
+	|	//e.g. goto/16 endloop:
+		^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT20t.text);
+			
+			int addressOffset = $offset_or_label.offsetValue;
+
+			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
+				//TODO: throw correct exception type
+				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+			}
+			
+			$instruction = Format20t.Format.make(dexFile, opcode.value, (byte)addressOffset);
+		}
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
 		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
 		{

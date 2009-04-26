@@ -56,6 +56,7 @@ tokens {
 	I_STATEMENT_FORMAT11n;
 	I_STATEMENT_FORMAT11x;
 	I_STATEMENT_FORMAT12x;
+	I_STATEMENT_FORMAT20t;
 	I_STATEMENT_FORMAT21c_TYPE;
 	I_STATEMENT_FORMAT21c_FIELD;
 	I_STATEMENT_FORMAT22c_FIELD;
@@ -131,7 +132,7 @@ label
 instruction returns [int size]
 	:	//e.g. goto endloop:
 		//e.g. goto +3
-		INSTRUCTION_FORMAT10t (LABEL | OFFSET){$size = Format10t.Format.getByteCount();}
+		INSTRUCTION_FORMAT10t (LABEL | OFFSET) {$size = Format10t.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t LABEL? OFFSET?)
 	|	//e.g. return
 		INSTRUCTION_FORMAT10x {$size = Format10x.Format.getByteCount();}
@@ -145,6 +146,9 @@ instruction returns [int size]
 	|	//e.g. move v1 v2
 		INSTRUCTION_FORMAT12x REGISTER REGISTER {$size = Format12x.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] INSTRUCTION_FORMAT12x REGISTER REGISTER)		
+	|	//e.g. goto/16 endloop:
+		INSTRUCTION_FORMAT20t (LABEL | OFFSET) {$size = Format20t.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t LABEL? OFFSET?)
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
 		INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field {$size = Format21c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)

@@ -18,8 +18,9 @@
 ;0
 ;-8
 ;7
-;But this should!
-;But this should!
+;Format10t with a label
+;Format10t with an offset
+;Format20t with a label
 
 
 .method static constructor <clinit>()V ;test
@@ -152,7 +153,7 @@
     const-string	v1, "This shouldn't be displayed!"
 
     SKIP:
-    const-string v1,"But this should!"
+    const-string v1,"Format10t with a label"
 
     invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
     move-result-object v2
@@ -166,7 +167,24 @@
 
     const-string	v1, "This shouldn't be displayed!"
 
-    const-string v1,"But this should!"
+    const-string v1,"Format10t with an offset"
+
+    invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+
+
+    ;test format20t with a label
+    goto/16 SKIP2:
+
+    const-string	v1, "This shouldn't be displayed!"
+
+    SKIP2:
+    const-string v1,"Format20t with a label"
 
     invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
     move-result-object v2
