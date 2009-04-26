@@ -48,7 +48,10 @@ tokens {
 	I_METHOD_PROTOTYPE;
 	I_METHOD_RETURN_TYPE;
 	I_REGISTERS;
+	I_LABELS;
+	I_LABEL;	
 	I_STATEMENTS;
+	I_STATEMENT_FORMAT10t;
 	I_STATEMENT_FORMAT10x;
 	I_STATEMENT_FORMAT11n;
 	I_STATEMENT_FORMAT11x;
@@ -68,6 +71,8 @@ tokens {
 
 @header {
 package org.JesusFreke.smali;
+
+import org.JesusFreke.dexlib.code.Format.*;
 }
 
 
@@ -114,41 +119,48 @@ fully_qualified_field
 	:	CLASS_NAME MEMBER_NAME field_type_descriptor;
 
 statements
-	:	statement* -> ^(I_STATEMENTS statement*);
+	scope {int currentAddress;}
+	:	{$statements::currentAddress = 0;}
+		(	instruction {$statements::currentAddress += $instruction.size/2;}
+		|	label)*		
+		-> ^(I_LABELS label*) ^(I_STATEMENTS instruction*);
 
-statement
-	:	instruction;
+label
+	:	LABEL -> ^(I_LABEL LABEL {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($statements::currentAddress)))});
 	
-instruction
-		//e.g. return
-	:	INSTRUCTION_FORMAT10x
+instruction returns [int size]
+	:	//e.g. goto endloop:
+		INSTRUCTION_FORMAT10t LABEL {$size = Format10t.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t LABEL)
+	|	//e.g. return
+		INSTRUCTION_FORMAT10x {$size = Format10x.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x)
 	|	//e.g. const/4 v0, 5
-		INSTRUCTION_FORMAT11n REGISTER INTEGER_LITERAL
+		INSTRUCTION_FORMAT11n REGISTER INTEGER_LITERAL {$size = Format11n.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STARTMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER INTEGER_LITERAL)
 	|	//e.g. move-result-object v1
-		INSTRUCTION_FORMAT11x REGISTER
+		INSTRUCTION_FORMAT11x REGISTER {$size = Format11x.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_FORMAT11x REGISTER)
 	|	//e.g. move v1 v2
-		INSTRUCTION_FORMAT12x REGISTER REGISTER
+		INSTRUCTION_FORMAT12x REGISTER REGISTER {$size = Format12x.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] INSTRUCTION_FORMAT12x REGISTER REGISTER)		
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
-		INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field
+		INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field {$size = Format21c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
 	|	//e.g. const-string v1 "Hello World!"
-		INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL
+		INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL {$size = Format21c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL)
 	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
-		INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor
+		INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor {$size = Format21c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field
+		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format22c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_INSTANCE_FIELD_STATEMENT"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACKET register_list CLOSE_BRACKET fully_qualified_method 
+		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACKET register_list CLOSE_BRACKET fully_qualified_method {$size = Format35c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method
+		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method {$size = Format3rc.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
 	;
 

@@ -36,6 +36,8 @@ options {
 @header {
 package org.JesusFreke.smali;
 
+import java.util.HashMap;
+
 import org.JesusFreke.dexlib.*;
 import org.JesusFreke.dexlib.EncodedValue.*;
 import org.JesusFreke.dexlib.util.*;
@@ -177,7 +179,16 @@ field_initial_value returns[EncodedValue encodedValue]
 
 	
 method returns[ClassDataItem.EncodedMethod encodedMethod]
-	:	^(I_METHOD method_name_and_prototype access_list registers_directive statements)
+	scope
+	{
+		HashMap<String, Integer> labels;
+		int currentAddress;
+	}
+	:	{
+			$method::labels = new HashMap<String, Integer>();
+			$method::currentAddress = 0;
+		}
+		^(I_METHOD method_name_and_prototype access_list registers_directive labels statements)
 	{
 		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
 		int registers = $registers_directive.registers;
@@ -244,22 +255,78 @@ fully_qualified_field returns[FieldIdItem fieldIdItem]
 		TypeIdItem fieldType = $field_type_descriptor.type;
 		$fieldIdItem = new FieldIdItem(dexFile, classType, fieldName, fieldType);
 	};
+	
+labels
+	:	^(I_LABELS label_def*);
+	
+label_def
+	:	^(I_LABEL label integer_literal)
+		{
+			String labelName = $label.labelName;
+			if ($method::labels.containsKey(labelName)) {
+				//TODO: use appropriate exception type
+				throw new RuntimeException("Label " + labelName + " has multiple defintions.");
+			}
+				
+			
+			$method::labels.put(labelName, $integer_literal.value);
+		};
 
 statements returns[ArrayList<Instruction> instructions]
 	@init
 	{
 		$instructions = new ArrayList<Instruction>();
 	}
-	:	^(I_STATEMENTS
-			(instruction
-			{
-				$instructions.add($instruction.instruction);			
-			})*);
+	:	^(I_STATEMENTS	(instruction
+				{
+					$instructions.add($instruction.instruction);
+					$method::currentAddress += $instruction.instruction.getOpcode().numBytes/2;
+				})*);
+			
+label_ref returns[int labelAddress]
+	:	label
+		{
+			String labelName = $label.labelName;
+			
+			Integer labelAdd = $method::labels.get(labelName);
+			
+			if (labelAdd == null) {
+				//TODO: throw correct exception type
+				throw new RuntimeException("Label \"" + labelName + "\" is not defined.");
+			}
+			
+			$labelAddress = labelAdd;
+		};
+	
+	
+label returns[String labelName]
+	:	LABEL
+		{
+			String label = $LABEL.text;
+			return label.substring(0, label.length()-1);
+		};
 
 	
 instruction returns[Instruction instruction]
-		//e.g. return
-	:	^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
+	:	//e.g. goto endloop:
+		^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t label_ref)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10t.text);
+			
+			int labelAddress = $label_ref.labelAddress;
+			int currentAddress = $method::currentAddress;
+			
+			int addressOffset = labelAddress - currentAddress;
+
+			if (addressOffset < Byte.MIN_VALUE || addressOffset > Byte.MAX_VALUE) {
+				//TODO: throw correct exception type
+				throw new RuntimeException("The offset to the given label is out of range. The offset is " + Integer.toString(addressOffset) + ". The range for this opcode is [-128, 127].");
+			}
+			
+			$instruction = Format10t.Format.make(dexFile, opcode.value, (byte)addressOffset);
+		}
+	|	//e.g. return
+		^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
 			$instruction = Format10x.Format.make(dexFile, opcode.value);
