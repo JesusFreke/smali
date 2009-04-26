@@ -385,7 +385,7 @@ instruction returns[Instruction instruction]
 				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
-			$instruction = Format20t.Format.make(dexFile, opcode.value, (byte)addressOffset);
+			$instruction = Format20t.Format.make(dexFile, opcode.value, (short)addressOffset);
 		}
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
 		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
