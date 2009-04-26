@@ -416,7 +416,18 @@ instruction returns[Instruction instruction]
 			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
 			
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
-		}	
+		}
+	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD.text);
+			byte regA = parseRegister_nibble($registerA.text);
+			byte regB = parseRegister_nibble($registerB.text);
+			
+			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
+			
+			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, fieldIdItem);			
+		}		
 	|	//e.g. goto/32 endloop:
 		^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
 		{
@@ -460,17 +471,6 @@ instruction returns[Instruction instruction]
 
 			//not supported yet
 			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, methodIdItem);
-		}
-	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
-		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD.text);
-			byte regA = parseRegister_nibble($registerA.text);
-			byte regB = parseRegister_nibble($registerB.text);
-			
-			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
-			
-			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, fieldIdItem);			
 		}
 	;
 
