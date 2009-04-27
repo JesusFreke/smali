@@ -63,6 +63,7 @@ tokens {
 	I_STATEMENT_FORMAT21h;
 	I_STATEMENT_FORMAT21s;
 	I_STATEMENT_FORMAT21t;
+	I_STATEMENT_FORMAT22b;
 	I_STATEMENT_FORMAT22c_FIELD;
 	I_STATEMENT_FORMAT22x;
 	I_STATEMENT_FORMAT23x;
@@ -174,7 +175,10 @@ instruction returns [int size]
 	|	//e.g. if-eqz v0, endloop:
 		INSTRUCTION_FORMAT21t REGISTER (LABEL | OFFSET) {$size = Format21t.Format.getByteCount();}	
 		-> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER LABEL? OFFSET?)
-	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+	|	//e.g. add-int v0, v1, 123
+		INSTRUCTION_FORMAT22b REGISTER REGISTER INTEGER_LITERAL {$size = Format22b.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT22b[$start, "I_STATEMENT_FORMAT22b"] INSTRUCTION_FORMAT22b REGISTER REGISTER INTEGER_LITERAL)
+	|	//e.g. iput-object v1, v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format22c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_INSTANCE_FIELD_STATEMENT"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
 	|	//e.g. move/from16 v1, v1234

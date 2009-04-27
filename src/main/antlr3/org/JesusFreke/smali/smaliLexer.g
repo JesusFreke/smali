@@ -305,6 +305,15 @@ INSTRUCTION_FORMAT21t_PHRASE
 		WS? ',' WS?
 		(LABEL_EMIT | OFFSET_EMIT);
 		
+INSTRUCTION_FORMAT22b_PHRASE
+	:	INSTRUCTION_FORMAT22b_EMIT
+		WS
+		REGISTER_EMIT
+		WS? ',' WS?
+		REGISTER_EMIT
+		WS? ',' WS?
+		INTEGER_LITERAL_EMIT;
+		
 INSTRUCTION_FORMAT22c_FIELD_PHRASE
 	:	INSTRUCTION_FORMAT22c_FIELD_EMIT
 		WS
@@ -797,6 +806,22 @@ fragment INSTRUCTION_FORMAT21t
 	|	'if-gez'
 	|	'if-gtz'
 	|	'if-lez'
+	;
+	
+fragment INSTRUCTION_FORMAT22b_EMIT
+	:	INSTRUCTION_FORMAT22b {emit($INSTRUCTION_FORMAT22b, INSTRUCTION_FORMAT22b);};
+fragment INSTRUCTION_FORMAT22b
+	:	'add-int/lit8'
+	|	'rsub-int/lit8'
+	|	'mul-int/lit8'
+	|	'div-int/lit8'
+	|	'rem-int/lit8'
+	|	'and-int/lit8'
+	|	'or-int/lit8'
+	|	'xor-int/lit8'
+	|	'shl-int/lit8'
+	|	'shr-int/lit8'
+	|	'ushr-int/lit8'
 	;
 	
 fragment INSTRUCTION_FORMAT22c_FIELD_EMIT

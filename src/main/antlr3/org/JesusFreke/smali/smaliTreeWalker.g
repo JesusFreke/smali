@@ -59,6 +59,10 @@ import org.JesusFreke.dexlib.code.Format.*;
 		return val;
 	}
 	
+	private static byte parseIntLiteral_byte(String intLiteral) {
+		return Byte.parseByte(intLiteral);
+	}
+	
 	private static short parseIntLiteral_short(String intLiteral) {
 		return Short.parseShort(intLiteral);
 	}
@@ -455,6 +459,17 @@ instruction returns[Instruction instruction]
 			}
 			
 			$instruction = Format21t.Format.make(dexFile, opcode.value, regA, (short)addressOffset);
+		}
+	|	//e.g. add-int v0, v1, 123
+		^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER INTEGER_LITERAL)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22b.text);
+			short regA = parseRegister_byte($registerA.text);
+			short regB = parseRegister_byte($registerB.text);
+			
+			byte litC = parseIntLiteral_byte($INTEGER_LITERAL.text);
+			
+			$instruction = Format22b.Format.make(dexFile, opcode.value, regA, regB, litC);
 		}
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)

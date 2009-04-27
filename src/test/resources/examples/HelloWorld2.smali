@@ -27,6 +27,8 @@
 ;-2147483648
 ;-9223372036854775808
 ;-1
+;20
+
 
 
 .method static constructor <clinit>()V ;test
@@ -125,6 +127,18 @@ HERE:
 
 
     return-object v6
+.end method
+
+.method public testFormat22b()Ljava/lang/String;
+    .registers 2
+
+    const/16 v0, -10
+    add-int/lit8 v1, v0, 30
+
+    invoke-static {v1}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v0
+
+    return-object v0
 .end method
 
 .method public onCreate(Landroid/os/Bundle;)V
@@ -353,6 +367,16 @@ HERE:
 
 	;test format23x
     invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat23x()Ljava/lang/String;
+    move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	;test format22b
+    invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat22b()Ljava/lang/String;
     move-result-object v1
 
 	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;

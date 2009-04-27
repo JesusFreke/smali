@@ -281,7 +281,7 @@ public enum Opcode
     }
 
     public static Opcode getOpcodeByValue(byte opcodeValue) {
-        return opcodesByValue.get(opcodeValue);
+        return opcodesByValue.get(opcodeValue & 0xFF);
     }
 
     public final byte value;
