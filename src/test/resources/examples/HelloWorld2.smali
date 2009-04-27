@@ -6,6 +6,8 @@
 
 .field private static helloWorldStatic2 Ljava/lang/String; = "Static Initializer Hello World!"
 
+.field private static branchTest I = 0
+
 
 ;This class should display the following text to the screen:
 ;
@@ -23,6 +25,7 @@
 ;Format20t with a label
 ;Format30t with a label
 ;Testing Format22x and Format32x
+;Testing Format21t
 
 
 
@@ -56,6 +59,22 @@
     move-object/from16 v1, v1234
 
     return-object v1
+.end method
+
+.method public testFormat21t()Ljava/lang/String;
+    .registers 3
+
+    const-string v0, "Testing Format21t"
+    const-string v1, "This shouldn't be displayed!"
+
+    sget v2, org/JesusFreke/HelloWorld2/HelloWorld2/branchTest I
+
+    if-eqz v2, HERE:
+
+    return-object v1
+
+HERE:
+    return-object v0    
 .end method
 
 .method public onCreate(Landroid/os/Bundle;)V
@@ -226,6 +245,18 @@
 
 	;test format22x and format32x
     invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/largeRegisterTest()Ljava/lang/String;
+    move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+
+    ;test format21t
+    invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat21t()Ljava/lang/String;
     move-result-object v1
 
 	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;

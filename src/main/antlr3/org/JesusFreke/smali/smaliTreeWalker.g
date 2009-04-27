@@ -417,6 +417,21 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
 		}
+	|	//e.g. if-eqz v0, endloop:
+		^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21t.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			int addressOffset = $offset_or_label.offsetValue;
+
+			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
+				//TODO: throw correct exception type
+				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+			}
+			
+			$instruction = Format21t.Format.make(dexFile, opcode.value, regA, (short)addressOffset);
+		}
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
 		{

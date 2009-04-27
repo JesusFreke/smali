@@ -60,6 +60,7 @@ tokens {
 	I_STATEMENT_FORMAT21c_TYPE;
 	I_STATEMENT_FORMAT21c_FIELD;
 	I_STATEMENT_FORMAT21c_STRING;
+	I_STATEMENT_FORMAT21t;
 	I_STATEMENT_FORMAT22c_FIELD;
 	I_STATEMENT_FORMAT22x;
 	I_STATEMENT_FORMAT30t;
@@ -161,6 +162,9 @@ instruction returns [int size]
 	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
 		INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor {$size = Format21c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
+	|	//e.g. if-eqz v0, endloop:
+		INSTRUCTION_FORMAT21t REGISTER (LABEL | OFFSET) {$size = Format21t.Format.getByteCount();}	
+		-> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER LABEL? OFFSET?)
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format22c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_INSTANCE_FIELD_STATEMENT"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
