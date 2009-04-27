@@ -6,9 +6,6 @@
 
 .field private static helloWorldStatic2 Ljava/lang/String; = "Static Initializer Hello World!"
 
-.field private static branchTest I = 0
-
-
 ;This class should display the following text to the screen:
 ;
 ;Hello World!
@@ -67,7 +64,7 @@
     const-string v0, "Testing Format21t"
     const-string v1, "This shouldn't be displayed!"
 
-    sget v2, org/JesusFreke/HelloWorld2/HelloWorld2/branchTest I
+    const/4 v2, 0
 
     if-eqz v2, HERE:
 
