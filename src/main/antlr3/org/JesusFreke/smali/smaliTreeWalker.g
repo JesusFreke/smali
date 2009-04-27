@@ -476,6 +476,16 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format22x.Format.make(dexFile, opcode.value, regA, regB);
 		}
+	|	//e.g. add-int v1, v2, v3
+		^(I_STATEMENT_FORMAT23x INSTRUCTION_FORMAT23x registerA=REGISTER registerB=REGISTER registerC=REGISTER)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT23x.text);
+			short regA = parseRegister_byte($registerA.text);
+			short regB = parseRegister_byte($registerB.text);
+			short regC = parseRegister_byte($registerC.text);			
+			
+			$instruction = Format23x.Format.make(dexFile, opcode.value, regA, regB, regC);
+		}
 	|	//e.g. goto/32 endloop:
 		^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
 		{

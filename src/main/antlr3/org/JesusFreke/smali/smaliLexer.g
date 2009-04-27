@@ -321,7 +321,16 @@ INSTRUCTION_FORMAT22x_PHRASE
 		WS
 		REGISTER_EMIT
 		WS? ',' WS?
-		REGISTER_EMIT;		
+		REGISTER_EMIT;
+
+INSTRUCTION_FORMAT23x_PHRASE
+	:	INSTRUCTION_FORMAT23x_EMIT
+		WS
+		REGISTER_EMIT
+		WS? ',' WS?
+		REGISTER_EMIT
+		WS? ',' WS?
+		REGISTER_EMIT;
 		
 INSTRUCTION_FORMAT30t_PHRASE
 	:	INSTRUCTION_FORMAT30t_EMIT
@@ -816,6 +825,63 @@ fragment INSTRUCTION_FORMAT22x
 	|	'move-wide/from16'
 	|	'move-object/from16'
 	;
+	
+fragment INSTRUCTION_FORMAT23x_EMIT
+	:	INSTRUCTION_FORMAT23x {emit($INSTRUCTION_FORMAT23x, INSTRUCTION_FORMAT23x);};
+fragment INSTRUCTION_FORMAT23x
+	:	'cmpl-float'
+	|	'cmpg-float'
+	|	'cmpl-double'
+	|	'cmpg-double'
+	|	'cmp-long'
+	|	'aget'
+	|	'aget-wide'
+	|	'aget-object'
+	|	'aget-boolean'
+	|	'aget-byte'
+	|	'aget-char'
+	|	'aget-short'
+	|	'aput'
+	|	'aput-wide'
+	|	'aput-object'
+	|	'aput-boolean'
+	|	'aput-byte'
+	|	'aput-char'
+	|	'aput-short'
+	|	'add-int'
+	|	'sub-int'
+	|	'mul-int'
+	|	'div-int'
+	|	'rem-int'
+	|	'and-int'
+	|	'or-int'
+	|	'xor-int'
+	|	'shl-int'
+	|	'shr-int'
+	|	'ushr-int'
+	|	'add-long'
+	|	'sub-long'
+	|	'mul-long'
+	|	'div-long'
+	|	'rem-long'
+	|	'and-long'
+	|	'or-long'
+	|	'xor-long'
+	|	'shl-long'
+	|	'shr-long'
+	|	'ushr-long'
+	|	'add-float'
+	|	'sub-float'
+	|	'mul-float'
+	|	'div-float'
+	|	'rem-float'
+	|	'add-double'
+	|	'sub-double'
+	|	'mul-double'
+	|	'div-double'
+	|	'rem-double'
+	;
+	
 	
 fragment INSTRUCTION_FORMAT30t_EMIT
 	:	INSTRUCTION_FORMAT30t {emit($INSTRUCTION_FORMAT30t, INSTRUCTION_FORMAT30t);};
