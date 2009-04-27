@@ -28,6 +28,7 @@
 ;-9223372036854775808
 ;-1
 ;20
+;1
 
 
 
@@ -134,6 +135,19 @@ HERE:
 
     const/16 v0, -10
     add-int/lit8 v1, v0, 30
+
+    invoke-static {v1}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v0
+
+    return-object v0
+.end method
+
+.method public testFormat22cType()Ljava/lang/String;
+    .registers 2
+    
+    const-string v0, "test"
+
+    instance-of v1, v0, Ljava/lang/String;
 
     invoke-static {v1}, java/lang/Integer/toString(I)Ljava/lang/String;
     move-result-object v0
@@ -386,7 +400,18 @@ HERE:
 	move-result-object v2
 
 
+	;test format22c-type
+    invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat22cType()Ljava/lang/String;
+    move-result-object v1
 
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+	
 
     check-cast  v4, Landroid/app/Activity;
 

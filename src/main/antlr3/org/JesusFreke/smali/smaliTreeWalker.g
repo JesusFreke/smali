@@ -481,7 +481,18 @@ instruction returns[Instruction instruction]
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 			
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, fieldIdItem);			
-		}		
+		}
+	|	//e.g. instance-of v0, v1, Ljava/lang/String;
+		^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER field_type_descriptor)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_TYPE.text);
+			byte regA = parseRegister_nibble($registerA.text);
+			byte regB = parseRegister_nibble($registerB.text);
+			
+			TypeIdItem typeIdItem = $field_type_descriptor.type;
+			
+			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, typeIdItem);
+		}
 	|	//e.g. move/from16 v1, v1234
 		^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
 		{
