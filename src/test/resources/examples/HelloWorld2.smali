@@ -24,7 +24,8 @@
 ;Testing Format22x and Format32x
 ;Testing Format21t
 ;-32768
-
+;-2147483648
+;-9223372036854775808
 
 
 .method static constructor <clinit>()V ;test
@@ -85,6 +86,29 @@ HERE:
     move-result-object v1
 
     return-object v1
+.end method
+
+.method public testFormat21h()Ljava/lang/String;
+    .registers 2
+
+    const/high16 v0, -32768
+
+    invoke-static	{v0}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v1
+
+    return-object v1
+.end method
+
+
+.method public testFormat21h-wide()Ljava/lang/String;
+    .registers 3
+
+    const-wide/high16 v0, -32768
+
+    invoke-static	{v0, v1}, java/lang/Long/toString(J)Ljava/lang/String;
+    move-result-object v2
+
+    return-object v2
 .end method
 
 .method public onCreate(Landroid/os/Bundle;)V
@@ -286,6 +310,30 @@ HERE:
 
     invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
 	move-result-object v2
+
+
+
+    ;test format21h
+    invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat21h()Ljava/lang/String;
+    move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+	;test format21h
+    invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat21h-wide()Ljava/lang/String;
+    move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+
+    invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
 
 
     check-cast  v4, Landroid/app/Activity;

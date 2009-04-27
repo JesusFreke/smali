@@ -421,6 +421,16 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
 		}
+	|	//e.g. const/high16 v1, 1234
+		^(I_STATEMENT_FORMAT21h INSTRUCTION_FORMAT21h REGISTER INTEGER_LITERAL)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21h.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			short litB = parseIntLiteral_short($INTEGER_LITERAL.text);
+			
+			$instruction = Format21h.Format.make(dexFile, opcode.value, regA, litB);
+		}
 	|	//e.g. const/16 v1, 1234
 		^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER INTEGER_LITERAL)
 		{
