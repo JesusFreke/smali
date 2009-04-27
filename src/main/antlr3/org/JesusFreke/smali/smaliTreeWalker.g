@@ -59,6 +59,10 @@ import org.JesusFreke.dexlib.code.Format.*;
 		return val;
 	}
 	
+	private static short parseIntLiteral_short(String intLiteral) {
+		return Short.parseShort(intLiteral);
+	}
+	
 	private static byte parseRegister_nibble(String register) {
 		//register should be in the format "v12"		
 		byte val = Byte.parseByte(register.substring(1));
@@ -416,6 +420,16 @@ instruction returns[Instruction instruction]
 			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
 			
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
+		}
+	|	//e.g. const/16 v1, 1234
+		^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER INTEGER_LITERAL)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21s.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			short litB = parseIntLiteral_short($INTEGER_LITERAL.text);
+			
+			$instruction = Format21s.Format.make(dexFile, opcode.value, regA, litB);
 		}
 	|	//e.g. if-eqz v0, endloop:
 		^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
