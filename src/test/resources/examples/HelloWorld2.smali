@@ -29,6 +29,7 @@
 ;-1
 ;20
 ;1
+;Testing Format22t
 
 
 
@@ -152,6 +153,23 @@ HERE:
     invoke-static {v1}, java/lang/Integer/toString(I)Ljava/lang/String;
     move-result-object v0
 
+    return-object v0
+.end method
+
+.method public testFormat22t()Ljava/lang/String;
+    .registers 3    
+
+    const/16 v1, 1
+    const/16 v2, 1
+
+    if-eq v1, v2, skip:
+
+    const-string v0, "This shouldn't be displayed!"
+    return-object v0
+
+skip:
+
+    const-string v0, "Testing Format22t"
     return-object v0
 .end method
 
@@ -411,6 +429,15 @@ HERE:
 	move-result-object v2
 
 
+	;test format22t
+	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat22t()Ljava/lang/String;
+	move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
 	
 
     check-cast  v4, Landroid/app/Activity;

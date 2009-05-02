@@ -493,6 +493,22 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, typeIdItem);
 		}
+	|	//e.g. if-eq v0, v1, endloop:
+		^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22t.text);
+			byte regA = parseRegister_nibble($registerA.text);
+			byte regB = parseRegister_nibble($registerB.text);
+			
+			int addressOffset = $offset_or_label.offsetValue;
+
+			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
+				//TODO: throw correct exception type
+				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+			}
+			
+			$instruction = Format22t.Format.make(dexFile, opcode.value, regA, regB, (short)addressOffset);
+		}
 	|	//e.g. move/from16 v1, v1234
 		^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
 		{
