@@ -30,6 +30,7 @@
 ;20
 ;1
 ;Testing Format22t
+;20025
 
 
 
@@ -91,6 +92,19 @@ HERE:
     move-result-object v1
 
     return-object v1
+.end method
+
+
+.method public testFormat22s()Ljava/lang/String;
+    .registers 2
+    const/16 v0, 25
+
+    add-int/lit16 v1, v0, 20000
+
+    invoke-static {v1}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v0
+
+    return-object v0
 .end method
 
 .method public testFormat21h()Ljava/lang/String;
@@ -172,6 +186,9 @@ skip:
     const-string v0, "Testing Format22t"
     return-object v0
 .end method
+
+
+
 
 .method public onCreate(Landroid/os/Bundle;)V
 	.registers 6
@@ -431,6 +448,17 @@ skip:
 
 	;test format22t
 	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat22t()Ljava/lang/String;
+	move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+	;test format22s
+	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat22s()Ljava/lang/String;
 	move-result-object v1
 
 	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;

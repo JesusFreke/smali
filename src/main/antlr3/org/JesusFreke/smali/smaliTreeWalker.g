@@ -493,6 +493,17 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, typeIdItem);
 		}
+	|	//e.g. add-int/lit16 v0, v1, 12345
+		^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER INTEGER_LITERAL)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22s.text);
+			byte regA = parseRegister_nibble($registerA.text);
+			byte regB = parseRegister_nibble($registerB.text);
+			
+			short litC = parseIntLiteral_short($INTEGER_LITERAL.text);
+			
+			$instruction = Format22s.Format.make(dexFile, opcode.value, regA, regB, litC);
+		}
 	|	//e.g. if-eq v0, v1, endloop:
 		^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
 		{
