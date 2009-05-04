@@ -548,6 +548,16 @@ instruction returns[Instruction instruction]
 	
 			$instruction = Format30t.Format.make(dexFile, opcode.value, addressOffset);
 		}
+	|	//e.g. const v0, 123456
+		^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER integer_or_float_literal)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31i.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			int litB = $integer_or_float_literal.value;
+			
+			$instruction = Format31i.Format.make(dexFile, opcode.value, regA, litB);
+		}
 	|	//e.g. move/16 v5678, v1234
 		^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
 		{
@@ -648,6 +658,10 @@ type_descriptor returns [TypeIdItem type]
 	:	VOID_TYPE {$type = new TypeIdItem(dexFile, "V");}
 	|	field_type_descriptor {$type = $field_type_descriptor.type;}
 	;
+	
+integer_or_float_literal returns[int value]
+	:	INTEGER_LITERAL { $value = Integer.parseInt($INTEGER_LITERAL.text); }
+	|	FLOAT_LITERAL { $value = Float.floatToIntBits(Float.parseFloat($FLOAT_LITERAL.text)); };
 	
 integer_literal returns[int value]
 	:	INTEGER_LITERAL { $value = Integer.parseInt($INTEGER_LITERAL.text); };

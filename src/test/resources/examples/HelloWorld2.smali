@@ -31,6 +31,7 @@
 ;1
 ;Testing Format22t
 ;20025
+;286331153
 
 
 
@@ -188,6 +189,20 @@ skip:
 .end method
 
 
+.method public testFormat31i()Ljava/lang/String;
+    .registers 3
+
+    const v0, 305419896
+
+    const v1, -19088743
+
+    add-int v2, v0, v1
+
+    invoke-static {v2}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v0
+
+    return-object v0
+.end method
 
 
 .method public onCreate(Landroid/os/Bundle;)V
@@ -466,7 +481,20 @@ skip:
 
 	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
 	move-result-object v2
-	
+
+
+	;test format31i
+	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat31i()Ljava/lang/String;
+	move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+
 
     check-cast  v4, Landroid/app/Activity;
 
