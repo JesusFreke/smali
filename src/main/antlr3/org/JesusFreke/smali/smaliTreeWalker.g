@@ -67,6 +67,19 @@ import org.JesusFreke.dexlib.code.Format.*;
 		return Short.parseShort(intLiteral);
 	}
 	
+	private static long parseLongLiteral(String longLiteral) {
+		if (longLiteral.endsWith("L") || longLiteral.endsWith("l")) {
+			longLiteral = longLiteral.substring(0, longLiteral.length()-1);
+		}
+		
+		return Long.parseLong(longLiteral);
+	}
+	
+	private static long parseDoubleLiteral(String doubleLiteral) {
+		//TODO: implement this
+		return 0;
+	}
+	
 	private static byte parseRegister_nibble(String register) {
 		//register should be in the format "v12"		
 		byte val = Byte.parseByte(register.substring(1));
@@ -612,6 +625,16 @@ instruction returns[Instruction instruction]
 			//not supported yet
 			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, methodIdItem);
 		}
+	|	//e.g. const-wide v0, 5000000000L
+		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER long_or_double_literal)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT51l.text);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			long litB = $long_or_double_literal.value;
+			
+			$instruction = Format51l.Format.make(dexFile, opcode.value, regA, litB);		
+		}
 	;
 
 
@@ -672,6 +695,10 @@ type_descriptor returns [TypeIdItem type]
 integer_or_float_literal returns[int value]
 	:	INTEGER_LITERAL { $value = Integer.parseInt($INTEGER_LITERAL.text); }
 	|	FLOAT_LITERAL { $value = Float.floatToIntBits(Float.parseFloat($FLOAT_LITERAL.text)); };
+	
+long_or_double_literal returns[long value]
+	:	LONG_LITERAL { $value = parseLongLiteral($LONG_LITERAL.text); }
+	|	DOUBLE_LITERAL { $value = parseDoubleLiteral($DOUBLE_LITERAL.text); };
 	
 integer_literal returns[int value]
 	:	INTEGER_LITERAL { $value = Integer.parseInt($INTEGER_LITERAL.text); };
