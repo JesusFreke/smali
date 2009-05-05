@@ -558,6 +558,16 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format31i.Format.make(dexFile, opcode.value, regA, litB);
 		}
+	|	//e.g. const-string/jumbo v1 "Hello World!"
+		^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
+			short regA = parseRegister_byte($REGISTER.text);
+					
+			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
+			
+			$instruction = Format31c.Format.make(dexFile, opcode.value, regA, stringIdItem);
+		}
 	|	//e.g. move/16 v5678, v1234
 		^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
 		{

@@ -32,6 +32,7 @@
 ;Testing Format22t
 ;20025
 ;286331153
+;Testing Format31c
 
 
 
@@ -204,6 +205,13 @@ skip:
     return-object v0
 .end method
 
+.method public testFormat31c()Ljava/lang/String;
+    .registers 1
+    
+    const-string/jumbo v0, "Testing Format31c"
+
+    return-object v0
+.end method
 
 .method public onCreate(Landroid/os/Bundle;)V
 	.registers 6
@@ -493,6 +501,16 @@ skip:
 	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
 	move-result-object v2
 
+
+	;test format31c
+	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat31c()Ljava/lang/String;
+	move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
 
 
 

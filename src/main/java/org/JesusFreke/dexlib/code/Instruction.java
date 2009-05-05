@@ -114,11 +114,12 @@ public final class Instruction implements Field<Instruction> {
             in.skipBytes(1);
             int referenceIndex = in.readShort();
 
-            //handle const string/jumbo as a special case
+            //handle const-string/jumbo as a special case
             if (opByte == 0x1b) {
                 int hiWord = in.readShort();
                 if (hiWord != 0) {
-                    throw new RuntimeException("32bit string indexes are not supported yet.");
+                    //TODO: test this..
+                    referenceIndex += (hiWord<<16);
                 }
             }
 
@@ -153,6 +154,7 @@ public final class Instruction implements Field<Instruction> {
             out.write(bytes);
         } else {
             out.write(bytes,0,2);
+            //handle const-string/jumbo as a special case
             if (bytes[0] == 0x1b) {
                 out.writeInt(reference.getIndex());
             } else {
