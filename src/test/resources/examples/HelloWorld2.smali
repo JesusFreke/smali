@@ -34,7 +34,7 @@
 ;286331153
 ;Testing Format31c
 ;5000000000
-
+;5000000
 
 
 .method static constructor <clinit>()V ;test
@@ -223,6 +223,31 @@ skip:
     move-result-object v0
 
     return-object v0
+.end method
+
+.method public testArrayFillData()Ljava/lang/String;
+    .registers 3
+
+    const v0, 7
+    new-array v0, v0, [I
+    fill-array-data v0, ArrayData:
+
+    const v1, 6
+    aget v2, v0, v1
+
+    invoke-static	{v2}, java/lang/Integer/toString(I)Ljava/lang/String;
+    move-result-object v2
+
+    return-object v2
+
+ArrayData:
+    .array-data 4
+            1
+            2
+            3
+            4 5 6
+            5000000
+    .end array-data
 .end method
 
 .method public onCreate(Landroid/os/Bundle;)V
@@ -527,6 +552,17 @@ skip:
 
     ;test format51l
 	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testFormat51l()Ljava/lang/String;
+	move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	
+	;test array-fill-data
+	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testArrayFillData()Ljava/lang/String;
 	move-result-object v1
 
 	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;

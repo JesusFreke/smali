@@ -50,6 +50,15 @@ import org.JesusFreke.dexlib.code.Format.*;
 	public ClassDefItem classDefItem;
 	public ClassDataItem classDataItem;
 	
+	private static byte[] intToBytes(int value) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte)value;
+		bytes[1] = (byte)(value >> 8);
+		bytes[2] = (byte)(value >> 16);
+		bytes[3] = (byte)(value >> 24);
+		return bytes;
+	}
+	
 	private static byte parseIntLiteral_nibble(String intLiteral) {
 		byte val = Byte.parseByte(intLiteral);
 		if (val < -(1<<3) || val >= 1<<3) {
@@ -197,7 +206,17 @@ field_initial_value returns[EncodedValue encodedValue]
 			|	bool_literal { $encodedValue = new EncodedValue(dexFile, new BoolEncodedValueSubField($bool_literal.value)); }
 			))
 	| ;
-
+	
+fixed_literal returns[byte[\] value]
+	:	integer_literal { value = intToBytes($integer_literal.value); };
+	
+array_elements returns[List<byte[\]> values]
+	:	{$values = new ArrayList<byte[]>();}
+		^(I_ARRAY_ELEMENTS
+			(fixed_literal
+			{
+				$values.add($fixed_literal.value);				
+			})*);	
 	
 method returns[ClassDataItem.EncodedMethod encodedMethod]
 	scope
@@ -301,7 +320,7 @@ statements returns[ArrayList<Instruction> instructions]
 	:	^(I_STATEMENTS	(instruction
 				{
 					$instructions.add($instruction.instruction);
-					$method::currentAddress += $instruction.instruction.getOpcode().numBytes/2;
+					$method::currentAddress += $instruction.instruction.getBytes().length/2;
 				})*);
 			
 label_ref returns[int labelAddress]
@@ -561,6 +580,16 @@ instruction returns[Instruction instruction]
 	
 			$instruction = Format30t.Format.make(dexFile, opcode.value, addressOffset);
 		}
+	|	//e.g. const-string/jumbo v1 "Hello World!"
+		^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
+			short regA = parseRegister_byte($REGISTER.text);
+					
+			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
+			
+			$instruction = Format31c.Format.make(dexFile, opcode.value, regA, stringIdItem);
+		}
 	|	//e.g. const v0, 123456
 		^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER integer_or_float_literal)
 		{
@@ -571,15 +600,19 @@ instruction returns[Instruction instruction]
 			
 			$instruction = Format31i.Format.make(dexFile, opcode.value, regA, litB);
 		}
-	|	//e.g. const-string/jumbo v1 "Hello World!"
-		^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
+	|	//e.g. fill-array-data v0, ArrayData:
+		^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER offset_or_label)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
-			short regA = parseRegister_byte($REGISTER.text);
-					
-			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31t.text);
 			
-			$instruction = Format31c.Format.make(dexFile, opcode.value, regA, stringIdItem);
+			short regA = parseRegister_byte($REGISTER.text);
+			
+			int addressOffset = $offset_or_label.offsetValue;
+			if (($method::currentAddress + addressOffset) \% 2 != 0) {
+				addressOffset++;
+			}
+			
+			$instruction = Format31t.Format.make(dexFile, opcode.value, regA, addressOffset);
 		}
 	|	//e.g. move/16 v5678, v1234
 		^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
@@ -634,6 +667,14 @@ instruction returns[Instruction instruction]
 			long litB = $long_or_double_literal.value;
 			
 			$instruction = Format51l.Format.make(dexFile, opcode.value, regA, litB);		
+		}
+	|	//e.g. .array-data 4 1000000 .end array-data
+		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE INTEGER_LITERAL) array_elements)
+		{
+			int elementWidth = parseIntLiteral_short($INTEGER_LITERAL.text);
+			List<byte[]> byteValues = $array_elements.values;
+			
+			$instruction = ArrayData.make(dexFile, elementWidth, byteValues);
 		}
 	;
 

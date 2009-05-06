@@ -49,7 +49,9 @@ tokens {
 	I_METHOD_RETURN_TYPE;
 	I_REGISTERS;
 	I_LABELS;
-	I_LABEL;	
+	I_LABEL;
+	I_ARRAY_ELEMENT_SIZE;
+	I_ARRAY_ELEMENTS;	
 	I_STATEMENTS;
 	I_STATEMENT_FORMAT10t;
 	I_STATEMENT_FORMAT10x;
@@ -71,12 +73,14 @@ tokens {
 	I_STATEMENT_FORMAT22x;
 	I_STATEMENT_FORMAT23x;
 	I_STATEMENT_FORMAT30t;
-	I_STATEMENT_FORMAT31i;
 	I_STATEMENT_FORMAT31c;
+	I_STATEMENT_FORMAT31i;
+	I_STATEMENT_FORMAT31t;	
 	I_STATEMENT_FORMAT32x;
 	I_STATEMENT_FORMAT35c_METHOD;
 	I_STATEMENT_FORMAT3rc_METHOD;
 	I_STATEMENT_FORMAT51l;
+	I_STATEMENT_ARRAY_DATA;
 	I_REGISTER_RANGE;
 	I_REGISTER_LIST;
 	
@@ -144,6 +148,7 @@ label
 	:	LABEL -> ^(I_LABEL LABEL {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($statements::currentAddress)))});
 	
 instruction returns [int size]
+	@init {boolean needsNop = false;}
 	:	//e.g. goto endloop:
 		//e.g. goto +3
 		INSTRUCTION_FORMAT10t (LABEL | OFFSET) {$size = Format10t.Format.getByteCount();}
@@ -205,12 +210,15 @@ instruction returns [int size]
 	|	//e.g. goto/32 endloop:
 		INSTRUCTION_FORMAT30t (LABEL | OFFSET) {$size = Format30t.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t LABEL? OFFSET?)
-	|	//e.g. const v0, 123456
-		INSTRUCTION_FORMAT31i REGISTER (INTEGER_LITERAL | FLOAT_LITERAL) {$size = Format31i.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] INSTRUCTION_FORMAT31i REGISTER INTEGER_LITERAL? FLOAT_LITERAL?)
 	|	//e.g. const-string/jumbo v1 "Hello World!"
 		INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL {$size = Format31c.Format.getByteCount();}
 		->^(I_STATEMENT_FORMAT31c[$start, "I_STATEMENT_FORMAT31c"] INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL)	
+	|	//e.g. const v0, 123456
+		INSTRUCTION_FORMAT31i REGISTER (INTEGER_LITERAL | FLOAT_LITERAL) {$size = Format31i.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] INSTRUCTION_FORMAT31i REGISTER INTEGER_LITERAL? FLOAT_LITERAL?)
+	|	//e.g. fill-array-data v0, ArrayData:
+		INSTRUCTION_FORMAT31t REGISTER (LABEL | OFFSET) {$size = Format31t.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER LABEL? OFFSET?)
 	|	//e.g. move/16 v4567, v1234
 		INSTRUCTION_FORMAT32x REGISTER REGISTER {$size = Format32x.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER)		
@@ -221,9 +229,30 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method {$size = Format3rc.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
 	|	//e.g. const-wide v0, 5000000000L
-		INSTRUCTION_FORMAT51l REGISTER (LONG_LITERAL | DOUBLE_LITERAL)
+		INSTRUCTION_FORMAT51l REGISTER (LONG_LITERAL | DOUBLE_LITERAL) {$size = Format51l.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER LONG_LITERAL? DOUBLE_LITERAL?)		
+	|	//e.g. .array-data 4 1000000 .end array-data
+		ARRAY_DATA_DIRECTIVE
+		{	
+			if (($statements::currentAddress \% 2) != 0) {
+				needsNop = true;
+				$size = 2;
+			} else {
+				$size = 0;
+			}
+		}
+		
+		INTEGER_LITERAL (fixed_literal {$size+=$fixed_literal.size;})* END_ARRAY_DATA_DIRECTIVE
+		{$size = (($size + 1)/2)*2 + 8;}
+		
+		/*add a nop statement before this if needed to force the correct alignment*/
+ 		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
+ 					^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE INTEGER_LITERAL) ^(I_ARRAY_ELEMENTS fixed_literal*))
+
+ 		->	^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE INTEGER_LITERAL) ^(I_ARRAY_ELEMENTS fixed_literal*))
 	;
+	
+	
 
 
 register_list
@@ -250,6 +279,14 @@ type_descriptor
 	|	ARRAY_DESCRIPTOR
 	;	
 	
+fixed_literal returns[int size]
+	:	INTEGER_LITERAL {$size = 4;}
+	|	LONG_LITERAL {$size = 8;}
+	|	FLOAT_LITERAL {$size = 4;}
+	|	DOUBLE_LITERAL {$size = 8;}
+	|	CHAR_LITERAL {$size = 2;}
+	|	BOOL_LITERAL {$size = 1;};
+
 literal	:	INTEGER_LITERAL
 	|	LONG_LITERAL
 	|	FLOAT_LITERAL
