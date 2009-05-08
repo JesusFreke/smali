@@ -127,8 +127,8 @@ method_prototype
 
 
 registers_directive
-	:	REGISTERS_DIRECTIVE INTEGER_LITERAL
-		-> ^(I_REGISTERS[$start, "I_REGISTERS"] INTEGER_LITERAL);
+	:	REGISTERS_DIRECTIVE integral_literal
+	-> ^(I_REGISTERS[$start, "I_REGISTERS"] integral_literal);
 
 
 fully_qualified_method
@@ -157,8 +157,8 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT10x {$size = Format10x.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x)
 	|	//e.g. const/4 v0, 5
-		INSTRUCTION_FORMAT11n REGISTER INTEGER_LITERAL {$size = Format11n.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STARTMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER INTEGER_LITERAL)
+		INSTRUCTION_FORMAT11n REGISTER integral_literal {$size = Format11n.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STARTMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER integral_literal)
 	|	//e.g. move-result-object v1
 		INSTRUCTION_FORMAT11x REGISTER {$size = Format11x.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_FORMAT11x REGISTER)
@@ -178,17 +178,17 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor {$size = Format21c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
 	|	//e.g. const/high16 v1, 1234
-		INSTRUCTION_FORMAT21h REGISTER INTEGER_LITERAL {$size = Format21h.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT21h[$start, "I_STATEMENT_FORMAT21h"] INSTRUCTION_FORMAT21h REGISTER INTEGER_LITERAL)
+		INSTRUCTION_FORMAT21h REGISTER integral_literal {$size = Format21h.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT21h[$start, "I_STATEMENT_FORMAT21h"] INSTRUCTION_FORMAT21h REGISTER integral_literal)
 	|	//e.g. const/16 v1, 1234
-		INSTRUCTION_FORMAT21s REGISTER INTEGER_LITERAL {$size = Format21s.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT21s[$start, "I_STATEMENT_FORMAT21s"] INSTRUCTION_FORMAT21s REGISTER INTEGER_LITERAL)
+		INSTRUCTION_FORMAT21s REGISTER integral_literal {$size = Format21s.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT21s[$start, "I_STATEMENT_FORMAT21s"] INSTRUCTION_FORMAT21s REGISTER integral_literal)
 	|	//e.g. if-eqz v0, endloop:
 		INSTRUCTION_FORMAT21t REGISTER (LABEL | OFFSET) {$size = Format21t.Format.getByteCount();}	
 		-> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER LABEL? OFFSET?)
 	|	//e.g. add-int v0, v1, 123
-		INSTRUCTION_FORMAT22b REGISTER REGISTER INTEGER_LITERAL {$size = Format22b.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT22b[$start, "I_STATEMENT_FORMAT22b"] INSTRUCTION_FORMAT22b REGISTER REGISTER INTEGER_LITERAL)
+		INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal {$size = Format22b.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT22b[$start, "I_STATEMENT_FORMAT22b"] INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal)
 	|	//e.g. iput-object v1, v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format22c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_STATEMENT_FORMAT22c_FIELD"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
@@ -196,8 +196,8 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER field_type_descriptor {$size = Format22c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22c_TYPE[$start, "I_STATEMENT_FORMAT22c_TYPE"] INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER field_type_descriptor)
 	|	//e.g. add-int/lit16 v0, v1, 12345
-		INSTRUCTION_FORMAT22s REGISTER REGISTER INTEGER_LITERAL {$size = Format22s.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] INSTRUCTION_FORMAT22s REGISTER REGISTER INTEGER_LITERAL)
+		INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal {$size = Format22s.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal)
 	|	//e.g. if-eq v0, v1, endloop:
 		INSTRUCTION_FORMAT22t REGISTER REGISTER (LABEL | OFFSET) {$size = Format22t.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22t[$start, "I_STATEMENT_FFORMAT22t"] INSTRUCTION_FORMAT22t REGISTER REGISTER LABEL? OFFSET?)
@@ -214,8 +214,8 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL {$size = Format31c.Format.getByteCount();}
 		->^(I_STATEMENT_FORMAT31c[$start, "I_STATEMENT_FORMAT31c"] INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL)	
 	|	//e.g. const v0, 123456
-		INSTRUCTION_FORMAT31i REGISTER (INTEGER_LITERAL | FLOAT_LITERAL) {$size = Format31i.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] INSTRUCTION_FORMAT31i REGISTER INTEGER_LITERAL? FLOAT_LITERAL?)
+		INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal {$size = Format31i.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
 	|	//e.g. fill-array-data v0, ArrayData:
 		INSTRUCTION_FORMAT31t REGISTER (LABEL | OFFSET) {$size = Format31t.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER LABEL? OFFSET?)
@@ -242,14 +242,14 @@ instruction returns [int size]
 			}
 		}
 		
-		INTEGER_LITERAL (fixed_literal {$size+=$fixed_literal.size;})* END_ARRAY_DATA_DIRECTIVE
+		integral_literal (fixed_literal {$size+=$fixed_literal.size;})* END_ARRAY_DATA_DIRECTIVE
 		{$size = (($size + 1)/2)*2 + 8;}
 		
 		/*add a nop statement before this if needed to force the correct alignment*/
  		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
- 					^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE INTEGER_LITERAL) ^(I_ARRAY_ELEMENTS fixed_literal*))
+ 					^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
 
- 		->	^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE INTEGER_LITERAL) ^(I_ARRAY_ELEMENTS fixed_literal*))
+ 		->	^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
 	;
 	
 	
@@ -279,9 +279,26 @@ type_descriptor
 	|	ARRAY_DESCRIPTOR
 	;	
 	
+integral_literal
+	:	LONG_LITERAL
+	|	INTEGER_LITERAL
+	|	SHORT_LITERAL
+	|	BYTE_LITERAL;	
+	
+fixed_32bit_literal
+	:	INTEGER_LITERAL
+	|	LONG_LITERAL
+	|	SHORT_LITERAL
+	|	BYTE_LITERAL
+	|	FLOAT_LITERAL
+	|	CHAR_LITERAL
+	|	BOOL_LITERAL;
+	
 fixed_literal returns[int size]
 	:	INTEGER_LITERAL {$size = 4;}
 	|	LONG_LITERAL {$size = 8;}
+	|	SHORT_LITERAL {$size = 2;}
+	|	BYTE_LITERAL {$size = 1;}
 	|	FLOAT_LITERAL {$size = 4;}
 	|	DOUBLE_LITERAL {$size = 8;}
 	|	CHAR_LITERAL {$size = 2;}

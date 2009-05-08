@@ -241,12 +241,17 @@ skip:
     return-object v2
 
 ArrayData:
+
     .array-data 4
             1
             2
             3
             4 5 6
-            5000000
+
+            ;5000000 
+            ;0x40T 0x4BT 0x4CT 0x00T
+            7.006492321624085e-39f
+
     .end array-data
 .end method
 
@@ -371,7 +376,7 @@ ArrayData:
 
 
 	;test format10t with an offset
-	goto +3
+	goto 3
 
     const-string	v1, "This shouldn't be displayed!"
 

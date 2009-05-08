@@ -49,46 +49,7 @@ import org.JesusFreke.dexlib.code.Format.*;
 	public DexFile dexFile;
 	public ClassDefItem classDefItem;
 	public ClassDataItem classDataItem;
-	
-	private static byte[] intToBytes(int value) {
-		byte[] bytes = new byte[4];
-		bytes[0] = (byte)value;
-		bytes[1] = (byte)(value >> 8);
-		bytes[2] = (byte)(value >> 16);
-		bytes[3] = (byte)(value >> 24);
-		return bytes;
-	}
-	
-	private static byte parseIntLiteral_nibble(String intLiteral) {
-		byte val = Byte.parseByte(intLiteral);
-		if (val < -(1<<3) || val >= 1<<3) {
-			//TODO: throw correct exception type
-			throw new RuntimeException("The literal integer value must be between -8 and 7, inclusive");
-		}
-		return val;
-	}
-	
-	private static byte parseIntLiteral_byte(String intLiteral) {
-		return Byte.parseByte(intLiteral);
-	}
-	
-	private static short parseIntLiteral_short(String intLiteral) {
-		return Short.parseShort(intLiteral);
-	}
-	
-	private static long parseLongLiteral(String longLiteral) {
-		if (longLiteral.endsWith("L") || longLiteral.endsWith("l")) {
-			longLiteral = longLiteral.substring(0, longLiteral.length()-1);
-		}
-		
-		return Long.parseLong(longLiteral);
-	}
-	
-	private static long parseDoubleLiteral(String doubleLiteral) {
-		//TODO: implement this
-		return 0;
-	}
-	
+
 	private static byte parseRegister_nibble(String register) {
 		//register should be in the format "v12"		
 		byte val = Byte.parseByte(register.substring(1));
@@ -195,10 +156,14 @@ field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue
 		}
 	};
 
+
+//TODO: what about type or array encoded values?
 field_initial_value returns[EncodedValue encodedValue]
 	:	^(I_FIELD_INITIAL_VALUE 
 			(	integer_literal { $encodedValue = new EncodedValue(dexFile, new IntEncodedValueSubField($integer_literal.value)); }
 			|	long_literal { $encodedValue = new EncodedValue(dexFile, new LongEncodedValueSubField($long_literal.value)); }
+			|	short_literal { $encodedValue = new EncodedValue(dexFile, new ShortEncodedValueSubField($short_literal.value)); }
+			|	byte_literal { $encodedValue = new EncodedValue(dexFile, new ByteEncodedValueSubField($byte_literal.value)); }
 			|	float_literal { $encodedValue = new EncodedValue(dexFile, new FloatEncodedValueSubField($float_literal.value)); }
 			|	double_literal { $encodedValue = new EncodedValue(dexFile, new DoubleEncodedValueSubField($double_literal.value)); }
 			|	char_literal { $encodedValue = new EncodedValue(dexFile, new CharEncodedValueSubField($char_literal.value)); }
@@ -207,15 +172,45 @@ field_initial_value returns[EncodedValue encodedValue]
 			))
 	| ;
 	
-fixed_literal returns[byte[\] value]
-	:	integer_literal { value = intToBytes($integer_literal.value); };
+//everything but string
+fixed_size_literal returns[byte[\] value]
+	:	integer_literal { $value = literalTools.intToBytes($integer_literal.value); }
+	|	long_literal { $value = literalTools.longToBytes($long_literal.value); }
+	|	short_literal { $value = literalTools.shortToBytes($short_literal.value); }
+	|	byte_literal { $value = new byte[] { $byte_literal.value }; }
+	|	float_literal { $value = literalTools.floatToBytes($float_literal.value); }
+	|	double_literal { $value = literalTools.doubleToBytes($double_literal.value); }
+	|	char_literal { $value = literalTools.charToBytes($char_literal.value); }
+	|	bool_literal { $value = literalTools.boolToBytes($bool_literal.value); };
 	
+//everything but string
+fixed_64bit_literal returns[long value]
+	:	integer_literal { $value = $integer_literal.value; }
+	|	long_literal { $value = $long_literal.value; }
+	|	short_literal { $value = $short_literal.value; }
+	|	byte_literal { $value = $byte_literal.value; }
+	|	float_literal { $value = Float.floatToRawIntBits($float_literal.value); }
+	|	double_literal { $value = Double.doubleToRawLongBits($double_literal.value); }
+	|	char_literal { $value = $char_literal.value; }
+	|	bool_literal { $value = $bool_literal.value?1:0; };
+	
+//everything but string and double
+//long is allowed, but it must fit into an int
+fixed_32bit_literal returns[int value]
+	:	integer_literal { $value = $integer_literal.value; }
+	|	long_literal { literalTools.checkInt($long_literal.value); $value = (int)$long_literal.value; }
+	|	short_literal { $value = $short_literal.value; }
+	|	byte_literal { $value = $byte_literal.value; }
+	|	float_literal { $value = Float.floatToRawIntBits($float_literal.value); }
+	|	char_literal { $value = $char_literal.value; }
+	|	bool_literal { $value = $bool_literal.value?1:0; };
+
 array_elements returns[List<byte[\]> values]
 	:	{$values = new ArrayList<byte[]>();}
 		^(I_ARRAY_ELEMENTS
-			(fixed_literal
+			(fixed_size_literal
 			{
-				$values.add($fixed_literal.value);				
+				$values.add($fixed_size_literal.value);				
 			})*);	
 	
 method returns[ClassDataItem.EncodedMethod encodedMethod]
@@ -274,7 +269,7 @@ field_type_list returns[ArrayList<TypeIdItem> types]
 		)*;
 	
 registers_directive returns[int registers]
-	:	^(I_REGISTERS INTEGER_LITERAL) {$registers = Integer.parseInt($INTEGER_LITERAL.text);};
+	:	^(I_REGISTERS short_integral_literal) {$registers = $short_integral_literal.value;};
 
 
 
@@ -350,10 +345,7 @@ offset	returns[int offsetValue]
 	:	OFFSET
 		{
 			String offsetText = $OFFSET.text;
-			if (offsetText.startsWith("+")) {
-				offsetText = offsetText.substring(1);
-			}
-			$offsetValue = Integer.parseInt(offsetText);
+			$offsetValue = literalTools.parseInt(offsetText);
 		};
 		
 offset_or_label returns[int offsetValue]
@@ -388,13 +380,15 @@ instruction returns[Instruction instruction]
 			$instruction = Format10x.Format.make(dexFile, opcode.value);
 		}
 	|	//e.g. const/4 v0, 5
-		^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER INTEGER_LITERAL)
+		^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11n.text);
 			byte regA = parseRegister_nibble($REGISTER.text);
-			byte litB = parseIntLiteral_nibble($INTEGER_LITERAL.text);
+
+			short litB = $short_integral_literal.value;
+			literalTools.checkNibble(litB);
 			
-			$instruction = Format11n.Format.make(dexFile, opcode.value, regA, litB);
+			$instruction = Format11n.Format.make(dexFile, opcode.value, regA, (byte)litB);
 		}				
 	|	//e.g. move-result-object v1
 		^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
@@ -458,22 +452,22 @@ instruction returns[Instruction instruction]
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
 		}
 	|	//e.g. const/high16 v1, 1234
-		^(I_STATEMENT_FORMAT21h INSTRUCTION_FORMAT21h REGISTER INTEGER_LITERAL)
+		^(I_STATEMENT_FORMAT21h INSTRUCTION_FORMAT21h REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21h.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
-			short litB = parseIntLiteral_short($INTEGER_LITERAL.text);
+			short litB = $short_integral_literal.value;
 			
 			$instruction = Format21h.Format.make(dexFile, opcode.value, regA, litB);
 		}
 	|	//e.g. const/16 v1, 1234
-		^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER INTEGER_LITERAL)
+		^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21s.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
-			short litB = parseIntLiteral_short($INTEGER_LITERAL.text);
+			short litB = $short_integral_literal.value;
 			
 			$instruction = Format21s.Format.make(dexFile, opcode.value, regA, litB);
 		}
@@ -493,15 +487,16 @@ instruction returns[Instruction instruction]
 			$instruction = Format21t.Format.make(dexFile, opcode.value, regA, (short)addressOffset);
 		}
 	|	//e.g. add-int v0, v1, 123
-		^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER INTEGER_LITERAL)
+		^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22b.text);
 			short regA = parseRegister_byte($registerA.text);
 			short regB = parseRegister_byte($registerB.text);
 			
-			byte litC = parseIntLiteral_byte($INTEGER_LITERAL.text);
+			short litC = $short_integral_literal.value;
+			literalTools.checkByte(litC);
 			
-			$instruction = Format22b.Format.make(dexFile, opcode.value, regA, regB, litC);
+			$instruction = Format22b.Format.make(dexFile, opcode.value, regA, regB, (byte)litC);
 		}
 	|	//e.g. iput-object v1 v0 org/JesusFreke/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
@@ -526,13 +521,13 @@ instruction returns[Instruction instruction]
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, typeIdItem);
 		}
 	|	//e.g. add-int/lit16 v0, v1, 12345
-		^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER INTEGER_LITERAL)
+		^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22s.text);
 			byte regA = parseRegister_nibble($registerA.text);
 			byte regB = parseRegister_nibble($registerB.text);
 			
-			short litC = parseIntLiteral_short($INTEGER_LITERAL.text);
+			short litC = $short_integral_literal.value;
 			
 			$instruction = Format22s.Format.make(dexFile, opcode.value, regA, regB, litC);
 		}
@@ -591,12 +586,12 @@ instruction returns[Instruction instruction]
 			$instruction = Format31c.Format.make(dexFile, opcode.value, regA, stringIdItem);
 		}
 	|	//e.g. const v0, 123456
-		^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER integer_or_float_literal)
+		^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31i.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
-			int litB = $integer_or_float_literal.value;
+			int litB = $fixed_32bit_literal.value;
 			
 			$instruction = Format31i.Format.make(dexFile, opcode.value, regA, litB);
 		}
@@ -659,19 +654,19 @@ instruction returns[Instruction instruction]
 			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, methodIdItem);
 		}
 	|	//e.g. const-wide v0, 5000000000L
-		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER long_or_double_literal)
+		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT51l.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
-			long litB = $long_or_double_literal.value;
+			long litB = $fixed_64bit_literal.value;
 			
 			$instruction = Format51l.Format.make(dexFile, opcode.value, regA, litB);		
 		}
 	|	//e.g. .array-data 4 1000000 .end array-data
-		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE INTEGER_LITERAL) array_elements)
+		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
 		{
-			int elementWidth = parseIntLiteral_short($INTEGER_LITERAL.text);
+			int elementWidth = $short_integral_literal.value;
 			List<byte[]> byteValues = $array_elements.values;
 			
 			$instruction = ArrayData.make(dexFile, elementWidth, byteValues);
@@ -733,19 +728,32 @@ type_descriptor returns [TypeIdItem type]
 	|	field_type_descriptor {$type = $field_type_descriptor.type;}
 	;
 	
-integer_or_float_literal returns[int value]
-	:	INTEGER_LITERAL { $value = Integer.parseInt($INTEGER_LITERAL.text); }
-	|	FLOAT_LITERAL { $value = Float.floatToIntBits(Float.parseFloat($FLOAT_LITERAL.text)); };
-	
-long_or_double_literal returns[long value]
-	:	LONG_LITERAL { $value = parseLongLiteral($LONG_LITERAL.text); }
-	|	DOUBLE_LITERAL { $value = parseDoubleLiteral($DOUBLE_LITERAL.text); };
+short_integral_literal returns[short value]
+	:	long_literal
+		{
+			literalTools.checkShort($long_literal.value);
+			$value = (short)$long_literal.value;
+		}
+	|	integer_literal
+		{
+			literalTools.checkShort($integer_literal.value);
+			$value = (short)$integer_literal.value;
+		}
+	|	short_literal {$value = $short_literal.value;}
+	|	byte_literal {$value = $byte_literal.value;};
+		
 	
 integer_literal returns[int value]
-	:	INTEGER_LITERAL { $value = Integer.parseInt($INTEGER_LITERAL.text); };
+	:	INTEGER_LITERAL { $value = literalTools.parseInt($INTEGER_LITERAL.text); };
 
 long_literal returns[long value]
-	:	LONG_LITERAL { $value = Long.parseLong($LONG_LITERAL.text); };
+	:	LONG_LITERAL { $value = literalTools.parseLong($LONG_LITERAL.text); };
+
+short_literal returns[short value]
+	:	SHORT_LITERAL { $value = literalTools.parseShort($SHORT_LITERAL.text); };
+
+byte_literal returns[byte value]
+	:	BYTE_LITERAL { $value = literalTools.parseByte($BYTE_LITERAL.text); };
 	
 float_literal returns[float value]
 	:	FLOAT_LITERAL { $value = Float.parseFloat($FLOAT_LITERAL.text); };
