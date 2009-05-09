@@ -52,6 +52,12 @@ tokens {
 	I_LABEL;
 	I_ARRAY_ELEMENT_SIZE;
 	I_ARRAY_ELEMENTS;	
+	I_PACKED_SWITCH_START_KEY;
+	I_PACKED_SWITCH_BASE_OFFSET;
+	I_PACKED_SWITCH_TARGETS;
+	I_SPARSE_SWITCH_BASE_OFFSET;
+	I_SPARSE_SWITCH_KEYS;
+	I_SPARSE_SWITCH_TARGETS;
 	I_STATEMENTS;
 	I_STATEMENT_FORMAT10t;
 	I_STATEMENT_FORMAT10x;
@@ -81,6 +87,8 @@ tokens {
 	I_STATEMENT_FORMAT3rc_METHOD;
 	I_STATEMENT_FORMAT51l;
 	I_STATEMENT_ARRAY_DATA;
+	I_STATEMENT_PACKED_SWITCH;
+	I_STATEMENT_SPARSE_SWITCH;
 	I_REGISTER_RANGE;
 	I_REGISTER_LIST;
 	
@@ -231,7 +239,7 @@ instruction returns [int size]
 	|	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER (LONG_LITERAL | DOUBLE_LITERAL) {$size = Format51l.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER LONG_LITERAL? DOUBLE_LITERAL?)		
-	|	//e.g. .array-data 4 1000000 .end array-data
+	|	
 		ARRAY_DATA_DIRECTIVE
 		{	
 			if (($statements::currentAddress \% 2) != 0) {
@@ -250,9 +258,56 @@ instruction returns [int size]
  					^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
 
  		->	^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
+ 	|	
+ 		PACKED_SWITCH_DIRECTIVE
+ 		{
+ 			if (($statements::currentAddress \% 2) != 0) {
+ 				needsNop = true;
+ 				$size = 2;
+ 			} else {
+ 				$size = 0;
+ 			}
+ 		}
+ 		
+ 		base_offset = offset_or_label
+ 		
+ 		fixed_32bit_literal 
+ 		
+ 		(switch_target += offset_or_label {$size+=4;})*
+ 		
+ 		END_PACKED_SWITCH_DIRECTIVE {$size = $size + 8;}
+ 		
+		/*add a nop statement before this if needed to force the correct alignment*/
+ 		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
+ 					^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_BASE_OFFSET $base_offset) ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal) ^(I_PACKED_SWITCH_TARGETS $switch_target*))
+ 		->	^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_BASE_OFFSET $base_offset) ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal) ^(I_PACKED_SWITCH_TARGETS $switch_target*))
+ 		
+ 	|
+ 		SPARSE_SWITCH_DIRECTIVE
+ 		{
+ 			if (($statements::currentAddress \% 2) != 0) {
+ 				needsNop = true;
+ 				$size = 2;
+ 			} else {
+ 				$size = 0;
+ 			}
+ 		}
+ 		
+ 		base_offset = offset_or_label
+ 		
+ 		(fixed_32bit_literal switch_target += offset_or_label {$size += 8;})*
+ 		
+ 		END_SPARSE_SWITCH_DIRECTIVE {$size = $size + 4;}
+ 		
+		/*add a nop statement before this if needed to force the correct alignment*/
+ 		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
+ 					^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET $base_offset) ^(I_SPARSE_SWITCH_KEYS fixed_32bit_literal*) ^(I_SPARSE_SWITCH_TARGETS $switch_target*))
+		->	^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET $base_offset) ^(I_SPARSE_SWITCH_KEYS fixed_32bit_literal*) ^(I_SPARSE_SWITCH_TARGETS $switch_target*))
+ 					
 	;
 	
-	
+offset_or_label
+	:	OFFSET | LABEL;	
 
 
 register_list

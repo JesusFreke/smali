@@ -35,6 +35,7 @@
 ;Testing Format31c
 ;5000000000
 ;5000000
+;Label12
 
 
 .method static constructor <clinit>()V ;test
@@ -254,6 +255,82 @@ ArrayData:
 
     .end array-data
 .end method
+
+.method public testPackedSwitch()Ljava/lang/String;
+    .registers  2
+
+    const v0, 12
+
+switch:
+    packed-switch v0, PackedSwitch:
+
+Label10:
+    const-string v1, "Label10"
+    return-object v1
+
+Label11:
+    const-string v1, "Label11"
+    return-object v1
+
+Label12:
+    const-string v1, "Label12"
+    return-object v1
+
+Label13:
+    const-string v1, "Label13"
+    return-object v1
+
+PackedSwitch:
+    .packed-switch switch: 10
+        Label10:
+        Label11:
+        Label12:
+        Label13:
+    .end packed-switch
+
+.end method
+
+
+.method public testSparseSwitch()Ljava/lang/String;
+    .registers  2
+
+    const v0, 13
+
+switch:
+    sparse-switch v0, SparseSwitch:
+
+Label10:
+    const-string v1, "Label10"
+    return-object v1
+
+Label20:
+    const-string v1, "Label20"
+    return-object v1
+
+Label15:
+    const-string v1, "Label15"
+    return-object v1
+
+Label13:
+    const-string v1, "Label13"
+    return-object v1
+
+Label99:
+    const-string v1, "Label99"
+    return-object v1
+
+SparseSwitch:
+    .sparse-switch switch:
+        10 -> Label10:
+        13 -> Label13:
+        15 -> Label15:
+        20 -> Label20:
+        99 -> Label99:
+    .end sparse-switch
+
+.end method
+
+
 
 .method public onCreate(Landroid/os/Bundle;)V
 	.registers 6
@@ -576,11 +653,40 @@ ArrayData:
 	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
 	move-result-object v2
 
+	;test packed-switch
+	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testPackedSwitch()Ljava/lang/String;
+	move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	;test sparse-switch
+	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testSparseSwitch()Ljava/lang/String;
+	move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
 
     check-cast  v4, Landroid/app/Activity;
 
 	invoke-virtual	{v0,v2}, android/widget/TextView/setText(Ljava/lang/CharSequence;)V
-	invoke-virtual	{v4,v0}, org/JesusFreke/HelloWorld2/HelloWorld2/setContentView(Landroid/view/View;)V
+
+
+	new-instance	v1, Landroid/widget/ScrollView;
+	invoke-direct	{v1,v4}, android/widget/ScrollView/<init>(Landroid/content/Context;)V
+
+	invoke-virtual {v1, v0}, android/widget/ScrollView/addView(Landroid/view/View;)V
+
+
+	invoke-virtual	{v4,v1}, org/JesusFreke/HelloWorld2/HelloWorld2/setContentView(Landroid/view/View;)V
 
 	return-void
 .end method

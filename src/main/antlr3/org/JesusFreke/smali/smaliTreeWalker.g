@@ -212,6 +212,33 @@ array_elements returns[List<byte[\]> values]
 			{
 				$values.add($fixed_size_literal.value);				
 			})*);	
+
+packed_switch_targets[int baseOffset] returns[List<Integer> targets]
+	:	{$targets = new ArrayList<Integer>();}
+		^(I_PACKED_SWITCH_TARGETS
+			(offset_or_label
+			{
+				$targets.add($offset_or_label.offsetValue - $baseOffset);
+			})*
+		);
+		
+sparse_switch_keys returns[List<Integer> keys]
+	:	{$keys = new ArrayList<Integer>();}
+		^(I_SPARSE_SWITCH_KEYS
+			(fixed_32bit_literal
+			{
+				$keys.add($fixed_32bit_literal.value);
+			})*
+		);
+		
+sparse_switch_targets[int baseOffset] returns[List<Integer> targets]
+	:	{$targets = new ArrayList<Integer>();}
+		^(I_SPARSE_SWITCH_TARGETS
+			(offset_or_label
+			{
+				$targets.add($offset_or_label.offsetValue - $baseOffset);
+			})*
+		);
 	
 method returns[ClassDataItem.EncodedMethod encodedMethod]
 	scope
@@ -671,6 +698,23 @@ instruction returns[Instruction instruction]
 			
 			$instruction = ArrayData.make(dexFile, elementWidth, byteValues);
 		}
+	|
+		
+		^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_BASE_OFFSET base_offset=offset_or_label) ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal) packed_switch_targets[$base_offset.offsetValue])
+		{
+			int startKey = $fixed_32bit_literal.value;
+			List<Integer> targets = $packed_switch_targets.targets;
+			
+			$instruction = PackedSwitchData.make(dexFile, startKey, targets);			
+		}
+	|
+		^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET base_offset=offset_or_label) sparse_switch_keys sparse_switch_targets[$base_offset.offsetValue])
+		{
+			List<Integer> keys = $sparse_switch_keys.keys;
+			List<Integer> targets = $sparse_switch_targets.targets;
+			
+			$instruction = SparseSwitchData.make(dexFile, keys, targets);			
+		}	
 	;
 
 
