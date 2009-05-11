@@ -55,7 +55,6 @@ public class SparseSwitchData
         bytes = new byte[targets.length * 8 + 4];
         int position = 8;
 
-        //TODO: should we throw an error if there are no switch elements?
         if (targets.length > 0) {
             int key = keys[0];
             bytes[4] = (byte)key;

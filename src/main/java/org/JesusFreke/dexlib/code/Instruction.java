@@ -32,8 +32,6 @@ import org.JesusFreke.dexlib.*;
 import org.JesusFreke.dexlib.util.Input;
 import org.JesusFreke.dexlib.util.Output;
 
-//TODO: need to implement the "special" bytecode types, for switches etc.
-
 public final class Instruction implements Field<Instruction> {
     private DexFile dexFile;
     private byte[] bytes;

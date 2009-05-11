@@ -103,11 +103,6 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         };
     }
 
-    //TODO: take out
-    public void writeTo(Output out) {
-        super.writeTo(out);
-    }
-
     protected int getAlignment() {
         return 4;
     }

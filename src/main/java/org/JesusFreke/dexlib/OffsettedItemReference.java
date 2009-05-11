@@ -55,9 +55,6 @@ public class OffsettedItemReference<T extends OffsettedItem<T>> extends
             throw new RuntimeException("Trying to write reference to an item that hasn't been placed.");
         }
         
-        /*if (out.getCursor() != underlyingField.getCachedValue()) {
-            throw new RuntimeException("Trying to write a reference in a difference location from where it was placed");
-        }*/
         //TODO: this is a hack to force it to reload the correct offset value
         if (item == null) {
             underlyingField.cacheValue(0);

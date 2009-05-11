@@ -53,9 +53,6 @@ public abstract class Item<T extends Item> {
     public int place(int index, int offset) {
         offset = alignOffset(offset);
 
-        //TODO: take out
-        System.out.println("Placing item type " + getItemType().getTypeName() + " at offset " + ((Integer)offset).toString());
-
         this.offset = offset;
 
         Field[] fields = getFields();
@@ -74,9 +71,6 @@ public abstract class Item<T extends Item> {
 
     public void writeTo(Output out) {
         out.alignTo(getAlignment());
-
-        //TODO: take out
-        System.out.println("Writing item type " + getItemType().getTypeName() + " at offset " + ((Integer)out.getCursor()).toString());
 
         if (out.getCursor() != offset) {
             throw new RuntimeException("Item is being written somewhere other than where it was placed"); 
