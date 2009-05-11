@@ -212,31 +212,50 @@ array_elements returns[List<byte[\]> values]
 			{
 				$values.add($fixed_size_literal.value);				
 			})*);	
+			
+packed_switch_target_count returns[int targetCount]
+	:	I_PACKED_SWITCH_TARGET_COUNT {$targetCount = Integer.parseInt($I_PACKED_SWITCH_TARGET_COUNT.text);};
 
-packed_switch_targets[int baseOffset] returns[List<Integer> targets]
-	:	{$targets = new ArrayList<Integer>();}
+packed_switch_targets[int baseOffset] returns[int[\] targets]
+	:
 		^(I_PACKED_SWITCH_TARGETS
+			packed_switch_target_count
+			{
+				int targetCount = $packed_switch_target_count.targetCount;
+				$targets = new int[targetCount];
+				int targetsPosition = 0;
+			}
+			
 			(offset_or_label
 			{
-				$targets.add($offset_or_label.offsetValue - $baseOffset);
+				targets[targetsPosition++] = $offset_or_label.offsetValue - $baseOffset;
 			})*
 		);
+
+sparse_switch_target_count returns[int targetCount]
+	:	I_SPARSE_SWITCH_TARGET_COUNT {$targetCount = Integer.parseInt($I_SPARSE_SWITCH_TARGET_COUNT.text);};
 		
-sparse_switch_keys returns[List<Integer> keys]
-	:	{$keys = new ArrayList<Integer>();}
+sparse_switch_keys[int targetCount] returns[int[\] keys]
+	:	{
+			$keys = new int[$targetCount];
+			int keysPosition = 0;
+		}
 		^(I_SPARSE_SWITCH_KEYS
 			(fixed_32bit_literal
 			{
-				$keys.add($fixed_32bit_literal.value);
+				$keys[keysPosition++] = $fixed_32bit_literal.value;		
 			})*
 		);
 		
-sparse_switch_targets[int baseOffset] returns[List<Integer> targets]
-	:	{$targets = new ArrayList<Integer>();}
+sparse_switch_targets[int baseOffset, int targetCount] returns[int[\] targets]
+	:	{
+			$targets = new int[$targetCount];
+			int targetsPosition = 0;
+		}
 		^(I_SPARSE_SWITCH_TARGETS
 			(offset_or_label
 			{
-				$targets.add($offset_or_label.offsetValue - $baseOffset);
+				$targets[targetsPosition++] = $offset_or_label.offsetValue - $baseOffset;
 			})*
 		);
 	
@@ -703,15 +722,15 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_BASE_OFFSET base_offset=offset_or_label) ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal) packed_switch_targets[$base_offset.offsetValue])
 		{
 			int startKey = $fixed_32bit_literal.value;
-			List<Integer> targets = $packed_switch_targets.targets;
+			int[] targets = $packed_switch_targets.targets;
 			
 			$instruction = PackedSwitchData.make(dexFile, startKey, targets);			
 		}
 	|
-		^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET base_offset=offset_or_label) sparse_switch_keys sparse_switch_targets[$base_offset.offsetValue])
+		^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET base_offset=offset_or_label) sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount] sparse_switch_targets[$base_offset.offsetValue, $sparse_switch_target_count.targetCount])
 		{
-			List<Integer> keys = $sparse_switch_keys.keys;
-			List<Integer> targets = $sparse_switch_targets.targets;
+			int[] keys = $sparse_switch_keys.keys;
+			int[] targets = $sparse_switch_targets.targets;
 			
 			$instruction = SparseSwitchData.make(dexFile, keys, targets);			
 		}	

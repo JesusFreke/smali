@@ -36,46 +36,60 @@ import java.util.List;
 
 public class SparseSwitchData
 {
-    //TODO: change from 2 List<Integer> to int[,]
-    public static Instruction make(DexFile dexFile, List<Integer> keys, List<Integer> targets) {
+    public static Instruction make(DexFile dexFile, int[] keys, int[] targets) {
         byte[] bytes;
 
-        if (keys.size() != targets.size()) {
+        if (keys.length != targets.length) {
             throw new RuntimeException("The number of keys and offsets don't match");
         }
 
+        if (targets.length == 0) {
+            throw new RuntimeException("The sparse-switch data must contain at least 1 key/target");
+        }
 
-        if (targets.size() > 0xFFFF) {
+        if (targets.length > 0xFFFF) {
             throw new RuntimeException("The sparse-switch data contains too many elements. " +
                     "The maximum number of switch elements is 65535");
         }
 
-        //TODO: need to sort the switch elements based on key, in ascending order
+        bytes = new byte[targets.length * 8 + 4];
+        int position = 8;
 
-        bytes = new byte[targets.size() * 8 + 4];
-        int position = 4;
+        //TODO: should we throw an error if there are no switch elements?
+        if (targets.length > 0) {
+            int key = keys[0];
+            bytes[4] = (byte)key;
+            bytes[5] = (byte)(key >> 8);
+            bytes[6] = (byte)(key >> 16);
+            bytes[7] = (byte)(key >> 24);
 
+            for (int i=1; i<keys.length; i++) {
+                key = keys[i];
+                if (key <= keys[i-1]) {
+                    throw new RuntimeException("The targets in a sparse switch block must be sorted in ascending" +
+                            "order, by key");
+                }
 
-        for (int key: keys) {
-            bytes[position++] = (byte)key;
-            bytes[position++] = (byte)(key >> 8);
-            bytes[position++] = (byte)(key >> 16);
-            bytes[position++] = (byte)(key >> 24);
-        }
+                bytes[position++] = (byte)key;
+                bytes[position++] = (byte)(key >> 8);
+                bytes[position++] = (byte)(key >> 16);
+                bytes[position++] = (byte)(key >> 24);
+            }
 
-        for (int target: targets) {
-            bytes[position++] = (byte)target;
-            bytes[position++] = (byte)(target >> 8);
-            bytes[position++] = (byte)(target >> 16);
-            bytes[position++] = (byte)(target >> 24);
+            for (int target: targets) {
+                bytes[position++] = (byte)target;
+                bytes[position++] = (byte)(target >> 8);
+                bytes[position++] = (byte)(target >> 16);
+                bytes[position++] = (byte)(target >> 24);
+            }
         }
 
         //sparse-switch psuedo-opcode
         bytes[0] = 0x00;
         bytes[1] = 0x02;
 
-        bytes[2] = (byte)targets.size();
-        bytes[3] = (byte)(targets.size() >> 8);
+        bytes[2] = (byte)targets.length;
+        bytes[3] = (byte)(targets.length >> 8);
 
         return new Instruction(dexFile, bytes, null);
     }

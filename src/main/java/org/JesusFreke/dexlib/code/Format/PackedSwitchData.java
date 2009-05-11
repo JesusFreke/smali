@@ -36,16 +36,15 @@ import java.util.List;
 
 public class PackedSwitchData
 {
-    //TODO: switch from List<Integer> to int[]
-    public static Instruction make(DexFile dexFile, int firstKey, List<Integer> targets) {
+    public static Instruction make(DexFile dexFile, int firstKey, int[] targets) {
         byte[] bytes;
 
-        if (targets.size() > 0xFFFF) {
+        if (targets.length > 0xFFFF) {
             throw new RuntimeException("The packed-switch data contains too many elements. " +
                     "The maximum number of switch elements is 65535");
         }
 
-        bytes = new byte[targets.size() * 4 + 8];
+        bytes = new byte[targets.length * 4 + 8];
         int position = 8;
 
         for (int target: targets) {
@@ -59,8 +58,8 @@ public class PackedSwitchData
         bytes[0] = 0x00;
         bytes[1] = 0x01;
 
-        bytes[2] = (byte)targets.size();
-        bytes[3] = (byte)(targets.size() >> 8);
+        bytes[2] = (byte)targets.length;
+        bytes[3] = (byte)(targets.length >> 8);
 
         bytes[4] = (byte)firstKey;
         bytes[5] = (byte)(firstKey >> 8);

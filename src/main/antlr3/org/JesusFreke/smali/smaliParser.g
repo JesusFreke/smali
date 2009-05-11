@@ -54,9 +54,11 @@ tokens {
 	I_ARRAY_ELEMENTS;	
 	I_PACKED_SWITCH_START_KEY;
 	I_PACKED_SWITCH_BASE_OFFSET;
+	I_PACKED_SWITCH_TARGET_COUNT;
 	I_PACKED_SWITCH_TARGETS;
 	I_SPARSE_SWITCH_BASE_OFFSET;
 	I_SPARSE_SWITCH_KEYS;
+	I_SPARSE_SWITCH_TARGET_COUNT;
 	I_SPARSE_SWITCH_TARGETS;
 	I_STATEMENTS;
 	I_STATEMENT_FORMAT10t;
@@ -261,6 +263,7 @@ instruction returns [int size]
  	|	
  		PACKED_SWITCH_DIRECTIVE
  		{
+ 			int targetCount = 0;
  			if (($statements::currentAddress \% 2) != 0) {
  				needsNop = true;
  				$size = 2;
@@ -273,18 +276,28 @@ instruction returns [int size]
  		
  		fixed_32bit_literal 
  		
- 		(switch_target += offset_or_label {$size+=4;})*
+ 		(switch_target += offset_or_label {$size+=4; targetCount++;})*
  		
  		END_PACKED_SWITCH_DIRECTIVE {$size = $size + 8;}
  		
 		/*add a nop statement before this if needed to force the correct alignment*/
  		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
- 					^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_BASE_OFFSET $base_offset) ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal) ^(I_PACKED_SWITCH_TARGETS $switch_target*))
- 		->	^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_BASE_OFFSET $base_offset) ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal) ^(I_PACKED_SWITCH_TARGETS $switch_target*))
+ 					^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"] 
+ 						^(I_PACKED_SWITCH_BASE_OFFSET[$start, "I_PACKED_SWITCH_BASE_OFFSET"] $base_offset) 
+ 						^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal) 
+ 						^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"] I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
+ 					)
+ 					
+		->	^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"] 
+				^(I_PACKED_SWITCH_BASE_OFFSET[$start, "I_PACKED_SWITCH_BASE_OFFSET"] $base_offset) 
+				^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal) 
+				^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"] I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
+			)
  		
  	|
  		SPARSE_SWITCH_DIRECTIVE
  		{
+ 			int targetCount = 0;
  			if (($statements::currentAddress \% 2) != 0) {
  				needsNop = true;
  				$size = 2;
@@ -295,15 +308,22 @@ instruction returns [int size]
  		
  		base_offset = offset_or_label
  		
- 		(fixed_32bit_literal switch_target += offset_or_label {$size += 8;})*
+ 		(fixed_32bit_literal switch_target += offset_or_label {$size += 8; targetCount++;})*
  		
  		END_SPARSE_SWITCH_DIRECTIVE {$size = $size + 4;}
  		
 		/*add a nop statement before this if needed to force the correct alignment*/
  		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
- 					^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET $base_offset) ^(I_SPARSE_SWITCH_KEYS fixed_32bit_literal*) ^(I_SPARSE_SWITCH_TARGETS $switch_target*))
-		->	^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET $base_offset) ^(I_SPARSE_SWITCH_KEYS fixed_32bit_literal*) ^(I_SPARSE_SWITCH_TARGETS $switch_target*))
- 					
+ 					^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
+ 						^(I_SPARSE_SWITCH_BASE_OFFSET[$start, "I_SPARSE_SWITCH_BASE_OFFSET"] $base_offset)
+ 						I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
+ 						^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
+ 						^(I_SPARSE_SWITCH_TARGETS $switch_target*))
+		->	^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
+				^(I_SPARSE_SWITCH_BASE_OFFSET[$start, "I_SPARSE_SWITCH_BASE_OFFSET"] $base_offset)
+				I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
+				^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
+				^(I_SPARSE_SWITCH_TARGETS $switch_target*)) 					
 	;
 	
 offset_or_label
