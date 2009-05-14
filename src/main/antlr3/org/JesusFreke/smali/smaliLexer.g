@@ -98,6 +98,10 @@ it would emit a token for each of its children tokens.*/
 
 lexer grammar smaliLexer;
 
+tokens {
+	ACCESS_SPEC;
+}
+
 @lexer::header {
 package org.JesusFreke.smali;
 
@@ -192,11 +196,10 @@ throw e;
 }
 }*/
 
-
 CLASS_PHRASE
 	:	CLASS_DIRECTIVE_EMIT
 		WS
-		(ACCESS_SPEC_EMIT WS)+
+		(CLASS_ACCESS_SPEC_EMIT WS)+
 		CLASS_DESCRIPTOR_EMIT;
 		
 SUPER_PHRASE
@@ -207,7 +210,7 @@ SUPER_PHRASE
 FIELD_PHRASE
 	:	FIELD_DIRECTIVE_EMIT
 		WS
-		(ACCESS_SPEC_EMIT WS)+
+		(FIELD_ACCESS_SPEC_EMIT WS)+
 		MEMBER_NAME_EMIT
 		WS
 		FIELD_TYPE_DESCRIPTOR_EMITCHILD
@@ -217,7 +220,7 @@ FIELD_PHRASE
 METHOD_PHRASE
 	:	METHOD_DIRECTIVE_EMIT
 		WS
-		(ACCESS_SPEC_EMIT WS)+
+		(METHOD_ACCESS_SPEC_EMIT WS)+
 		MEMBER_NAME_EMIT
 		METHOD_PROTOTYPE_EMITCHILDREN;
 		
@@ -450,6 +453,19 @@ SPARSE_SWITCH_PHRASE
 		WSC
 		END_SPARSE_SWITCH_DIRECTIVE_EMIT;
 
+CATCH_PHRASE
+	:	CATCH_DIRECTIVE_EMIT
+		WS
+		FIELD_TYPE_DESCRIPTOR_EMITCHILD
+		WS 'from' WS
+		(LABEL_EMIT | OFFSET_EMIT)
+		WS 'to' WS
+		(LABEL_EMIT | OFFSET_EMIT)
+		WS 'using'
+		(LABEL_EMIT | OFFSET_EMIT);
+		
+
+//TODO: add support for both relative and absolute offsets?
 fragment OFFSET_EMIT
 	:	OFFSET {emit($OFFSET, OFFSET);};
 fragment OFFSET
@@ -519,6 +535,11 @@ fragment END_SPARSE_SWITCH_DIRECTIVE_EMIT
 	:	END_SPARSE_SWITCH_DIRECTIVE {emit($END_SPARSE_SWITCH_DIRECTIVE, END_SPARSE_SWITCH_DIRECTIVE);};
 fragment END_SPARSE_SWITCH_DIRECTIVE
 	:	'.end sparse-switch';
+	
+fragment CATCH_DIRECTIVE_EMIT
+	:	CATCH_DIRECTIVE {emit($CATCH_DIRECTIVE, CATCH_DIRECTIVE);};
+fragment CATCH_DIRECTIVE
+	:	'.catch';
 	
 fragment REGISTER_EMIT
 	:	REGISTER {emit($REGISTER, REGISTER);};
@@ -618,17 +639,51 @@ fragment ARRAY_CHAR_LIST[int maxCount]
 	;
 
 
-fragment ACCESS_SPEC_EMIT
-	:	ACCESS_SPEC {emit($ACCESS_SPEC, ACCESS_SPEC);};
+fragment CLASS_ACCESS_SPEC_EMIT
+	:	CLASS_ACCESS_SPEC {emit($CLASS_ACCESS_SPEC, ACCESS_SPEC);};
 
-fragment ACCESS_SPEC
+//TODO: add ACC_ANNOTATION when adding support for annotations
+fragment CLASS_ACCESS_SPEC
+	:	'public'
+	|	'final'
+	|	'interface'
+	|	'abstract'
+	|	'synthetic'
+	|	'enum';
+	
+fragment FIELD_ACCESS_SPEC_EMIT
+	:	FIELD_ACCESS_SPEC {emit($FIELD_ACCESS_SPEC, ACCESS_SPEC);};
+	
+fragment FIELD_ACCESS_SPEC
 	:	'public'
 	|	'private'
+	|	'protected'
 	|	'static'
+	|	'final'
+	|	'volatile'
+	|	'transient'
+	|	'synthetic'
+	|	'enum';
+	
+fragment METHOD_ACCESS_SPEC_EMIT
+	:	METHOD_ACCESS_SPEC {emit($METHOD_ACCESS_SPEC, ACCESS_SPEC);};
+	
+fragment METHOD_ACCESS_SPEC
+	:	'public'
+	|	'private'
+	|	'protected'
+	|	'static'
+	|	'final'
+	|	'synchronized'
+	|	'bridge'
+	|	'varargs'
+	|	'native'
+	|	'abstract'
+	|	'strictfp'
+	|	'synthetic'
 	|	'constructor'
-	|	'final';
+	|	'declared-synchronized';
 
-		
 
 fragment MEMBER_NAME_EMIT
 	:	MEMBER_NAME {emit($MEMBER_NAME, MEMBER_NAME);};

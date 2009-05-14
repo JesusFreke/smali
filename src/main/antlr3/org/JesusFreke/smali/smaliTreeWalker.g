@@ -263,13 +263,15 @@ method returns[ClassDataItem.EncodedMethod encodedMethod]
 	scope
 	{
 		HashMap<String, Integer> labels;
+		TryListBuilder tryList;
 		int currentAddress;
 	}
 	:	{
 			$method::labels = new HashMap<String, Integer>();
+			$method::tryList = new TryListBuilder();
 			$method::currentAddress = 0;
 		}
-		^(I_METHOD method_name_and_prototype access_list registers_directive labels statements)
+		^(I_METHOD method_name_and_prototype access_list registers_directive labels statements catches)
 	{
 		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
 		int registers = $registers_directive.registers;
@@ -277,7 +279,11 @@ method returns[ClassDataItem.EncodedMethod encodedMethod]
 		boolean isStatic = (access & AccessFlags.STATIC) != 0; 
 		ArrayList<Instruction> instructions = $statements.instructions;
 		
-		CodeItem codeItem = new CodeItem(dexFile, registers, methodIdItem.getParameterWordCount(isStatic), instructions);
+		Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> temp = $method::tryList.encodeTries(dexFile);
+		List<CodeItem.TryItem> tries = temp.first;
+		List<CodeItem.EncodedCatchHandler> handlers = temp.second;
+		
+		CodeItem codeItem = new CodeItem(dexFile, registers, methodIdItem.getParameterWordCount(isStatic), instructions, tries, handlers);
 		
 		$encodedMethod = new ClassDataItem.EncodedMethod(dexFile, methodIdItem, access, codeItem);
 	};
@@ -336,6 +342,19 @@ fully_qualified_field returns[FieldIdItem fieldIdItem]
 		TypeIdItem fieldType = $field_type_descriptor.type;
 		$fieldIdItem = new FieldIdItem(dexFile, classType, fieldName, fieldType);
 	};
+	
+catches	:	^(I_CATCHES catch_directive*);
+
+catch_directive
+	:	^(I_CATCH I_CATCH_ADDRESS field_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label)
+		{
+			TypeIdItem type = $field_type_descriptor.type;
+			int startAddress = $from.offsetValue + $method::currentAddress;
+			int endAddress = $to.offsetValue + $method::currentAddress;
+			int handlerAddress = $using.offsetValue + $method::currentAddress;
+
+			$method::tryList.addHandler(type, startAddress, endAddress, handlerAddress);
+		};
 	
 labels
 	:	^(I_LABELS label_def*);

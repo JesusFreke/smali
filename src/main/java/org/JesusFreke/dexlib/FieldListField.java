@@ -34,7 +34,7 @@ import org.JesusFreke.dexlib.util.Input;
 import java.util.ArrayList;
 
 public abstract class FieldListField<T extends Field> implements Field<FieldListField<T>> {
-    private final ArrayList<T> list;
+    final ArrayList<T> list;
 
     public FieldListField(ArrayList<T> list) {
         this.list = list;

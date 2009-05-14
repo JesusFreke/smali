@@ -60,6 +60,9 @@ tokens {
 	I_SPARSE_SWITCH_KEYS;
 	I_SPARSE_SWITCH_TARGET_COUNT;
 	I_SPARSE_SWITCH_TARGETS;
+	I_CATCH;
+	I_CATCHES;
+	I_CATCH_ADDRESS;
 	I_STATEMENTS;
 	I_STATEMENT_FORMAT10t;
 	I_STATEMENT_FORMAT10x;
@@ -151,9 +154,14 @@ statements
 	scope {int currentAddress;}
 	:	{$statements::currentAddress = 0;}
 		(	instruction {$statements::currentAddress += $instruction.size/2;}
+		|	catch_directive
 		|	label)*		
-		-> ^(I_LABELS label*) ^(I_STATEMENTS instruction*);
+		-> ^(I_LABELS label*) ^(I_STATEMENTS instruction*) ^(I_CATCHES catch_directive*);
 
+catch_directive
+	:	CATCH_DIRECTIVE field_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label
+		-> ^(I_CATCH[$start, "I_CATCH"] I_CATCH_ADDRESS[$start, Integer.toString($statements::currentAddress)] field_type_descriptor $from $to $using)
+	;
 label
 	:	LABEL -> ^(I_LABEL LABEL {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($statements::currentAddress)))});
 	

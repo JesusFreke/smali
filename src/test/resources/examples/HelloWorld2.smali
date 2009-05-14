@@ -36,6 +36,8 @@
 ;5000000000
 ;5000000
 ;Label12
+;Label13
+;In the exception handler.
 
 
 .method static constructor <clinit>()V ;test
@@ -327,6 +329,43 @@ SparseSwitch:
         20 -> Label20:
         99 -> Label99:
     .end sparse-switch
+
+.end method
+
+.method public testTry()Ljava/lang/String;
+    .registers 2
+
+    ;0
+    const-string v0, "This shouldn't be displayed!"
+
+    ;2
+
+    tryStart:
+    new-instance v1, Ljava/lang/Exception;
+
+    ;4
+
+    invoke-direct	{v1}, java/lang/Exception/<init>()V
+
+    ;7
+    
+    throw v1
+
+    nop
+    nop
+
+    ;8
+    tryEnd:
+
+    return-object v0
+
+    ;9
+
+    .catch Ljava/lang/Exception; from tryStart: to tryEnd: using handler:
+
+    handler:
+    const-string v0, "In the exception handler."
+    return-object v0
 
 .end method
 
@@ -665,6 +704,18 @@ SparseSwitch:
 
 	;test sparse-switch
 	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testSparseSwitch()Ljava/lang/String;
+	move-result-object v1
+
+	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+	invoke-virtual {v2, v3}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;
+	move-result-object v2
+
+
+
+	;test try-catch block
+	invoke-virtual {v4}, org/JesusFreke/HelloWorld2/HelloWorld2/testTry()Ljava/lang/String;
 	move-result-object v1
 
 	invoke-virtual {v2, v1}, java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;

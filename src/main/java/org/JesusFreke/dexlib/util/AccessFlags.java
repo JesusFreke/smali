@@ -34,8 +34,23 @@ public class AccessFlags
 {
     public static final int PUBLIC = 0x01;
     public static final int PRIVATE = 0x02;
+    public static final int PROTECTED = 0x04;
     public static final int STATIC = 0x08;
-    public static final int CONSTRUCTOR = 0x10000;    
+    public static final int FINAL = 0x10;
+    public static final int SYNCHRONIZED = 0x20;
+    public static final int VOLATILE = 0x40;
+    public static final int BRIDGE = 0x40;
+    public static final int TRANSIENT = 0x80;
+    public static final int VARARGS = 0x80;
+    public static final int NATIVE = 0x100;
+    public static final int INTERFACE = 0x200;
+    public static final int ABSTRACT = 0x400;
+    public static final int STRICTFP = 0x800;
+    public static final int SYNTHETIC = 0x1000;
+    public static final int ANNOTATION = 0x2000;
+    public static final int ENUM = 0x4000;
+    public static final int CONSTRUCTOR = 0x10000;
+    public static final int DECLARED_SYNCHRONIZED = 0x20000;
 
     private static HashMap<String, Integer> accessFlagValues;
 
@@ -44,7 +59,21 @@ public class AccessFlags
         accessFlagValues.put("public", PUBLIC);
         accessFlagValues.put("private", PRIVATE);
         accessFlagValues.put("static", STATIC);
+        accessFlagValues.put("final", FINAL);
+        accessFlagValues.put("synchronized", SYNCHRONIZED);
+        accessFlagValues.put("volatile", VOLATILE);
+        accessFlagValues.put("bridge", BRIDGE);
+        accessFlagValues.put("transient", TRANSIENT);
+        accessFlagValues.put("varargs", VARARGS);
+        accessFlagValues.put("native", NATIVE);
+        accessFlagValues.put("interface", INTERFACE);
+        accessFlagValues.put("abstract", ABSTRACT);
+        accessFlagValues.put("strictfp", STRICTFP);
+        accessFlagValues.put("synthetic", SYNTHETIC);
+        accessFlagValues.put("annotation", ANNOTATION);
+        accessFlagValues.put("enum", ENUM);
         accessFlagValues.put("constructor", CONSTRUCTOR);
+        accessFlagValues.put("declared-synchronized", DECLARED_SYNCHRONIZED);
     }
 
     public static int getValueForAccessFlag(String accessFlag) {

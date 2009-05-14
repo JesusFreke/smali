@@ -35,6 +35,8 @@ import org.JesusFreke.dexlib.util.Input;
 import org.JesusFreke.dexlib.util.Output;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
 
 public class CodeItem extends OffsettedItem<CodeItem> {
     private final Field[] fields;
@@ -69,7 +71,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                 padding = new PaddingField(),
                 tries = new FieldListField<TryItem>(tryItems) {
                     protected TryItem make() {
-                        return new TryItem();
+                        return new TryItem(catchHandlers);
                     }
                 },
 
@@ -79,11 +81,21 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
 
 
-    public CodeItem(final DexFile dexFile, int registersCount, int inArguments, ArrayList<Instruction> instructions) {
+    public CodeItem(final DexFile dexFile, int registersCount, int inArguments, ArrayList<Instruction> instructions, List<TryItem> tries, List<EncodedCatchHandler> handlers) {
         super(-1);
 
         this.instructionList = new ArrayList<Instruction>(instructions);
         this.instructionListField = new InstructionListField(dexFile);
+
+        if (tries != null) {
+            tryItems.addAll(tries);
+            if (handlers == null) {
+                throw new RuntimeException("The handlers parameter cannot be null if tries parameter is not null");
+            }
+            catchHandlerList.addAll(handlers);
+        } else if (handlers != null) {
+            throw new RuntimeException("The handlers parameter must be null if the tries parameter is null");
+        }
 
         fields = new Field[] {
                 this.registersCount = new ShortIntegerField(registersCount),
@@ -96,7 +108,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                 this.padding = new PaddingField(),
                 this.tries = new FieldListField<TryItem>(tryItems) {
                     protected TryItem make() {
-                        return new TryItem();
+                        return new TryItem(catchHandlers);
                     }
                 },
                 this.catchHandlers = new EncodedCatchHandlerList(dexFile)
@@ -111,43 +123,148 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         return ItemType.TYPE_CODE_ITEM;
     }
 
+    public void copyTo(DexFile dexFile, CodeItem copy)
+    {
+        Field[] fields = getFields();
+        Field[] fieldsCopy = copy.getFields();
+        for (int i = 0; i < fields.length-2; i++) {
+            fields[i].copyTo(dexFile, fieldsCopy[i]);
+        }
+        //we need to do this in reverse order, so when the tries are copied,
+        //the catchHandler copies will already exist
+        catchHandlers.copyTo(dexFile, copy.catchHandlers);
+        tries.copyTo(dexFile, copy.tries);
+    }
+
     public Field[] getFields() {
         return fields;
     }
 
-    public class TryItem extends CompositeField<TryItem> {
+    public static class TryItem extends CompositeField<TryItem> {
         private final Field[] fields;
 
-        public TryItem() {
+        private final IntegerField startAddr;
+        private final ShortIntegerField insnCount;
+        private final EncodedCatchHandlerReference encodedCatchHandlerReference;
+
+        public TryItem(EncodedCatchHandlerList encodedCatchHandlerList) {
             fields = new Field[] {
-                    new IntegerField(),
-                    new ShortIntegerField(),
-                    new ShortIntegerField()
+                    startAddr = new IntegerField(),
+                    insnCount = new ShortIntegerField(),
+                    encodedCatchHandlerReference = new EncodedCatchHandlerReference(encodedCatchHandlerList)
             };
         }
 
+        public TryItem(int startAddr, int insnCount, EncodedCatchHandler encodedCatchHandler) {
+            fields = new Field[] {
+                    this.startAddr = new IntegerField(startAddr),
+                    this.insnCount = new ShortIntegerField(insnCount),
+                    this.encodedCatchHandlerReference = new EncodedCatchHandlerReference(encodedCatchHandler)
+            };
+        }
 
         protected Field[] getFields() {
             return fields;
         }
     }
 
-    class EncodedCatchHandlerList extends CompositeField<EncodedCatchHandlerList> {
+    public static class EncodedCatchHandlerReference extends ShortIntegerField {
+        private final EncodedCatchHandlerList encodedCatchHandlerList;
+        private EncodedCatchHandler encodedCatchHandler;
+
+        public EncodedCatchHandlerReference(EncodedCatchHandlerList encodedCatchHandlerList) {
+            this.encodedCatchHandlerList = encodedCatchHandlerList;
+        }
+
+        public EncodedCatchHandlerReference(EncodedCatchHandler encodedCatchHandler) {
+            this.encodedCatchHandlerList = null;
+            this.encodedCatchHandler = encodedCatchHandler;
+        }
+
+        public EncodedCatchHandlerList getEncodedCatchHandlerList() {
+            return encodedCatchHandlerList;
+        }
+
+        private void setReference(EncodedCatchHandler encodedCatchHandler) {
+            this.encodedCatchHandler = encodedCatchHandler;
+        }
+
+        public void copyTo(DexFile dexFile, CachedIntegerValueField _copy) {
+
+            EncodedCatchHandlerReference copy = (EncodedCatchHandlerReference)_copy;
+            EncodedCatchHandler copiedItem = copy.getEncodedCatchHandlerList().getByOffset(
+                encodedCatchHandler.getOffsetInList());
+            copy.setReference(copiedItem);
+        }
+
+
+        public void writeTo(Output out) {
+            cacheValue(encodedCatchHandler.getOffsetInList());
+
+            super.writeTo(out);
+        }
+
+        public void readFrom(Input in) {
+            super.readFrom(in);
+
+            encodedCatchHandler = encodedCatchHandlerList.getByOffset(getCachedValue());
+        }
+
+        public int place(int offset) {
+            cacheValue(encodedCatchHandler.getOffsetInList());
+            return super.place(offset);
+        }
+    }
+
+    public class EncodedCatchHandlerList extends CompositeField<EncodedCatchHandlerList> {
         private boolean fieldPresent = false;
+        protected HashMap<Integer, EncodedCatchHandler> itemsByOffset =
+                new HashMap<Integer, EncodedCatchHandler>();
 
         private final DexFile dexFile;
+
+        public EncodedCatchHandler getByOffset(int offset) {
+            EncodedCatchHandler encodedCatchHandler = itemsByOffset.get(offset);
+            if (encodedCatchHandler == null) {
+                encodedCatchHandler = new EncodedCatchHandler(dexFile, offset);
+                itemsByOffset.put(offset, encodedCatchHandler);
+            }
+            return encodedCatchHandler;
+        }
 
         public EncodedCatchHandlerList(DexFile dexFile) {
             this.dexFile = dexFile;
         }
 
+        private final ListSizeField sizeField;
+        private final FieldListField<EncodedCatchHandler> listField;
+
         private final Field[] fields = new Field[] {
-                new ListSizeField(catchHandlerList, new Leb128Field()),
-                new FieldListField<EncodedCatchHandler>(catchHandlerList) {
+                sizeField = new ListSizeField(catchHandlerList, new Leb128Field()),
+                listField = new FieldListField<EncodedCatchHandler>(catchHandlerList) {
                     protected EncodedCatchHandler make() {
-                        return new EncodedCatchHandler(dexFile);
+                        return new EncodedCatchHandler(dexFile, 0);
                     }
-                }
+
+                    public void readFrom(Input in) {
+                        int currentOffset = sizeField.place(0);
+
+                        for (int i = 0; i < list.size(); i++) {
+                                EncodedCatchHandler field = list.get(i);
+
+                                if (field == null) {
+                                    field = itemsByOffset.get(currentOffset);
+                                    if (field == null) {
+                                        field = new EncodedCatchHandler(dexFile, currentOffset);
+                                    }
+                                    list.set(i, field);
+                                }
+                                int savedOffset = in.getCursor();
+                                field.readFrom(in);
+                                currentOffset += in.getCursor() - savedOffset;
+                            }
+                        }
+                   }
         };
 
         public void readFrom(Input in) {
@@ -164,6 +281,9 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         }
 
         public int place(int offset) {
+            for (EncodedCatchHandler encodedCatchHandler: listField.list) {
+                encodedCatchHandler.setBaseOffset(offset);
+            }
             if (tryItems.size() > 0) {
                 fieldPresent = true;
                 return super.place(offset);
@@ -179,17 +299,31 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         public void copyTo(DexFile dexFile, EncodedCatchHandlerList copy) {
             super.copyTo(dexFile, copy);
             copy.fieldPresent = fieldPresent;
+            copy.itemsByOffset.clear();
+            for (EncodedCatchHandler encodedCatchHandler: copy.listField.list) {
+                copy.itemsByOffset.put(encodedCatchHandler.offset, encodedCatchHandler);
+            }
         }
     }
 
-    public class EncodedCatchHandler extends CompositeField<EncodedCatchHandler> {
+    public static class EncodedCatchHandler extends CompositeField<EncodedCatchHandler> {
         public final Field[] fields;
-        private ArrayList<EncodedTypeAddrPair> list = new ArrayList<EncodedTypeAddrPair>();
-        private boolean hasCatchAll = false;                     
+        private ArrayList<EncodedTypeAddrPair> list;
+        boolean hasCatchAll = false;
+        private int baseOffset = 0;
 
-        public EncodedCatchHandler(final DexFile dexFile) {
+        private final ListSizeField size;
+        private final FieldListField<EncodedTypeAddrPair> handlers;
+        private final Leb128Field catchAllAddress;
+
+        private int offset;
+
+        public EncodedCatchHandler(final DexFile dexFile, int offset) {
+            this.offset = offset;
+            
+            list = new ArrayList<EncodedTypeAddrPair>();
             fields = new Field[] {
-                    new ListSizeField(list, new SignedLeb128Field() {
+                    size = new ListSizeField(list, new SignedLeb128Field() {
                         public void readFrom(Input in) {
                             super.readFrom(in);
                             hasCatchAll = (getCachedValue() <= 0);
@@ -199,12 +333,12 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                             super.cacheValue(value * (hasCatchAll?-1:1));
                         }})
                     ,
-                    new FieldListField<EncodedTypeAddrPair>(list) {
+                    handlers = new FieldListField<EncodedTypeAddrPair>(list) {
                         protected EncodedTypeAddrPair make() {
                             return new EncodedTypeAddrPair(dexFile);
                         }
                     },
-                    new Leb128Field() {
+                    catchAllAddress = new Leb128Field() {
                         public void readFrom(Input in) {
                             if (hasCatchAll) {
                                 super.readFrom(in);
@@ -227,23 +361,54 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             };
         }
 
+        public EncodedCatchHandler(final DexFile dexFile, List<EncodedTypeAddrPair> handlers, int catchAllHandler) {
+            this(dexFile, 0);
+
+            list.addAll(handlers);
+            if (catchAllHandler >= 0) {
+                hasCatchAll = true;
+                catchAllAddress.cacheValue(catchAllHandler);
+            }
+        }
+
         protected Field[] getFields() {
             return fields;
+        }
+
+        public int getOffsetInList() {
+            return offset-baseOffset;
+        }
+
+        public void setBaseOffset(int baseOffset) {
+            this.baseOffset = baseOffset; 
         }
 
         public void copyTo(DexFile dexFile, EncodedCatchHandler copy) {
             super.copyTo(dexFile, copy);
             copy.hasCatchAll = hasCatchAll;
+            copy.offset = offset;
+        }
+
+        public int place(int offset) {
+            this.offset = offset;
+            return super.place(offset);
         }
     }
 
-    public class EncodedTypeAddrPair extends CompositeField<EncodedTypeAddrPair> {
+    public static class EncodedTypeAddrPair extends CompositeField<EncodedTypeAddrPair> {
         public final Field[] fields;
 
         public EncodedTypeAddrPair(DexFile dexFile) {
             fields = new Field[] {
                     new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128Field()),
                     new Leb128Field()
+            };
+        }
+
+        public EncodedTypeAddrPair(DexFile dexFile, TypeIdItem type, int handlerOffset) {
+            fields = new Field[] {
+                    new IndexedItemReference<TypeIdItem>(dexFile, type, new Leb128Field()),
+                    new Leb128Field(handlerOffset)
             };
         }
 
