@@ -202,7 +202,10 @@ public class TryListBuilder
                 tryRange = newRange;
             }
 
-            tryRange.catchAllHandlerAddress = handlerAddress;
+            if (tryRange.catchAllHandlerAddress == -1) {
+                tryRange.catchAllHandlerAddress = handlerAddress;
+            }
+            
             previousEnd = tryRange.endAddress;
             tryRange = tryRange.next;
         } while (tryRange.previous != endRange);

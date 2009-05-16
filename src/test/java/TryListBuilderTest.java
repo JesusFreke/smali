@@ -425,6 +425,46 @@ public class TryListBuilderTest
         checkTry(tries.get(4), 10, 12, -1, new Handler[]{handler3});
     }
 
+    @Test
+    public void catchAllTest1() {
+        //|-----|
+        // |---|
+        TryListBuilder tryListBuilder = new TryListBuilder();
+
+        DexFile dexFile = DexFile.makeBlankDexFile();
+
+        tryListBuilder.addCatchAllHandler(2, 8, 100);
+        tryListBuilder.addCatchAllHandler(4, 6, 101);
+
+        Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> retVal = tryListBuilder.encodeTries(dexFile);
+        List<CodeItem.TryItem> tries = retVal.first;
+
+        Assert.assertTrue(tries.size() == 3);
+        checkTry(tries.get(0), 2, 4, 100, new Handler[]{});
+        checkTry(tries.get(1), 4, 6, 100, new Handler[]{});
+        checkTry(tries.get(2), 6, 8, 100, new Handler[]{});
+    }
+
+    @Test
+    public void catchAllTest2() {
+        // |---|
+        //|-----|
+        TryListBuilder tryListBuilder = new TryListBuilder();
+
+        DexFile dexFile = DexFile.makeBlankDexFile();
+
+        tryListBuilder.addCatchAllHandler(4, 6, 100);
+        tryListBuilder.addCatchAllHandler(2, 8, 101);
+
+        Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> retVal = tryListBuilder.encodeTries(dexFile);
+        List<CodeItem.TryItem> tries = retVal.first;
+
+        Assert.assertTrue(tries.size() == 3);
+        checkTry(tries.get(0), 2, 4, 101, new Handler[]{});
+        checkTry(tries.get(1), 4, 6, 100, new Handler[]{});
+        checkTry(tries.get(2), 6, 8, 101, new Handler[]{});
+    }
+
 
 
 }
