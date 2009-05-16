@@ -100,6 +100,7 @@ public class TryListBuilder
 
             TryRange tryRange = new TryRange(address, endAddress);
             tryRange.catchAllHandlerAddress = this.catchAllHandlerAddress;
+            tryRange.handlers.addAll(this.handlers);
             append(tryRange);
 
             this.endAddress = address;
@@ -126,10 +127,6 @@ public class TryListBuilder
             this.handlerAddress = handlerAddress;
         }
     }
-
-    /*public TryListBuilder(CodeItem item)
-    {
-    } */
 
     public Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> encodeTries(DexFile dexFile) {
         if (firstTryRange.next == lastTryRange) {
@@ -217,13 +214,13 @@ public class TryListBuilder
 
         TryRange tryRange = firstTryRange.next;
         while (tryRange != lastTryRange) {
-            if (tryRange.startAddress == startAddress) {
+            if (startAddress == tryRange.startAddress) {
                 //|-----|
                 //^------
                 /*Bam. We hit the start of the range right on the head*/
                 startRange = tryRange;
                 break;
-            } else if (tryRange.startAddress < startAddress && tryRange.endAddress > startAddress) {
+            } else if (startAddress > tryRange.startAddress && startAddress < tryRange.endAddress) {
                 //|-----|
                 //  ^----
                 /*Almost. The start of the range being added is in the middle
@@ -231,14 +228,25 @@ public class TryListBuilder
                 at the start address of the range being added*/
                 startRange = tryRange.split(startAddress);
                 break;
-            }else if (tryRange.startAddress > startAddress) {
-                //   |-----|
-                //^---------
-                /*Oops, too far! We've passed the start of the range being added.
-                We need to add a new range just before this one*/
-                startRange = new TryRange(startAddress, tryRange.startAddress);
-                tryRange.prepend(startRange);
-                break;
+            }else if (startAddress < tryRange.startAddress) {
+                if (endAddress <= tryRange.startAddress) {
+                    //      |-----|
+                    //^--^
+                    /*Oops, totally too far! The new range doesn't overlap any existing
+                    ones, so we just add it and return*/
+                    startRange = new TryRange(startAddress, endAddress);
+                    tryRange.prepend(startRange);
+                    return new Pair<TryRange, TryRange>(startRange, startRange);
+                } else {
+                    //   |-----|
+                    //^---------
+                    /*Oops, too far! We've passed the start of the range being added, but
+                     the new range does overlap this one. We need to add a new range just
+                     before this one*/
+                    startRange = new TryRange(startAddress, tryRange.startAddress);
+                    tryRange.prepend(startRange);
+                    break;
+                }
             }
 
             tryRange = tryRange.next;
@@ -250,9 +258,9 @@ public class TryListBuilder
         end before the range being added starts. In either case, we just need
         to add a new range at the end of the list*/
         if (startRange == null) {
-            TryRange newRange = new TryRange(startAddress, endAddress);
-            lastTryRange.prepend(newRange);
-            return new Pair<TryRange, TryRange>(newRange, newRange);
+            startRange = new TryRange(startAddress, endAddress);
+            lastTryRange.prepend(startRange);
+            return new Pair<TryRange, TryRange>(startRange, startRange);
         }
 
         tryRange = startRange;
@@ -301,6 +309,8 @@ public class TryListBuilder
     public void addHandler(TypeIdItem type, int startAddress, int endAddress, int handlerAddress) {
         TryRange startRange = null;
         TryRange endRange = null;
+
+        //TODO: need to check for pre-existing exception types in the handler list?
 
         Pair<TryRange, TryRange> ranges = getBoundingRanges(startAddress, endAddress);
         startRange = ranges.first;

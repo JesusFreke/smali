@@ -166,6 +166,18 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         protected Field[] getFields() {
             return fields;
         }
+
+        public int getStartAddress() {
+            return startAddr.getCachedValue();
+        }
+
+        public int getEndAddress() {
+            return startAddr.getCachedValue() + insnCount.getCachedValue();
+        }
+
+        public EncodedCatchHandler getHandler() {
+            return encodedCatchHandlerReference.getReference();
+        }
     }
 
     public static class EncodedCatchHandlerReference extends ShortIntegerField {
@@ -187,6 +199,10 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
         private void setReference(EncodedCatchHandler encodedCatchHandler) {
             this.encodedCatchHandler = encodedCatchHandler;
+        }
+
+        public EncodedCatchHandler getReference() {
+            return encodedCatchHandler;
         }
 
         public void copyTo(DexFile dexFile, CachedIntegerValueField _copy) {
@@ -393,27 +409,54 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             this.offset = offset;
             return super.place(offset);
         }
+
+        public int getCatchAllAddress() {
+            if (hasCatchAll) {
+                return catchAllAddress.getCachedValue();
+            } else {
+                return -1;
+            }
+        }
+
+        public int getHandlerCount() {
+            return list.size();
+        }
+
+        public EncodedTypeAddrPair getHandler(int index) {
+            return list.get(index);
+        }
     }
 
     public static class EncodedTypeAddrPair extends CompositeField<EncodedTypeAddrPair> {
         public final Field[] fields;
 
+        public final IndexedItemReference<TypeIdItem> type;
+        public final Leb128Field handlerAddress;
+
         public EncodedTypeAddrPair(DexFile dexFile) {
             fields = new Field[] {
-                    new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128Field()),
-                    new Leb128Field()
+                    type = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128Field()),
+                    handlerAddress = new Leb128Field()
             };
         }
 
         public EncodedTypeAddrPair(DexFile dexFile, TypeIdItem type, int handlerOffset) {
             fields = new Field[] {
-                    new IndexedItemReference<TypeIdItem>(dexFile, type, new Leb128Field()),
-                    new Leb128Field(handlerOffset)
+                    this.type = new IndexedItemReference<TypeIdItem>(dexFile, type, new Leb128Field()),
+                    this.handlerAddress = new Leb128Field(handlerOffset)
             };
         }
 
         protected Field[] getFields() {
             return fields;
+        }
+
+        public TypeIdItem getType() {
+            return type.getReference();
+        }
+
+        public int getHandlerAddress() {
+            return handlerAddress.getCachedValue();
         }
     }
 
