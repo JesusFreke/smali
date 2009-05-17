@@ -36,7 +36,10 @@ import java.util.*;
 
 public class TryListBuilder
 {
-    //TODO: need to thoroughly test this
+    /*TODO: add logic to merge adjacent, identical try blocks, and remove superflous handlers
+      Also provide a "strict" mode, where the above isn't performed, which will be useful to be able to
+      exactly reproduce the original .dex file (for testing/verification purposes)*/
+
 
     private TryRange firstTryRange = new TryRange(0,0);
     private TryRange lastTryRange = new TryRange(0,0);

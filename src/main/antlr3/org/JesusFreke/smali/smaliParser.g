@@ -136,29 +136,25 @@ import org.JesusFreke.dexlib.code.Format.*;
 
 
 smali_file
-	scope
-	{
-		boolean hasClassSpec;
-		boolean hasSuperSpec;
-	}
 	:
 	{
-		$smali_file::hasClassSpec = false;
-		$smali_file::hasSuperSpec = false;
+		boolean hasClassSpec = false;
+		boolean hasSuperSpec = false;
+		boolean hasSourceSpec = false;
 	}
-	( {!$smali_file::hasClassSpec}?=> class_spec {$smali_file::hasClassSpec = true;}
-	|	{!$smali_file::hasSuperSpec}?=> super_spec {$smali_file::hasSuperSpec = true;}
+	(	{!hasClassSpec}?=> class_spec {hasClassSpec = true;}
+	|	{!hasSuperSpec}?=> super_spec {hasSuperSpec = true;}
 	|	implements_spec
-	|	source_spec
+	|	{!hasSourceSpec}?=> source_spec {hasSourceSpec = true;}
 	|	method
 	|	field)*
 	{
-		if (!$smali_file::hasClassSpec) {
+		if (!hasClassSpec) {
 			//TODO: throw correct exception type
 			throw new RuntimeException("The file must contain a .class directive");
 		}
 		
-		if (!$smali_file::hasSuperSpec) {
+		if (!hasSuperSpec) {
 			//TODO: throw correct exception type
 			throw new RuntimeException("The file must contain a .super directive");
 		}
