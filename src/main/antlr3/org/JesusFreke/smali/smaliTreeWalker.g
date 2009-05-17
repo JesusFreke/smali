@@ -90,10 +90,10 @@ import org.JesusFreke.dexlib.code.Format.*;
 smali_file returns[ClassDefItem classDefItem]
 	:	^(I_CLASS_DEF header methods fields);
 
-header	:	class_spec super_spec
+header	:	class_spec super_spec implements_list source_spec
 	{
 		classDataItem = new ClassDataItem(dexFile, 0);
-		classDefItem = new ClassDefItem(dexFile, $class_spec.type, $class_spec.accessFlags, $super_spec.type, classDataItem);
+		classDefItem = new ClassDefItem(dexFile, $class_spec.type, $class_spec.accessFlags, $super_spec.type, $implements_list.implementsList, $source_spec.source, classDataItem);
 	};
 
 class_spec returns[TypeIdItem type, int accessFlags]
@@ -108,6 +108,27 @@ super_spec returns[TypeIdItem type]
 	{
 		$type = $class_type_descriptor.type;
 	};
+	
+
+implements_spec returns[TypeIdItem type]
+	:	^(I_IMPLEMENTS class_type_descriptor)
+	{
+		$type = $class_type_descriptor.type;
+	};
+	
+implements_list returns[TypeListItem implementsList]
+@init	{ ArrayList<TypeIdItem> typeList; }
+	:	{typeList = new ArrayList<TypeIdItem>();}
+		(implements_spec {typeList.add($implements_spec.type);} )*
+		{if (typeList.size() > 0) $implementsList = new TypeListItem(dexFile, typeList);
+		else $implementsList = null;};
+		
+source_spec returns[StringIdItem source]
+	:	{$source = null;}
+		^(I_SOURCE string_literal {$source = new StringIdItem(dexFile, $string_literal.value);})
+	|	;
+		
+	
 
 access_list returns [int value]
 	@init

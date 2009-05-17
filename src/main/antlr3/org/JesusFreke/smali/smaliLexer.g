@@ -178,23 +178,13 @@ import java.util.ArrayDeque;
 		tokens.add(token);
 	}
 	
-/*protected void mismatch(IntStream input, int ttype, BitSet follow) throws RecognitionException
-{
-	throw new MismatchedTokenException(ttype, input);
+	public void reportError(RecognitionException e)
+	{
+		throw new RuntimeException(e);
+	}
 }
 
-public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, BitSet follow) throws RecognitionException
-{
-	throw e;
-}*/
 
-}
-
-/*@rulecatch {
-catch (RecognitionException e) {
-throw e;
-}
-}*/
 
 CLASS_PHRASE
 	:	CLASS_DIRECTIVE_EMIT
@@ -206,6 +196,16 @@ SUPER_PHRASE
 	:	SUPER_DIRECTIVE_EMIT
 		WS
 		CLASS_DESCRIPTOR_EMIT;
+		
+IMPLEMENTS_PHRASE
+	:	IMPLEMENTS_DIRECTIVE_EMIT
+		WS
+		CLASS_DESCRIPTOR_EMIT;
+		
+SOURCE_PHRASE
+	:	SOURCE_DIRECTIVE_EMIT
+		WS
+		STRING_LITERAL_EMIT;			
 		
 FIELD_PHRASE
 	:	FIELD_DIRECTIVE_EMIT
@@ -461,7 +461,7 @@ CATCH_PHRASE
 		(LABEL_EMIT | OFFSET_EMIT)
 		WS 'to' WS
 		(LABEL_EMIT | OFFSET_EMIT)
-		WS 'using'
+		WS 'using' WS
 		(LABEL_EMIT | OFFSET_EMIT);
 		
 
@@ -485,6 +485,16 @@ fragment SUPER_DIRECTIVE_EMIT
 	:	SUPER_DIRECTIVE {emit($SUPER_DIRECTIVE, SUPER_DIRECTIVE);};
 fragment SUPER_DIRECTIVE
 	:	'.super';
+
+fragment IMPLEMENTS_DIRECTIVE_EMIT
+	:	IMPLEMENTS_DIRECTIVE {emit($IMPLEMENTS_DIRECTIVE, IMPLEMENTS_DIRECTIVE);};
+fragment IMPLEMENTS_DIRECTIVE
+	:	'.implements';
+	
+fragment SOURCE_DIRECTIVE_EMIT
+	:	SOURCE_DIRECTIVE {emit($SOURCE_DIRECTIVE, SOURCE_DIRECTIVE);};
+fragment SOURCE_DIRECTIVE
+	:	'.source';
 	
 fragment FIELD_DIRECTIVE_EMIT
 	:	FIELD_DIRECTIVE {emit($FIELD_DIRECTIVE, FIELD_DIRECTIVE);};
@@ -505,7 +515,7 @@ fragment REGISTERS_DIRECTIVE_EMIT
 	:	REGISTERS_DIRECTIVE {emit($REGISTERS_DIRECTIVE, REGISTERS_DIRECTIVE);};
 fragment REGISTERS_DIRECTIVE
 	:	'.registers';
-	
+
 fragment ARRAY_DATA_DIRECTIVE_EMIT
 	:	ARRAY_DATA_DIRECTIVE {emit($ARRAY_DATA_DIRECTIVE, ARRAY_DATA_DIRECTIVE);};
 fragment ARRAY_DATA_DIRECTIVE

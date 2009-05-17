@@ -1,5 +1,30 @@
 .class public Lorg/JesusFreke/HelloWorld2/HelloWorld2;
+
 .super Landroid/app/Activity;
+
+.source "HelloWorld2.smali"
+
+;two random interfaces with only a single method to implement
+.implements Landroid/util/Printer;
+.implements Landroid/accounts/AccountMonitorListener;
+
+
+
+.method public println(Ljava/lang/String;)V
+    .registers 1
+
+    return-void
+.end method
+
+
+
+
+.method public onAccountsUpdated([Ljava/lang/String;)V
+    .registers 1
+
+    return-void
+.end method
+
 
 .field private helloWorld Ljava/lang/String;
 .field private static helloWorldStatic Ljava/lang/String;

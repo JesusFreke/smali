@@ -38,6 +38,8 @@ tokens {
 	//I_* tokens are imaginary tokens used as parent AST nodes
 	I_CLASS_DEF;
 	I_SUPER;
+	I_IMPLEMENTS;
+	I_SOURCE;
 	I_ACCESS_LIST;
 	I_METHODS;
 	I_FIELDS;
@@ -108,21 +110,81 @@ import org.JesusFreke.dexlib.code.Format.*;
 }
 
 
-smali_file:	header methods_and_fields -> ^(I_CLASS_DEF header methods_and_fields);
+@members {
+	public String getErrorMessage(RecognitionException e,
+		String[] tokenNames)
+	{
+		List stack = getRuleInvocationStack(e, this.getClass().getName());
+		String msg = null;
+		if ( e instanceof NoViableAltException ) {
+			NoViableAltException nvae = (NoViableAltException)e;
+			msg = " no viable alt; token="+e.token+
+			" (decision="+nvae.decisionNumber+
+			" state "+nvae.stateNumber+")"+
+			" decision=<<"+nvae.grammarDecisionDescription+">>";
+		}
+		else {
+			msg = super.getErrorMessage(e, tokenNames);
+		}
+		return stack+" "+msg;
+	}
+	
+	public String getTokenErrorDisplay(Token t) {
+		return t.toString();
+	}
+}
 
-header	:	class_spec super_spec;
 
+smali_file
+	scope
+	{
+		boolean hasClassSpec;
+		boolean hasSuperSpec;
+	}
+	:
+	{
+		$smali_file::hasClassSpec = false;
+		$smali_file::hasSuperSpec = false;
+	}
+	( {!$smali_file::hasClassSpec}?=> class_spec {$smali_file::hasClassSpec = true;}
+	|	{!$smali_file::hasSuperSpec}?=> super_spec {$smali_file::hasSuperSpec = true;}
+	|	implements_spec
+	|	source_spec
+	|	method
+	|	field)*
+	{
+		if (!$smali_file::hasClassSpec) {
+			//TODO: throw correct exception type
+			throw new RuntimeException("The file must contain a .class directive");
+		}
+		
+		if (!$smali_file::hasSuperSpec) {
+			//TODO: throw correct exception type
+			throw new RuntimeException("The file must contain a .super directive");
+		}
+	}
+	->	^(I_CLASS_DEF
+			class_spec
+			super_spec
+			implements_spec*
+			source_spec
+			^(I_METHODS method*) ^(I_FIELDS field*));
+		
 class_spec
 	:	CLASS_DIRECTIVE access_list CLASS_DESCRIPTOR -> CLASS_DESCRIPTOR access_list;
 
 super_spec
 	:	SUPER_DIRECTIVE CLASS_DESCRIPTOR -> ^(I_SUPER[$start, "I_SUPER"] CLASS_DESCRIPTOR);
 
+implements_spec
+	:	IMPLEMENTS_DIRECTIVE CLASS_DESCRIPTOR -> ^(I_IMPLEMENTS[$start, "I_IMPLEMENTS"] CLASS_DESCRIPTOR);
+	
+source_spec
+	:	SOURCE_DIRECTIVE STRING_LITERAL -> ^(I_SOURCE[$start, "I_SOURCE"] STRING_LITERAL);
+
 access_list
 	:	ACCESS_SPEC+ -> ^(I_ACCESS_LIST[$start,"I_ACCESS_LIST"] ACCESS_SPEC+);
 
-methods_and_fields
-	:	(method | field)* -> ^(I_METHODS method*) ^(I_FIELDS field*);
 
 field	:	FIELD_DIRECTIVE access_list MEMBER_NAME field_type_descriptor literal?
 		-> ^(I_FIELD[$start, "I_FIELD"] MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)?);

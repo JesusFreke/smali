@@ -69,7 +69,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         };
     }
 
-    public ClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags, TypeIdItem superType, ClassDataItem classDataItem) {
+    public ClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem source, ClassDataItem classDataItem) {
         super(-1);
 
         this.dexFile = dexFile;
@@ -78,8 +78,8 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
                 this.classType = new IndexedItemReference<TypeIdItem>(dexFile, classType, new IntegerField()),
                 this.accessFlags = new IntegerField(accessFlags),
                 superclassType = new IndexedItemReference<TypeIdItem>(dexFile, superType, new IntegerField()),
-                classInterfacesList = new OffsettedItemReference<TypeListItem>(dexFile.TypeListsSection, new IntegerField()),
-                sourceFile = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new IntegerField()),
+                classInterfacesList = new OffsettedItemReference<TypeListItem>(dexFile, implementsList, new IntegerField()),
+                sourceFile = new IndexedItemReference<StringIdItem>(dexFile, source, new IntegerField()),
                 classAnnotations = new OffsettedItemReference<AnnotationDirectoryItem>(dexFile.AnnotationDirectoriesSection, new IntegerField()),
                 classData = new OffsettedItemReference<ClassDataItem>(dexFile, classDataItem, new IntegerField()),
                 staticFieldInitialValues = new OffsettedItemReference<EncodedArrayItem>(dexFile.EncodedArraysSection, new IntegerField())
