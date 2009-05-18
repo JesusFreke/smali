@@ -81,7 +81,13 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
 
 
-    public CodeItem(final DexFile dexFile, int registersCount, int inArguments, ArrayList<Instruction> instructions, List<TryItem> tries, List<EncodedCatchHandler> handlers) {
+    public CodeItem(final DexFile dexFile,
+                    int registersCount,
+                    int inArguments,
+                    ArrayList<Instruction> instructions,
+                    DebugInfoItem debugInfo,
+                    List<TryItem> tries,
+                    List<EncodedCatchHandler> handlers) {
         super(-1);
 
         this.instructionList = new ArrayList<Instruction>(instructions);
@@ -102,7 +108,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                 this.inArgumentCount = new ShortIntegerField(inArguments),
                 this.outArgumentCount = new ShortIntegerField(instructionListField.getOutArguments()),
                 this.triesCount = new ListSizeField(tryItems, new ShortIntegerField(0)),
-                this.debugInfo = new OffsettedItemReference<DebugInfoItem>(dexFile, null, new IntegerField()),
+                this.debugInfo = new OffsettedItemReference<DebugInfoItem>(dexFile, debugInfo, new IntegerField()),
                 this.instructionsSize = new IntegerField(instructionListField.getInstructionWordCount()),
                 instructionListField,
                 this.padding = new PaddingField(),

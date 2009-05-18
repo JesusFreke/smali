@@ -464,6 +464,11 @@ CATCH_PHRASE
 		WS 'using' WS
 		(LABEL_EMIT | OFFSET_EMIT);
 		
+LINE_PHRASE
+	:	LINE_DIRECTIVE_EMIT
+		WS
+		INTEGRAL_LITERAL_EMITCHILD;
+		
 
 //TODO: add support for both relative and absolute offsets?
 fragment OFFSET_EMIT
@@ -550,6 +555,11 @@ fragment CATCH_DIRECTIVE_EMIT
 	:	CATCH_DIRECTIVE {emit($CATCH_DIRECTIVE, CATCH_DIRECTIVE);};
 fragment CATCH_DIRECTIVE
 	:	'.catch';
+	
+fragment LINE_DIRECTIVE_EMIT
+	:	LINE_DIRECTIVE {emit($LINE_DIRECTIVE, LINE_DIRECTIVE);};
+fragment LINE_DIRECTIVE
+	:	'.line';
 	
 fragment REGISTER_EMIT
 	:	REGISTER {emit($REGISTER, REGISTER);};

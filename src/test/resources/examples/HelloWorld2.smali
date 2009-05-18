@@ -11,7 +11,7 @@
 
 
 .method public println(Ljava/lang/String;)V
-    .registers 1
+    .registers 2
 
     return-void
 .end method
@@ -20,7 +20,7 @@
 
 
 .method public onAccountsUpdated([Ljava/lang/String;)V
-    .registers 1
+    .registers 2
 
     return-void
 .end method
@@ -360,6 +360,8 @@ SparseSwitch:
 .method public testTry()Ljava/lang/String;
     .registers 2
 
+    .line 4
+
     ;0
     const-string v0, "This shouldn't be displayed!"
 
@@ -367,6 +369,8 @@ SparseSwitch:
 
     tryStart:
     new-instance v1, Ljava/lang/Exception;
+
+    .line 2
 
     ;4
 
@@ -379,12 +383,16 @@ SparseSwitch:
     nop
     nop
 
-    ;8
+    .line 5
+
+    ;10
     tryEnd:
 
     return-object v0
 
-    ;9
+    .line 90
+
+    ;11
 
     .catch Ljava/lang/Exception; from tryStart: to tryEnd: using handler:
 
@@ -399,12 +407,16 @@ SparseSwitch:
 .method public onCreate(Landroid/os/Bundle;)V
 	.registers 6
 
+    .line 1
+    
 	invoke-super	{v4,v5}, android/app/Activity/onCreate(Landroid/os/Bundle;)V
 
 	const-string    v3, "\n"
 
 	new-instance	v0, Landroid/widget/TextView;
 	invoke-direct	{v0,v4}, android/widget/TextView/<init>(Landroid/content/Context;)V
+
+	.line 3
 
 	iget-object v1, v4, org/JesusFreke/HelloWorld2/HelloWorld2/helloWorld Ljava/lang/String;
 

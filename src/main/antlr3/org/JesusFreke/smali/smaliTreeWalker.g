@@ -286,13 +286,15 @@ method returns[ClassDataItem.EncodedMethod encodedMethod]
 		HashMap<String, Integer> labels;
 		TryListBuilder tryList;
 		int currentAddress;
+		DebugInfoBuilder debugInfo;
 	}
 	:	{
 			$method::labels = new HashMap<String, Integer>();
 			$method::tryList = new TryListBuilder();
 			$method::currentAddress = 0;
+			$method::debugInfo = new DebugInfoBuilder();
 		}
-		^(I_METHOD method_name_and_prototype access_list registers_directive labels statements catches)
+		^(I_METHOD method_name_and_prototype access_list registers_directive labels statements catches lines)
 	{
 		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
 		int registers = $registers_directive.registers;
@@ -304,7 +306,15 @@ method returns[ClassDataItem.EncodedMethod encodedMethod]
 		List<CodeItem.TryItem> tries = temp.first;
 		List<CodeItem.EncodedCatchHandler> handlers = temp.second;
 		
-		CodeItem codeItem = new CodeItem(dexFile, registers, methodIdItem.getParameterWordCount(isStatic), instructions, tries, handlers);
+		DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);
+		
+		CodeItem codeItem = new CodeItem(dexFile,
+						registers,
+						methodIdItem.getParameterWordCount(isStatic),
+						instructions,
+						debugInfoItem,
+						tries,
+						handlers);
 		
 		$encodedMethod = new ClassDataItem.EncodedMethod(dexFile, methodIdItem, access, codeItem);
 	};
@@ -375,6 +385,15 @@ catch_directive
 			int handlerAddress = $using.offsetValue + $method::currentAddress;
 
 			$method::tryList.addHandler(type, startAddress, endAddress, handlerAddress);
+		};
+
+lines
+	:	^(I_LINES line*);
+
+line
+	:	^(I_LINE integral_literal integer_literal)
+		{
+			$method::debugInfo.addLine($integer_literal.value, $integral_literal.value); 
 		};
 	
 labels
@@ -842,6 +861,16 @@ short_integral_literal returns[short value]
 			literalTools.checkShort($integer_literal.value);
 			$value = (short)$integer_literal.value;
 		}
+	|	short_literal {$value = $short_literal.value;}
+	|	byte_literal {$value = $byte_literal.value;};
+	
+integral_literal returns[int value]
+	:	long_literal
+		{
+			literalTools.checkInt($long_literal.value);
+			$value = (short)$long_literal.value;
+		}
+	|	integer_literal {$value = (short)$integer_literal.value;}
 	|	short_literal {$value = $short_literal.value;}
 	|	byte_literal {$value = $byte_literal.value;};
 		
