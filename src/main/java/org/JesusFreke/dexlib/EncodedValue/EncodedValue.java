@@ -108,6 +108,7 @@ public class EncodedValue extends CompositeField<EncodedValue> {
 
         public void readFrom(Input in) {
             subField = EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, getValueType());
+            subField.setInitialValueArg(getValueArg());
             subField.readFrom(in);
         }
 

@@ -69,7 +69,7 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
 
     public void readFrom(Input in) {
         setReference(((IndexedSection<T>)getSection()).getByIndex(
-                (int)EncodedValueUtils.decodeUnsignedIntegralValue(in.readBytes(initialValueArg))));
+                (int)EncodedValueUtils.decodeUnsignedIntegralValue(in.readBytes(initialValueArg + 1))));
     }
 
     public int place(int offset) {
