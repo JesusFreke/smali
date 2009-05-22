@@ -20,7 +20,18 @@
 
 
 .method public onAccountsUpdated([Ljava/lang/String;)V
+    .parameter "currentAccounts"
+
+    return-void
     .registers 2
+.end method
+
+.method public static parameterNameTest(IIII)V
+    .registers 4
+    .parameter "test1"
+    .parameter "test2"
+    .parameter
+    .parameter "test4"
 
     return-void
 .end method

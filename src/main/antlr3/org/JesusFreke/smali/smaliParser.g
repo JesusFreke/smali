@@ -67,6 +67,9 @@ tokens {
 	I_CATCH_ADDRESS;
 	I_LINE;
 	I_LINES;
+	I_PARAMETER;
+	I_PARAMETERS;
+	I_PARAMETER_NOT_SPECIFIED;
 	I_STATEMENTS;
 	I_STATEMENT_FORMAT10t;
 	I_STATEMENT_FORMAT10x;
@@ -187,21 +190,17 @@ access_list
 field	:	FIELD_DIRECTIVE access_list MEMBER_NAME field_type_descriptor literal?
 		-> ^(I_FIELD[$start, "I_FIELD"] MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)?);
 		
-method	:	METHOD_DIRECTIVE access_list  MEMBER_NAME method_prototype 
-		registers_directive
-		statements 
+method	
+	scope {int currentAddress;}
+	:	{$method::currentAddress = 0;}
+		METHOD_DIRECTIVE access_list  MEMBER_NAME method_prototype 
+		statements_and_directives
 		END_METHOD_DIRECTIVE
-		-> ^(I_METHOD[$start, "I_METHOD"] MEMBER_NAME method_prototype access_list registers_directive statements);
+		-> ^(I_METHOD[$start, "I_METHOD"] MEMBER_NAME method_prototype access_list statements_and_directives);
 
 method_prototype
 	:	OPEN_PAREN field_type_descriptor* CLOSE_PAREN type_descriptor
 		-> ^(I_METHOD_PROTOTYPE[$start, "I_METHOD_PROTOTYPE"] ^(I_METHOD_RETURN_TYPE type_descriptor) field_type_descriptor*);
-
-
-
-registers_directive
-	:	REGISTERS_DIRECTIVE integral_literal
-	-> ^(I_REGISTERS[$start, "I_REGISTERS"] integral_literal);
 
 
 fully_qualified_method
@@ -210,25 +209,49 @@ fully_qualified_method
 fully_qualified_field
 	:	CLASS_NAME MEMBER_NAME field_type_descriptor;
 
-statements
-	scope {int currentAddress;}
-	:	{$statements::currentAddress = 0;}
-		(	instruction {$statements::currentAddress += $instruction.size/2;}
+statements_and_directives
+	:	{
+			$method::currentAddress = 0;
+			boolean hasRegistersDirective = false;
+		}
+		(	instruction {$method::currentAddress += $instruction.size/2;}
+		|	{!hasRegistersDirective}?=> registers_directive {hasRegistersDirective = true;}
 		|	catch_directive
 		|	line_directive
+		|	parameter_directive
 		|	label)*		
-		-> ^(I_LABELS label*) ^(I_STATEMENTS instruction*) ^(I_CATCHES catch_directive*) ^(I_LINES line_directive*);
+		{
+			if (!hasRegistersDirective) {
+				//TODO: throw correct exception type here
+				throw new RuntimeException("This method has no register directive");
+			}
+		}
+		->	registers_directive
+			^(I_LABELS label*)
+			^(I_STATEMENTS instruction*)
+			^(I_CATCHES catch_directive*)
+			^(I_LINES line_directive*)
+			^(I_PARAMETERS parameter_directive*);
+
+registers_directive
+	:	REGISTERS_DIRECTIVE integral_literal
+	-> ^(I_REGISTERS[$start, "I_REGISTERS"] integral_literal);
 
 catch_directive
 	:	CATCH_DIRECTIVE field_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label
-		-> ^(I_CATCH[$start, "I_CATCH"] I_CATCH_ADDRESS[$start, Integer.toString($statements::currentAddress)] field_type_descriptor $from $to $using)
+		-> ^(I_CATCH[$start, "I_CATCH"] I_CATCH_ADDRESS[$start, Integer.toString($method::currentAddress)] field_type_descriptor $from $to $using)
 	;
 
 line_directive
-	:	LINE_DIRECTIVE integral_literal -> ^(I_LINE integral_literal {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($statements::currentAddress)))});
+	:	LINE_DIRECTIVE integral_literal -> ^(I_LINE integral_literal {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($method::currentAddress)))});
+
+parameter_directive
+	:	PARAMETER_DIRECTIVE 	(	STRING_LITERAL -> ^(I_PARAMETER STRING_LITERAL?)
+					|	-> ^(I_PARAMETER I_PARAMETER_NOT_SPECIFIED)
+					);
 
 label
-	:	LABEL -> ^(I_LABEL LABEL {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($statements::currentAddress)))});
+	:	LABEL -> ^(I_LABEL LABEL {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($method::currentAddress)))});
 	
 instruction returns [int size]
 	@init {boolean needsNop = false;}
@@ -317,7 +340,7 @@ instruction returns [int size]
 	|	
 		ARRAY_DATA_DIRECTIVE
 		{	
-			if (($statements::currentAddress \% 2) != 0) {
+			if (($method::currentAddress \% 2) != 0) {
 				needsNop = true;
 				$size = 2;
 			} else {
@@ -337,7 +360,7 @@ instruction returns [int size]
  		PACKED_SWITCH_DIRECTIVE
  		{
  			int targetCount = 0;
- 			if (($statements::currentAddress \% 2) != 0) {
+ 			if (($method::currentAddress \% 2) != 0) {
  				needsNop = true;
  				$size = 2;
  			} else {
@@ -371,7 +394,7 @@ instruction returns [int size]
  		SPARSE_SWITCH_DIRECTIVE
  		{
  			int targetCount = 0;
- 			if (($statements::currentAddress \% 2) != 0) {
+ 			if (($method::currentAddress \% 2) != 0) {
  				needsNop = true;
  				$size = 2;
  			} else {

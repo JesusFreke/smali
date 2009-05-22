@@ -294,17 +294,44 @@ method returns[ClassDataItem.EncodedMethod encodedMethod]
 			$method::currentAddress = 0;
 			$method::debugInfo = new DebugInfoBuilder();
 		}
-		^(I_METHOD method_name_and_prototype access_list registers_directive labels statements catches lines)
+		^(	I_METHOD
+			method_name_and_prototype
+			access_list
+			registers_directive
+			labels
+			statements
+			catches
+			lines
+			parameters)
 	{
 		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
 		int registers = $registers_directive.registers;
 		int access = $access_list.value;
 		boolean isStatic = (access & AccessFlags.STATIC) != 0; 
 		ArrayList<Instruction> instructions = $statements.instructions;
+	
+		
+		int minRegisters = methodIdItem.getParameterWordCount((access & AccessFlags.STATIC) != 0);
+		
+		if (registers < minRegisters) {
+			//TODO: throw the correct exception type
+			throw new RuntimeException(	"This method requires at least " +
+							Integer.toString(minRegisters) +
+							" registers, for the method parameters");
+		}
 		
 		Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> temp = $method::tryList.encodeTries(dexFile);
 		List<CodeItem.TryItem> tries = temp.first;
 		List<CodeItem.EncodedCatchHandler> handlers = temp.second;
+	
+		
+		int methodParameterCount = methodIdItem.getParameterCount();
+		if ($method::debugInfo.getParameterNameCount() > methodParameterCount) {
+			//TODO: throw the correct exception type
+			throw new RuntimeException(	"Too many parameter names specified. This method only has " +
+							Integer.toString(methodParameterCount) +
+							" parameters.");
+		}
 		
 		DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);
 		
@@ -351,10 +378,6 @@ field_type_list returns[ArrayList<TypeIdItem> types]
 			}
 		)*;
 	
-registers_directive returns[int registers]
-	:	^(I_REGISTERS short_integral_literal) {$registers = $short_integral_literal.value;};
-
-
 
 fully_qualified_method returns[MethodIdItem methodIdItem]
 	:	CLASS_NAME MEMBER_NAME method_prototype
@@ -373,6 +396,9 @@ fully_qualified_field returns[FieldIdItem fieldIdItem]
 		TypeIdItem fieldType = $field_type_descriptor.type;
 		$fieldIdItem = new FieldIdItem(dexFile, classType, fieldName, fieldType);
 	};
+
+registers_directive returns[int registers]
+	:	^(I_REGISTERS short_integral_literal) {$registers = $short_integral_literal.value;};
 	
 catches	:	^(I_CATCHES catch_directive*);
 
@@ -395,6 +421,15 @@ line
 		{
 			$method::debugInfo.addLine($integer_literal.value, $integral_literal.value); 
 		};
+		
+parameters
+	:	^(I_PARAMETERS parameter*);
+	
+parameter
+	:	^(I_PARAMETER 	(
+					string_literal {$method::debugInfo.addParameterName($string_literal.value);}
+				|	I_PARAMETER_NOT_SPECIFIED {$method::debugInfo.addParameterName(null);}
+				));
 	
 labels
 	:	^(I_LABELS label_def*);

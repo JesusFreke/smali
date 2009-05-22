@@ -90,6 +90,14 @@ public class MethodIdItem extends IndexedItem<MethodIdItem> {
         return prototype.getReference().getParameterWordCount() + (isStatic?0:1);
     }
 
+    /**
+     * Return the number of parameters, not including the "this" parameter, if any
+     * @return The number of parameters, not including the "this" parameter, if any
+     */
+    public int getParameterCount() {
+        return prototype.getReference().getParameterCount();
+    }
+
     public int compareTo(MethodIdItem o) {
         int result = classType.compareTo(o.classType);
         if (result != 0) {

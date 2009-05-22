@@ -79,6 +79,10 @@ public class TypeListItem extends OffsettedItem<TypeListItem> implements Compara
         return wordCount;
     }
 
+    public int getCount() {
+        return typeList.size();
+    }
+
     public int getAlignment() {
         return 4;
     }

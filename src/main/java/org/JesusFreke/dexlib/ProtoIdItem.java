@@ -84,6 +84,16 @@ public class ProtoIdItem extends IndexedItem<ProtoIdItem> {
         }
     }
 
+
+    public int getParameterCount() {
+        TypeListItem typeList = parameters.getReference();
+        if (typeList == null) {
+            return 0;
+        } else {
+            return typeList.getCount();
+        }
+    }
+
     protected Field[] getFields() {
         return fields;
     }

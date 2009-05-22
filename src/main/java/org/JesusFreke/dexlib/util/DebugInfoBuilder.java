@@ -78,6 +78,16 @@ public class DebugInfoBuilder
         events.add(new LineEvent(address, line));
     }
 
+    public void addParameterName(String parameterName) {
+        hasData = true;
+
+        parameterNames.add(parameterName);
+    }
+
+    public int getParameterNameCount() {
+        return parameterNames.size();
+    }
+
     public DebugInfoItem encodeDebugInfo(DexFile dexFile) {
         if (!hasData) {
             return null;
@@ -98,7 +108,11 @@ public class DebugInfoBuilder
         debugInstructions.add(new EndSequence());
 
         for (String parameterName: parameterNames) {
-            parameterNameReferences.add(new StringIdItem(dexFile, parameterName));
+            if (parameterName == null) {
+                parameterNameReferences.add(null);
+            } else {
+                parameterNameReferences.add(new StringIdItem(dexFile, parameterName));
+            }
         }
 
         return new DebugInfoItem(dexFile, lineStart, parameterNameReferences, debugInstructions);
