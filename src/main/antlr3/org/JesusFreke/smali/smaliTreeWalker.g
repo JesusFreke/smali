@@ -82,7 +82,7 @@ import org.JesusFreke.dexlib.code.Format.*;
 		}
 		//the parser wouldn't accept a negative register, i.e. v-1, so we don't have to check for val<0;
 		return val;
-	}	
+	}
 }
 
 
@@ -301,8 +301,9 @@ method returns[ClassDataItem.EncodedMethod encodedMethod]
 			labels
 			statements
 			catches
-			lines
-			parameters)
+			parameters
+			ordered_debug_directives
+			)
 	{
 		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
 		int registers = $registers_directive.registers;
@@ -400,42 +401,11 @@ fully_qualified_field returns[FieldIdItem fieldIdItem]
 registers_directive returns[int registers]
 	:	^(I_REGISTERS short_integral_literal) {$registers = $short_integral_literal.value;};
 	
-catches	:	^(I_CATCHES catch_directive*);
-
-catch_directive
-	:	^(I_CATCH I_CATCH_ADDRESS field_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label)
-		{
-			TypeIdItem type = $field_type_descriptor.type;
-			int startAddress = $from.offsetValue + $method::currentAddress;
-			int endAddress = $to.offsetValue + $method::currentAddress;
-			int handlerAddress = $using.offsetValue + $method::currentAddress;
-
-			$method::tryList.addHandler(type, startAddress, endAddress, handlerAddress);
-		};
-
-lines
-	:	^(I_LINES line*);
-
-line
-	:	^(I_LINE integral_literal integer_literal)
-		{
-			$method::debugInfo.addLine($integer_literal.value, $integral_literal.value); 
-		};
-		
-parameters
-	:	^(I_PARAMETERS parameter*);
-	
-parameter
-	:	^(I_PARAMETER 	(
-					string_literal {$method::debugInfo.addParameterName($string_literal.value);}
-				|	I_PARAMETER_NOT_SPECIFIED {$method::debugInfo.addParameterName(null);}
-				));
-	
 labels
 	:	^(I_LABELS label_def*);
 	
 label_def
-	:	^(I_LABEL label integer_literal)
+	:	^(I_LABEL label address)
 		{
 			String labelName = $label.labelName;
 			if ($method::labels.containsKey(labelName)) {
@@ -444,8 +414,55 @@ label_def
 			}
 				
 			
-			$method::labels.put(labelName, $integer_literal.value);
+			$method::labels.put(labelName, $address.address);
 		};
+	
+catches	:	^(I_CATCHES catch_directive*);
+
+catch_directive
+	:	^(I_CATCH address field_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address] using=offset_or_label_absolute[$address.address])
+		{
+			TypeIdItem type = $field_type_descriptor.type;
+			int startAddress = $from.address;
+			int endAddress = $to.address;
+			int handlerAddress = $using.address;
+
+			$method::tryList.addHandler(type, startAddress, endAddress, handlerAddress);
+		};
+		
+address returns[int address]
+	:	I_ADDRESS
+		{
+			$address = Integer.parseInt($I_ADDRESS.text);	
+		};
+
+parameters
+	:	^(I_PARAMETERS parameter*);
+	
+parameter
+	:	^(I_PARAMETER 	(
+					string_literal {$method::debugInfo.addParameterName($string_literal.value);}
+				|	I_PARAMETER_NOT_SPECIFIED {$method::debugInfo.addParameterName(null);}
+				));
+
+ordered_debug_directives
+	:	^(I_ORDERED_DEBUG_DIRECTIVES (line | local)*);
+		
+line
+	:	^(I_LINE integral_literal address)
+		{
+			$method::debugInfo.addLine($address.address, $integral_literal.value); 
+		};
+
+local	:	^(I_LOCAL REGISTER SIMPLE_NAME field_type_descriptor address)
+		{
+		
+			int registerNumber = parseRegister_short($REGISTER.text);
+		
+			$method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.toString());
+			
+		};
+		
 
 statements returns[ArrayList<Instruction> instructions]
 	@init
@@ -488,15 +505,13 @@ offset	returns[int offsetValue]
 			$offsetValue = literalTools.parseInt(offsetText);
 		};
 		
+offset_or_label_absolute[int baseAddress] returns[int address]
+	:	offset {$address = $offset.offsetValue + $baseAddress;}
+	|	label_ref {$address = $label_ref.labelAddress;};
+
 offset_or_label returns[int offsetValue]
 	:	offset {$offsetValue = $offset.offsetValue;}
-	|	label_ref
-		{
-			int labelAddress = $label_ref.labelAddress;
-			int currentAddress = $method::currentAddress;
-			
-			$offsetValue = labelAddress-currentAddress;
-		};
+	|	label_ref {$offsetValue = $label_ref.labelAddress-$method::currentAddress;};
 	
 instruction returns[Instruction instruction]
 	:	//e.g. goto endloop:

@@ -47,7 +47,7 @@ public abstract class ItemReference<T extends Item<T>, S extends ItemReference<T
         return item;
     }
 
-    protected void setReference(T item) {
+    public void setReference(T item) {
         this.item = item;
     }
 

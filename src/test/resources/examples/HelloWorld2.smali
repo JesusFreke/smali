@@ -374,7 +374,14 @@ SparseSwitch:
     .line 4
 
     ;0
+
+
     const-string v0, "This shouldn't be displayed!"
+
+    .local v0, testVarName Ljava/lang/String;
+
+
+
 
     ;2
 
@@ -405,7 +412,8 @@ SparseSwitch:
 
     ;11
 
-    .catch Ljava/lang/Exception; from tryStart: to tryEnd: using handler:
+
+    .catch Ljava/lang/Exception; {tryStart: .. tryEnd:} handler:
 
     handler:
     const-string v0, "In the exception handler."

@@ -33,13 +33,26 @@ import org.JesusFreke.dexlib.*;
 public class StartLocal extends CompositeField<StartLocal> implements DebugInstruction<StartLocal> {
     private final Field[] fields;
 
+    private final ByteField opcodeField;
+    private final SignedLeb128Field registerNumber;
+    private final IndexedItemReference<StringIdItem> localName;
+    private final IndexedItemReference<TypeIdItem> localType;
+
     public StartLocal(DexFile dexFile) {
         fields = new Field[] {
-                new ByteField((byte)0x03),
-                new SignedLeb128Field(),
-                new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field()),
-                new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128p1Field()),
+                opcodeField = new ByteField((byte)0x03),
+                registerNumber = new SignedLeb128Field(),
+                localName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field()),
+                localType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128p1Field()),
         };
+    }
+
+    public StartLocal(DexFile dexFile, int registerNumber, StringIdItem localName, TypeIdItem localType) {
+        this(dexFile);
+        this.registerNumber.cacheValue(registerNumber);
+        this.localName.setReference(localName);
+        this.localType.setReference(localType);
+        
     }
 
     protected Field[] getFields() {

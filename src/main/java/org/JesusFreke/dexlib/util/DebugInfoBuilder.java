@@ -32,6 +32,7 @@ import org.JesusFreke.dexlib.debug.*;
 import org.JesusFreke.dexlib.DexFile;
 import org.JesusFreke.dexlib.DebugInfoItem;
 import org.JesusFreke.dexlib.StringIdItem;
+import org.JesusFreke.dexlib.TypeIdItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,12 +65,22 @@ public class DebugInfoBuilder
     public DebugInfoBuilder() {
     }
 
-    public void addLine(int address, int line) {
-        hasData = true;
-        
+    private void checkAddress(int address) {
         if (lastAddress > address) {
             throw new RuntimeException("Cannot add an event with an address before the address of the prior event");
         }
+    }
+
+    public void addParameterName(String parameterName) {
+        hasData = true;
+
+        parameterNames.add(parameterName);
+    }
+
+    public void addLine(int address, int line) {
+        hasData = true;
+
+        checkAddress(address);
 
         if (lineStart == 0) {
             lineStart = line;
@@ -78,10 +89,12 @@ public class DebugInfoBuilder
         events.add(new LineEvent(address, line));
     }
 
-    public void addParameterName(String parameterName) {
+    public void addLocal(int address, int registerNumber, String localName, String localType) {
         hasData = true;
 
-        parameterNames.add(parameterName);
+        checkAddress(address);
+
+        events.add(new StartLocalEvent(address, registerNumber, localName, localType));
     }
 
     public int getParameterNameCount() {
@@ -103,7 +116,7 @@ public class DebugInfoBuilder
         currentLine = lineStart;
 
         for (Event event: events) {
-            event.emit(debugInstructions);
+            event.emit(dexFile, debugInstructions);
         }
         debugInstructions.add(new EndSequence());
 
@@ -121,7 +134,7 @@ public class DebugInfoBuilder
     private interface Event
     {
         int getAddress();
-        void emit(List<DebugInstruction> debugInstructions);
+        void emit(DexFile dexFile, List<DebugInstruction> debugInstructions);
     }
 
     private class LineEvent implements Event
@@ -138,7 +151,7 @@ public class DebugInfoBuilder
             return address;
         }
 
-        public void emit(List<DebugInstruction> debugInstructions) {
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions) {
             int lineDelta = line - currentLine;
             int addressDelta = address - currentAddress;
 
@@ -160,6 +173,39 @@ public class DebugInfoBuilder
 
         private byte calculateSpecialOpcode(int lineDelta, int addressDelta) {
             return (byte)(FIRST_SPECIAL + (addressDelta * LINE_RANGE) + (lineDelta - LINE_BASE));
+        }
+    }
+
+    private class StartLocalEvent implements Event
+    {
+        private final int address;
+        private final int registerNum;
+        private final String localName;
+        private final String localType;
+
+        public StartLocalEvent(int address, int registerNum, String localName, String localType) {
+            this.address = address;
+            this.registerNum = registerNum;
+            this.localName = localName;
+            this.localType = localType;
+        }
+
+        public int getAddress()
+        {
+            return address;
+        }
+
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions)
+        {
+            int addressDelta = address-currentAddress;
+
+            if (addressDelta > 0) {
+                debugInstructions.add(new AdvancePC(addressDelta));
+                currentAddress = address;
+            }
+
+            debugInstructions.add(new StartLocal(dexFile, registerNum, new StringIdItem(dexFile, localName),
+                    new TypeIdItem(dexFile, localType)));
         }
     }
 }

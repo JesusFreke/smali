@@ -62,14 +62,15 @@ tokens {
 	I_SPARSE_SWITCH_KEYS;
 	I_SPARSE_SWITCH_TARGET_COUNT;
 	I_SPARSE_SWITCH_TARGETS;
+	I_ADDRESS;
 	I_CATCH;
 	I_CATCHES;
-	I_CATCH_ADDRESS;
-	I_LINE;
-	I_LINES;
 	I_PARAMETER;
 	I_PARAMETERS;
 	I_PARAMETER_NOT_SPECIFIED;
+	I_ORDERED_DEBUG_DIRECTIVES;
+	I_LINE;
+	I_LOCAL;
 	I_STATEMENTS;
 	I_STATEMENT_FORMAT10t;
 	I_STATEMENT_FORMAT10x;
@@ -216,10 +217,11 @@ statements_and_directives
 		}
 		(	instruction {$method::currentAddress += $instruction.size/2;}
 		|	{!hasRegistersDirective}?=> registers_directive {hasRegistersDirective = true;}
+		|	label
 		|	catch_directive
-		|	line_directive
 		|	parameter_directive
-		|	label)*		
+		|	ordered_debug_directive
+		)*		
 		{
 			if (!hasRegistersDirective) {
 				//TODO: throw correct exception type here
@@ -230,8 +232,8 @@ statements_and_directives
 			^(I_LABELS label*)
 			^(I_STATEMENTS instruction*)
 			^(I_CATCHES catch_directive*)
-			^(I_LINES line_directive*)
-			^(I_PARAMETERS parameter_directive*);
+			^(I_PARAMETERS parameter_directive*)
+			^(I_ORDERED_DEBUG_DIRECTIVES ordered_debug_directive*);
 
 registers_directive
 	:	REGISTERS_DIRECTIVE integral_literal
@@ -239,19 +241,28 @@ registers_directive
 
 catch_directive
 	:	CATCH_DIRECTIVE field_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label
-		-> ^(I_CATCH[$start, "I_CATCH"] I_CATCH_ADDRESS[$start, Integer.toString($method::currentAddress)] field_type_descriptor $from $to $using)
+		-> ^(I_CATCH[$start, "I_CATCH"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] field_type_descriptor $from $to $using)
 	;
 
-line_directive
-	:	LINE_DIRECTIVE integral_literal -> ^(I_LINE integral_literal {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($method::currentAddress)))});
 
 parameter_directive
 	:	PARAMETER_DIRECTIVE 	(	STRING_LITERAL -> ^(I_PARAMETER STRING_LITERAL?)
 					|	-> ^(I_PARAMETER I_PARAMETER_NOT_SPECIFIED)
 					);
 
+ordered_debug_directive
+	:	line_directive
+	|	local_directive;
+
+line_directive
+	:	LINE_DIRECTIVE integral_literal -> ^(I_LINE integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+					
+local_directive
+	:	LOCAL_DIRECTIVE	REGISTER SIMPLE_NAME field_type_descriptor
+		-> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER SIMPLE_NAME field_type_descriptor I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+		
 label
-	:	LABEL -> ^(I_LABEL LABEL {new CommonTree(new CommonToken(INTEGER_LITERAL,Integer.toString($method::currentAddress)))});
+	:	LABEL -> ^(I_LABEL LABEL I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 	
 instruction returns [int size]
 	@init {boolean needsNop = false;}
