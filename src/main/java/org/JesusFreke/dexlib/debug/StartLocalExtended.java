@@ -33,14 +33,30 @@ import org.JesusFreke.dexlib.*;
 public class StartLocalExtended extends CompositeField<StartLocalExtended> implements DebugInstruction<StartLocalExtended> {
     private final Field[] fields;
 
+    private final ByteField opcodeField;
+    //TODO: signed or unsigned leb?
+    private final SignedLeb128Field registerNumber;
+    private final IndexedItemReference<StringIdItem> localName;
+    private final IndexedItemReference<TypeIdItem> localType;
+    private final IndexedItemReference<StringIdItem> signature;
+
     public StartLocalExtended(DexFile dexFile) {
         fields = new Field[] {
-                new ByteField((byte)0x04),
-                new SignedLeb128Field(),
-                new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field()),
-                new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128p1Field()),
-                new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field())
+                opcodeField = new ByteField((byte)0x04),
+                registerNumber = new SignedLeb128Field(),
+                localName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field()),
+                localType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128p1Field()),
+                signature = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field())
         };
+    }
+
+    public StartLocalExtended(DexFile dexFile, int registerNumber, StringIdItem localName, TypeIdItem localType,
+                              StringIdItem signature) {
+        this(dexFile);
+        this.registerNumber.cacheValue(registerNumber);
+        this.localName.setReference(localName);
+        this.localType.setReference(localType);
+        this.signature.setReference(signature);
     }
 
     protected Field[] getFields() {

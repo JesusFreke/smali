@@ -380,6 +380,8 @@ SparseSwitch:
 
     .local v0, testVarName Ljava/lang/String;
 
+    .prologue
+
 
 
 
@@ -388,9 +390,13 @@ SparseSwitch:
     tryStart:
     new-instance v1, Ljava/lang/Exception;
 
+    .local v1, testVarName2 Ljava/lang/String;, "some weird type"
+
     .line 2
 
     ;4
+
+    .end local v0
 
     invoke-direct	{v1}, java/lang/Exception/<init>()V
 
@@ -401,6 +407,8 @@ SparseSwitch:
     nop
     nop
 
+    .restart local v0
+
     .line 5
 
     ;10
@@ -408,11 +416,14 @@ SparseSwitch:
 
     return-object v0
 
+    .source "blahblah.java"
     .line 90
 
     ;11
 
 
+    .epilogue
+    
     .catch Ljava/lang/Exception; {tryStart: .. tryEnd:} handler:
 
     handler:

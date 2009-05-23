@@ -97,6 +97,55 @@ public class DebugInfoBuilder
         events.add(new StartLocalEvent(address, registerNumber, localName, localType));
     }
 
+    public void addLocalExtended(int address, int registerNumber, String localName, String localType,
+                                String signature) {
+        hasData = true;
+
+        checkAddress(address);
+
+        events.add(new StartLocalExtendedEvent(address, registerNumber, localName, localType, signature));
+    }
+
+    public void addEndLocal(int address, int registerNumber) {
+        hasData = true;
+
+        checkAddress(address);
+
+        events.add(new EndLocalEvent(address, registerNumber));
+    }
+
+    public void addRestartLocal(int address, int registerNumber) {
+        hasData = true;
+
+        checkAddress(address);
+
+        events.add(new RestartLocalEvent(address, registerNumber));
+    }
+
+    public void addPrologue(int address) {
+        hasData = true;
+
+        checkAddress(address);
+
+        events.add(new PrologueEvent(address));
+    }
+
+    public void addEpilogue(int address) {
+        hasData = true;
+
+        checkAddress(address);
+
+        events.add(new EpilogueEvent(address));
+    }
+
+    public void addSetFile(int address, String fileName) {
+        hasData = true;
+
+        checkAddress(address);
+
+        events.add(new SetFileEvent(address, fileName));
+    }
+
     public int getParameterNameCount() {
         return parameterNames.size();
     }
@@ -135,6 +184,15 @@ public class DebugInfoBuilder
     {
         int getAddress();
         void emit(DexFile dexFile, List<DebugInstruction> debugInstructions);
+    }
+
+    private void emitAdvancePC(int address, List<DebugInstruction> debugInstructions) {
+        int addressDelta = address-currentAddress;
+
+        if (addressDelta > 0) {
+            debugInstructions.add(new AdvancePC(addressDelta));
+            currentAddress = address;
+        }
     }
 
     private class LineEvent implements Event
@@ -190,22 +248,145 @@ public class DebugInfoBuilder
             this.localType = localType;
         }
 
-        public int getAddress()
-        {
+        public int getAddress() {
             return address;
         }
 
-        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions)
-        {
-            int addressDelta = address-currentAddress;
-
-            if (addressDelta > 0) {
-                debugInstructions.add(new AdvancePC(addressDelta));
-                currentAddress = address;
-            }
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions) {
+            emitAdvancePC(address, debugInstructions);
 
             debugInstructions.add(new StartLocal(dexFile, registerNum, new StringIdItem(dexFile, localName),
                     new TypeIdItem(dexFile, localType)));
+        }
+    }
+
+    private class StartLocalExtendedEvent implements Event
+    {
+        private final int address;
+        private final int registerNum;
+        private final String localName;
+        private final String localType;
+        private final String signature;
+
+        public StartLocalExtendedEvent(int address, int registerNum, String localName, String localType,
+                                       String signature) {
+            this.address = address;
+            this.registerNum = registerNum;
+            this.localName = localName;
+            this.localType = localType;
+            this.signature = signature;
+        }
+
+        public int getAddress() {
+            return address;
+        }
+
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions) {
+            emitAdvancePC(address, debugInstructions);
+
+            debugInstructions.add(new StartLocalExtended(dexFile, registerNum, new StringIdItem(dexFile, localName),
+                    new TypeIdItem(dexFile, localType), new StringIdItem(dexFile, signature)));
+        }
+    }
+
+    private class EndLocalEvent implements Event
+    {
+        private final int address;
+        private final int registerNum;
+
+        public EndLocalEvent(int address, int registerNum) {
+            this.address = address;
+            this.registerNum = registerNum;
+        }
+
+        public int getAddress() {
+            return address;
+        }
+
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions) {
+            emitAdvancePC(address, debugInstructions);
+
+            debugInstructions.add(new EndLocal(registerNum));
+        }
+    }
+
+    private class RestartLocalEvent implements Event
+    {
+        private final int address;
+        private final int registerNum;
+
+        public RestartLocalEvent(int address, int registerNum) {
+            this.address = address;
+            this.registerNum = registerNum;
+        }
+
+        public int getAddress() {
+            return address;
+        }
+
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions) {
+            emitAdvancePC(address, debugInstructions);
+
+            debugInstructions.add(new RestartLocal(registerNum));
+        }
+    }
+
+    private class PrologueEvent implements Event
+    {
+        private final int address;
+
+        public PrologueEvent(int address) {
+            this.address = address;            
+        }
+
+        public int getAddress() {
+            return address;
+        }
+
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions) {
+            emitAdvancePC(address, debugInstructions);
+
+            debugInstructions.add(new SetPrologueEnd());
+        }
+    }
+
+    private class EpilogueEvent implements Event
+    {
+        private final int address;
+
+        public EpilogueEvent(int address) {
+            this.address = address;
+        }
+
+        public int getAddress() {
+            return address;
+        }
+
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions) {
+            emitAdvancePC(address, debugInstructions);
+
+            debugInstructions.add(new SetEpilogueBegin());
+        }
+    }
+
+    private class SetFileEvent implements Event
+    {
+        private final int address;
+        private final String fileName;
+
+        public SetFileEvent(int address, String fileName) {
+            this.address = address;
+            this.fileName = fileName;
+        }
+
+        public int getAddress() {
+            return address;
+        }
+
+        public void emit(DexFile dexFile, List<DebugInstruction> debugInstructions) {
+            emitAdvancePC(address, debugInstructions);
+
+            debugInstructions.add(new SetFile(dexFile, new StringIdItem(dexFile, fileName)));
         }
     }
 }

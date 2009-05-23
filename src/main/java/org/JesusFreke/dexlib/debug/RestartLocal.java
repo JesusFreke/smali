@@ -33,11 +33,19 @@ import org.JesusFreke.dexlib.*;
 public class RestartLocal extends CompositeField<RestartLocal> implements DebugInstruction<RestartLocal> {
     private final Field[] fields;
 
+    private final ByteField opcode;
+    private final Leb128Field registerNumber;
+
     public RestartLocal() {
         fields = new Field[] {
-                new ByteField((byte)0x06),
-                new SignedLeb128Field()
+                opcode = new ByteField((byte)0x06),
+                registerNumber = new Leb128Field()
         };
+    }
+
+    public RestartLocal(int registerNumber) {
+        this();
+        this.registerNumber.cacheValue(registerNumber);
     }
 
     protected Field[] getFields() {

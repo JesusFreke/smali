@@ -446,7 +446,14 @@ parameter
 				));
 
 ordered_debug_directives
-	:	^(I_ORDERED_DEBUG_DIRECTIVES (line | local)*);
+	:	^(I_ORDERED_DEBUG_DIRECTIVES 	(	line
+						| 	local
+						|	end_local
+						|	restart_local
+						|	prologue
+						|	epilogue
+						|	source
+						)*);
 		
 line
 	:	^(I_LINE integral_literal address)
@@ -454,15 +461,51 @@ line
 			$method::debugInfo.addLine($address.address, $integral_literal.value); 
 		};
 
-local	:	^(I_LOCAL REGISTER SIMPLE_NAME field_type_descriptor address)
+local	
+	:	^(I_LOCAL REGISTER SIMPLE_NAME field_type_descriptor string_literal? address)
 		{
-		
 			int registerNumber = parseRegister_short($REGISTER.text);
-		
-			$method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.toString());
 			
+			if ($string_literal.value != null) {
+				$method::debugInfo.addLocalExtended($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.toString(), $string_literal.value);
+			} else {	
+				$method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.toString());
+			}
+		};
+
+end_local
+	:	^(I_END_LOCAL REGISTER address)
+		{
+			int registerNumber = parseRegister_short($REGISTER.text);
+			
+			$method::debugInfo.addEndLocal($address.address, registerNumber);
+		};
+
+restart_local
+	:	^(I_RESTART_LOCAL REGISTER address)
+		{
+			int registerNumber = parseRegister_short($REGISTER.text);
+			
+			$method::debugInfo.addRestartLocal($address.address, registerNumber);
 		};
 		
+prologue
+	:	^(I_PROLOGUE address)
+		{
+			$method::debugInfo.addPrologue($address.address);
+		};
+
+epilogue
+	:	^(I_EPILOGUE address)
+		{
+			$method::debugInfo.addEpilogue($address.address);
+		};
+
+source
+	:	^(I_SOURCE string_literal address)
+		{
+			$method::debugInfo.addSetFile($address.address, $string_literal.value);
+		};
 
 statements returns[ArrayList<Instruction> instructions]
 	@init

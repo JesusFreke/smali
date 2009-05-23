@@ -51,8 +51,7 @@ public class StartLocal extends CompositeField<StartLocal> implements DebugInstr
         this(dexFile);
         this.registerNumber.cacheValue(registerNumber);
         this.localName.setReference(localName);
-        this.localType.setReference(localType);
-        
+        this.localType.setReference(localType);         
     }
 
     protected Field[] getFields() {

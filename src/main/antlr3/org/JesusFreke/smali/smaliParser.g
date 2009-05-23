@@ -71,6 +71,10 @@ tokens {
 	I_ORDERED_DEBUG_DIRECTIVES;
 	I_LINE;
 	I_LOCAL;
+	I_END_LOCAL;
+	I_RESTART_LOCAL;
+	I_PROLOGUE;
+	I_EPILOGUE;
 	I_STATEMENTS;
 	I_STATEMENT_FORMAT10t;
 	I_STATEMENT_FORMAT10x;
@@ -252,14 +256,40 @@ parameter_directive
 
 ordered_debug_directive
 	:	line_directive
-	|	local_directive;
+	|	local_directive
+	|	end_local_directive
+	|	restart_local_directive
+	|	prologue_directive
+	|	epilogue_directive
+	|	source_directive;
 
 line_directive
-	:	LINE_DIRECTIVE integral_literal -> ^(I_LINE integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+	:	LINE_DIRECTIVE integral_literal
+		-> ^(I_LINE integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 					
 local_directive
-	:	LOCAL_DIRECTIVE	REGISTER SIMPLE_NAME field_type_descriptor
-		-> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER SIMPLE_NAME field_type_descriptor I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+	:	LOCAL_DIRECTIVE	REGISTER SIMPLE_NAME field_type_descriptor STRING_LITERAL?
+		-> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER SIMPLE_NAME field_type_descriptor STRING_LITERAL? I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+
+end_local_directive
+	:	END_LOCAL_DIRECTIVE REGISTER
+		-> ^(I_END_LOCAL[$start, "I_END_LOCAL"] REGISTER I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+		
+restart_local_directive
+	:	RESTART_LOCAL_DIRECTIVE REGISTER
+		-> ^(I_RESTART_LOCAL[$start, "I_RESTART_LOCAL"] REGISTER I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+
+prologue_directive
+	:	PROLOGUE_DIRECTIVE
+		-> ^(I_PROLOGUE[$start, "I_PROLOGUE"] I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+
+epilogue_directive
+	:	EPILOGUE_DIRECTIVE
+		-> ^(I_EPILOGUE[$start, "I_EPILOGUE"] I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+		
+source_directive
+	:	SOURCE_DIRECTIVE STRING_LITERAL
+		-> ^(I_SOURCE[$start, "I_SOURCE"] STRING_LITERAL I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 		
 label
 	:	LABEL -> ^(I_LABEL LABEL I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
