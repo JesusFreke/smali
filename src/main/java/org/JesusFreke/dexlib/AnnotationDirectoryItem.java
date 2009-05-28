@@ -31,6 +31,8 @@ package org.JesusFreke.dexlib;
 import org.JesusFreke.dexlib.ItemType;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
 
 //TODO: fix field names in dex-format.html and submit
 public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryItem> {
@@ -74,6 +76,39 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
         };
     }
 
+
+
+    public AnnotationDirectoryItem(final DexFile dexFile,
+                                   AnnotationSetItem classAnnotations,
+                                   List<FieldAnnotation> fieldAnnotations,
+                                   List<MethodAnnotation> methodAnnotations,
+                                   List<ParameterAnnotation> parameterAnnotations) {
+        this(dexFile, -1);
+
+        this.classAnnotations.setReference(classAnnotations);
+
+        if (fieldAnnotations != null) {
+            this.fieldAnnotationList.addAll(fieldAnnotations);
+        }
+
+        if (methodAnnotations != null) {
+            this.methodAnnotationList.addAll(methodAnnotations);
+        }
+
+        if (parameterAnnotations != null) {
+            this.parameterAnnotationList.addAll(parameterAnnotations);
+        }
+    }
+
+    @Override
+    public int place(int index, int offset)
+    {
+        Collections.sort(fieldAnnotationList);
+        Collections.sort(methodAnnotationList);
+        Collections.sort(parameterAnnotationList);
+        return super.place(index, offset);
+    }
+
     protected int getAlignment() {
         return 4;
     }
@@ -86,48 +121,91 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
         return ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM;
     }
 
-    public class FieldAnnotation extends CompositeField<FieldAnnotation> {
+    public static class FieldAnnotation extends CompositeField<FieldAnnotation>
+            implements Comparable<FieldAnnotation> {
         private final Field[] fields;
+
+        private final IndexedItemReference<FieldIdItem> field;
+        private final OffsettedItemReference<AnnotationSetItem> annotationSet;
 
         public FieldAnnotation(DexFile dexFile) {
             fields = new Field[] {
-                    new IndexedItemReference<FieldIdItem>(dexFile.FieldIdsSection, new IntegerField()),
-                    new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection, new IntegerField())
+                    field = new IndexedItemReference<FieldIdItem>(dexFile.FieldIdsSection, new IntegerField()),
+                    annotationSet = new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection, new IntegerField())
             };
+        }
+
+        public FieldAnnotation(DexFile dexFile, FieldIdItem field, AnnotationSetItem annotationSet) {
+            this(dexFile);
+            this.field.setReference(field);
+            this.annotationSet.setReference(annotationSet);
         }
 
         protected Field[] getFields() {
             return fields;
         }
+
+        public int compareTo(FieldAnnotation o) {
+            return ((Integer)field.getReference().getIndex()).compareTo(o.field.getReference().getIndex());
+        }
     }
 
-    public class MethodAnnotation extends CompositeField<MethodAnnotation> {
+    public static class MethodAnnotation extends CompositeField<MethodAnnotation>
+            implements Comparable<MethodAnnotation> {
         private final Field[] fields;
+
+        private final IndexedItemReference<MethodIdItem> method;
+        private final OffsettedItemReference<AnnotationSetItem> annotationSet;
 
         public MethodAnnotation(DexFile dexFile) {
             fields = new Field[] {
-                    new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection, new IntegerField()),
-                    new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection, new IntegerField())
+                    method = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection, new IntegerField()),
+                    annotationSet = new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection, new IntegerField())
             };
+        }
+
+        public MethodAnnotation(DexFile dexFile, MethodIdItem method, AnnotationSetItem annotationSet) {
+            this(dexFile);
+            this.method.setReference(method);
+            this.annotationSet.setReference(annotationSet);
         }
 
         protected Field[] getFields() {
             return fields;
+        }
+
+        public int compareTo(MethodAnnotation o) {
+            return ((Integer)method.getReference().getIndex()).compareTo(o.method.getReference().getIndex());
         }
     }
 
-    public class ParameterAnnotation extends CompositeField<ParameterAnnotation> {
+    public static class ParameterAnnotation extends CompositeField<ParameterAnnotation>
+            implements Comparable<ParameterAnnotation> {
         private final Field[] fields;
 
+        private final IndexedItemReference<MethodIdItem> method;
+        private final OffsettedItemReference<AnnotationSetRefList> parameterAnnotations;
+        
         public ParameterAnnotation(DexFile dexFile) {
             fields = new Field[] {
-                    new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection, new IntegerField()),
-                    new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection, new IntegerField())
+                    method = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection, new IntegerField()),
+                    parameterAnnotations = new OffsettedItemReference<AnnotationSetRefList>(
+                            dexFile.AnnotationSetRefListsSection, new IntegerField())
             };
+        }
+
+        public ParameterAnnotation(DexFile dexFile, MethodIdItem method, AnnotationSetRefList parameterAnnotations) {
+            this(dexFile);
+            this.method.setReference(method);
+            this.parameterAnnotations.setReference(parameterAnnotations);
         }
 
         protected Field[] getFields() {
             return fields;
+        }
+
+        public int compareTo(ParameterAnnotation o) {
+            return ((Integer)method.getReference().getIndex()).compareTo(o.method.getReference().getIndex());
         }
     }
 }

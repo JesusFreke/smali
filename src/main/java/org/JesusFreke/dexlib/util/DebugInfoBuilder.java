@@ -72,7 +72,9 @@ public class DebugInfoBuilder
     }
 
     public void addParameterName(String parameterName) {
-        hasData = true;
+        if (parameterName != null) {
+            hasData = true;
+        }
 
         parameterNames.add(parameterName);
     }

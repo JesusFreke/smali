@@ -31,6 +31,7 @@ package org.JesusFreke.dexlib.EncodedValue;
 import org.JesusFreke.dexlib.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEncodedValueSubField>
     implements EncodedValueSubField<AnnotationEncodedValueSubField> {
@@ -52,6 +53,13 @@ public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEnc
                     }
                 }
         };
+    }
+
+    public AnnotationEncodedValueSubField(final DexFile dexFile, TypeIdItem annotationType,
+                                          List<AnnotationElement> annotationElements) {
+        this(dexFile);
+        this.annotationType.setReference(annotationType);
+        this.annotationElementList.addAll(annotationElements);
     }
 
     protected Field[] getFields() {

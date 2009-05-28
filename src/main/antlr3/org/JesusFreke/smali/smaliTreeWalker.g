@@ -87,13 +87,33 @@ import org.JesusFreke.dexlib.code.Format.*;
 
 
 
-smali_file returns[ClassDefItem classDefItem]
-	:	^(I_CLASS_DEF header methods fields);
+smali_file
+	:	^(I_CLASS_DEF header methods fields annotations)
+	{
+		AnnotationDirectoryItem annotationDirectoryItem = null;
+		
+		if (	$methods.methodAnnotationSets != null ||
+			$methods.parameterAnnotationSets != null ||
+			$fields.fieldAnnotationSets != null ||
+			$annotations.annotationSetItem != null) {
+			annotationDirectoryItem = new AnnotationDirectoryItem(
+				dexFile,
+				$annotations.annotationSetItem,
+				$fields.fieldAnnotationSets,
+				$methods.methodAnnotationSets,
+				$methods.parameterAnnotationSets);
+		}
+		
+		classDefItem.setAnnotations(annotationDirectoryItem);
+	};
 
-header	:	class_spec super_spec implements_list source_spec
+
+header	returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem sourceSpec]
+:	class_spec super_spec implements_list source_spec
 	{
 		classDataItem = new ClassDataItem(dexFile, 0);
-		classDefItem = new ClassDefItem(dexFile, $class_spec.type, $class_spec.accessFlags, $super_spec.type, $implements_list.implementsList, $source_spec.source, classDataItem);
+		classDefItem = new ClassDefItem(dexFile, $class_spec.type, $class_spec.accessFlags, 
+			$super_spec.type, $implements_list.implementsList, $source_spec.source, classDataItem);
 	};
 
 class_spec returns[TypeIdItem type, int accessFlags]
@@ -143,20 +163,41 @@ access_list returns [int value]
 				}
 			)+);
 
-fields	:	^(I_FIELDS
+fields returns[List<AnnotationDirectoryItem.FieldAnnotation> fieldAnnotationSets]
+	:	^(I_FIELDS
 			(field
 			{
 				classDefItem.addField($field.encodedField, $field.encodedValue);
+				if ($field.fieldAnnotationSet != null) {
+					if ($fieldAnnotationSets == null) {
+						$fieldAnnotationSets = new ArrayList<AnnotationDirectoryItem.FieldAnnotation>();
+					}
+					fieldAnnotationSets.add($field.fieldAnnotationSet);
+				}
 			})*);
 
-methods	:	^(I_METHODS
+methods returns[List<AnnotationDirectoryItem.MethodAnnotation> methodAnnotationSets,
+		List<AnnotationDirectoryItem.ParameterAnnotation> parameterAnnotationSets]
+	:	^(I_METHODS
 			(method
 			{
 				classDataItem.addMethod($method.encodedMethod);
+				if ($method.methodAnnotationSet != null) {
+					if ($methodAnnotationSets == null) {
+						$methodAnnotationSets = new ArrayList<AnnotationDirectoryItem.MethodAnnotation>();
+					}
+					$methodAnnotationSets.add($method.methodAnnotationSet);
+				}
+				if ($method.parameterAnnotationSets != null) {
+					if ($parameterAnnotationSets == null) {
+						$parameterAnnotationSets = new ArrayList<AnnotationDirectoryItem.ParameterAnnotation>();
+					}
+					$parameterAnnotationSets.add($method.parameterAnnotationSets);
+				}
 			})*);
 
-field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue]
-	:^(I_FIELD MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) field_initial_value)
+field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue, AnnotationDirectoryItem.FieldAnnotation fieldAnnotationSet]
+	:^(I_FIELD MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) field_initial_value annotations?)
 	{
 		TypeIdItem classType = classDefItem.getClassType();
 		StringIdItem memberName = new StringIdItem(dexFile, $MEMBER_NAME.text);
@@ -175,23 +216,31 @@ field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue
 		} else {
 			$encodedValue = null;			
 		}
+		
+		if ($annotations.annotationSetItem != null) {
+			$fieldAnnotationSet = new AnnotationDirectoryItem.FieldAnnotation(dexFile, fieldIdItem, $annotations.annotationSetItem);
+		}
 	};
 
 
-//TODO: what about type or array encoded values?
 field_initial_value returns[EncodedValue encodedValue]
-	:	^(I_FIELD_INITIAL_VALUE 
-			(	integer_literal { $encodedValue = new EncodedValue(dexFile, new IntEncodedValueSubField($integer_literal.value)); }
-			|	long_literal { $encodedValue = new EncodedValue(dexFile, new LongEncodedValueSubField($long_literal.value)); }
-			|	short_literal { $encodedValue = new EncodedValue(dexFile, new ShortEncodedValueSubField($short_literal.value)); }
-			|	byte_literal { $encodedValue = new EncodedValue(dexFile, new ByteEncodedValueSubField($byte_literal.value)); }
-			|	float_literal { $encodedValue = new EncodedValue(dexFile, new FloatEncodedValueSubField($float_literal.value)); }
-			|	double_literal { $encodedValue = new EncodedValue(dexFile, new DoubleEncodedValueSubField($double_literal.value)); }
-			|	char_literal { $encodedValue = new EncodedValue(dexFile, new CharEncodedValueSubField($char_literal.value)); }
-			|	string_literal { $encodedValue = new EncodedValue(dexFile, new EncodedIndexedItemReference(dexFile, new StringIdItem(dexFile, $string_literal.value))); }
-			|	bool_literal { $encodedValue = new EncodedValue(dexFile, new BoolEncodedValueSubField($bool_literal.value)); }
-			))
-	| ;
+	:	^(I_FIELD_INITIAL_VALUE literal) {$encodedValue = $literal.encodedValue;}
+	|	;
+
+literal returns[EncodedValue encodedValue]
+	:	integer_literal { $encodedValue = new EncodedValue(dexFile, new IntEncodedValueSubField($integer_literal.value)); }
+	|	long_literal { $encodedValue = new EncodedValue(dexFile, new LongEncodedValueSubField($long_literal.value)); }
+	|	short_literal { $encodedValue = new EncodedValue(dexFile, new ShortEncodedValueSubField($short_literal.value)); }
+	|	byte_literal { $encodedValue = new EncodedValue(dexFile, new ByteEncodedValueSubField($byte_literal.value)); }
+	|	float_literal { $encodedValue = new EncodedValue(dexFile, new FloatEncodedValueSubField($float_literal.value)); }
+	|	double_literal { $encodedValue = new EncodedValue(dexFile, new DoubleEncodedValueSubField($double_literal.value)); }
+	|	char_literal { $encodedValue = new EncodedValue(dexFile, new CharEncodedValueSubField($char_literal.value)); }
+	|	string_literal { $encodedValue = new EncodedValue(dexFile, new EncodedIndexedItemReference(dexFile, new StringIdItem(dexFile, $string_literal.value))); }
+	|	bool_literal { $encodedValue = new EncodedValue(dexFile, new BoolEncodedValueSubField($bool_literal.value)); }
+	|	type_descriptor { $encodedValue = new EncodedValue(dexFile, new EncodedIndexedItemReference(dexFile, $type_descriptor.type)); }
+	|	array_literal { $encodedValue = new EncodedValue(dexFile, new ArrayEncodedValueSubField(dexFile, $array_literal.values)); }
+	|	subannotation { $encodedValue = new EncodedValue(dexFile, $subannotation.value); };
+	
 	
 //everything but string
 fixed_size_literal returns[byte[\] value]
@@ -280,7 +329,9 @@ sparse_switch_targets[int baseOffset, int targetCount] returns[int[\] targets]
 			})*
 		);
 	
-method returns[ClassDataItem.EncodedMethod encodedMethod]
+method returns[	ClassDataItem.EncodedMethod encodedMethod,
+		AnnotationDirectoryItem.MethodAnnotation methodAnnotationSet,
+		AnnotationDirectoryItem.ParameterAnnotation parameterAnnotationSets]
 	scope
 	{
 		HashMap<String, Integer> labels;
@@ -303,6 +354,7 @@ method returns[ClassDataItem.EncodedMethod encodedMethod]
 			catches
 			parameters
 			ordered_debug_directives
+			annotations
 			)
 	{
 		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
@@ -345,6 +397,14 @@ method returns[ClassDataItem.EncodedMethod encodedMethod]
 						handlers);
 		
 		$encodedMethod = new ClassDataItem.EncodedMethod(dexFile, methodIdItem, access, codeItem);
+		
+		if ($annotations.annotationSetItem != null) {
+			$methodAnnotationSet = new AnnotationDirectoryItem.MethodAnnotation(dexFile, methodIdItem, $annotations.annotationSetItem);
+		}
+		
+		if ($parameters.parameterAnnotations != null) {
+			$parameterAnnotationSets = new AnnotationDirectoryItem.ParameterAnnotation(dexFile, methodIdItem, $parameters.parameterAnnotations);
+		}
 	};
 	
 method_prototype returns[ProtoIdItem protoIdItem]
@@ -436,14 +496,39 @@ address returns[int address]
 			$address = Integer.parseInt($I_ADDRESS.text);	
 		};
 
-parameters
-	:	^(I_PARAMETERS parameter*);
+parameters returns[AnnotationSetRefList parameterAnnotations]
+	@init
+	{
+		int parameterCount = 0;
+		List<AnnotationSetItem> annotationSetItems = new ArrayList<AnnotationSetItem>();
+	}
+	:	^(I_PARAMETERS	(parameter
+				{
+					if ($parameter.parameterAnnotationSet != null) {
+						while (annotationSetItems.size() < parameterCount) {
+							annotationSetItems.add(new AnnotationSetItem(dexFile, -1));
+						}
+						annotationSetItems.add($parameter.parameterAnnotationSet);
+					}
+					
+					parameterCount++;					
+				})*
+		)
+		{
+			if (annotationSetItems.size() > 0) {
+				while (annotationSetItems.size() < parameterCount) {
+					annotationSetItems.add(new AnnotationSetItem(dexFile, -1));
+				}
+				$parameterAnnotations = new AnnotationSetRefList(dexFile, annotationSetItems);
+			}
+		};
 	
-parameter
-	:	^(I_PARAMETER 	(
-					string_literal {$method::debugInfo.addParameterName($string_literal.value);}
+parameter returns[AnnotationSetItem parameterAnnotationSet]
+	:	^(I_PARAMETER 	(	string_literal {$method::debugInfo.addParameterName($string_literal.value);}
 				|	I_PARAMETER_NOT_SPECIFIED {$method::debugInfo.addParameterName(null);}
-				));
+				)
+				annotations {$parameterAnnotationSet = $annotations.annotationSetItem;}
+		);
 
 ordered_debug_directives
 	:	^(I_ORDERED_DEBUG_DIRECTIVES 	(	line
@@ -998,3 +1083,41 @@ string_literal returns[String value]
 
 bool_literal returns[boolean value]
 	:	BOOL_LITERAL { $value = Boolean.parseBoolean($BOOL_LITERAL.text); };
+
+array_literal returns[ArrayList<EncodedValue> values]
+	:	{$values = new ArrayList<EncodedValue>();}
+		^(I_ENCODED_ARRAY (literal {$values.add($literal.encodedValue);})*);
+
+
+annotations returns[AnnotationSetItem annotationSetItem]
+	:	{ArrayList<AnnotationItem> annotationList = new ArrayList<AnnotationItem>();}
+		^(I_ANNOTATIONS (annotation {annotationList.add($annotation.annotationItem);} )*)
+		{
+			if (annotationList.size() > 0) {
+				$annotationSetItem = new AnnotationSetItem(dexFile, annotationList);
+			}
+		};
+		
+
+annotation returns[AnnotationItem annotationItem]
+	:	^(I_ANNOTATION ANNOTATION_VISIBILITY subannotation)
+		{
+			AnnotationVisibility visibility = AnnotationVisibility.fromName($ANNOTATION_VISIBILITY.text);
+			$annotationItem = new AnnotationItem(dexFile, visibility, $subannotation.value);
+		};
+
+annotation_element returns[AnnotationElement element]
+	:	^(I_ANNOTATION_ELEMENT MEMBER_NAME literal)
+		{
+			$element = new AnnotationElement(dexFile, new StringIdItem(dexFile, $MEMBER_NAME.text), $literal.encodedValue);
+		};
+
+subannotation returns[AnnotationEncodedValueSubField value]
+	:	{ArrayList<AnnotationElement> elements = new ArrayList<AnnotationElement>();}
+		^(	I_SUBANNOTATION
+			class_type_descriptor
+			(annotation_element {elements.add($annotation_element.element);} )* )
+		{
+			$value = new AnnotationEncodedValueSubField(dexFile, $class_type_descriptor.type, elements);
+		};
+	

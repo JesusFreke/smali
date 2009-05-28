@@ -46,6 +46,16 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
         };
     }
 
+    public AnnotationItem(DexFile dexFile, AnnotationVisibility visibility,
+                          AnnotationEncodedValueSubField annotation) {
+        super(-1);
+
+        fields = new Field[] {
+                this.visibility = new ByteField(visibility.value),
+                this.annotation = annotation
+        };
+    }
+
     protected int getAlignment() {
         return 1;
     }

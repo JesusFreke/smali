@@ -52,6 +52,11 @@ tokens {
 	I_REGISTERS;
 	I_LABELS;
 	I_LABEL;
+	I_ANNOTATIONS;
+	I_ANNOTATION;
+	I_ANNOTATION_ELEMENT;
+	I_SUBANNOTATION;
+	I_ENCODED_ARRAY;
 	I_ARRAY_ELEMENT_SIZE;
 	I_ARRAY_ELEMENTS;	
 	I_PACKED_SWITCH_START_KEY;
@@ -146,25 +151,28 @@ import org.JesusFreke.dexlib.code.Format.*;
 
 
 smali_file
-	:
+	scope
 	{
-		boolean hasClassSpec = false;
-		boolean hasSuperSpec = false;
-		boolean hasSourceSpec = false;
+		boolean hasClassSpec;
+		boolean hasSuperSpec;
+		boolean hasSourceSpec;
 	}
-	(	{!hasClassSpec}?=> class_spec {hasClassSpec = true;}
-	|	{!hasSuperSpec}?=> super_spec {hasSuperSpec = true;}
+	@init { $smali_file::hasClassSpec = $smali_file::hasSuperSpec = $smali_file::hasSourceSpec = false; }
+	:
+	(	{!$smali_file::hasClassSpec}?=> class_spec {$smali_file::hasClassSpec = true;}
+	|	{!$smali_file::hasSuperSpec}?=> super_spec {$smali_file::hasSuperSpec = true;}
 	|	implements_spec
-	|	{!hasSourceSpec}?=> source_spec {hasSourceSpec = true;}
+	|	{!$smali_file::hasSourceSpec}?=> source_spec {$smali_file::hasSourceSpec = true;}
 	|	method
-	|	field)*
+	|	field
+	|	annotation)*
 	{
-		if (!hasClassSpec) {
+		if (!$smali_file::hasClassSpec) {
 			//TODO: throw correct exception type
 			throw new RuntimeException("The file must contain a .class directive");
 		}
 		
-		if (!hasSuperSpec) {
+		if (!$smali_file::hasSuperSpec) {
 			//TODO: throw correct exception type
 			throw new RuntimeException("The file must contain a .super directive");
 		}
@@ -174,7 +182,7 @@ smali_file
 			super_spec
 			implements_spec*
 			source_spec
-			^(I_METHODS method*) ^(I_FIELDS field*));
+			^(I_METHODS method*) ^(I_FIELDS field*) ^(I_ANNOTATIONS annotation*));
 		
 class_spec
 	:	CLASS_DIRECTIVE access_list CLASS_DESCRIPTOR -> CLASS_DESCRIPTOR access_list;
@@ -192,8 +200,11 @@ access_list
 	:	ACCESS_SPEC+ -> ^(I_ACCESS_LIST[$start,"I_ACCESS_LIST"] ACCESS_SPEC+);
 
 
-field	:	FIELD_DIRECTIVE access_list MEMBER_NAME field_type_descriptor literal?
-		-> ^(I_FIELD[$start, "I_FIELD"] MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)?);
+field	:	FIELD_DIRECTIVE access_list MEMBER_NAME field_type_descriptor literal? 
+		(	(annotation+ END_FIELD_DIRECTIVE)=> annotation+ END_FIELD_DIRECTIVE
+		| 	END_FIELD_DIRECTIVE?
+		)
+		-> ^(I_FIELD[$start, "I_FIELD"] MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*));
 		
 method	
 	scope {int currentAddress;}
@@ -215,19 +226,21 @@ fully_qualified_field
 	:	CLASS_NAME MEMBER_NAME field_type_descriptor;
 
 statements_and_directives
+	scope	{boolean hasRegistersDirective;}
 	:	{
 			$method::currentAddress = 0;
-			boolean hasRegistersDirective = false;
+			$statements_and_directives::hasRegistersDirective = false;
 		}
 		(	instruction {$method::currentAddress += $instruction.size/2;}
-		|	{!hasRegistersDirective}?=> registers_directive {hasRegistersDirective = true;}
+		|	{!$statements_and_directives::hasRegistersDirective}?=> registers_directive {$statements_and_directives::hasRegistersDirective = true;}
 		|	label
 		|	catch_directive
 		|	parameter_directive
 		|	ordered_debug_directive
+		|	annotation
 		)*		
 		{
-			if (!hasRegistersDirective) {
+			if (!$statements_and_directives::hasRegistersDirective) {
 				//TODO: throw correct exception type here
 				throw new RuntimeException("This method has no register directive");
 			}
@@ -237,7 +250,8 @@ statements_and_directives
 			^(I_STATEMENTS instruction*)
 			^(I_CATCHES catch_directive*)
 			^(I_PARAMETERS parameter_directive*)
-			^(I_ORDERED_DEBUG_DIRECTIVES ordered_debug_directive*);
+			^(I_ORDERED_DEBUG_DIRECTIVES ordered_debug_directive*)
+			^(I_ANNOTATIONS annotation*);
 
 registers_directive
 	:	REGISTERS_DIRECTIVE integral_literal
@@ -250,9 +264,17 @@ catch_directive
 
 
 parameter_directive
-	:	PARAMETER_DIRECTIVE 	(	STRING_LITERAL -> ^(I_PARAMETER STRING_LITERAL?)
-					|	-> ^(I_PARAMETER I_PARAMETER_NOT_SPECIFIED)
-					);
+	:	PARAMETER_DIRECTIVE 
+		(	STRING_LITERAL
+			(	(annotation+ END_PARAMETER_DIRECTIVE)=> annotation+ END_PARAMETER_DIRECTIVE
+			|	END_PARAMETER_DIRECTIVE?
+			)
+			-> ^(I_PARAMETER STRING_LITERAL ^(I_ANNOTATIONS annotation*))
+		|	(	(annotation+ END_PARAMETER_DIRECTIVE)=> annotation+ END_PARAMETER_DIRECTIVE
+			|	END_PARAMETER_DIRECTIVE?
+			)
+			-> ^(I_PARAMETER I_PARAMETER_NOT_SPECIFIED ^(I_ANNOTATIONS annotation*))
+		);
 
 ordered_debug_directive
 	:	line_directive
@@ -295,7 +317,7 @@ label
 	:	LABEL -> ^(I_LABEL LABEL I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 	
 instruction returns [int size]
-	@init {boolean needsNop = false;}
+	@init {boolean needsNop = false; int targetCount = 0;}
 	:	//e.g. goto endloop:
 		//e.g. goto +3
 		INSTRUCTION_FORMAT10t (LABEL | OFFSET) {$size = Format10t.Format.getByteCount();}
@@ -400,7 +422,7 @@ instruction returns [int size]
  	|	
  		PACKED_SWITCH_DIRECTIVE
  		{
- 			int targetCount = 0;
+ 			targetCount = 0;
  			if (($method::currentAddress \% 2) != 0) {
  				needsNop = true;
  				$size = 2;
@@ -434,7 +456,7 @@ instruction returns [int size]
  	|
  		SPARSE_SWITCH_DIRECTIVE
  		{
- 			int targetCount = 0;
+ 			targetCount = 0;
  			if (($method::currentAddress \% 2) != 0) {
  				needsNop = true;
  				$size = 2;
@@ -516,10 +538,33 @@ fixed_literal returns[int size]
 	|	CHAR_LITERAL {$size = 2;}
 	|	BOOL_LITERAL {$size = 1;};
 
-literal	:	INTEGER_LITERAL
+literal
+	:	INTEGER_LITERAL
 	|	LONG_LITERAL
+	|	SHORT_LITERAL_EMIT
+	|	BYTE_LITERAL_EMIT
 	|	FLOAT_LITERAL
 	|	DOUBLE_LITERAL
 	|	CHAR_LITERAL
 	|	STRING_LITERAL
-	|	BOOL_LITERAL;
+	|	BOOL_LITERAL
+	|	type_descriptor
+	|	array_literal
+	|	subannotation;
+	
+array_literal
+	:	ARRAY_START literal* ARRAY_END
+		-> ^(I_ENCODED_ARRAY[$start, "I_ENCODED_ARRAY"] literal*);
+		
+annotation
+	:	ANNOTATION_START ANNOTATION_VISIBILITY CLASS_DESCRIPTOR 
+		annotation_element* ANNOTATION_END
+		-> ^(I_ANNOTATION[$start, "I_ANNOTATION"] ANNOTATION_VISIBILITY ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*));
+	
+annotation_element
+	:	MEMBER_NAME literal
+		-> ^(I_ANNOTATION_ELEMENT[$start, "I_ANNOTATION_ELEMENT"] MEMBER_NAME literal);
+
+subannotation
+	:	SUBANNOTATION_START CLASS_DESCRIPTOR annotation_element* SUBANNOTATION_END
+		-> ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*);

@@ -42,6 +42,13 @@ public class AnnotationElement extends CompositeField<AnnotationElement> {
                 encodedValue = new EncodedValue(dexFile)
         };
     }
+
+    public AnnotationElement(final DexFile dexFile, StringIdItem elementName, EncodedValue encodedValue) {
+        fields = new Field[] {
+                this.elementName = new IndexedItemReference<StringIdItem>(dexFile, elementName, new Leb128Field()),
+                this.encodedValue = encodedValue
+        };
+    }
     
     protected Field[] getFields() {
         return fields;

@@ -31,6 +31,7 @@ package org.JesusFreke.dexlib;
 import org.JesusFreke.dexlib.ItemType;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AnnotationSetItem extends OffsettedItem<AnnotationSetItem> {
     private final Field[] fields;
@@ -48,10 +49,20 @@ public class AnnotationSetItem extends OffsettedItem<AnnotationSetItem> {
                 annotationCount = new ListSizeField(annotationReferences, new IntegerField()),
                 annotations = new FieldListField<OffsettedItemReference<AnnotationItem>>(annotationReferences) {
                     protected OffsettedItemReference<AnnotationItem> make() {
-                        return new OffsettedItemReference<AnnotationItem>(dexFile.AnnotationsSection, new IntegerField());
+                        return new OffsettedItemReference<AnnotationItem>(dexFile.AnnotationsSection,
+                                new IntegerField());
                     }
                 }
         };
+    }
+
+    public AnnotationSetItem(final DexFile dexFile, List<AnnotationItem> annotations) {
+        this(dexFile, -1);
+
+        for (AnnotationItem annotationItem: annotations) {
+            this.annotationReferences.add(new OffsettedItemReference<AnnotationItem>(dexFile,
+                    annotationItem, new IntegerField()));
+        }
     }
 
     protected int getAlignment() {

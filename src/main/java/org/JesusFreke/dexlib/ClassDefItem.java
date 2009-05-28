@@ -69,7 +69,13 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         };
     }
 
-    public ClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem source, ClassDataItem classDataItem) {
+    public ClassDefItem(DexFile dexFile,
+                        TypeIdItem classType,
+                        int accessFlags,
+                        TypeIdItem superType,
+                        TypeListItem implementsList,
+                        StringIdItem source,
+                        ClassDataItem classDataItem) {
         super(-1);
 
         this.dexFile = dexFile;
@@ -132,10 +138,9 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return 0;
     }
 
-    public void addMethod(ClassDataItem.EncodedMethod encodedMethod) {
-    }
-
     public void addField(ClassDataItem.EncodedField encodedField, EncodedValue initialValue) {
+        //fields are added in ClassDefItem instead of ClassDataItem because we need to grab
+        //the static initializers for StaticFieldInitialValues
         if (!encodedField.isStatic() && initialValue != null) {
             throw new RuntimeException("Initial values are only allowed for static fields.");
         }
@@ -161,6 +166,10 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
 
             staticFieldInitialValuesList.add(fieldIndex, initialValue);
         }
+    }
+
+    public void setAnnotations(AnnotationDirectoryItem annotations) {
+        this.classAnnotations.setReference(annotations);
     }
 
     public static int placeClassDefItems(IndexedSection<ClassDefItem> section, int offset) {
