@@ -28,9 +28,9 @@
 
 package org.JesusFreke.dexlib.EncodedValue;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.EncodedValueUtils;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class FloatEncodedValueSubField
         extends SimpleEncodedValueSubField<Float, FloatEncodedValueSubField>
@@ -41,9 +41,10 @@ public class FloatEncodedValueSubField
     public FloatEncodedValueSubField(float value) {
         this.value = value;
     }
-    public void writeTo(Output out) {
-        out.write(EncodedValueUtils.encodeRightZeroExtendedValue(
-                ((long)Float.floatToIntBits(value)) << 32));
+    public void writeTo(AnnotatedOutput out) {
+        byte[] bytes = EncodedValueUtils.encodeRightZeroExtendedValue(((long)Float.floatToIntBits(value)) << 32);
+        out.annotate(bytes.length, "FloatEncodedValueSubField");
+        out.write(bytes);
     }
 
     public void readFrom(Input in) {

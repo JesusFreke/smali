@@ -29,7 +29,7 @@
 package org.JesusFreke.dexlib;
 
 import org.JesusFreke.dexlib.ItemType;
-import org.JesusFreke.dexlib.util.Output;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 import java.io.UnsupportedEncodingException;
 
@@ -46,103 +46,97 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
     /** the endianness tag */
     private static final int ENDIAN_TAG = 0x12345678;
 
-    private final Field[] fields;
-
-    protected Field[] getFields() {
-        return fields;
-    }
-
-    private final FixedByteArrayField magic;
-    private final IntegerField checksum;
-    private final FixedByteArrayField signature;
-    private final IntegerField fileSize;
-    private final IntegerField headerSize;
-    private final IntegerField endianTag;
-    private final IntegerField linkSize;
-    private final IntegerField linkOff;
-    private final IntegerField mapOff;
-    private final SectionHeaderInfo StringIdsInfo;
-    private final SectionHeaderInfo TypeIdsInfo;
-    private final SectionHeaderInfo ProtoIdsInfo;
-    private final SectionHeaderInfo FieldIdsInfo;
-    private final SectionHeaderInfo MethodIdsInfo;
-    private final SectionHeaderInfo ClassDefsInfo;
-    private final IntegerField dataSize;
-    private final IntegerField dataOff;
+    private final FixedByteArrayField magicField;
+    private final IntegerField checksumField;
+    private final FixedByteArrayField signatureField;
+    private final IntegerField fileSizeField;
+    private final IntegerField headerSizeField;
+    private final IntegerField endianTagField;
+    private final IntegerField linkSizeField;
+    private final IntegerField linkOffField;
+    private final IntegerField mapOffField;
+    private final SectionHeaderInfo StringIdsHeaderField;
+    private final SectionHeaderInfo TypeIdsHeaderField;
+    private final SectionHeaderInfo ProtoIdsHeaderField;
+    private final SectionHeaderInfo FieldIdsHeaderField;
+    private final SectionHeaderInfo MethodIdsHeaderField;
+    private final SectionHeaderInfo ClassDefsHeaderField;
+    private final IntegerField dataSizeField;
+    private final IntegerField dataOffField;
 
     public HeaderItem(final DexFile file, int index) throws UnsupportedEncodingException {
         super(index);
 
         fields = new Field[] {
-                magic = new FixedByteArrayField(MAGIC.getBytes("US-ASCII")),
-                checksum = new IntegerField() {
-                    public void writeTo(Output out) {
+                magicField = new FixedByteArrayField(MAGIC.getBytes("US-ASCII"), "magic"),
+                checksumField = new IntegerField("checksum") {
+                    public void writeTo(AnnotatedOutput out) {
                         cacheValue(0);
                         super.writeTo(out);
                     }
                 },
-                signature = new FixedByteArrayField(20) {
-                    public void writeTo(Output out) {
+                signatureField = new FixedByteArrayField(20, "signature") {
+                    public void writeTo(AnnotatedOutput out) {
                         for (int i = 0; i < value.length; i++) {
                             value[i] = 0;
                         }
                         super.writeTo(out);
                     }
                 },
-                fileSize = new IntegerField() {
-                    public void writeTo(Output out) {
+                fileSizeField = new IntegerField("file_size") {
+                    public void writeTo(AnnotatedOutput out) {
                         cacheValue(file.getFileSize());
                         super.writeTo(out);
                     }
                 },
-                headerSize = new IntegerField(HEADER_SIZE),
-                endianTag = new IntegerField(ENDIAN_TAG),
-                linkSize = new IntegerField(0),
-                linkOff = new IntegerField(0),
-                mapOff = new IntegerField() {
-                    public void writeTo(Output out) {
+                headerSizeField = new IntegerField(HEADER_SIZE,"header_size"),
+                endianTagField = new IntegerField(ENDIAN_TAG,"endian_tag"),
+                linkSizeField = new IntegerField(0,"link_size"),
+                linkOffField = new IntegerField(0,"link_off"),
+                mapOffField = new IntegerField("map_off") {
+                    public void writeTo(AnnotatedOutput out) {
                         cacheValue(file.MapSection.getOffset());
                         super.writeTo(out);
                     }
                 },
-                StringIdsInfo = new SectionHeaderInfo() {
+                StringIdsHeaderField = new SectionHeaderInfo("string_ids") {
                     protected Section getSection() {
                         return file.StringIdsSection;
                     }
                 },
-                TypeIdsInfo = new SectionHeaderInfo() {
+                TypeIdsHeaderField = new SectionHeaderInfo("type_ids") {
                      protected Section getSection() {
                          return file.TypeIdsSection;
                      }
                 },
-                ProtoIdsInfo = new SectionHeaderInfo() {
+                ProtoIdsHeaderField = new SectionHeaderInfo("proto_ids") {
                      protected Section getSection() {
                          return file.ProtoIdsSection;
                      }
                 },
-                FieldIdsInfo = new SectionHeaderInfo() {
+                FieldIdsHeaderField = new SectionHeaderInfo("field_ids") {
                      protected Section getSection() {
                          return file.FieldIdsSection;
                      }
                 },
-                MethodIdsInfo = new SectionHeaderInfo() {
+                MethodIdsHeaderField = new SectionHeaderInfo("method_ids") {
                      protected Section getSection() {
                          return file.MethodIdsSection;
                      }
                 },
-                ClassDefsInfo = new SectionHeaderInfo() {
+                ClassDefsHeaderField = new SectionHeaderInfo("class_defs") {
                      protected Section getSection() {
                          return file.ClassDefsSection;
                      }
                 },
-                dataSize = new IntegerField() {
-                    public void writeTo(Output out) {
+                dataSizeField = new IntegerField("data_size") {
+                    public void writeTo(AnnotatedOutput out) {
                         cacheValue(file.getDataSize());
                         super.writeTo(out);
                     }
                 },
-                dataOff = new IntegerField() {
-                    public void writeTo(Output out) {
+                dataOffField = new IntegerField("data_off") {
+                    public void writeTo(AnnotatedOutput out) {
                         cacheValue(file.getDataOffset());
                         super.writeTo(out);
                     }
@@ -151,7 +145,7 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
     }
 
     public int getMapOffset() {
-        return mapOff.getCachedValue();
+        return mapOffField.getCachedValue();
     }
 
     protected int getAlignment() {
@@ -160,6 +154,10 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
 
     public ItemType getItemType() {
         return ItemType.TYPE_HEADER_ITEM;
+    }
+
+    public String getConciseIdentity() {
+        return "header_item";
     }
 
     public int compareTo(HeaderItem o) {

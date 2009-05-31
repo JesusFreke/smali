@@ -28,31 +28,28 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.ItemType;
-
 public class FieldIdItem extends IndexedItem<FieldIdItem> {
-    private final Field[] fields;
-
-    private final IndexedItemReference<TypeIdItem> classType;
-    private final IndexedItemReference<TypeIdItem> fieldType;
-    private final IndexedItemReference<StringIdItem> fieldName;
+    private final IndexedItemReference<TypeIdItem> classTypeReferenceField;
+    private final IndexedItemReference<TypeIdItem> fieldTypeReferenceField;
+    private final IndexedItemReference<StringIdItem> fieldNameReferenceField;
 
     public FieldIdItem(DexFile dexFile, int index) {
         super(index);
         fields = new Field[] {
-                classType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new ShortIntegerField()),
-                fieldType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new ShortIntegerField()),
-                fieldName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new IntegerField())
+                classTypeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                        new ShortIntegerField(null), "class_idx"),
+                fieldTypeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                        new ShortIntegerField(null), "type_idx"),
+                fieldNameReferenceField = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new IntegerField(null), "parameters_off")
         };
     }
 
     public FieldIdItem(DexFile dexFile, TypeIdItem classType, StringIdItem fieldName, TypeIdItem fieldType) {
-        super(-1);
-        fields = new Field[] {
-                this.classType = new IndexedItemReference<TypeIdItem>(dexFile, classType, new ShortIntegerField()),
-                this.fieldType = new IndexedItemReference<TypeIdItem>(dexFile, fieldType, new ShortIntegerField()),
-                this.fieldName = new IndexedItemReference<StringIdItem>(dexFile, fieldName, new IntegerField())
-        };
+        this(dexFile, -1);
+        classTypeReferenceField.setReference(classType);
+        fieldTypeReferenceField.setReference(fieldType);
+        fieldNameReferenceField.setReference(fieldName);
     }
 
     public FieldIdItem(DexFile dexFile, TypeIdItem classType, String fieldName, TypeIdItem fieldType) {
@@ -63,34 +60,35 @@ public class FieldIdItem extends IndexedItem<FieldIdItem> {
         return 4;
     }
 
-    protected Field[] getFields() {
-        return fields;
-    }
-
     public ItemType getItemType() {
         return ItemType.TYPE_FIELD_ID_ITEM;
     }
 
-    public String toString() {
-        return classType.toString() + " - " + fieldName.toString();
+    public String getConciseIdentity() {
+        String parentClass = classTypeReferenceField.getReference().getTypeDescriptor();
+        //strip off the leading L and trailing ;
+        parentClass = parentClass.substring(1, parentClass.length() - 1);
+
+        return parentClass + "/" + fieldNameReferenceField.getReference().getStringValue() +
+                ":" + fieldTypeReferenceField.getReference().getTypeDescriptor();
     }
 
     public int compareTo(FieldIdItem o) {
-        int result = classType.compareTo(o.classType);
+        int result = classTypeReferenceField.compareTo(o.classTypeReferenceField);
         if (result != 0) {
             return result;
         }
 
-        result = fieldName.compareTo(o.fieldName);
+        result = fieldNameReferenceField.compareTo(o.fieldNameReferenceField);
         if (result != 0) {
             return result;
         }
 
-        return fieldType.compareTo(o.fieldType);
+        return fieldTypeReferenceField.compareTo(o.fieldTypeReferenceField);
 
     }
 
     public TypeIdItem getFieldType() {
-        return fieldType.getReference();
+        return fieldTypeReferenceField.getReference();
     }
 }

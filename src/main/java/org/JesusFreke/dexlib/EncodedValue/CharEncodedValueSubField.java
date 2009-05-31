@@ -28,9 +28,9 @@
 
 package org.JesusFreke.dexlib.EncodedValue;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.EncodedValueUtils;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class CharEncodedValueSubField
     extends SimpleEncodedValueSubField<Character, CharEncodedValueSubField>
@@ -42,8 +42,10 @@ public class CharEncodedValueSubField
         this.value = value;
     }
 
-    public void writeTo(Output out) {
-        out.write(EncodedValueUtils.encodeUnsignedIntegralValue(value));
+    public void writeTo(AnnotatedOutput out) {
+        byte[] bytes = EncodedValueUtils.encodeUnsignedIntegralValue(value);
+        out.annotate(bytes.length, "CharEncodedValueSubField");
+        out.write(bytes);
     }
 
     public void readFrom(Input in) {

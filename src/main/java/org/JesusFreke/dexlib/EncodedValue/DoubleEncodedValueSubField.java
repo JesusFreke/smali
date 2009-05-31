@@ -28,9 +28,9 @@
 
 package org.JesusFreke.dexlib.EncodedValue;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.EncodedValueUtils;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class DoubleEncodedValueSubField
         extends SimpleEncodedValueSubField<Double, DoubleEncodedValueSubField>
@@ -42,9 +42,10 @@ public class DoubleEncodedValueSubField
         this.value = value;
     }
 
-     public void writeTo(Output out) {
-        out.write(EncodedValueUtils.encodeRightZeroExtendedValue(
-                Double.doubleToLongBits(value)));
+    public void writeTo(AnnotatedOutput out) {
+        byte[] bytes = EncodedValueUtils.encodeRightZeroExtendedValue(Double.doubleToLongBits(value));
+        out.annotate(bytes.length, "DoubleEncodedValueSubField");
+        out.write(bytes);
     }
 
     public void readFrom(Input in) {

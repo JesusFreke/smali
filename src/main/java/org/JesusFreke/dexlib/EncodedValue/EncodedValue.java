@@ -28,13 +28,11 @@
 
 package org.JesusFreke.dexlib.EncodedValue;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 import org.JesusFreke.dexlib.*;
 
 public class EncodedValue extends CompositeField<EncodedValue> {
-    private final Field[] fields;
-
     private class ValueTypeArgField implements Field<ValueTypeArgField> {
         private ValueType valueType;
         private byte valueArg;
@@ -46,8 +44,8 @@ public class EncodedValue extends CompositeField<EncodedValue> {
             this.valueType = valueType;
         }
 
-        public void writeTo(Output out) {
-
+        public void writeTo(AnnotatedOutput out) {
+            out.annotate(1, "valuetype=" + Integer.toString(valueType.getMapValue()) + " valueArg=" + Integer.toString(valueArg));
             byte value = (byte)(valueType.getMapValue() | (valueArg << 5));
             out.writeByte(value);
         }
@@ -102,7 +100,7 @@ public class EncodedValue extends CompositeField<EncodedValue> {
             this.subField = subField;
         }
 
-        public void writeTo(Output out) {
+        public void writeTo(AnnotatedOutput out) {
             subField.writeTo(out);
         }
 
@@ -147,6 +145,7 @@ public class EncodedValue extends CompositeField<EncodedValue> {
     private final EncodedValueSubFieldWrapper encodedValue;
 
     public EncodedValue(final DexFile dexFile) {
+        super("encoded_value");
         fields = new Field[] {
                 valueTypeArg = new ValueTypeArgField(),
                 encodedValue = new EncodedValueSubFieldWrapper(dexFile)
@@ -154,6 +153,7 @@ public class EncodedValue extends CompositeField<EncodedValue> {
     }
 
     public EncodedValue(final DexFile dexFile, EncodedValueSubField subField) {
+        super("encoded_value");
         fields = new Field[] {
                 valueTypeArg = new ValueTypeArgField(subField.getValueType()),
                 encodedValue = new EncodedValueSubFieldWrapper(dexFile, subField)
@@ -181,9 +181,5 @@ public class EncodedValue extends CompositeField<EncodedValue> {
 
     public byte getValueArg() {
         return valueTypeArg.getValueArg();
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 }

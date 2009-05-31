@@ -28,56 +28,44 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
-public abstract class SectionHeaderInfo implements Field<SectionHeaderInfo> {
-    private int sectionSize;
-    private int sectionOffset;
+public abstract class SectionHeaderInfo extends CompositeField<SectionHeaderInfo> {
+    private final String sectionName;
 
-    public SectionHeaderInfo() {
+    private final IntegerField sectionSizeField;
+    private final IntegerField sectionOffsetField;
+    
+
+    public SectionHeaderInfo(String sectionName) {
+        super(sectionName);
+        fields = new Field[] {
+                sectionSizeField = new IntegerField(sectionName + "_size"),
+                sectionOffsetField = new IntegerField(sectionName + "_off")
+        };
+        this.sectionName = sectionName;
     }
 
     protected abstract Section getSection();
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
         Section section = getSection();
 
         if (!section.isPlaced()) {
              throw new RuntimeException("Trying to write a reference to a section that hasn't been placed.");
         }
-        sectionSize = section.size();
-        sectionOffset = section.getOffset();
+        sectionSizeField.cacheValue(section.size());
+        sectionOffsetField.cacheValue(section.getOffset());
 
-        out.writeInt(sectionSize);
-        out.writeInt(sectionOffset);
-    }
-
-    public void readFrom(Input in) {
-        sectionSize = in.readInt();
-        sectionOffset = in.readInt();
+        super.writeTo(out);
     }
 
     public int getSectionSize() {
-        return sectionSize;
+        return sectionSizeField.getCachedValue();
     }
 
     public int getSectionOffset() {
-        return sectionOffset;
-    }
-
-    public int place(int offset) {
-        Section section = getSection();
-        sectionSize = section.size();
-        sectionOffset = section.getOffset();
-
-        return offset+8;
-    }
-
-    public void copyTo(DexFile dexFile, SectionHeaderInfo copy) {
-        /**
-         * do nothing. the section size and offset are dynamically generated
-         * when the copy is written
-         */
+        return sectionOffsetField.getCachedValue();
     }
 }

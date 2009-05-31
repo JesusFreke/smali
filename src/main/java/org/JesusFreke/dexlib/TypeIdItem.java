@@ -29,43 +29,35 @@
 package org.JesusFreke.dexlib;
 
 public class TypeIdItem extends IndexedItem<TypeIdItem> {
-    private final Field[] fields;
-
-    private final IndexedItemReference<StringIdItem> type;
+    private final IndexedItemReference<StringIdItem> typeDescriptorReferenceField;
 
     public TypeIdItem(DexFile dexFile, int index) {
         super(index);
         fields = new Field[] {
-                type = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new IntegerField())
+                typeDescriptorReferenceField = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new IntegerField(null), "descriptor_idx")
         };
     }
 
     public TypeIdItem(DexFile dexFile, StringIdItem stringIdItem) {
-        super(-1);
-        fields = new Field[] {
-                type = new IndexedItemReference<StringIdItem>(dexFile, stringIdItem, new IntegerField())
-        };
+        this(dexFile, -1);
+        typeDescriptorReferenceField.setReference(stringIdItem);
     }
 
     public TypeIdItem(DexFile dexFile, String value) {
-        super(-1);
-        StringDataItem stringDataItem = new StringDataItem(value);
-        StringIdItem stringIdItem = new StringIdItem(dexFile, stringDataItem);
-        fields = new Field[] {
-                type = new IndexedItemReference<StringIdItem>(dexFile, stringIdItem, new IntegerField())
-        };
+        this(dexFile, new StringIdItem(dexFile, value));
     }
 
     protected int getAlignment() {
         return 4;
     }
 
-    protected Field[] getFields() {
-        return fields;
-    }
-
-    public int getWordCount() {
-        String type = this.toString();
+    /**
+     * Returns the number of 2-byte registers that an instance of this type requires
+     * @return The number of 2-byte registers that an instance of this type requires
+     */
+    public int getRegisterCount() {
+        String type = this.getTypeDescriptor();
         /** Only the long and double primitive types are 2 words,
          * everything else is a single word
          */
@@ -80,17 +72,21 @@ public class TypeIdItem extends IndexedItem<TypeIdItem> {
         return ItemType.TYPE_TYPE_ID_ITEM;
     }
 
-    public String toString() {
-        return type.getReference().toString();
+    public String getConciseIdentity() {
+        return "type_id_item: " + getTypeDescriptor();
+    }
+
+    public String getTypeDescriptor() {
+        return typeDescriptorReferenceField.getReference().getStringValue();
     }
 
     public int compareTo(TypeIdItem o) {
         //sort by the index of the StringIdItem
-        return type.compareTo(o.type);
+        return typeDescriptorReferenceField.compareTo(o.typeDescriptorReferenceField);
     }
 
     public String toShorty() {
-        String type = toString();
+        String type = getTypeDescriptor();
         if (type.length() > 1) {
             return "L";
         } else {

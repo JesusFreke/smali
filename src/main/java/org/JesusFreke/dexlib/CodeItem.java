@@ -32,28 +32,27 @@ import org.JesusFreke.dexlib.code.Instruction;
 import org.JesusFreke.dexlib.code.Opcode;
 import org.JesusFreke.dexlib.ItemType;
 import org.JesusFreke.dexlib.util.Input;
-import org.JesusFreke.dexlib.util.Output;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
 public class CodeItem extends OffsettedItem<CodeItem> {
-    private final Field[] fields;
     private final ArrayList<Instruction> instructionList;
     private final ArrayList<TryItem> tryItems = new ArrayList<TryItem>();
     private final ArrayList<EncodedCatchHandler> catchHandlerList = new ArrayList<EncodedCatchHandler>();
 
-    private final ShortIntegerField registersCount;
-    private final ShortIntegerField inArgumentCount;
-    private final ShortIntegerField outArgumentCount;
-    private final ListSizeField triesCount;
-    private final OffsettedItemReference<DebugInfoItem> debugInfo;
-    private final IntegerField instructionsSize;
+    private final ShortIntegerField registersCountField;
+    private final ShortIntegerField inArgumentCountField;
+    private final ShortIntegerField outArgumentCountField;
+    private final ListSizeField triesCountField;
+    private final OffsettedItemReference<DebugInfoItem> debugInfoReferenceField;
+    private final IntegerField instructionsSizeField;
     private final InstructionListField instructionListField;
-    private final PaddingField padding;
-    private final FieldListField<TryItem> tries;
-    private final EncodedCatchHandlerList catchHandlers;
+    private final PaddingField paddingField;
+    private final FieldListField<TryItem> triesListField;
+    private final EncodedCatchHandlerList catchHandlersListField;
 
     public CodeItem(final DexFile dexFile, int offset) {
         super(offset);
@@ -61,37 +60,36 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         instructionList = new ArrayList<Instruction>();
 
         fields = new Field[] {
-                registersCount = new ShortIntegerField(),
-                inArgumentCount = new ShortIntegerField(),
-                outArgumentCount = new ShortIntegerField(),
-                triesCount = new ListSizeField(tryItems, new ShortIntegerField()),
-                debugInfo = new OffsettedItemReference<DebugInfoItem>(dexFile.DebugInfoItemsSection, new IntegerField()),
-                instructionsSize = new IntegerField(),
+                registersCountField = new ShortIntegerField("registers_size"),
+                inArgumentCountField = new ShortIntegerField("ins_size"),
+                outArgumentCountField = new ShortIntegerField("outs_size"),
+                triesCountField = new ListSizeField(tryItems, new ShortIntegerField("tries_size")),
+                debugInfoReferenceField = new OffsettedItemReference<DebugInfoItem>(dexFile.DebugInfoItemsSection,
+                        new IntegerField(null), "debug_off"),
+                instructionsSizeField = new IntegerField("insns_size"),
                 instructionListField = new InstructionListField(dexFile),
-                padding = new PaddingField(),
-                tries = new FieldListField<TryItem>(tryItems) {
+                paddingField = new PaddingField(),
+                triesListField = new FieldListField<TryItem>(tryItems, "try_item") {
                     protected TryItem make() {
-                        return new TryItem(catchHandlers);
+                        return new TryItem(catchHandlersListField);
                     }
                 },
 
-                catchHandlers = new EncodedCatchHandlerList(dexFile)
+                catchHandlersListField = new EncodedCatchHandlerList(dexFile)
         };
     }
-
-
 
     public CodeItem(final DexFile dexFile,
                     int registersCount,
                     int inArguments,
-                    ArrayList<Instruction> instructions,
+                    List<Instruction> instructions,
                     DebugInfoItem debugInfo,
                     List<TryItem> tries,
                     List<EncodedCatchHandler> handlers) {
-        super(-1);
+        this(dexFile, 0);
 
-        this.instructionList = new ArrayList<Instruction>(instructions);
-        this.instructionListField = new InstructionListField(dexFile);
+        instructionList.addAll(instructions);
+        instructionsSizeField.cacheValue(instructionListField.getInstructionWordCount());
 
         if (tries != null) {
             tryItems.addAll(tries);
@@ -103,22 +101,10 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             throw new RuntimeException("The handlers parameter must be null if the tries parameter is null");
         }
 
-        fields = new Field[] {
-                this.registersCount = new ShortIntegerField(registersCount),
-                this.inArgumentCount = new ShortIntegerField(inArguments),
-                this.outArgumentCount = new ShortIntegerField(instructionListField.getOutArguments()),
-                this.triesCount = new ListSizeField(tryItems, new ShortIntegerField(0)),
-                this.debugInfo = new OffsettedItemReference<DebugInfoItem>(dexFile, debugInfo, new IntegerField()),
-                this.instructionsSize = new IntegerField(instructionListField.getInstructionWordCount()),
-                instructionListField,
-                this.padding = new PaddingField(),
-                this.tries = new FieldListField<TryItem>(tryItems) {
-                    protected TryItem make() {
-                        return new TryItem(catchHandlers);
-                    }
-                },
-                this.catchHandlers = new EncodedCatchHandlerList(dexFile)
-        };
+        registersCountField.cacheValue(registersCount);
+        inArgumentCountField.cacheValue(inArguments);
+        outArgumentCountField.cacheValue(instructionListField.getOutArguments());
+        debugInfoReferenceField.setReference(debugInfo);
     }
 
     protected int getAlignment() {
@@ -131,46 +117,41 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
     public void copyTo(DexFile dexFile, CodeItem copy)
     {
-        Field[] fields = getFields();
-        Field[] fieldsCopy = copy.getFields();
         for (int i = 0; i < fields.length-2; i++) {
-            fields[i].copyTo(dexFile, fieldsCopy[i]);
+            fields[i].copyTo(dexFile, copy.fields[i]);
         }
         //we need to do this in reverse order, so when the tries are copied,
         //the catchHandler copies will already exist
-        catchHandlers.copyTo(dexFile, copy.catchHandlers);
-        tries.copyTo(dexFile, copy.tries);
+        catchHandlersListField.copyTo(dexFile, copy.catchHandlersListField);
+        triesListField.copyTo(dexFile, copy.triesListField);
     }
 
-    public Field[] getFields() {
-        return fields;
+    public String getConciseIdentity() {
+        //TODO: should mention the method name here
+        return "code_item @0x" + Integer.toHexString(getOffset());
     }
 
     public static class TryItem extends CompositeField<TryItem> {
-        private final Field[] fields;
-
         private final IntegerField startAddr;
         private final ShortIntegerField insnCount;
         private final EncodedCatchHandlerReference encodedCatchHandlerReference;
 
         public TryItem(EncodedCatchHandlerList encodedCatchHandlerList) {
+            super("try_item");
             fields = new Field[] {
-                    startAddr = new IntegerField(),
-                    insnCount = new ShortIntegerField(),
+                    startAddr = new IntegerField("start_addr"),
+                    insnCount = new ShortIntegerField("insn_count"),
                     encodedCatchHandlerReference = new EncodedCatchHandlerReference(encodedCatchHandlerList)
             };
         }
 
         public TryItem(int startAddr, int insnCount, EncodedCatchHandler encodedCatchHandler) {
+            super("try_item");
             fields = new Field[] {
-                    this.startAddr = new IntegerField(startAddr),
-                    this.insnCount = new ShortIntegerField(insnCount),
+                    this.startAddr = new IntegerField(startAddr, "start_addr"),
+                    this.insnCount = new ShortIntegerField(insnCount, "insn_count"),
                     this.encodedCatchHandlerReference = new EncodedCatchHandlerReference(encodedCatchHandler)
             };
-        }
-
-        protected Field[] getFields() {
-            return fields;
         }
 
         public int getStartAddress() {
@@ -191,10 +172,12 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         private EncodedCatchHandler encodedCatchHandler;
 
         public EncodedCatchHandlerReference(EncodedCatchHandlerList encodedCatchHandlerList) {
+            super("encoded_catch_handler");
             this.encodedCatchHandlerList = encodedCatchHandlerList;
         }
 
         public EncodedCatchHandlerReference(EncodedCatchHandler encodedCatchHandler) {
+            super("encoded_catch_handler");
             this.encodedCatchHandlerList = null;
             this.encodedCatchHandler = encodedCatchHandler;
         }
@@ -212,7 +195,6 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         }
 
         public void copyTo(DexFile dexFile, CachedIntegerValueField _copy) {
-
             EncodedCatchHandlerReference copy = (EncodedCatchHandlerReference)_copy;
             EncodedCatchHandler copiedItem = copy.getEncodedCatchHandlerList().getByOffset(
                 encodedCatchHandler.getOffsetInList());
@@ -220,7 +202,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         }
 
 
-        public void writeTo(Output out) {
+        public void writeTo(AnnotatedOutput out) {
             cacheValue(encodedCatchHandler.getOffsetInList());
 
             super.writeTo(out);
@@ -252,18 +234,17 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                 itemsByOffset.put(offset, encodedCatchHandler);
             }
             return encodedCatchHandler;
+
+
         }
 
-        public EncodedCatchHandlerList(DexFile dexFile) {
+        public EncodedCatchHandlerList(final DexFile dexFile) {
+            super("encoded_catch_handler_list");
             this.dexFile = dexFile;
-        }
 
-        private final ListSizeField sizeField;
-        private final FieldListField<EncodedCatchHandler> listField;
-
-        private final Field[] fields = new Field[] {
-                sizeField = new ListSizeField(catchHandlerList, new Leb128Field()),
-                listField = new FieldListField<EncodedCatchHandler>(catchHandlerList) {
+            fields = new Field[] {
+                sizeField = new ListSizeField(catchHandlerList, new Leb128Field("size")),
+                listField = new FieldListField<EncodedCatchHandler>(catchHandlerList, "encoded_catch_handler") {
                     protected EncodedCatchHandler make() {
                         return new EncodedCatchHandler(dexFile, 0);
                     }
@@ -287,7 +268,11 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                             }
                         }
                    }
-        };
+             };
+        }
+
+        private final ListSizeField sizeField;
+        private final FieldListField<EncodedCatchHandler> listField;
 
         public void readFrom(Input in) {
             if (tryItems.size() > 0) {
@@ -296,7 +281,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             }
         }
 
-        public void writeTo(Output out) {
+        public void writeTo(AnnotatedOutput out) {
             if (fieldPresent) {
                 super.writeTo(out);
             }
@@ -314,10 +299,6 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             }
         }
 
-        protected Field[] getFields() {
-            return fields;
-        }
-
         public void copyTo(DexFile dexFile, EncodedCatchHandlerList copy) {
             super.copyTo(dexFile, copy);
             copy.fieldPresent = fieldPresent;
@@ -329,7 +310,6 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     }
 
     public static class EncodedCatchHandler extends CompositeField<EncodedCatchHandler> {
-        public final Field[] fields;
         private ArrayList<EncodedTypeAddrPair> list;
         boolean hasCatchAll = false;
         private int baseOffset = 0;
@@ -341,11 +321,12 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         private int offset;
 
         public EncodedCatchHandler(final DexFile dexFile, int offset) {
+            super("encoded_catch_handler");
             this.offset = offset;
             
             list = new ArrayList<EncodedTypeAddrPair>();
             fields = new Field[] {
-                    size = new ListSizeField(list, new SignedLeb128Field() {
+                    size = new ListSizeField(list, new SignedLeb128Field("size") {
                         public void readFrom(Input in) {
                             super.readFrom(in);
                             hasCatchAll = (getCachedValue() <= 0);
@@ -355,19 +336,19 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                             super.cacheValue(value * (hasCatchAll?-1:1));
                         }})
                     ,
-                    handlers = new FieldListField<EncodedTypeAddrPair>(list) {
+                    handlers = new FieldListField<EncodedTypeAddrPair>(list, "encoded_type_addr_pair") {
                         protected EncodedTypeAddrPair make() {
                             return new EncodedTypeAddrPair(dexFile);
                         }
                     },
-                    catchAllAddress = new Leb128Field() {
+                    catchAllAddress = new Leb128Field("catch_all_addr") {
                         public void readFrom(Input in) {
                             if (hasCatchAll) {
                                 super.readFrom(in);
                             }
                         }
 
-                        public void writeTo(Output out) {
+                        public void writeTo(AnnotatedOutput out) {
                             if (hasCatchAll) {
                                 super.writeTo(out);
                             }
@@ -391,10 +372,6 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                 hasCatchAll = true;
                 catchAllAddress.cacheValue(catchAllHandler);
             }
-        }
-
-        protected Field[] getFields() {
-            return fields;
         }
 
         public int getOffsetInList() {
@@ -434,35 +411,30 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     }
 
     public static class EncodedTypeAddrPair extends CompositeField<EncodedTypeAddrPair> {
-        public final Field[] fields;
-
-        public final IndexedItemReference<TypeIdItem> type;
-        public final Leb128Field handlerAddress;
+        public final IndexedItemReference<TypeIdItem> typeReferenceField;
+        public final Leb128Field handlerAddressField;
 
         public EncodedTypeAddrPair(DexFile dexFile) {
+            super("encoded_type_addr_pair");
             fields = new Field[] {
-                    type = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128Field()),
-                    handlerAddress = new Leb128Field()
+                    typeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                            new Leb128Field(null), "type_idx"),
+                    handlerAddressField = new Leb128Field("addr")
             };
         }
 
         public EncodedTypeAddrPair(DexFile dexFile, TypeIdItem type, int handlerOffset) {
-            fields = new Field[] {
-                    this.type = new IndexedItemReference<TypeIdItem>(dexFile, type, new Leb128Field()),
-                    this.handlerAddress = new Leb128Field(handlerOffset)
-            };
+            this(dexFile);
+            typeReferenceField.setReference(type);
+            handlerAddressField.cacheValue(handlerOffset);
         }
 
-        protected Field[] getFields() {
-            return fields;
-        }
-
-        public TypeIdItem getType() {
-            return type.getReference();
+        public TypeIdItem getTypeReferenceField() {
+            return typeReferenceField.getReference();
         }
 
         public int getHandlerAddress() {
-            return handlerAddress.getCachedValue();
+            return handlerAddressField.getCachedValue();
         }
     }
 
@@ -473,18 +445,18 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             this.dexFile = dexFile;
         }
 
-        public void writeTo(Output out) {
+        public void writeTo(AnnotatedOutput out) {
             int startPosition = out.getCursor();
             for (Instruction instruction: instructionList) {
                 instruction.writeTo(out);
             }
-            if ((out.getCursor() - startPosition) != (instructionsSize.getCachedValue() * 2)) {
+            if ((out.getCursor() - startPosition) != (instructionsSizeField.getCachedValue() * 2)) {
                 throw new RuntimeException("Did not write the expected amount of bytes");
             }
         }
 
         public void readFrom(Input in) {
-            int numBytes = instructionsSize.getCachedValue() * 2;
+            int numBytes = instructionsSizeField.getCachedValue() * 2;
             int startPosition = in.getCursor();
 
             do {
@@ -499,7 +471,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         }
 
         public int place(int offset) {
-            return offset + (instructionsSize.getCachedValue() * 2);
+            return offset + (instructionsSizeField.getCachedValue() * 2);
         }
 
         public void copyTo(DexFile dexFile, InstructionListField copy) {
@@ -539,7 +511,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                     if (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) {
                         isStatic = true;
                     }
-                    int paramWordCount = methodIdItem.getParameterWordCount(isStatic);
+                    int paramWordCount = methodIdItem.getParameterRegisterCount(isStatic);
 
                     if (maxParamWordCount < paramWordCount) {
                         maxParamWordCount = paramWordCount;
@@ -556,10 +528,10 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         }
 
         private boolean needsAlign() {
-            return (triesCount.getCachedValue() > 0) && (instructionsSize.getCachedValue() % 2 == 1);
+            return (triesCountField.getCachedValue() > 0) && (instructionsSizeField.getCachedValue() % 2 == 1);
         }
 
-        public void writeTo(Output out) {
+        public void writeTo(AnnotatedOutput out) {
             if (needsAlign()) {
                 out.writeShort(0);
             }

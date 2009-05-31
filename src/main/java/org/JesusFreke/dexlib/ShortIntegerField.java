@@ -28,21 +28,16 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.Output;
 
 public class ShortIntegerField extends CachedIntegerValueField {
-    protected int value = 0;
-
-    public ShortIntegerField() {
+    public ShortIntegerField(String fieldName) {
+        super(fieldName);
     }
 
-    public ShortIntegerField(int value) {
-        this.value = value;
-    }
-
-    public void writeTo(Output out) {
-        out.writeShort(value);
+    public ShortIntegerField(int value, String fieldName) {
+        super(value, fieldName);
     }
 
     public void readFrom(Input in) {
@@ -53,18 +48,7 @@ public class ShortIntegerField extends CachedIntegerValueField {
         return offset + 2;
     }
 
-    /**
-     * This method returns the short integer value that has been cached. This
-     * value is either the value that the field was constructed with, the
-     * value that was read via <code>readFrom</code>, or the value that was
-     * cached when <code>place</code> was called
-     * @return the cached value
-     */
-    public int getCachedValue() {
-        return value;
-    }
-
-    public void cacheValue(int value) {
-        this.value = (short)value;
+    protected void writeValue(Output out) {
+        out.writeShort(value);
     }
 }

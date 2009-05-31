@@ -53,7 +53,7 @@ public class Format21c extends Format
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        if (opcode == Opcode.NEW_INSTANCE.value && ((TypeIdItem)item).toString().charAt(0) != 'L') {
+        if (opcode == Opcode.NEW_INSTANCE.value && ((TypeIdItem)item).getTypeDescriptor().charAt(0) != 'L') {
             throw new RuntimeException("Only class references can be used with the new-instance opcode"); 
         }
 

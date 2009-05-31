@@ -31,8 +31,6 @@ package org.JesusFreke.dexlib.debug;
 import org.JesusFreke.dexlib.*;
 
 public class StartLocalExtended extends CompositeField<StartLocalExtended> implements DebugInstruction<StartLocalExtended> {
-    private final Field[] fields;
-
     private final ByteField opcodeField;
     //TODO: signed or unsigned leb?
     private final SignedLeb128Field registerNumber;
@@ -41,12 +39,16 @@ public class StartLocalExtended extends CompositeField<StartLocalExtended> imple
     private final IndexedItemReference<StringIdItem> signature;
 
     public StartLocalExtended(DexFile dexFile) {
+        super("DBG_START_LOCAL_EXTENDED");
         fields = new Field[] {
-                opcodeField = new ByteField((byte)0x04),
-                registerNumber = new SignedLeb128Field(),
-                localName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field()),
-                localType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128p1Field()),
-                signature = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field())
+                opcodeField = new ByteField((byte)0x04, "opcode"),
+                registerNumber = new SignedLeb128Field("register_num"),
+                localName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new Leb128p1Field(null), "name_idx"),
+                localType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                        new Leb128p1Field(null), "type_idx"),
+                signature = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new Leb128p1Field(null), "sig_idx")
         };
     }
 
@@ -57,10 +59,6 @@ public class StartLocalExtended extends CompositeField<StartLocalExtended> imple
         this.localName.setReference(localName);
         this.localType.setReference(localType);
         this.signature.setReference(signature);
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

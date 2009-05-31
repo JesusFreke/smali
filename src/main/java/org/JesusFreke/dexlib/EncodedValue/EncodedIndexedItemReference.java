@@ -29,25 +29,25 @@
 package org.JesusFreke.dexlib.EncodedValue;
 
 import org.JesusFreke.dexlib.*;
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
 import org.JesusFreke.dexlib.util.EncodedValueUtils;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
-/** TODO: it should be possible to somehow use the IndexedItemReference class */
 public class EncodedIndexedItemReference<T extends IndexedItem<T>>
-    extends ItemReference<T, EncodedIndexedItemReference<T>>
     implements EncodedValueSubField<EncodedIndexedItemReference<T>> {
     private int initialValueArg;
     private ValueType valueType;
 
+    private T item = null;
+    private IndexedSection<T> section;
+
     public EncodedIndexedItemReference(IndexedSection<T> section, ValueType valueType) {
-        super(section);
         this.valueType = valueType;
+        this.section = section;
     }
 
     //TODO: implement support for enum values
     public EncodedIndexedItemReference(DexFile dexFile, T item) {
-        super(dexFile, item);
         if (item.getClass() == StringIdItem.class) {
             valueType = ValueType.VALUE_STRING;
         } else if (item.getClass() == TypeIdItem.class) {
@@ -57,31 +57,48 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
         } else if (item.getClass() ==  MethodIdItem.class) {
             valueType = ValueType.VALUE_METHOD;
         }
+        this.item = item;
     }
 
-    public void writeTo(Output out) {
-        T item = getReference();
+    public void writeTo(AnnotatedOutput out) {
+
         if (!item.isPlaced()) {
             throw new RuntimeException("Trying to write a reference to an item that hasn't been placed.");
         }
-        out.write(EncodedValueUtils.encodeUnsignedIntegralValue(item.getIndex()));
+
+        byte[] bytes = EncodedValueUtils.encodeUnsignedIntegralValue(item.getIndex());
+
+        if (item != null) {
+            out.annotate(bytes.length, item.getItemType().getTypeName() + " reference");
+        } else {
+            out.annotate(bytes.length, "null reference");
+        }
+
+        out.write(bytes);
     }
 
     public void readFrom(Input in) {
-        setReference(((IndexedSection<T>)getSection()).getByIndex(
-                (int)EncodedValueUtils.decodeUnsignedIntegralValue(in.readBytes(initialValueArg + 1))));
+        item = section.getByIndex(
+                (int)EncodedValueUtils.decodeUnsignedIntegralValue(in.readBytes(initialValueArg + 1)));
     }
 
     public int place(int offset) {
-        T item = getReference();
         if (!item.isPlaced()) {
             throw new RuntimeException("Trying to place a reference to an item that hasn't been placed.");
         }
         return offset + EncodedValueUtils.getRequiredBytesForUnsignedIntegralValue(item.getIndex()); 
     }
 
+    public void copyTo(DexFile dexFile, EncodedIndexedItemReference<T> copy) {
+        if (item == null) {
+            return;
+        }
+        T copiedItem = copy.section.intern(dexFile, item);
+        copy.item = copiedItem;
+    }
+
     public T getValue() {
-        return getReference();
+        return item;
     }
 
     public void setInitialValueArg(byte valueArg)
@@ -90,7 +107,7 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
     }
 
     public byte getValueArg() {
-        return EncodedValueUtils.getRequiredBytesForUnsignedIntegralValue(getReference().getIndex());
+        return EncodedValueUtils.getRequiredBytesForUnsignedIntegralValue(item.getIndex());
     }
 
     public ValueType getValueType() {

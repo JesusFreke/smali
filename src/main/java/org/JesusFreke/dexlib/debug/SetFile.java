@@ -31,25 +31,21 @@ package org.JesusFreke.dexlib.debug;
 import org.JesusFreke.dexlib.*;
 
 public class SetFile extends CompositeField<SetFile> implements DebugInstruction<SetFile> {
-    private final Field[] fields;
-
     private final ByteField opcode;
     private final IndexedItemReference<StringIdItem> fileName;
 
     public SetFile(DexFile dexFile) {
+        super("DBG_SET_FILE");
         fields = new Field[] {
-                opcode = new ByteField((byte)0x09),
-                fileName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field())
+                opcode = new ByteField((byte)0x09, "opcode"),
+                fileName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new Leb128p1Field(null), "name_idx")
         };
     }
 
     public SetFile(DexFile dexFile, StringIdItem fileName) {
         this(dexFile);
         this.fileName.setReference(fileName);
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

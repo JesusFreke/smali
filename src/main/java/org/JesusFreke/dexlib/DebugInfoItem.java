@@ -32,15 +32,13 @@ import org.JesusFreke.dexlib.ItemType;
 import org.JesusFreke.dexlib.debug.DebugInstructionFactory;
 import org.JesusFreke.dexlib.debug.EndSequence;
 import org.JesusFreke.dexlib.debug.DebugInstruction;
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
-    private final Field[] fields;
-
     private final ArrayList<IndexedItemReference<StringIdItem>> parameterNames =
             new ArrayList<IndexedItemReference<StringIdItem>>();
 
@@ -55,11 +53,13 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
         super(offset);
 
         fields = new Field[] {
-                lineStartField = new Leb128Field(),
-                parameterNamesSizeField = new ListSizeField(parameterNames, new Leb128Field()),
-                parameterNamesField = new FieldListField<IndexedItemReference<StringIdItem>>(parameterNames) {
+                lineStartField = new Leb128Field("line_start"),
+                parameterNamesSizeField = new ListSizeField(parameterNames, new Leb128Field("parameters_size")),
+                parameterNamesField = new FieldListField<IndexedItemReference<StringIdItem>>(
+                        parameterNames, "parameter_names") {
                     protected IndexedItemReference<StringIdItem> make() {
-                        return new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128p1Field());
+                        return new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                                new Leb128p1Field(null), "parameter_name");
                     }
                 },
                 debugInstructionListField = new DebugInstructionList(dexFile)
@@ -75,23 +75,20 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
         this.lineStartField.cacheValue(lineStart);
 
         for (StringIdItem parameterName: parameterNames) {
-            this.parameterNames.add(new IndexedItemReference<StringIdItem>(dexFile, parameterName,
-                    new Leb128p1Field()));
+            IndexedItemReference<StringIdItem> parameterReference = parameterNamesField.make();
+            parameterReference.setReference(parameterName);
+            this.parameterNames.add(parameterReference);
         }
 
         this.instructionFields.addAll(debugInstructions);
     }
 
-    protected int getAlignment() {
-        return 1;
-    }
-
-    protected Field[] getFields() {
-        return fields;
-    }
-
     public ItemType getItemType() {
         return ItemType.TYPE_DEBUG_INFO_ITEM;
+    }
+
+    public String getConciseIdentity() {
+        return "debug_info_item @0x" + Integer.toHexString(getOffset());
     }
 
     private class DebugInstructionList implements Field<DebugInstructionList> {
@@ -103,7 +100,7 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
             list = instructionFields;
         }
 
-        public void writeTo(Output out) {
+        public void writeTo(AnnotatedOutput out) {
             for (DebugInstruction debugInstruction: list) {
                 debugInstruction.writeTo(out);
             }

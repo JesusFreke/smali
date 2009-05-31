@@ -36,7 +36,6 @@ import java.util.List;
 public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEncodedValueSubField>
     implements EncodedValueSubField<AnnotationEncodedValueSubField> {
 
-    private final Field[] fields;
     private final ArrayList<AnnotationElement> annotationElementList = new ArrayList<AnnotationElement>();
 
     private final IndexedItemReference<TypeIdItem> annotationType;
@@ -44,10 +43,12 @@ public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEnc
     private final FieldListField<AnnotationElement> annotationElements;
 
     public AnnotationEncodedValueSubField(final DexFile dexFile) {
+        super("encoded_annotation");
         fields = new Field[] {
-                annotationType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new Leb128Field()),
-                annotationCount = new ListSizeField(annotationElementList, new Leb128Field()),
-                annotationElements = new FieldListField<AnnotationElement>(annotationElementList) {
+                annotationType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                        new Leb128Field(null), "type_idx"),
+                annotationCount = new ListSizeField(annotationElementList, new Leb128Field("size")),
+                annotationElements = new FieldListField<AnnotationElement>(annotationElementList, "elements") {
                     protected AnnotationElement make() {
                         return new AnnotationElement(dexFile);
                     }
@@ -60,10 +61,6 @@ public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEnc
         this(dexFile);
         this.annotationType.setReference(annotationType);
         this.annotationElementList.addAll(annotationElements);
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public void setInitialValueArg(byte valueArg) {

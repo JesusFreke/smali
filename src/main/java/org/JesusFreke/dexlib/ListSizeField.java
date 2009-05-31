@@ -29,11 +29,11 @@
 package org.JesusFreke.dexlib;
 
 import org.JesusFreke.dexlib.util.Input;
-import org.JesusFreke.dexlib.util.Output;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
 
-public class ListSizeField extends CachedIntegerValueField {
+public class ListSizeField implements Field<ListSizeField> {
     private final ArrayList<?> list;
     private final CachedIntegerValueField underlyingField;
 
@@ -42,13 +42,14 @@ public class ListSizeField extends CachedIntegerValueField {
         this.underlyingField = underlyingField;
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
         underlyingField.writeTo(out);
     }
 
     public void readFrom(Input in) {
         underlyingField.readFrom(in);
-        /** the absolute value operation is needed for the case when a list sized is
+        /**
+         * the absolute value operation is needed for the case when a list size is
          * encoded as the absolute value of a signed integer 
          */
         int listSize = Math.abs(underlyingField.getCachedValue());
@@ -63,6 +64,10 @@ public class ListSizeField extends CachedIntegerValueField {
     public int place(int offset) {
         underlyingField.cacheValue(list.size());
         return underlyingField.place(offset);
+    }
+
+    public void copyTo(DexFile dexFile, ListSizeField copy) {
+        //nothing to do, the value is retrieved from the list
     }
 
     public int getCachedValue() {

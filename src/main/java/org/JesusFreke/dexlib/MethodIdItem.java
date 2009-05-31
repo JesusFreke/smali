@@ -29,65 +29,60 @@
 package org.JesusFreke.dexlib;
 
 public class MethodIdItem extends IndexedItem<MethodIdItem> {
-    private final Field[] fields;
-
-    private final IndexedItemReference<TypeIdItem> classType;
-    private final IndexedItemReference<ProtoIdItem> prototype;
-    private final IndexedItemReference<StringIdItem> methodName;
+    private final IndexedItemReference<TypeIdItem> classTypeReferenceField;
+    private final IndexedItemReference<ProtoIdItem> prototypeReferenceField;
+    private final IndexedItemReference<StringIdItem> methodNameReferenceField;
 
     public MethodIdItem(DexFile dexFile, int index) {
         super(index);
         fields = new Field[] {
-                classType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new ShortIntegerField()),
-                prototype = new IndexedItemReference<ProtoIdItem>(dexFile.ProtoIdsSection, new ShortIntegerField()),
-                methodName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new IntegerField())
+                classTypeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                        new ShortIntegerField(null), "class_idx"),
+                prototypeReferenceField = new IndexedItemReference<ProtoIdItem>(dexFile.ProtoIdsSection,
+                        new ShortIntegerField(null), "proto_idx"),
+                methodNameReferenceField = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new IntegerField(null), "name_idx")
         };
     }
 
     public MethodIdItem(DexFile dexFile, TypeIdItem classType, StringIdItem methodName, ProtoIdItem prototype) {
-        super(-1);
-        fields = new Field[] {
-                this.classType = new IndexedItemReference<TypeIdItem>(dexFile, classType, new ShortIntegerField()),
-                this.prototype = new IndexedItemReference<ProtoIdItem>(dexFile, prototype, new ShortIntegerField()),
-                this.methodName = new IndexedItemReference<StringIdItem>(dexFile, methodName, new IntegerField())
-        };
+        this(dexFile, -1);
+        classTypeReferenceField.setReference(classType);
+        prototypeReferenceField.setReference(prototype);
+        methodNameReferenceField.setReference(methodName);
     }
-
-    public MethodIdItem(DexFile dexFile, TypeIdItem classType, String methodName, ProtoIdItem prototype) {
-        this(dexFile, classType, new StringIdItem(dexFile, methodName), prototype);        
-    }
-
 
     protected int getAlignment() {
         return 4;
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public ItemType getItemType() {
         return ItemType.TYPE_METHOD_ID_ITEM;
     }
 
-    public TypeIdItem getClassType() {
-        return classType.getReference();
+    public String getConciseIdentity() {
+        return "method_id_item: " + getMethodString();
+    }
+
+    private String cachedMethodString = null;
+    public String getMethodString() {
+        if (cachedMethodString == null) {
+            String parentClass = classTypeReferenceField.getReference().getTypeDescriptor();
+            //strip the leading L and trailing ;
+            parentClass = parentClass.substring(1, parentClass.length() - 1);
+
+            cachedMethodString = parentClass + methodNameReferenceField.getReference().getStringValue() +
+                    prototypeReferenceField.getReference().getPrototypeString();
+        }
+        return cachedMethodString;
     }
 
     public String getMethodName() {
-        return methodName.getReference().toString();
+        return methodNameReferenceField.getReference().getStringValue();
     }
 
-    public void setClassType(TypeIdItem newClassType) {
-        classType.setReference(newClassType);
-    }
-
-    public String toString() {
-        return classType.getReference().toString() + " - " + methodName.getReference().toString();
-    }
-
-    public int getParameterWordCount(boolean isStatic) {
-        return prototype.getReference().getParameterWordCount() + (isStatic?0:1);
+    public int getParameterRegisterCount(boolean isStatic) {
+        return prototypeReferenceField.getReference().getParameterRegisterCount() + (isStatic?0:1);
     }
 
     /**
@@ -95,20 +90,20 @@ public class MethodIdItem extends IndexedItem<MethodIdItem> {
      * @return The number of parameters, not including the "this" parameter, if any
      */
     public int getParameterCount() {
-        return prototype.getReference().getParameterCount();
+        return prototypeReferenceField.getReference().getParameterCount();
     }
 
     public int compareTo(MethodIdItem o) {
-        int result = classType.compareTo(o.classType);
+        int result = classTypeReferenceField.compareTo(o.classTypeReferenceField);
         if (result != 0) {
             return result;
         }
 
-        result = methodName.compareTo(o.methodName);
+        result = methodNameReferenceField.compareTo(o.methodNameReferenceField);
         if (result != 0) {
             return result;
         }
 
-        return prototype.compareTo(o.prototype);
+        return prototypeReferenceField.compareTo(o.prototypeReferenceField);
     }
 }

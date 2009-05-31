@@ -28,53 +28,58 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 
 public abstract class CompositeField<T extends CompositeField<T>> implements Field<T> {
-    /**
-     * Every instance of a specific subclass should return an array with the same structure,
-     * in other words have the same size, and the same type of field at each position.
-     * @return An array of fields that represents the sub-fields that make up this CompositeField
-     */
-    protected abstract Field[] getFields();
+    protected Field[] fields;
+    private final String fieldName;
 
-    public void writeTo(Output out) {
-        for (Field field: getFields()) {
+    /**
+     * Every instance of a specific subclass have a field array with the same structure.
+     * In other words have the same size, and the same type of field at each position.
+     */
+    public CompositeField(String fieldName){
+        this.fieldName = fieldName;
+    }
+
+    public void writeTo(AnnotatedOutput out) {
+        out.annotate(0, fieldName + ":");
+        out.indent();
+        for (Field field: fields) {
             field.writeTo(out);
         }
+        out.deindent();
     }
 
     public void readFrom(Input in) {
-        for (Field field: getFields()) {
+        for (Field field: fields) {
             field.readFrom(in);
         }
     }
 
     public int place(int offset) {
-        for (Field field: getFields()) {
+        for (Field field: fields) {
             offset = field.place(offset);
         }
         return offset;
     }
 
     public void copyTo(DexFile dexFile, T copy) {
-        Field[] fields = getFields();
-        Field[] copyFields = copy.getFields();
         for (int i = 0; i < fields.length; i++) {
             /**
              * This assumes that the fields will be the same for every instance
              * of a specific concrete subclass. By making this assumption, every subclass is
              * prevented from having to implement copyTo
              */
-            fields[i].copyTo(dexFile, copyFields[i]);
+            fields[i].copyTo(dexFile, copy.fields[i]);
         }
     }
 
     public int hashCode() {
         int h = 1;
-        for (Field field: getFields()) {
+        for (Field field: fields) {
             h = h * 31 + field.hashCode();
         }
         return h;
@@ -86,13 +91,11 @@ public abstract class CompositeField<T extends CompositeField<T>> implements Fie
         }
 
         CompositeField other = (CompositeField)o;
-        Field[] fields = getFields();
-        Field[] otherFields = other.getFields();
-        if (fields.length != otherFields.length) {
+        if (fields.length != other.fields.length) {
             return false;
         }
         for (int i = 0; i < fields.length; i++) {
-            if (!fields[i].equals(otherFields[i])) {
+            if (!fields[i].equals(other.fields[i])) {
                 return false;
             }
         }

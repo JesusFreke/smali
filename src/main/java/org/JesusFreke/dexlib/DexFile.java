@@ -28,10 +28,7 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Input;
-import org.JesusFreke.dexlib.util.ByteArrayInput;
-import org.JesusFreke.dexlib.util.Output;
-import org.JesusFreke.dexlib.util.FileUtils;
+import org.JesusFreke.dexlib.util.*;
 
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -176,7 +173,7 @@ public class DexFile
         fileSize = offset;
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
         HeaderItemSection.writeTo(out);
         for (IndexedSection indexedSection: indexedSections) {
             indexedSection.writeTo(out);
@@ -188,29 +185,6 @@ public class DexFile
 
         MapSection.writeTo(out);
     }
-
-    public ClassDefItem getClassByName(String className) {
-        for (ClassDefItem classDefItem: ClassDefsSection.items) {
-            if (classDefItem.getClassName().equals(className)) {
-                return classDefItem;
-            }
-        }
-        throw new RuntimeException("class not found");
-    }
-
-    public MethodIdItem[] getMethodsByClass(TypeIdItem classType) {
-        ArrayList<MethodIdItem> methods = new ArrayList<MethodIdItem>();
-
-        for (MethodIdItem methodIdItem: MethodIdsSection.items) {
-            if (methodIdItem.getClassType() == classType) {
-                methods.add(methodIdItem);
-            }
-        }
-
-        return methods.toArray(new MethodIdItem[0]);
-    }
-
-
 
     public final IndexedSection<HeaderItem> HeaderItemSection = new IndexedSection<HeaderItem>() {
         protected HeaderItem make(int index) {

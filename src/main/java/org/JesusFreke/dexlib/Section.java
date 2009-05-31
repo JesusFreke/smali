@@ -30,6 +30,7 @@ package org.JesusFreke.dexlib;
 
 import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,14 +57,14 @@ public abstract class Section<T extends Item> {
         for (int i=0; i < items.size(); i++) {
             T item = items.get(i);
             if (item == null) {
-                items.remove(i--);
-                continue;
+                throw new RuntimeException("This section contains a null item");
             }
             offset = item.place(i, offset);
             if (i == 0) {
-                /** if this item type has an alignment requirement,
+                /**
+                 * if this item type has an alignment requirement,
                  * then item.getOffset() may be different than the
-                 * offset before item.place was called, so we have
+                 * offset that was passed in to this method, so we have
                  * to initialize the section offset to the actual
                  * (post-alignment) offset of the first item
                  */
@@ -80,21 +81,24 @@ public abstract class Section<T extends Item> {
         }
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
         for (int i = 0; i < size(); i++) {
             T item = items.get(i);
             if (item == null) {
                 throw new RuntimeException("Cannot write section because all items haven't been initialized");
             }
             item.writeTo(out);
+            out.annotate(0, " ");
         }
+        out.annotate(0, " ");
     }
 
     public abstract void readFrom(int size, Input in);
 
     protected void setSize(int size) {
         if (items.size() > size) {
-            throw new RuntimeException("This section contains references to items beyond the size of the section");
+            throw new RuntimeException("There are references elsewhere to items in this section, that are " +
+                    "beyond the end of the section");
         }
 
         items.ensureCapacity(size);

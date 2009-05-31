@@ -32,17 +32,15 @@ import org.JesusFreke.dexlib.EncodedValue.AnnotationEncodedValueSubField;
 import org.JesusFreke.dexlib.ItemType;
 
 public class AnnotationItem extends OffsettedItem<AnnotationItem> {
-    private final Field[] fields;
-
-    private final ByteField visibility;
-    private final AnnotationEncodedValueSubField annotation;
+    private final ByteField visibilityField;
+    private final AnnotationEncodedValueSubField annotationField;
 
     public AnnotationItem(DexFile dexFile, int offset) {
         super(offset);
 
         fields = new Field[] {
-                visibility = new ByteField(),
-                annotation = new AnnotationEncodedValueSubField(dexFile)
+                visibilityField = new ByteField("visibility"),
+                annotationField = new AnnotationEncodedValueSubField(dexFile)
         };
     }
 
@@ -51,41 +49,16 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
         super(-1);
 
         fields = new Field[] {
-                this.visibility = new ByteField(visibility.value),
-                this.annotation = annotation
+                this.visibilityField = new ByteField(visibility.value, "visibility"),
+                this.annotationField = annotation
         };
-    }
-
-    protected int getAlignment() {
-        return 1;
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public ItemType getItemType() {
         return ItemType.TYPE_ANNOTATION_ITEM;
     }
 
-    public void copyTo(DexFile dexFile, AnnotationItem copy) {
-        visibility.copyTo(dexFile, copy.visibility);
-        annotation.copyTo(dexFile, copy.annotation);
-    }
-
-    public int hashCode() {
-        return visibility.hashCode() * 31 + annotation.hashCode();
-    }
-
-    public boolean equals(Object o) {
-        if (!(o instanceof AnnotationItem)) {
-            return false;
-        }
-
-        AnnotationItem other = (AnnotationItem)o;
-
-        if (!visibility.equals(other.visibility))
-            return false;
-        return annotation.equals(other.annotation);
+    public String getConciseIdentity() {
+        return "annotation_item @0x" + Integer.toHexString(getOffset());
     }
 }

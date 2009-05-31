@@ -33,40 +33,41 @@ import org.JesusFreke.dexlib.ItemType;
 import java.util.ArrayList;
 
 public class ProtoIdItem extends IndexedItem<ProtoIdItem> {
-    private final Field[] fields;
-
-    private final IndexedItemReference<StringIdItem> shortyDescriptor;
-    private final IndexedItemReference<TypeIdItem> returnType;
-    private final OffsettedItemReference<TypeListItem> parameters;
+    private final IndexedItemReference<StringIdItem> shortyDescriptorReferenceField;
+    private final IndexedItemReference<TypeIdItem> returnTypeReferenceField;
+    private final OffsettedItemReference<TypeListItem> parametersReferenceField;
 
     public ProtoIdItem(DexFile dexFile, int index) {
         super(index);
         fields = new Field[] {
-                shortyDescriptor = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new IntegerField()),
-                returnType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new IntegerField()),
-                parameters = new OffsettedItemReference<TypeListItem>(dexFile.TypeListsSection, new IntegerField())
+                shortyDescriptorReferenceField = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new IntegerField(null), "shorty_idx"),
+                returnTypeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                        new IntegerField(null), "return_type_idx"),
+                parametersReferenceField = new OffsettedItemReference<TypeListItem>(dexFile.TypeListsSection,
+                        new IntegerField(null), "parameters_off")
         };
     }
 
     public ProtoIdItem(DexFile dexFile, TypeIdItem returnType, ArrayList<TypeIdItem> parameters)
     {
-        super(-1);
-        StringIdItem stringIdItem = new StringIdItem(dexFile, createShortyDescriptor(returnType, parameters));
-        TypeListItem typeListItem = new TypeListItem(dexFile, parameters);
-
-        fields = new Field[] {
-                this.shortyDescriptor = new IndexedItemReference<StringIdItem>(dexFile, stringIdItem, new IntegerField()),
-                this.returnType = new IndexedItemReference<TypeIdItem>(dexFile, returnType, new IntegerField()),
-                this.parameters = new OffsettedItemReference<TypeListItem>(dexFile, typeListItem, new IntegerField())
-        };
+        this(dexFile, -1);
+        shortyDescriptorReferenceField.setReference(
+            new StringIdItem(dexFile, createShortyDescriptor(returnType, parameters)));
+        returnTypeReferenceField.setReference(returnType);
+        if (parameters != null && parameters.size() > 0) {
+            parametersReferenceField.setReference(new TypeListItem(dexFile, parameters));
+        }
     }
 
     private String createShortyDescriptor(TypeIdItem returnType, ArrayList<TypeIdItem> parameters) {
         StringBuilder sb = new StringBuilder();
         sb.append(returnType.toShorty());
 
-        for (TypeIdItem typeIdItem: parameters) {
-            sb.append(typeIdItem.toShorty());
+        if (parameters != null) {
+            for (TypeIdItem typeIdItem: parameters) {
+                sb.append(typeIdItem.toShorty());
+            }
         }
         return sb.toString();
     }
@@ -75,18 +76,17 @@ public class ProtoIdItem extends IndexedItem<ProtoIdItem> {
         return 4;
     }
 
-    public int getParameterWordCount() {
-        TypeListItem typeList = parameters.getReference();
+    public int getParameterRegisterCount() {
+        TypeListItem typeList = parametersReferenceField.getReference();
         if (typeList == null) {
             return 0;
         } else {
-            return typeList.getWordCount();
+            return typeList.getRegisterCount();
         }
     }
 
-
     public int getParameterCount() {
-        TypeListItem typeList = parameters.getReference();
+        TypeListItem typeList = parametersReferenceField.getReference();
         if (typeList == null) {
             return 0;
         } else {
@@ -94,29 +94,44 @@ public class ProtoIdItem extends IndexedItem<ProtoIdItem> {
         }
     }
 
-    protected Field[] getFields() {
-        return fields;
-    }
-
     public ItemType getItemType() {
         return ItemType.TYPE_PROTO_ID_ITEM;
     }
 
     public int compareTo(ProtoIdItem o) {
-        int result = returnType.compareTo(o.returnType);
+        int result = returnTypeReferenceField.compareTo(o.returnTypeReferenceField);
         if (result != 0) {
             return result;
         }
 
-        TypeListItem thisParameters = parameters.getReference();
+        TypeListItem thisParameters = parametersReferenceField.getReference();
         if (thisParameters == null) {
             return -1;
         }
 
-        return thisParameters.compareTo(o.parameters.getReference());        
+        return thisParameters.compareTo(o.parametersReferenceField.getReference());
     }
 
-    public String toString() {
-        return shortyDescriptor.toString();
+    public String getConciseIdentity() {
+        return "proto_id_item: " + getPrototypeString();
+    }
+
+    private String cachedPrototypeString = null;
+    public String getPrototypeString() {
+        if (cachedPrototypeString == null) {
+            StringBuilder sb = new StringBuilder();
+
+            TypeListItem parameterList = this.parametersReferenceField.getReference();
+
+            if (parameterList != null) {
+                for (TypeIdItem type: parameterList.getTypes()) {
+                    sb.append(type.getTypeDescriptor());
+                }
+            }
+
+            cachedPrototypeString = "(" + sb.toString() + ")" +
+                    this.returnTypeReferenceField.getReference().getTypeDescriptor();
+        }
+        return cachedPrototypeString;
     }
 }

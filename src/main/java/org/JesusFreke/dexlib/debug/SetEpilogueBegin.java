@@ -33,16 +33,11 @@ import org.JesusFreke.dexlib.Field;
 import org.JesusFreke.dexlib.ByteField;
 
 public class SetEpilogueBegin extends CompositeField<SetEpilogueBegin> implements DebugInstruction<SetEpilogueBegin> {
-    private final Field[] fields;
-
     public SetEpilogueBegin() {
+        super("DBG_SET_EPILOGUE_BEGIN");
         fields = new Field[] {
-                new ByteField((byte)0x08)
+                new ByteField((byte)0x08, "opcode")
         };
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

@@ -30,7 +30,7 @@ package org.JesusFreke.dexlib.code;
 
 import org.JesusFreke.dexlib.*;
 import org.JesusFreke.dexlib.util.Input;
-import org.JesusFreke.dexlib.util.Output;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public final class Instruction implements Field<Instruction> {
     private DexFile dexFile;
@@ -143,7 +143,8 @@ public final class Instruction implements Field<Instruction> {
         bytes = in.readBytes(opcode.numBytes);
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
+        out.annotate(bytes.length, "instruction");
         if (bytes[0] == 0 && bytes[1] > 0) {
             //the "special instructions" must be 4 byte aligned
             out.alignTo(4);

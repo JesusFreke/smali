@@ -31,25 +31,20 @@ package org.JesusFreke.dexlib.debug;
 import org.JesusFreke.dexlib.*;
 
 public class AdvancePC extends CompositeField<AdvancePC> implements DebugInstruction<AdvancePC> {
-    private final Field[] fields;
-
     private final ByteField opcodeField;
     private final Leb128Field addressDeltaField;
 
     public AdvancePC() {
+        super("DBG_ADVANCE_PC");
         fields = new Field[] {
-                opcodeField = new ByteField((byte)0x01),
-                addressDeltaField = new Leb128Field()
+                opcodeField = new ByteField((byte)0x01, "opcode"),
+                addressDeltaField = new Leb128Field("addr_diff")
         };
     }
 
     public AdvancePC(int addressDelta) {
         this();
         addressDeltaField.cacheValue(addressDelta);
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

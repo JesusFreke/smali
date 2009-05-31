@@ -33,16 +33,11 @@ import org.JesusFreke.dexlib.Field;
 import org.JesusFreke.dexlib.ByteField;
 
 public class SetPrologueEnd extends CompositeField<SetPrologueEnd> implements DebugInstruction<SetPrologueEnd> {
-    private final Field[] fields;
-
     public SetPrologueEnd() {
+        super("DBG_SET_PROLOGUE_END");
         fields = new Field[] {
-                new ByteField((byte)0x07)
+                new ByteField((byte)0x07, "opcode")
         };
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

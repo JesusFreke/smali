@@ -29,8 +29,7 @@
 package org.JesusFreke.dexlib;
 
 public abstract class OffsettedItem<T extends OffsettedItem<T>> extends Item<T> {
-    
     public OffsettedItem(int offset) {
-        super(offset);
+        this.offset = offset;
     }
 }

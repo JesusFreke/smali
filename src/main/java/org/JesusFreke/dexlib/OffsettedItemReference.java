@@ -28,56 +28,41 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class OffsettedItemReference<T extends OffsettedItem<T>> extends
         ItemReference<T,OffsettedItemReference<T>> {
-    private final CachedIntegerValueField underlyingField;
-
-    public OffsettedItemReference(OffsettedSection<T> section, CachedIntegerValueField underlyingField) {
-        super(section);
-        this.underlyingField = underlyingField;
+    
+    public OffsettedItemReference(DexFile dexFile, T item, CachedIntegerValueField underlyingField,
+                                  String fieldName) {
+        super(dexFile, item, underlyingField, fieldName);
+    }
+    
+    public OffsettedItemReference(OffsettedSection<T> section, CachedIntegerValueField underlyingField,
+                                  String fieldName) {
+        super(section, underlyingField, fieldName);
     }
 
-    public OffsettedItemReference(DexFile dexFile, T item, CachedIntegerValueField underlyingField) {
-        super(dexFile, item);
-        this.underlyingField = underlyingField;
-    }
 
     public OffsettedSection<T> getSection() {
         return (OffsettedSection<T>)super.getSection();
     }
 
-    public void writeTo(Output out) {
+    protected int getReferenceValue() {
         T item = getReference();
-        if (item != null && !item.isPlaced()) {
-            throw new RuntimeException("Trying to write reference to an item that hasn't been placed.");
-        }
-        
-        //TODO: this is a hack to force it to reload the correct offset value
+
         if (item == null) {
-            underlyingField.cacheValue(0);
+            return 0;
         } else {
-            underlyingField.cacheValue(item.getOffset());
-        }
-
-        underlyingField.writeTo(out);                          
-    }
-
-    public void readFrom(Input in) {
-        underlyingField.readFrom(in);
-        if (underlyingField.getCachedValue() != 0) {
-            setReference(getSection().getByOffset(underlyingField.getCachedValue()));
+            return item.getOffset();
         }
     }
 
-    public int place(int offset) {
-        if (getReference() != null) { 
-            underlyingField.cacheValue(getReference().getOffset());
-        } else {
-            underlyingField.cacheValue(0);
+    protected T getReferencedItem(int referenceValue) {
+        if (referenceValue == 0) {
+            return null;
         }
-        return underlyingField.place(offset);
+        return getSection().getByOffset(referenceValue);
     }
 }

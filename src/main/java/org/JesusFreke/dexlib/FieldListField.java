@@ -28,21 +28,30 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
 
 public abstract class FieldListField<T extends Field> implements Field<FieldListField<T>> {
     final ArrayList<T> list;
+    private final String fieldName;
 
-    public FieldListField(ArrayList<T> list) {
+    public FieldListField(ArrayList<T> list, String fieldName) {
         this.list = list;
+        this.fieldName = fieldName;
     }
 
-    public void writeTo(Output out) {
-        for (Field field: list) {
-            field.writeTo(out);
+    public void writeTo(AnnotatedOutput out) {
+        if (list.size() > 0) {
+            int i=0;
+            for (Field field: list) {
+                out.annotate(0, fieldName + "[" + Integer.toString(i) + "]");
+                out.indent();
+                field.writeTo(out);
+                out.deindent();
+                i++;
+            }
         }
     }
 

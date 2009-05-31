@@ -34,22 +34,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AnnotationSetRefList extends OffsettedItem<AnnotationSetRefList> {
-    private final Field[] fields;
-
     private final ArrayList<OffsettedItemReference<AnnotationSetItem>> annotationSetReferences =
             new ArrayList<OffsettedItemReference<AnnotationSetItem>>();
 
-    private final ListSizeField annotationSetCount;
-    private final FieldListField<OffsettedItemReference<AnnotationSetItem>> annotationSets;
+    private final ListSizeField annotationSetCountField;
+    private final FieldListField<OffsettedItemReference<AnnotationSetItem>> annotationSetsListField;
 
     public AnnotationSetRefList(final DexFile dexFile, int offset) {
         super(offset);
 
         fields = new Field[] {
-                annotationSetCount = new ListSizeField(annotationSetReferences, new IntegerField()),
-                annotationSets = new FieldListField<OffsettedItemReference<AnnotationSetItem>>(annotationSetReferences) {
+                annotationSetCountField = new ListSizeField(annotationSetReferences, new IntegerField("size")),
+                annotationSetsListField = new FieldListField<OffsettedItemReference<AnnotationSetItem>>(
+                        annotationSetReferences, "list") {
                     protected OffsettedItemReference<AnnotationSetItem> make() {
-                        return new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection, new IntegerField());
+                        return new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection,
+                                new IntegerField(null), "annotation_set_ref_item");
                     }
                 }
         };
@@ -58,8 +58,10 @@ public class AnnotationSetRefList extends OffsettedItem<AnnotationSetRefList> {
     public AnnotationSetRefList(final DexFile dexFile, List<AnnotationSetItem> annotationSets) {
         this(dexFile, -1);
 
-        for (AnnotationSetItem annotation: annotationSets) {
-            this.annotationSetReferences.add(new OffsettedItemReference<AnnotationSetItem>(dexFile, annotation, new IntegerField()));
+        for (AnnotationSetItem annotationSet: annotationSets) {
+            OffsettedItemReference<AnnotationSetItem> annotationSetReference = annotationSetsListField.make();
+            annotationSetReference.setReference(annotationSet);
+            this.annotationSetReferences.add(annotationSetReference);
         }
     }
 
@@ -67,11 +69,11 @@ public class AnnotationSetRefList extends OffsettedItem<AnnotationSetRefList> {
         return 4;
     }
 
-    protected Field[] getFields() {
-        return fields;
-    }
-
     public ItemType getItemType() {
         return ItemType.TYPE_ANNOTATION_SET_REF_LIST;
+    }
+
+    public String getConciseIdentity() {
+        return "annotation_set_item @0x" + Integer.toHexString(getOffset());
     }
 }

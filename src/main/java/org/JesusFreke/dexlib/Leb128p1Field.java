@@ -28,22 +28,17 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
 import org.JesusFreke.dexlib.util.Leb128Utils;
+import org.JesusFreke.dexlib.util.Output;
 
 public class Leb128p1Field extends CachedIntegerValueField {
-    protected int value;
-
-    public Leb128p1Field() {
+    public Leb128p1Field(String fieldName) {
+        super(fieldName);
     }
 
-    public Leb128p1Field(int value) {
-        this.value = value;
-    }
-
-    public void writeTo(Output out) {
-        out.writeUnsignedLeb128(value + 1);
+    public Leb128p1Field(int value, String fieldName) {
+        super(value, fieldName);
     }
 
     public void readFrom(Input in) {
@@ -54,11 +49,7 @@ public class Leb128p1Field extends CachedIntegerValueField {
         return offset + Leb128Utils.unsignedLeb128Size(value + 1);
     }
 
-    public int getCachedValue() {
-        return value;
-    }
-
-    public void cacheValue(int value) {
-        this.value = value;
+    public void writeValue(Output out) {
+        out.writeUnsignedLeb128(value + 1);
     }
 }

@@ -28,49 +28,41 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class IndexedItemReference<T extends IndexedItem<T>> extends
         ItemReference<T,IndexedItemReference<T>> implements Comparable<IndexedItemReference<T>> {
-    private final CachedIntegerValueField underlyingField;
     
-    public IndexedItemReference(IndexedSection<T> section, CachedIntegerValueField underlyingField) {
-        super(section);
-        this.underlyingField = underlyingField;
+    public IndexedItemReference(IndexedSection<T> section, CachedIntegerValueField underlyingField,
+                                String fieldName) {
+        super(section, underlyingField, fieldName);
     }
 
-    public IndexedItemReference(DexFile dexFile, T item, CachedIntegerValueField underlyingField) {
-        super(dexFile, item);
-        this.underlyingField = underlyingField;
-    }
-
-    public void writeTo(Output out) {
-        T item = getReference();
-        if (item != null && !item.isPlaced()) {
-            throw new RuntimeException("Trying to write a reference to an item that hasn't been placed.");
-        }
-        underlyingField.writeTo(out);
-    }
-
-    public void readFrom(Input in) {
-        underlyingField.readFrom(in);
-        if (underlyingField.getCachedValue() != -1) {
-            setReference(getSection().getByIndex(underlyingField.getCachedValue()));
-        }
+    public IndexedItemReference(DexFile dexFile, T item, CachedIntegerValueField underlyingField,
+                                String fieldName) {
+        super(dexFile, item, underlyingField, fieldName);
     }
 
     public IndexedSection<T> getSection() {
         return (IndexedSection<T>)super.getSection();
     }
 
-    public int place(int offset) {
-        if (getReference() != null) {
-            underlyingField.cacheValue(getReference().getIndex());
+    protected int getReferenceValue() {
+        T item = getReference();
+        if (item == null) {
+            return -1;
         } else {
-            underlyingField.cacheValue(-1);
+            return item.getIndex();
         }
-        return underlyingField.place(offset);
+    }
+
+    protected T getReferencedItem(int referenceValue) {
+        if (referenceValue == -1) {
+            return null;
+        } else {
+            return getSection().getByIndex(referenceValue);
+        }
     }
 
     public int compareTo(IndexedItemReference<T> o) {

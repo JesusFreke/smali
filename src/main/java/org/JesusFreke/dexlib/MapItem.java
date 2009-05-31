@@ -29,22 +29,21 @@
 package org.JesusFreke.dexlib;
 
 import org.JesusFreke.dexlib.ItemType;
-import org.JesusFreke.dexlib.util.Output;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 public class MapItem extends IndexedItem<MapItem> {
-    private final Field[] fields;
     private ArrayList<MapField> mapEntries = new ArrayList<MapField>();
 
     public MapItem(final DexFile dexFile, int index) {
         super(index);
 
         fields = new Field[] {
-                new ListSizeField(mapEntries, new IntegerField()),
-                new FieldListField<MapField>(mapEntries) {
+                new ListSizeField(mapEntries, new IntegerField("size")),
+                new FieldListField<MapField>(mapEntries, "map_entry") {
                     protected MapField make() {
                         return new MapField(dexFile);
                     }
@@ -64,7 +63,7 @@ public class MapItem extends IndexedItem<MapItem> {
         return super.place(index, offset);
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
         Collections.sort(mapEntries, new Comparator<MapField>() {
 
             public int compare(MapField o1, MapField o2) {
@@ -108,10 +107,6 @@ public class MapItem extends IndexedItem<MapItem> {
         return 4;
     }
 
-    protected Field[] getFields() {
-        return fields;
-    }
-
     public ItemType getItemType() {
         return ItemType.TYPE_MAP_LIST;
     }
@@ -126,6 +121,10 @@ public class MapItem extends IndexedItem<MapItem> {
 
     public boolean equals(Object o) {
         return getClass() == o.getClass();
+    }
+
+    public String getConciseIdentity() {
+        return "map_item";
     }
 
     public int compareTo(MapItem o) {

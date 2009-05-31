@@ -28,8 +28,8 @@
 
 package org.JesusFreke.dexlib.EncodedValue;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class BoolEncodedValueSubField
     extends SimpleEncodedValueSubField<Boolean, BoolEncodedValueSubField>
@@ -41,7 +41,7 @@ public class BoolEncodedValueSubField
         this.value = value;
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
     }
 
     public void readFrom(Input in) {

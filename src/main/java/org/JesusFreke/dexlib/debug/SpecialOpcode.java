@@ -33,19 +33,15 @@ import org.JesusFreke.dexlib.Field;
 import org.JesusFreke.dexlib.ByteField;
 
 public class SpecialOpcode extends CompositeField<SpecialOpcode> implements DebugInstruction<SpecialOpcode> {
-    private final Field[] fields;
-
     private final byte opcode;
 
     public SpecialOpcode(byte opcode) {
+        super("SPECIAL_OPCODE");
         this.opcode = opcode;
         fields = new Field[] {
-                new ByteField(opcode)
+                //TODO: annotate the line and address delta
+                new ByteField(opcode, "opcode")
         };
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

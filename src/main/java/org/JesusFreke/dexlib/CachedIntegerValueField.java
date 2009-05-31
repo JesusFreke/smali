@@ -28,25 +28,64 @@
 
 package org.JesusFreke.dexlib;
 
-public abstract class CachedIntegerValueField implements Field<CachedIntegerValueField> {
-    public abstract int getCachedValue();
-    public abstract void cacheValue(int value);
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
+import org.JesusFreke.dexlib.util.Output;
 
-    public void copyTo(DexFile dexFile, CachedIntegerValueField copy) {
-        copy.cacheValue(getCachedValue());
+public abstract class CachedIntegerValueField<T extends CachedIntegerValueField>
+        implements Field<T> {
+    
+    private final String fieldName;
+    protected int value;
+
+    protected CachedIntegerValueField(String fieldName) {
+        this.fieldName = fieldName;
+    }
+
+    protected CachedIntegerValueField(int value, String fieldName) {
+        this(fieldName);
+        this.value = value;
+    }
+
+    public void copyTo(DexFile dexFile, T copy) {
+        copy.value = value;
     }
 
     public int hashCode() {
-        return ((Integer)getCachedValue()).hashCode();
+        return value;
+    }
+
+    protected abstract void writeValue(Output out);
+
+    public void writeTo(AnnotatedOutput out) {
+        if (fieldName != null) {
+            out.annotate(fieldName + ": 0x" + Integer.toHexString(getCachedValue()));
+        }
+        writeValue(out);
     }
 
     public boolean equals(Object o) {
-        if (getClass() != o.getClass()) {
+        //TODO: check if this returns false if o is a different subclass
+        if (!this.getClass().isInstance(o)) {
             return false;
         }
 
-        CachedIntegerValueField other = (CachedIntegerValueField)o;
+        T other = (T)o;
 
         return getCachedValue() == other.getCachedValue();
+    }
+
+    /**
+     * This method returns the integer value that has been cached. This
+     * value is either the value that the field was constructed with, the
+     * value that was read via <code>readFrom</code>, or the value that was
+     * cached when <code>place</code> was called
+     * @return the cached value
+     */
+    public int getCachedValue() {
+        return value;
+    }
+
+    public void cacheValue(int value) {
+        this.value = value;
     }
 }

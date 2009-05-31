@@ -28,26 +28,31 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
 import org.JesusFreke.dexlib.util.ByteArray;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class NullTerminatedByteArrayField implements Field<NullTerminatedByteArrayField> {
     protected byte[] value;
+    private final String fieldName;
 
-    public NullTerminatedByteArrayField() {
+    public NullTerminatedByteArrayField(String fieldName) {
+        this.fieldName = fieldName;
     }
 
-    public NullTerminatedByteArrayField(byte[] value) {
+    public NullTerminatedByteArrayField(byte[] value, String fieldName) {
+        this(fieldName);
         this.value = value.clone();
     }
 
-    public NullTerminatedByteArrayField(ByteArray byteArray) {
+    public NullTerminatedByteArrayField(ByteArray byteArray, String fieldName) {
+        this(fieldName);
         value = new byte[byteArray.size()];
         byteArray.getBytes(value, 0);
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
+        out.annotate(fieldName);
         out.write(value);
         out.writeByte(0);
     }

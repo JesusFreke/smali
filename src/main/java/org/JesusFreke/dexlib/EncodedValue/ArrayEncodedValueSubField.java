@@ -36,14 +36,15 @@ public class ArrayEncodedValueSubField extends CompositeField<ArrayEncodedValueS
         implements  EncodedValueSubField<ArrayEncodedValueSubField>
 {
 
-    private final Field[] fields;
     private final ArrayList<EncodedValue> encodedValues;
 
     public ArrayEncodedValueSubField(final DexFile dexFile) {
+        super("encoded_array");
+        
         encodedValues = new ArrayList<EncodedValue>();
         fields = new Field[] {
-                new ListSizeField(encodedValues, new Leb128Field()),
-                new FieldListField<EncodedValue>(encodedValues) {
+                new ListSizeField(encodedValues, new Leb128Field("size")),
+                new FieldListField<EncodedValue>(encodedValues, "values") {
                     protected EncodedValue make() {
                         return new EncodedValue(dexFile);
                     }
@@ -52,20 +53,18 @@ public class ArrayEncodedValueSubField extends CompositeField<ArrayEncodedValueS
     }
 
     public ArrayEncodedValueSubField(final DexFile dexFile, ArrayList<EncodedValue> encodedValues) {
+        super("encoded_array");
+        
         this.encodedValues = encodedValues;
 
         fields = new Field[] {
-                new ListSizeField(this.encodedValues, new Leb128Field()),
-                new FieldListField<EncodedValue>(encodedValues) {
+                new ListSizeField(this.encodedValues, new Leb128Field("size")),
+                new FieldListField<EncodedValue>(encodedValues, "values") {
                     protected EncodedValue make() {
                         return new EncodedValue(dexFile);
                     }
                 }
         };
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public void setInitialValueArg(byte valueArg) {

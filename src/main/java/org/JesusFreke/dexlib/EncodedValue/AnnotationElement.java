@@ -31,26 +31,24 @@ package org.JesusFreke.dexlib.EncodedValue;
 import org.JesusFreke.dexlib.*;
 
 public class AnnotationElement extends CompositeField<AnnotationElement> {
-    private Field[] fields;
-
     private final IndexedItemReference<StringIdItem> elementName;
     private final EncodedValue encodedValue;
 
     public AnnotationElement(final DexFile dexFile) {
+        super("annotation_element");
         fields = new Field[] {
-                elementName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new Leb128Field()),
+                elementName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new Leb128Field(null), "element_name"),
                 encodedValue = new EncodedValue(dexFile)
         };
     }
 
     public AnnotationElement(final DexFile dexFile, StringIdItem elementName, EncodedValue encodedValue) {
+        super("annotation_element");
         fields = new Field[] {
-                this.elementName = new IndexedItemReference<StringIdItem>(dexFile, elementName, new Leb128Field()),
+                this.elementName = new IndexedItemReference<StringIdItem>(dexFile, elementName,
+                        new Leb128Field(null), "element_name"),
                 this.encodedValue = encodedValue
         };
-    }
-    
-    protected Field[] getFields() {
-        return fields;
     }
 }

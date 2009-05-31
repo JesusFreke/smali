@@ -34,25 +34,20 @@ import org.JesusFreke.dexlib.ByteField;
 import org.JesusFreke.dexlib.SignedLeb128Field;
 
 public class AdvanceLine extends CompositeField<AdvanceLine> implements DebugInstruction<AdvanceLine> {
-    private final Field[] fields;
-
     private final ByteField opcodeField;
     private final SignedLeb128Field lineDeltaField;
 
     public AdvanceLine() {
+        super("DBG_ADVANCE_LINE");
         fields = new Field[] {
-                opcodeField = new ByteField((byte)0x02),
-                lineDeltaField = new SignedLeb128Field()
+                opcodeField = new ByteField((byte)0x02, "opcode"),
+                lineDeltaField = new SignedLeb128Field("line_diff")
         };
     }
 
     public AdvanceLine(int lineDelta) {
         this();
         lineDeltaField.cacheValue(lineDelta);
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

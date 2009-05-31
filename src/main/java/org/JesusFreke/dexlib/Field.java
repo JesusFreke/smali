@@ -30,9 +30,10 @@ package org.JesusFreke.dexlib;
 
 import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public interface Field<T extends Field> {
-    public void writeTo(Output out);
+    public void writeTo(AnnotatedOutput out);
     public void readFrom(Input in);
     public int place(int offset);
     public void copyTo(DexFile dexFile, T copy);

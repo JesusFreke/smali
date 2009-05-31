@@ -32,8 +32,6 @@ import org.JesusFreke.dexlib.util.ByteArray;
 import org.JesusFreke.dexlib.util.Utf8Utils;
 
 public class StringDataItem extends OffsettedItem<StringDataItem> implements Comparable<StringDataItem> {
-    private final Field[] fields;
-
     private String value = null;
 
     private final Leb128Field stringSize;
@@ -43,8 +41,8 @@ public class StringDataItem extends OffsettedItem<StringDataItem> implements Com
         super(offset);
 
         fields = new Field[] {
-                stringSize = new Leb128Field(),
-                stringByteArray = new NullTerminatedByteArrayField()
+                stringSize = new Leb128Field("string_length"),
+                stringByteArray = new NullTerminatedByteArrayField("data")
         };
     }
 
@@ -54,32 +52,28 @@ public class StringDataItem extends OffsettedItem<StringDataItem> implements Com
         this.value = value; 
 
         fields = new Field[] {
-                stringSize = new Leb128Field(value.length()),
-                stringByteArray = new NullTerminatedByteArrayField(Utf8Utils.stringToUtf8Bytes(value))
+                stringSize = new Leb128Field(value.length(), "string_length"),
+                stringByteArray = new NullTerminatedByteArrayField(Utf8Utils.stringToUtf8Bytes(value), "data")
         };
-    }
-
-    public Field[] getFields() {
-        return fields;
-    }
-
-    public int getAlignment() {
-        return 1;
     }
 
     public ItemType getItemType() {
         return ItemType.TYPE_STRING_DATA_ITEM;
     }
 
-    public String toString() {
+    public String getStringValue() {
         if (value == null) {
             value = Utf8Utils.utf8BytesToString(new ByteArray(((NullTerminatedByteArrayField)fields[1]).value));
         }
 
-        return value;        
+        return value;
+    }
+
+    public String getConciseIdentity() {
+        return "string_data_item: " + getStringValue();
     }
 
     public int compareTo(StringDataItem o) {
-        return toString().compareTo(o.toString());
+        return getStringValue().compareTo(o.getStringValue());
     }
 }

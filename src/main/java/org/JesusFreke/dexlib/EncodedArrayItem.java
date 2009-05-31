@@ -32,13 +32,11 @@ import org.JesusFreke.dexlib.ItemType;
 import org.JesusFreke.dexlib.EncodedValue.ArrayEncodedValueSubField;
 import org.JesusFreke.dexlib.EncodedValue.EncodedValue;
 import org.JesusFreke.dexlib.util.Input;
-import org.JesusFreke.dexlib.util.Output;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
 
 public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
-    private final Field[] fields;
-
     private final ArrayEncodedValueSubField encodedArray;
     
     public EncodedArrayItem(DexFile dexFile, int offset) {
@@ -50,7 +48,7 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
     }
 
     public EncodedArrayItem(DexFile dexFile, ArrayList<EncodedValue> encodedValues) {
-        super(-1);
+        super(0);
 
         fields = new Field[] {
                 encodedArray = new ArrayEncodedValueSubField(dexFile, encodedValues)
@@ -65,16 +63,12 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
         return super.place(index, offset);
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
         super.writeTo(out);
     }
 
     protected int getAlignment() {
         return 1;
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public int getOffset() {
@@ -87,5 +81,9 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
 
     public ItemType getItemType() {
         return ItemType.TYPE_ENCODED_ARRAY_ITEM;
+    }
+
+    public String getConciseIdentity() {
+        return "encoded_array @0x" + Integer.toHexString(getOffset());
     }
 }

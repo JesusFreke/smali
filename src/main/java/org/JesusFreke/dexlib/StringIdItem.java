@@ -29,23 +29,19 @@
 package org.JesusFreke.dexlib;
 
 public class StringIdItem extends IndexedItem<StringIdItem> {
-    private final Field[] fields;
-
-    private final OffsettedItemReference<StringDataItem> stringData;
+    private final OffsettedItemReference<StringDataItem> stringDataReferenceField;
 
     public StringIdItem(DexFile dexFile, int index) {
         super(index);
         fields = new Field[] {
-                stringData = new OffsettedItemReference<StringDataItem>(dexFile.StringDataSection, new IntegerField())
+                stringDataReferenceField = new OffsettedItemReference<StringDataItem>(dexFile.StringDataSection,
+                        new IntegerField(null), "string_data_off")
         };
     }
 
     public StringIdItem(DexFile dexFile, StringDataItem stringDataItem) {
-        super(-1);
-
-        fields = new Field[] {
-                stringData = new OffsettedItemReference<StringDataItem>(dexFile, stringDataItem, new IntegerField())
-        };
+        this(dexFile, -1);
+        stringDataReferenceField.setReference(stringDataItem);
     }
 
     public StringIdItem(DexFile dexFile, String value) {
@@ -56,20 +52,20 @@ public class StringIdItem extends IndexedItem<StringIdItem> {
         return 4;
     }
 
-    protected Field[] getFields() {
-        return fields;
-    }
-
     public ItemType getItemType() {
         return ItemType.TYPE_STRING_ID_ITEM;
     }
 
-    public String toString() {
-        return stringData.getReference().toString();
+    public String getConciseIdentity() {
+        return "string_id_item: " + getStringValue();
+    }
+
+    public String getStringValue() {
+        return stringDataReferenceField.getReference().getStringValue();
     }
 
     public int compareTo(StringIdItem o) {
         //sort by the string value
-        return toString().compareTo(o.toString());
+        return getStringValue().compareTo(o.getStringValue());
     }
 }

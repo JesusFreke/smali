@@ -37,16 +37,14 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 public class ClassDefItem extends IndexedItem<ClassDefItem> {
-    private final Field[] fields;
-
-    private final IndexedItemReference<TypeIdItem> classType;
-    private final IntegerField accessFlags;
-    private final IndexedItemReference<TypeIdItem> superclassType;
-    private final OffsettedItemReference<TypeListItem> classInterfacesList;
-    private final IndexedItemReference<StringIdItem> sourceFile;
-    private final OffsettedItemReference<AnnotationDirectoryItem> classAnnotations;
-    private final OffsettedItemReference<ClassDataItem> classData;
-    private final OffsettedItemReference<EncodedArrayItem> staticFieldInitialValues;
+    private final IndexedItemReference<TypeIdItem> classTypeReferenceField;
+    private final IntegerField accessFlagsField;
+    private final IndexedItemReference<TypeIdItem> superclassTypeReferenceField;
+    private final OffsettedItemReference<TypeListItem> classInterfacesListReferenceField;
+    private final IndexedItemReference<StringIdItem> sourceFileReferenceField;
+    private final OffsettedItemReference<AnnotationDirectoryItem> classAnnotationsReferenceField;
+    private final OffsettedItemReference<ClassDataItem> classDataReferenceField;
+    private final OffsettedItemReference<EncodedArrayItem> staticFieldInitialValuesReferenceField;
 
     private ArrayList<EncodedValue> staticFieldInitialValuesList;
 
@@ -58,14 +56,22 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         this.dexFile = dexFile;
 
         fields = new Field[] {
-                classType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new IntegerField()),
-                accessFlags = new IntegerField(),
-                superclassType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new IntegerField()),
-                classInterfacesList = new OffsettedItemReference<TypeListItem>(dexFile.TypeListsSection, new IntegerField()),
-                sourceFile = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection, new IntegerField()),
-                classAnnotations = new OffsettedItemReference<AnnotationDirectoryItem>(dexFile.AnnotationDirectoriesSection, new IntegerField()),
-                classData = new OffsettedItemReference<ClassDataItem>(dexFile.ClassDataSection, new IntegerField()),
-                staticFieldInitialValues = new OffsettedItemReference<EncodedArrayItem>(dexFile.EncodedArraysSection, new IntegerField())
+                classTypeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                        new IntegerField(null), "class_idx"),
+                //TODO: add annotated output showing the flags
+                accessFlagsField = new IntegerField("access_flags:"),
+                superclassTypeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                        new IntegerField(null), "superclass_idx"),
+                classInterfacesListReferenceField = new OffsettedItemReference<TypeListItem>(dexFile.TypeListsSection,
+                        new IntegerField(null), "interfaces_off"),
+                sourceFileReferenceField = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
+                        new IntegerField(null), "source_file_off"),
+                classAnnotationsReferenceField = new OffsettedItemReference<AnnotationDirectoryItem>(
+                    dexFile.AnnotationDirectoriesSection, new IntegerField(null), "annotations_off"),
+                classDataReferenceField = new OffsettedItemReference<ClassDataItem>(dexFile.ClassDataSection,
+                        new IntegerField(null), "class_data_off"),
+                staticFieldInitialValuesReferenceField = new OffsettedItemReference<EncodedArrayItem>(
+                        dexFile.EncodedArraysSection, new IntegerField(null), "static_values_off")
         };
     }
 
@@ -76,36 +82,30 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
                         TypeListItem implementsList,
                         StringIdItem source,
                         ClassDataItem classDataItem) {
-        super(-1);
+        this(dexFile, -1);
 
-        this.dexFile = dexFile;
-
-        fields = new Field[] {
-                this.classType = new IndexedItemReference<TypeIdItem>(dexFile, classType, new IntegerField()),
-                this.accessFlags = new IntegerField(accessFlags),
-                superclassType = new IndexedItemReference<TypeIdItem>(dexFile, superType, new IntegerField()),
-                classInterfacesList = new OffsettedItemReference<TypeListItem>(dexFile, implementsList, new IntegerField()),
-                sourceFile = new IndexedItemReference<StringIdItem>(dexFile, source, new IntegerField()),
-                classAnnotations = new OffsettedItemReference<AnnotationDirectoryItem>(dexFile.AnnotationDirectoriesSection, new IntegerField()),
-                classData = new OffsettedItemReference<ClassDataItem>(dexFile, classDataItem, new IntegerField()),
-                staticFieldInitialValues = new OffsettedItemReference<EncodedArrayItem>(dexFile.EncodedArraysSection, new IntegerField())
-        };
+        classTypeReferenceField.setReference(classType);
+        accessFlagsField.cacheValue(accessFlags);
+        superclassTypeReferenceField.setReference(superType);
+        classInterfacesListReferenceField.setReference(implementsList);
+        sourceFileReferenceField.setReference(source);        
+        classDataReferenceField.setReference(classDataItem);
     }
 
     public TypeIdItem getSuperclass() {
-        return superclassType.getReference();
+        return superclassTypeReferenceField.getReference();
     }
 
-    public TypeIdItem getClassType() {
-        return classType.getReference();
+    public TypeIdItem getClassTypeReferenceField() {
+        return classTypeReferenceField.getReference();
     }
 
     protected int getAlignment() {
         return 4;
     }
 
-    protected Field[] getFields() {
-        return fields;
+    public TypeIdItem getClassType() {
+        return classTypeReferenceField.getReference();
     }
 
     public ItemType getItemType() {
@@ -113,15 +113,15 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
     }
 
     public String getClassName() {
-        return classType.getReference().toString();
+        return classTypeReferenceField.getReference().getTypeDescriptor();
     }
 
-    public String toString() {
-        return getClassName();
+    public String getConciseIdentity() {
+        return "class_def_item: " + getClassName();
     }
 
     public int hashCode() {
-        return classType.getReference().hashCode(); 
+        return classTypeReferenceField.getReference().hashCode();
     }
 
     public boolean equals(Object o) {
@@ -129,7 +129,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
             return false;
         }
         ClassDefItem other = (ClassDefItem)o;
-        return classType.equals(other.classType);
+        return classTypeReferenceField.equals(other.classTypeReferenceField);
     }
 
     public int compareTo(ClassDefItem o) {
@@ -145,7 +145,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
             throw new RuntimeException("Initial values are only allowed for static fields.");
         }
 
-        ClassDataItem classDataItem = this.classData.getReference();
+        ClassDataItem classDataItem = this.classDataReferenceField.getReference();
 
         int fieldIndex = classDataItem.addField(encodedField);
         if (initialValue != null) {
@@ -153,13 +153,14 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
                 staticFieldInitialValuesList = new ArrayList<EncodedValue>();
 
                 EncodedArrayItem encodedArrayItem = new EncodedArrayItem(dexFile, staticFieldInitialValuesList);
-                staticFieldInitialValues.setReference(encodedArrayItem);
+                staticFieldInitialValuesReferenceField.setReference(encodedArrayItem);
             }
 
             //All static fields before this one must have an initial value. Add any default values as needed
             for (int i=staticFieldInitialValuesList.size(); i < fieldIndex; i++) {
                 ClassDataItem.EncodedField staticField = classDataItem.getStaticFieldAtIndex(i);
-                EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile, staticField.getField().getFieldType().toString());
+                EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile,
+                        staticField.getField().getFieldType().getTypeDescriptor());
                 EncodedValue encodedValue = new EncodedValue(dexFile, subField);
                 staticFieldInitialValuesList.add(i, encodedValue);
             }
@@ -169,7 +170,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
     }
 
     public void setAnnotations(AnnotationDirectoryItem annotations) {
-        this.classAnnotations.setReference(annotations);
+        this.classAnnotationsReferenceField.setReference(annotations);
     }
 
     public static int placeClassDefItems(IndexedSection<ClassDefItem> section, int offset) {
@@ -192,7 +193,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
             this.section = section;
 
             for (ClassDefItem classDefItem: section.items) {
-                TypeIdItem typeIdItem = classDefItem.classType.getReference();
+                TypeIdItem typeIdItem = classDefItem.classTypeReferenceField.getReference();
                 classDefsByType.put(typeIdItem, classDefItem);
             }
         }
@@ -212,14 +213,14 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
 
         private void placeClass(ClassDefItem classDefItem) {
             if (!classDefItem.isPlaced()) {
-                TypeIdItem superType = classDefItem.superclassType.getReference();
+                TypeIdItem superType = classDefItem.superclassTypeReferenceField.getReference();
                 ClassDefItem superClassDefItem = classDefsByType.get(superType);
 
                 if (superClassDefItem != null) {
                     placeClass(superClassDefItem);
                 }
 
-                TypeListItem interfaces = classDefItem.classInterfacesList.getReference();
+                TypeListItem interfaces = classDefItem.classInterfacesListReferenceField.getReference();
 
                 if (interfaces != null) {
                     for (TypeIdItem interfaceType: interfaces.getTypes()) {

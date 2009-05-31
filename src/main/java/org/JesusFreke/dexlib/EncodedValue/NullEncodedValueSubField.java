@@ -28,8 +28,8 @@
 
 package org.JesusFreke.dexlib.EncodedValue;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class NullEncodedValueSubField
     extends SimpleEncodedValueSubField<Object, NullEncodedValueSubField>
@@ -37,7 +37,7 @@ public class NullEncodedValueSubField
     public NullEncodedValueSubField() {
     }
     
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
     }
 
     public void readFrom(Input in) {

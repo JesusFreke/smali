@@ -31,25 +31,20 @@ package org.JesusFreke.dexlib.debug;
 import org.JesusFreke.dexlib.*;
 
 public class EndLocal extends CompositeField<EndLocal> implements DebugInstruction<EndLocal> {
-    private final Field[] fields;
-
     private final ByteField opcode;
     private final Leb128Field registerNumber;
 
     public EndLocal() {
+        super("DBG_END_LOCAL");
         fields = new Field[] {
-                opcode = new ByteField((byte)0x05),
-                registerNumber = new Leb128Field()
+                opcode = new ByteField((byte)0x05, "opcode"),
+                registerNumber = new Leb128Field("register_num")
         };
     }
 
     public EndLocal(int registerNumber) {
         this();
         this.registerNumber.cacheValue(registerNumber);
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

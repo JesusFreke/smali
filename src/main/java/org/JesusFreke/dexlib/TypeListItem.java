@@ -32,17 +32,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TypeListItem extends OffsettedItem<TypeListItem> implements Comparable<TypeListItem> {
-    private final Field[] fields;
     private final ArrayList<IndexedItemReference<TypeIdItem>> typeList = new ArrayList<IndexedItemReference<TypeIdItem>>();
+
+    private final ListSizeField sizeField;
+    private final FieldListField<IndexedItemReference<TypeIdItem>> listField;
 
     public TypeListItem(final DexFile dexFile, int offset) {
         super(offset);
 
         fields = new Field[] {
-                new ListSizeField(typeList, new IntegerField()),
-                new FieldListField<IndexedItemReference<TypeIdItem>>(typeList) {
+                sizeField = new ListSizeField(typeList, new IntegerField("size")),
+                listField = new FieldListField<IndexedItemReference<TypeIdItem>>(typeList, "type_item") {
                     protected IndexedItemReference<TypeIdItem> make() {
-                        return new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection, new ShortIntegerField());
+                        return new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
+                                new ShortIntegerField(null), "type_idx");
                     }
                 }                
         };
@@ -52,7 +55,9 @@ public class TypeListItem extends OffsettedItem<TypeListItem> implements Compara
         this(dexFile, 0);
 
         for (TypeIdItem typeIdItem: types) {
-            typeList.add(new IndexedItemReference<TypeIdItem>(dexFile, typeIdItem, new ShortIntegerField()));
+            IndexedItemReference<TypeIdItem> typeReference = listField.make();
+            typeReference.setReference(typeIdItem);
+            typeList.add(typeReference);
         }
     }
 
@@ -66,15 +71,11 @@ public class TypeListItem extends OffsettedItem<TypeListItem> implements Compara
         return list;
     }
 
-    public Field[] getFields() {
-        return fields;
-    }
-
-    public int getWordCount() {
+    public int getRegisterCount() {
         int wordCount = 0;
         for (IndexedItemReference<TypeIdItem> typeRef: typeList) {
             TypeIdItem item = typeRef.getReference();
-            wordCount += item.getWordCount();
+            wordCount += item.getRegisterCount();
         }
         return wordCount;
     }
@@ -89,6 +90,23 @@ public class TypeListItem extends OffsettedItem<TypeListItem> implements Compara
 
     public ItemType getItemType() {
         return ItemType.TYPE_TYPE_LIST;
+    }
+
+    public String getConciseIdentity() {
+        return "type_list: " + getTypeListString();
+    }
+
+    private String cachedTypeListString = null;
+    public String getTypeListString() {
+        if (cachedTypeListString == null) {
+            StringBuilder sb = new StringBuilder();
+
+            for (IndexedItemReference<TypeIdItem> typeReference: typeList) {
+                sb.append(typeReference.getReference().getTypeDescriptor());
+            }
+            cachedTypeListString = sb.toString();
+        }
+        return cachedTypeListString;
     }
 
     public int compareTo(TypeListItem o) {

@@ -29,18 +29,7 @@
 package org.JesusFreke.dexlib;
 
 public abstract class IndexedItem<T extends IndexedItem> extends Item<T> implements Comparable<T> {
-    private int index;
-
     protected IndexedItem(int index) {
         this.index = index;
-    }
-
-    public int place(int index, int offset) {
-        this.index = index;
-        return super.place(index, offset);
-    }
-
-    public int getIndex() {
-        return index;
     }
 }

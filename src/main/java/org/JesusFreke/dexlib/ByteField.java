@@ -28,21 +28,16 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.Output;
 
 public class ByteField extends CachedIntegerValueField {
-    protected byte value;
-
-    public ByteField() {
+    public ByteField(String fieldName) {
+        super(fieldName);
     }
 
-    public ByteField(byte value) {
-        this.value = value;
-    }
-
-    public void writeTo(Output out) {
-        out.writeByte(value);
+    public ByteField(byte value, String fieldName) {
+        super(value, fieldName);
     }
 
     public void readFrom(Input in) {
@@ -53,11 +48,7 @@ public class ByteField extends CachedIntegerValueField {
         return offset + 1;
     }
 
-    public int getCachedValue() {
-        return value;
-    }
-
-    public void cacheValue(int value) {
-        this.value = (byte)value;
+    public void writeValue(Output out) {
+        out.writeByte(value);
     }
 }

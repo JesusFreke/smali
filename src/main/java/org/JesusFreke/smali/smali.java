@@ -30,6 +30,7 @@ package org.JesusFreke.smali;
 
 import org.JesusFreke.dexlib.DexFile;
 import org.JesusFreke.dexlib.util.ByteArrayOutput;
+import org.JesusFreke.dexlib.util.ByteArrayAnnotatedOutput;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.Token;
@@ -38,6 +39,7 @@ import org.antlr.runtime.tree.CommonTreeNodeStream;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 
 public class smali
 {
@@ -70,13 +72,25 @@ public class smali
         dexFile.place();
         try
         {
-            ByteArrayOutput out = new ByteArrayOutput();
+            ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput();
+            out.enableAnnotations(120, true);
             dexFile.writeTo(out);
 
             byte[] bytes = out.toByteArray();
 
             DexFile.calcSignature(bytes);
             DexFile.calcChecksum(bytes);
+
+
+            out.finishAnnotating();
+
+
+
+            FileWriter fileWriter = new FileWriter("classes.dump");
+
+            out.writeAnnotationsTo(fileWriter);
+            fileWriter.flush();
+            fileWriter.close();
 
             FileOutputStream fileOutputStream = new FileOutputStream("classes.dex");
 

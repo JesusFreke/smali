@@ -28,21 +28,16 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.Output;
 
-public class IntegerField extends CachedIntegerValueField {
-    protected int value = 0;
-
-    public IntegerField() {
+public class IntegerField extends CachedIntegerValueField<IntegerField> {
+    public IntegerField(String fieldName) {
+        super(fieldName);
     }
 
-    public IntegerField(int value) {
-        this.value = value;
-    }
-
-    public void writeTo(Output out) {
-        out.writeInt(value);
+    public IntegerField(int value, String fieldName) {
+        super(value, fieldName);
     }
 
     public void readFrom(Input in) {
@@ -53,18 +48,7 @@ public class IntegerField extends CachedIntegerValueField {
         return offset + 4;
     }
 
-    /**
-     * This method returns the integer value that has been cached. This
-     * value is either the value that the field was constructed with, the
-     * value that was read via <code>readFrom</code>, or the value that was
-     * cached when <code>place</code> was called
-     * @return the cached value
-     */
-    public int getCachedValue() {
-        return value;
-    }
-
-    public void cacheValue(int value) {
-        this.value = value;
+    protected void writeValue(Output out) {
+        out.writeInt(value);
     }
 }

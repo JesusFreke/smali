@@ -69,7 +69,7 @@ public class Format35c extends Format
 
         if (opcode == FILLED_NEW_ARRAY.value) {
             //check data for filled-new-array opcode
-            String type = ((TypeIdItem)item).toString();
+            String type = ((TypeIdItem)item).getTypeDescriptor();
             if (type.charAt(0) != '[') {
                 throw new RuntimeException("The type must be an array type");
             }
@@ -79,7 +79,7 @@ public class Format35c extends Format
         } else if (opcode >= INVOKE_VIRTUAL.value && opcode <= INVOKE_INTERFACE.value) {
             //check data for invoke-* opcodes
             MethodIdItem methodIdItem = (MethodIdItem)item;
-            if (methodIdItem.getParameterWordCount(opcode == INVOKE_STATIC.value) != regCount) {
+            if (methodIdItem.getParameterRegisterCount(opcode == INVOKE_STATIC.value) != regCount) {
                 throw new RuntimeException("regCount does not match the number of arguments of the method");
             }
         } else {

@@ -28,27 +28,34 @@
 
 package org.JesusFreke.dexlib;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
 import org.JesusFreke.dexlib.util.ByteArray;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class FixedByteArrayField implements Field<FixedByteArrayField> {
     protected byte[] value;
+    private final String fieldName; 
 
-    public FixedByteArrayField(int size) {
+    public FixedByteArrayField(int size, String fieldName) {
         value = new byte[size];
+        this.fieldName = fieldName;
     }
 
-    public FixedByteArrayField(byte[] bytes) {
+    public FixedByteArrayField(byte[] bytes, String fieldName) {
         this.value = bytes.clone();
+        this.fieldName = fieldName;
     }
 
-    public FixedByteArrayField(ByteArray byteArray) {
+    public FixedByteArrayField(ByteArray byteArray, String fieldName) {
         value = new byte[byteArray.size()];
         byteArray.getBytes(value, 0);
+        this.fieldName = fieldName;
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
+        if (fieldName != null) {
+            out.annotate(fieldName);
+        }
         out.write(value);
     }
 

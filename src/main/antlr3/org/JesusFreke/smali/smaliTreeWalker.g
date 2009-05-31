@@ -364,7 +364,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		ArrayList<Instruction> instructions = $statements.instructions;
 	
 		
-		int minRegisters = methodIdItem.getParameterWordCount((access & AccessFlags.STATIC) != 0);
+		int minRegisters = methodIdItem.getParameterRegisterCount((access & AccessFlags.STATIC) != 0);
 		
 		if (registers < minRegisters) {
 			//TODO: throw the correct exception type
@@ -390,7 +390,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		
 		CodeItem codeItem = new CodeItem(dexFile,
 						registers,
-						methodIdItem.getParameterWordCount(isStatic),
+						methodIdItem.getParameterRegisterCount(isStatic),
 						instructions,
 						debugInfoItem,
 						tries,
@@ -412,7 +412,7 @@ method_prototype returns[ProtoIdItem protoIdItem]
 	{
 		TypeIdItem returnType = $type_descriptor.type;
 		ArrayList<TypeIdItem> parameterTypes = $field_type_list.types;
-
+		
 		$protoIdItem = new ProtoIdItem(dexFile, returnType, parameterTypes);
 	};
 
@@ -552,9 +552,9 @@ local
 			int registerNumber = parseRegister_short($REGISTER.text);
 			
 			if ($string_literal.value != null) {
-				$method::debugInfo.addLocalExtended($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.toString(), $string_literal.value);
+				$method::debugInfo.addLocalExtended($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.getTypeDescriptor(), $string_literal.value);
 			} else {	
-				$method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.toString());
+				$method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.getTypeDescriptor());
 			}
 		};
 

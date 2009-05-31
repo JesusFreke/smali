@@ -28,8 +28,8 @@
 
 package org.JesusFreke.dexlib.EncodedValue;
 
-import org.JesusFreke.dexlib.util.Output;
 import org.JesusFreke.dexlib.util.Input;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 
 public class ByteEncodedValueSubField
     extends SimpleEncodedValueSubField<Byte, ByteEncodedValueSubField>
@@ -41,7 +41,8 @@ public class ByteEncodedValueSubField
         this.value = value;
     }
     
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
+        out.annotate(1, "byte" + Integer.toHexString(value) + " " + Integer.toString(value));
         out.writeByte(value);
     }
 

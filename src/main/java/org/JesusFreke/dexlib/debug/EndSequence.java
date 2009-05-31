@@ -33,16 +33,11 @@ import org.JesusFreke.dexlib.Field;
 import org.JesusFreke.dexlib.ByteField;
 
 public class EndSequence extends CompositeField<EndSequence> implements DebugInstruction<EndSequence> {
-    private final Field[] fields;
-
     public EndSequence() {
+        super("DBG_END_SEQUENCE");
         fields = new Field[] {
-                new ByteField((byte)0x00)
+                new ByteField((byte)0x00, "opcode")
         };
-    }
-
-    protected Field[] getFields() {
-        return fields;
     }
 
     public byte getOpcode() {

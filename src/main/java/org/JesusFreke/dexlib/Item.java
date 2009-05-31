@@ -30,16 +30,16 @@ package org.JesusFreke.dexlib;
 
 import org.JesusFreke.dexlib.util.Input;
 import org.JesusFreke.dexlib.util.Output;
+import org.JesusFreke.dexlib.util.AnnotatedOutput;
 import org.JesusFreke.dexlib.ItemType;
 
 public abstract class Item<T extends Item> {
-    private int offset = -1;
+    protected int offset = -1;
+    protected int index = -1;
+    
+    protected Field[] fields;
 
     protected Item() {
-    }
-
-    protected Item(int offset) {
-        this.offset = offset;
     }
 
     public boolean isPlaced() {
@@ -53,9 +53,8 @@ public abstract class Item<T extends Item> {
     public int place(int index, int offset) {
         offset = alignOffset(offset);
 
+        this.index = index;
         this.offset = offset;
-
-        Field[] fields = getFields();
 
         for (Field field: fields) {
             offset = field.place(offset);
@@ -64,23 +63,30 @@ public abstract class Item<T extends Item> {
     }
 
     public void readFrom(Input in) {
-        for (Field field: getFields()) {
+        for (Field field: fields) {
             field.readFrom(in);
         }
     }
 
-    public void writeTo(Output out) {
+    public void writeTo(AnnotatedOutput out) {
         out.alignTo(getAlignment());
+
+        out.annotate(0, "[0x" + Integer.toHexString(this.getIndex()) + "] " + this.getItemType().getTypeName() ); 
+        out.indent();
 
         if (out.getCursor() != offset) {
             throw new RuntimeException("Item is being written somewhere other than where it was placed"); 
         }
-        for (Field field: getFields()) {
+        for (Field field: fields) {
             field.writeTo(out);
         }
+
+        out.deindent();
     }
 
-    protected abstract int getAlignment();
+    protected int getAlignment() {
+        return 1;
+    }
     
     protected int alignOffset(int offset) {
         int mask = getAlignment() - 1;
@@ -88,49 +94,57 @@ public abstract class Item<T extends Item> {
         return (offset + mask) & ~mask;
     }
 
-    protected int getOffset() {
+    public int getOffset() {
         return offset;
     }
 
-    protected abstract Field[] getFields();
+    public int getIndex() {
+        return index; 
+    }
 
     public abstract ItemType getItemType();
 
     public void copyTo(DexFile dexFile, T copy) {
-        Field[] fields = getFields();
-        Field[] fieldsCopy = copy.getFields();
         for (int i = 0; i < fields.length; i++) {
-            fields[i].copyTo(dexFile, fieldsCopy[i]);
+            fields[i].copyTo(dexFile, copy.fields[i]);
         }
     }
 
     public int hashCode() {
         int h = 1;
-        for (Field field: getFields()) {
+        for (Field field: fields) {
             h = h*31 + field.hashCode();
         }
         return h;
     }
 
     public boolean equals(Object o) {
-        if (!(o instanceof Item)) {
+        if (!this.getClass().isInstance(o)) {
             return false;
         }
 
         Item other = (Item)o;
-        Field[] fields = getFields();
-        Field[] otherFields = other.getFields();
 
-        if (fields.length != otherFields.length) {
+        if (fields.length != other.fields.length) {
             return false;
         }
 
         for (int i = 0; i < fields.length; i++) {
-            if (!fields[i].equals(otherFields[i])) {
+            if (!fields[i].equals(other.fields[i])) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Returns a concise string value that conveys the identity of this item
+     * @return A concise string value that conveys the identity of this item
+     */
+    public abstract String getConciseIdentity();
+
+    public String toString() {
+        return getConciseIdentity();
     }
 }
