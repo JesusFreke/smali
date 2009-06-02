@@ -61,6 +61,12 @@ public abstract class SectionHeaderInfo extends CompositeField<SectionHeaderInfo
         super.writeTo(out);
     }
 
+    public int place(int offset) {
+        offset = super.place(offset);
+        sectionSizeField.cacheValue(getSection().size());
+        return offset;
+    }
+
     public int getSectionSize() {
         return sectionSizeField.getCachedValue();
     }
