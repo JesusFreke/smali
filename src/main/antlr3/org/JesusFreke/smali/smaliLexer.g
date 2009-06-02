@@ -748,14 +748,14 @@ fragment ARRAY_CHAR_LIST[int maxCount]
 fragment CLASS_ACCESS_SPEC_EMIT
 	:	CLASS_ACCESS_SPEC {emit($CLASS_ACCESS_SPEC, ACCESS_SPEC);};
 
-//TODO: add ACC_ANNOTATION when adding support for annotations
 fragment CLASS_ACCESS_SPEC
 	:	'public'
 	|	'final'
 	|	'interface'
 	|	'abstract'
 	|	'synthetic'
-	|	'enum';
+	|	'enum'
+	|	'annotation';
 	
 fragment FIELD_ACCESS_SPEC_EMIT
 	:	FIELD_ACCESS_SPEC {emit($FIELD_ACCESS_SPEC, ACCESS_SPEC);};
