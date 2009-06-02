@@ -37,43 +37,99 @@ import org.antlr.runtime.Token;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class smali
 {
     public static void main(String[] args) throws Exception
     {
-        /*ANTLRStringStream input = new ANTLRStringStream("atest1btest2");
-        testLexer lexer = new testLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        LinkedHashSet<File> filesToProcess = new LinkedHashSet<File>();
 
-        List l = tokens.getTokens();*/
+        boolean getFilesFromStdin = false;
+        String outputFilename = "classes.dex";
+        String dumpFilename = null;
+        int dumpWidth = 120;
 
-        ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(args[0]));
-        smaliLexer lexer = new smaliLexer(input);
+        int i;
 
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        smaliParser parser = new smaliParser(tokens);
-      
-        smaliParser.smali_file_return result = parser.smali_file();
-        CommonTree t = (CommonTree) result.getTree();
+        for (i=0; i<args.length; i++) {
+            String arg = args[i];
+            if (arg.equals("--") || !arg.startsWith("--")) {
+                break;
+            }
+            if (arg.startsWith("--output=")) {
+                outputFilename = arg.substring(arg.indexOf('=') + 1);
+            } else if (arg.startsWith("--dump-to=")) {
+                dumpFilename = arg.substring(arg.indexOf("=") + 1);
+            } else if (arg.startsWith("--dump-width=")) {
+                dumpWidth = Integer.parseInt(arg.substring(arg.indexOf("=") + 1));
+            } else {
+                System.err.println("unknown option: " + arg);
+                throw new UsageException();
+            }
+        }
 
-        CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
+        for (i=i; i<args.length; i++) {
+            String arg = args[i];
 
-        smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
+            if (arg.compareTo("-") == 0) {
+                getFilesFromStdin = true;
+            } else {
+                File argFile = new File(arg);
+
+                if (!argFile.exists()) {
+                    throw new RuntimeException("Cannot find file or directory \"" + arg + "\"");
+                }
+
+                if (argFile.isDirectory()) {
+                    getSmaliFilesInDir(argFile, filesToProcess);
+                } else if (argFile.isFile()) {
+                    filesToProcess.add(argFile);
+                }
+            }
+        }
+
+        if (getFilesFromStdin) {
+            InputStreamReader isr = new InputStreamReader(System.in);
+            BufferedReader in = new BufferedReader(isr);
+
+            String line = in.readLine();
+            while (line != null) {
+                File file = new File(line);
+
+                if (!file.exists()) {
+                    throw new RuntimeException("Cannot find file or directory \"" + line + "\"");
+                }
+
+                if (file.isDirectory()) {
+                    getSmaliFilesInDir(file, filesToProcess);   
+                } else {
+                    filesToProcess.add(file);
+                }
+
+                line = in.readLine();
+            }
+        }
 
         DexFile dexFile = DexFile.makeBlankDexFile();
-        dexGen.dexFile = dexFile;
-        dexGen.smali_file();
 
-        dexFile.ClassDefsSection.intern(dexFile, dexGen.classDefItem);
+        for (File file: filesToProcess) {
+            assembleSmaliFile(file, dexFile);
+        }
+
         dexFile.place();
         try
         {
             ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput();
-            out.enableAnnotations(120, true);
+
+            if (dumpFilename != null) {
+                out.enableAnnotations(dumpWidth, true);
+            }
+
             dexFile.writeTo(out);
 
             byte[] bytes = out.toByteArray();
@@ -81,18 +137,15 @@ public class smali
             DexFile.calcSignature(bytes);
             DexFile.calcChecksum(bytes);
 
+            if (dumpFilename != null) {
+                out.finishAnnotating();
 
-            out.finishAnnotating();
+                FileWriter fileWriter = new FileWriter("classes.dump");
+                out.writeAnnotationsTo(fileWriter);
+                fileWriter.close();
+            }
 
-
-
-            FileWriter fileWriter = new FileWriter("classes.dump");
-
-            out.writeAnnotationsTo(fileWriter);
-            fileWriter.flush();
-            fileWriter.close();
-
-            FileOutputStream fileOutputStream = new FileOutputStream("classes.dex");
+            FileOutputStream fileOutputStream = new FileOutputStream(outputFilename);
 
             fileOutputStream.write(bytes);
             fileOutputStream.close();
@@ -100,8 +153,36 @@ public class smali
         {
             System.out.println(ex.toString());
         }
+    }
 
+    private static void getSmaliFilesInDir(File dir, Set<File> smaliFiles) {
+        for(File file: dir.listFiles()) {
+            if (file.isDirectory()) {
+                getSmaliFilesInDir(file, smaliFiles);
+            } else if (file.getName().endsWith(".smali")) {
+                smaliFiles.add(file);
+            }
+        }
+    }
 
-        System.out.println("here");
+    private static void assembleSmaliFile(File smaliFile, DexFile dexFile)
+            throws Exception {
+        ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(smaliFile));
+        smaliLexer lexer = new smaliLexer(input);
+
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        smaliParser parser = new smaliParser(tokens);
+
+        smaliParser.smali_file_return result = parser.smali_file();
+        CommonTree t = (CommonTree) result.getTree();
+
+        CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
+
+        smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
+
+        dexGen.dexFile = dexFile;
+        dexGen.smali_file();
+
+        dexFile.ClassDefsSection.intern(dexFile, dexGen.classDefItem);
     }
 }
