@@ -84,6 +84,7 @@ public class MapItem extends IndexedItem<MapItem> {
         mapItem.mapEntries.add(new MapField(dexFile, (short)0x0004));
         mapItem.mapEntries.add(new MapField(dexFile, (short)0x0005));
         mapItem.mapEntries.add(new MapField(dexFile, (short)0x0006));
+        mapItem.mapEntries.add(new MapField(dexFile, (short)0x1002));
         mapItem.mapEntries.add(new MapField(dexFile, (short)0x1003));
         mapItem.mapEntries.add(new MapField(dexFile, (short)0x2001));
         mapItem.mapEntries.add(new MapField(dexFile, (short)0x2006));

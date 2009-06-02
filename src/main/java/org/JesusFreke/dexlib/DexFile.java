@@ -82,6 +82,7 @@ public class DexFile
         };
 
         offsettedSections = new OffsettedSection[] {
+                AnnotationSetRefListsSection,
                 AnnotationSetsSection,
                 CodeItemsSection,
                 AnnotationDirectoriesSection,
@@ -90,9 +91,7 @@ public class DexFile
                 DebugInfoItemsSection,
                 AnnotationsSection,
                 EncodedArraysSection,
-                ClassDataSection,
-
-                AnnotationSetRefListsSection
+                ClassDataSection
         };
     }
 
