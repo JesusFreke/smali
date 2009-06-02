@@ -89,11 +89,11 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
 
         classAnnotationsReferenceField.setReference(classAnnotations);
 
-        if (fieldAnnotationListField != null) {
+        if (fieldAnnotations != null) {
             fieldAnnotationList.addAll(fieldAnnotations);
         }
 
-        if (methodAnnotationListField != null) {
+        if (methodAnnotations != null) {
             methodAnnotationList.addAll(methodAnnotations);
         }
 
