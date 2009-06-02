@@ -55,8 +55,15 @@ public abstract class SectionHeaderInfo extends CompositeField<SectionHeaderInfo
         if (!section.isPlaced()) {
              throw new RuntimeException("Trying to write a reference to a section that hasn't been placed.");
         }
+        int size = section.size();
         sectionSizeField.cacheValue(section.size());
-        sectionOffsetField.cacheValue(section.getOffset());
+
+        if (size == 0) {
+            //we have to set the offset to 0 or dalvik will complain 
+            sectionOffsetField.cacheValue(0);
+        } else {
+            sectionOffsetField.cacheValue(section.getOffset());
+        }
 
         super.writeTo(out);
     }
