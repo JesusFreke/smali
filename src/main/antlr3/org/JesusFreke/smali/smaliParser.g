@@ -181,7 +181,7 @@ smali_file
 			class_spec
 			super_spec
 			implements_spec*
-			source_spec
+			source_spec?
 			^(I_METHODS method*) ^(I_FIELDS field*) ^(I_ANNOTATIONS annotation*));
 		
 class_spec
