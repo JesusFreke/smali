@@ -129,7 +129,6 @@ import java.util.ArrayDeque;
 					continue;
 				}
 				
-				System.out.println(token.toString());
 				return token;
 			}
 
