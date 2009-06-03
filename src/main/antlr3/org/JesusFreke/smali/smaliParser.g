@@ -56,6 +56,8 @@ tokens {
 	I_ANNOTATION;
 	I_ANNOTATION_ELEMENT;
 	I_SUBANNOTATION;
+	I_ENCODED_FIELD;
+	I_ENCODED_METHOD;
 	I_ENCODED_ARRAY;
 	I_ARRAY_ELEMENT_SIZE;
 	I_ARRAY_ELEMENTS;	
@@ -113,9 +115,6 @@ tokens {
 	I_STATEMENT_SPARSE_SWITCH;
 	I_REGISTER_RANGE;
 	I_REGISTER_LIST;
-	
-	CLASS_NAME;
-	MEMBER_NAME;
 }
 
 @header {
@@ -200,11 +199,11 @@ access_list
 	:	ACCESS_SPEC+ -> ^(I_ACCESS_LIST[$start,"I_ACCESS_LIST"] ACCESS_SPEC+);
 
 
-field	:	FIELD_DIRECTIVE access_list MEMBER_NAME field_type_descriptor literal? 
+field	:	FIELD_DIRECTIVE access_list MEMBER_NAME nonvoid_type_descriptor literal? 
 		(	(annotation+ END_FIELD_DIRECTIVE)=> annotation+ END_FIELD_DIRECTIVE
 		| 	END_FIELD_DIRECTIVE?
 		)
-		-> ^(I_FIELD[$start, "I_FIELD"] MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*));
+		-> ^(I_FIELD[$start, "I_FIELD"] MEMBER_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*));
 		
 method	
 	scope {int currentAddress;}
@@ -215,15 +214,17 @@ method
 		-> ^(I_METHOD[$start, "I_METHOD"] MEMBER_NAME method_prototype access_list statements_and_directives);
 
 method_prototype
-	:	OPEN_PAREN field_type_descriptor* CLOSE_PAREN type_descriptor
-		-> ^(I_METHOD_PROTOTYPE[$start, "I_METHOD_PROTOTYPE"] ^(I_METHOD_RETURN_TYPE type_descriptor) field_type_descriptor*);
+	:	OPEN_PAREN nonvoid_type_descriptor* CLOSE_PAREN type_descriptor
+		-> ^(I_METHOD_PROTOTYPE[$start, "I_METHOD_PROTOTYPE"] ^(I_METHOD_RETURN_TYPE type_descriptor) nonvoid_type_descriptor*);
 
 
 fully_qualified_method
-	:	CLASS_NAME MEMBER_NAME method_prototype;
+	:	reference_type_descriptor ARROW MEMBER_NAME method_prototype
+	->	reference_type_descriptor MEMBER_NAME method_prototype;
 
 fully_qualified_field
-	:	CLASS_NAME MEMBER_NAME field_type_descriptor;
+	:	reference_type_descriptor ARROW MEMBER_NAME nonvoid_type_descriptor
+	->	reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor;
 
 statements_and_directives
 	scope	{boolean hasRegistersDirective;}
@@ -239,13 +240,7 @@ statements_and_directives
 		|	ordered_debug_directive
 		|	annotation
 		)*		
-		{
-			if (!$statements_and_directives::hasRegistersDirective) {
-				//TODO: throw correct exception type here
-				throw new RuntimeException("This method has no register directive");
-			}
-		}
-		->	registers_directive
+		->	^(I_REGISTERS registers_directive?)
 			^(I_LABELS label*)
 			^(I_STATEMENTS instruction*)
 			^(I_CATCHES catch_directive*)
@@ -255,11 +250,11 @@ statements_and_directives
 
 registers_directive
 	:	REGISTERS_DIRECTIVE integral_literal
-	-> ^(I_REGISTERS[$start, "I_REGISTERS"] integral_literal);
+	-> 	integral_literal;
 
 catch_directive
-	:	CATCH_DIRECTIVE field_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label
-		-> ^(I_CATCH[$start, "I_CATCH"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] field_type_descriptor $from $to $using)
+	:	CATCH_DIRECTIVE nonvoid_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label
+		-> ^(I_CATCH[$start, "I_CATCH"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] nonvoid_type_descriptor $from $to $using)
 	;
 
 
@@ -290,8 +285,8 @@ line_directive
 		-> ^(I_LINE integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 					
 local_directive
-	:	LOCAL_DIRECTIVE	REGISTER SIMPLE_NAME field_type_descriptor STRING_LITERAL?
-		-> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER SIMPLE_NAME field_type_descriptor STRING_LITERAL? I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+	:	LOCAL_DIRECTIVE	REGISTER SIMPLE_NAME nonvoid_type_descriptor STRING_LITERAL?
+		-> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER SIMPLE_NAME nonvoid_type_descriptor STRING_LITERAL? I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 end_local_directive
 	:	END_LOCAL_DIRECTIVE REGISTER
@@ -344,8 +339,8 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL {$size = Format21c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL)
 	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
-		INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor {$size = Format21c.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
+		INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor {$size = Format21c.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 	|	//e.g. const/high16 v1, 1234
 		INSTRUCTION_FORMAT21h REGISTER integral_literal {$size = Format21h.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT21h[$start, "I_STATEMENT_FORMAT21h"] INSTRUCTION_FORMAT21h REGISTER integral_literal)
@@ -362,8 +357,8 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format22c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_STATEMENT_FORMAT22c_FIELD"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
 	|	//e.g. instance-of v0, v1, Ljava/lang/String;
-		INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER field_type_descriptor {$size = Format22c.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT22c_TYPE[$start, "I_STATEMENT_FORMAT22c_TYPE"] INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER field_type_descriptor)
+		INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor {$size = Format22c.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT22c_TYPE[$start, "I_STATEMENT_FORMAT22c_TYPE"] INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
 	|	//e.g. add-int/lit16 v0, v1, 12345
 		INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal {$size = Format22s.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal)
@@ -496,13 +491,13 @@ register_range
 	:	REGISTER REGISTER? -> ^(I_REGISTER_RANGE[$start, "I_REGISTER_RANGE"] REGISTER REGISTER?);
 
 
-field_type_descriptor
+nonvoid_type_descriptor
 	:	PRIMITIVE_TYPE
 	|	CLASS_DESCRIPTOR
 	|	ARRAY_DESCRIPTOR
 	;
 	
-class_or_array_type_descriptor
+reference_type_descriptor
 	:	CLASS_DESCRIPTOR
 	|	ARRAY_DESCRIPTOR;
 	
@@ -541,16 +536,16 @@ fixed_literal returns[int size]
 literal
 	:	INTEGER_LITERAL
 	|	LONG_LITERAL
-	|	SHORT_LITERAL_EMIT
-	|	BYTE_LITERAL_EMIT
+	|	SHORT_LITERAL
+	|	BYTE_LITERAL
 	|	FLOAT_LITERAL
 	|	DOUBLE_LITERAL
 	|	CHAR_LITERAL
 	|	STRING_LITERAL
 	|	BOOL_LITERAL
-	|	type_descriptor
 	|	array_literal
-	|	subannotation;
+	|	subannotation
+	|	type_field_method;
 	
 array_literal
 	:	ARRAY_START literal* ARRAY_END
@@ -568,3 +563,14 @@ annotation_element
 subannotation
 	:	SUBANNOTATION_START CLASS_DESCRIPTOR annotation_element* SUBANNOTATION_END
 		-> ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*);
+		
+type_field_method
+	:	reference_type_descriptor 
+		(	ARROW MEMBER_NAME
+			(	nonvoid_type_descriptor -> ^(I_ENCODED_FIELD reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor)
+			|	method_prototype -> ^(I_ENCODED_METHOD reference_type_descriptor MEMBER_NAME method_prototype)
+			)
+		|	-> reference_type_descriptor
+		)
+	|	PRIMITIVE_TYPE
+	|	VOID_TYPE;

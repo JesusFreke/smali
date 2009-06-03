@@ -197,11 +197,11 @@ methods returns[List<AnnotationDirectoryItem.MethodAnnotation> methodAnnotationS
 			})*);
 
 field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue, AnnotationDirectoryItem.FieldAnnotation fieldAnnotationSet]
-	:^(I_FIELD MEMBER_NAME access_list ^(I_FIELD_TYPE field_type_descriptor) field_initial_value annotations?)
+	:^(I_FIELD MEMBER_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
 	{
 		TypeIdItem classType = classDefItem.getClassType();
 		StringIdItem memberName = new StringIdItem(dexFile, $MEMBER_NAME.text);
-		TypeIdItem fieldType = $field_type_descriptor.type;
+		TypeIdItem fieldType = $nonvoid_type_descriptor.type;
 
 		FieldIdItem fieldIdItem = new FieldIdItem(dexFile, classType, memberName, fieldType);
 		$encodedField = new ClassDataItem.EncodedField(dexFile, fieldIdItem, $access_list.value);
@@ -239,7 +239,9 @@ literal returns[EncodedValue encodedValue]
 	|	bool_literal { $encodedValue = new EncodedValue(dexFile, new BoolEncodedValueSubField($bool_literal.value)); }
 	|	type_descriptor { $encodedValue = new EncodedValue(dexFile, new EncodedIndexedItemReference(dexFile, $type_descriptor.type)); }
 	|	array_literal { $encodedValue = new EncodedValue(dexFile, new ArrayEncodedValueSubField(dexFile, $array_literal.values)); }
-	|	subannotation { $encodedValue = new EncodedValue(dexFile, $subannotation.value); };
+	|	subannotation { $encodedValue = new EncodedValue(dexFile, $subannotation.value); }
+	|	field_literal { $encodedValue = new EncodedValue(dexFile, $field_literal.value); }
+	|	method_literal { $encodedValue = new EncodedValue(dexFile, $method_literal.value); };
 	
 	
 //everything but string
@@ -355,46 +357,59 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			parameters
 			ordered_debug_directives
 			annotations
-			)
+		)
 	{
 		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
-		int registers = $registers_directive.registers;
 		int access = $access_list.value;
 		boolean isStatic = (access & AccessFlags.STATIC) != 0; 
+		
+		int registers = $registers_directive.registers;
 		ArrayList<Instruction> instructions = $statements.instructions;
-	
-		
-		int minRegisters = methodIdItem.getParameterRegisterCount((access & AccessFlags.STATIC) != 0);
-		
-		if (registers < minRegisters) {
-			//TODO: throw the correct exception type
-			throw new RuntimeException(	"This method requires at least " +
-							Integer.toString(minRegisters) +
-							" registers, for the method parameters");
-		}
 		
 		Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> temp = $method::tryList.encodeTries(dexFile);
 		List<CodeItem.TryItem> tries = temp.first;
 		List<CodeItem.EncodedCatchHandler> handlers = temp.second;
 	
+
+		DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);		
 		
-		int methodParameterCount = methodIdItem.getParameterCount();
-		if ($method::debugInfo.getParameterNameCount() > methodParameterCount) {
-			//TODO: throw the correct exception type
-			throw new RuntimeException(	"Too many parameter names specified. This method only has " +
-							Integer.toString(methodParameterCount) +
-							" parameters.");
-		}
+		CodeItem codeItem;
 		
-		DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);
+		if (registers == 0 &&
+		    instructions.size() == 0 &&
+		    $method::labels.size()== 0 &&
+		    (tries == null || tries.size() == 0) &&
+		    (handlers == null || handlers.size() == 0) &&
+		    debugInfoItem == null) {	
+		    		    
+			codeItem = null;
+			
+		} else {
+			int minRegisters = methodIdItem.getParameterRegisterCount((access & AccessFlags.STATIC) != 0);
 		
-		CodeItem codeItem = new CodeItem(dexFile,
+			if (registers < minRegisters) {
+				//TODO: throw the correct exception type
+				throw new RuntimeException(	"This method requires at least " +
+								Integer.toString(minRegisters) +
+								" registers, for the method parameters");
+			}
+			
+			int methodParameterCount = methodIdItem.getParameterCount();
+			if ($method::debugInfo.getParameterNameCount() > methodParameterCount) {
+				//TODO: throw the correct exception type
+				throw new RuntimeException(	"Too many parameter names specified. This method only has " +
+								Integer.toString(methodParameterCount) +
+								" parameters.");
+			}
+				
+			codeItem = new CodeItem(dexFile,
 						registers,
 						methodIdItem.getParameterRegisterCount(isStatic),
 						instructions,
 						debugInfoItem,
 						tries,
 						handlers);
+		}
 		
 		$encodedMethod = new ClassDataItem.EncodedMethod(dexFile, methodIdItem, access, codeItem);
 		
@@ -433,33 +448,34 @@ field_type_list returns[ArrayList<TypeIdItem> types]
 		$types = new ArrayList<TypeIdItem>();
 	}
 	:	(
-			field_type_descriptor
+			nonvoid_type_descriptor
 			{
-				$types.add($field_type_descriptor.type);
+				$types.add($nonvoid_type_descriptor.type);
 			}
 		)*;
 	
 
 fully_qualified_method returns[MethodIdItem methodIdItem]
-	:	CLASS_NAME MEMBER_NAME method_prototype
+	:	reference_type_descriptor MEMBER_NAME method_prototype
 	{
-		TypeIdItem classType = new TypeIdItem(dexFile, "L" + $CLASS_NAME.text + ";");
+		TypeIdItem classType = $reference_type_descriptor.type;
 		StringIdItem methodName = new StringIdItem(dexFile, $MEMBER_NAME.text);
 		ProtoIdItem prototype = $method_prototype.protoIdItem;
 		$methodIdItem = new MethodIdItem(dexFile, classType, methodName, prototype);		
 	};
 
 fully_qualified_field returns[FieldIdItem fieldIdItem]
-	:	CLASS_NAME MEMBER_NAME field_type_descriptor
+	:	reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor
 	{
-		TypeIdItem classType = new TypeIdItem(dexFile, "L" + $CLASS_NAME.text + ";");
+		TypeIdItem classType = $reference_type_descriptor.type;
 		StringIdItem fieldName = new StringIdItem(dexFile, $MEMBER_NAME.text);
-		TypeIdItem fieldType = $field_type_descriptor.type;
+		TypeIdItem fieldType = $nonvoid_type_descriptor.type;
 		$fieldIdItem = new FieldIdItem(dexFile, classType, fieldName, fieldType);
 	};
 
 registers_directive returns[int registers]
-	:	^(I_REGISTERS short_integral_literal) {$registers = $short_integral_literal.value;};
+	:	{$registers = 0;}
+		^(I_REGISTERS (short_integral_literal {$registers = $short_integral_literal.value;} )? );
 	
 labels
 	:	^(I_LABELS label_def*);
@@ -480,9 +496,9 @@ label_def
 catches	:	^(I_CATCHES catch_directive*);
 
 catch_directive
-	:	^(I_CATCH address field_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address] using=offset_or_label_absolute[$address.address])
+	:	^(I_CATCH address nonvoid_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address] using=offset_or_label_absolute[$address.address])
 		{
-			TypeIdItem type = $field_type_descriptor.type;
+			TypeIdItem type = $nonvoid_type_descriptor.type;
 			int startAddress = $from.address;
 			int endAddress = $to.address;
 			int handlerAddress = $using.address;
@@ -547,14 +563,14 @@ line
 		};
 
 local	
-	:	^(I_LOCAL REGISTER SIMPLE_NAME field_type_descriptor string_literal? address)
+	:	^(I_LOCAL REGISTER SIMPLE_NAME nonvoid_type_descriptor string_literal? address)
 		{
 			int registerNumber = parseRegister_short($REGISTER.text);
 			
 			if ($string_literal.value != null) {
-				$method::debugInfo.addLocalExtended($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.getTypeDescriptor(), $string_literal.value);
+				$method::debugInfo.addLocalExtended($address.address, registerNumber, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type.getTypeDescriptor(), $string_literal.value);
 			} else {	
-				$method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $field_type_descriptor.type.getTypeDescriptor());
+				$method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type.getTypeDescriptor());
 			}
 		};
 
@@ -725,12 +741,12 @@ instruction returns[Instruction instruction]
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, stringIdItem);
 		}
 	|	//e.g. const-class v2 org/JesusFreke/HelloWorld2/HelloWorld2
-		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER class_or_array_type_descriptor)
+		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
 			short regA = parseRegister_byte($REGISTER.text);
 			
-			TypeIdItem typeIdItem = $class_or_array_type_descriptor.type;
+			TypeIdItem typeIdItem = $reference_type_descriptor.type;
 			
 			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
 		}
@@ -793,13 +809,13 @@ instruction returns[Instruction instruction]
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, fieldIdItem);			
 		}
 	|	//e.g. instance-of v0, v1, Ljava/lang/String;
-		^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER field_type_descriptor)
+		^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_TYPE.text);
 			byte regA = parseRegister_nibble($registerA.text);
 			byte regB = parseRegister_nibble($registerB.text);
 			
-			TypeIdItem typeIdItem = $field_type_descriptor.type;
+			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 			
 			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, typeIdItem);
 		}
@@ -1002,7 +1018,7 @@ register_range returns[int startRegister, int endRegister]
 		}
 	;
 
-field_type_descriptor returns [TypeIdItem type]
+nonvoid_type_descriptor returns [TypeIdItem type]
 	:	(PRIMITIVE_TYPE
 	|	CLASS_DESCRIPTOR	
 	|	ARRAY_DESCRIPTOR)
@@ -1010,7 +1026,7 @@ field_type_descriptor returns [TypeIdItem type]
 		$type = new TypeIdItem(dexFile, $start.getText());
 	};
 	
-class_or_array_type_descriptor returns [TypeIdItem type]
+reference_type_descriptor returns [TypeIdItem type]
 	:	(CLASS_DESCRIPTOR
 	|	ARRAY_DESCRIPTOR)
 	{
@@ -1025,7 +1041,7 @@ class_type_descriptor returns [TypeIdItem type]
 
 type_descriptor returns [TypeIdItem type]
 	:	VOID_TYPE {$type = new TypeIdItem(dexFile, "V");}
-	|	field_type_descriptor {$type = $field_type_descriptor.type;}
+	|	nonvoid_type_descriptor {$type = $nonvoid_type_descriptor.type;}
 	;
 	
 short_integral_literal returns[short value]
@@ -1072,7 +1088,7 @@ double_literal returns[double value]
 	:	DOUBLE_LITERAL { $value = Double.parseDouble($DOUBLE_LITERAL.text); };
 
 char_literal returns[char value]
-	:	CHAR_LITERAL { $value = $CHAR_LITERAL.text.charAt(0); };
+	:	CHAR_LITERAL { $value = $CHAR_LITERAL.text.charAt(1); };
 
 string_literal returns[String value]
 	:	STRING_LITERAL
@@ -1120,4 +1136,15 @@ subannotation returns[AnnotationEncodedValueSubField value]
 		{
 			$value = new AnnotationEncodedValueSubField(dexFile, $class_type_descriptor.type, elements);
 		};
-	
+
+field_literal returns[EncodedIndexedItemReference<FieldIdItem> value]
+	:	^(I_ENCODED_FIELD fully_qualified_field)
+		{
+			$value = new EncodedIndexedItemReference<FieldIdItem>(dexFile, $fully_qualified_field.fieldIdItem);
+		};
+
+method_literal returns[EncodedIndexedItemReference<MethodIdItem> value]
+	:	^(I_ENCODED_METHOD fully_qualified_method)
+		{
+			$value = new EncodedIndexedItemReference<MethodIdItem>(dexFile, $fully_qualified_method.methodIdItem);
+		};
