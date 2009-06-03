@@ -41,7 +41,7 @@ public class FieldIdItem extends IndexedItem<FieldIdItem> {
                 fieldTypeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
                         new ShortIntegerField(null), "type_idx"),
                 fieldNameReferenceField = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
-                        new IntegerField(null), "parameters_off")
+                        new IntegerField(null), "name_idx")
         };
     }
 
