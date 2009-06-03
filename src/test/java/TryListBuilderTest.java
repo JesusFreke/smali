@@ -70,7 +70,7 @@ public class TryListBuilderTest
             CodeItem.EncodedTypeAddrPair typeAddrPair = encodedCatchHandler.getHandler(i);
             Handler handler = handlers[i];
 
-            Assert.assertTrue(typeAddrPair.getTypeReferenceField().toString().compareTo(handler.type) == 0);
+            Assert.assertTrue(typeAddrPair.getTypeReferenceField().getTypeDescriptor().compareTo(handler.type) == 0);
             Assert.assertTrue(typeAddrPair.getHandlerAddress() == handler.handlerAddress);
         }
     }
