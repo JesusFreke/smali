@@ -46,14 +46,21 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
         this.section = section;
     }
 
-    //TODO: implement support for enum values
     public EncodedIndexedItemReference(DexFile dexFile, T item) {
+        this(dexFile, item, false);
+    }
+
+    public EncodedIndexedItemReference(DexFile dexFile, T item, boolean isEnum) {
         if (item.getClass() == StringIdItem.class) {
             valueType = ValueType.VALUE_STRING;
         } else if (item.getClass() == TypeIdItem.class) {
             valueType = ValueType.VALUE_TYPE;
         } else if (item.getClass() == FieldIdItem.class) {
-            valueType = ValueType.VALUE_FIELD;
+            if (isEnum) {
+                valueType = ValueType.VALUE_ENUM;
+            } else {
+                valueType = ValueType.VALUE_FIELD;
+            }
         } else if (item.getClass() ==  MethodIdItem.class) {
             valueType = ValueType.VALUE_METHOD;
         }

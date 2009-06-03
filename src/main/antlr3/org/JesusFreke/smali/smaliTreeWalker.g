@@ -241,7 +241,8 @@ literal returns[EncodedValue encodedValue]
 	|	array_literal { $encodedValue = new EncodedValue(dexFile, new ArrayEncodedValueSubField(dexFile, $array_literal.values)); }
 	|	subannotation { $encodedValue = new EncodedValue(dexFile, $subannotation.value); }
 	|	field_literal { $encodedValue = new EncodedValue(dexFile, $field_literal.value); }
-	|	method_literal { $encodedValue = new EncodedValue(dexFile, $method_literal.value); };
+	|	method_literal { $encodedValue = new EncodedValue(dexFile, $method_literal.value); }
+	|	enum_literal { $encodedValue = new EncodedValue(dexFile, $enum_literal.value); };
 	
 	
 //everything but string
@@ -1147,4 +1148,10 @@ method_literal returns[EncodedIndexedItemReference<MethodIdItem> value]
 	:	^(I_ENCODED_METHOD fully_qualified_method)
 		{
 			$value = new EncodedIndexedItemReference<MethodIdItem>(dexFile, $fully_qualified_method.methodIdItem);
+		};
+
+enum_literal returns[EncodedIndexedItemReference<FieldIdItem> value]
+	:	^(I_ENCODED_ENUM fully_qualified_field)
+		{
+			$value = new EncodedIndexedItemReference<FieldIdItem>(dexFile, $fully_qualified_field.fieldIdItem, true);
 		};

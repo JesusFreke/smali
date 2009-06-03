@@ -58,6 +58,7 @@ tokens {
 	I_SUBANNOTATION;
 	I_ENCODED_FIELD;
 	I_ENCODED_METHOD;
+	I_ENCODED_ENUM;
 	I_ENCODED_ARRAY;
 	I_ARRAY_ELEMENT_SIZE;
 	I_ARRAY_ELEMENTS;	
@@ -545,7 +546,8 @@ literal
 	|	BOOL_LITERAL
 	|	array_literal
 	|	subannotation
-	|	type_field_method;
+	|	type_field_method_literal
+	|	enum_literal;
 	
 array_literal
 	:	ARRAY_START literal* ARRAY_END
@@ -564,7 +566,7 @@ subannotation
 	:	SUBANNOTATION_START CLASS_DESCRIPTOR annotation_element* SUBANNOTATION_END
 		-> ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*);
 		
-type_field_method
+type_field_method_literal
 	:	reference_type_descriptor 
 		(	ARROW MEMBER_NAME
 			(	nonvoid_type_descriptor -> ^(I_ENCODED_FIELD reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor)
@@ -574,3 +576,11 @@ type_field_method
 		)
 	|	PRIMITIVE_TYPE
 	|	VOID_TYPE;
+
+enum_literal
+	:	ENUM	
+		reference_type_descriptor
+		ARROW
+		MEMBER_NAME
+		reference_type_descriptor
+	-> 	^(I_ENCODED_ENUM reference_type_descriptor MEMBER_NAME reference_type_descriptor);

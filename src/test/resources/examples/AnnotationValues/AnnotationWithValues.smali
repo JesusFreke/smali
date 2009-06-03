@@ -42,6 +42,9 @@
 ;.method public abstract fieldValue()Ljava/lang/reflect/Field;
 ;.end method
 
+.method public abstract enumValue()LEnum;
+.end method
+
 .annotation system Ldalvik/annotation/AnnotationDefault;
     value = .subannotation LAnnotationWithValues;
                 booleanValue = false
@@ -58,6 +61,7 @@
                                      .end subannotation
                 typeValue = L10;
                 methodValue = L10;->11()V
+                enumValue = .enum LEnum;->12:LEnum;                
             .end subannotation
 .end annotation
 
