@@ -32,6 +32,9 @@ import org.JesusFreke.dexlib.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
+import java.lang.reflect.Array;
 
 public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEncodedValueSubField>
     implements EncodedValueSubField<AnnotationEncodedValueSubField> {
@@ -69,6 +72,11 @@ public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEnc
 
     public byte getValueArg() {
         return 0;
+    }
+
+    public int place(int offset) {
+        Collections.sort(annotationElementList);
+        return super.place(offset);
     }
 
     public ValueType getValueType() {

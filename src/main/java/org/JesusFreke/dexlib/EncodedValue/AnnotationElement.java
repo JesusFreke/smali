@@ -30,7 +30,8 @@ package org.JesusFreke.dexlib.EncodedValue;
 
 import org.JesusFreke.dexlib.*;
 
-public class AnnotationElement extends CompositeField<AnnotationElement> {
+public class AnnotationElement extends CompositeField<AnnotationElement>
+        implements Comparable<AnnotationElement> {
     private final IndexedItemReference<StringIdItem> elementName;
     private final EncodedValue encodedValue;
 
@@ -50,5 +51,9 @@ public class AnnotationElement extends CompositeField<AnnotationElement> {
                         new Leb128Field(null), "element_name"),
                 this.encodedValue = encodedValue
         };
+    }
+
+    public int compareTo(AnnotationElement annotationElement) {
+        return elementName.compareTo(annotationElement.elementName);
     }
 }
