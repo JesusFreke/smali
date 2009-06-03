@@ -107,7 +107,7 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
     }
 
     public byte getValueArg() {
-        return EncodedValueUtils.getRequiredBytesForUnsignedIntegralValue(item.getIndex());
+        return (byte)(EncodedValueUtils.getRequiredBytesForUnsignedIntegralValue(item.getIndex()) - 1);
     }
 
     public ValueType getValueType() {

@@ -58,7 +58,7 @@ public class CharEncodedValueSubField
     }
 
     public byte getValueArg() {
-        return EncodedValueUtils.getRequiredBytesForUnsignedIntegralValue(value);
+        return (byte)(EncodedValueUtils.getRequiredBytesForUnsignedIntegralValue(value) - 1);
     }
 
     public ValueType getValueType() {

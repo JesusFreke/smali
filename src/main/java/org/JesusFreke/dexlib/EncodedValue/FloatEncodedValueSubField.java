@@ -59,10 +59,10 @@ public class FloatEncodedValueSubField
 
     public byte getValueArg() {
         return (byte)(EncodedValueUtils.getRequiredBytesForRightZeroExtendedValue(
-                Float.floatToIntBits(value)) - 1);
+                ((long)Float.floatToRawIntBits(value)) << 32) - 1);
     }
 
     public ValueType getValueType() {
-        return ValueType.VALUE_LONG;
+        return ValueType.VALUE_FLOAT;
     }
 }

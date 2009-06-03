@@ -162,16 +162,9 @@ public class EncodedValue extends CompositeField<EncodedValue> {
 
     public int place(int offset) {
         offset = valueTypeArg.place(offset);
-        int encodedValueStartOffset = offset;
         int ret = encodedValue.place(offset);
 
-        int encodedValueLength = ret - encodedValueStartOffset;
-        if (encodedValueLength < 2 || valueTypeArg.valueType == ValueType.VALUE_ARRAY ||
-                valueTypeArg.valueType == ValueType.VALUE_ANNOTATION) {
-            valueTypeArg.valueArg = 0;
-        } else {
-            valueTypeArg.valueArg = (byte)(encodedValueLength - 1);
-        }
+        valueTypeArg.valueArg = encodedValue.getEncodedValueSubField().getValueArg();
         return ret;
     }
 
