@@ -55,7 +55,6 @@ public class TypeUtils
                 return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_DOUBLE);
             case 'L':
             case '[':
-                //TODO: is the default value for array types null or an empty array?
                 return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_NULL);
         }
         return null;
