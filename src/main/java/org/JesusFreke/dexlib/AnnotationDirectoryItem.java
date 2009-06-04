@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 
-//TODO: fix field names in dex-format.html and submit
 public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryItem> {
     private final ArrayList<FieldAnnotation> fieldAnnotationList = new ArrayList<FieldAnnotation>();
     private final ArrayList<MethodAnnotation> methodAnnotationList = new ArrayList<MethodAnnotation>();
