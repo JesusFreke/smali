@@ -145,7 +145,7 @@ public final class Instruction implements Field<Instruction> {
 
     public void writeTo(AnnotatedOutput out) {
         out.annotate(bytes.length, "instruction");
-        if (bytes[0] == 0 && bytes[1] > 0) {
+        if (needsAlign()) {
             //the "special instructions" must be 4 byte aligned
             out.alignTo(4);
             out.write(bytes);
@@ -190,6 +190,19 @@ public final class Instruction implements Field<Instruction> {
     }
 
     public int place(int offset) {
-        return offset + bytes.length;
+        return offset + getSize(offset);
+    }
+
+    public int getSize(int offset) {
+        if (this.needsAlign() && (offset % 4) != 0) {
+            return bytes.length + 2;
+        } else {
+            return bytes.length;
+        }
+    }
+
+    private boolean needsAlign() {
+        //true if the opcode is one of the "special format" opcodes
+        return bytes[0] == 0 && bytes[1] > 0;
     }
 }
