@@ -38,9 +38,9 @@
 .method public abstract methodValue()Ljava/lang/reflect/Method;
 .end method
 
-;dalvik doesn't seem to like field values
-;.method public abstract fieldValue()Ljava/lang/reflect/Field;
-;.end method
+#dalvik doesn't seem to like field values
+#.method public abstract fieldValue()Ljava/lang/reflect/Field;
+#.end method
 
 .method public abstract enumValue()LEnum;
 .end method

@@ -21,6 +21,8 @@
 
     const-wide/16 v2, 12
 
+    #the real test is that dalvik loaded and verified this class. This is
+    #mostly just to make sure that the method was actually called
     invoke-static {v0, v1, v2, v3}, Lorg/junit/Assert;->assertEquals(JJ)V
 
     return-void
@@ -50,9 +52,9 @@ Label13:
     const v1, 13
     return v1
 
-    ;this nop de-aligns the following packed-switch data
-    ;smali should generate another nop before the packed-switch
-    ;data to force alignment
+    #this nop de-aligns the following packed-switch data
+    #smali should generate another nop before the packed-switch
+    #data to force alignment
     nop
 
 PackedSwitch:

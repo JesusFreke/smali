@@ -2,11 +2,11 @@
 .super Ljava/lang/Object;
 
 
-;expected output:
-;@ClassAnnotation()
-;@MethodAnnotation()
-;@FieldAnnotation()
-;@ParameterAnnotation()
+#expected output:
+#@ClassAnnotation()
+#@MethodAnnotation()
+#@FieldAnnotation()
+#@ParameterAnnotation()
 
 
 .method public static main([Ljava/lang/String;)V

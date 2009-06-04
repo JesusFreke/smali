@@ -153,7 +153,6 @@ import java.util.ArrayDeque;
     			}
     			catch (RecognitionException re) {
     				reportError(re);
-    				// match() routine has already called recover()
     			}
     		}
     	}
@@ -175,6 +174,10 @@ import java.util.ArrayDeque;
 		token.setType(type);
 		token.setChannel(channel);
 		tokens.add(token);
+	}
+
+	public String getErrorHeader(RecognitionException e) {
+		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
 	}
 }
 
@@ -1413,12 +1416,12 @@ WHITE_SPACE
 fragment LINE_COMMENT_EMIT
 	:	LINE_COMMENT2 {emit($LINE_COMMENT2, LINE_COMMENT, Token.HIDDEN_CHANNEL);};
 fragment LINE_COMMENT2
-	:	';' ~('\n'|'\r')*  ('\r\n' | '\r' | '\n');
+	:	'#' ~('\n'|'\r')*  ('\r\n' | '\r' | '\n');
 	
 	
 LINE_COMMENT
-	:	(';' ~('\n'|'\r')*  ('\r\n' | '\r' | '\n') 
-	|	';' ~('\n'|'\r')*)
+	:	('#' ~('\n'|'\r')*  ('\r\n' | '\r' | '\n') 
+	|	'#' ~('\n'|'\r')*)
 		{$channel = HIDDEN;};   
 		
 fragment EQUAL_EMIT

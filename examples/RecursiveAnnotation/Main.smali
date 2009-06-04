@@ -1,8 +1,8 @@
 .class public LMain;
 .super Ljava/lang/Object;
 
-;expected output (using the dalvik's default stack size)
-;@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=java.lang.StackOverflowError))))))))))))))))))))))))))))))
+#expected output (using the dalvik's default stack size)
+#@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=@RecursiveAnnotation(value=java.lang.StackOverflowError))))))))))))))))))))))))))))))
 
 .method public static main([Ljava/lang/String;)V
     .registers 3

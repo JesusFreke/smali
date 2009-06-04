@@ -1,8 +1,8 @@
 .class public final enum LEnum;
 .super Ljava/lang/Enum;
 
-;This class is an example of how to define an enum. You have
-;to do all of the work that java normally takes care of  
+#This class is an example of how to define an enum. You have
+#to do all of the work that java normally takes care of
 
 .field private static final synthetic $VALUES:[LEnum;
 
@@ -12,37 +12,37 @@
 .method static constructor <clinit>()V
     .registers 4
 
-    ;create an instance of this class for the VALUE1 value
+    #create an instance of this class for the VALUE1 value
     new-instance v0, LEnum;
     const-string v1, "VALUE1"
     const/4 v2, 0
     invoke-direct {v0, v1, v2}, LEnum;-><init>(Ljava/lang/String;I)V
 
-    ;and store it in VALUE1
+    #and store it in VALUE1
     sput-object v0, LEnum;->VALUE1:LEnum;
 
-    ;create an instance of this class for the VALUE2 value
+    #create an instance of this class for the VALUE2 value
     new-instance v0, LEnum;
     const-string v1, "VALUE2"
     const/4 v3, 1
     invoke-direct {v0, v1, v3}, LEnum;-><init>(Ljava/lang/String;I)V
 
-    ;and store it in VALUE2
+    #and store it in VALUE2
     sput-object v0, LEnum;->VALUE2:LEnum;
 
-    ;create an array of Enums, for the $VALUES member
+    #create an array of Enums, for the $VALUES member
     const/4 v0, 2
     new-array v0, v0, [LEnum;
 
-    ;add VALUE1 to the array
+    #add VALUE1 to the array
     sget-object v1, LEnum;->VALUE1:LEnum;
     aput-object v1, v0, v2
 
-    ;add VALUE2 to the array
+    #add VALUE2 to the array
     sget-object v1, LEnum;->VALUE2:LEnum;
     aput-object v1, v0, v3
 
-    ;and store the array in $VALUES
+    #and store the array in $VALUES
     sput-object v0, LEnum;->$VALUES:[LEnum;
 
     return-void

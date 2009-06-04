@@ -2,7 +2,7 @@
 .super Ljava/lang/Object;
 .source "FieldTest.smali"
 
-;this class tests that fields of various types are working
+#this class tests that fields of various types are working
 
 .method public constructor <init>()V
     .registers 4
@@ -37,10 +37,10 @@
     const-string v0, "privateStringFieldValue"
     iput-object v0, v3, LFieldTest;->privateStringField:Ljava/lang/String;
 
-    const-string v0, "publicStaticStringFieldValue";
+    const-string v0, "publicStaticStringFieldValue"
     sput-object v0, LFieldTest;->publicStaticStringField:Ljava/lang/String;
 
-    const-string v0, "privateStaticStringFieldValue";
+    const-string v0, "privateStaticStringFieldValue"
     sput-object v0, LFieldTest;->privateStaticStringField:Ljava/lang/String;
 
     return-void

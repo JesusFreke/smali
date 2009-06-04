@@ -168,6 +168,8 @@ public class smali
     private static void assembleSmaliFile(File smaliFile, DexFile dexFile)
             throws Exception {
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(smaliFile));
+        input.name = smaliFile.getAbsolutePath();
+
         smaliLexer lexer = new smaliLexer(input);
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
