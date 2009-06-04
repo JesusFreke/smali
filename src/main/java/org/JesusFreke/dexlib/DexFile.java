@@ -187,12 +187,7 @@ public class DexFile
 
     public final IndexedSection<HeaderItem> HeaderItemSection = new IndexedSection<HeaderItem>() {
         protected HeaderItem make(int index) {
-            try {
-                return new HeaderItem(dexFile, index);
-            } catch (UnsupportedEncodingException ex) {
-                //TODO: handle this
-                throw new RuntimeException(ex);
-            }
+            return new HeaderItem(dexFile, index);
         }
     };
 
