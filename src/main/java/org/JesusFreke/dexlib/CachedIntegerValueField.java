@@ -64,14 +64,8 @@ public abstract class CachedIntegerValueField<T extends CachedIntegerValueField>
     }
 
     public boolean equals(Object o) {
-        //TODO: check if this returns false if o is a different subclass
-        if (!this.getClass().isInstance(o)) {
-            return false;
-        }
-
-        T other = (T)o;
-
-        return getCachedValue() == other.getCachedValue();
+        return (this.getClass() == o.getClass()) &&
+               (getCachedValue() == ((CachedIntegerValueField)o).getCachedValue());
     }
 
     /**
