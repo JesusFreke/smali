@@ -32,8 +32,7 @@ import org.JesusFreke.dexlib.*;
 
 public class StartLocalExtended extends CompositeField<StartLocalExtended> implements DebugInstruction<StartLocalExtended> {
     private final ByteField opcodeField;
-    //TODO: signed or unsigned leb?
-    private final SignedLeb128Field registerNumber;
+    private final Leb128Field registerNumber;
     private final IndexedItemReference<StringIdItem> localName;
     private final IndexedItemReference<TypeIdItem> localType;
     private final IndexedItemReference<StringIdItem> signature;
@@ -42,7 +41,7 @@ public class StartLocalExtended extends CompositeField<StartLocalExtended> imple
         super("DBG_START_LOCAL_EXTENDED");
         fields = new Field[] {
                 opcodeField = new ByteField((byte)0x04, "opcode"),
-                registerNumber = new SignedLeb128Field("register_num"),
+                registerNumber = new Leb128Field("register_num"),
                 localName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
                         new Leb128p1Field(null), "name_idx"),
                 localType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
