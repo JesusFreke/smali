@@ -491,9 +491,8 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         //return the word size of the instruction list
         public int getInstructionWordCount() {
             int bytes = 0;
-            //TODO: what about option padding before the special opcodes?
             for (Instruction instruction: instructionList) {
-                bytes += instruction.getBytes().length;
+                bytes += instruction.getSize(bytes);
             }
             return bytes/2;
         }
