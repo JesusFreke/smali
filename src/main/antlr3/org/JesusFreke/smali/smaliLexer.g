@@ -641,7 +641,7 @@ fragment EPILOGUE_DIRECTIVE
 fragment REGISTER_EMIT
 	:	REGISTER {emit($REGISTER, REGISTER);};
 fragment REGISTER
-	:	'v' ('0'..'9')+;
+	:	('v' | 'p') ('0'..'9')+;
 
 fragment REGISTER_LIST_EMITCHILDREN
 	:	OPEN_BRACKET_EMIT

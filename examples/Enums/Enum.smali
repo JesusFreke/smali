@@ -50,14 +50,14 @@
 
 .method private constructor <init>(Ljava/lang/String;I)V
     .registers 3
-    invoke-direct {v0, v1, v2}, Ljava/lang/Enum;-><init>(Ljava/lang/String;I)V
+    invoke-direct {p0, p1, p2}, Ljava/lang/Enum;-><init>(Ljava/lang/String;I)V
     return-void
 .end method
 
 .method public static valueof(Ljava/lang/String;)LEnum;
     .registers 2
     const-class v0, LEnum;
-    invoke-static {v0, v1}, Ljava/lang/Enum;->valueOf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+    invoke-static {v0, p0}, Ljava/lang/Enum;->valueOf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
     move-result-object v1
     check-cast v1, LEnum;
     return-object v1

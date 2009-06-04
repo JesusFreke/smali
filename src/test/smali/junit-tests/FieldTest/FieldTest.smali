@@ -6,16 +6,16 @@
 
 .method public constructor <init>()V
     .registers 4
-    invoke-direct {v3}, Ljava/lang/Object;-><init>()V
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     const-string v0, "publicStringFieldValue"
-    iput-object v0, v3, LFieldTest;->publicStringField:Ljava/lang/String;
+    iput-object v0, p0, LFieldTest;->publicStringField:Ljava/lang/String;
 
     const v0, 23
-    iput v0, v3, LFieldTest;->publicIntegerField:I
+    iput v0, p0, LFieldTest;->publicIntegerField:I
 
     const-string v0, "publicObjectFieldValue"
-    iput-object v0, v3, LFieldTest;->publicObjectField:Ljava/lang/Object;
+    iput-object v0, p0, LFieldTest;->publicObjectField:Ljava/lang/Object;
 
     const/4 v0, 3
     new-array v0, v0, [Ljava/lang/String;
@@ -32,10 +32,10 @@
     const/4 v2, 2
     aput-object v1, v0, v2
 
-    iput-object v0, v3, LFieldTest;->publicStringArrayField:[Ljava/lang/String;
+    iput-object v0, p0, LFieldTest;->publicStringArrayField:[Ljava/lang/String;
 
     const-string v0, "privateStringFieldValue"
-    iput-object v0, v3, LFieldTest;->privateStringField:Ljava/lang/String;
+    iput-object v0, p0, LFieldTest;->privateStringField:Ljava/lang/String;
 
     const-string v0, "publicStaticStringFieldValue"
     sput-object v0, LFieldTest;->publicStaticStringField:Ljava/lang/String;
@@ -61,7 +61,7 @@
     .end annotation
 
     .line 1
-    iget-object v0, v4, LFieldTest;->publicStringField:Ljava/lang/String;
+    iget-object v0, p0, LFieldTest;->publicStringField:Ljava/lang/String;
     const-string v1, "publicStringFieldValue"
     invoke-static {v0, v1}, Lorg/junit/Assert;->assertEquals(Ljava/lang/Object;Ljava/lang/Object;)V
 
@@ -72,7 +72,7 @@
     invoke-static {v0, v1, v2, v3}, Lorg/junit/Assert;->assertEquals(JJ)V
 
     .line 3
-    iget-object v0, v4, LFieldTest;->publicObjectField:Ljava/lang/Object;
+    iget-object v0, p0, LFieldTest;->publicObjectField:Ljava/lang/Object;
     const-string v1, "publicObjectFieldValue"
     invoke-static {v0, v1}, Lorg/junit/Assert;->assertEquals(Ljava/lang/Object;Ljava/lang/Object;)V
 
@@ -92,11 +92,11 @@
     const/4 v2, 2
     aput-object v1, v0, v2
 
-    iget-object v1, v4, LFieldTest;->publicStringArrayField:[Ljava/lang/String;
+    iget-object v1, p0, LFieldTest;->publicStringArrayField:[Ljava/lang/String;
     invoke-static {v0, v1}, Lorg/junit/Assert;->assertEquals([Ljava/lang/Object;[Ljava/lang/Object;)V
 
     .line 5
-    iget-object v0, v4, LFieldTest;->privateStringField:Ljava/lang/String;
+    iget-object v0, p0, LFieldTest;->privateStringField:Ljava/lang/String;
     const-string v1, "privateStringFieldValue"
     invoke-static {v0, v1}, Lorg/junit/Assert;->assertEquals(Ljava/lang/Object;Ljava/lang/Object;)V
 

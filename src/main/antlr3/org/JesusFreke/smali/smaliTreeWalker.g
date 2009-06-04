@@ -50,32 +50,41 @@ import org.JesusFreke.dexlib.code.Format.*;
 	public ClassDefItem classDefItem;
 	public ClassDataItem classDataItem;
 
-	private static byte parseRegister_nibble(String register) {
+	private static byte parseRegister_nibble(String register, int totalMethodRegisters, int methodParameterRegisters) {
 		//register should be in the format "v12"		
-		byte val = Byte.parseByte(register.substring(1));
+		int val = Byte.parseByte(register.substring(1));
+		if (register.charAt(0) == 'p') {
+			val = totalMethodRegisters - methodParameterRegisters + val;
+		}		
 		if (val >= 2<<4) {
 			//TODO: throw correct exception type
 			throw new RuntimeException("The maximum allowed register in this context is list of registers is v15");
 		}
 		//the parser wouldn't accept a negative register, i.e. v-1, so we don't have to check for val<0;
-		return val;
+		return (byte)val;
 	}
 	
 	//return a short, because java's byte is signed
-	private static short parseRegister_byte(String register) {
+	private static short parseRegister_byte(String register, int totalMethodRegisters, int methodParameterRegisters) {
 		//register should be in the format "v123"
-		short val = Short.parseShort(register.substring(1));
+		int val = Short.parseShort(register.substring(1));
+		if (register.charAt(0) == 'p') {
+			val = totalMethodRegisters - methodParameterRegisters + val;
+		}
 		if (val >= 2<<8) {
 			//TODO: throw correct exception type
 			throw new RuntimeException("The maximum allowed register in this context is v255");
 		}
-		return val;
+		return (short)val;
 	}
 	
 	//return an int because java's short is signed
-	private static int parseRegister_short(String register) {
+	private static int parseRegister_short(String register, int totalMethodRegisters, int methodParameterRegisters) {
 		//register should be in the format "v12345"		
 		int val = Integer.parseInt(register.substring(1));
+		if (register.charAt(0) == 'p') {
+			val = totalMethodRegisters - methodParameterRegisters + val;
+		}
 		if (val >= 2<<16) {
 			//TODO: throw correct exception type
 			throw new RuntimeException("The maximum allowed register in this context is v65535");
@@ -342,6 +351,14 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		int currentAddress;
 		DebugInfoBuilder debugInfo;
 	}
+	@init
+	{
+		MethodIdItem methodIdItem = null;
+		int totalMethodRegisters = 0;
+		int methodParameterRegisters = 0;
+		int accessFlags = 0;
+		boolean isStatic = false;
+	}
 	:	{
 			$method::labels = new HashMap<String, Integer>();
 			$method::tryList = new TryListBuilder();
@@ -351,20 +368,24 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		^(	I_METHOD
 			method_name_and_prototype
 			access_list
+			{
+				methodIdItem = $method_name_and_prototype.methodIdItem;
+				accessFlags = $access_list.value;
+				isStatic = (accessFlags & AccessFlags.STATIC) != 0; 
+				methodParameterRegisters = methodIdItem.getParameterRegisterCount(isStatic);
+			}
 			registers_directive
+			{
+				totalMethodRegisters = $registers_directive.registers;
+			}
 			labels
-			statements
+			statements[totalMethodRegisters, methodParameterRegisters]
 			catches
 			parameters
-			ordered_debug_directives
+			ordered_debug_directives[totalMethodRegisters, methodParameterRegisters]
 			annotations
 		)
-	{
-		MethodIdItem methodIdItem = $method_name_and_prototype.methodIdItem;
-		int access = $access_list.value;
-		boolean isStatic = (access & AccessFlags.STATIC) != 0; 
-		
-		int registers = $registers_directive.registers;
+	{	
 		ArrayList<Instruction> instructions = $statements.instructions;
 		
 		Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> temp = $method::tryList.encodeTries(dexFile);
@@ -376,7 +397,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		
 		CodeItem codeItem;
 		
-		if (registers == 0 &&
+		if (totalMethodRegisters == 0 &&
 		    instructions.size() == 0 &&
 		    $method::labels.size()== 0 &&
 		    (tries == null || tries.size() == 0) &&
@@ -386,12 +407,10 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			codeItem = null;
 			
 		} else {
-			int minRegisters = methodIdItem.getParameterRegisterCount((access & AccessFlags.STATIC) != 0);
-		
-			if (registers < minRegisters) {
+			if (totalMethodRegisters < methodParameterRegisters) {
 				//TODO: throw the correct exception type
 				throw new RuntimeException(	"This method requires at least " +
-								Integer.toString(minRegisters) +
+								Integer.toString(methodParameterRegisters) +
 								" registers, for the method parameters");
 			}
 			
@@ -404,7 +423,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			}
 				
 			codeItem = new CodeItem(dexFile,
-						registers,
+						totalMethodRegisters,
 						methodIdItem.getParameterRegisterCount(isStatic),
 						instructions,
 						debugInfoItem,
@@ -412,7 +431,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 						handlers);
 		}
 		
-		$encodedMethod = new ClassDataItem.EncodedMethod(dexFile, methodIdItem, access, codeItem);
+		$encodedMethod = new ClassDataItem.EncodedMethod(dexFile, methodIdItem, accessFlags, codeItem);
 		
 		if ($annotations.annotationSetItem != null) {
 			$methodAnnotationSet = new AnnotationDirectoryItem.MethodAnnotation(dexFile, methodIdItem, $annotations.annotationSetItem);
@@ -547,11 +566,11 @@ parameter returns[AnnotationSetItem parameterAnnotationSet]
 				annotations {$parameterAnnotationSet = $annotations.annotationSetItem;}
 		);
 
-ordered_debug_directives
+ordered_debug_directives[int totalMethodRegisters, int methodParameterRegisters]
 	:	^(I_ORDERED_DEBUG_DIRECTIVES 	(	line
-						| 	local
-						|	end_local
-						|	restart_local
+						| 	local[$totalMethodRegisters, $methodParameterRegisters]
+						|	end_local[$totalMethodRegisters, $methodParameterRegisters]
+						|	restart_local[$totalMethodRegisters, $methodParameterRegisters]
 						|	prologue
 						|	epilogue
 						|	source
@@ -563,10 +582,10 @@ line
 			$method::debugInfo.addLine($address.address, $integral_literal.value); 
 		};
 
-local	
+local[int totalMethodRegisters, int methodParameterRegisters]
 	:	^(I_LOCAL REGISTER SIMPLE_NAME nonvoid_type_descriptor string_literal? address)
 		{
-			int registerNumber = parseRegister_short($REGISTER.text);
+			int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			if ($string_literal.value != null) {
 				$method::debugInfo.addLocalExtended($address.address, registerNumber, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type.getTypeDescriptor(), $string_literal.value);
@@ -575,18 +594,18 @@ local
 			}
 		};
 
-end_local
+end_local[int totalMethodRegisters, int methodParameterRegisters]
 	:	^(I_END_LOCAL REGISTER address)
 		{
-			int registerNumber = parseRegister_short($REGISTER.text);
+			int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			$method::debugInfo.addEndLocal($address.address, registerNumber);
 		};
 
-restart_local
+restart_local[int totalMethodRegisters, int methodParameterRegisters]
 	:	^(I_RESTART_LOCAL REGISTER address)
 		{
-			int registerNumber = parseRegister_short($REGISTER.text);
+			int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			$method::debugInfo.addRestartLocal($address.address, registerNumber);
 		};
@@ -609,12 +628,12 @@ source
 			$method::debugInfo.addSetFile($address.address, $string_literal.value);
 		};
 
-statements returns[ArrayList<Instruction> instructions]
+statements[int totalMethodRegisters, int methodParameterRegisters] returns[ArrayList<Instruction> instructions]
 	@init
 	{
 		$instructions = new ArrayList<Instruction>();
 	}
-	:	^(I_STATEMENTS	(instruction
+	:	^(I_STATEMENTS	(instruction[$totalMethodRegisters, $methodParameterRegisters]
 				{
 					$instructions.add($instruction.instruction);
 					$method::currentAddress += $instruction.instruction.getBytes().length/2;
@@ -658,7 +677,7 @@ offset_or_label returns[int offsetValue]
 	:	offset {$offsetValue = $offset.offsetValue;}
 	|	label_ref {$offsetValue = $label_ref.labelAddress-$method::currentAddress;};
 	
-instruction returns[Instruction instruction]
+instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Instruction instruction]
 	:	//e.g. goto endloop:
 		^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
 		{
@@ -683,7 +702,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11n.text);
-			byte regA = parseRegister_nibble($REGISTER.text);
+			byte regA = parseRegister_nibble($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			short litB = $short_integral_literal.value;
 			literalTools.checkNibble(litB);
@@ -694,7 +713,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			$instruction = Format11x.Format.make(dexFile, opcode.value, regA);
 		}
@@ -702,8 +721,8 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT12x INSTRUCTION_FORMAT12x registerA=REGISTER registerB=REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT12x.text);
-			byte regA = parseRegister_nibble($registerA.text);
-			byte regB = parseRegister_nibble($registerB.text);
+			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			$instruction = Format12x.Format.make(dexFile, opcode.value, regA, regB);
 		}
@@ -725,7 +744,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_FIELD.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 
@@ -735,7 +754,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
 
@@ -745,7 +764,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			TypeIdItem typeIdItem = $reference_type_descriptor.type;
 			
@@ -755,7 +774,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT21h INSTRUCTION_FORMAT21h REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21h.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			short litB = $short_integral_literal.value;
 			
@@ -765,7 +784,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21s.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			short litB = $short_integral_literal.value;
 			
@@ -775,7 +794,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21t.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			int addressOffset = $offset_or_label.offsetValue;
 
@@ -790,8 +809,8 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22b.text);
-			short regA = parseRegister_byte($registerA.text);
-			short regB = parseRegister_byte($registerB.text);
+			short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			short regB = parseRegister_byte($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			short litC = $short_integral_literal.value;
 			literalTools.checkByte(litC);
@@ -802,8 +821,8 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD.text);
-			byte regA = parseRegister_nibble($registerA.text);
-			byte regB = parseRegister_nibble($registerB.text);
+			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 			
@@ -813,8 +832,8 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_TYPE.text);
-			byte regA = parseRegister_nibble($registerA.text);
-			byte regB = parseRegister_nibble($registerB.text);
+			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 			
@@ -824,8 +843,8 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22s.text);
-			byte regA = parseRegister_nibble($registerA.text);
-			byte regB = parseRegister_nibble($registerB.text);
+			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			short litC = $short_integral_literal.value;
 			
@@ -835,8 +854,8 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22t.text);
-			byte regA = parseRegister_nibble($registerA.text);
-			byte regB = parseRegister_nibble($registerB.text);
+			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			int addressOffset = $offset_or_label.offsetValue;
 
@@ -851,8 +870,8 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22x.text);
-			short regA = parseRegister_byte($registerA.text);
-			int regB = parseRegister_short($registerB.text);
+			short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			$instruction = Format22x.Format.make(dexFile, opcode.value, regA, regB);
 		}
@@ -860,9 +879,9 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT23x INSTRUCTION_FORMAT23x registerA=REGISTER registerB=REGISTER registerC=REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT23x.text);
-			short regA = parseRegister_byte($registerA.text);
-			short regB = parseRegister_byte($registerB.text);
-			short regC = parseRegister_byte($registerC.text);			
+			short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			short regB = parseRegister_byte($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
+			short regC = parseRegister_byte($registerC.text, $totalMethodRegisters, $methodParameterRegisters);			
 			
 			$instruction = Format23x.Format.make(dexFile, opcode.value, regA, regB, regC);
 		}
@@ -879,7 +898,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 					
 			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
 			
@@ -889,7 +908,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31i.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			int litB = $fixed_32bit_literal.value;
 			
@@ -900,7 +919,7 @@ instruction returns[Instruction instruction]
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31t.text);
 			
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			int addressOffset = $offset_or_label.offsetValue;
 			if (($method::currentAddress + addressOffset) \% 2 != 0) {
@@ -913,13 +932,13 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT32x.text);
-			int regA = parseRegister_short($registerA.text);
-			int regB = parseRegister_short($registerB.text);
+			int regA = parseRegister_short($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			$instruction = Format32x.Format.make(dexFile, opcode.value, regA, regB);
 		}
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
+		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT35c_METHOD.text);
 
@@ -932,7 +951,7 @@ instruction returns[Instruction instruction]
 			$instruction = Format35c.Format.make(dexFile, opcode.value, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem);
 		}
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
+		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_METHOD.text);
 			int startRegister = $register_range.startRegister;
@@ -957,7 +976,7 @@ instruction returns[Instruction instruction]
 		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT51l.text);
-			short regA = parseRegister_byte($REGISTER.text);
+			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
 			long litB = $fixed_64bit_literal.value;
 			
@@ -991,7 +1010,7 @@ instruction returns[Instruction instruction]
 	;
 
 
-register_list returns[byte[\] registers, byte registerCount]
+register_list[int totalMethodRegisters, int methodParameterRegisters] returns[byte[\] registers, byte registerCount]
 	@init
 	{
 		$registers = new byte[5];
@@ -1004,17 +1023,17 @@ register_list returns[byte[\] registers, byte registerCount]
 					//TODO: throw the correct type of exception
 					throw new RuntimeException("A list of registers can only have a maximum of 5 registers. Use the <op>/range alternate opcode instead.");
 				}
-				$registers[$registerCount++] = parseRegister_nibble($REGISTER.text);
+				$registers[$registerCount++] = parseRegister_nibble($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			})*);
 	
-register_range returns[int startRegister, int endRegister]
+register_range[int totalMethodRegisters, int methodParameterRegisters] returns[int startRegister, int endRegister]
 	:	^(I_REGISTER_RANGE startReg=REGISTER endReg=REGISTER?)
 		{
-			$startRegister  = parseRegister_short($startReg.text);
+			$startRegister  = parseRegister_short($startReg.text, $totalMethodRegisters, $methodParameterRegisters);
 			if ($endReg == null) {
 				$endRegister = $startRegister;
 			} else {
-				$endRegister = parseRegister_short($endReg.text);
+				$endRegister = parseRegister_short($endReg.text, $totalMethodRegisters, $methodParameterRegisters);
 			}
 		}
 	;
