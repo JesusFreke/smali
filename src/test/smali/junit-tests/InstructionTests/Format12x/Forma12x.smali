@@ -1,6 +1,6 @@
 .class public LFormat12x;
 .super Ljava/lang/Object;
-.source "Format10x.smali"
+.source "Format12x.smali"
 
 .method public constructor <init>()V
     .registers 1
