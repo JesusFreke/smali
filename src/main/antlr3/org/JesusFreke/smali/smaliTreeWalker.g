@@ -1076,6 +1076,7 @@ short_integral_literal returns[short value]
 			$value = (short)$integer_literal.value;
 		}
 	|	short_literal {$value = $short_literal.value;}
+	|	char_literal {$value = (short)$char_literal.value;}
 	|	byte_literal {$value = $byte_literal.value;};
 	
 integral_literal returns[int value]

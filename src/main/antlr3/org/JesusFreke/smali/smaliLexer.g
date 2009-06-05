@@ -811,6 +811,7 @@ fragment INTEGRAL_LITERAL_EMITCHILD
 	:	LONG_LITERAL_EMIT
 	|	INTEGER_LITERAL_EMIT
 	|	SHORT_LITERAL_EMIT
+	|	CHAR_LITERAL_EMIT
 	|	BYTE_LITERAL_EMIT;
 
 fragment FIXED_LITERAL_EMITCHILD
@@ -1020,23 +1021,28 @@ fragment BINARY_EXPONENT
 fragment FLOAT_LITERAL_EMIT
 	:	FLOAT_LITERAL {emit($FLOAT_LITERAL, FLOAT_LITERAL);};
 fragment FLOAT_LITERAL
-	:	(FLOATING_POINT_NUMBER | ('0' .. '9')+) ('f' | 'F');
+	:	'-'? (FLOATING_POINT_NUMBER | ('0' .. '9')+) ('f' | 'F');
        
 fragment DOUBLE_LITERAL_EMIT
 	:	DOUBLE_LITERAL {emit($DOUBLE_LITERAL, DOUBLE_LITERAL);};
 fragment DOUBLE_LITERAL
-	:	FLOATING_POINT_NUMBER ('d' | 'D')?
-	|	('0' .. '9')+ ('d' | 'D');
+	:	'-'? FLOATING_POINT_NUMBER ('d' | 'D')?
+	|	'-'? ('0' .. '9')+ ('d' | 'D');
 
 
 fragment CHAR_LITERAL_EMIT
-	:	CHAR_LITERAL {emit($CHAR_LITERAL, CHAR_LITERAL);};
-fragment CHAR_LITERAL
-    :   '\'' {StringBuilder sb = new StringBuilder("'");}
-        (   ESCAPE_SEQUENCE[sb] {sb.append("'"); setText(sb.toString());}
-        |   ~( '\'' | '\\' | '\r' | '\n' )
+	@init {StringBuilder sb = new StringBuilder();}
+	:	CHAR_LITERAL[sb]
+		{
+			$CHAR_LITERAL.setText(sb.toString());
+			emit($CHAR_LITERAL, CHAR_LITERAL);
+		};
+fragment CHAR_LITERAL[StringBuilder sb]
+    :   '\'' {sb.append("'");}
+        (   ESCAPE_SEQUENCE[sb] {sb.append("'");}
+        |   ~( '\'' | '\\' | '\r' | '\n' )  {sb.append((char)input.LA(-1));}
         ) 
-        '\''
+        '\''  {sb.append("'");}
     ;
 
 fragment BOOL_LITERAL_EMIT

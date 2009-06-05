@@ -147,6 +147,10 @@ import org.JesusFreke.dexlib.code.Format.*;
 	public String getTokenErrorDisplay(Token t) {
 		return t.toString();
 	}
+	
+	public String getErrorHeader(RecognitionException e) {
+		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
+	}
 }
 
 
@@ -165,7 +169,9 @@ smali_file
 	|	{!$smali_file::hasSourceSpec}?=> source_spec {$smali_file::hasSourceSpec = true;}
 	|	method
 	|	field
-	|	annotation)*
+	|	annotation
+	)+
+	EOF
 	{
 		if (!$smali_file::hasClassSpec) {
 			//TODO: throw correct exception type
@@ -394,8 +400,8 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method {$size = Format3rc.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
 	|	//e.g. const-wide v0, 5000000000L
-		INSTRUCTION_FORMAT51l REGISTER (LONG_LITERAL | DOUBLE_LITERAL) {$size = Format51l.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER LONG_LITERAL? DOUBLE_LITERAL?)		
+		INSTRUCTION_FORMAT51l REGISTER fixed_literal {$size = Format51l.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)		
 	|	
 		ARRAY_DATA_DIRECTIVE
 		{	
@@ -513,6 +519,7 @@ integral_literal
 	:	LONG_LITERAL
 	|	INTEGER_LITERAL
 	|	SHORT_LITERAL
+	|	CHAR_LITERAL
 	|	BYTE_LITERAL;	
 	
 fixed_32bit_literal

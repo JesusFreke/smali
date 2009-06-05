@@ -82,7 +82,7 @@ public class Format3rc extends Format
         } else if (opcode >= INVOKE_VIRTUAL_RANGE.value && opcode <= INVOKE_INTERFACE_RANGE.value) {
             //check data for invoke-*/range opcodes
             MethodIdItem methodIdItem = (MethodIdItem)item;
-            if (methodIdItem.getParameterRegisterCount(opcode == INVOKE_STATIC.value) != regCount) {
+            if (methodIdItem.getParameterRegisterCount(opcode == INVOKE_STATIC_RANGE.value) != regCount) {
                 throw new RuntimeException("regCount does not match the number of arguments of the method");
             }
         } else {
