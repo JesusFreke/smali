@@ -24,6 +24,7 @@
                 LSpecialInstructionPaddingTest;,
                 LFormat10x;,
                 LFormat11n;,
+                LFormat11x;,
                 LFormat12x;
             }
 .end annotation
