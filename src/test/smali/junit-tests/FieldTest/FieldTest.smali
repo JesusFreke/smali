@@ -67,9 +67,8 @@
 
     .line 2
     iget v0, v4, LFieldTest;->publicIntegerField:I
-    int-to-long v0, v0
-    const-wide/16 v2, 23
-    invoke-static {v0, v1, v2, v3}, Lorg/junit/Assert;->assertEquals(JJ)V
+    const/16 v1, 23
+    invoke-static {v0, v1}, LAssert;->assertEquals(II)V
 
     .line 3
     iget-object v0, p0, LFieldTest;->publicObjectField:Ljava/lang/Object;

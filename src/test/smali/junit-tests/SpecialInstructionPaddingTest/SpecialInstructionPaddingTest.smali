@@ -9,21 +9,21 @@
 .end method
 
 .method public test()V
-    .registers 4
+    .registers 2
     .annotation runtime Lorg/junit/Test;
     .end annotation
     
     const v0, 0
     invoke-static {}, LSpecialInstructionPaddingTest;->paddingTest()I
     move-result v0
-    int-to-long v0, v0
 
 
-    const-wide/16 v2, 12
+
+    const/16 v1, 12
 
     #the real test is that dalvik loaded and verified this class. This is
     #mostly just to make sure that the method was actually called
-    invoke-static {v0, v1, v2, v3}, Lorg/junit/Assert;->assertEquals(JJ)V
+    invoke-static {v0, v1}, LAssert;->assertEquals(II)V
 
     return-void
 .end method
@@ -64,5 +64,4 @@ PackedSwitch:
         Label12:
         Label13:
     .end packed-switch
-
 .end method
