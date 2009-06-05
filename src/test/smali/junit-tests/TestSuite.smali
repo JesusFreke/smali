@@ -23,6 +23,7 @@
     value = {   LFieldTest;,
                 LSpecialInstructionPaddingTest;,
                 LFormat10x;,
+                LFormat11n;,
                 LFormat12x;
             }
 .end annotation
