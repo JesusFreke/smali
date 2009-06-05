@@ -23,6 +23,7 @@
     value = {   LFieldTest;,
                 LSpecialInstructionPaddingTest;,
                 LFormat10x;,
+                LFormat10t;,
                 LFormat11n;,
                 LFormat11x;,
                 LFormat12x;
