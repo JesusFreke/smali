@@ -21,6 +21,8 @@
 
 .annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
     value = {   LFieldTest;,
-                LSpecialInstructionPaddingTest;
+                LSpecialInstructionPaddingTest;,
+                LFormat10x;,
+                LFormat12x;
             }
 .end annotation
