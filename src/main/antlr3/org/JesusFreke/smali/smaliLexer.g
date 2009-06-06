@@ -1054,7 +1054,7 @@ fragment CHAR_LITERAL_EMIT
 		};
 fragment CHAR_LITERAL[StringBuilder sb]
     :   '\'' {sb.append("'");}
-        (   ESCAPE_SEQUENCE[sb] {sb.append("'");}
+        (   ESCAPE_SEQUENCE[sb]
         |   ~( '\'' | '\\' | '\r' | '\n' )  {sb.append((char)input.LA(-1));}
         ) 
         '\''  {sb.append("'");}
