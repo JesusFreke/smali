@@ -50,47 +50,59 @@ import org.JesusFreke.dexlib.code.Format.*;
 	public ClassDefItem classDefItem;
 	public ClassDataItem classDataItem;
 
-	private static byte parseRegister_nibble(String register, int totalMethodRegisters, int methodParameterRegisters) {
+	private byte parseRegister_nibble(String register, int totalMethodRegisters, int methodParameterRegisters)
+		throws SemanticException {
 		//register should be in the format "v12"		
 		int val = Byte.parseByte(register.substring(1));
 		if (register.charAt(0) == 'p') {
 			val = totalMethodRegisters - methodParameterRegisters + val;
 		}		
 		if (val >= 2<<4) {
-			//TODO: throw correct exception type
-			throw new RuntimeException("The maximum allowed register in this context is list of registers is v15");
+			throw new SemanticException(input, "The maximum allowed register in this context is list of registers is v15");
 		}
-		//the parser wouldn't accept a negative register, i.e. v-1, so we don't have to check for val<0;
+		//the parser wouldn't have accepted a negative register, i.e. v-1, so we don't have to check for val<0;
 		return (byte)val;
 	}
 	
 	//return a short, because java's byte is signed
-	private static short parseRegister_byte(String register, int totalMethodRegisters, int methodParameterRegisters) {
+	private short parseRegister_byte(String register, int totalMethodRegisters, int methodParameterRegisters)
+		throws SemanticException {
 		//register should be in the format "v123"
 		int val = Short.parseShort(register.substring(1));
 		if (register.charAt(0) == 'p') {
 			val = totalMethodRegisters - methodParameterRegisters + val;
 		}
 		if (val >= 2<<8) {
-			//TODO: throw correct exception type
-			throw new RuntimeException("The maximum allowed register in this context is v255");
+			throw new SemanticException(input, "The maximum allowed register in this context is v255");
 		}
 		return (short)val;
 	}
 	
 	//return an int because java's short is signed
-	private static int parseRegister_short(String register, int totalMethodRegisters, int methodParameterRegisters) {
+	private int parseRegister_short(String register, int totalMethodRegisters, int methodParameterRegisters)
+		throws SemanticException {
 		//register should be in the format "v12345"		
 		int val = Integer.parseInt(register.substring(1));
 		if (register.charAt(0) == 'p') {
 			val = totalMethodRegisters - methodParameterRegisters + val;
 		}
 		if (val >= 2<<16) {
-			//TODO: throw correct exception type
-			throw new RuntimeException("The maximum allowed register in this context is v65535");
+			throw new SemanticException(input, "The maximum allowed register in this context is v65535");
 		}
 		//the parser wouldn't accept a negative register, i.e. v-1, so we don't have to check for val<0;
 		return val;
+	}
+	
+	public String getErrorMessage(RecognitionException e, String[] tokenNames) {
+		if ( e instanceof SemanticException ) {
+			return e.getMessage();
+		} else {
+			return super.getErrorMessage(e, tokenNames);
+		}
+	}
+	
+	public String getErrorHeader(RecognitionException e) {
+		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
 	}
 }
 
@@ -217,8 +229,7 @@ field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue
 		
 		if ($field_initial_value.encodedValue != null) {
 			if (($access_list.value & AccessFlags.STATIC) == 0) {
-				//TODO: change to an appropriate exception type?
-				throw new RuntimeException("Initial field values can only be specified for static fields.");
+				throw new SemanticException(input, "Initial field values can only be specified for static fields.");
 			}
 			
 			$encodedValue = $field_initial_value.encodedValue;
@@ -408,16 +419,14 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			
 		} else {
 			if (totalMethodRegisters < methodParameterRegisters) {
-				//TODO: throw the correct exception type
-				throw new RuntimeException(	"This method requires at least " +
+				throw new SemanticException(input, "This method requires at least " +
 								Integer.toString(methodParameterRegisters) +
 								" registers, for the method parameters");
 			}
 			
 			int methodParameterCount = methodIdItem.getParameterCount();
 			if ($method::debugInfo.getParameterNameCount() > methodParameterCount) {
-				//TODO: throw the correct exception type
-				throw new RuntimeException(	"Too many parameter names specified. This method only has " +
+				throw new SemanticException(input, "Too many parameter names specified. This method only has " +
 								Integer.toString(methodParameterCount) +
 								" parameters.");
 			}
@@ -505,8 +514,7 @@ label_def
 		{
 			String labelName = $label.labelName;
 			if ($method::labels.containsKey(labelName)) {
-				//TODO: use appropriate exception type
-				throw new RuntimeException("Label " + labelName + " has multiple defintions.");
+				throw new SemanticException(input, "Label " + labelName + " has multiple defintions.");
 			}
 				
 			
@@ -635,8 +643,10 @@ statements[int totalMethodRegisters, int methodParameterRegisters] returns[Array
 	}
 	:	^(I_STATEMENTS	(instruction[$totalMethodRegisters, $methodParameterRegisters]
 				{
-					$instructions.add($instruction.instruction);
-					$method::currentAddress += $instruction.instruction.getBytes().length/2;
+					if ($instruction.instruction != null) {
+						$instructions.add($instruction.instruction);
+						$method::currentAddress += $instruction.instruction.getBytes().length/2;
+					}
 				})*);
 			
 label_ref returns[int labelAddress]
@@ -647,8 +657,7 @@ label_ref returns[int labelAddress]
 			Integer labelAdd = $method::labels.get(labelName);
 			
 			if (labelAdd == null) {
-				//TODO: throw correct exception type
-				throw new RuntimeException("Label \"" + labelName + "\" is not defined.");
+				throw new SemanticException(input, "Label \"" + labelName + "\" is not defined.");
 			}
 			
 			$labelAddress = labelAdd;
@@ -686,8 +695,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Byte.MIN_VALUE || addressOffset > Byte.MAX_VALUE) {
-				//TODO: throw correct exception type
-				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-128, 127].");
+				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-128, 127].");
 			}
 			
 			$instruction = Format10t.Format.make(dexFile, opcode.value, (byte)addressOffset);
@@ -734,8 +742,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
-				//TODO: throw correct exception type
-				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
 			$instruction = Format20t.Format.make(dexFile, opcode.value, (short)addressOffset);
@@ -799,8 +806,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
-				//TODO: throw correct exception type
-				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
 			$instruction = Format21t.Format.make(dexFile, opcode.value, regA, (short)addressOffset);
@@ -860,8 +866,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
-				//TODO: throw correct exception type
-				throw new RuntimeException("The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
 			$instruction = Format22t.Format.make(dexFile, opcode.value, regA, regB, (short)addressOffset);
@@ -959,12 +964,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			int registerCount = endRegister-startRegister+1;
 			if (registerCount > 256) {
-				//TODO: throw appropriate exception type
-				throw new RuntimeException("A register range can span a maximum of 256 registers");
+				throw new SemanticException(input, "A register range can span a maximum of 256 registers");
 			}
 			if (registerCount < 1) {
-				//TODO: throw appropriate exception type
-				throw new RuntimeException("A register range must have the lower register listed first");
+				throw new SemanticException(input, "A register range must have the lower register listed first");
 			}
 			
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
@@ -1019,9 +1022,9 @@ register_list[int totalMethodRegisters, int methodParameterRegisters] returns[by
 	:	^(I_REGISTER_LIST 
 			(REGISTER
 			{
+				//TODO: shouldn't this be == 6?
 				if ($registerCount == 5) {
-					//TODO: throw the correct type of exception
-					throw new RuntimeException("A list of registers can only have a maximum of 5 registers. Use the <op>/range alternate opcode instead.");
+					throw new SemanticException(input, "A list of registers can only have a maximum of 5 registers. Use the <op>/range alternate opcode instead.");
 				}
 				$registers[$registerCount++] = parseRegister_nibble($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			})*);

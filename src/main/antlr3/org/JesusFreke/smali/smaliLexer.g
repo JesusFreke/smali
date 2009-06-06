@@ -185,8 +185,14 @@ import java.util.ArrayDeque;
     		tokens.add(token);
     	}
 
+	private int lexerErrors = 0;
 	public String getErrorHeader(RecognitionException e) {
+		lexerErrors++;
 		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
+	}
+	
+	public int getNumberOfLexerErrors() {
+		return lexerErrors;
 	}
 }
 

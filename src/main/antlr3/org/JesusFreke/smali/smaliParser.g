@@ -207,6 +207,7 @@ access_list
 
 
 field	:	FIELD_DIRECTIVE access_list MEMBER_NAME nonvoid_type_descriptor literal? 
+		//TODO: get rid of this predicate
 		(	(annotation+ END_FIELD_DIRECTIVE)=> annotation+ END_FIELD_DIRECTIVE
 		| 	END_FIELD_DIRECTIVE?
 		)

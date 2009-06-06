@@ -117,8 +117,16 @@ public class smali
 
         DexFile dexFile = DexFile.makeBlankDexFile();
 
+        boolean errors = false;
+
         for (File file: filesToProcess) {
-            assembleSmaliFile(file, dexFile);
+            if (!assembleSmaliFile(file, dexFile)) {
+                errors = true;
+            }
+        }
+
+        if (errors) {
+            System.exit(1);
         }
 
         dexFile.place();
@@ -152,6 +160,7 @@ public class smali
         } catch (Exception ex)
         {
             System.out.println(ex.toString());
+            System.exit(1);
         }
     }
 
@@ -165,17 +174,23 @@ public class smali
         }
     }
 
-    private static void assembleSmaliFile(File smaliFile, DexFile dexFile)
+    private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile)
             throws Exception {
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(smaliFile));
         input.name = smaliFile.getAbsolutePath();
 
         smaliLexer lexer = new smaliLexer(input);
-
+       
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         smaliParser parser = new smaliParser(tokens);
 
         smaliParser.smali_file_return result = parser.smali_file();
+
+        if (parser.getNumberOfSyntaxErrors() > 0 || lexer.getNumberOfLexerErrors() > 0) {
+            return false;
+        }
+
+
         CommonTree t = (CommonTree) result.getTree();
 
         CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
@@ -186,6 +201,11 @@ public class smali
         dexGen.dexFile = dexFile;
         dexGen.smali_file();
 
+        if (dexGen.getNumberOfSyntaxErrors() > 0) {
+            return false;
+        }
+
         dexFile.ClassDefsSection.intern(dexFile, dexGen.classDefItem);
+        return true;
     }
 }
