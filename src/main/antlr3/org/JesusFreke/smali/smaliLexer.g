@@ -161,20 +161,29 @@ import java.util.ArrayDeque;
 		tokens.add(Token.SKIP_TOKEN);
 	}
 
-    	public void emit(Token token) {
-		tokens.add(token);
-	}
-	
-	public void emit(Token token, int type) {
-		token.setType(type);
-		tokens.add(token);
-	}
-	
-	public void emit(Token token, int type, int channel) {
-		token.setType(type);
-		token.setChannel(channel);
-		tokens.add(token);
-	}
+	 public void emit(Token token) {
+	 	token.setLine(state.tokenStartLine);
+	 	token.setText(state.text);
+	 	token.setCharPositionInLine(state.tokenStartCharPositionInLine);
+    		tokens.add(token);
+    	}
+    	
+    	public void emit(Token token, int type) {
+    		token.setLine(state.tokenStartLine);
+    		token.setText(state.text);
+    		token.setCharPositionInLine(state.tokenStartCharPositionInLine);
+    		token.setType(type);
+    		tokens.add(token);
+    	}
+    	
+    	public void emit(Token token, int type, int channel) {
+    		token.setLine(state.tokenStartLine);
+    		token.setText(state.text);
+    		token.setCharPositionInLine(state.tokenStartCharPositionInLine);
+    		token.setType(type);
+    		token.setChannel(channel);
+    		tokens.add(token);
+    	}
 
 	public String getErrorHeader(RecognitionException e) {
 		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
