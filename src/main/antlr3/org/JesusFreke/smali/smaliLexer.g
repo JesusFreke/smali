@@ -163,14 +163,12 @@ import java.util.ArrayDeque;
 
 	 public void emit(Token token) {
 	 	token.setLine(state.tokenStartLine);
-	 	token.setText(state.text);
 	 	token.setCharPositionInLine(state.tokenStartCharPositionInLine);
     		tokens.add(token);
     	}
     	
     	public void emit(Token token, int type) {
     		token.setLine(state.tokenStartLine);
-    		token.setText(state.text);
     		token.setCharPositionInLine(state.tokenStartCharPositionInLine);
     		token.setType(type);
     		tokens.add(token);
@@ -178,7 +176,6 @@ import java.util.ArrayDeque;
     	
     	public void emit(Token token, int type, int channel) {
     		token.setLine(state.tokenStartLine);
-    		token.setText(state.text);
     		token.setCharPositionInLine(state.tokenStartCharPositionInLine);
     		token.setType(type);
     		token.setChannel(channel);
