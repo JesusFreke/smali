@@ -28,6 +28,7 @@
                 LFormat11x;,
                 LFormat12x;,
                 LFormat20t;,
+                LFormat22x;,
                 LFormat30t;
             }
 .end annotation
