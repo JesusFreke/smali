@@ -179,6 +179,7 @@ public class smali
         CommonTree t = (CommonTree) result.getTree();
 
         CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
+        treeStream.setTokenStream(tokens);
 
         smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
 
