@@ -18,11 +18,20 @@
 
     goto label:
 
-    const v0, 6
+    label2:
+
+
+    const v1, 6
+    invoke-static {v0, v1}, LAssert;->assertEquals(II)V
+    return-void
+
+
 
     label:
+    const v0, 6
+    goto label2:
 
-    const v1, 5
-    invoke-static {v0, v1}, LAssert;->assertEquals(II)V
+
+    invoke-static {}, Lorg/junit/Assert;->assertFalse()V
     return-void
 .end method
