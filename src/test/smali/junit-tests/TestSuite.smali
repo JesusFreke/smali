@@ -39,6 +39,7 @@
                 LFormat22x;,
                 LFormat23x;,
                 LFormat30t;,
+                LFormat32x;,
                 LFormat35c;,
                 LFormat3rc;
             }
