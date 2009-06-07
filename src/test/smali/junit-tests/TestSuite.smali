@@ -32,6 +32,7 @@
                 LFormat21h;,
                 LFormat21s;,
                 LFormat21t;,
+                LFormat22b;,
                 LFormat22x;,
                 LFormat23x;,
                 LFormat30t;,
