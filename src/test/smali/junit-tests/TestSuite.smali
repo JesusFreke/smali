@@ -28,6 +28,7 @@
                 LFormat11x;,
                 LFormat12x;,
                 LFormat20t;,
+                LFormat21c;,
                 LFormat21h;,
                 LFormat21s;,
                 LFormat21t;,
