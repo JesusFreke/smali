@@ -111,6 +111,7 @@ tokens {
 	I_STATEMENT_FORMAT35c_METHOD;
 	I_STATEMENT_FORMAT35c_TYPE;
 	I_STATEMENT_FORMAT3rc_METHOD;
+	I_STATEMENT_FORMAT3rc_TYPE;
 	I_STATEMENT_FORMAT51l;
 	I_STATEMENT_ARRAY_DATA;
 	I_STATEMENT_PACKED_SWITCH;
@@ -404,6 +405,9 @@ instruction returns [int size]
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method {$size = Format3rc.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
+	|	//e.g. filled-new-array/range {v0..v6} I
+		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACKET register_range CLOSE_BRACKET nonvoid_type_descriptor {$size = Format3rc.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
 	|	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER fixed_literal {$size = Format51l.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)		

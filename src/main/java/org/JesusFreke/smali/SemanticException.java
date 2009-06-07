@@ -40,6 +40,11 @@ public class SemanticException extends RecognitionException {
         this.errorMessage = errorMessage;
     }
 
+    SemanticException(IntStream input, Exception ex) {
+        super(input);
+        this.errorMessage = ex.getMessage();
+    }
+
     public String getMessage() {
         return errorMessage;
     }

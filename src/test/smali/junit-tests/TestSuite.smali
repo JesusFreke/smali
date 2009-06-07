@@ -34,6 +34,7 @@
                 LFormat21t;,
                 LFormat22x;,
                 LFormat30t;,
-                LFormat35c;
+                LFormat35c;,
+                LFormat3rc;
             }
 .end annotation

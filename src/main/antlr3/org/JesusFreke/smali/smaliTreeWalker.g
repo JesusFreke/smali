@@ -127,6 +127,9 @@ smali_file
 		
 		classDefItem.setAnnotations(annotationDirectoryItem);
 	};
+	catch [Exception ex] {
+		reportError(new SemanticException(input, ex));
+	}
 
 
 header	returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem sourceSpec]
@@ -988,6 +991,26 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			//not supported yet
 			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, methodIdItem);
 		}
+	|	//e.g. filled-new-array/range {v0..v6} I
+		^(I_STATEMENT_FORMAT3rc_TYPE INSTRUCTION_FORMAT3rc_TYPE register_range[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_TYPE.text);
+			int startRegister = $register_range.startRegister;
+			int endRegister = $register_range.endRegister;
+			
+			int registerCount = endRegister-startRegister+1;
+			if (registerCount > 256) {
+				throw new SemanticException(input, "A register range can span a maximum of 256 registers");
+			}
+			if (registerCount < 1) {
+				throw new SemanticException(input, "A register range must have the lower register listed first");
+			}
+			
+			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
+
+			//not supported yet
+			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, typeIdItem);
+		}	
 	|	//e.g. const-wide v0, 5000000000L
 		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
 		{
@@ -1022,8 +1045,11 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int[] targets = $sparse_switch_targets.targets;
 			
 			$instruction = SparseSwitchData.make(dexFile, keys, targets);			
-		}	
-	;
+		};
+		catch [Exception ex] {
+			reportError(new SemanticException(input, ex));
+			recover(input, null);
+		}
 
 
 register_list[int totalMethodRegisters, int methodParameterRegisters] returns[byte[\] registers, byte registerCount]
