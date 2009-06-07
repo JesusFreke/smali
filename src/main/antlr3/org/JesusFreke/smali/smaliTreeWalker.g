@@ -955,6 +955,19 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			$instruction = Format35c.Format.make(dexFile, opcode.value, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem);
 		}
+	|	//e.g. filled-new-array {v0,v1}, I
+		^(I_STATEMENT_FORMAT35c_TYPE INSTRUCTION_FORMAT35c_TYPE register_list[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT35c_TYPE.text);
+
+			//this depends on the fact that register_list returns a byte[5]
+			byte[] registers = $register_list.registers;
+			byte registerCount = $register_list.registerCount;
+			
+			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
+			
+			$instruction = Format35c.Format.make(dexFile, opcode.value, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeIdItem);
+		}
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
 		{

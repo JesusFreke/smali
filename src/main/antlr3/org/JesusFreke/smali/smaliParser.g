@@ -109,6 +109,7 @@ tokens {
 	I_STATEMENT_FORMAT31t;	
 	I_STATEMENT_FORMAT32x;
 	I_STATEMENT_FORMAT35c_METHOD;
+	I_STATEMENT_FORMAT35c_TYPE;
 	I_STATEMENT_FORMAT3rc_METHOD;
 	I_STATEMENT_FORMAT51l;
 	I_STATEMENT_ARRAY_DATA;
@@ -397,6 +398,9 @@ instruction returns [int size]
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
 		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACKET register_list CLOSE_BRACKET fully_qualified_method {$size = Format35c.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
+	|	//e.g. filled-new-array {v0,v1}, I
+		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACKET register_list CLOSE_BRACKET nonvoid_type_descriptor {$size = Format35c.Format.getByteCount();}
+		-> ^(I_STATEMENT_FORMAT35c_TYPE[$start, "I_STATEMENT_FORMAT35c_TYPE"] INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method {$size = Format3rc.Format.getByteCount();}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
