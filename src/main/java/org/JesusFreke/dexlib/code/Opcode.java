@@ -233,7 +233,7 @@ public enum Opcode
     DIV_DOUBLE_2ADDR((byte)0xce, "DIV-DOUBLE/2ADDR", (byte)2, ReferenceType.none, "12x"),
     REM_DOUBLE_2ADDR((byte)0xcf, "REM-DOUBLE/2ADDR", (byte)2, ReferenceType.none, "12x"),
     ADD_INT_LIT16((byte)0xd0, "ADD-INT/LIT16", (byte)4, ReferenceType.none, "22s"),
-    RSUB_INT_LIT16((byte)0xd1, "RSUB-INT/LIT16", (byte)4, ReferenceType.none, "22s"),
+    RSUB_INT((byte)0xd1, "RSUB-INT", (byte)4, ReferenceType.none, "22s"),
     MUL_INT_LIT16((byte)0xd2, "MUL-INT/LIT16", (byte)4, ReferenceType.none, "22s"),
     DIV_INT_LIT16((byte)0xd3, "DIV-INT/LIT16", (byte)4, ReferenceType.none, "22s"),
     REM_INT_LIT16((byte)0xd4, "REM-INT/LIT16", (byte)4, ReferenceType.none, "22s"),
