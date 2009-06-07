@@ -70,7 +70,7 @@ public enum Opcode
     NEW_INSTANCE((byte)0x22, "NEW-INSTANCE", (byte)4, ReferenceType.type, "21c"),
     NEW_ARRAY((byte)0x23, "NEW-ARRAY", (byte)4, ReferenceType.type, "22c"),
     FILLED_NEW_ARRAY((byte)0x24, "FILLED-NEW-ARRAY", (byte)6, ReferenceType.type, "35c"),
-    FILLED_NEW_ARRAY_RANGE((byte)0x25, "FILLED-NEW-ARRAY-RANGE", (byte)6, ReferenceType.type, "3rc"),
+    FILLED_NEW_ARRAY_RANGE((byte)0x25, "FILLED-NEW-ARRAY/RANGE", (byte)6, ReferenceType.type, "3rc"),
     FILL_ARRAY_DATA((byte)0x26, "FILL-ARRAY-DATA", (byte)6, ReferenceType.none, "31t"),
     THROW((byte)0x27, "THROW", (byte)2, ReferenceType.none, "11x"),
     GOTO((byte)0x28, "GOTO", (byte)2, ReferenceType.none, "10t"),
