@@ -96,16 +96,12 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return superclassTypeReferenceField.getReference();
     }
 
-    public TypeIdItem getClassTypeReferenceField() {
+    public TypeIdItem getClassType() {
         return classTypeReferenceField.getReference();
     }
 
     protected int getAlignment() {
         return 4;
-    }
-
-    public TypeIdItem getClassType() {
-        return classTypeReferenceField.getReference();
     }
 
     public ItemType getItemType() {
