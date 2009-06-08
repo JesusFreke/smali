@@ -43,6 +43,7 @@
                 LFormat31t;,
                 LFormat32x;,
                 LFormat35c;,
-                LFormat3rc;
+                LFormat3rc;,
+                LFormat51l;
             }
 .end annotation
