@@ -176,13 +176,11 @@ smali_file
 	EOF
 	{
 		if (!$smali_file::hasClassSpec) {
-			//TODO: throw correct exception type
-			throw new RuntimeException("The file must contain a .class directive");
+			throw new SemanticException(input, "The file must contain a .class directive");
 		}
 		
 		if (!$smali_file::hasSuperSpec) {
-			//TODO: throw correct exception type
-			throw new RuntimeException("The file must contain a .super directive");
+			throw new SemanticException(input, "The file must contain a .super directive");
 		}
 	}
 	->	^(I_CLASS_DEF

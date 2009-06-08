@@ -1061,7 +1061,6 @@ register_list[int totalMethodRegisters, int methodParameterRegisters] returns[by
 	:	^(I_REGISTER_LIST 
 			(REGISTER
 			{
-				//TODO: shouldn't this be == 6?
 				if ($registerCount == 5) {
 					throw new SemanticException(input, "A list of registers can only have a maximum of 5 registers. Use the <op>/range alternate opcode instead.");
 				}
