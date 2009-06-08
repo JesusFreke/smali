@@ -40,6 +40,7 @@
                 LFormat23x;,
                 LFormat30t;,
                 LFormat31i;,
+                LFormat31t;,
                 LFormat32x;,
                 LFormat35c;,
                 LFormat3rc;
