@@ -27,11 +27,11 @@
  */
 
 
-import org.JesusFreke.dexlib.util.TryListBuilder;
-import org.JesusFreke.dexlib.util.Pair;
-import org.JesusFreke.dexlib.TypeIdItem;
-import org.JesusFreke.dexlib.DexFile;
-import org.JesusFreke.dexlib.CodeItem;
+import org.jf.dexlib.util.TryListBuilder;
+import org.jf.dexlib.util.Pair;
+import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.DexFile;
+import org.jf.dexlib.CodeItem;
 import org.junit.*;
 
 import java.util.List;

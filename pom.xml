@@ -28,7 +28,7 @@
                             <goal>antlr</goal>
                         </goals>
                         <configuration>
-                            <includes><include>org/JesusFreke/smali/smaliLexer.g</include></includes>
+                            <includes><include>org/jf/smali/smaliLexer.g</include></includes>
                         </configuration>
                     </execution>
                     <execution>
@@ -37,7 +37,7 @@
                             <goal>antlr</goal>
                         </goals>
                         <configuration>
-                            <includes><include>org/JesusFreke/smali/smaliParser.g</include></includes>
+                            <includes><include>org/jf/smali/smaliParser.g</include></includes>
                         </configuration>
                     </execution>
                     <execution>
@@ -46,7 +46,7 @@
                             <goal>antlr</goal>
                         </goals>
                         <configuration>
-                            <includes><include>org/JesusFreke/smali/smaliTreeWalker.g</include></includes>
+                            <includes><include>org/jf/smali/smaliTreeWalker.g</include></includes>
                         </configuration>
                     </execution>
                 </executions>
@@ -60,7 +60,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>org.JesusFreke.smali.main</mainClass>
+                            <mainClass>org.jf.smali.main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

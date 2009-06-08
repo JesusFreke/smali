@@ -27,7 +27,7 @@
  */
 
 import org.junit.*;
-import org.JesusFreke.smali.literalTools;
+import org.jf.smali.literalTools;
 
 public class IntLiteralTest
 {
