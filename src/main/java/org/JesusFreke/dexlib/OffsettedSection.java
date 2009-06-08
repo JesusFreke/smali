@@ -43,7 +43,6 @@ public abstract class OffsettedSection<T extends OffsettedItem<T>> extends Secti
      * Retrieves the item that starts at the given offset, or null if
      * there are none found. This method is intended to only be used
      * while reading in a dex file.
-     * TODO: find a better way to abstract this
      * @param offset the offset of the item to get
      * @return the item that starts at the given offset, or null if there
      * are none found
@@ -62,6 +61,8 @@ public abstract class OffsettedSection<T extends OffsettedItem<T>> extends Secti
         for (int i = 0; i < size; i++) {
             T item = getByOffset(in.getCursor());
             item.readFrom(in);
+
+            //TODO: why are we aligning afterwards?
             in.alignTo(item.getAlignment());
         }
     }
