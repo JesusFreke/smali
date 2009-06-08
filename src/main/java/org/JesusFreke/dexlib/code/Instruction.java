@@ -116,7 +116,6 @@ public final class Instruction implements Field<Instruction> {
             if (opByte == 0x1b) {
                 int hiWord = in.readShort();
                 if (hiWord != 0) {
-                    //TODO: test this..
                     referenceIndex += (hiWord<<16);
                 }
             }
