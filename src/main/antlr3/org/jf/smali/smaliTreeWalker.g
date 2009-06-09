@@ -183,7 +183,7 @@ access_list returns [int value]
 			(
 				ACCESS_SPEC
 				{
-					$value |= AccessFlags.getValueForAccessFlag($ACCESS_SPEC.getText());
+					$value |= AccessFlags.getAccessFlag($ACCESS_SPEC.getText()).getValue();
 				}
 			)+);
 
@@ -231,7 +231,7 @@ field returns[ClassDataItem.EncodedField encodedField, EncodedValue encodedValue
 		$encodedField = new ClassDataItem.EncodedField(dexFile, fieldIdItem, $access_list.value);
 		
 		if ($field_initial_value.encodedValue != null) {
-			if (($access_list.value & AccessFlags.STATIC) == 0) {
+			if (($access_list.value & AccessFlags.STATIC.getValue()) == 0) {
 				throw new SemanticException(input, "Initial field values can only be specified for static fields.");
 			}
 			
@@ -385,7 +385,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			{
 				methodIdItem = $method_name_and_prototype.methodIdItem;
 				accessFlags = $access_list.value;
-				isStatic = (accessFlags & AccessFlags.STATIC) != 0; 
+				isStatic = (accessFlags & AccessFlags.STATIC.getValue()) != 0; 
 				methodParameterRegisters = methodIdItem.getParameterRegisterCount(isStatic);
 			}
 			registers_directive

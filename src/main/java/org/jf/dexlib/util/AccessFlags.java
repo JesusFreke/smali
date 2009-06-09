@@ -29,60 +29,97 @@
 package org.jf.dexlib.util;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
-public class AccessFlags
+public enum AccessFlags
 {
-    public static final int PUBLIC = 0x01;
-    public static final int PRIVATE = 0x02;
-    public static final int PROTECTED = 0x04;
-    public static final int STATIC = 0x08;
-    public static final int FINAL = 0x10;
-    public static final int SYNCHRONIZED = 0x20;
-    public static final int VOLATILE = 0x40;
-    public static final int BRIDGE = 0x40;
-    public static final int TRANSIENT = 0x80;
-    public static final int VARARGS = 0x80;
-    public static final int NATIVE = 0x100;
-    public static final int INTERFACE = 0x200;
-    public static final int ABSTRACT = 0x400;
-    public static final int STRICTFP = 0x800;
-    public static final int SYNTHETIC = 0x1000;
-    public static final int ANNOTATION = 0x2000;
-    public static final int ENUM = 0x4000;
-    public static final int CONSTRUCTOR = 0x10000;
-    public static final int DECLARED_SYNCHRONIZED = 0x20000;
+    PUBLIC(0x1, "public", true, true, true),
+    PRIVATE(0x2, "private", true, true, true),
+    PROTECTED(0x4, "protected", true, true, true),
+    STATIC(0x8, "static", true, true, true),
+    FINAL(0x10, "final", true, true, true),
+    SYNCHRONIZED(0x20, "synchronized", false, true, false),
+    VOLATILE(0x40, "volatile", false, false, true),
+    BRIDGE(0x40, "bridge", false, true, false),
+    TRANSIENT(0x80, "transient", false, false, true),
+    VARARGS(0x80, "varargs", false, true, false),
+    NATIVE(0x100, "native", false, true, false),
+    INTERFACE(0x200, "interface", true, false, false),
+    ABSTRACT(0x400, "abstract", true, true, false),
+    STRICTFP(0x800, "strictfp", false, true, false),
+    SYNTHETIC(0x1000, "synthetic", true, true, true),
+    ANNOTATION(0x2000, "annotation", true, false, false),
+    ENUM(0x4000, "enum", true, false, true),
+    CONSTRUCTOR(0x10000, "constructor", false, true, false),
+    DECLARED_SYNCHRONIZED(0x20000, "declared-synchronized", false, true, false);
 
-    private static HashMap<String, Integer> accessFlagValues;
+    private int value;
+    private String accessFlagName;
+    private boolean validForClass;
+    private boolean validForMethod;
+    private boolean validForField;
+
+    private static HashMap<String, AccessFlags> accessFlagsByName;
 
     static {
-        accessFlagValues = new HashMap<String, Integer>();
-        accessFlagValues.put("public", PUBLIC);
-        accessFlagValues.put("private", PRIVATE);
-        accessFlagValues.put("static", STATIC);
-        accessFlagValues.put("final", FINAL);
-        accessFlagValues.put("synchronized", SYNCHRONIZED);
-        accessFlagValues.put("volatile", VOLATILE);
-        accessFlagValues.put("bridge", BRIDGE);
-        accessFlagValues.put("transient", TRANSIENT);
-        accessFlagValues.put("varargs", VARARGS);
-        accessFlagValues.put("native", NATIVE);
-        accessFlagValues.put("interface", INTERFACE);
-        accessFlagValues.put("abstract", ABSTRACT);
-        accessFlagValues.put("strictfp", STRICTFP);
-        accessFlagValues.put("synthetic", SYNTHETIC);
-        accessFlagValues.put("annotation", ANNOTATION);
-        accessFlagValues.put("enum", ENUM);
-        accessFlagValues.put("constructor", CONSTRUCTOR);
-        accessFlagValues.put("declared-synchronized", DECLARED_SYNCHRONIZED);
+        accessFlagsByName = new HashMap<String, AccessFlags>();
+        for (AccessFlags accessFlag: AccessFlags.values()) {
+            accessFlagsByName.put(accessFlag.accessFlagName, accessFlag);
+        }
     }
 
-    public static int getValueForAccessFlag(String accessFlag) {
-        Integer retVal;
-        retVal = accessFlagValues.get(accessFlag);
-        if (retVal == null) {
-            return 0;
-        }
+    private AccessFlags(int value, String accessFlagName, boolean validForClass, boolean validForMethod,
+                        boolean validForField) {
+        this.value = value;
+        this.accessFlagName = accessFlagName;
+        this.validForClass = validForClass;
+        this.validForMethod = validForMethod;
+        this.validForField = validForField;
+    }
 
-        return retVal.intValue();
+    public static List<AccessFlags> getAccessFlagsForClass(int accessFlagValue) {
+        ArrayList<AccessFlags> accessFlags = new ArrayList<AccessFlags>();
+
+        for (AccessFlags accessFlag: AccessFlags.values()) {
+            if (accessFlag.validForClass && (accessFlagValue & accessFlag.value) != 0) {
+                accessFlags.add(accessFlag);
+            }
+        }
+        return accessFlags;
+    }
+
+    public static List<AccessFlags> getAccessFlagsForMethod(int accessFlagValue) {
+        ArrayList<AccessFlags> accessFlags = new ArrayList<AccessFlags>();
+
+        for (AccessFlags accessFlag: AccessFlags.values()) {
+            if (accessFlag.validForMethod && (accessFlagValue & accessFlag.value) != 0) {
+                accessFlags.add(accessFlag);
+            }
+        }
+        return accessFlags;
+    }
+
+    public static List<AccessFlags> getAccessFlagsForField(int accessFlagValue) {
+        ArrayList<AccessFlags> accessFlags = new ArrayList<AccessFlags>();
+
+        for (AccessFlags accessFlag: AccessFlags.values()) {
+            if (accessFlag.validForField && (accessFlagValue & accessFlag.value) != 0) {
+                accessFlags.add(accessFlag);
+            }
+        }
+        return accessFlags;
+    }
+
+    public static AccessFlags getAccessFlag(String accessFlag) {
+        return accessFlagsByName.get(accessFlag);
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public String toString() {
+        return accessFlagName;
     }
 }

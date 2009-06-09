@@ -248,7 +248,7 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
         }
 
         public boolean isStatic() {
-            return (accessFlags.getCachedValue() & AccessFlags.STATIC) != 0;
+            return (accessFlags.getCachedValue() & AccessFlags.STATIC.getValue()) != 0;
         }
 
         public FieldIdItem getField() {
@@ -303,7 +303,8 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
         }
 
         public boolean isDirect() {
-            return ((accessFlags.getCachedValue() & (AccessFlags.STATIC | AccessFlags.PRIVATE | AccessFlags.CONSTRUCTOR)) != 0);
+            return ((accessFlags.getCachedValue() & (AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
+                    AccessFlags.CONSTRUCTOR.getValue())) != 0);
         }
     }
 
