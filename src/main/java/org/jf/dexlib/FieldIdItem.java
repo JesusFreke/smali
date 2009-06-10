@@ -64,6 +64,10 @@ public class FieldIdItem extends IndexedItem<FieldIdItem> {
         return ItemType.TYPE_FIELD_ID_ITEM;
     }
 
+    public StringIdItem getFieldName() {
+        return fieldNameReferenceField.getReference();
+    }
+
     public String getConciseIdentity() {
         String parentClass = classTypeReferenceField.getReference().getTypeDescriptor();
         //strip off the leading L and trailing ;

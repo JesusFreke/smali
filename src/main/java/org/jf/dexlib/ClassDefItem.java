@@ -35,6 +35,7 @@ import org.jf.dexlib.util.TypeUtils;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ClassDefItem extends IndexedItem<ClassDefItem> {
     private final IndexedItemReference<TypeIdItem> classTypeReferenceField;
@@ -112,6 +113,23 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return classTypeReferenceField.getReference().getTypeDescriptor();
     }
 
+    public int getAccessFlags() {
+        return accessFlagsField.getCachedValue();
+    }
+
+    public List<TypeIdItem> getInterfaces() {
+        TypeListItem interfaceList = classInterfacesListReferenceField.getReference();
+        if (interfaceList == null) {
+            return null;
+        }
+
+        return interfaceList.getTypes();
+    }
+
+    public ClassDataItem getClassData() {
+        return classDataReferenceField.getReference();
+    }
+
     public String getConciseIdentity() {
         return "class_def_item: " + getClassName();
     }
@@ -156,7 +174,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
             for (int i=staticFieldInitialValuesList.size(); i < fieldIndex; i++) {
                 ClassDataItem.EncodedField staticField = classDataItem.getStaticFieldAtIndex(i);
                 EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile,
-                        staticField.getField().getFieldType().getTypeDescriptor());
+                        staticField.getFieldReference().getFieldType().getTypeDescriptor());
                 EncodedValue encodedValue = new EncodedValue(dexFile, subField);
                 staticFieldInitialValuesList.add(i, encodedValue);
             }

@@ -77,6 +77,10 @@ public class MethodIdItem extends IndexedItem<MethodIdItem> {
         return cachedMethodString;
     }
 
+    public ProtoIdItem getPrototype() {
+        return prototypeReferenceField.getReference();
+    }
+
     public String getMethodName() {
         return methodNameReferenceField.getReference().getStringValue();
     }

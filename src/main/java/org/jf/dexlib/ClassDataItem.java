@@ -33,6 +33,7 @@ import org.jf.dexlib.util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class ClassDataItem extends OffsettedItem<ClassDataItem> {
     private final ArrayList<EncodedField> staticFieldList = new ArrayList<EncodedField>();
@@ -105,6 +106,23 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
         }
     }
 
+    public List<EncodedField> getStaticFields() {
+        return (List<EncodedField>)staticFieldList.clone();
+    }
+
+    public List<EncodedField> getInstanceFields() {
+        return (List<EncodedField>)instanceFieldList.clone();
+    }
+
+    public List<EncodedMethod> getDirectMethods() {
+        return (List<EncodedMethod>)directMethodList.clone();
+    }
+
+    public List<EncodedMethod> getVirtualMethods() {
+        return (List<EncodedMethod>)virtualMethodList.clone();
+    }                                      
+
+    //TODO: GROT
     public EncodedField getStaticFieldAtIndex(int i)
     {
         return staticFieldList.get(i);
@@ -206,9 +224,9 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
     }
 
     public static class EncodedField extends EncodedMember<EncodedField> {
-        private final IndexedItemReference<FieldIdItem> field;
+        private final IndexedItemReference<FieldIdItem> fieldReferenceField;
         private final Leb128DeltaField fieldIndexField;
-        private final Leb128Field accessFlags;
+        private final Leb128Field accessFlagsField;
 
         public EncodedField(DexFile dexFile, final EncodedField previousField) {
             super("encoded_field");
@@ -219,18 +237,18 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
 
 
             fields = new Field[] {
-                    field = new IndexedItemReference<FieldIdItem>(dexFile.FieldIdsSection,
+                    fieldReferenceField = new IndexedItemReference<FieldIdItem>(dexFile.FieldIdsSection,
                             fieldIndexField = new Leb128DeltaField(previousIndexField, null), "field_idx_diff"),
-                    accessFlags = new Leb128Field("access_flags")
+                    accessFlagsField = new Leb128Field("access_flags")
             };
         }
 
         public EncodedField(DexFile dexFile, FieldIdItem field, int accessFlags) {
             super("encoded_field");
             fields = new Field[] {
-                    this.field = new IndexedItemReference<FieldIdItem>(dexFile, field,
+                    this.fieldReferenceField = new IndexedItemReference<FieldIdItem>(dexFile, field,
                             fieldIndexField = new Leb128DeltaField(null), "field_idx_diff"),
-                    this.accessFlags = new Leb128Field(accessFlags, "access_flags")                    
+                    this.accessFlagsField = new Leb128Field(accessFlags, "access_flags")
             };
         }
 
@@ -244,23 +262,27 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
 
         public int compareTo(EncodedField other)
         {
-            return field.getReference().compareTo(other.field.getReference());
+            return fieldReferenceField.getReference().compareTo(other.fieldReferenceField.getReference());
         }
 
         public boolean isStatic() {
-            return (accessFlags.getCachedValue() & AccessFlags.STATIC.getValue()) != 0;
+            return (accessFlagsField.getCachedValue() & AccessFlags.STATIC.getValue()) != 0;
         }
 
-        public FieldIdItem getField() {
-            return field.getReference();
+        public FieldIdItem getFieldReference() {
+            return fieldReferenceField.getReference();
+        }
+
+        public int getAccessFlags() {
+            return accessFlagsField.getCachedValue();
         }
     }
 
     public static class EncodedMethod extends EncodedMember<EncodedMethod> {
-        private final IndexedItemReference<MethodIdItem> method;
+        private final IndexedItemReference<MethodIdItem> methodReferenceField;
         private final Leb128DeltaField methodIndexField;
-        private final Leb128Field accessFlags;
-        private final OffsettedItemReference<CodeItem> codeItem;
+        private final Leb128Field accessFlagsField;
+        private final OffsettedItemReference<CodeItem> codeItemReferenceField;
 
         public EncodedMethod(DexFile dexFile, final EncodedMethod previousMethod) {
             super("encedod_method");
@@ -270,10 +292,10 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
             }
 
             fields = new Field[] {
-                    method = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection,
+                    methodReferenceField = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection,
                             methodIndexField = new Leb128DeltaField(previousIndexField, null), "method_idx_diff"),
-                    accessFlags = new Leb128Field("access_flags"),
-                    codeItem = new OffsettedItemReference<CodeItem>(dexFile.CodeItemsSection,
+                    accessFlagsField = new Leb128Field("access_flags"),
+                    codeItemReferenceField = new OffsettedItemReference<CodeItem>(dexFile.CodeItemsSection,
                             new Leb128Field(null), "code_off")
             };
         }
@@ -281,10 +303,10 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
         public EncodedMethod(DexFile dexFile, MethodIdItem methodIdItem, int accessFlags, CodeItem codeItem) {
             super("encoded_method");
             fields = new Field[] {
-                    this.method = new IndexedItemReference<MethodIdItem>(dexFile, methodIdItem,
+                    this.methodReferenceField = new IndexedItemReference<MethodIdItem>(dexFile, methodIdItem,
                             methodIndexField = new Leb128DeltaField(null), "method_idx_diff"),
-                    this.accessFlags = new Leb128Field(accessFlags, "access_flags"),
-                    this.codeItem = new OffsettedItemReference<CodeItem>(dexFile, codeItem,
+                    this.accessFlagsField = new Leb128Field(accessFlags, "access_flags"),
+                    this.codeItemReferenceField = new OffsettedItemReference<CodeItem>(dexFile, codeItem,
                             new Leb128Field(null), "code_off")
             };
         }
@@ -297,14 +319,25 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
             }
         }
 
-        public int compareTo(EncodedMethod other)
-        {
-            return method.getReference().compareTo(other.method.getReference());
+        public int compareTo(EncodedMethod other) {
+            return methodReferenceField.getReference().compareTo(other.methodReferenceField.getReference());
         }
 
         public boolean isDirect() {
-            return ((accessFlags.getCachedValue() & (AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
+            return ((accessFlagsField.getCachedValue() & (AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
                     AccessFlags.CONSTRUCTOR.getValue())) != 0);
+        }
+
+        public int getAccessFlags() {
+            return accessFlagsField.getCachedValue();
+        }
+
+        public MethodIdItem getMethod() {
+            return methodReferenceField.getReference();
+        }
+
+        public CodeItem getCodeItem() {
+            return codeItemReferenceField.getReference();
         }
     }
 
