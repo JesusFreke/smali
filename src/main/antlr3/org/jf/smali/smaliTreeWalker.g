@@ -135,6 +135,7 @@ smali_file
 header	returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem sourceSpec]
 :	class_spec super_spec implements_list source_spec
 	{
+		//TODO: if a class has no fields or methods, it shouldn't have a ClassDataItem
 		classDataItem = new ClassDataItem(dexFile, 0);
 		classDefItem = new ClassDefItem(dexFile, $class_spec.type, $class_spec.accessFlags, 
 			$super_spec.type, $implements_list.implementsList, $source_spec.source, classDataItem);
