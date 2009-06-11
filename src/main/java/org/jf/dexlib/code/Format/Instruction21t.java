@@ -31,42 +31,62 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format22x extends Format
+public class Instruction21t extends Instruction
 {
-    public static final Format22x Format = new Format22x();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    private Format22x() {
-    }
-
-    public Instruction make(DexFile dexFile, byte opcode, short regA, int regB) {
-        byte[] bytes = new byte[4];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
+    public Instruction21t(DexFile dexFile, Opcode opcode, short regA, short offB) {
+        super(dexFile, opcode, (IndexedItem)null);
 
         if (regA >= 1<<8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        if (regB >= 1<<16) {
-            throw new RuntimeException("The register number must be less than v65536");
+        if (offB == 0) {
+            throw new RuntimeException("The offset cannot be 0.");
         }
 
-        bytes[0] = opcode;
-        bytes[1] = (byte)regA;
-        bytes[2] = (byte)regB;
-        bytes[3] = (byte)(regB >> 8);
-
-        return new Instruction(dexFile, bytes, null);
+        encodedInstruction = new byte[4];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)regA;
+        encodedInstruction[2] = (byte)offB;
+        encodedInstruction[3] = (byte)(offB >> 8);
     }
 
-    public int getByteCount() {
-        return 4;
+    private Instruction21t(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+
+        if (getOffset() == 0) {
+            throw new RuntimeException("The offset cannot be 0.");
+        }
     }
 
-    public String getFormatName() {
-        return "22x";
+    private Instruction21t() {
+    }
+
+    public Format getFormat() {
+        return Format.Format21t;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction21t();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction21t(dexFile, opcode, rest);
+        }
+    }
+
+
+    public short getRegister() {
+        return NumberUtils.decodeUnsignedByte(encodedInstruction[1]);
+    }
+
+    public short getOffset() {
+        return NumberUtils.decodeShort(encodedInstruction[2], encodedInstruction[3]);
     }
 }

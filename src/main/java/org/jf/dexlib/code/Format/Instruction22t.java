@@ -31,26 +31,18 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format22t extends Format
+public class Instruction22t extends Instruction
 {
-    public static final Format22t Format = new Format22t();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    private Format22t() {
-    }
+    public Instruction22t(DexFile dexFile, Opcode opcode, byte regA, byte regB, short offC) {
+        super(dexFile, opcode, (IndexedItem)null);
 
-    public Instruction make(DexFile dexFile, byte opcode, byte regA, byte regB, short offC) {
-        byte[] bytes = new byte[4];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
-
-        if (regA >= 1<<4) {
-            throw new RuntimeException("The register number must be less than v16");
-        }
-
-        if (regB >= 1<<4) {
+        if (regA >= 1<<4 ||
+            regB >= 1<<4) {
             throw new RuntimeException("The register number must be less than v16");
         }
 
@@ -58,19 +50,48 @@ public class Format22t extends Format
             throw new RuntimeException("The offset cannot be 0.");
         }
 
-        bytes[0] = opcode;
-        bytes[1] = (byte)((regB << 4) | regA);
-        bytes[2] = (byte)offC;
-        bytes[3] = (byte)(offC >> 8);
-
-        return new Instruction(dexFile, bytes, null);
+        encodedInstruction = new byte[4];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)((regB << 4) | regA);
+        encodedInstruction[2] = (byte)offC;
+        encodedInstruction[3] = (byte)(offC >> 8);
     }
 
-    public int getByteCount() {
-        return 4;
+    private Instruction22t(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+
+        if (getOffset() == 0) {
+            throw new RuntimeException("The offset cannot be 0.");
+        }
     }
 
-    public String getFormatName() {
-        return "22t";
+    private Instruction22t() {
+    }
+
+    public Format getFormat() {
+        return Format.Format22t;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction22t();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction22t(dexFile, opcode, rest);
+        }
+    }
+
+
+    public byte getRegisterA() {
+        return NumberUtils.decodeLowUnsignedNibble(encodedInstruction[1]);
+    }
+
+    public byte getRegisterB() {
+        return NumberUtils.decodeHighUnsignedNibble(encodedInstruction[1]);
+    }
+
+    public short getOffset() {
+        return NumberUtils.decodeShort(encodedInstruction[2], encodedInstruction[3]);
     }
 }

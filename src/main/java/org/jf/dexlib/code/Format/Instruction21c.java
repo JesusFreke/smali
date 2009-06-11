@@ -31,46 +31,58 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format23x extends Format
+public class Instruction21c extends Instruction
 {
-    public static final Format23x Format = new Format23x();
-
-    private Format23x() {
-    }
-
-    public Instruction make(DexFile dexFile, byte opcode, short regA, short regB, short regC) {
-        byte[] bytes = new byte[4];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
+    public static final Instruction.InstructionFactory Factory = new Factory();
+    
+    public Instruction21c(DexFile dexFile, Opcode opcode, short regA, IndexedItem item) {
+        super(dexFile, opcode, item);
 
         if (regA >= 1<<8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        if (regB >= 1<<8) {
-            throw new RuntimeException("The register number must be less than v256");
+        if (opcode == Opcode.NEW_INSTANCE && ((TypeIdItem)item).getTypeDescriptor().charAt(0) != 'L') {
+            throw new RuntimeException("Only class references can be used with the new-instance opcode");
         }
 
-        if (regC >= 1<<8) {
-            throw new RuntimeException("The register number must be less than v256");
+        encodedInstruction = new byte[4];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)regA;
+        //the item index will be set later, during placement/writing
+    }
+
+    private Instruction21c(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+
+        if (opcode == Opcode.NEW_INSTANCE && ((TypeIdItem)this.getReferencedItem()).getTypeDescriptor().charAt(0) != 'L') {
+            throw new RuntimeException("Only class references can be used with the new-instance opcode");
         }
-
-        bytes[0] = opcode;
-        bytes[1] = (byte)regA;
-        bytes[2] = (byte)regB;
-        bytes[3] = (byte)regC;
-
-        return new Instruction(dexFile, bytes, null);
     }
 
-    public int getByteCount() {
-        return 4;
+    private Instruction21c() {
     }
 
-    public String getFormatName() {
-        return "23x";
+    public Format getFormat() {
+        return Format.Format21c;
     }
+
+    protected Instruction makeClone() {
+        return new Instruction21c();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction21c(dexFile, opcode, rest);
+        }
+    }
+
+
+    public short getRegister() {
+        return NumberUtils.decodeUnsignedByte(encodedInstruction[1]);
+    }   
 }

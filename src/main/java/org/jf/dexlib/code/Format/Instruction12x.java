@@ -29,40 +29,55 @@
 package org.jf.dexlib.code.Format;
 
 import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class PackedSwitchData
+public class Instruction12x extends Instruction
 {
-    public static Instruction make(DexFile dexFile, int firstKey, int[] targets) {
-        byte[] bytes;
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-        if (targets.length > 0xFFFF) {
-            throw new RuntimeException("The packed-switch data contains too many elements. " +
-                    "The maximum number of switch elements is 65535");
+    public Instruction12x(DexFile dexFile, Opcode opcode, byte regA, byte regB) {
+        super(dexFile, opcode, (IndexedItem)null);
+
+        if (regA >= 1<<4 ||
+            regB >= 1<<4) {
+            throw new RuntimeException("The register number must be less than v16");
         }
 
-        bytes = new byte[targets.length * 4 + 8];
-        int position = 8;
+        encodedInstruction = new byte[2];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)((regB << 4) | regA);
+    }
 
-        for (int target: targets) {
-            bytes[position++] = (byte)target;
-            bytes[position++] = (byte)(target >> 8);
-            bytes[position++] = (byte)(target >> 16);
-            bytes[position++] = (byte)(target >> 24);
+    private Instruction12x(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+    }
+
+    private Instruction12x() {
+    }
+
+    public Format getFormat() {
+        return Format.Format12x;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction12x();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction12x(dexFile, opcode, rest);
         }
+    }
 
-        //packed-switch psuedo-opcode
-        bytes[0] = 0x00;
-        bytes[1] = 0x01;
 
-        bytes[2] = (byte)targets.length;
-        bytes[3] = (byte)(targets.length >> 8);
+    public byte getRegisterA() {
+        return NumberUtils.decodeLowUnsignedNibble(encodedInstruction[1]);
+    }
 
-        bytes[4] = (byte)firstKey;
-        bytes[5] = (byte)(firstKey >> 8);
-        bytes[6] = (byte)(firstKey >> 16);
-        bytes[7] = (byte)(firstKey >> 24);
-
-        return new Instruction(dexFile, bytes, null);
+    public byte getRegisterB() {
+        return NumberUtils.decodeHighUnsignedNibble(encodedInstruction[1]);
     }
 }

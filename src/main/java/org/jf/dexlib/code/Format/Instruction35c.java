@@ -29,27 +29,23 @@
 package org.jf.dexlib.code.Format;
 
 import org.jf.dexlib.*;
+import org.jf.dexlib.util.NumberUtils;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import static org.jf.dexlib.code.Opcode.*;
 
-public class Format35c extends Format
+public class Instruction35c extends Instruction
 {
-    public static final Format35c Format = new Format35c();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    private Format35c() {
-    }
-
-    public Instruction make(DexFile dexFile, byte opcode, byte regCount, byte regD, byte regE, byte regF, byte regG, byte regA, IndexedItem item) {
-        byte[] bytes = new byte[6];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
+    public Instruction35c(DexFile dexFile, Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
+                     byte regA, IndexedItem item) {
+        super(dexFile, opcode, item);
 
         if (regCount > 5) {
             throw new RuntimeException("regCount cannot be greater than 5");
         }
+        
         if (regD >= 1<<4 ||
             regE >= 1<<4 ||
             regF >= 1<<4 ||
@@ -58,16 +54,73 @@ public class Format35c extends Format
             throw new RuntimeException("All register args must fit in 4 bits");
         }
 
-        bytes[0] = opcode;
-        bytes[1] = (byte)((regCount << 4) | regA);
-        bytes[4] = (byte)((regE << 4) | regD);
-        bytes[5] = (byte)((regG << 4) | regF);
+        encodedInstruction = new byte[6];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)((regCount << 4) | regA);
+        //the item index will be set later, during placement/writing        
+        encodedInstruction[4] = (byte)((regE << 4) | regD);
+        encodedInstruction[5] = (byte)((regG << 4) | regF);
 
-        //go ahead and make the instruction, to verify that item is the correct type. If it isn't,
-        //the construction will throw an exception
-        Instruction instruction = new Instruction(dexFile, bytes, item);
+        checkItem();
+    }
 
-        if (opcode == FILLED_NEW_ARRAY.value) {
+    private Instruction35c(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+
+        if (getRegCount() > 5) {
+            throw new RuntimeException("regCount cannot be greater than 5");
+        }
+
+        checkItem();
+    }
+
+    private Instruction35c() {
+    }
+
+    public Format getFormat() {
+        return Format.Format35c;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction35c();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction35c(dexFile, opcode, rest);
+        }
+    }
+
+
+    public byte getRegisterA() {
+        return NumberUtils.decodeLowUnsignedNibble(encodedInstruction[1]);
+    }
+
+    public byte getRegCount() {
+        return NumberUtils.decodeHighUnsignedNibble(encodedInstruction[1]);
+    }
+
+    public byte getRegisterD() {
+        return NumberUtils.decodeLowUnsignedNibble(encodedInstruction[4]);
+    }
+
+    public byte getRegisterE() {
+        return NumberUtils.decodeHighUnsignedNibble(encodedInstruction[4]);
+    }
+
+    public byte getRegisterF() {
+        return NumberUtils.decodeLowUnsignedNibble(encodedInstruction[5]);
+    }
+
+    public byte getRegisterG() {
+        return NumberUtils.decodeLowUnsignedNibble(encodedInstruction[5]);
+    }
+
+    private void checkItem() {
+        Opcode opcode = getOpcode();
+        IndexedItem item = getReferencedItem();
+
+        if (opcode == FILLED_NEW_ARRAY) {
             //check data for filled-new-array opcode
             String type = ((TypeIdItem)item).getTypeDescriptor();
             if (type.charAt(0) != '[') {
@@ -76,39 +129,13 @@ public class Format35c extends Format
             if (type.charAt(1) == 'J' || type.charAt(1) == 'D') {
                 throw new RuntimeException("The type cannot be an array of longs or doubles");
             }
-        } else if (opcode >= INVOKE_VIRTUAL.value && opcode <= INVOKE_INTERFACE.value) {
+        } else if (opcode.value >= INVOKE_VIRTUAL.value && opcode.value <= INVOKE_INTERFACE.value) {
             //check data for invoke-* opcodes
             MethodIdItem methodIdItem = (MethodIdItem)item;
-            if (methodIdItem.getParameterRegisterCount(opcode == INVOKE_STATIC.value) != regCount) {
+            if (methodIdItem.getParameterRegisterCount(opcode == INVOKE_STATIC) != getRegCount()) {
                 throw new RuntimeException("regCount does not match the number of arguments of the method");
             }
-        } else {
-            throw new RuntimeException("Opcode " + Integer.toHexString(opcode) + " does not use the 35c format");
         }
-
-        return instruction;
     }
 
-    public int getByteCount() {
-        return 6;
-    }
-
-    public String getFormatName() {
-        return "35c";
-    }
-
-    /*@Test
-    public void testInvoke() {
-        DexFile dexFile = new DexFile();
-        ArrayList<TypeIdItem> types = new ArrayList<TypeIdItem>();
-        types.add(new TypeIdItem(dexFile, "I"));
-        types.add(new TypeIdItem(dexFile, "I"));
-        types.add(new TypeIdItem(dexFile, "I"));
-        types.add(new TypeIdItem(dexFile, "I"));
-        types.add(new TypeIdItem(dexFile, "I"));
-        MethodIdItem method = new MethodIdItem(dexFile, new TypeIdItem(dexFile, "test"), "test", new ProtoIdItem(dexFile, new TypeIdItem(dexFile, "V"), types));
-
-        Instruction ins = make(dexFile, (byte)INVOKE_VIRTUAL.value, (byte)5, (byte)0, (byte)1, (byte)2, (byte)3, (byte)4, method);
-        assertTrue("Is everything put in the right place?", java.util.Arrays.equals(ins.getBytes(), new byte[] {0x6e, 0x54, 0x00, 0x00, 0x10, 0x32}));
-    }*/
 }

@@ -32,36 +32,53 @@ import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format31c extends Format
+public class Instruction21h extends Instruction
 {
-    public static final Format31c Format = new Format31c();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    private Format31c() {
-    }
-
-    public Instruction make(DexFile dexFile, byte opcode, short regA, IndexedItem item) {
-        byte[] bytes = new byte[6];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
+    public Instruction21h(DexFile dexFile, Opcode opcode, short regA, short litB) {
+        super(dexFile, opcode, (IndexedItem)null);
 
         if (regA >= 1<<8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        bytes[0] = opcode;
-        bytes[1] = (byte)regA;
-
-        return new Instruction(dexFile, bytes, item);
+        encodedInstruction = new byte[4];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)regA;
+        encodedInstruction[2] = (byte)litB;
+        encodedInstruction[3] = (byte)(litB >> 8);
     }
 
-    public int getByteCount() {
-        return 6;
+    private Instruction21h(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
     }
 
-    public String getFormatName() {
-        return "31c";
+    private Instruction21h() {
+    }
+
+    public Format getFormat() {
+        return Format.Format21h;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction21h();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction21h(dexFile, opcode, rest);
+        }
+    }
+
+
+    public short getRegister() {
+        return NumberUtils.decodeUnsignedByte(encodedInstruction[1]);
+    }
+
+    public short getLiteral() {
+        return NumberUtils.decodeShort(encodedInstruction[2], encodedInstruction[3]);
     }
 }

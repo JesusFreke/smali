@@ -323,92 +323,92 @@ instruction returns [int size]
 	@init {boolean needsNop = false; int targetCount = 0;}
 	:	//e.g. goto endloop:
 		//e.g. goto +3
-		INSTRUCTION_FORMAT10t (LABEL | OFFSET) {$size = Format10t.Format.getByteCount();}
+		INSTRUCTION_FORMAT10t (LABEL | OFFSET) {$size = Format.Format10t.size;}
 		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t LABEL? OFFSET?)
 	|	//e.g. return
-		INSTRUCTION_FORMAT10x {$size = Format10x.Format.getByteCount();}
+		INSTRUCTION_FORMAT10x {$size = Format.Format10x.size;}
 		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x)
 	|	//e.g. const/4 v0, 5
-		INSTRUCTION_FORMAT11n REGISTER integral_literal {$size = Format11n.Format.getByteCount();}
+		INSTRUCTION_FORMAT11n REGISTER integral_literal {$size = Format.Format11n.size;}
 		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STARTMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER integral_literal)
 	|	//e.g. move-result-object v1
-		INSTRUCTION_FORMAT11x REGISTER {$size = Format11x.Format.getByteCount();}
+		INSTRUCTION_FORMAT11x REGISTER {$size = Format.Format11x.size;}
 		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_FORMAT11x REGISTER)
 	|	//e.g. move v1 v2
-		INSTRUCTION_FORMAT12x REGISTER REGISTER {$size = Format12x.Format.getByteCount();}
+		INSTRUCTION_FORMAT12x REGISTER REGISTER {$size = Format.Format12x.size;}
 		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] INSTRUCTION_FORMAT12x REGISTER REGISTER)		
 	|	//e.g. goto/16 endloop:
-		INSTRUCTION_FORMAT20t (LABEL | OFFSET) {$size = Format20t.Format.getByteCount();}
+		INSTRUCTION_FORMAT20t (LABEL | OFFSET) {$size = Format.Format20t.size;}
 		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t LABEL? OFFSET?)
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
-		INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field {$size = Format21c.Format.getByteCount();}
+		INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
 	|	//e.g. const-string v1 "Hello World!"
-		INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL {$size = Format21c.Format.getByteCount();}
+		INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL)
 	|	//e.g. const-class v2 org/jf/HelloWorld2/HelloWorld2
-		INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor {$size = Format21c.Format.getByteCount();}
+		INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 	|	//e.g. const/high16 v1, 1234
-		INSTRUCTION_FORMAT21h REGISTER integral_literal {$size = Format21h.Format.getByteCount();}
+		INSTRUCTION_FORMAT21h REGISTER integral_literal {$size = Format.Format21h.size;}
 		-> ^(I_STATEMENT_FORMAT21h[$start, "I_STATEMENT_FORMAT21h"] INSTRUCTION_FORMAT21h REGISTER integral_literal)
 	|	//e.g. const/16 v1, 1234
-		INSTRUCTION_FORMAT21s REGISTER integral_literal {$size = Format21s.Format.getByteCount();}
+		INSTRUCTION_FORMAT21s REGISTER integral_literal {$size = Format.Format21s.size;}
 		-> ^(I_STATEMENT_FORMAT21s[$start, "I_STATEMENT_FORMAT21s"] INSTRUCTION_FORMAT21s REGISTER integral_literal)
 	|	//e.g. if-eqz v0, endloop:
-		INSTRUCTION_FORMAT21t REGISTER (LABEL | OFFSET) {$size = Format21t.Format.getByteCount();}	
+		INSTRUCTION_FORMAT21t REGISTER (LABEL | OFFSET) {$size = Format.Format21t.size;}	
 		-> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER LABEL? OFFSET?)
 	|	//e.g. add-int v0, v1, 123
-		INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal {$size = Format22b.Format.getByteCount();}
+		INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal {$size = Format.Format22b.size;}
 		-> ^(I_STATEMENT_FORMAT22b[$start, "I_STATEMENT_FORMAT22b"] INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal)
 	|	//e.g. iput-object v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format22c.Format.getByteCount();}
+		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format.Format22c.size;}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_STATEMENT_FORMAT22c_FIELD"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
 	|	//e.g. instance-of v0, v1, Ljava/lang/String;
-		INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor {$size = Format22c.Format.getByteCount();}
+		INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor {$size = Format.Format22c.size;}
 		-> ^(I_STATEMENT_FORMAT22c_TYPE[$start, "I_STATEMENT_FORMAT22c_TYPE"] INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
 	|	//e.g. add-int/lit16 v0, v1, 12345
-		INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal {$size = Format22s.Format.getByteCount();}
+		INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal {$size = Format.Format22s.size;}
 		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal)
 	|	//e.g. if-eq v0, v1, endloop:
-		INSTRUCTION_FORMAT22t REGISTER REGISTER (LABEL | OFFSET) {$size = Format22t.Format.getByteCount();}
+		INSTRUCTION_FORMAT22t REGISTER REGISTER (LABEL | OFFSET) {$size = Format.Format22t.size;}
 		-> ^(I_STATEMENT_FORMAT22t[$start, "I_STATEMENT_FFORMAT22t"] INSTRUCTION_FORMAT22t REGISTER REGISTER LABEL? OFFSET?)
 	|	//e.g. move/from16 v1, v1234
-		INSTRUCTION_FORMAT22x REGISTER REGISTER {$size = Format22x.Format.getByteCount();}
+		INSTRUCTION_FORMAT22x REGISTER REGISTER {$size = Format.Format22x.size;}
 		-> ^(I_STATEMENT_FORMAT22x[$start, "I_STATEMENT_FORMAT22x"] INSTRUCTION_FORMAT22x REGISTER REGISTER)
 	|	//e.g. add-int v1, v2, v3
-		INSTRUCTION_FORMAT23x REGISTER REGISTER REGISTER {$size = Format23x.Format.getByteCount();}
+		INSTRUCTION_FORMAT23x REGISTER REGISTER REGISTER {$size = Format.Format23x.size;}
 		-> ^(I_STATEMENT_FORMAT23x[$start, "I_STATEMENT_FORMAT23x"] INSTRUCTION_FORMAT23x REGISTER REGISTER REGISTER)
 	|	//e.g. goto/32 endloop:
-		INSTRUCTION_FORMAT30t (LABEL | OFFSET) {$size = Format30t.Format.getByteCount();}
+		INSTRUCTION_FORMAT30t (LABEL | OFFSET) {$size = Format.Format30t.size;}
 		-> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t LABEL? OFFSET?)
 	|	//e.g. const-string/jumbo v1 "Hello World!"
-		INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL {$size = Format31c.Format.getByteCount();}
+		INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL {$size = Format.Format31c.size;}
 		->^(I_STATEMENT_FORMAT31c[$start, "I_STATEMENT_FORMAT31c"] INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL)	
 	|	//e.g. const v0, 123456
-		INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal {$size = Format31i.Format.getByteCount();}
+		INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal {$size = Format.Format31i.size;}
 		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
 	|	//e.g. fill-array-data v0, ArrayData:
-		INSTRUCTION_FORMAT31t REGISTER (LABEL | OFFSET) {$size = Format31t.Format.getByteCount();}
+		INSTRUCTION_FORMAT31t REGISTER (LABEL | OFFSET) {$size = Format.Format31t.size;}
 		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER LABEL? OFFSET?)
 	|	//e.g. move/16 v4567, v1234
-		INSTRUCTION_FORMAT32x REGISTER REGISTER {$size = Format32x.Format.getByteCount();}
+		INSTRUCTION_FORMAT32x REGISTER REGISTER {$size = Format.Format32x.size;}
 		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER)		
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACKET register_list CLOSE_BRACKET fully_qualified_method {$size = Format35c.Format.getByteCount();}
+		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACKET register_list CLOSE_BRACKET fully_qualified_method {$size = Format.Format35c.size;}
 		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
 	|	//e.g. filled-new-array {v0,v1}, I
-		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACKET register_list CLOSE_BRACKET nonvoid_type_descriptor {$size = Format35c.Format.getByteCount();}
+		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACKET register_list CLOSE_BRACKET nonvoid_type_descriptor {$size = Format.Format35c.size;}
 		-> ^(I_STATEMENT_FORMAT35c_TYPE[$start, "I_STATEMENT_FORMAT35c_TYPE"] INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method {$size = Format3rc.Format.getByteCount();}
+		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
 	|	//e.g. filled-new-array/range {v0..v6} I
-		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACKET register_range CLOSE_BRACKET nonvoid_type_descriptor {$size = Format3rc.Format.getByteCount();}
+		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACKET register_range CLOSE_BRACKET nonvoid_type_descriptor {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
 	|	//e.g. const-wide v0, 5000000000L
-		INSTRUCTION_FORMAT51l REGISTER fixed_literal {$size = Format51l.Format.getByteCount();}
-		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)		
+		INSTRUCTION_FORMAT51l REGISTER fixed_literal {$size = Format.Format51l.size;}
+		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)
 	|	
 		ARRAY_DATA_DIRECTIVE
 		{	

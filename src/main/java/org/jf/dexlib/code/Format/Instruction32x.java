@@ -31,37 +31,56 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format30t extends Format
+public class Instruction32x extends Instruction
 {
-    public static final Format30t Format = new Format30t();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    private Format30t() {
+    public Instruction32x(DexFile dexFile, Opcode opcode, int regA, int regB) {
+        super(dexFile, opcode, (IndexedItem)null);
+
+        if (regA >= 1<<16 ||
+            regB >= 1<<16) {
+            throw new RuntimeException("The register number must be less than v65536");
+        }
+
+        encodedInstruction = new byte[6];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[2] = (byte)regA;
+        encodedInstruction[3] = (byte)(regA >> 8);
+        encodedInstruction[4] = (byte)regB;
+        encodedInstruction[5] = (byte)(regB >> 8);
     }
 
-    public Instruction make(DexFile dexFile, byte opcode, int offA) {
-        byte[] bytes = new byte[6];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
-
-        bytes[0] = opcode;
-        bytes[2] = (byte)offA;
-        bytes[3] = (byte)(offA >> 8);
-        bytes[4] = (byte)(offA >> 16);
-        bytes[5] = (byte)(offA >> 24);
-
-        return new Instruction(dexFile, bytes, null);
+    private Instruction32x(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
     }
 
-    public int getByteCount()
-    {
-        return 6;
+    private Instruction32x() {
     }
 
-    public String getFormatName()
-    {
-        return "30t";
+    public Format getFormat() {
+        return Format.Format32x;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction32x();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction32x(dexFile, opcode, rest);
+        }
+    }
+
+
+    public int getRegisterA() {
+        return NumberUtils.decodeUnsignedShort(encodedInstruction[2], encodedInstruction[3]);
+    }
+
+    public int getRegisterB() {
+        return NumberUtils.decodeUnsignedShort(encodedInstruction[4], encodedInstruction[5]);
     }
 }

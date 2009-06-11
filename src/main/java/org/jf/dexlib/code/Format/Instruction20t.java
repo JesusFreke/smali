@@ -31,33 +31,53 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format10t extends Format
+public class Instruction20t extends Instruction
 {
-    public static final Format10t Format = new Format10t();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    private Format10t() {
-    }
+    public Instruction20t(DexFile dexFile, Opcode opcode, short offA) {
+        super(dexFile, opcode, (IndexedItem)null);
 
-    public Instruction make(DexFile dexFile, byte opcode, byte offA) {
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
-        
         if (offA == 0) {
             throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
         }
 
-        return new Instruction(dexFile, new byte[]{opcode,offA}, null);
+        encodedInstruction = new byte[4];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[2] = (byte)offA;
+        encodedInstruction[3] = (byte)(offA>>8);
     }
 
-    public int getByteCount()
-    {
-        return 2;
+    private Instruction20t(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+
+        if (getOffset() == 0) {
+            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
+        }
     }
 
-    public String getFormatName()
-    {
-        return "10t";
+    private Instruction20t() {
+    }
+
+    public Format getFormat() {
+        return Format.Format20t;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction20t();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction20t(dexFile, opcode, rest);
+        }
+    }
+
+
+    public short getOffset() {
+        return NumberUtils.decodeShort(encodedInstruction[2], encodedInstruction[3]);
     }
 }

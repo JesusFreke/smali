@@ -30,6 +30,7 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
+import org.jf.dexlib.code.InstructionField;
 import org.jf.dexlib.ItemType;
 import org.jf.dexlib.util.Input;
 import org.jf.dexlib.util.AnnotatedOutput;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.HashMap;
 
 public class CodeItem extends OffsettedItem<CodeItem> {
-    private final ArrayList<Instruction> instructionList;
+    private final ArrayList<InstructionField> instructionList;
     private final ArrayList<TryItem> tryItems = new ArrayList<TryItem>();
     private final ArrayList<EncodedCatchHandler> catchHandlerList = new ArrayList<EncodedCatchHandler>();
 
@@ -57,7 +58,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     public CodeItem(final DexFile dexFile, int offset) {
         super(offset);
 
-        instructionList = new ArrayList<Instruction>();
+        instructionList = new ArrayList<InstructionField>();
 
         fields = new Field[] {
                 registersCountField = new ShortIntegerField("registers_size"),
@@ -82,7 +83,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     public CodeItem(final DexFile dexFile,
                     int registersCount,
                     int inArguments,
-                    List<Instruction> instructions,
+                    List<InstructionField> instructions,
                     DebugInfoItem debugInfo,
                     List<TryItem> tries,
                     List<EncodedCatchHandler> handlers) {
@@ -447,7 +448,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
         public void writeTo(AnnotatedOutput out) {
             int startPosition = out.getCursor();
-            for (Instruction instruction: instructionList) {
+            for (InstructionField instruction: instructionList) {
                 instruction.writeTo(out);
             }
             if ((out.getCursor() - startPosition) != (instructionsSizeField.getCachedValue() * 2)) {
@@ -460,7 +461,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             int startPosition = in.getCursor();
 
             do {
-                Instruction instruction = new Instruction(dexFile);
+                InstructionField instruction = new InstructionField(dexFile);
                 instruction.readFrom(in);
                 instructionList.add(instruction);
             } while (in.getCursor() - startPosition < numBytes);
@@ -475,23 +476,23 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         }
 
         public void copyTo(DexFile dexFile, InstructionListField copy) {
-            ArrayList<Instruction> copyInstructionList = copy.getInstructionList();
+            ArrayList<InstructionField> copyInstructionList = copy.getInstructionList();
             copyInstructionList.clear();
-            for (Instruction instruction: instructionList) {
-                Instruction instructionCopy = new Instruction(dexFile);
+            for (InstructionField instruction: instructionList) {
+                InstructionField instructionCopy = new InstructionField(dexFile);
                 instruction.copyTo(dexFile, instructionCopy);
                 copyInstructionList.add(instructionCopy);
             }
         }
 
-        private ArrayList<Instruction> getInstructionList() {
+        private ArrayList<InstructionField> getInstructionList() {
             return instructionList;
         }
 
         //return the word size of the instruction list
         public int getInstructionWordCount() {
             int bytes = 0;
-            for (Instruction instruction: instructionList) {
+            for (InstructionField instruction: instructionList) {
                 bytes += instruction.getSize(bytes);
             }
             return bytes/2;
@@ -500,11 +501,11 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         //return the highest parameter word count of any method invokation
         public int getOutArguments() {
             int maxParamWordCount = 0;
-            for (Instruction instruction: instructionList) {
-                IndexedItem item = instruction.getReference();
+            for (InstructionField instruction: instructionList) {
+                IndexedItem item = instruction.getInstruction().getReferencedItem();
                 if (item instanceof MethodIdItem) {
                     MethodIdItem methodIdItem = (MethodIdItem)item;
-                    Opcode opcode = instruction.getOpcode();
+                    Opcode opcode = instruction.getInstruction().getOpcode();
 
                     boolean isStatic = false;
                     if (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) {

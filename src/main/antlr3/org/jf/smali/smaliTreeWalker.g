@@ -401,7 +401,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			annotations
 		)
 	{	
-		ArrayList<Instruction> instructions = $statements.instructions;
+		ArrayList<InstructionField> instructions = $statements.instructions;
 		
 		Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> temp = $method::tryList.encodeTries(dexFile);
 		List<CodeItem.TryItem> tries = temp.first;
@@ -640,16 +640,16 @@ source
 			$method::debugInfo.addSetFile($address.address, $string_literal.value);
 		};
 
-statements[int totalMethodRegisters, int methodParameterRegisters] returns[ArrayList<Instruction> instructions]
+statements[int totalMethodRegisters, int methodParameterRegisters] returns[ArrayList<InstructionField> instructions]
 	@init
 	{
-		$instructions = new ArrayList<Instruction>();
+		$instructions = new ArrayList<InstructionField>();
 	}
 	:	^(I_STATEMENTS	(instruction[$totalMethodRegisters, $methodParameterRegisters]
 				{
 					if ($instruction.instruction != null) {
 						$instructions.add($instruction.instruction);
-						$method::currentAddress += $instruction.instruction.getBytes().length/2;
+						$method::currentAddress += $instruction.instruction.getSize($method::currentAddress) / 2;
 					}
 				})*);
 			
@@ -690,7 +690,7 @@ offset_or_label returns[int offsetValue]
 	:	offset {$offsetValue = $offset.offsetValue;}
 	|	label_ref {$offsetValue = $label_ref.labelAddress-$method::currentAddress;};
 	
-instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Instruction instruction]
+instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[InstructionField instruction]
 	:	//e.g. goto endloop:
 		^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
 		{
@@ -702,13 +702,13 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-128, 127].");
 			}
 			
-			$instruction = Format10t.Format.make(dexFile, opcode.value, (byte)addressOffset);
+			$instruction = new InstructionField(dexFile, new Instruction10t(dexFile, opcode, (byte)addressOffset));
 		}
 	|	//e.g. return
 		^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
-			$instruction = Format10x.Format.make(dexFile, opcode.value);
+			$instruction = new InstructionField(dexFile, new Instruction10x(dexFile, opcode));
 		}
 	|	//e.g. const/4 v0, 5
 		^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER short_integral_literal)
@@ -719,7 +719,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			short litB = $short_integral_literal.value;
 			literalTools.checkNibble(litB);
 			
-			$instruction = Format11n.Format.make(dexFile, opcode.value, regA, (byte)litB);
+			$instruction = new InstructionField(dexFile, new Instruction11n(dexFile, opcode, regA, (byte)litB));
 		}				
 	|	//e.g. move-result-object v1
 		^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
@@ -727,7 +727,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			$instruction = Format11x.Format.make(dexFile, opcode.value, regA);
+			$instruction = new InstructionField(dexFile, new Instruction11x(dexFile, opcode, regA));
 		}
 	|	//e.g. move v1 v2
 		^(I_STATEMENT_FORMAT12x INSTRUCTION_FORMAT12x registerA=REGISTER registerB=REGISTER)
@@ -736,7 +736,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			$instruction = Format12x.Format.make(dexFile, opcode.value, regA, regB);
+			$instruction = new InstructionField(dexFile, new Instruction12x(dexFile, opcode, regA, regB));
 		}
 	|	//e.g. goto/16 endloop:
 		^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)
@@ -749,7 +749,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
-			$instruction = Format20t.Format.make(dexFile, opcode.value, (short)addressOffset);
+			$instruction = new InstructionField(dexFile, new Instruction20t(dexFile, opcode, (short)addressOffset));
 		}
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
 		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
@@ -759,7 +759,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 
-			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, fieldIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction21c(dexFile, opcode, regA, fieldIdItem));
 		}
 	|	//e.g. const-string v1 "Hello World!"
 		^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
@@ -769,7 +769,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
 
-			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, stringIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction21c(dexFile, opcode, regA, stringIdItem));
 		}
 	|	//e.g. const-class v2 org/jf/HelloWorld2/HelloWorld2
 		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
@@ -779,7 +779,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			TypeIdItem typeIdItem = $reference_type_descriptor.type;
 			
-			$instruction = Format21c.Format.make(dexFile, opcode.value, regA, typeIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction21c(dexFile, opcode, regA, typeIdItem));
 		}
 	|	//e.g. const/high16 v1, 1234
 		^(I_STATEMENT_FORMAT21h INSTRUCTION_FORMAT21h REGISTER short_integral_literal)
@@ -789,7 +789,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			short litB = $short_integral_literal.value;
 			
-			$instruction = Format21h.Format.make(dexFile, opcode.value, regA, litB);
+			$instruction = new InstructionField(dexFile, new Instruction21h(dexFile, opcode, regA, litB));
 		}
 	|	//e.g. const/16 v1, 1234
 		^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER short_integral_literal)
@@ -799,7 +799,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			short litB = $short_integral_literal.value;
 			
-			$instruction = Format21s.Format.make(dexFile, opcode.value, regA, litB);
+			$instruction = new InstructionField(dexFile, new Instruction21s(dexFile, opcode, regA, litB));
 		}
 	|	//e.g. if-eqz v0, endloop:
 		^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
@@ -813,7 +813,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
-			$instruction = Format21t.Format.make(dexFile, opcode.value, regA, (short)addressOffset);
+			$instruction = new InstructionField(dexFile, new Instruction21t(dexFile, opcode, regA, (short)addressOffset));
 		}
 	|	//e.g. add-int v0, v1, 123
 		^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER short_integral_literal)
@@ -825,7 +825,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			short litC = $short_integral_literal.value;
 			literalTools.checkByte(litC);
 			
-			$instruction = Format22b.Format.make(dexFile, opcode.value, regA, regB, (byte)litC);
+			$instruction = new InstructionField(dexFile, new Instruction22b(dexFile, opcode, regA, regB, (byte)litC));
 		}
 	|	//e.g. iput-object v1 v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
@@ -836,7 +836,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 			
-			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, fieldIdItem);			
+			$instruction = new InstructionField(dexFile, new Instruction22c(dexFile, opcode, regA, regB, fieldIdItem));
 		}
 	|	//e.g. instance-of v0, v1, Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
@@ -847,7 +847,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 			
-			$instruction = Format22c.Format.make(dexFile, opcode.value, regA, regB, typeIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction22c(dexFile, opcode, regA, regB, typeIdItem));
 		}
 	|	//e.g. add-int/lit16 v0, v1, 12345
 		^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER short_integral_literal)
@@ -858,7 +858,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			short litC = $short_integral_literal.value;
 			
-			$instruction = Format22s.Format.make(dexFile, opcode.value, regA, regB, litC);
+			$instruction = new InstructionField(dexFile, new Instruction22s(dexFile, opcode, regA, regB, litC));
 		}
 	|	//e.g. if-eq v0, v1, endloop:
 		^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
@@ -873,7 +873,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
-			$instruction = Format22t.Format.make(dexFile, opcode.value, regA, regB, (short)addressOffset);
+			$instruction = new InstructionField(dexFile, new Instruction22t(dexFile, opcode, regA, regB, (short)addressOffset));
 		}
 	|	//e.g. move/from16 v1, v1234
 		^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
@@ -882,7 +882,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			$instruction = Format22x.Format.make(dexFile, opcode.value, regA, regB);
+			$instruction = new InstructionField(dexFile, new Instruction22x(dexFile, opcode, regA, regB));
 		}
 	|	//e.g. add-int v1, v2, v3
 		^(I_STATEMENT_FORMAT23x INSTRUCTION_FORMAT23x registerA=REGISTER registerB=REGISTER registerC=REGISTER)
@@ -892,7 +892,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			short regB = parseRegister_byte($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			short regC = parseRegister_byte($registerC.text, $totalMethodRegisters, $methodParameterRegisters);			
 			
-			$instruction = Format23x.Format.make(dexFile, opcode.value, regA, regB, regC);
+			$instruction = new InstructionField(dexFile, new Instruction23x(dexFile, opcode, regA, regB, regC));
 		}
 	|	//e.g. goto/32 endloop:
 		^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
@@ -901,7 +901,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			int addressOffset = $offset_or_label.offsetValue;
 	
-			$instruction = Format30t.Format.make(dexFile, opcode.value, addressOffset);
+			$instruction = new InstructionField(dexFile, new Instruction30t(dexFile, opcode, addressOffset));
 		}
 	|	//e.g. const-string/jumbo v1 "Hello World!"
 		^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
@@ -911,7 +911,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 					
 			StringIdItem stringIdItem = new StringIdItem(dexFile, $string_literal.value);
 			
-			$instruction = Format31c.Format.make(dexFile, opcode.value, regA, stringIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction31c(dexFile, opcode, regA, stringIdItem));
 		}
 	|	//e.g. const v0, 123456
 		^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
@@ -921,7 +921,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			int litB = $fixed_32bit_literal.value;
 			
-			$instruction = Format31i.Format.make(dexFile, opcode.value, regA, litB);
+			$instruction = new InstructionField(dexFile, new Instruction31i(dexFile, opcode, regA, litB));
 		}
 	|	//e.g. fill-array-data v0, ArrayData:
 		^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER offset_or_label)
@@ -935,7 +935,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 				addressOffset++;
 			}
 			
-			$instruction = Format31t.Format.make(dexFile, opcode.value, regA, addressOffset);
+			$instruction = new InstructionField(dexFile, new Instruction31t(dexFile, opcode, regA, addressOffset));
 		}
 	|	//e.g. move/16 v5678, v1234
 		^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
@@ -944,7 +944,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int regA = parseRegister_short($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			$instruction = Format32x.Format.make(dexFile, opcode.value, regA, regB);
+			$instruction = new InstructionField(dexFile, new Instruction32x(dexFile, opcode, regA, regB));
 		}
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
 		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
@@ -957,7 +957,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 			
-			$instruction = Format35c.Format.make(dexFile, opcode.value, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction35c(dexFile, opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem));
 		}
 	|	//e.g. filled-new-array {v0,v1}, I
 		^(I_STATEMENT_FORMAT35c_TYPE INSTRUCTION_FORMAT35c_TYPE register_list[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
@@ -970,7 +970,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 			
-			$instruction = Format35c.Format.make(dexFile, opcode.value, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction35c(dexFile, opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeIdItem));
 		}
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
@@ -990,7 +990,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 
 			//not supported yet
-			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, methodIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction3rc(dexFile, opcode, (short)registerCount, startRegister, methodIdItem));
 		}
 	|	//e.g. filled-new-array/range {v0..v6} I
 		^(I_STATEMENT_FORMAT3rc_TYPE INSTRUCTION_FORMAT3rc_TYPE register_range[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
@@ -1010,7 +1010,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 
 			//not supported yet
-			$instruction = Format3rc.Format.make(dexFile, opcode.value, (short)registerCount, startRegister, typeIdItem);
+			$instruction = new InstructionField(dexFile, new Instruction3rc(dexFile, opcode, (short)registerCount, startRegister, typeIdItem));
 		}	
 	|	//e.g. const-wide v0, 5000000000L
 		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
@@ -1020,7 +1020,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			
 			long litB = $fixed_64bit_literal.value;
 			
-			$instruction = Format51l.Format.make(dexFile, opcode.value, regA, litB);		
+			$instruction = new InstructionField(dexFile, new Instruction51l(dexFile, opcode, regA, litB));		
 		}
 	|	//e.g. .array-data 4 1000000 .end array-data
 		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
@@ -1028,7 +1028,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int elementWidth = $short_integral_literal.value;
 			List<byte[]> byteValues = $array_elements.values;
 			
-			$instruction = ArrayData.make(dexFile, elementWidth, byteValues);
+			$instruction = new InstructionField(dexFile, new ArrayDataPseudoInstruction(dexFile, elementWidth, byteValues));
 		}
 	|
 		
@@ -1037,7 +1037,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int startKey = $fixed_32bit_literal.value;
 			int[] targets = $packed_switch_targets.targets;
 			
-			$instruction = PackedSwitchData.make(dexFile, startKey, targets);			
+			$instruction = new InstructionField(dexFile, new PackedSwitchDataPseudoInstruction(dexFile, startKey, targets));
 		}
 	|
 		^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET base_offset=offset_or_label) sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount] sparse_switch_targets[$base_offset.offsetValue, $sparse_switch_target_count.targetCount])
@@ -1045,7 +1045,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			int[] keys = $sparse_switch_keys.keys;
 			int[] targets = $sparse_switch_targets.targets;
 			
-			$instruction = SparseSwitchData.make(dexFile, keys, targets);			
+			$instruction = new InstructionField(dexFile, new SparseSwitchDataPseudoInstruction(dexFile, keys, targets));
 		};
 		catch [Exception ex] {
 			reportError(new SemanticException(input, ex));

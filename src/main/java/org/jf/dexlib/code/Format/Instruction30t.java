@@ -31,44 +31,48 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format22s extends Format
+public class Instruction30t extends Instruction
 {
-    public static final Format22s Format = new Format22s();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    private Format22s() {
+    public Instruction30t(DexFile dexFile, Opcode opcode, int offA) {
+        super(dexFile, opcode, (IndexedItem)null);
+
+        encodedInstruction = new byte[6];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[2] = (byte)offA;
+        encodedInstruction[3] = (byte)(offA >> 8);
+        encodedInstruction[4] = (byte)(offA >> 16);
+        encodedInstruction[5] = (byte)(offA >> 24);
     }
 
-    public Instruction make(DexFile dexFile, byte opcode, byte regA, byte regB, short litC) {
-        byte[] bytes = new byte[4];
+    private Instruction30t(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+    }
 
-        Opcode op = Opcode.getOpcodeByValue(opcode);
+    private Instruction30t() {
+    }
 
-        checkOpcodeFormat(op);
+    public Format getFormat() {
+        return Format.Format30t;
+    }
 
-        if (regA >= 1<<4) {
-            throw new RuntimeException("The register number must be less than v16");
+    protected Instruction makeClone() {
+        return new Instruction30t();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction30t(dexFile, opcode, rest);
         }
-
-        if (regB >= 1<<4) {
-            throw new RuntimeException("The register number must be less than v16");
-        }
-
-        bytes[0] = opcode;
-        bytes[1] = (byte)((regB << 4) | regA);
-        bytes[2] = (byte)litC;
-        bytes[3] = (byte)(litC >> 8);
-
-        return new Instruction(dexFile, bytes, null);
     }
 
-    public int getByteCount()
-    {
-        return 4;
-    }
 
-    public String getFormatName()
-    {
-        return "22s";
+    public int getOffset() {
+        return NumberUtils.decodeInt(encodedInstruction[2], encodedInstruction[3], encodedInstruction[4],
+                        encodedInstruction[5]);
     }
 }

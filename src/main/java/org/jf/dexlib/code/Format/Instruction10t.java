@@ -31,42 +31,51 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
 
-public class Format22b extends Format
+public class Instruction10t extends Instruction
 {
-    public static final Format22b Format = new Format22b();
+    public static final InstructionFactory Factory = new Factory();
 
-    private Format22b() {
-    }
+    public Instruction10t(DexFile dexFile, Opcode opcode, byte offA) {
+        super(dexFile, opcode, (IndexedItem)null);
 
-    public Instruction make(DexFile dexFile, byte opcode, short regA, short regB, byte litC) {
-        byte[] bytes = new byte[4];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
-
-        if (regA >= 1<<8) {
-            throw new RuntimeException("The register number must be less than v256");
+        if (offA == 0) {
+            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
         }
 
-        if (regB >= 1<<8) {
-            throw new RuntimeException("The register number must be less than v256");
+        encodedInstruction = new byte[2];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = offA;
+    }
+
+    private Instruction10t(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+
+        if (getOffset() == 0) {
+            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
         }
-
-        bytes[0] = opcode;
-        bytes[1] = (byte)regA;
-        bytes[2] = (byte)regB;
-        bytes[3] = litC;
-
-        return new Instruction(dexFile, bytes, null);
     }
 
-    public int getByteCount() {
-        return 4;
+    private Instruction10t() {
     }
 
-    public String getFormatName() {
-        return "22b";
+    public Format getFormat() {
+        return Format.Format10t;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction10t();
+    }
+
+    private static class Factory implements InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction10t(dexFile, opcode, rest);
+        }
+    }
+
+    
+    public byte getOffset() {
+        return encodedInstruction[1];
     }
 }

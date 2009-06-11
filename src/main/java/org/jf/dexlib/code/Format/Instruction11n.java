@@ -31,39 +31,57 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format20t extends Format
+public class Instruction11n extends Instruction
 {
-    public static final Format20t Format = new Format20t();
+    public static final InstructionFactory Factory = new Factory();
 
-    private Format20t() {
-    }
+    public Instruction11n(DexFile dexFile, Opcode opcode, byte regA, byte litB) {
+        super(dexFile, opcode, (IndexedItem)null);
 
-    public Instruction make(DexFile dexFile, byte opcode, short offA) {
-        byte[] bytes = new byte[4];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
-
-        if (offA == 0) {
-            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
+        if (regA >= 1<<4) {
+            throw new RuntimeException("The register number must be less than v16");
         }
 
-        bytes[0] = opcode;
-        bytes[2] = (byte)offA;
-        bytes[3] = (byte)(offA >> 8);
-
-        return new Instruction(dexFile, bytes, null);
+        if (litB < -(1<<3) ||
+            litB >= 1<<3) {
+            throw new RuntimeException("The literal value must be between -8 and 7 inclusive");
+        }
+     
+        encodedInstruction = new byte[2];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)((litB << 4) | regA);
     }
 
-    public int getByteCount()
-    {
-        return 4;
+    private Instruction11n(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
     }
 
-    public String getFormatName()
-    {
-        return "20t";
+    private Instruction11n() {
+    }
+
+    public Format getFormat() {
+        return Format.Format11n;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction11n();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction11n(dexFile, opcode, rest);
+        }
+    }
+
+
+    public byte getRegister() {
+        return NumberUtils.decodeLowUnsignedNibble(encodedInstruction[1]);
+    }
+
+    public byte getLiteral() {
+        return NumberUtils.decodeHighSignedNibble(encodedInstruction[1]);
     }
 }

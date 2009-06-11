@@ -31,45 +31,58 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-public class Format32x extends Format
+public class Instruction22x extends Instruction
 {
-    public static final Format32x Format = new Format32x();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    private Format32x() {
-    }
+    public Instruction22x(DexFile dexFile, Opcode opcode, short regA, int regB) {
+        super(dexFile, opcode, (IndexedItem)null);
 
-    public Instruction make(DexFile dexFile, byte opcode, int regA, int regB) {
-        byte[] bytes = new byte[6];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
-
-        if (regA >= 1<<16) {
-            throw new RuntimeException("The register number must be less than v65536");
+        if (regA >= 1<<8) {
+            throw new RuntimeException("The register number must be less than v16");
         }
 
         if (regB >= 1<<16) {
             throw new RuntimeException("The register number must be less than v65536");
         }
 
-        bytes[0] = opcode;
-
-        bytes[2] = (byte)regA;
-        bytes[3] = (byte)(regA >> 8);
-
-        bytes[4] = (byte)regB;
-        bytes[5] = (byte)(regB >> 8);
-
-        return new Instruction(dexFile, bytes, null);
+        encodedInstruction = new byte[4];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)regA;
+        encodedInstruction[2] = (byte)regB;
+        encodedInstruction[3] = (byte)(regB >> 8);
     }
 
-    public int getByteCount() {
-        return 6;
+    private Instruction22x(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
     }
 
-    public String getFormatName() {
-        return "32x";
+    private Instruction22x() {
+    }
+
+    public Format getFormat() {
+        return Format.Format22x;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction22x();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction22x(dexFile, opcode, rest);
+        }
+    }
+
+
+    public short getRegisterA() {
+        return NumberUtils.decodeUnsignedByte(encodedInstruction[1]);
+    }
+
+    public int getRegisterB() {
+        return NumberUtils.decodeUnsignedShort(encodedInstruction[2], encodedInstruction[3]);
     }
 }

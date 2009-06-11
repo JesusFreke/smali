@@ -29,23 +29,17 @@
 package org.jf.dexlib.code.Format;
 
 import org.jf.dexlib.*;
+import org.jf.dexlib.util.NumberUtils;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import static org.jf.dexlib.code.Opcode.*;
 
-public class Format3rc extends Format
+public class Instruction3rc extends Instruction
 {
-    public static final Format3rc Format = new Format3rc();
+    public static final Instruction.InstructionFactory Factory = new Factory();
 
-    public Format3rc() {
-    }
-
-    public Instruction make(DexFile dexFile, byte opcode, short regCount, int startReg, IndexedItem item) {
-        byte[] bytes = new byte[6];
-
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
+    public Instruction3rc(DexFile dexFile, Opcode opcode, short regCount, int startReg, IndexedItem item) {
+        super(dexFile, opcode, item);
 
         if (regCount >= 1<<8) {
             throw new RuntimeException("regCount must be less than 256");
@@ -61,16 +55,53 @@ public class Format3rc extends Format
             throw new RuntimeException("The beginning register of the range cannot be negative");
         }
 
-        bytes[0] = opcode;
-        bytes[1] = (byte)regCount;
-        bytes[4] = (byte)startReg;
-        bytes[5] = (byte)(startReg >> 8);
+        encodedInstruction = new byte[6];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)regCount;
+        //the item index will be set later, during placement/writing
+        encodedInstruction[4] = (byte)startReg;
+        encodedInstruction[5] = (byte)(startReg >> 8);
 
-        //go ahead and make the instruction now, which will verify that item is the correct type. If it isn't,
-        //the construction will throw an exception
-        Instruction instruction = new Instruction(dexFile, bytes, item);
+        checkItem();
+    }
 
-        if (opcode == FILLED_NEW_ARRAY_RANGE.value) {
+    private Instruction3rc(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+
+        checkItem();
+    }
+
+    private Instruction3rc() {
+    }
+
+    public Format getFormat() {
+        return Format.Format3rc;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction3rc();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction3rc(dexFile, opcode, rest);
+        }
+    }
+
+
+    public short getRegCount() {
+        return NumberUtils.decodeUnsignedByte(encodedInstruction[1]);
+    }
+
+    public int getStartRegister() {
+        return NumberUtils.decodeUnsignedShort(encodedInstruction[4], encodedInstruction[5]);
+    }
+
+    private void checkItem() {
+        Opcode opcode = getOpcode();
+        IndexedItem item = getReferencedItem();
+
+        if (opcode == FILLED_NEW_ARRAY_RANGE) {
             //check data for filled-new-array/range opcode
             String type = ((TypeIdItem)item).getTypeDescriptor();
             if (type.charAt(0) != '[') {
@@ -79,40 +110,12 @@ public class Format3rc extends Format
             if (type.charAt(1) == 'J' || type.charAt(1) == 'D') {
                 throw new RuntimeException("The type cannot be an array of longs or doubles");
             }
-        } else if (opcode >= INVOKE_VIRTUAL_RANGE.value && opcode <= INVOKE_INTERFACE_RANGE.value) {
+        } else if (opcode.value >= INVOKE_VIRTUAL_RANGE.value && opcode.value <= INVOKE_INTERFACE_RANGE.value) {
             //check data for invoke-*/range opcodes
             MethodIdItem methodIdItem = (MethodIdItem)item;
-            if (methodIdItem.getParameterRegisterCount(opcode == INVOKE_STATIC_RANGE.value) != regCount) {
+            if (methodIdItem.getParameterRegisterCount(opcode == INVOKE_STATIC_RANGE) != getRegCount()) {
                 throw new RuntimeException("regCount does not match the number of arguments of the method");
             }
-        } else {
-            throw new RuntimeException("Opcode " + Integer.toHexString(opcode) + " does not use the 35c format");
         }
-
-        return instruction;
     }
-
-    public int getByteCount() {
-        return 6;
-    }
-
-    public String getFormatName() {
-        return "3rc";
-    }
-
-    /*@Test
-    public void testInvoke() {
-        DexFile dexFile = DexFile.makeBlankDexFile();
-        ArrayList<TypeIdItem> types = new ArrayList<TypeIdItem>();
-        types.add(new TypeIdItem(dexFile, "I"));
-        types.add(new TypeIdItem(dexFile, "I"));
-        types.add(new TypeIdItem(dexFile, "I"));
-        types.add(new TypeIdItem(dexFile, "I"));
-        types.add(new TypeIdItem(dexFile, "I"));
-        MethodIdItem method = new MethodIdItem(dexFile, new TypeIdItem(dexFile, "test"), "test", new ProtoIdItem(dexFile, new TypeIdItem(dexFile, "V"), types));
-
-        Instruction ins = Format.make(dexFile, (byte)INVOKE_VIRTUAL_RANGE.value, (short)6, 65500, method);
-        byte[] bytes = new byte[] {0x74, 0x06, 0x00, 0x00, (byte)0xDC, (byte)0xFF};
-        assertTrue("Is everything put in the right place?", java.util.Arrays.equals(ins.getBytes(), bytes));
-    }*/
 }

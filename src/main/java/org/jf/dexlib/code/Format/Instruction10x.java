@@ -31,29 +31,41 @@ package org.jf.dexlib.code.Format;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
 
-public class Format10x extends Format
+public class Instruction10x extends Instruction
 {
-    public static final Format10x Format = new Format10x(); 
+    public static final InstructionFactory Factory = new Factory();
 
-    private Format10x() {
+    public Instruction10x(DexFile dexFile, Opcode opcode) {
+        super(dexFile, opcode, (IndexedItem)null);
+
+        encodedInstruction = new byte[2];
+        encodedInstruction[0] = opcode.value;
+    }
+
+    public Instruction10x(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+
+        if (rest[0] != 0x00) {
+            throw new RuntimeException("The second byte of the instruction must be 0");
+        }
+    }
+
+    private Instruction10x() {
+    }
+
+    public Format getFormat() {
+        return Format.Format10x;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction10x();
     }
     
-    public Instruction make(DexFile dexFile, byte opcode) {
-        Opcode op = Opcode.getOpcodeByValue(opcode);
-
-        checkOpcodeFormat(op);
-
-        return new Instruction(dexFile, new byte[]{opcode,0x00}, null);
-    }
-
-    public int getByteCount()
-    {
-        return 2;
-    }
-
-    public String getFormatName()
-    {
-        return "10x";
+    private static class Factory implements InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction10x(dexFile, opcode, rest);
+        }
     }
 }

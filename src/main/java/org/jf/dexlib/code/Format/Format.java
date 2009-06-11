@@ -28,16 +28,43 @@
 
 package org.jf.dexlib.code.Format;
 
-import org.jf.dexlib.code.Opcode;
+import org.jf.dexlib.code.Instruction;
 
-public abstract class Format
+public enum Format
 {
-    public abstract int getByteCount();
-    public abstract String getFormatName();
+    Format10t(Instruction10t.Factory, 2),
+    Format10x(Instruction10x.Factory, 2),
+    Format11n(Instruction11n.Factory, 2),
+    Format11x(Instruction11x.Factory, 2),
+    Format12x(Instruction12x.Factory, 2),
+    Format20t(Instruction20t.Factory, 4),
+    Format21c(Instruction21c.Factory, 4),
+    Format21h(Instruction21h.Factory, 4),
+    Format21s(Instruction21s.Factory, 4),
+    Format21t(Instruction21t.Factory, 4),
+    Format22b(Instruction22b.Factory, 4),
+    Format22c(Instruction22c.Factory, 4),
+    Format22s(Instruction22s.Factory, 4),
+    Format22t(Instruction22t.Factory, 4),
+    Format22x(Instruction22x.Factory, 4),
+    Format23x(Instruction23x.Factory, 4),
+    Format30t(Instruction30t.Factory, 6),
+    Format31c(Instruction31c.Factory, 6),
+    Format31i(Instruction31i.Factory, 6),
+    Format31t(Instruction31t.Factory, 6),
+    Format32x(Instruction32x.Factory, 6),
+    Format35c(Instruction35c.Factory, 6),
+    Format3rc(Instruction3rc.Factory, 6),
+    Format51l(Instruction51l.Factory, 10),
+    ArrayData(null, -1),
+    PackedSwitchData(null, -1),
+    SparseSwitchData(null, -1);
 
-    protected void checkOpcodeFormat(Opcode opcode) {
-        if (!opcode.format.equals(getFormatName())) {
-            throw new RuntimeException("Opcode " + opcode.name + " does not use format " + getFormatName());
-        }
+    public final Instruction.InstructionFactory Factory;
+    public final int size;
+
+    private Format(Instruction.InstructionFactory factory, int size) {
+        this.Factory = factory;
+        this.size = size;
     }
 }

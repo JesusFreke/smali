@@ -29,48 +29,50 @@
 package org.jf.dexlib.code.Format;
 
 import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.util.NumberUtils;
 
-import java.util.List;
-
-public class ArrayData
+public class Instruction11x extends Instruction
 {
-    public static Instruction make(DexFile dexFile, int elementWidth, List<byte[]> values) {
-        byte[] bytes;
+     public static final Instruction.InstructionFactory Factory = new Factory();
 
-        int byteCount = 0;
+     public Instruction11x(DexFile dexFile, Opcode opcode, short regA) {
+        super(dexFile, opcode, (IndexedItem)null);
 
-        for (byte[] value: values) {
-            byteCount += value.length;
+        if (regA >= 1<<8) {
+            throw new RuntimeException("The register number must be less than v256");
         }
 
-        if (byteCount % elementWidth != 0) {
-            throw new RuntimeException("There are not a whole number of " + ((Integer)elementWidth).toString() + " byte elements");
+        encodedInstruction = new byte[2];
+        encodedInstruction[0] = opcode.value;
+        encodedInstruction[1] = (byte)regA;
+    }
+
+    private Instruction11x(DexFile dexFile, Opcode opcode, byte[] rest) {
+        super(dexFile, opcode, rest);
+    }
+
+    private Instruction11x() {
+    }
+
+    public Format getFormat() {
+        return Format.Format11x;
+    }
+
+    protected Instruction makeClone() {
+        return new Instruction11x();
+    }
+
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] rest) {
+            return new Instruction11x(dexFile, opcode, rest);
         }
+    }
 
-        bytes = new byte[byteCount+8];
-        int position = 8;
 
-        for (byte[] value: values) {
-            for (byte byteValue: value) {
-                bytes[position++] = byteValue;
-            }
-        }
-
-        //fill-array-data psuedo-opcode
-        bytes[0] = 0x00;
-        bytes[1] = 0x03;
-
-        bytes[2] = (byte)elementWidth;
-        bytes[3] = (byte)(elementWidth >> 8);
-
-        int elementCount = byteCount / elementWidth;
-
-        bytes[4] = (byte)elementCount;
-        bytes[5] = (byte)(elementCount >> 8);
-        bytes[6] = (byte)(elementCount >> 16);
-        bytes[7] = (byte)(elementCount >> 24);
-
-        return new Instruction(dexFile, bytes, null);
+    public short getRegister() {
+        return NumberUtils.decodeUnsignedByte(encodedInstruction[1]);
     }
 }
