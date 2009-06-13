@@ -116,6 +116,14 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         return ItemType.TYPE_CODE_ITEM;
     }
 
+    public int getRegisterCount() {
+        return registersCountField.getCachedValue();
+    }
+
+    public List<InstructionField> getInstructions() {
+        return (List<InstructionField>)instructionList.clone();
+    }
+
     public void copyTo(DexFile dexFile, CodeItem copy)
     {
         for (int i = 0; i < fields.length-2; i++) {
