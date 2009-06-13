@@ -1,0 +1,31 @@
+<?xml version="1.0"?><project>
+  <parent>
+    <artifactId>smali-pom</artifactId>
+    <groupId>org.jf</groupId>
+    <version>0.91-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.jf</groupId>
+  <artifactId>maven-smali-plugin</artifactId>
+  <packaging>maven-plugin</packaging>
+  <name>maven-smali-plugin Maven Mojo</name>
+  <version>0.91-SNAPSHOT</version>
+  <url>http://maven.apache.org</url>
+  <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+            <version>2.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jf</groupId>
+            <artifactId>smali</artifactId>
+            <version>0.91-SNAPSHOT</version>
+        </dependency>
+  </dependencies>
+</project>
