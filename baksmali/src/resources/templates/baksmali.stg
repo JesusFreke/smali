@@ -1,0 +1,105 @@
+group baksmali;
+
+smaliFile(classDef) ::=
+<<
+.class <classDef.AccessFlags; separator=" "> <classDef.ClassType>
+.super <classDef.SuperType>
+<if(classDef.Interfaces)>
+
+/**
+ * Interfaces
+ */
+<classDef.Interfaces: implement(it); separator="\n">
+
+<endif>
+<if(classDef.StaticFields)>
+
+/**
+ * Static fields
+ */
+<classDef.StaticFields: field(it); separator="\n">
+
+<endif>
+<if(classDef.InstanceFields)>
+
+/**
+ * InstanceFields
+ */
+<classDef.InstanceFields: field(it); separator="\n">
+
+<endif>
+<if(classDef.DirectMethods)>
+
+/**
+ * Direct methods
+ */
+<classDef.DirectMethods: method(it); separator="\n\n">
+
+<endif>
+<if(classDef.VirtualMethods)>
+
+/**
+ * Virtual methods
+ */
+<classDef.VirtualMethods: method(it); separator="\n\n">
+
+<endif>
+>>
+
+
+
+                 
+implement(interface) ::=
+<<
+.implements <interface>
+>>
+
+
+
+
+field(fieldDef) ::=
+<<
+.field <fieldDef.AccessFlags; separator=" "> <fieldDef.FieldName>:<fieldDef.FieldType>
+>>
+
+
+method(methodDef) ::=
+<<
+.method <methodDef.AccessFlags; separator=" "> <methodDef.MethodName><methodDef.Prototype>
+    <if(methodDef.hasCode)>
+        .registers <methodDef.RegisterCount>
+
+        <methodDef.Instructions: Instruction(it); separator="\n"> 
+    <endif>
+.end method
+>>
+
+Instruction(Instruction) ::=
+<<
+<Instruction: (Instruction.Format)()>
+>>
+
+Format10x() ::=
+<<
+<it.Opcode.name>
+>>
+
+Format11x() ::=
+<<
+<it.Opcode.name> v<it.Register>
+>>
+
+Format21c() ::=
+<<
+<it.Opcode.name> v<it.Register>, <({Reference_<it.Opcode.referenceType>})(it.ReferencedItem)>
+>>
+
+Format35c() ::=
+<<
+<it.Opcode.name>
+>>
+
+Reference_string(StringItem) ::=
+<<
+"<StringItem.StringValue>"
+>>
