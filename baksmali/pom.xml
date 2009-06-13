@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.jf</groupId>
+    <artifactId>baksmali</artifactId>
+    <version>0.91-SNAPSHOT</version>
+    <parent>
+      <groupId>org.jf</groupId>
+      <artifactId>smali-pom</artifactId>
+      <version>0.91-SNAPSHOT</version>
+    </parent>
+    <dependencies>
+        <dependency>
+	    <groupId>org.antlr</groupId>
+	    <artifactId>stringtemplate</artifactId>
+	    <version>3.2</version>
+        </dependency>
+	<dependency>
+	    <groupId>org.jf</groupId>
+	    <artifactId>dexlib</artifactId>
+	    <version>0.91-SNAPSHOT</version>
+	</dependency>
+    </dependencies>
+</project>
