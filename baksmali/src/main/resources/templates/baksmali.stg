@@ -69,37 +69,59 @@ method(methodDef) ::=
     <if(methodDef.hasCode)>
         .registers <methodDef.RegisterCount>
 
-        <methodDef.Instructions: Instruction(it); separator="\n"> 
+        <methodDef.MethodItems: MethodItem(it); separator="\n"> 
     <endif>
 .end method
 >>
 
-Instruction(Instruction) ::=
+MethodItem(MethodItem) ::=
 <<
-<Instruction: (Instruction.Format)()>
+<MethodItem: (MethodItem.Template)(MethodItem)>
 >>
 
-Format10x() ::=
+
+
+
+
+Format10x(Instruction) ::=
 <<
-<it.Opcode.name>
+<Instruction.Opcode>
 >>
 
-Format11x() ::=
+Format11x(Instruction) ::=
 <<
-<it.Opcode.name> v<it.Register>
+<Instruction.Opcode> v<Instruction.Register>
 >>
 
-Format21c() ::=
+Format21c(Instruction) ::=
 <<
-<it.Opcode.name> v<it.Register>, <({Reference_<it.Opcode.referenceType>})(it.ReferencedItem)>
+<Instruction.Opcode> v<Instruction.Register>, <Reference(Instruction.Reference)>
 >>
 
-Format35c() ::=
+Format35c(Instruction) ::=
 <<
-<it.Opcode.name>
+<Instruction.Opcode> {<Instruction.Registers: {v<it>}; separator=", ">}, <Reference(Instruction.Reference)>  
 >>
 
-Reference_string(StringItem) ::=
+
+
+
+Reference(ReferencedItem) ::=
 <<
-"<StringItem.StringValue>"
+<(ReferencedItem.Template)(ReferencedItem)>
+>>
+
+StringReference(StringReference) ::=
+<<
+"<StringReference.EscapedValue>"
+>>
+
+FieldReference(FieldReference) ::=
+<<
+<FieldReference.ContainingClass>-><FieldReference.FieldName>:<FieldReference.FieldType>
+>>
+
+MethodReference(MethodReference) ::=
+<<
+<MethodReference.ContainingClass>-><MethodReference.MethodName><MethodReference.Prototype>
 >>

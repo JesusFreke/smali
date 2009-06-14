@@ -31,12 +31,18 @@ package org.jf.baksmali.wrappers;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.MethodIdItem;
-import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.InstructionField;
+import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.code.Format.Instruction10x;
+import org.jf.dexlib.code.Format.Instruction35c;
+import org.jf.dexlib.code.Format.Instruction21c;
+import org.jf.dexlib.code.Format.Instruction11x;
 import org.jf.dexlib.util.AccessFlags;
+import org.jf.baksmali.wrappers.format.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class MethodDefinition {
     private ClassDataItem.EncodedMethod encodedMethod;
@@ -97,17 +103,50 @@ public class MethodDefinition {
         return registerCount;
     }
 
-    //TODO: how best to abstract this? I don't like exposing dexlib's "Instruction" directly
-    private List<Instruction> instructions = null;
-    public List<Instruction> getInstructions() {
-        if (instructions == null) {
-            instructions = new ArrayList<Instruction>();
-            if (codeItem != null) {
-                for (InstructionField instruction: codeItem.getInstructions()) {
-                    instructions.add(instruction.getInstruction());
-                }
+
+    private List<MethodItem> methodItems = null;
+    public List<MethodItem> getMethodItems() {
+        if (methodItems == null) {
+            methodItems = generateMethodItemList();
+        }
+        return methodItems;
+    }
+
+
+    private List<MethodItem> generateMethodItemList() {
+        if (codeItem == null) {
+            return new ArrayList<MethodItem>();
+        }
+
+        List<MethodItem> methodItems = new ArrayList<MethodItem>();      
+
+
+        int offset = 0;
+        for (InstructionField instructionField: codeItem.getInstructions()) {
+            for (MethodItem methodItem: getMethodItemsForInstruction(offset, instructionField)) {
+                methodItems.add(methodItem);   
             }
         }
-        return instructions;
+
+        Collections.sort(methodItems);
+
+        return methodItems;
+    }
+
+    private MethodItem[] getMethodItemsForInstruction(int offset, InstructionField instructionField) {
+        Instruction instruction = instructionField.getInstruction();
+        
+        switch (instruction.getFormat()) {
+            case Format10x:
+                return new MethodItem[] {new Instruction10xMethodItem(offset, (Instruction10x)instruction)};
+            case Format11x:
+                return new MethodItem[] {new Instruction11xMethodItem(offset, (Instruction11x)instruction)};
+            case Format21c:
+                return new MethodItem[] {new Instruction21cMethodItem(offset, (Instruction21c)instruction)};
+            case Format35c:
+                return new MethodItem[] {new Instruction35cMethodItem(offset, (Instruction35c)instruction)};
+            default:
+                return null;
+        }
     }
 }

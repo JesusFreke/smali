@@ -6,20 +6,66 @@
     <artifactId>baksmali</artifactId>
     <version>0.91-SNAPSHOT</version>
     <parent>
-      <groupId>org.jf</groupId>
-      <artifactId>smali-pom</artifactId>
-      <version>0.91-SNAPSHOT</version>
+        <groupId>org.jf</groupId>
+        <artifactId>smali-pom</artifactId>
+        <version>0.91-SNAPSHOT</version>
     </parent>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jf</groupId>
+                <artifactId>maven-smali-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>junit-tests</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>src/test/smali</sourceDirectory>
+                            <outputFile>target/test/classes.dex</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>java</executable>
+                    <workingDirectory>${basedir}</workingDirectory>
+                    <arguments>
+                        <argument>-classpath</argument>
+                        <classpath/>
+                        <argument>org.jf.baksmali.main</argument>
+                        <argument>--disassemble</argument>
+                        <argument>${project.build.directory}/test/classes.dex</argument>
+                        <argument>${project.build.directory}/test/out</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies>
         <dependency>
-	    <groupId>org.antlr</groupId>
-	    <artifactId>stringtemplate</artifactId>
-	    <version>3.2</version>
+            <groupId>org.antlr</groupId>
+            <artifactId>stringtemplate</artifactId>
+            <version>3.2</version>
         </dependency>
-	<dependency>
-	    <groupId>org.jf</groupId>
-	    <artifactId>dexlib</artifactId>
-	    <version>0.91-SNAPSHOT</version>
-	</dependency>
+        <dependency>
+            <groupId>org.jf</groupId>
+            <artifactId>dexlib</artifactId>
+            <version>0.91-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>
