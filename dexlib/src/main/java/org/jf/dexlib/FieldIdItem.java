@@ -95,4 +95,8 @@ public class FieldIdItem extends IndexedItem<FieldIdItem> {
     public TypeIdItem getFieldType() {
         return fieldTypeReferenceField.getReference();
     }
+
+    public TypeIdItem getContainingClass() {
+        return classTypeReferenceField.getReference();
+    }
 }

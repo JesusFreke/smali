@@ -161,4 +161,58 @@ public final class Utf8Utils {
         throw new IllegalArgumentException("bad utf-8 byte " + Hex.u1(value) +
                                            " at offset " + Hex.u4(offset));
     }
+
+    public static String escapeString(String value) {
+        int len = value.length();
+        StringBuilder sb = new StringBuilder(len * 3 / 2);
+
+        for (int i = 0; i < len; i++) {
+            char c = value.charAt(i);
+            if ((c >= ' ') && (c < 0x7f)) {
+                if ((c == '\'') || (c == '\"') || (c == '\\')) {
+                    sb.append('\\');
+                }
+                sb.append(c);
+            } else if (c <= 0x7f) {
+                switch (c) {
+                    case '\n': sb.append("\\n"); break;
+                    case '\r': sb.append("\\r"); break;
+                    case '\t': sb.append("\\t"); break;
+                    default: {
+                        /*
+                         * Represent the character as an octal escape.
+                         * If the next character is a valid octal
+                         * digit, disambiguate by using the
+                         * three-digit form.
+                         */
+                        char nextChar =
+                            (i < (len - 1)) ? value.charAt(i + 1) : 0;
+                        boolean displayZero =
+                            (nextChar >= '0') && (nextChar <= '7');
+                        sb.append('\\');
+                        for (int shift = 6; shift >= 0; shift -= 3) {
+                            char outChar = (char) (((c >> shift) & 7) + '0');
+                            if ((outChar != '0') || displayZero) {
+                                sb.append(outChar);
+                                displayZero = true;
+                            }
+                        }
+                        if (! displayZero) {
+                            // Ironic edge case: The original value was 0.
+                            sb.append('0');
+                        }
+                        break;
+                    }
+                }
+            } else {
+                sb.append("\\u");
+                sb.append(Character.forDigit(c >> 12, 16));
+                sb.append(Character.forDigit((c >> 8) & 0x0f, 16));
+                sb.append(Character.forDigit((c >> 4) & 0x0f, 16));
+                sb.append(Character.forDigit(c & 0x0f, 16));
+            }
+        }
+
+        return sb.toString();
+    }
 }

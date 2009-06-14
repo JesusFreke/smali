@@ -89,6 +89,10 @@ public class MethodIdItem extends IndexedItem<MethodIdItem> {
         return prototypeReferenceField.getReference().getParameterRegisterCount() + (isStatic?0:1);
     }
 
+    public TypeIdItem getContainingClass() {
+        return classTypeReferenceField.getReference();
+    }
+
     /**
      * Return the number of parameters, not including the "this" parameter, if any
      * @return The number of parameters, not including the "this" parameter, if any
