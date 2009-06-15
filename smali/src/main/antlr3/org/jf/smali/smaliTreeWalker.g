@@ -1,4 +1,4 @@
-/*
+	/*
  * [The "BSD licence"]
  * Copyright (c) 2009 Ben Gruver
  * All rights reserved.
@@ -112,7 +112,7 @@ smali_file
 	:	^(I_CLASS_DEF header methods fields annotations)
 	{
 		AnnotationDirectoryItem annotationDirectoryItem = null;
-		
+
 		if (	$methods.methodAnnotationSets != null ||
 			$methods.parameterAnnotationSets != null ||
 			$fields.fieldAnnotationSets != null ||
@@ -124,12 +124,13 @@ smali_file
 				$methods.methodAnnotationSets,
 				$methods.parameterAnnotationSets);
 		}
-		
+
 		classDefItem.setAnnotations(annotationDirectoryItem);
 	};
 	catch [Exception ex] {
 		reportError(new SemanticException(input, ex));
 	}
+
 
 
 header	returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem sourceSpec]
@@ -140,6 +141,7 @@ header	returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, Type
 		classDefItem = new ClassDefItem(dexFile, $class_spec.type, $class_spec.accessFlags, 
 			$super_spec.type, $implements_list.implementsList, $source_spec.source, classDataItem);
 	};
+
 
 class_spec returns[TypeIdItem type, int accessFlags]
 	:	class_type_descriptor access_list
@@ -153,7 +155,7 @@ super_spec returns[TypeIdItem type]
 	{
 		$type = $class_type_descriptor.type;
 	};
-	
+
 
 implements_spec returns[TypeIdItem type]
 	:	^(I_IMPLEMENTS class_type_descriptor)
@@ -313,7 +315,7 @@ array_elements returns[List<byte[\]> values]
 packed_switch_target_count returns[int targetCount]
 	:	I_PACKED_SWITCH_TARGET_COUNT {$targetCount = Integer.parseInt($I_PACKED_SWITCH_TARGET_COUNT.text);};
 
-packed_switch_targets[int baseOffset] returns[int[\] targets]
+packed_switch_targets[int baseAddress] returns[int[\] targets]
 	:
 		^(I_PACKED_SWITCH_TARGETS
 			packed_switch_target_count
@@ -325,7 +327,7 @@ packed_switch_targets[int baseOffset] returns[int[\] targets]
 			
 			(offset_or_label
 			{
-				targets[targetsPosition++] = $offset_or_label.offsetValue - $baseOffset;
+				$targets[targetsPosition++] = ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress;
 			})*
 		);
 
@@ -344,7 +346,8 @@ sparse_switch_keys[int targetCount] returns[int[\] keys]
 			})*
 		);
 		
-sparse_switch_targets[int baseOffset, int targetCount] returns[int[\] targets]
+
+sparse_switch_targets[int baseAddress, int targetCount] returns[int[\] targets]
 	:	{
 			$targets = new int[$targetCount];
 			int targetsPosition = 0;
@@ -352,10 +355,10 @@ sparse_switch_targets[int baseOffset, int targetCount] returns[int[\] targets]
 		^(I_SPARSE_SWITCH_TARGETS
 			(offset_or_label
 			{
-				$targets[targetsPosition++] = $offset_or_label.offsetValue - $baseOffset;
+				$targets[targetsPosition++] = ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress;
 			})*
 		);
-	
+
 method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		AnnotationDirectoryItem.MethodAnnotation methodAnnotationSet,
 		AnnotationDirectoryItem.ParameterAnnotation parameterAnnotationSets]
@@ -365,6 +368,8 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		TryListBuilder tryList;
 		int currentAddress;
 		DebugInfoBuilder debugInfo;
+		HashMap<Integer, Integer> packedSwitchDeclarations;
+		HashMap<Integer, Integer> sparseSwitchDeclarations;		
 	}
 	@init
 	{
@@ -379,6 +384,8 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			$method::tryList = new TryListBuilder();
 			$method::currentAddress = 0;
 			$method::debugInfo = new DebugInfoBuilder();
+			$method::packedSwitchDeclarations = new HashMap<Integer, Integer>();
+			$method::sparseSwitchDeclarations = new HashMap<Integer, Integer>();
 		}
 		^(	I_METHOD
 			method_name_and_prototype
@@ -394,6 +401,8 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 				totalMethodRegisters = $registers_directive.registers;
 			}
 			labels
+			packed_switch_declarations
+			sparse_switch_declarations
 			statements[totalMethodRegisters, methodParameterRegisters]
 			catches
 			parameters
@@ -523,6 +532,34 @@ label_def
 				
 			
 			$method::labels.put(labelName, $address.address);
+		};
+		
+packed_switch_declarations
+	:	^(I_PACKED_SWITCH_DECLARATIONS packed_switch_declaration*);
+packed_switch_declaration
+	:	^(I_PACKED_SWITCH_DECLARATION address offset_or_label_absolute[$address.address]) 
+		{
+			int switchDataAddress = $offset_or_label_absolute.address;
+			if ((switchDataAddress \% 2) != 0) {
+				switchDataAddress++;
+			}
+			if (!$method::packedSwitchDeclarations.containsKey(switchDataAddress)) {
+				$method::packedSwitchDeclarations.put(switchDataAddress, $address.address);
+			}
+		};
+
+sparse_switch_declarations
+	:	^(I_SPARSE_SWITCH_DECLARATIONS sparse_switch_declaration*);
+sparse_switch_declaration
+	:	^(I_SPARSE_SWITCH_DECLARATION address offset_or_label_absolute[$address.address])
+		{
+			int switchDataAddress = $offset_or_label_absolute.address;
+			if ((switchDataAddress \% 2) != 0) {
+				switchDataAddress++;
+			}
+			if (!$method::sparseSwitchDeclarations.containsKey(switchDataAddress)) {
+				$method::sparseSwitchDeclarations.put(switchDataAddress, $address.address);
+			}
 		};
 	
 catches	:	^(I_CATCHES catch_directive*);
@@ -1032,7 +1069,15 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 		}
 	|
 		
-		^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_BASE_OFFSET base_offset=offset_or_label) ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal) packed_switch_targets[$base_offset.offsetValue])
+		^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal)
+			{
+				int currentAddress = $method::currentAddress;
+				Integer baseAddress = $method::packedSwitchDeclarations.get(currentAddress);
+				if (baseAddress == null) {
+					baseAddress = 0;
+				}
+			}
+			packed_switch_targets[baseAddress])
 		{
 			int startKey = $fixed_32bit_literal.value;
 			int[] targets = $packed_switch_targets.targets;
@@ -1040,7 +1085,16 @@ instruction[int totalMethodRegisters, int methodParameterRegisters]  returns[Ins
 			$instruction = new InstructionField(dexFile, new PackedSwitchDataPseudoInstruction(dexFile, startKey, targets));
 		}
 	|
-		^(I_STATEMENT_SPARSE_SWITCH ^(I_SPARSE_SWITCH_BASE_OFFSET base_offset=offset_or_label) sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount] sparse_switch_targets[$base_offset.offsetValue, $sparse_switch_target_count.targetCount])
+		^(I_STATEMENT_SPARSE_SWITCH sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount] 
+			{
+				int currentAddress = $method::currentAddress;
+				Integer baseAddress = $method::sparseSwitchDeclarations.get(currentAddress);
+				if (baseAddress == null) {
+					baseAddress = 0;
+				}
+			}		
+		
+			sparse_switch_targets[baseAddress, $sparse_switch_target_count.targetCount])
 		{
 			int[] keys = $sparse_switch_keys.keys;
 			int[] targets = $sparse_switch_targets.targets;

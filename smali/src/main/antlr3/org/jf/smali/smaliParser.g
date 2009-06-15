@@ -63,13 +63,15 @@ tokens {
 	I_ARRAY_ELEMENT_SIZE;
 	I_ARRAY_ELEMENTS;	
 	I_PACKED_SWITCH_START_KEY;
-	I_PACKED_SWITCH_BASE_OFFSET;
 	I_PACKED_SWITCH_TARGET_COUNT;
 	I_PACKED_SWITCH_TARGETS;
-	I_SPARSE_SWITCH_BASE_OFFSET;
+	I_PACKED_SWITCH_DECLARATION;
+	I_PACKED_SWITCH_DECLARATIONS;
 	I_SPARSE_SWITCH_KEYS;
 	I_SPARSE_SWITCH_TARGET_COUNT;
 	I_SPARSE_SWITCH_TARGETS;
+	I_SPARSE_SWITCH_DECLARATION;
+	I_SPARSE_SWITCH_DECLARATIONS;
 	I_ADDRESS;
 	I_CATCH;
 	I_CATCHES;
@@ -153,6 +155,14 @@ import org.jf.dexlib.code.Format.*;
 	public String getErrorHeader(RecognitionException e) {
 		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
 	}
+	
+	private CommonTree buildTree(int type, String text, List<CommonTree> children) {
+		CommonTree root = new CommonTree(new CommonToken(type, text));
+		for (CommonTree child: children) {
+			root.addChild(child);
+		}	
+		return root;
+	}
 }
 
 
@@ -235,10 +245,17 @@ fully_qualified_field
 	->	reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor;
 
 statements_and_directives
-	scope	{boolean hasRegistersDirective;}
+	scope
+	{
+		boolean hasRegistersDirective;
+		List<CommonTree> packedSwitchDeclarations;
+		List<CommonTree> sparseSwitchDeclarations;
+	}
 	:	{
 			$method::currentAddress = 0;
 			$statements_and_directives::hasRegistersDirective = false;
+			$statements_and_directives::packedSwitchDeclarations = new ArrayList<CommonTree>();
+			$statements_and_directives::sparseSwitchDeclarations = new ArrayList<CommonTree>();
 		}
 		(	instruction {$method::currentAddress += $instruction.size/2;}
 		|	{!$statements_and_directives::hasRegistersDirective}?=> registers_directive {$statements_and_directives::hasRegistersDirective = true;}
@@ -250,6 +267,8 @@ statements_and_directives
 		)*		
 		->	^(I_REGISTERS registers_directive?)
 			^(I_LABELS label*)
+			{buildTree(I_PACKED_SWITCH_DECLARATIONS, "I_PACKED_SWITCH_DECLARATIONS", $statements_and_directives::packedSwitchDeclarations)}
+			{buildTree(I_SPARSE_SWITCH_DECLARATIONS, "I_SPARSE_SWITCH_DECLARATIONS", $statements_and_directives::sparseSwitchDeclarations)}
 			^(I_STATEMENTS instruction*)
 			^(I_CATCHES catch_directive*)
 			^(I_PARAMETERS parameter_directive*)
@@ -389,8 +408,23 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal {$size = Format.Format31i.size;}
 		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
 	|	//e.g. fill-array-data v0, ArrayData:
-		INSTRUCTION_FORMAT31t REGISTER (LABEL | OFFSET) {$size = Format.Format31t.size;}
-		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER LABEL? OFFSET?)
+		INSTRUCTION_FORMAT31t REGISTER offset_or_label {$size = Format.Format31t.size;}
+		{
+			if ($INSTRUCTION_FORMAT31t.text.equals("packed-switch")) {
+				CommonTree root = new CommonTree(new CommonToken(I_PACKED_SWITCH_DECLARATION, "I_PACKED_SWITCH_DECLARATION"));
+				CommonTree address = new CommonTree(new CommonToken(I_ADDRESS, Integer.toString($method::currentAddress)));
+				root.addChild(address);
+				root.addChild($offset_or_label.tree.dupNode());
+				$statements_and_directives::packedSwitchDeclarations.add(root);
+			} else if ($INSTRUCTION_FORMAT31t.text.equals("sparse-switch")) {
+				CommonTree root = new CommonTree(new CommonToken(I_SPARSE_SWITCH_DECLARATION, "I_SPARSE_SWITCH_DECLARATION"));
+				CommonTree address = new CommonTree(new CommonToken(I_ADDRESS, Integer.toString($method::currentAddress)));
+				root.addChild(address);
+				root.addChild($offset_or_label.tree.dupNode());
+				$statements_and_directives::sparseSwitchDeclarations.add(root);
+			}			
+		}
+		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER offset_or_label)
 	|	//e.g. move/16 v4567, v1234
 		INSTRUCTION_FORMAT32x REGISTER REGISTER {$size = Format.Format32x.size;}
 		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER)		
@@ -439,9 +473,7 @@ instruction returns [int size]
  				$size = 0;
  			}
  		}
- 		
- 		base_offset = offset_or_label
- 		
+ 			
  		fixed_32bit_literal 
  		
  		(switch_target += offset_or_label {$size+=4; targetCount++;})*
@@ -451,13 +483,11 @@ instruction returns [int size]
 		/*add a nop statement before this if needed to force the correct alignment*/
  		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
  					^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"] 
- 						^(I_PACKED_SWITCH_BASE_OFFSET[$start, "I_PACKED_SWITCH_BASE_OFFSET"] $base_offset) 
  						^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal) 
  						^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"] I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
  					)
  					
 		->	^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"] 
-				^(I_PACKED_SWITCH_BASE_OFFSET[$start, "I_PACKED_SWITCH_BASE_OFFSET"] $base_offset) 
 				^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal) 
 				^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"] I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
 			)
@@ -473,9 +503,7 @@ instruction returns [int size]
  				$size = 0;
  			}
  		}
- 		
- 		base_offset = offset_or_label
- 		
+ 			
  		(fixed_32bit_literal switch_target += offset_or_label {$size += 8; targetCount++;})*
  		
  		END_SPARSE_SWITCH_DIRECTIVE {$size = $size + 4;}
@@ -483,12 +511,10 @@ instruction returns [int size]
 		/*add a nop statement before this if needed to force the correct alignment*/
  		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
  					^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
- 						^(I_SPARSE_SWITCH_BASE_OFFSET[$start, "I_SPARSE_SWITCH_BASE_OFFSET"] $base_offset)
  						I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
  						^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
  						^(I_SPARSE_SWITCH_TARGETS $switch_target*))
 		->	^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
-				^(I_SPARSE_SWITCH_BASE_OFFSET[$start, "I_SPARSE_SWITCH_BASE_OFFSET"] $base_offset)
 				I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
 				^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
 				^(I_SPARSE_SWITCH_TARGETS $switch_target*)) 					

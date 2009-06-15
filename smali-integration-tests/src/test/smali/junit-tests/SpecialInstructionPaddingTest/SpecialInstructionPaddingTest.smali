@@ -33,7 +33,6 @@
 
     const v0, 12
 
-switch:
     packed-switch v0, PackedSwitch:
 
 Label10:
@@ -58,7 +57,7 @@ Label13:
     nop
 
 PackedSwitch:
-    .packed-switch switch: 10
+    .packed-switch 10
         Label10:
         Label11:
         Label12:
