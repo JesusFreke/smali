@@ -26,36 +26,16 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.wrappers;
+package org.jf.baksmali.wrappers.format;
 
-public abstract class MethodItem implements Comparable<MethodItem> {
-    private int offset;
+import org.jf.dexlib.code.Format.Instruction30t;
 
-    protected MethodItem(int offset) {
-        this.offset = offset;
+public class Instruction30tMethodItem extends InstructionFormatMethodItem<Instruction30t> {
+    public Instruction30tMethodItem(int offset, Instruction30t instruction) {
+        super(offset, instruction);
     }
 
-
-    public int getOffset() {
-        return offset;
-    }
-
-    public String getHexOffset() {
-        return Integer.toHexString(offset);
-    }
-
-    //return the name of the template that should be used to render this item
-    public abstract String getTemplate();
-    //return an arbitrary integer that determines how this item will be sorted with
-    //others at the same offset
-    public abstract int getSortOrder();
-
-    public int compareTo(MethodItem methodItem) {
-        int result = ((Integer)offset).compareTo(methodItem.offset);
-
-        if (result == 0){
-            return ((Integer)getSortOrder()).compareTo(methodItem.getSortOrder());
-        }
-        return result;
+    public String getTarget() {
+        return Integer.toHexString(getOffset() + instruction.getOffset());
     }
 }

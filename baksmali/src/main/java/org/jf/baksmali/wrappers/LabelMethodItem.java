@@ -28,34 +28,46 @@
 
 package org.jf.baksmali.wrappers;
 
-public abstract class MethodItem implements Comparable<MethodItem> {
-    private int offset;
+public class LabelMethodItem extends MethodItem {
+    private String labelPrefix;
 
-    protected MethodItem(int offset) {
-        this.offset = offset;
+    public LabelMethodItem(int offset, String labelPrefix) {
+        super(offset);
+        this.labelPrefix = labelPrefix;
     }
 
-
-    public int getOffset() {
-        return offset;
+    public int getSortOrder() {
+        return 0;
     }
-
-    public String getHexOffset() {
-        return Integer.toHexString(offset);
-    }
-
-    //return the name of the template that should be used to render this item
-    public abstract String getTemplate();
-    //return an arbitrary integer that determines how this item will be sorted with
-    //others at the same offset
-    public abstract int getSortOrder();
 
     public int compareTo(MethodItem methodItem) {
-        int result = ((Integer)offset).compareTo(methodItem.offset);
+        int result = super.compareTo(methodItem);
 
-        if (result == 0){
-            return ((Integer)getSortOrder()).compareTo(methodItem.getSortOrder());
+        if (result == 0) {
+            if (methodItem instanceof LabelMethodItem) {
+                result = labelPrefix.compareTo(((LabelMethodItem)methodItem).labelPrefix);
+            }
         }
         return result;
+    }
+
+    public String getPrefix() {
+        return labelPrefix;
+    }
+
+    public String getTemplate() {
+        return "Label";
+    }
+
+    public int hashCode() {
+        //force it to call equals when two labels are at the same address
+        return getOffset();
+    }
+
+    public boolean equals(Object o) {
+        if (!(o instanceof LabelMethodItem)) {
+            return false;
+        }
+        return this.compareTo((MethodItem)o) == 0;
     }
 }

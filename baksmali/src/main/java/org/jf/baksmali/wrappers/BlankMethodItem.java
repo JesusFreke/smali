@@ -28,34 +28,17 @@
 
 package org.jf.baksmali.wrappers;
 
-public abstract class MethodItem implements Comparable<MethodItem> {
-    private int offset;
-
-    protected MethodItem(int offset) {
-        this.offset = offset;
+//a "spacer" between instructions
+public class BlankMethodItem extends MethodItem {
+    public BlankMethodItem(int offset) {
+        super(offset);
     }
 
-
-    public int getOffset() {
-        return offset;
+    public String getTemplate() {
+        return "Blank";
     }
 
-    public String getHexOffset() {
-        return Integer.toHexString(offset);
-    }
-
-    //return the name of the template that should be used to render this item
-    public abstract String getTemplate();
-    //return an arbitrary integer that determines how this item will be sorted with
-    //others at the same offset
-    public abstract int getSortOrder();
-
-    public int compareTo(MethodItem methodItem) {
-        int result = ((Integer)offset).compareTo(methodItem.offset);
-
-        if (result == 0){
-            return ((Integer)getSortOrder()).compareTo(methodItem.getSortOrder());
-        }
-        return result;
+    public int getSortOrder() {
+        return Integer.MAX_VALUE;
     }
 }

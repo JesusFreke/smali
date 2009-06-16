@@ -33,16 +33,12 @@ import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.code.InstructionField;
 import org.jf.dexlib.code.Instruction;
-import org.jf.dexlib.code.Format.Instruction10x;
-import org.jf.dexlib.code.Format.Instruction35c;
-import org.jf.dexlib.code.Format.Instruction21c;
-import org.jf.dexlib.code.Format.Instruction11x;
+import org.jf.dexlib.code.Opcode;
+import org.jf.dexlib.code.Format.*;
 import org.jf.dexlib.util.AccessFlags;
 import org.jf.baksmali.wrappers.format.*;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
 public class MethodDefinition {
     private ClassDataItem.EncodedMethod encodedMethod;
@@ -107,46 +103,172 @@ public class MethodDefinition {
     private List<MethodItem> methodItems = null;
     public List<MethodItem> getMethodItems() {
         if (methodItems == null) {
-            methodItems = generateMethodItemList();
+            MethodItemList methodItemList = new MethodItemList();
+            methodItemList.generateMethodItemList();
+
+            methodItems = new ArrayList<MethodItem>();
+
+            methodItems.addAll(methodItemList.labels);
+            methodItems.addAll(methodItemList.instructions);
+            methodItems.addAll(methodItemList.blanks);
+            Collections.sort(methodItems);
         }
         return methodItems;
     }
 
 
-    private List<MethodItem> generateMethodItemList() {
-        if (codeItem == null) {
-            return new ArrayList<MethodItem>();
-        }
+    private class MethodItemList {
+        public HashSet<LabelMethodItem> labels = new HashSet<LabelMethodItem>();
+        public List<InstructionFormatMethodItem> instructions = new ArrayList<InstructionFormatMethodItem>();
+        public List<BlankMethodItem> blanks = new ArrayList<BlankMethodItem>();
 
-        List<MethodItem> methodItems = new ArrayList<MethodItem>();      
+        private HashMap<Integer, Integer> packedSwitchMap = new HashMap<Integer, Integer>();
+        private HashMap<Integer, Integer> sparseSwitchMap = new HashMap<Integer, Integer>();
 
 
-        int offset = 0;
-        for (InstructionField instructionField: codeItem.getInstructions()) {
-            for (MethodItem methodItem: getMethodItemsForInstruction(offset, instructionField)) {
-                methodItems.add(methodItem);   
+        public void generateMethodItemList() {
+            if (codeItem == null) {
+                return;
             }
+
+            int offset = 0;
+            for (InstructionField instructionField: codeItem.getInstructions()) {
+                Instruction instruction = instructionField.getInstruction();
+                if (instruction.getOpcode() == Opcode.PACKED_SWITCH) {
+                    packedSwitchMap.put(offset+((Instruction31t)instruction).getOffset(), offset);
+                } else if (instruction.getOpcode() == Opcode.SPARSE_SWITCH) {
+                    sparseSwitchMap.put(offset+((Instruction31t)instruction).getOffset(), offset);
+                }
+
+                offset += instructionField.getSize(offset * 2) / 2;
+            }
+
+            offset = 0;
+            for (InstructionField instructionField: codeItem.getInstructions()) {
+                addMethodItemsForInstruction(offset, instructionField);
+                blanks.add(new BlankMethodItem(offset));
+                offset += instructionField.getSize(offset*2) / 2;
+            }
+            blanks.remove(blanks.size()-1);
         }
 
-        Collections.sort(methodItems);
+        private void addMethodItemsForInstruction(int offset, InstructionField instructionField) {
+            Instruction instruction = instructionField.getInstruction();
 
-        return methodItems;
-    }
+            switch (instruction.getFormat()) {
+                case Format10t:
+                    instructions.add(new Instruction10tMethodItem(offset, (Instruction10t)instruction));
+                    labels.add(new LabelMethodItem(offset + ((Instruction10t)instruction).getOffset(), "goto_"));
+                    return;
+                case Format10x:
+                    instructions.add(new Instruction10xMethodItem(offset, (Instruction10x)instruction));
+                    return;
+                case Format11n:
+                    instructions.add(new Instruction11nMethodItem(offset, (Instruction11n)instruction));
+                    return;
+                case Format11x:
+                    instructions.add(new Instruction11xMethodItem(offset, (Instruction11x)instruction));
+                    return;                
+                case Format12x:
+                    instructions.add(new Instruction12xMethodItem(offset, (Instruction12x)instruction));
+                    return;
+                case Format20t:
+                    instructions.add(new Instruction20tMethodItem(offset, (Instruction20t)instruction));
+                    labels.add(new LabelMethodItem(offset + ((Instruction20t)instruction).getOffset(), "goto_"));
+                    return;
+                case Format21c:
+                    instructions.add(new Instruction21cMethodItem(offset, (Instruction21c)instruction));
+                    return;
+                case Format21h:
+                    instructions.add(new Instruction21hMethodItem(offset, (Instruction21h)instruction));
+                    return;
+                case Format21s:
+                    instructions.add(new Instruction21sMethodItem(offset, (Instruction21s)instruction));
+                    return;
+                case Format21t:
+                    instructions.add(new Instruction21tMethodItem(offset, (Instruction21t)instruction));
+                    labels.add(new LabelMethodItem(offset + ((Instruction21t)instruction).getOffset(), "cond_"));
+                    return;
+                case Format22b:
+                    instructions.add(new Instruction22bMethodItem(offset, (Instruction22b)instruction));
+                    return;
+                case Format22c:
+                    instructions.add(new Instruction22cMethodItem(offset, (Instruction22c)instruction));
+                    return;
+                case Format22s:
+                    instructions.add(new Instruction22sMethodItem(offset, (Instruction22s)instruction));
+                    return;
+                case Format22t:
+                    instructions.add(new Instruction22tMethodItem(offset, (Instruction22t)instruction));
+                    labels.add(new LabelMethodItem(offset + ((Instruction22t)instruction).getOffset(), "cond_"));
+                    return;
+                case Format22x:
+                    instructions.add(new Instruction22xMethodItem(offset, (Instruction22x)instruction));
+                    return;
+                case Format23x:
+                    instructions.add(new Instruction23xMethodItem(offset, (Instruction23x)instruction));
+                    return;
+                case Format30t:
+                    instructions.add(new Instruction30tMethodItem(offset, (Instruction30t)instruction));
+                    labels.add(new LabelMethodItem(offset + ((Instruction30t)instruction).getOffset(), "goto_"));
+                    return;
+                case Format31c:
+                    instructions.add(new Instruction31cMethodItem(offset, (Instruction31c)instruction));
+                    return;
+                case Format31i:
+                    instructions.add(new Instruction31iMethodItem(offset, (Instruction31i)instruction));
+                    return;
+                case Format31t:
+                    instructions.add(new Instruction31tMethodItem(offset, (Instruction31t)instruction));
+                    if (instruction.getOpcode() == Opcode.FILL_ARRAY_DATA) {
+                        labels.add(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), "array_"));
+                    } else if (instruction.getOpcode() == Opcode.PACKED_SWITCH) {
+                        labels.add(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), "pswitch_data_"));
+                    } else if (instruction.getOpcode() == Opcode.SPARSE_SWITCH) {
+                        labels.add(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), "sswitch_data_"));
+                    }
+                    return;
+                case Format32x:
+                    instructions.add(new Instruction32xMethodItem(offset, (Instruction32x)instruction));
+                    return;
+                case Format35c:
+                    instructions.add(new Instruction35cMethodItem(offset, (Instruction35c)instruction));
+                    return;
+                case Format3rc:
+                    instructions.add(new Instruction3rcMethodItem(offset, (Instruction3rc)instruction));
+                    return;
+                case Format51l:
+                    instructions.add(new Instruction51lMethodItem(offset, (Instruction51l)instruction));
+                    return;
+                case ArrayData:
+                    instructions.add(new ArrayDataMethodItem(offset, (ArrayDataPseudoInstruction)instruction));
+                    return;
+                case PackedSwitchData:
+                {
+                    Integer baseAddress = packedSwitchMap.get(offset);
 
-    private MethodItem[] getMethodItemsForInstruction(int offset, InstructionField instructionField) {
-        Instruction instruction = instructionField.getInstruction();
-        
-        switch (instruction.getFormat()) {
-            case Format10x:
-                return new MethodItem[] {new Instruction10xMethodItem(offset, (Instruction10x)instruction)};
-            case Format11x:
-                return new MethodItem[] {new Instruction11xMethodItem(offset, (Instruction11x)instruction)};
-            case Format21c:
-                return new MethodItem[] {new Instruction21cMethodItem(offset, (Instruction21c)instruction)};
-            case Format35c:
-                return new MethodItem[] {new Instruction35cMethodItem(offset, (Instruction35c)instruction)};
-            default:
-                return null;
+                    if (baseAddress != null) {
+                        instructions.add(new PackedSwitchMethodItem(offset,
+                                (PackedSwitchDataPseudoInstruction)instruction, baseAddress));
+                        for (int target: ((PackedSwitchDataPseudoInstruction)instruction).getTargets()) {
+                            labels.add(new LabelMethodItem(baseAddress + target, "pswitch_"));
+                        }
+                    }
+                    return;
+                }
+                case SparseSwitchData:
+                {
+                    Integer baseAddress = sparseSwitchMap.get(offset);
+                    if (baseAddress != null) {
+                        instructions.add(new SparseSwitchMethodItem(offset,
+                                (SparseSwitchDataPseudoInstruction)instruction, baseAddress));
+                        for (int target: ((SparseSwitchDataPseudoInstruction)instruction).getTargets()) {
+                            labels.add(new LabelMethodItem(baseAddress + target, "sswitch_"));
+                        }
+                    }
+                    return;
+                }
+            }
         }
     }
 }

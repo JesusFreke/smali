@@ -26,36 +26,40 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.wrappers;
+package org.jf.baksmali.wrappers.format;
 
-public abstract class MethodItem implements Comparable<MethodItem> {
-    private int offset;
+import org.jf.dexlib.code.Format.ArrayDataPseudoInstruction;
 
-    protected MethodItem(int offset) {
-        this.offset = offset;
+import java.util.List;
+import java.util.ArrayList;
+
+public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPseudoInstruction> {
+    public ArrayDataMethodItem(int offset, ArrayDataPseudoInstruction instruction) {
+        super(offset, instruction);
     }
 
-
-    public int getOffset() {
-        return offset;
+    public int getElementWidth() {
+        return instruction.getElementWidth();
     }
 
-    public String getHexOffset() {
-        return Integer.toHexString(offset);
-    }
+    public List<ByteArray> getValues() {
+        List<ByteArray> values = new ArrayList<ByteArray>();
 
-    //return the name of the template that should be used to render this item
-    public abstract String getTemplate();
-    //return an arbitrary integer that determines how this item will be sorted with
-    //others at the same offset
-    public abstract int getSortOrder();
-
-    public int compareTo(MethodItem methodItem) {
-        int result = ((Integer)offset).compareTo(methodItem.offset);
-
-        if (result == 0){
-            return ((Integer)getSortOrder()).compareTo(methodItem.getSortOrder());
+        for (byte[] byteArray: instruction.getValues()) {
+            values.add(new ByteArray(byteArray));
         }
-        return result;
+        return values;
+    }
+
+    public static class ByteArray
+    {
+        byte[] byteArray;
+        public ByteArray(byte[] byteArray) {
+            this.byteArray = byteArray;
+        }
+
+        public byte[] getByteArray() {
+            return byteArray;
+        }
     }
 }

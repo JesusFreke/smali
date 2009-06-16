@@ -6,41 +6,35 @@ smaliFile(classDef) ::=
 .super <classDef.SuperType>
 <if(classDef.Interfaces)>
 
-/**
- * Interfaces
- */
+# interfaces
 <classDef.Interfaces: implement(it); separator="\n">
 
 <endif>
 <if(classDef.StaticFields)>
 
-/**
- * Static fields
- */
+
+# static fields
 <classDef.StaticFields: field(it); separator="\n">
 
 <endif>
 <if(classDef.InstanceFields)>
 
-/**
- * InstanceFields
- */
+
+# instance fields
 <classDef.InstanceFields: field(it); separator="\n">
 
 <endif>
 <if(classDef.DirectMethods)>
 
-/**
- * Direct methods
- */
+
+# direct methods
 <classDef.DirectMethods: method(it); separator="\n\n">
 
 <endif>
 <if(classDef.VirtualMethods)>
 
-/**
- * Virtual methods
- */
+
+# virtual methods
 <classDef.VirtualMethods: method(it); separator="\n\n">
 
 <endif>
@@ -67,9 +61,9 @@ method(methodDef) ::=
 <<
 .method <methodDef.AccessFlags; separator=" "> <methodDef.MethodName><methodDef.Prototype>
     <if(methodDef.hasCode)>
-        .registers <methodDef.RegisterCount>
+    .registers <methodDef.RegisterCount>
 
-        <methodDef.MethodItems: MethodItem(it); separator="\n"> 
+    <methodDef.MethodItems: MethodItem(it); separator="\n"> 
     <endif>
 .end method
 >>
@@ -83,9 +77,19 @@ MethodItem(MethodItem) ::=
 
 
 
+Format10t(Instruction) ::=
+<<
+<Instruction.Opcode> goto_<Instruction.Target>:
+>>
+
 Format10x(Instruction) ::=
 <<
 <Instruction.Opcode>
+>>
+
+Format11n(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.Register>, <Instruction.Literal>
 >>
 
 Format11x(Instruction) ::=
@@ -93,9 +97,95 @@ Format11x(Instruction) ::=
 <Instruction.Opcode> v<Instruction.Register>
 >>
 
+Format12x(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB> 
+>>
+
+Format20t(Instruction) ::=
+<<
+<Instruction.Opcode> goto_<Instruction.Target>:
+>>
+
 Format21c(Instruction) ::=
 <<
 <Instruction.Opcode> v<Instruction.Register>, <Reference(Instruction.Reference)>
+>>
+
+Format21h(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.Register>, <Instruction.Literal>
+>>
+
+Format21s(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.Register>, <Instruction.Literal>
+>>
+
+Format21t(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.Register>, cond_<Instruction.Target>:
+>>
+
+Format22b(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, <Instruction.Literal>
+>>
+
+Format22c(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, <Reference(Instruction.Reference)>
+>>
+
+Format22s(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, <Instruction.Literal>
+>>
+
+Format22t(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, cond_<Instruction.Target>
+>>
+
+Format22x(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>
+>>
+
+Format23x(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, v<Instruction.RegisterC>
+>>
+
+Format30t(Instruction) ::=
+<<
+<Instruction.Opcode> goto_<Instruction.Target>:
+>>
+
+Format31c(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.Register>, <Reference(Instruction.Reference)>
+>>
+
+Format31i(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.Register>, <Instruction.Literal>
+>>
+
+Format31tLabelMap ::= [
+    "fill-array-data":"array_",
+    "packed-switch":"pswitch_data_",
+    "sparse-switch":"sswitch_data_"
+]
+
+Format31t(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.Register>, <Format31tLabelMap.(Instruction.Opcode)><Instruction.Target>:
+>>
+
+Format32x(Instruction) ::=
+<<
+<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>
 >>
 
 Format35c(Instruction) ::=
@@ -103,7 +193,40 @@ Format35c(Instruction) ::=
 <Instruction.Opcode> {<Instruction.Registers: {v<it>}; separator=", ">}, <Reference(Instruction.Reference)>  
 >>
 
+Format3rc(Instruction) ::=
+<<
+<Instruction.Opcode> {<Instruction.StartRegister> .. <Instruction.LastRegister>}, <Reference(Instruction.Reference)>
+>>
 
+Format51l(Instruction) ::=
+<<
+<Instruction.Opcode> <Instruction.Register>, <Instruction.Literal>
+>>
+
+ArrayData(Instruction) ::=
+<<
+.array-data <Instruction.ElementWidth>
+    <Instruction.Values: {<it.ByteArray: {<it>T}; separator=" ">}; separator="\n">
+.end array-data
+>>
+
+PackedSwitchData(Instruction) ::=
+<<
+.packed-switch <Instruction.FirstKey>
+        <Instruction.Targets: {pswitch_<it>:}; separator="\n">
+.end packed-switch
+>>
+
+
+Label(Label) ::=
+<<
+<Label.Prefix><Label.HexOffset>:
+>>
+
+Blank(Blank) ::=
+<<
+
+>>
 
 
 Reference(ReferencedItem) ::=
