@@ -39,8 +39,14 @@ import java.util.ArrayList;
 
 public class ArrayDataPseudoInstruction extends Instruction
 {
+    private int elementWidth;
+    private List<byte[]> values;
+
     public ArrayDataPseudoInstruction(DexFile dexFile, int elementWidth, List<byte[]> values) {
         super(dexFile, Opcode.NOP, (IndexedItem)null);
+
+        this.elementWidth = elementWidth;
+        this.values = values;
         
         int byteCount = 0;
 
@@ -88,7 +94,7 @@ public class ArrayDataPseudoInstruction extends Instruction
             throw new RuntimeException("Invalid opcode byte for an ArrayData pseudo-instruction");
         }
         byte subopcodeByte = input.readByte();
-        if (subopcodeByte != 0x02) {
+        if (subopcodeByte != 0x03) {
             throw new RuntimeException("Invalid sub-opcode byte for an ArrayData pseudo-instruction");
         }
 
@@ -110,5 +116,13 @@ public class ArrayDataPseudoInstruction extends Instruction
 
     protected Instruction makeClone() {
         return new ArrayDataPseudoInstruction();
+    }
+
+    public int getElementWidth() {
+        return elementWidth;
+    }
+
+    public List<byte[]> getValues() {
+        return values;
     }
 }

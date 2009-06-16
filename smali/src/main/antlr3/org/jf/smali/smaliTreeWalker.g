@@ -686,7 +686,7 @@ statements[int totalMethodRegisters, int methodParameterRegisters] returns[Array
 				{
 					if ($instruction.instruction != null) {
 						$instructions.add($instruction.instruction);
-						$method::currentAddress += $instruction.instruction.getSize($method::currentAddress) / 2;
+						$method::currentAddress += $instruction.instruction.getSize($method::currentAddress * 2) / 2;
 					}
 				})*);
 			

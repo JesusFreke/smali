@@ -36,8 +36,14 @@ import org.jf.dexlib.util.Input;
 
 public class SparseSwitchDataPseudoInstruction extends Instruction
 {
+    private int[] keys;
+    private int[] targets;
+
     public SparseSwitchDataPseudoInstruction(DexFile dexFile, int[] keys, int[] targets) {
         super(dexFile, Opcode.NOP, (IndexedItem)null);
+
+        this.keys = keys;
+        this.targets = targets;
 
         if (keys.length != targets.length) {
             throw new RuntimeException("The number of keys and offsets don't match");
@@ -129,5 +135,13 @@ public class SparseSwitchDataPseudoInstruction extends Instruction
 
     public Format getFormat() {
         return Format.SparseSwitchData;
+    }
+
+    public int[] getKeys() {
+        return keys;
+    }
+
+    public int[] getTargets() {
+        return targets;
     }
 }

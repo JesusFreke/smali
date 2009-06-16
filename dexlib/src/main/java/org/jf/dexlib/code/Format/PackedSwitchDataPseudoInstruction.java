@@ -36,8 +36,13 @@ import org.jf.dexlib.util.Input;
 
 public class PackedSwitchDataPseudoInstruction extends Instruction
 {
+    private int firstKey;
+    private int[] targets;
+
     public PackedSwitchDataPseudoInstruction(DexFile dexFile, int firstKey, int[] targets) {
         super(dexFile, Opcode.NOP, (IndexedItem)null);
+        this.firstKey = firstKey;
+        this.targets = targets;
 
         if (targets.length > 0xFFFF) {
             throw new RuntimeException("The packed-switch data contains too many elements. " +
@@ -100,6 +105,14 @@ public class PackedSwitchDataPseudoInstruction extends Instruction
     }
 
     public Format getFormat() {
-        return Format.SparseSwitchData;
+        return Format.PackedSwitchData;
+    }
+
+    public int getFirstKey() {
+        return firstKey;
+    }
+
+    public int[] getTargets() {
+        return targets;
     }
 }
