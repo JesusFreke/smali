@@ -88,7 +88,7 @@ public class InstructionField implements Field<InstructionField> {
             switch (secondByte) {
                 case 0x00:
                     //nop
-                    instruction = Opcode.NOP.format.Factory.makeInstruction(dexFile, Opcode.NOP, new byte[]{0x00, 0x00});
+                    instruction = Opcode.NOP.format.Factory.makeInstruction(dexFile, Opcode.NOP, new byte[]{0x00});
                     return;
                 case 0x01:
                     //packed switch
