@@ -60,4 +60,12 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
     public String getConciseIdentity() {
         return "annotation_item @0x" + Integer.toHexString(getOffset());
     }
+
+    public byte getVisibility() {
+        return (byte)visibilityField.getCachedValue();
+    }
+
+    public AnnotationEncodedValueSubField getEncodedAnnotation() {
+        return annotationField;
+    }
 }

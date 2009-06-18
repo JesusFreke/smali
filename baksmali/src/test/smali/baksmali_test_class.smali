@@ -5,6 +5,19 @@
 .implements Lsome/other/interface;
 
 
+.annotation build Lsome/annotation;
+    value1 = "test"
+    value2 = .subannotation Lsome/annotation;
+        value1 = "test2"
+        value2 = Lsome/enum;
+    .end subannotation
+.end annotation
+
+.annotation system Lsome/annotation;
+.end annotation
+
+
+
 .field public static aStaticFieldWithoutAnInitializer:I
 
 .field public static longStaticField:J = 0x300000000L
@@ -63,6 +76,12 @@
 
 .method public testMethod(ILjava/lang/String;)Ljava/lang/String;
     .registers 3
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
+    .annotation system Lyet/another/annotation;
+        somevalue = 1234
+        anothervalue = 3.14159
+    .end annotation
 
     const-string v0, "testing\n123"
 
@@ -94,5 +113,15 @@
         Label13:
     .end packed-switch
 
+.end method
+
+.method public abstract testMethod2()V
+    .annotation runtime Lsome/annotation;
+        subannotation = .subannotation Lsome/other/annotation;
+            value = "value"
+        .end subannotation
+    .end annotation
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
 .end method
 

@@ -119,6 +119,14 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
         return "annotation_directory_item @0x" + Integer.toHexString(getOffset());
     }
 
+    public AnnotationSetItem getClassAnnotations() {
+        return classAnnotationsReferenceField.getReference();
+    }
+
+    public List<MethodAnnotation> getMethodAnnotations() {
+        return methodAnnotationList;
+    }
+
     public static class FieldAnnotation extends CompositeField<FieldAnnotation>
             implements Comparable<FieldAnnotation> {
         private final IndexedItemReference<FieldIdItem> fieldReferenceField;
@@ -169,6 +177,14 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
 
         public int compareTo(MethodAnnotation o) {
             return ((Integer)method.getReference().getIndex()).compareTo(o.method.getReference().getIndex());
+        }
+
+        public MethodIdItem getMethod() {
+            return method.getReference();
+        }
+
+        public AnnotationSetItem getAnnotationSet() {
+            return annotationSet.getReference();
         }
     }
 

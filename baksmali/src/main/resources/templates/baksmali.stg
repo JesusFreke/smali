@@ -10,6 +10,13 @@ smaliFile(classDef) ::=
 <classDef.Interfaces: implement(it); separator="\n">
 
 <endif>
+<if(classDef.Annotations)>
+
+
+# annotations
+<classDef.Annotations: annotation(it); separator="\n\n">
+
+<endif>
 <if(classDef.StaticFields)>
 
 
@@ -49,6 +56,19 @@ implement(interface) ::=
 >>
 
 
+annotation(annotationAdaptor) ::=
+<<
+.annotation <annotationAdaptor.Visibility> <Reference(annotationAdaptor.AnnotationType)>
+<if(annotationAdaptor.Elements)>
+    <annotationAdaptor.Elements: AnnotationElement(it); separator="\n">
+<endif>
+<if(annotationAdaptor.Elements)>
+
+
+<endif>
+.end annotation
+>>
+
 
 
 field(fieldDef) ::=
@@ -60,12 +80,19 @@ field(fieldDef) ::=
 method(methodDef) ::=
 <<
 .method <methodDef.AccessFlags; separator=" "> <methodDef.MethodName><methodDef.Prototype>
-    <if(methodDef.hasCode)>
+<if(methodDef.hasCode)>
     .registers <methodDef.RegisterCount>
+  <if(methodDef.Annotations)>
+    <methodDef.Annotations: annotation(it); separator="\n\n">
+  <endif>
 
-    <methodDef.MethodItems: MethodItem(it); separator="\n"> 
-    <endif>
+    <methodDef.MethodItems: MethodItem(it); separator="\n">
 .end method
+<elseif(methodDef.Annotations)>
+    <methodDef.Annotations: annotation(it); separator="\n\n">
+.end method
+<endif>
+
 >>
 
 MethodItem(MethodItem) ::=
@@ -291,7 +318,7 @@ EnumEncodedValue(EncodedValue) ::=
 
 AnnotationEncodedValue(EncodedValue) ::=
 <<
-.subannotation EncodedValue.Type
+.subannotation <Reference(EncodedValue.AnnotationType)>
     <EncodedValue.Elements: AnnotationElement(it); separator="\n">
 .end subannotation
 >>

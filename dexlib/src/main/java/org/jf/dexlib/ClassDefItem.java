@@ -129,6 +129,10 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return classDataReferenceField.getReference();
     }
 
+    public AnnotationDirectoryItem getAnnotationDirectory() {
+        return classAnnotationsReferenceField.getReference();
+    }
+
     public String getConciseIdentity() {
         return "class_def_item: " + getClassName();
     }

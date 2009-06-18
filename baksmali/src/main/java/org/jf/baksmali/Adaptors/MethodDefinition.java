@@ -29,9 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.Format.*;
-import org.jf.dexlib.ClassDataItem;
-import org.jf.dexlib.CodeItem;
-import org.jf.dexlib.MethodIdItem;
+import org.jf.dexlib.*;
 import org.jf.dexlib.code.Format.*;
 import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.InstructionField;
@@ -44,11 +42,13 @@ public class MethodDefinition {
     private ClassDataItem.EncodedMethod encodedMethod;
     private MethodIdItem methodIdItem;
     private CodeItem codeItem;
+    private AnnotationSetItem annotationSet;
 
-    public MethodDefinition(ClassDataItem.EncodedMethod encodedMethod) {
+    public MethodDefinition(ClassDataItem.EncodedMethod encodedMethod, AnnotationSetItem annotationSet) {
         this.encodedMethod = encodedMethod;
         this.methodIdItem = encodedMethod.getMethod();
         this.codeItem = encodedMethod.getCodeItem();
+        this.annotationSet = annotationSet;
     }
 
     private String methodName = null;
@@ -97,6 +97,19 @@ public class MethodDefinition {
             }
         }
         return registerCount;
+    }
+
+    public List<AnnotationAdaptor> getAnnotations() {
+        if (annotationSet == null) {
+            return null;
+        }
+
+        List<AnnotationAdaptor> annotationAdaptors = new ArrayList<AnnotationAdaptor>();
+
+        for (AnnotationItem annotationItem: annotationSet.getAnnotationItems()) {
+            annotationAdaptors.add(new AnnotationAdaptor(annotationItem));
+        }
+        return annotationAdaptors;
     }
 
 

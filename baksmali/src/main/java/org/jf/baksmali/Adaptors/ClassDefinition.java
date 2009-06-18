@@ -28,23 +28,37 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.dexlib.ClassDataItem;
-import org.jf.dexlib.ClassDefItem;
-import org.jf.dexlib.EncodedArrayItem;
 import org.jf.dexlib.EncodedValue.EncodedValue;
-import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.*;
 import org.jf.dexlib.util.AccessFlags;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ClassDefinition {
     private ClassDefItem classDefItem;
     private ClassDataItem classDataItem;
-    
+
+    private HashMap<Integer, AnnotationSetItem> methodAnnotations = new HashMap<Integer, AnnotationSetItem>();
+
     public ClassDefinition(ClassDefItem classDefItem) {
         this.classDefItem = classDefItem;
         this.classDataItem = classDefItem.getClassData();
+        buildAnnotationMaps();
+    }
+
+    private void buildAnnotationMaps() {
+        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotationDirectory();
+        if (annotationDirectory == null) {
+            return;
+        }
+
+        List<AnnotationDirectoryItem.MethodAnnotation> methodAnnotationList = annotationDirectory.getMethodAnnotations();
+
+        if (methodAnnotations != null) {
+            for (AnnotationDirectoryItem.MethodAnnotation methodAnnotation: methodAnnotationList) {
+                methodAnnotations.put(methodAnnotation.getMethod().getIndex(), methodAnnotation.getAnnotationSet());
+            }
+        }
     }
 
     private List<String> accessFlags = null;
@@ -142,7 +156,8 @@ public class ClassDefinition {
 
             if (classDataItem != null) {
                 for (ClassDataItem.EncodedMethod method: classDataItem.getDirectMethods()) {
-                    directMethods.add(new MethodDefinition(method));
+                    AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
+                    directMethods.add(new MethodDefinition(method, annotationSet));
                 }
             }
         }
@@ -156,10 +171,30 @@ public class ClassDefinition {
 
             if (classDataItem != null) {
                 for (ClassDataItem.EncodedMethod method: classDataItem.getVirtualMethods()) {
-                    virtualMethods.add(new MethodDefinition(method));
+                    AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
+                    virtualMethods.add(new MethodDefinition(method, annotationSet));
                 }
             }
         }
         return virtualMethods;
+    }
+
+    public List<AnnotationAdaptor> getAnnotations() {
+        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotationDirectory();
+        if (annotationDirectory == null) {
+            return null;
+        }
+
+        AnnotationSetItem annotationSet = annotationDirectory.getClassAnnotations();
+        if (annotationSet == null) {
+            return null;
+        }
+
+        List<AnnotationAdaptor> annotationAdaptors = new ArrayList<AnnotationAdaptor>();
+
+        for (AnnotationItem annotationItem: annotationSet.getAnnotationItems()) {
+            annotationAdaptors.add(new AnnotationAdaptor(annotationItem));
+        }
+        return annotationAdaptors;
     }
 }
