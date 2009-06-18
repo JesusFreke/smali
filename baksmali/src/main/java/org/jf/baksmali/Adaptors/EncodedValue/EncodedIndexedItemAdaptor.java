@@ -28,21 +28,21 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.dexlib.StringIdItem;
-import org.jf.dexlib.util.Utf8Utils;
+import org.jf.dexlib.IndexedItem;
+import org.jf.baksmali.Adaptors.Reference.Reference;
 
-public class StringEncodedValueAdaptor extends EncodedValueAdaptor {
-    private StringIdItem stringIdItem;
+public class EncodedIndexedItemAdaptor extends EncodedValueAdaptor {
+    private Reference reference;
 
-    public StringEncodedValueAdaptor(StringIdItem stringIdItem) {
-        this.stringIdItem = stringIdItem;
+    public EncodedIndexedItemAdaptor(Reference reference) {
+        this.reference = reference;
     }
 
     public String getFormat() {
-        return "StringEncodedValue";
+        return "EncodedIndexedItemReference";
     }
 
     public Object getValue() {
-        return Utf8Utils.escapeString(stringIdItem.getStringValue());
+        return reference;
     }
 }

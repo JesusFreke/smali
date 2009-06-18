@@ -31,6 +31,9 @@ package org.jf.baksmali.Adaptors.EncodedValue;
 import org.jf.dexlib.EncodedValue.*;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.MethodIdItem;
+import org.jf.dexlib.FieldIdItem;
+import org.jf.baksmali.Adaptors.Reference.*;
 
 public abstract class EncodedValueAdaptor {
     public static EncodedValueAdaptor make(EncodedValue encodedValue) {
@@ -50,23 +53,27 @@ public abstract class EncodedValueAdaptor {
             case VALUE_ENUM:
                 return null;
             case VALUE_FIELD:
-                return null;
+                EncodedIndexedItemReference fieldEncodedReference = (EncodedIndexedItemReference)encodedValue.getValue();
+                return new EncodedIndexedItemAdaptor(new FieldReference((FieldIdItem)fieldEncodedReference.getValue()));
             case VALUE_FLOAT:
                 return new SimpleEncodedValueAdaptor(((FloatEncodedValueSubField)encodedValue.getValue()).getValue());
             case VALUE_INT:
                 return new SimpleEncodedValueAdaptor(((IntEncodedValueSubField)encodedValue.getValue()).getValue());
-            case VALUE_LONG:
+            case VALUE_LONG:                                                                                
                 return new SimpleEncodedValueAdaptor(((LongEncodedValueSubField)encodedValue.getValue()).getValue());
             case VALUE_METHOD:
-                return null;
+                EncodedIndexedItemReference methodEncodedReference = (EncodedIndexedItemReference)encodedValue.getValue();
+                return new EncodedIndexedItemAdaptor(new MethodReference((MethodIdItem)methodEncodedReference.getValue()));
             case VALUE_NULL:
                 return null;
             case VALUE_SHORT:
                 return new SimpleEncodedValueAdaptor(((ShortEncodedValueSubField)encodedValue.getValue()).getValue());
             case VALUE_STRING:
-                return new StringEncodedValueAdaptor(((EncodedIndexedItemReference<StringIdItem>)encodedValue.getValue()).getValue());
+                EncodedIndexedItemReference stringEncodedReference = (EncodedIndexedItemReference)encodedValue.getValue();
+                return new EncodedIndexedItemAdaptor(new StringReference((StringIdItem)stringEncodedReference.getValue()));
             case VALUE_TYPE:
-                return new TypeEncodedValueAdaptor(((EncodedIndexedItemReference<TypeIdItem>)encodedValue.getValue()).getValue());
+                EncodedIndexedItemReference typeEncodedReference = (EncodedIndexedItemReference)encodedValue.getValue();
+                return new EncodedIndexedItemAdaptor(new TypeReference((TypeIdItem)typeEncodedReference.getValue()));
         }
         return null;
     }

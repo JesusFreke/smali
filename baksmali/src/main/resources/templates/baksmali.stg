@@ -255,6 +255,11 @@ MethodReference(MethodReference) ::=
 <MethodReference.ContainingClass>-><MethodReference.MethodName><MethodReference.Prototype>
 >>
 
+TypeReference(TypeReference) ::=
+<<
+<TypeReference.TypeDescriptor>
+>>
+
 
 
 EncodedValue(EncodedValue) ::=
@@ -267,7 +272,7 @@ SimpleEncodedValue(EncodedValue) ::=
 <EncodedValue.Value>
 >>
 
-StringEncodedValue(EncodedValue) ::=
+EncodedIndexedItemReference(EncodedValue) ::=
 <<
-"<EncodedValue.Value>"
+<Reference(EncodedValue.Value)>
 >>
