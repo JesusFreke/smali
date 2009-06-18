@@ -29,6 +29,8 @@
 package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.dexlib.EncodedValue.*;
+import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.StringIdItem;
 
 public abstract class EncodedValueAdaptor {
     public static EncodedValueAdaptor make(EncodedValue encodedValue) {
@@ -62,9 +64,9 @@ public abstract class EncodedValueAdaptor {
             case VALUE_SHORT:
                 return new SimpleEncodedValueAdaptor(((ShortEncodedValueSubField)encodedValue.getValue()).getValue());
             case VALUE_STRING:
-                return null;
+                return new StringEncodedValueAdaptor(((EncodedIndexedItemReference<StringIdItem>)encodedValue.getValue()).getValue());
             case VALUE_TYPE:
-                return null;
+                return new TypeEncodedValueAdaptor(((EncodedIndexedItemReference<TypeIdItem>)encodedValue.getValue()).getValue());
         }
         return null;
     }

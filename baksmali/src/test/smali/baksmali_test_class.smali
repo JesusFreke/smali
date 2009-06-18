@@ -29,8 +29,10 @@
 .field public static boolTrueStaticField:Z = true
 .field public static boolFalseStaticField:Z = false
 
+.field public static typeStaticField:Ljava/lang/Class; = Lbaksmali/test/class;
 
-
+.field public static stringStaticField:Ljava/lang/String; = "test"
+.field public static stringEscapedStaticField:Ljava/lang/String; = "test\ntest"
 
 .field public instanceField:Ljava/lang/String;
 

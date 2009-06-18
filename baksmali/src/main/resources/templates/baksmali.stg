@@ -266,3 +266,8 @@ SimpleEncodedValue(EncodedValue) ::=
 <<
 <EncodedValue.Value>
 >>
+
+StringEncodedValue(EncodedValue) ::=
+<<
+"<EncodedValue.Value>"
+>>
