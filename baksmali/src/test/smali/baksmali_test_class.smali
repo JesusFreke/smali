@@ -41,6 +41,8 @@
 
 .field public static arrayStaticField:[I = {1, 2, 3, {1, 2, 3, 4}}
 
+.field public static enumStaticField:Lsome/enum; = .enum Lsome/enum;->someEnumValue:Lsome/enum;
+
 .field public instanceField:Ljava/lang/String;
 
 

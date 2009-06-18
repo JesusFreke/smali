@@ -51,7 +51,8 @@ public abstract class EncodedValueAdaptor {
             case VALUE_DOUBLE:
                 return new SimpleEncodedValueAdaptor(((DoubleEncodedValueSubField)encodedValue.getValue()).getValue());
             case VALUE_ENUM:
-                return null;
+                EncodedIndexedItemReference enumEncodedReference = (EncodedIndexedItemReference)encodedValue.getValue();
+                return new EnumEncodedValueAdaptor(new FieldReference((FieldIdItem)enumEncodedReference.getValue()));
             case VALUE_FIELD:
                 EncodedIndexedItemReference fieldEncodedReference = (EncodedIndexedItemReference)encodedValue.getValue();
                 return new EncodedIndexedItemAdaptor(new FieldReference((FieldIdItem)fieldEncodedReference.getValue()));

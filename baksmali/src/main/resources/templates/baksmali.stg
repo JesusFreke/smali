@@ -283,3 +283,8 @@ ArrayEncodedValue(EncodedValue) ::=
     <EncodedValue(it)>}; separator=",">
 }
 >>
+
+EnumEncodedValue(EncodedValue) ::=
+<<
+.enum <Reference(EncodedValue.Value)>
+>>
