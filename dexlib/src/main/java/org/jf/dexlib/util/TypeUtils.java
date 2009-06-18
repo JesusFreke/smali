@@ -28,34 +28,33 @@
 
 package org.jf.dexlib.util;
 
-import org.jf.dexlib.EncodedValue.EncodedValueSubFieldFactory;
-import org.jf.dexlib.EncodedValue.ValueType;
-import org.jf.dexlib.EncodedValue.EncodedValueSubField;
+import org.jf.dexlib.EncodedValue.*;
 import org.jf.dexlib.DexFile;
 
 public class TypeUtils
 {
     public static EncodedValueSubField makeDefaultValueForType(DexFile dexFile, String type) {
+        EncodedValueSubField subField;
         switch (type.charAt(0)) {
             case 'Z':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_BOOLEAN);
+                return new BoolEncodedValueSubField(false);
             case 'B':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_BYTE);
+                return new ByteEncodedValueSubField((byte)0);
             case 'S':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_SHORT);
+                return new ShortEncodedValueSubField((short)0);
             case 'C':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_CHAR);
+                return new CharEncodedValueSubField((char)0);
             case 'I':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_INT);
+                return new IntEncodedValueSubField(0);
             case 'J':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_LONG);
+                return new LongEncodedValueSubField(0);
             case 'F':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_FLOAT);
+                return new FloatEncodedValueSubField(0);
             case 'D':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_DOUBLE);
+                return new DoubleEncodedValueSubField(0);
             case 'L':
             case '[':
-                return EncodedValueSubFieldFactory.makeEncodedValueField(dexFile, ValueType.VALUE_NULL);
+                return new NullEncodedValueSubField();
         }
         return null;
     }
