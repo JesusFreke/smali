@@ -28,15 +28,15 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.baksmali.Adaptors.Format.*;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.MethodIdItem;
-import org.jf.dexlib.code.InstructionField;
-import org.jf.dexlib.code.Instruction;
-import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.code.Format.*;
+import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.code.InstructionField;
+import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.util.AccessFlags;
-import org.jf.baksmali.Adaptors.Format.*;
 
 import java.util.*;
 

@@ -30,8 +30,8 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.code.Format.ArrayDataPseudoInstruction;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPseudoInstruction> {
     public ArrayDataMethodItem(int offset, ArrayDataPseudoInstruction instruction) {

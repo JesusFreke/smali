@@ -31,8 +31,8 @@ package org.jf.dexlib.EncodedValue;
 import org.jf.dexlib.*;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEncodedValueSubField>
     implements EncodedValueSubField<AnnotationEncodedValueSubField> {

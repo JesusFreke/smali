@@ -28,15 +28,15 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.dexlib.ClassDefItem;
-import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.ClassDataItem;
+import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.EncodedArrayItem;
 import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.util.AccessFlags;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ClassDefinition {
     private ClassDefItem classDefItem;

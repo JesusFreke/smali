@@ -28,14 +28,14 @@
 
 package org.jf.dexlib.code.Format;
 
-import org.jf.dexlib.code.Instruction;
-import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.util.Input;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ArrayDataPseudoInstruction extends Instruction
 {

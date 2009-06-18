@@ -28,9 +28,9 @@
 
 package org.jf.dexlib.debug;
 
+import org.jf.dexlib.ByteField;
 import org.jf.dexlib.CompositeField;
 import org.jf.dexlib.Field;
-import org.jf.dexlib.ByteField;
 
 public class EndSequence extends CompositeField<EndSequence> implements DebugInstruction<EndSequence> {
     public EndSequence() {

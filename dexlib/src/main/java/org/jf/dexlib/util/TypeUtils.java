@@ -28,8 +28,8 @@
 
 package org.jf.dexlib.util;
 
-import org.jf.dexlib.EncodedValue.*;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.EncodedValue.*;
 
 public class TypeUtils
 {

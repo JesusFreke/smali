@@ -28,11 +28,11 @@
 
 package org.jf.dexlib.util;
 
-import org.jf.dexlib.debug.*;
-import org.jf.dexlib.DexFile;
 import org.jf.dexlib.DebugInfoItem;
+import org.jf.dexlib.DexFile;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.debug.*;
 
 import java.util.ArrayList;
 import java.util.List;

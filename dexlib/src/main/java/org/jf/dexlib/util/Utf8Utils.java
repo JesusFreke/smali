@@ -16,9 +16,6 @@
 
 package org.jf.dexlib.util;
 
-import org.jf.dexlib.util.ByteArray;
-import org.jf.dexlib.util.Hex;
-
 /**
  * Constants of type <code>CONSTANT_Utf8_info</code>.
  */

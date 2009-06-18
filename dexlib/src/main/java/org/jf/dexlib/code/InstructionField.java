@@ -28,12 +28,12 @@
 
 package org.jf.dexlib.code;
 
-import org.jf.dexlib.Field;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Field;
 import org.jf.dexlib.IndexedItem;
+import org.jf.dexlib.code.Format.ArrayDataPseudoInstruction;
 import org.jf.dexlib.code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.code.Format.SparseSwitchDataPseudoInstruction;
-import org.jf.dexlib.code.Format.ArrayDataPseudoInstruction;
 import org.jf.dexlib.util.AnnotatedOutput;
 import org.jf.dexlib.util.Input;
 

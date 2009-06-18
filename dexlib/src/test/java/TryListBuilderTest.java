@@ -27,12 +27,13 @@
  */
 
 
-import org.jf.dexlib.util.TryListBuilder;
-import org.jf.dexlib.util.Pair;
-import org.jf.dexlib.TypeIdItem;
-import org.jf.dexlib.DexFile;
 import org.jf.dexlib.CodeItem;
-import org.junit.*;
+import org.jf.dexlib.DexFile;
+import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.util.Pair;
+import org.jf.dexlib.util.TryListBuilder;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.List;
 

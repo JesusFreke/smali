@@ -28,7 +28,7 @@
 
 package org.jf.dexlib.code;
 
-import org.jf.dexlib.code.Format.*;
+import org.jf.dexlib.code.Format.Format;
 
 import java.util.ArrayList;
 import java.util.HashMap;

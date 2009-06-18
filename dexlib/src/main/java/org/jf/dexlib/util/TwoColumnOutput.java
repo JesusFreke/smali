@@ -16,11 +16,7 @@
 
 package org.jf.dexlib.util;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 
 /**
  * Class that takes a combined output destination and provides two

@@ -28,9 +28,9 @@
 
 package org.jf.dexlib.EncodedValue;
 
+import org.jf.dexlib.util.AnnotatedOutput;
 import org.jf.dexlib.util.EncodedValueUtils;
 import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.AnnotatedOutput;
 
 public class DoubleEncodedValueSubField
         extends SimpleEncodedValueSubField<Double, DoubleEncodedValueSubField>

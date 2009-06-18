@@ -28,12 +28,12 @@
 
 package org.jf.smali;
 
-import org.jf.dexlib.DexFile;
-import org.jf.dexlib.util.ByteArrayAnnotatedOutput;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
+import org.jf.dexlib.DexFile;
+import org.jf.dexlib.util.ByteArrayAnnotatedOutput;
 
 import java.io.*;
 import java.util.LinkedHashSet;

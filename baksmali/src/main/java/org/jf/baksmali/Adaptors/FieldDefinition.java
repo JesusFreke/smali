@@ -28,14 +28,14 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.dexlib.ClassDataItem;
-import org.jf.dexlib.FieldIdItem;
-import org.jf.dexlib.EncodedValue.EncodedValue;
-import org.jf.dexlib.util.AccessFlags;
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
+import org.jf.dexlib.ClassDataItem;
+import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.dexlib.FieldIdItem;
+import org.jf.dexlib.util.AccessFlags;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class FieldDefinition {
     private ClassDataItem.EncodedField encodedField;

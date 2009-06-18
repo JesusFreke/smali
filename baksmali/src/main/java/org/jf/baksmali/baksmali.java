@@ -30,12 +30,12 @@ package org.jf.baksmali;
 
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Renderers.*;
+import org.jf.dexlib.DexFile;
 
-import java.io.FileReader;
 import java.io.File;
+import java.io.FileReader;
 
 public class baksmali {
     public static void main(String[] args) throws Exception

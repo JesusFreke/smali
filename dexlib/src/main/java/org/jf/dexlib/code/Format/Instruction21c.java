@@ -28,11 +28,11 @@
 
 package org.jf.dexlib.code.Format;
 
-import org.jf.dexlib.code.Instruction;
-import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.IndexedItem;
 import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.util.NumberUtils;
 
 public class Instruction21c extends Instruction

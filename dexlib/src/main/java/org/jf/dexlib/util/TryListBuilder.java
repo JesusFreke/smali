@@ -28,11 +28,14 @@
 
 package org.jf.dexlib.util;
 
-import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.TypeIdItem;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public class TryListBuilder
 {

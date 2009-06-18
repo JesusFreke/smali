@@ -16,8 +16,6 @@
 
 package org.jf.baksmali;
 
-import org.jf.baksmali.UsageException;
-
 /**
  * Main class for baksmali. It recognizes enough options to be able to dispatch
  * to the right "actual" main.

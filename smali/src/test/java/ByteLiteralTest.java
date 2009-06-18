@@ -26,8 +26,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.junit.*;
 import org.jf.smali.literalTools;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ByteLiteralTest
 {

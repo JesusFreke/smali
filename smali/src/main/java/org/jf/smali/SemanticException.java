@@ -28,8 +28,8 @@
 
 package org.jf.smali;
 
-import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.IntStream;
+import org.antlr.runtime.RecognitionException;
 
 public class SemanticException extends RecognitionException {
     private String errorMessage;

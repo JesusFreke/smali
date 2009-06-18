@@ -30,11 +30,6 @@ package org.jf.dexlib.code;
 
 import org.jf.dexlib.*;
 import org.jf.dexlib.code.Format.Format;
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.AnnotatedOutput;
-
-import java.util.Collections;
-import java.lang.reflect.Array;
 
 public abstract class Instruction {
     private DexFile dexFile;

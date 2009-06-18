@@ -28,7 +28,10 @@
 
 package org.jf.dexlib.debug;
 
-import org.jf.dexlib.*;
+import org.jf.dexlib.ByteField;
+import org.jf.dexlib.CompositeField;
+import org.jf.dexlib.Field;
+import org.jf.dexlib.Leb128Field;
 
 public class AdvancePC extends CompositeField<AdvancePC> implements DebugInstruction<AdvancePC> {
     private final ByteField opcodeField;

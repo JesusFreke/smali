@@ -20,12 +20,9 @@ package org.jf;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.jf.smali.smali;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
-import org.jf.smali.smali;
 
 /**
  * Assembles files in the smali assembly language
