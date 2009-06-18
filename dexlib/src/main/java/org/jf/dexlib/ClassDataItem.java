@@ -96,13 +96,21 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
 
     public int addField(EncodedField encodedField) {
         if (encodedField.isStatic()) {
-            staticFieldList.add(encodedField);
-            Collections.sort(staticFieldList);
-            return Collections.binarySearch(staticFieldList, encodedField);
+            int index = Collections.binarySearch(staticFieldList, encodedField);
+            if (index >= 0) {
+                throw new RuntimeException("A static field of that name and type is already present");
+            }
+            index = (index + 1) * -1;
+            staticFieldList.add(index, encodedField);
+            return index;
         } else {
-            instanceFieldList.add(encodedField);
-            Collections.sort(instanceFieldList);
-            return Collections.binarySearch(instanceFieldList, encodedField);
+            int index = Collections.binarySearch(instanceFieldList, encodedField);
+            if (index >= 0) {
+                throw new RuntimeException("An instance field of that name and type is already present");
+            }
+            index = (index + 1) * -1;
+            instanceFieldList.add(index, encodedField);
+            return index;
         }
     }
 

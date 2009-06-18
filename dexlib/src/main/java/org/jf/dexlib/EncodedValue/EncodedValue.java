@@ -175,4 +175,8 @@ public class EncodedValue extends CompositeField<EncodedValue> {
     public byte getValueArg() {
         return valueTypeArg.getValueArg();
     }
+
+    public EncodedValueSubField getValue() {
+        return encodedValue.getEncodedValueSubField();
+    }
 }

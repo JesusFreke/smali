@@ -36,6 +36,7 @@ public class IntEncodedValueSubField
         extends SimpleEncodedValueSubField<Integer, IntEncodedValueSubField>
 {
     public IntEncodedValueSubField() {
+        return;
     }
 
     public IntEncodedValueSubField(int value) {

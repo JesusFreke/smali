@@ -35,6 +35,7 @@ import org.jf.dexlib.util.Input;
 import org.jf.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
     private final ArrayEncodedValueSubField encodedArray;
@@ -85,5 +86,9 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
 
     public String getConciseIdentity() {
         return "encoded_array @0x" + Integer.toHexString(getOffset());
+    }
+
+    public ArrayEncodedValueSubField getEncodedArray() {
+        return encodedArray;
     }
 }

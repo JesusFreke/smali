@@ -146,6 +146,10 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return classTypeReferenceField.equals(other.classTypeReferenceField);
     }
 
+    public EncodedArrayItem getStaticInitializers() {
+        return staticFieldInitialValuesReferenceField.getReference();        
+    }
+
     public int compareTo(ClassDefItem o) {
         //sorting is implemented in SortClassDefItemSection, so this class doesn't
         //need an implementation of compareTo
@@ -180,6 +184,11 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
             }
 
             staticFieldInitialValuesList.add(fieldIndex, initialValue);
+        } else if (staticFieldInitialValuesList != null && encodedField.isStatic() && fieldIndex < staticFieldInitialValuesList.size()) {
+            EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile,
+                    encodedField.getFieldReference().getFieldType().getTypeDescriptor());
+            EncodedValue encodedValue = new EncodedValue(dexFile, subField);
+            staticFieldInitialValuesList.add(fieldIndex, encodedValue);
         }
     }
 
