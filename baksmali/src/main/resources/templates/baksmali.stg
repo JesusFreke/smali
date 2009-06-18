@@ -276,3 +276,10 @@ EncodedIndexedItemReference(EncodedValue) ::=
 <<
 <Reference(EncodedValue.Value)>
 >>
+
+ArrayEncodedValue(EncodedValue) ::=
+<<
+{<EncodedValue.Value: {
+    <EncodedValue(it)>}; separator=",">
+}
+>>

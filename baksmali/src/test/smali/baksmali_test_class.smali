@@ -34,11 +34,16 @@
 .field public static stringStaticField:Ljava/lang/String; = "test"
 .field public static stringEscapedStaticField:Ljava/lang/String; = "test\ntest"
 
+
 .field public static fieldStaticField:Ljava/lang/reflect/Field; = Lbaksmali/test/class;->fieldStaticField:Ljava/lang/reflect/Field;
 
 .field public static methodStaticField:Ljava/lang/reflect/Method; = Lbaksmali/test/class;->teshMethod(ILjava/lang/String;)Ljava/lang/String;
 
+.field public static arrayStaticField:[I = {1, 2, 3, {1, 2, 3, 4}}
+
 .field public instanceField:Ljava/lang/String;
+
+
 
 .method public constructor <init>()V
     .registers 1

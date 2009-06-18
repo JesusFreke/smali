@@ -41,7 +41,7 @@ public abstract class EncodedValueAdaptor {
             case VALUE_ANNOTATION:
                 return null;
             case VALUE_ARRAY:
-                return null;
+                return new ArrayEncodedValueAdaptor(((ArrayEncodedValueSubField)encodedValue.getValue()));
             case VALUE_BOOLEAN:
                 return new SimpleEncodedValueAdaptor(((BoolEncodedValueSubField)encodedValue.getValue()).getValue());                
             case VALUE_BYTE:
