@@ -53,7 +53,7 @@ implement(interface) ::=
 
 field(fieldDef) ::=
 <<
-.field <fieldDef.AccessFlags; separator=" "> <fieldDef.FieldName>:<fieldDef.FieldType>
+.field <fieldDef.AccessFlags; separator=" "> <fieldDef.FieldName>:<fieldDef.FieldType><if(fieldDef.InitialValue)> = <fieldDef.InitialValue: EncodedValue(it)><endif>
 >>
 
 
@@ -75,6 +75,18 @@ MethodItem(MethodItem) ::=
 
 
 
+Format31tLabelMap ::= [
+    "fill-array-data":"array_",
+    "packed-switch":"pswitch_data_",
+    "sparse-switch":"sswitch_data_"
+]
+
+
+Register(num) ::=
+<<
+v<num; format="decimal">
+>>
+
 
 
 Format10t(Instruction) ::=
@@ -89,17 +101,17 @@ Format10x(Instruction) ::=
 
 Format11n(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>, <Instruction.Literal>
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
 >>
 
 Format11x(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>
+<Instruction.Opcode> <Register(Instruction.Register)>
 >>
 
 Format12x(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB> 
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
 >>
 
 Format20t(Instruction) ::=
@@ -109,52 +121,52 @@ Format20t(Instruction) ::=
 
 Format21c(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>, <Reference(Instruction.Reference)>
+<Instruction.Opcode> <Register(Instruction.Register)>, <Reference(Instruction.Reference)>
 >>
 
 Format21h(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>, <Instruction.Literal>
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
 >>
 
 Format21s(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>, <Instruction.Literal>
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
 >>
 
 Format21t(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>, cond_<Instruction.Target>:
+<Instruction.Opcode> <Register(Instruction.Register)>, cond_<Instruction.Target>:
 >>
 
 Format22b(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, <Instruction.Literal>
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Instruction.Literal>
 >>
 
 Format22c(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, <Reference(Instruction.Reference)>
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Reference(Instruction.Reference)>
 >>
 
 Format22s(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, <Instruction.Literal>
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Instruction.Literal>
 >>
 
 Format22t(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, cond_<Instruction.Target>
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, cond_<Instruction.Target>
 >>
 
 Format22x(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
 >>
 
 Format23x(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>, v<Instruction.RegisterC>
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Register(Instruction.RegisterC)>
 >>
 
 Format30t(Instruction) ::=
@@ -164,49 +176,43 @@ Format30t(Instruction) ::=
 
 Format31c(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>, <Reference(Instruction.Reference)>
+<Instruction.Opcode> <Register(Instruction.Register)>, <Reference(Instruction.Reference)>
 >>
 
 Format31i(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>, <Instruction.Literal>
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
 >>
-
-Format31tLabelMap ::= [
-    "fill-array-data":"array_",
-    "packed-switch":"pswitch_data_",
-    "sparse-switch":"sswitch_data_"
-]
 
 Format31t(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.Register>, <Format31tLabelMap.(Instruction.Opcode)><Instruction.Target>:
+<Instruction.Opcode> <Register(Instruction.Register)>, <Format31tLabelMap.(Instruction.Opcode)><Instruction.Target>:
 >>
 
 Format32x(Instruction) ::=
 <<
-<Instruction.Opcode> v<Instruction.RegisterA>, v<Instruction.RegisterB>
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
 >>
 
 Format35c(Instruction) ::=
 <<
-<Instruction.Opcode> {<Instruction.Registers: {v<it>}; separator=", ">}, <Reference(Instruction.Reference)>  
+<Instruction.Opcode> {<Instruction.Registers: Register(it); separator=", ">}, <Reference(Instruction.Reference)>
 >>
 
 Format3rc(Instruction) ::=
 <<
-<Instruction.Opcode> {<Instruction.StartRegister> .. <Instruction.LastRegister>}, <Reference(Instruction.Reference)>
+<Instruction.Opcode> {<Register(Instruction.StartRegister)> .. <Register(Instruction.LastRegister)>}, <Reference(Instruction.Reference)>
 >>
 
 Format51l(Instruction) ::=
 <<
-<Instruction.Opcode> <Instruction.Register>, <Instruction.Literal>
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
 >>
 
 ArrayData(Instruction) ::=
 <<
 .array-data <Instruction.ElementWidth>
-    <Instruction.Values: {<it.ByteArray: {<it>T}; separator=" ">}; separator="\n">
+    <Instruction.Values: {<it.ByteArray; format="unsigned",separator=" ">}; separator="\n">
 .end array-data
 >>
 
@@ -247,4 +253,16 @@ FieldReference(FieldReference) ::=
 MethodReference(MethodReference) ::=
 <<
 <MethodReference.ContainingClass>-><MethodReference.MethodName><MethodReference.Prototype>
+>>
+
+
+
+EncodedValue(EncodedValue) ::=
+<<
+<(EncodedValue.Format)(EncodedValue)>
+>>
+
+SimpleEncodedValue(EncodedValue) ::=
+<<
+<EncodedValue.Value>
 >>

@@ -26,39 +26,24 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.baksmali.Adaptors.Reference;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
+import org.jf.dexlib.MethodIdItem;
 
-import java.io.FileReader;
-import java.io.File;
+public class MethodReference extends Reference<MethodIdItem> {
+    public MethodReference(MethodIdItem item) {
+        super(item);
+    }
 
-public class baksmali {
-    public static void main(String[] args) throws Exception
-    {
-        String dexFileName = args[0];
-        String outputDir = args[1];
+    public String getContainingClass() {
+        return item.getContainingClass().getTypeDescriptor();
+    }
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+    public String getMethodName() {
+        return item.getMethodName();
+    }
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
-
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
-
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
-
-        System.out.println(smaliFileST.toString());
+    public String getPrototype() {
+        return item.getPrototype().getPrototypeString();
     }
 }

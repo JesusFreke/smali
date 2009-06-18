@@ -26,39 +26,20 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
+import org.jf.dexlib.code.Format.Instruction21t;
 
-import java.io.FileReader;
-import java.io.File;
+public class Instruction21tMethodItem extends InstructionFormatMethodItem<Instruction21t> {
+    public Instruction21tMethodItem(int offset, Instruction21t instruction) {
+        super(offset, instruction);
+    }
 
-public class baksmali {
-    public static void main(String[] args) throws Exception
-    {
-        String dexFileName = args[0];
-        String outputDir = args[1];
+    public int getRegister() {
+        return instruction.getOffset();
+    }
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
-
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
-
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
-
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
-
-        System.out.println(smaliFileST.toString());
+    public String getTarget() {
+        return Integer.toHexString(getOffset() + instruction.getOffset());
     }
 }

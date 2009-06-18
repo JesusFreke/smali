@@ -4,7 +4,34 @@
 .implements Lsome/interface;
 .implements Lsome/other/interface;
 
-.field public static staticField:I
+
+.field public static aStaticFieldWithoutAnInitializer:I
+
+.field public static longStaticField:J = 0x300000000L
+.field public static longNegStaticField:J = -0x300000000L
+
+.field public static intStaticField:I = 0x70000000
+.field public static intNegStaticField:I = -500
+
+.field public static shortStaticField:S = 500s
+.field public static shortNegStaticField:S = -500s
+
+.field public static byteStaticField:B = 123t
+.field public static byteNegStaticField:B = 0xAAt
+
+.field public static floatStaticField:F = 3.1415926f
+
+.field public static doubleStaticField:D = 3.141592653589793
+
+.field public static charStaticField:C = 'a'
+.field public static charEscapedStaticField:C = '\n'
+
+.field public static boolTrueStaticField:Z = true
+.field public static boolFalseStaticField:Z = false
+
+
+
+
 .field public instanceField:Ljava/lang/String;
 
 .method public constructor <init>()V
@@ -16,26 +43,17 @@
 .method public testMethod(ILjava/lang/String;)Ljava/lang/String;
     .registers 3
 
-    0:
     const-string v0, "testing\n123"
 
-    2:
     goto switch:
     
-    3:
     sget v0, Lbaksmali/test/class;->staticField:I
-
-    5:
 
     switch:
     packed-switch v0, pswitch:
 
-    8:
-
-    const/4 v0, 2
-
-    9:
-
+    const/4 v0, 7
+    const v0, 10
 
     Label10:
     Label11:
@@ -43,13 +61,9 @@
     Label13:
     return-object v0
 
-    A:
-
     .array-data 4
-        1 2 3 4 5 6
+        1 2 3 4 5 6 200
     .end array-data
-
-    1A:
 
     pswitch:
     .packed-switch 10

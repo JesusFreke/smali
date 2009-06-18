@@ -26,39 +26,30 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
+import org.jf.dexlib.code.Format.SparseSwitchDataPseudoInstruction;
 
-import java.io.FileReader;
-import java.io.File;
+public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSwitchDataPseudoInstruction> {
+    private int baseAddress;
 
-public class baksmali {
-    public static void main(String[] args) throws Exception
-    {
-        String dexFileName = args[0];
-        String outputDir = args[1];
+    public SparseSwitchMethodItem(int offset, SparseSwitchDataPseudoInstruction instruction, int baseAddress) {
+        super(offset, instruction);
+        this.baseAddress = baseAddress;
+    }
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+    public int[] getKeys() {
+        return instruction.getKeys();
+    }
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
+    public String[] getTargets() {
+        int[] targetValues = instruction.getTargets();
+        String[] targets = new String[targetValues.length];
 
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
+        for (int i=0; i<targetValues.length; i++) {
+            targets[i] = Integer.toHexString(targetValues[i] + baseAddress);
+        }
 
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
-
-        System.out.println(smaliFileST.toString());
+        return targets;
     }
 }

@@ -26,39 +26,36 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.baksmali.Adaptors;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
+public abstract class MethodItem implements Comparable<MethodItem> {
+    private int offset;
 
-import java.io.FileReader;
-import java.io.File;
+    protected MethodItem(int offset) {
+        this.offset = offset;
+    }
 
-public class baksmali {
-    public static void main(String[] args) throws Exception
-    {
-        String dexFileName = args[0];
-        String outputDir = args[1];
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+    public int getOffset() {
+        return offset;
+    }
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
+    public String getHexOffset() {
+        return Integer.toHexString(offset);
+    }
 
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
+    //return the name of the template that should be used to render this item
+    public abstract String getTemplate();
+    //return an arbitrary integer that determines how this item will be sorted with
+    //others at the same offset
+    public abstract int getSortOrder();
 
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
+    public int compareTo(MethodItem methodItem) {
+        int result = ((Integer)offset).compareTo(methodItem.offset);
 
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
-
-        System.out.println(smaliFileST.toString());
+        if (result == 0){
+            return ((Integer)getSortOrder()).compareTo(methodItem.getSortOrder());
+        }
+        return result;
     }
 }

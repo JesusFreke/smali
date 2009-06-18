@@ -26,39 +26,36 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.baksmali.Adaptors.Reference;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
+import org.jf.dexlib.FieldIdItem;
 
-import java.io.FileReader;
-import java.io.File;
+public class FieldReference extends Reference<FieldIdItem> {
+    public FieldReference(FieldIdItem item) {
+        super(item);
+    }
 
-public class baksmali {
-    public static void main(String[] args) throws Exception
-    {
-        String dexFileName = args[0];
-        String outputDir = args[1];
+    private String containingClass = null;
+    public String getContainingClass() {
+        if (containingClass == null) {
+            containingClass = item.getContainingClass().getTypeDescriptor();
+        }
+        return containingClass;
+    }
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+    private String fieldName = null;
+    public String getFieldName() {
+        if (fieldName == null) {
+            fieldName = item.getFieldName().getStringValue();
+        }
+        return fieldName;
+    }
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
-
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
-
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
-
-        System.out.println(smaliFileST.toString());
+    private String fieldType = null;
+    public String getFieldType() {
+        if (fieldType == null) {
+            fieldType = item.getFieldType().getTypeDescriptor();
+        }
+        return fieldType;
     }
 }

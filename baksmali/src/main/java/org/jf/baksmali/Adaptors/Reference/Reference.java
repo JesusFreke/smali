@@ -26,39 +26,32 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.baksmali.Adaptors.Reference;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
+import org.jf.dexlib.*;
 
-import java.io.FileReader;
-import java.io.File;
+public abstract class Reference<T extends IndexedItem> {
+    protected T item;
 
-public class baksmali {
-    public static void main(String[] args) throws Exception
-    {
-        String dexFileName = args[0];
-        String outputDir = args[1];
+    protected Reference(T item) {
+        this.item = item;
+    }
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+    public static Reference makeReference(IndexedItem item) {
+        switch (item.getItemType()) {
+            case TYPE_METHOD_ID_ITEM:
+                return new MethodReference((MethodIdItem)item);
+            case TYPE_FIELD_ID_ITEM:
+                return new FieldReference((FieldIdItem)item);
+            case TYPE_STRING_ID_ITEM:
+                return new StringReference((StringIdItem)item);
+            case TYPE_TYPE_ID_ITEM:
+                return new TypeReference((TypeIdItem)item);
+        }
+        return null;
+    }
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
-
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
-
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
-
-        System.out.println(smaliFileST.toString());
+    public String getTemplate() {
+        return this.getClass().getSimpleName();
     }
 }

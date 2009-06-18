@@ -26,39 +26,34 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
+import org.jf.baksmali.Adaptors.MethodItem;
+import org.jf.baksmali.Adaptors.Reference.Reference;
+import org.jf.dexlib.code.Instruction;
 
-import java.io.FileReader;
-import java.io.File;
+public abstract class InstructionFormatMethodItem<T extends Instruction> extends MethodItem {
+    protected T instruction;
 
-public class baksmali {
-    public static void main(String[] args) throws Exception
-    {
-        String dexFileName = args[0];
-        String outputDir = args[1];
+    public InstructionFormatMethodItem(int offset, T instruction) {
+        super(offset);
+        this.instruction = instruction;
+    }
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+    public int getSortOrder() {
+        //instructions should appear after everything except an "end try" label
+        return 100;
+    }
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
+    public String getOpcode() {
+        return instruction.getOpcode().name;
+    }
 
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
+    public String getTemplate() {
+        return instruction.getFormat().name();
+    }
 
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
-
-        System.out.println(smaliFileST.toString());
+    public Reference getReference() {
+        return Reference.makeReference(instruction.getReferencedItem());
     }
 }

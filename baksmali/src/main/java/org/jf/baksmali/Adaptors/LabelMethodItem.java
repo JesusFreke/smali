@@ -26,39 +26,48 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.baksmali.Adaptors;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.DexFile;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
+public class LabelMethodItem extends MethodItem {
+    private String labelPrefix;
 
-import java.io.FileReader;
-import java.io.File;
+    public LabelMethodItem(int offset, String labelPrefix) {
+        super(offset);
+        this.labelPrefix = labelPrefix;
+    }
 
-public class baksmali {
-    public static void main(String[] args) throws Exception
-    {
-        String dexFileName = args[0];
-        String outputDir = args[1];
+    public int getSortOrder() {
+        return 0;
+    }
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+    public int compareTo(MethodItem methodItem) {
+        int result = super.compareTo(methodItem);
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
+        if (result == 0) {
+            if (methodItem instanceof LabelMethodItem) {
+                result = labelPrefix.compareTo(((LabelMethodItem)methodItem).labelPrefix);
+            }
+        }
+        return result;
+    }
 
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
+    public String getPrefix() {
+        return labelPrefix;
+    }
 
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
+    public String getTemplate() {
+        return "Label";
+    }
 
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
+    public int hashCode() {
+        //force it to call equals when two labels are at the same address
+        return getOffset();
+    }
 
-        System.out.println(smaliFileST.toString());
+    public boolean equals(Object o) {
+        if (!(o instanceof LabelMethodItem)) {
+            return false;
+        }
+        return this.compareTo((MethodItem)o) == 0;
     }
 }
