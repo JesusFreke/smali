@@ -29,8 +29,8 @@
 package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.dexlib.EncodedValue.*;
-import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.StringIdItem;
+import org.jf.dexlib.TypeIdItem;
 
 public abstract class EncodedValueAdaptor {
     public static EncodedValueAdaptor make(EncodedValue encodedValue) {

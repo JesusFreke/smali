@@ -28,16 +28,14 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.code.Instruction;
-import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.code.InstructionField;
-import org.jf.dexlib.ItemType;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.util.Input;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 
 public class CodeItem extends OffsettedItem<CodeItem> {
     private final ArrayList<InstructionField> instructionList;

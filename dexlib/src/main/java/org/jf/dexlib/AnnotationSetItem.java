@@ -28,8 +28,6 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-
 import java.util.ArrayList;
 import java.util.List;
 

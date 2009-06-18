@@ -28,9 +28,7 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
-import org.jf.dexlib.util.Utf8Utils;
 
 public class TypeEncodedValueAdaptor extends EncodedValueAdaptor {
     private TypeIdItem typeIdItem;

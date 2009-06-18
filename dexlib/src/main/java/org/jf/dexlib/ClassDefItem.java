@@ -28,13 +28,12 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.EncodedValueSubField;
 import org.jf.dexlib.util.TypeUtils;
 
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class ClassDefItem extends IndexedItem<ClassDefItem> {

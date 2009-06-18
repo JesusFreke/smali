@@ -28,9 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.Input;
 import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.ItemType;
+import org.jf.dexlib.util.Input;
 
 public abstract class Item<T extends Item> {
     protected int offset = -1;

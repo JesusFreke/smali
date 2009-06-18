@@ -29,7 +29,6 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.EncodedValue.AnnotationEncodedValueSubField;
-import org.jf.dexlib.ItemType;
 
 public class AnnotationItem extends OffsettedItem<AnnotationItem> {
     private final ByteField visibilityField;

@@ -28,8 +28,6 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-
 import java.util.ArrayList;
 
 public class ProtoIdItem extends IndexedItem<ProtoIdItem> {

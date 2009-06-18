@@ -28,8 +28,6 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-
 public class MapField extends CompositeField<MapField> {
     private final ShortIntegerField sectionTypeField;
     private final ShortIntegerField unusedField;

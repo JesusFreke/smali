@@ -28,14 +28,17 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.*;
+import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.util.ByteArrayInput;
+import org.jf.dexlib.util.FileUtils;
+import org.jf.dexlib.util.Input;
 
-import java.util.HashMap;
-import java.util.zip.Adler32;
 import java.io.File;
+import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.DigestException;
+import java.util.HashMap;
+import java.util.zip.Adler32;
 
 public class DexFile
 {

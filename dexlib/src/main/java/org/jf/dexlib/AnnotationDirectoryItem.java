@@ -28,11 +28,9 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryItem> {
     private final ArrayList<FieldAnnotation> fieldAnnotationList = new ArrayList<FieldAnnotation>();
