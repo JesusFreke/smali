@@ -279,12 +279,24 @@ EncodedIndexedItemReference(EncodedValue) ::=
 
 ArrayEncodedValue(EncodedValue) ::=
 <<
-{<EncodedValue.Value: {
-    <EncodedValue(it)>}; separator=",">
+{
+    <EncodedValue.Value: EncodedValue(it); separator=",\n">
 }
 >>
 
 EnumEncodedValue(EncodedValue) ::=
 <<
 .enum <Reference(EncodedValue.Value)>
+>>
+
+AnnotationEncodedValue(EncodedValue) ::=
+<<
+.subannotation EncodedValue.Type
+    <EncodedValue.Elements: AnnotationElement(it); separator="\n">
+.end subannotation
+>>
+
+AnnotationElement(AnnotationElement) ::=
+<<
+<AnnotationElement.Name> = <EncodedValue(AnnotationElement.Value)>
 >>

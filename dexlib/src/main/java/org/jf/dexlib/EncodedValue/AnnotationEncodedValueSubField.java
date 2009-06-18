@@ -80,4 +80,12 @@ public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEnc
     public ValueType getValueType() {
         return ValueType.VALUE_ANNOTATION;
     }
+
+    public TypeIdItem getAnnotationType() {
+        return annotationType.getReference();
+    }
+
+    public List<AnnotationElement> getAnnotationElements() {
+        return (List<AnnotationElement>)annotationElementList.clone();
+    }
 }

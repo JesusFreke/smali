@@ -56,4 +56,12 @@ public class AnnotationElement extends CompositeField<AnnotationElement>
     public int compareTo(AnnotationElement annotationElement) {
         return elementName.compareTo(annotationElement.elementName);
     }
+
+    public StringIdItem getName() {
+        return elementName.getReference(); 
+    }
+
+    public EncodedValue getEncodedValue() {
+        return encodedValue;
+    }
 }

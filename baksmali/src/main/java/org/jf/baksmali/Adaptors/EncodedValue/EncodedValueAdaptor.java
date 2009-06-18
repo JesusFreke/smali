@@ -39,11 +39,11 @@ public abstract class EncodedValueAdaptor {
     public static EncodedValueAdaptor make(EncodedValue encodedValue) {
         switch (encodedValue.getValueType()) {
             case VALUE_ANNOTATION:
-                return null;
+                return new AnnotationEncodedValueAdaptor((AnnotationEncodedValueSubField)encodedValue.getValue());
             case VALUE_ARRAY:
-                return new ArrayEncodedValueAdaptor(((ArrayEncodedValueSubField)encodedValue.getValue()));
+                return new ArrayEncodedValueAdaptor((ArrayEncodedValueSubField)encodedValue.getValue());
             case VALUE_BOOLEAN:
-                return new SimpleEncodedValueAdaptor(((BoolEncodedValueSubField)encodedValue.getValue()).getValue());                
+                return new SimpleEncodedValueAdaptor(((BoolEncodedValueSubField)encodedValue.getValue()).getValue());
             case VALUE_BYTE:
                 return new SimpleEncodedValueAdaptor(((ByteEncodedValueSubField)encodedValue.getValue()).getValue());
             case VALUE_CHAR:

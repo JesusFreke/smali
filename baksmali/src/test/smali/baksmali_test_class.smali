@@ -43,6 +43,14 @@
 
 .field public static enumStaticField:Lsome/enum; = .enum Lsome/enum;->someEnumValue:Lsome/enum;
 
+.field public static annotationStaticField:Lsome/annotation; = .subannotation Lsome/annotation;
+    value1 = "test"
+    value2 = .subannotation Lsome/annotation;
+        value1 = "test2"
+        value2 = Lsome/enum;
+    .end subannotation
+.end subannotation
+
 .field public instanceField:Ljava/lang/String;
 
 
