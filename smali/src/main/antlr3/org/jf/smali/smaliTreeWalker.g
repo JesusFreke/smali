@@ -560,12 +560,14 @@ sparse_switch_declaration
 			if (!$method::sparseSwitchDeclarations.containsKey(switchDataAddress)) {
 				$method::sparseSwitchDeclarations.put(switchDataAddress, $address.address);
 			}
+			
 		};
 	
-catches	:	^(I_CATCHES catch_directive*);
+catches	:	^(I_CATCHES catch_directive* catchall_directive*);
 
 catch_directive
-	:	^(I_CATCH address nonvoid_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address] using=offset_or_label_absolute[$address.address])
+	:	^(I_CATCH address nonvoid_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
+				using=offset_or_label_absolute[$address.address])
 		{
 			TypeIdItem type = $nonvoid_type_descriptor.type;
 			int startAddress = $from.address;
@@ -573,6 +575,17 @@ catch_directive
 			int handlerAddress = $using.address;
 
 			$method::tryList.addHandler(type, startAddress, endAddress, handlerAddress);
+		};
+
+catchall_directive
+	:	^(I_CATCHALL address from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
+				using=offset_or_label_absolute[$address.address])
+		{
+			int startAddress = $from.address;
+			int endAddress = $to.address;
+			int handlerAddress = $using.address;
+
+			$method::tryList.addCatchAllHandler(startAddress, endAddress, handlerAddress);
 		};
 		
 address returns[int address]

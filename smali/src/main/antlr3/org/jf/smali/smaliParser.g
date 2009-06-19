@@ -74,6 +74,7 @@ tokens {
 	I_SPARSE_SWITCH_DECLARATIONS;
 	I_ADDRESS;
 	I_CATCH;
+	I_CATCHALL;
 	I_CATCHES;
 	I_PARAMETER;
 	I_PARAMETERS;
@@ -261,6 +262,7 @@ statements_and_directives
 		|	{!$statements_and_directives::hasRegistersDirective}?=> registers_directive {$statements_and_directives::hasRegistersDirective = true;}
 		|	label
 		|	catch_directive
+		|	catchall_directive
 		|	parameter_directive
 		|	ordered_debug_directive
 		|	annotation
@@ -270,7 +272,7 @@ statements_and_directives
 			{buildTree(I_PACKED_SWITCH_DECLARATIONS, "I_PACKED_SWITCH_DECLARATIONS", $statements_and_directives::packedSwitchDeclarations)}
 			{buildTree(I_SPARSE_SWITCH_DECLARATIONS, "I_SPARSE_SWITCH_DECLARATIONS", $statements_and_directives::sparseSwitchDeclarations)}
 			^(I_STATEMENTS instruction*)
-			^(I_CATCHES catch_directive*)
+			^(I_CATCHES catch_directive* catchall_directive*)
 			^(I_PARAMETERS parameter_directive*)
 			^(I_ORDERED_DEBUG_DIRECTIVES ordered_debug_directive*)
 			^(I_ANNOTATIONS annotation*);
@@ -282,6 +284,11 @@ registers_directive
 catch_directive
 	:	CATCH_DIRECTIVE nonvoid_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label
 		-> ^(I_CATCH[$start, "I_CATCH"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] nonvoid_type_descriptor $from $to $using)
+	;
+	
+catchall_directive
+	:	CATCHALL_DIRECTIVE from=offset_or_label to=offset_or_label using=offset_or_label
+		-> ^(I_CATCHALL[$start, "I_CATCHALL"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] $from $to $using)
 	;
 
 
