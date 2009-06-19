@@ -51,4 +51,8 @@ public class SetFile extends CompositeField<SetFile> implements DebugInstruction
     public byte getOpcode() {
         return 0x09;
     }
+
+    public StringIdItem getFileName() {
+        return fileName.getReference();
+    }
 }

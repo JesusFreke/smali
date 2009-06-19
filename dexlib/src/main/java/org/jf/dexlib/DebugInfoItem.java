@@ -90,6 +90,16 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
         return "debug_info_item @0x" + Integer.toHexString(getOffset());
     }
 
+    public int getLineStart() {
+        return lineStartField.getCachedValue();
+    }
+
+    public List<DebugInstruction> getDebugInstructions() {
+        return (List<DebugInstruction>)instructionFields.clone();
+    }
+
+
+
     private class DebugInstructionList implements Field<DebugInstructionList> {
         private final DexFile dexFile;
         private final ArrayList<DebugInstruction> list;

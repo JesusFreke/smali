@@ -47,4 +47,13 @@ public class SpecialOpcode extends CompositeField<SpecialOpcode> implements Debu
     public byte getOpcode() {
         return opcode;
     }
+
+    public byte getLineDelta() {
+        return (byte)((((opcode & 0xFF) - 0x0A) % 15) - 4);
+    }
+
+    public byte getAddressDelta() {
+        return (byte)(((opcode & 0xFF) - 0x0A) / 15);        
+    }
 }
+

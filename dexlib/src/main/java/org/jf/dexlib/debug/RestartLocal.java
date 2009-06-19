@@ -53,4 +53,8 @@ public class RestartLocal extends CompositeField<RestartLocal> implements DebugI
     public byte getOpcode() {
         return 0x06;
     }
+
+    public int getRegisterNumber() {
+        return registerNumber.getCachedValue();
+    }
 }

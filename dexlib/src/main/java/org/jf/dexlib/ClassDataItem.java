@@ -276,7 +276,7 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
             return (accessFlagsField.getCachedValue() & AccessFlags.STATIC.getValue()) != 0;
         }
 
-        public FieldIdItem getFieldReference() {
+        public FieldIdItem getField() {
             return fieldReferenceField.getReference();
         }
 

@@ -58,4 +58,16 @@ public class StartLocal extends CompositeField<StartLocal> implements DebugInstr
     public byte getOpcode() {
         return 0x03;
     }
+
+    public int getRegisterNumber() {
+        return registerNumber.getCachedValue();
+    }
+
+    public StringIdItem getName() {
+        return localName.getReference();
+    }
+
+    public TypeIdItem getType() {
+        return localType.getReference();
+    }
 }

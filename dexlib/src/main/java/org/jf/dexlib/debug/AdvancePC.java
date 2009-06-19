@@ -53,4 +53,8 @@ public class AdvancePC extends CompositeField<AdvancePC> implements DebugInstruc
     public byte getOpcode() {
         return 0x01;
     }
+
+    public int getAddressDelta() {
+        return addressDeltaField.getCachedValue();
+    }
 }

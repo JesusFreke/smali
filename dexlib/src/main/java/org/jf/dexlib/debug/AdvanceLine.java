@@ -53,4 +53,8 @@ public class AdvanceLine extends CompositeField<AdvanceLine> implements DebugIns
     public byte getOpcode() {
         return 0x02;
     }
+
+    public int getLineDelta() {
+        return lineDeltaField.getCachedValue();
+    }
 }

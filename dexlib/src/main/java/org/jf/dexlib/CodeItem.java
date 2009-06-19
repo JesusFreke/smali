@@ -122,6 +122,14 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         return (List<InstructionField>)instructionList.clone();
     }
 
+    public List<TryItem> getTries() {
+        return (List<TryItem>)tryItems.clone();
+    }
+
+    public DebugInfoItem getDebugInfo() {
+        return debugInfoReferenceField.getReference();
+    }
+
     public void copyTo(DexFile dexFile, CodeItem copy)
     {
         for (int i = 0; i < fields.length-2; i++) {
@@ -408,12 +416,18 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             }
         }
 
+        //TODO: GROT
         public int getHandlerCount() {
             return list.size();
         }
 
+        //TODO: GROT
         public EncodedTypeAddrPair getHandler(int index) {
             return list.get(index);
+        }
+
+        public List<EncodedTypeAddrPair> getHandlers() {
+            return (List<EncodedTypeAddrPair>)list.clone();
         }
     }
 

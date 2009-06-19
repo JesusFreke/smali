@@ -63,4 +63,20 @@ public class StartLocalExtended extends CompositeField<StartLocalExtended> imple
     public byte getOpcode() {
         return 0x04;
     }
+
+    public int getRegisterNumber() {
+        return registerNumber.getCachedValue();
+    }
+
+    public StringIdItem getName() {
+        return localName.getReference();
+    }
+
+    public TypeIdItem getType() {
+        return localType.getReference();
+    }
+
+    public StringIdItem getSignature() {
+        return signature.getReference();
+    }
 }

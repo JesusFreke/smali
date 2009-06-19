@@ -112,6 +112,14 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return classTypeReferenceField.getReference().getTypeDescriptor();
     }
 
+    public String getSourceFile() {
+        StringIdItem stringIdItem = sourceFileReferenceField.getReference();
+        if (stringIdItem == null) {
+            return null;
+        }
+        return stringIdItem.getStringValue();
+    }
+
     public int getAccessFlags() {
         return accessFlagsField.getCachedValue();
     }
@@ -181,7 +189,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
             for (int i=staticFieldInitialValuesList.size(); i < fieldIndex; i++) {
                 ClassDataItem.EncodedField staticField = classDataItem.getStaticFieldAtIndex(i);
                 EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile,
-                        staticField.getFieldReference().getFieldType().getTypeDescriptor());
+                        staticField.getField().getFieldType().getTypeDescriptor());
                 EncodedValue encodedValue = new EncodedValue(dexFile, subField);
                 staticFieldInitialValuesList.add(i, encodedValue);
             }
@@ -189,7 +197,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
             staticFieldInitialValuesList.add(fieldIndex, initialValue);
         } else if (staticFieldInitialValuesList != null && encodedField.isStatic() && fieldIndex < staticFieldInitialValuesList.size()) {
             EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile,
-                    encodedField.getFieldReference().getFieldType().getTypeDescriptor());
+                    encodedField.getField().getFieldType().getTypeDescriptor());
             EncodedValue encodedValue = new EncodedValue(dexFile, subField);
             staticFieldInitialValuesList.add(fieldIndex, encodedValue);
         }

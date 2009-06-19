@@ -53,4 +53,8 @@ public class EndLocal extends CompositeField<EndLocal> implements DebugInstructi
     public byte getOpcode() {
         return 0x05;
     }
+
+    public int getRegisterNumber() {
+        return registerNumber.getCachedValue();
+    }
 }
