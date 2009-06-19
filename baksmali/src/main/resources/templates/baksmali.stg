@@ -93,6 +93,9 @@ method(methodDef) ::=
 .method <methodDef.AccessFlags; separator=" "> <methodDef.MethodName><methodDef.Prototype>
 <if(methodDef.hasCode)>
     .registers <methodDef.RegisterCount>
+  <if(methodDef.Parameters)>
+    <methodDef.Parameters: Parameter(it); separator="\n">
+  <endif>
   <if(methodDef.Annotations)>
     <methodDef.Annotations: annotation(it); separator="\n\n">
   <endif>
@@ -109,6 +112,15 @@ method(methodDef) ::=
 MethodItem(MethodItem) ::=
 <<
 <MethodItem: (MethodItem.Template)(MethodItem)>
+>>
+
+Parameter(Parameter) ::=
+<<
+.parameter<if(Parameter.ParameterName)> "<Parameter.ParameterName>"<endif><if(Parameter.Annotations)>
+
+    <Parameter.Annotations: annotation(it); separator="\n\n">
+.end parameter
+<endif>
 >>
 
 

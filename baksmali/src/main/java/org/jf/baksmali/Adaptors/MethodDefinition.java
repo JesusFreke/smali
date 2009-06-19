@@ -44,12 +44,15 @@ public class MethodDefinition {
     private MethodIdItem methodIdItem;
     private CodeItem codeItem;
     private AnnotationSetItem annotationSet;
+    private AnnotationSetRefList parameterAnnotations;
 
-    public MethodDefinition(ClassDataItem.EncodedMethod encodedMethod, AnnotationSetItem annotationSet) {
+    public MethodDefinition(ClassDataItem.EncodedMethod encodedMethod, AnnotationSetItem annotationSet,
+                            AnnotationSetRefList parameterAnnotations) {
         this.encodedMethod = encodedMethod;
         this.methodIdItem = encodedMethod.getMethod();
         this.codeItem = encodedMethod.getCodeItem();
         this.annotationSet = annotationSet;
+        this.parameterAnnotations = parameterAnnotations;
     }
 
     private String methodName = null;
@@ -113,6 +116,86 @@ public class MethodDefinition {
         return annotationAdaptors;
     }
 
+    public List<ParameterAdaptor> getParameters() {
+        DebugInfoItem debugInfoItem = null;
+        if (codeItem != null) {
+            debugInfoItem = codeItem.getDebugInfo();
+        }
+
+        int parameterCount = 0;
+
+        List<AnnotationSetItem> annotations = new ArrayList<AnnotationSetItem>();
+        if (parameterAnnotations != null) {
+            List<AnnotationSetItem> _annotations = parameterAnnotations.getAnnotationSets();
+            if (_annotations != null) {
+                annotations.addAll(_annotations);
+            }
+
+            parameterCount = annotations.size();
+        }
+
+        List<String> parameterNames = new ArrayList<String>();
+        if (debugInfoItem != null) {
+            List<String> _parameterNames = debugInfoItem.getParameterNames();
+            if (_parameterNames != null) {
+                parameterNames.addAll(_parameterNames);
+            }
+
+            if (parameterCount < parameterNames.size()) {
+                parameterCount = parameterNames.size();
+            }
+        }
+
+        List<ParameterAdaptor> parameterAdaptors = new ArrayList<ParameterAdaptor>();
+        for (int i=0; i<parameterCount; i++) {
+            AnnotationSetItem annotationSet = null;
+            if (i < annotations.size()) {
+                annotationSet = annotations.get(i);
+            }
+
+            String parameterName = null;
+            if (i < parameterNames.size()) {
+                parameterName = parameterNames.get(i);
+            }
+
+            parameterAdaptors.add(new ParameterAdaptor(parameterName, annotationSet));
+        }
+
+        return parameterAdaptors;
+    }
+
+    private List<List<AnnotationAdaptor>> getParameterAnnotations() {
+        if (parameterAnnotations == null) {
+            return null;
+        }
+
+        List<List<AnnotationAdaptor>> parameterAnnotationList = new ArrayList<List<AnnotationAdaptor>>();
+
+        List<AnnotationSetItem> annotationSets = parameterAnnotations.getAnnotationSets();
+
+        for (AnnotationSetItem annotationSet: annotationSets) {
+            List<AnnotationAdaptor> parameterAnnotationAdaptors = new ArrayList<AnnotationAdaptor>();
+            for (AnnotationItem annotationItem: annotationSet.getAnnotationItems()) {
+                parameterAnnotationAdaptors.add(new AnnotationAdaptor(annotationItem));
+            }
+            parameterAnnotationList.add(parameterAnnotationAdaptors);
+        }
+
+        return parameterAnnotationList;
+    }
+
+    public List<String> getParameterNames() {
+        if (codeItem == null) {
+            return null;
+        }
+
+        DebugInfoItem debugInfoItem = codeItem.getDebugInfo();
+        if (debugInfoItem == null) {
+            return null;
+        }
+        
+        return debugInfoItem.getParameterNames();        
+    }
 
     private List<MethodItem> methodItems = null;
     public List<MethodItem> getMethodItems() {
@@ -358,7 +441,7 @@ public class MethodDefinition {
             if (debugInfoItem == null) {
                 return;
             }
-            
+
             DebugInfoDecoder decoder = new DebugInfoDecoder(debugInfoItem, new DebugInfoDelegate(),
                     codeItem.getRegisterCount());
             decoder.decode();

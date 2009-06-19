@@ -74,4 +74,18 @@ public class AnnotationSetRefList extends OffsettedItem<AnnotationSetRefList> {
     public String getConciseIdentity() {
         return "annotation_set_item @0x" + Integer.toHexString(getOffset());
     }
+
+    public int getCount() {
+        return annotationSetReferences.size();
+    }
+
+    public List<AnnotationSetItem> getAnnotationSets() {
+        List<AnnotationSetItem> annotationSets = new ArrayList<AnnotationSetItem>();
+
+        for (OffsettedItemReference<AnnotationSetItem> annotationSetReference: annotationSetReferences) {
+            annotationSets.add(annotationSetReference.getReference());
+        }
+
+        return annotationSets;
+    }
 }

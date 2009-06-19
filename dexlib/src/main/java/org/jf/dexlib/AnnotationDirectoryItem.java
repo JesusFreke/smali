@@ -131,6 +131,9 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
         return (List<FieldAnnotation>)fieldAnnotationList.clone();
     }
 
+    public List<ParameterAnnotation> getParameterAnnotations() {
+        return (List<ParameterAnnotation>)parameterAnnotationList.clone();
+    }
 
 
     public static class FieldAnnotation extends CompositeField<FieldAnnotation>
@@ -204,27 +207,36 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
 
     public static class ParameterAnnotation extends CompositeField<ParameterAnnotation>
             implements Comparable<ParameterAnnotation> {
-        private final IndexedItemReference<MethodIdItem> method;
-        private final OffsettedItemReference<AnnotationSetRefList> parameterAnnotations;
-        
+        private final IndexedItemReference<MethodIdItem> methodReferenceField;
+        private final OffsettedItemReference<AnnotationSetRefList> parameterAnnotationsReferenceField;
+
         public ParameterAnnotation(DexFile dexFile) {
             super("parameter_annotation");              
             fields = new Field[] {
-                    method = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection,
+                    methodReferenceField = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection,
                             new IntegerField(null), "method_idx"),
-                    parameterAnnotations = new OffsettedItemReference<AnnotationSetRefList>(
+                    parameterAnnotationsReferenceField = new OffsettedItemReference<AnnotationSetRefList>(
                             dexFile.AnnotationSetRefListsSection, new IntegerField(null), "annotations_off")
             };
         }
 
         public ParameterAnnotation(DexFile dexFile, MethodIdItem method, AnnotationSetRefList parameterAnnotations) {
             this(dexFile);
-            this.method.setReference(method);
-            this.parameterAnnotations.setReference(parameterAnnotations);
+            this.methodReferenceField.setReference(method);
+            this.parameterAnnotationsReferenceField.setReference(parameterAnnotations);
         }
 
         public int compareTo(ParameterAnnotation o) {
-            return ((Integer)method.getReference().getIndex()).compareTo(o.method.getReference().getIndex());
+            return ((Integer) methodReferenceField.getReference().getIndex()).compareTo(o.methodReferenceField.getReference().getIndex());
         }
+
+        public MethodIdItem getMethod() {
+            return methodReferenceField.getReference();
+        }
+
+        public AnnotationSetRefList getParameterAnnotations() {
+            return parameterAnnotationsReferenceField.getReference();
+        }
+
     }
 }

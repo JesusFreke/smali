@@ -98,6 +98,20 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
         return (List<DebugInstruction>)instructionFields.clone();
     }
 
+    public List<String> getParameterNames() {
+        List<String> parameterNamesList = new ArrayList<String>();
+
+        for (IndexedItemReference<StringIdItem> parameterNameReference: parameterNames) {
+            StringIdItem parameterNameItem = parameterNameReference.getReference();
+            if (parameterNameItem == null) {
+                parameterNamesList.add(null);
+            } else {
+                parameterNamesList.add(parameterNameItem.getStringValue());
+            }
+        }
+        return parameterNamesList;
+    }
+
 
 
     private class DebugInstructionList implements Field<DebugInstructionList> {

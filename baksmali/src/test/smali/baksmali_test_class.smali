@@ -166,8 +166,26 @@
 .end method
 
 
-.method public debugTest()V
+.method public debugTest(IIIII)V
     .registers 10
+
+    .parameter "Blah"
+    .parameter
+    .parameter "BlahWithAnnotations"
+        .annotation runtime Lsome/annotation;
+            something = "some value"
+            somethingelse = 1234
+        .end annotation
+        .annotation runtime La/second/annotation;
+        .end annotation
+    .end parameter
+    .parameter
+        .annotation runtime Lsome/annotation;
+            something = "some value"
+            somethingelse = 1234
+        .end annotation
+    .end parameter
+    .parameter "LastParam"
 
     .prologue
 

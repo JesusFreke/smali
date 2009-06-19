@@ -40,6 +40,7 @@ public class ClassDefinition {
 
     private HashMap<Integer, AnnotationSetItem> methodAnnotations = new HashMap<Integer, AnnotationSetItem>();
     private HashMap<Integer, AnnotationSetItem> fieldAnnotations = new HashMap<Integer, AnnotationSetItem>();
+    private HashMap<Integer, AnnotationSetRefList> parameterAnnotations = new HashMap<Integer, AnnotationSetRefList>();
 
     public ClassDefinition(ClassDefItem classDefItem) {
         this.classDefItem = classDefItem;
@@ -54,16 +55,24 @@ public class ClassDefinition {
         }
 
         List<AnnotationDirectoryItem.MethodAnnotation> methodAnnotationList = annotationDirectory.getMethodAnnotations();
-        if (methodAnnotations != null) {
+        if (methodAnnotationList != null) {
             for (AnnotationDirectoryItem.MethodAnnotation methodAnnotation: methodAnnotationList) {
                 methodAnnotations.put(methodAnnotation.getMethod().getIndex(), methodAnnotation.getAnnotationSet());
             }
         }
 
         List<AnnotationDirectoryItem.FieldAnnotation> fieldAnnotationList = annotationDirectory.getFieldAnnotations();
-        if (fieldAnnotations != null) {
+        if (fieldAnnotationList != null) {
             for (AnnotationDirectoryItem.FieldAnnotation fieldAnnotation: fieldAnnotationList) {
                 fieldAnnotations.put(fieldAnnotation.getField().getIndex(), fieldAnnotation.getAnnotationSet());
+            }
+        }
+
+        List<AnnotationDirectoryItem.ParameterAnnotation> parameterAnnotationList =
+                annotationDirectory.getParameterAnnotations();
+        if (parameterAnnotationList != null) {
+            for (AnnotationDirectoryItem.ParameterAnnotation parameterAnnotation: parameterAnnotationList) {
+                parameterAnnotations.put(parameterAnnotation.getMethod().getIndex(), parameterAnnotation.getParameterAnnotations());
             }
         }
     }
@@ -151,7 +160,8 @@ public class ClassDefinition {
         if (classDataItem != null) {
             for (ClassDataItem.EncodedMethod method: classDataItem.getDirectMethods()) {
                 AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
-                directMethods.add(new MethodDefinition(method, annotationSet));
+                AnnotationSetRefList parameterAnnotationList = parameterAnnotations.get(method.getMethod().getIndex());
+                directMethods.add(new MethodDefinition(method, annotationSet, parameterAnnotationList));
             }
         }
 
@@ -164,7 +174,8 @@ public class ClassDefinition {
         if (classDataItem != null) {
             for (ClassDataItem.EncodedMethod method: classDataItem.getVirtualMethods()) {
                 AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
-                virtualMethods.add(new MethodDefinition(method, annotationSet));
+                AnnotationSetRefList parameterAnnotationList = parameterAnnotations.get(method.getMethod().getIndex());
+                virtualMethods.add(new MethodDefinition(method, annotationSet, parameterAnnotationList));
             }
         }
 
