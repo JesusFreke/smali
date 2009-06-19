@@ -48,7 +48,7 @@ public class NumberUtils {
 
     public static short decodeShort(byte lsb, byte msb) {
         return (short)
-               (    lsb |
+               (    (lsb & 0xFF) |
                     (msb << 8)
                );
     }
@@ -59,9 +59,9 @@ public class NumberUtils {
     }
 
     public static int decodeInt(byte lsb, byte mlsb, byte mmsb, byte msb) {
-        return lsb |
-               (mlsb << 8) |
-               (mmsb << 16) |
+        return (lsb & 0xFF) |
+               ((mlsb & 0xFF) << 8) |
+               ((mmsb & 0xFF) << 16) |
                (msb << 24);
     }
 
