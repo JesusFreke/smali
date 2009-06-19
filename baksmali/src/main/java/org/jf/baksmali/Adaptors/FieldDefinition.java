@@ -32,6 +32,8 @@ import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.FieldIdItem;
+import org.jf.dexlib.AnnotationSetItem;
+import org.jf.dexlib.AnnotationItem;
 import org.jf.dexlib.util.AccessFlags;
 
 import java.util.ArrayList;
@@ -41,15 +43,18 @@ public class FieldDefinition {
     private ClassDataItem.EncodedField encodedField;
     private FieldIdItem fieldIdItem;
     private EncodedValue initialValue;
+    private AnnotationSetItem annotationSet;
 
-    public FieldDefinition(ClassDataItem.EncodedField encodedField) {
-        this(encodedField, null);
+    public FieldDefinition(ClassDataItem.EncodedField encodedField, AnnotationSetItem annotationSet) {
+        this(encodedField, null, annotationSet);
     }
 
-    public FieldDefinition(ClassDataItem.EncodedField encodedField, EncodedValue initialValue) {
+    public FieldDefinition(ClassDataItem.EncodedField encodedField, EncodedValue initialValue,
+                           AnnotationSetItem annotationSet) {
         this.encodedField = encodedField;
-        this.fieldIdItem = encodedField.getFieldReference();
+        this.fieldIdItem = encodedField.getField();
         this.initialValue = initialValue;
+        this.annotationSet = annotationSet;
     }
 
     private List<String> accessFlags = null;
@@ -86,5 +91,18 @@ public class FieldDefinition {
             encodedValueAdaptor = EncodedValueAdaptor.make(initialValue);
         }
         return encodedValueAdaptor;
+    }
+
+    public List<AnnotationAdaptor> getAnnotations() {
+        if (annotationSet == null) {
+            return null;
+        }
+
+        List<AnnotationAdaptor> annotationAdaptors = new ArrayList<AnnotationAdaptor>();
+
+        for (AnnotationItem annotationItem: annotationSet.getAnnotationItems()) {
+            annotationAdaptors.add(new AnnotationAdaptor(annotationItem));
+        }
+        return annotationAdaptors;
     }
 }

@@ -1,6 +1,8 @@
 .class public Lbaksmali/test/class;
 .super Ljava/lang/Object;
 
+.source "baksmali_test_class.smali"
+
 .implements Lsome/interface;
 .implements Lsome/other/interface;
 
@@ -64,6 +66,15 @@
     .end subannotation
 .end subannotation
 
+.field public static staticFieldWithAnnotation:I
+    .annotation runtime La/field/annotation;
+        this = "is"
+        a = "test"
+    .end annotation
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
+.end field
+
 .field public instanceField:Ljava/lang/String;
 
 
@@ -92,14 +103,23 @@
     switch:
     packed-switch v0, pswitch:
 
+    try_start:
     const/4 v0, 7
     const v0, 10
+    nop
+    try_end:
+    .catch Ljava/lang/Exception; {try_start: .. try_end:} handler:
+    .catchall {try_start: .. try_end:} handler2:
+
+    handler:
 
     Label10:
     Label11:
     Label12:
     Label13:
     return-object v0
+
+
 
     .array-data 4
         1 2 3 4 5 6 200
@@ -113,6 +133,10 @@
         Label13:
     .end packed-switch
 
+    handler2:
+
+    return-void
+
 .end method
 
 .method public abstract testMethod2()V
@@ -125,3 +149,52 @@
     .end annotation
 .end method
 
+
+.method public tryTest()V
+    .registers 1
+
+    handler:
+    nop
+
+
+    try_start:
+    const/4 v0, 7
+    const v0, 10
+    nop
+    try_end:
+    .catch Ljava/lang/Exception; {try_start: .. try_end:} handler:
+.end method
+
+
+.method public debugTest()V
+    .registers 10
+
+    .prologue
+
+    nop
+    nop
+
+    .source "somefile.java"
+    .line 101
+    
+    nop
+
+
+    .line 50
+
+    .local v0, aNumber:I
+    const v0, 1234
+    .end local v0
+
+    .source "someotherfile.java"
+    .line 900
+
+    const-string v0, "1234"
+
+    .restart local v0
+    const v0, 6789
+    .end local v0
+
+    .epilogue
+
+.end method

@@ -26,34 +26,26 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.Adaptors.MethodItem;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.code.Instruction;
+public class EndTryLabelMethodItem extends LabelMethodItem {
+    private int labelOffset;
 
-public abstract class InstructionFormatMethodItem<T extends Instruction> extends MethodItem {
-    protected T instruction;
-
-    public InstructionFormatMethodItem(int offset, T instruction) {
-        super(offset);
-        this.instruction = instruction;
+    public EndTryLabelMethodItem(int offset, int labelOffset) {
+        super(offset, "try_end_");
+        this.labelOffset = labelOffset;
     }
 
     public int getSortOrder() {
-        //instructions should appear after everything except an "end try" label and .catch directive
-        return 100;
-    }
-
-    public String getOpcode() {
-        return instruction.getOpcode().name;
+        //sort after instruction, but before catch directive
+        return 101;
     }
 
     public String getTemplate() {
-        return instruction.getFormat().name();
+        return "EndTryLabel";
     }
 
-    public Reference getReference() {
-        return Reference.makeReference(instruction.getReferencedItem());
+    public int getLabelOffset() {
+        return labelOffset;
     }
 }

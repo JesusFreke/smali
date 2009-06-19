@@ -26,34 +26,32 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.Adaptors.MethodItem;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.util.DebugInfoDecoder;
 
-public abstract class InstructionFormatMethodItem<T extends Instruction> extends MethodItem {
-    protected T instruction;
+public class LocalDebugMethodItem extends DebugMethodItem {
+    private DebugInfoDecoder.Local local;
 
-    public InstructionFormatMethodItem(int offset, T instruction) {
-        super(offset);
-        this.instruction = instruction;
+    public LocalDebugMethodItem(int offset, String template, int sortOrder, DebugInfoDecoder.Local local) {
+        super(offset, template, sortOrder);
+        this.local = local;
+
     }
 
-    public int getSortOrder() {
-        //instructions should appear after everything except an "end try" label and .catch directive
-        return 100;
+    public int getRegister() {
+        return local.register;
     }
 
-    public String getOpcode() {
-        return instruction.getOpcode().name;
+    public String getType() {
+        return local.type.getTypeDescriptor();
     }
 
-    public String getTemplate() {
-        return instruction.getFormat().name();
+    public String getName() {
+        return local.name.getStringValue();
     }
 
-    public Reference getReference() {
-        return Reference.makeReference(instruction.getReferencedItem());
+    public String getSignature() {
+        return local.signature.getStringValue();
     }
 }

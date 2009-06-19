@@ -26,34 +26,23 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.Adaptors.MethodItem;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.code.Instruction;
+public class DebugMethodItem extends MethodItem {
+    private String template;
+    private int sortOrder;
 
-public abstract class InstructionFormatMethodItem<T extends Instruction> extends MethodItem {
-    protected T instruction;
-
-    public InstructionFormatMethodItem(int offset, T instruction) {
+    public DebugMethodItem(int offset, String template, int sortOrder) {
         super(offset);
-        this.instruction = instruction;
-    }
-
-    public int getSortOrder() {
-        //instructions should appear after everything except an "end try" label and .catch directive
-        return 100;
-    }
-
-    public String getOpcode() {
-        return instruction.getOpcode().name;
+        this.template = template;
+        this.sortOrder = sortOrder;
     }
 
     public String getTemplate() {
-        return instruction.getFormat().name();
+        return template;
     }
 
-    public Reference getReference() {
-        return Reference.makeReference(instruction.getReferencedItem());
+    public int getSortOrder() {
+        return sortOrder;
     }
 }

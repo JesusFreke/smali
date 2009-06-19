@@ -35,6 +35,7 @@ import org.jf.dexlib.code.Instruction;
 import org.jf.dexlib.code.InstructionField;
 import org.jf.dexlib.code.Opcode;
 import org.jf.dexlib.util.AccessFlags;
+import org.jf.dexlib.util.DebugInfoDecoder;
 
 import java.util.*;
 
@@ -124,6 +125,8 @@ public class MethodDefinition {
             methodItems.addAll(methodItemList.labels);
             methodItems.addAll(methodItemList.instructions);
             methodItems.addAll(methodItemList.blanks);
+            methodItems.addAll(methodItemList.catches);
+            methodItems.addAll(methodItemList.debugItems);
             Collections.sort(methodItems);
         }
         return methodItems;
@@ -132,8 +135,10 @@ public class MethodDefinition {
 
     private class MethodItemList {
         public HashSet<LabelMethodItem> labels = new HashSet<LabelMethodItem>();
-        public List<InstructionFormatMethodItem> instructions = new ArrayList<InstructionFormatMethodItem>();
+        public List<MethodItem> instructions = new ArrayList<MethodItem>();
         public List<BlankMethodItem> blanks = new ArrayList<BlankMethodItem>();
+        public List<CatchMethodItem> catches = new ArrayList<CatchMethodItem>();
+        public List<MethodItem> debugItems = new ArrayList<MethodItem>();
 
         private HashMap<Integer, Integer> packedSwitchMap = new HashMap<Integer, Integer>();
         private HashMap<Integer, Integer> sparseSwitchMap = new HashMap<Integer, Integer>();
@@ -163,6 +168,10 @@ public class MethodDefinition {
                 offset += instructionField.getSize(offset*2) / 2;
             }
             blanks.remove(blanks.size()-1);
+
+            addTries();
+
+            addDebugInfo();
         }
 
         private void addMethodItemsForInstruction(int offset, InstructionField instructionField) {
@@ -281,6 +290,116 @@ public class MethodDefinition {
                     }
                     return;
                 }
+            }
+        }
+
+        private void addTries() {
+            for (CodeItem.TryItem tryItem: codeItem.getTries()) {
+                int startAddress = tryItem.getStartAddress();
+                int endAddress = tryItem.getEndAddress();
+
+                /**
+                 * The end address points to the address immediately after the end of the last
+                 * instruction that the try block covers. We want the .catch directive and end_try
+                 * label to be associated with the last covered instruction, so we need to get
+                 * the offset for that instruction
+                 */
+                int index = Collections.binarySearch(instructions, new BlankMethodItem(endAddress));
+                if (index < 0) {
+                    index = (index * -1) - 1;
+                }
+                //index should never by 0, so this should be safe
+                if (index == instructions.size()) {
+                    index--;
+                } else {
+                    index -= 2;
+                }
+
+                int lastInstructionOffset = instructions.get(index).getOffset();
+
+                //add the catch all handler if it exists
+                int catchAllAddress = tryItem.getHandler().getCatchAllAddress();
+                if (catchAllAddress != -1) {
+                    CatchMethodItem catchMethodItem = new CatchMethodItem(lastInstructionOffset, null, startAddress,
+                            endAddress, catchAllAddress) {
+                        public String getTemplate() {
+                            return "CatchAll";
+                        }
+                    };
+                    catches.add(catchMethodItem);
+
+                    labels.add(new LabelMethodItem(startAddress, "try_start_"));
+                    //use the offset from the last covered instruction, but make the label
+                    //name refer to the address of the next instruction
+                    labels.add(new EndTryLabelMethodItem(lastInstructionOffset, endAddress));
+                    labels.add(new LabelMethodItem(catchAllAddress, "handler_"));
+
+                }
+
+                //add the rest of the handlers
+                //TODO: find adjacent handlers for the same type and combine them
+                for (CodeItem.EncodedTypeAddrPair handler: tryItem.getHandler().getHandlers()) {
+                    //use the offset from the last covered instruction
+                    CatchMethodItem catchMethodItem = new CatchMethodItem(lastInstructionOffset,
+                            handler.getTypeReferenceField(), startAddress, endAddress, handler.getHandlerAddress());
+                    catches.add(catchMethodItem);
+
+                    labels.add(new LabelMethodItem(startAddress, "try_start_"));
+                    //use the offset from the last covered instruction, but make the label
+                    //name refer to the address of the next instruction
+                    labels.add(new EndTryLabelMethodItem(lastInstructionOffset, endAddress));
+                    labels.add(new LabelMethodItem(handler.getHandlerAddress(), "handler_"));
+                }
+            }
+        }
+
+        private void addDebugInfo() {
+            DebugInfoItem debugInfoItem = codeItem.getDebugInfo();
+            if (debugInfoItem == null) {
+                return;
+            }
+            
+            DebugInfoDecoder decoder = new DebugInfoDecoder(debugInfoItem, new DebugInfoDelegate(),
+                    codeItem.getRegisterCount());
+            decoder.decode();
+        }
+
+        private class DebugInfoDelegate implements DebugInfoDecoder.DebugInfoDelegate {
+
+            public void endPrologue(int address) {
+                debugItems.add(new DebugMethodItem(address, "EndPrologue", -4));
+            }
+
+            public void startEpilogue(int address) {
+                debugItems.add(new DebugMethodItem(address, "StartEpilogue", -4));
+            }
+
+            public void startLocal(int address, DebugInfoDecoder.Local local) {
+                debugItems.add(new LocalDebugMethodItem(address, "StartLocal", -1, local));
+            }
+
+            public void endLocal(int address, DebugInfoDecoder.Local local) {
+                debugItems.add(new LocalDebugMethodItem(address, "EndLocal", -1, local));
+            }
+
+            public void restartLocal(int address, DebugInfoDecoder.Local local) {
+                debugItems.add(new LocalDebugMethodItem(address, "RestartLocal", -1, local));
+            }
+
+            public void setFile(int address, final StringIdItem fileName) {
+                debugItems.add(new DebugMethodItem(address, "SetFile", -3) {
+                    public String getFileName() {
+                        return fileName.getStringValue();
+                    }
+                });
+            }
+
+            public void line(int address, final int line) {
+                debugItems.add(new DebugMethodItem(address, "Line", -2) {
+                    public int getLine() {
+                        return line;
+                    }
+                });
             }
         }
     }

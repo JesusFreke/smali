@@ -42,6 +42,8 @@ public class IntegerRenderer implements AttributeRenderer {
     public String toString(Object o, String s) {
         if (s.equals("decimal")) {
             return Integer.toString((Integer)o);
+        } else if (s.equals("barehex")) {
+            return Integer.toHexString((Integer)o);
         }
         return toString(o);
     }

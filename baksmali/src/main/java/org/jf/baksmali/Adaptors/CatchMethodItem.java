@@ -26,34 +26,47 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.Adaptors.MethodItem;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.TypeIdItem;
+import org.jf.baksmali.Adaptors.Reference.TypeReference;
 
-public abstract class InstructionFormatMethodItem<T extends Instruction> extends MethodItem {
-    protected T instruction;
+public class CatchMethodItem extends MethodItem {
+    private TypeIdItem exceptionType;
+    private int startAddress;
+    private int endAddress;
+    private int handlerAddress;
 
-    public InstructionFormatMethodItem(int offset, T instruction) {
+    public CatchMethodItem(int offset, TypeIdItem exceptionType, int startAddress, int endAddress, int handlerAddress) {
         super(offset);
-        this.instruction = instruction;
-    }
-
-    public int getSortOrder() {
-        //instructions should appear after everything except an "end try" label and .catch directive
-        return 100;
-    }
-
-    public String getOpcode() {
-        return instruction.getOpcode().name;
+        this.exceptionType = exceptionType;
+        this.startAddress = startAddress;
+        this.endAddress = endAddress;
+        this.handlerAddress = handlerAddress;
     }
 
     public String getTemplate() {
-        return instruction.getFormat().name();
+        return "Catch";
     }
 
-    public Reference getReference() {
-        return Reference.makeReference(instruction.getReferencedItem());
+    public int getSortOrder() {
+        //sort after instruction and end_try label
+        return 102;
+    }
+
+    public TypeReference getExceptionType() {
+        return new TypeReference(exceptionType);
+    }
+
+    public int getStartAddress() {
+        return startAddress;
+    }
+
+    public int getEndAddress() {
+        return endAddress;
+    }
+
+    public int getHandlerAddress() {
+        return handlerAddress;
     }
 }

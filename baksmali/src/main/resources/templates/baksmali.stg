@@ -4,6 +4,12 @@ smaliFile(classDef) ::=
 <<
 .class <classDef.AccessFlags; separator=" "> <classDef.ClassType>
 .super <classDef.SuperType>
+
+<if(classDef.SourceFile)>
+.source "<classDef.SourceFile>"
+
+
+<endif>
 <if(classDef.Interfaces)>
 
 # interfaces
@@ -74,6 +80,11 @@ annotation(annotationAdaptor) ::=
 field(fieldDef) ::=
 <<
 .field <fieldDef.AccessFlags; separator=" "> <fieldDef.FieldName>:<fieldDef.FieldType><if(fieldDef.InitialValue)> = <fieldDef.InitialValue: EncodedValue(it)><endif>
+<if(fieldDef.Annotations)>
+    <fieldDef.Annotations: annotation(it); separator="\n\n">
+.end field
+
+<endif>
 >>
 
 
@@ -256,9 +267,59 @@ Label(Label) ::=
 <Label.Prefix><Label.HexOffset>:
 >>
 
+EndTryLabel(Label) ::=
+<<
+<Label.Prefix><Label.LabelOffset; format="barehex">:
+>>
+
+Line(Line) ::=
+<<
+.line <Line.Line; format="decimal">
+>>
+
+EndPrologue(Prologue) ::=
+<<
+.prologue
+>>
+
+StartEpilogue(Epilogue) ::=
+<<
+.epilogue
+>>
+
+StartLocal(StartLocal) ::=
+<<
+.local <Register(StartLocal.Register)>, <StartLocal.Name>:<StartLocal.Type>
+>>
+
+EndLocal(EndLocal) ::=
+<<
+.end local <Register(EndLocal.Register)>       #<EndLocal.Name>:<EndLocal.Type>
+>>
+
+RestartLocal(RestartLocal) ::=
+<<
+.restart local <Register(RestartLocal.Register)>       #<RestartLocal.Name>:<RestartLocal.Type>
+>>
+
+SetFile(SetFile) ::=
+<<
+.source "<SetFile.FileName>" 
+>>
+
 Blank(Blank) ::=
 <<
 
+>>
+
+Catch(Catch) ::=
+<<
+.catch <Reference(Catch.ExceptionType)> {try_start_<Catch.StartAddress; format="barehex">: .. try_end_<Catch.EndAddress; format="barehex">:} handler_<Catch.HandlerAddress; format="barehex">:
+>>
+
+CatchAll(Catch) ::=
+<<
+.catchall {try_start_<Catch.StartAddress; format="barehex">: .. try_end_<Catch.EndAddress; format="barehex">:} handler_<Catch.HandlerAddress; format="barehex">: 
 >>
 
 

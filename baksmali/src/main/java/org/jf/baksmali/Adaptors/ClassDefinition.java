@@ -39,6 +39,7 @@ public class ClassDefinition {
     private ClassDataItem classDataItem;
 
     private HashMap<Integer, AnnotationSetItem> methodAnnotations = new HashMap<Integer, AnnotationSetItem>();
+    private HashMap<Integer, AnnotationSetItem> fieldAnnotations = new HashMap<Integer, AnnotationSetItem>();
 
     public ClassDefinition(ClassDefItem classDefItem) {
         this.classDefItem = classDefItem;
@@ -53,129 +54,120 @@ public class ClassDefinition {
         }
 
         List<AnnotationDirectoryItem.MethodAnnotation> methodAnnotationList = annotationDirectory.getMethodAnnotations();
-
         if (methodAnnotations != null) {
             for (AnnotationDirectoryItem.MethodAnnotation methodAnnotation: methodAnnotationList) {
                 methodAnnotations.put(methodAnnotation.getMethod().getIndex(), methodAnnotation.getAnnotationSet());
             }
         }
-    }
 
-    private List<String> accessFlags = null;
-    public List<String> getAccessFlags() {
-        if (accessFlags == null) {
-            accessFlags = new ArrayList<String>();
-
-            for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForClass(classDefItem.getAccessFlags())) {
-                accessFlags.add(accessFlag.toString());
+        List<AnnotationDirectoryItem.FieldAnnotation> fieldAnnotationList = annotationDirectory.getFieldAnnotations();
+        if (fieldAnnotations != null) {
+            for (AnnotationDirectoryItem.FieldAnnotation fieldAnnotation: fieldAnnotationList) {
+                fieldAnnotations.put(fieldAnnotation.getField().getIndex(), fieldAnnotation.getAnnotationSet());
             }
         }
+    }
+
+    public List<String> getAccessFlags() {
+        List<String> accessFlags = new ArrayList<String>();
+
+        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForClass(classDefItem.getAccessFlags())) {
+            accessFlags.add(accessFlag.toString());
+        }
+
         return accessFlags;
     }
 
-    private String classType = null;
     public String getClassType() {
-        if (classType == null) {
-            classType = classDefItem.getClassType().getTypeDescriptor();
-        }
-        return classType;
+        return classDefItem.getClassType().getTypeDescriptor();
     }
 
-    private String superType = null;
     public String getSuperType() {
-        if (superType == null) {
-            superType = classDefItem.getSuperclass().getTypeDescriptor();
-        }
-        return superType; 
+        return classDefItem.getSuperclass().getTypeDescriptor();
     }
 
-    private List<String> interfaces = null;
+    public String getSourceFile() {
+        return classDefItem.getSourceFile();
+    }
+
     public List<String> getInterfaces() {
-        if (interfaces == null) {
-            interfaces = new ArrayList<String>();
+        List<String> interfaces = new ArrayList<String>();
 
-            List<TypeIdItem> interfaceList = classDefItem.getInterfaces();
+        List<TypeIdItem> interfaceList = classDefItem.getInterfaces();
 
-            if (interfaceList != null) {
-                for (TypeIdItem typeIdItem: interfaceList) {
-                    interfaces.add(typeIdItem.getTypeDescriptor());
-                }
+        if (interfaceList != null) {
+            for (TypeIdItem typeIdItem: interfaceList) {
+                interfaces.add(typeIdItem.getTypeDescriptor());
             }
         }
+        
         return interfaces;
     }
 
-    private List<FieldDefinition> staticFields = null;
     public List<FieldDefinition> getStaticFields() {
-        if (staticFields == null) {
-            staticFields = new ArrayList<FieldDefinition>();
+        List<FieldDefinition> staticFields = new ArrayList<FieldDefinition>();
 
-            if (classDataItem != null) {
+        if (classDataItem != null) {
 
-                EncodedArrayItem encodedStaticInitializers = classDefItem.getStaticInitializers();
+            EncodedArrayItem encodedStaticInitializers = classDefItem.getStaticInitializers();
 
-                List<EncodedValue> staticInitializers;
-                if (encodedStaticInitializers != null) {
-                    staticInitializers = encodedStaticInitializers.getEncodedArray().getValues();
-                } else {
-                    staticInitializers = new ArrayList<EncodedValue>();
+            List<EncodedValue> staticInitializers;
+            if (encodedStaticInitializers != null) {
+                staticInitializers = encodedStaticInitializers.getEncodedArray().getValues();
+            } else {
+                staticInitializers = new ArrayList<EncodedValue>();
+            }
+
+            int i=0;
+            for (ClassDataItem.EncodedField field: classDataItem.getStaticFields()) {
+                EncodedValue encodedValue = null;
+                if (i < staticInitializers.size()) {
+                    encodedValue = staticInitializers.get(i);
                 }
-
-                int i=0;
-                for (ClassDataItem.EncodedField field: classDataItem.getStaticFields()) {
-                    EncodedValue encodedValue = null;
-                    if (i < staticInitializers.size()) {
-                        encodedValue = staticInitializers.get(i);
-                    }
-                    staticFields.add(new FieldDefinition(field, encodedValue));
-                    i++;
-                }
+                AnnotationSetItem annotationSet = fieldAnnotations.get(field.getField().getIndex());
+                staticFields.add(new FieldDefinition(field, encodedValue, annotationSet));
+                i++;
             }
         }
         return staticFields;
     }
 
-    private List<FieldDefinition> instanceFields = null;
     public List<FieldDefinition> getInstanceFields() {
-        if (instanceFields == null) {
-            instanceFields = new ArrayList<FieldDefinition>();
+        List<FieldDefinition> instanceFields = new ArrayList<FieldDefinition>();
 
-            if (classDataItem != null) {
-                for (ClassDataItem.EncodedField field: classDataItem.getInstanceFields()) {
-                    instanceFields.add(new FieldDefinition(field));
-                }
+        if (classDataItem != null) {
+            for (ClassDataItem.EncodedField field: classDataItem.getInstanceFields()) {
+                AnnotationSetItem annotationSet = fieldAnnotations.get(field.getField().getIndex());
+                instanceFields.add(new FieldDefinition(field, annotationSet));
             }
         }
+
         return instanceFields;       
     }
 
-    private List<MethodDefinition> directMethods = null;
     public List<MethodDefinition> getDirectMethods() {
-        if (directMethods == null) {
-            directMethods = new ArrayList<MethodDefinition>();
+        List<MethodDefinition> directMethods = new ArrayList<MethodDefinition>();
 
-            if (classDataItem != null) {
-                for (ClassDataItem.EncodedMethod method: classDataItem.getDirectMethods()) {
-                    AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
-                    directMethods.add(new MethodDefinition(method, annotationSet));
-                }
+        if (classDataItem != null) {
+            for (ClassDataItem.EncodedMethod method: classDataItem.getDirectMethods()) {
+                AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
+                directMethods.add(new MethodDefinition(method, annotationSet));
             }
         }
+
         return directMethods;
     }
 
-    private List<MethodDefinition> virtualMethods = null;
     public List<MethodDefinition> getVirtualMethods() {
-        if (virtualMethods == null) {
-            virtualMethods = new ArrayList<MethodDefinition>();
+        List<MethodDefinition> virtualMethods = new ArrayList<MethodDefinition>();
 
-            if (classDataItem != null) {
-                for (ClassDataItem.EncodedMethod method: classDataItem.getVirtualMethods()) {
-                    AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
-                    virtualMethods.add(new MethodDefinition(method, annotationSet));
-                }
+        if (classDataItem != null) {
+            for (ClassDataItem.EncodedMethod method: classDataItem.getVirtualMethods()) {
+                AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
+                virtualMethods.add(new MethodDefinition(method, annotationSet));
             }
         }
+
         return virtualMethods;
     }
 
