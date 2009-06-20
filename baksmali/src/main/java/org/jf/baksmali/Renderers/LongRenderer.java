@@ -34,9 +34,9 @@ public class LongRenderer implements AttributeRenderer {
     public String toString(Object o) {
         Long l = (Long)o;
         if (l < 0) {
-            return "-0x" + Long.toHexString(-1 * l);
+            return "-0x" + Long.toHexString(-1 * l) + "L";
         }
-        return "0x" + Long.toHexString((Long)o);
+        return "0x" + Long.toHexString((Long)o) + "L";
     }
 
     public String toString(Object o, String s) {
