@@ -29,6 +29,7 @@
 package org.jf.dexlib.code;
 
 import org.jf.dexlib.*;
+import org.jf.dexlib.util.NumberUtils;
 import org.jf.dexlib.code.Format.Format;
 
 public abstract class Instruction {
@@ -84,7 +85,7 @@ public abstract class Instruction {
         System.arraycopy(rest, 0, encodedInstruction, 1, rest.length);
 
         if (opcode.referenceType != ReferenceType.none) {
-            int itemIndex = (encodedInstruction[3] << 8) | encodedInstruction[2];
+            int itemIndex = NumberUtils.decodeUnsignedShort(encodedInstruction[2], encodedInstruction[3]);
             getReferencedItem(dexFile, opcode, itemIndex);
         }
     }
