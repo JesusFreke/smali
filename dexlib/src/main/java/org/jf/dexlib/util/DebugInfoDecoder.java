@@ -79,13 +79,21 @@ public class DebugInfoDecoder {
                 case 0x05:
                 {
                     EndLocal inst = (EndLocal)debugInst;
-                    delegate.endLocal(address, locals[inst.getRegisterNumber()]);
+                    Local local = locals[inst.getRegisterNumber()];
+                    if (local == null) {
+                        local = new Local(inst.getRegisterNumber(), null, null, null);
+                    }
+                    delegate.endLocal(address, local);
                     break;
                 }
                 case 0x06:
                 {
                     RestartLocal inst = (RestartLocal)debugInst;
-                    delegate.restartLocal(address, locals[inst.getRegisterNumber()]);
+                    Local local = locals[inst.getRegisterNumber()];
+                    if (local == null) {
+                        local = new Local(inst.getRegisterNumber(), null, null, null);
+                    }
+                    delegate.restartLocal(address, local);
                     break;
                 }
                 case 0x07:
