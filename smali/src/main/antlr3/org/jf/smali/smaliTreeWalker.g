@@ -188,7 +188,7 @@ access_list returns [int value]
 				{
 					$value |= AccessFlags.getAccessFlag($ACCESS_SPEC.getText()).getValue();
 				}
-			)+);
+			)*);
 
 fields returns[List<AnnotationDirectoryItem.FieldAnnotation> fieldAnnotationSets]
 	:	^(I_FIELDS
@@ -263,13 +263,14 @@ literal returns[EncodedValue encodedValue]
 	|	char_literal { $encodedValue = new EncodedValue(dexFile, new CharEncodedValueSubField($char_literal.value)); }
 	|	string_literal { $encodedValue = new EncodedValue(dexFile, new EncodedIndexedItemReference(dexFile, new StringIdItem(dexFile, $string_literal.value))); }
 	|	bool_literal { $encodedValue = new EncodedValue(dexFile, new BoolEncodedValueSubField($bool_literal.value)); }
+	|	NULL_LITERAL { $encodedValue = new EncodedValue(dexFile, new NullEncodedValueSubField()); }
 	|	type_descriptor { $encodedValue = new EncodedValue(dexFile, new EncodedIndexedItemReference(dexFile, $type_descriptor.type)); }
 	|	array_literal { $encodedValue = new EncodedValue(dexFile, new ArrayEncodedValueSubField(dexFile, $array_literal.values)); }
 	|	subannotation { $encodedValue = new EncodedValue(dexFile, $subannotation.value); }
 	|	field_literal { $encodedValue = new EncodedValue(dexFile, $field_literal.value); }
 	|	method_literal { $encodedValue = new EncodedValue(dexFile, $method_literal.value); }
 	|	enum_literal { $encodedValue = new EncodedValue(dexFile, $enum_literal.value); };
-	
+
 	
 //everything but string
 fixed_size_literal returns[byte[\] value]

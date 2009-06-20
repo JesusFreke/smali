@@ -214,7 +214,7 @@ source_spec
 	:	SOURCE_DIRECTIVE STRING_LITERAL -> ^(I_SOURCE[$start, "I_SOURCE"] STRING_LITERAL);
 
 access_list
-	:	ACCESS_SPEC+ -> ^(I_ACCESS_LIST[$start,"I_ACCESS_LIST"] ACCESS_SPEC+);
+	:	ACCESS_SPEC* -> ^(I_ACCESS_LIST[$start,"I_ACCESS_LIST"] ACCESS_SPEC*);
 
 
 field	:	FIELD_DIRECTIVE access_list MEMBER_NAME nonvoid_type_descriptor literal? 
@@ -591,6 +591,7 @@ literal
 	|	CHAR_LITERAL
 	|	STRING_LITERAL
 	|	BOOL_LITERAL
+	|	NULL_LITERAL
 	|	array_literal
 	|	subannotation
 	|	type_field_method_literal
