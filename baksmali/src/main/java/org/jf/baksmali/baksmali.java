@@ -33,20 +33,39 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.ClassDefItem;
 
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
+import java.net.URL;
 
 public class baksmali {
     public static void main(String[] args) throws Exception
     {
+        if (args.length < 2) {
+            throw new UsageException();
+        }
+        
         String dexFileName = args[0];
-        String outputDir = args[1];
+        String outputDirName = args[1];
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+        File dexFileFile = new File(dexFileName);
+        if (!dexFileFile.exists()) {
+            System.out.println("Can't find the file " + dexFileFile.toString());
+            System.exit(1);
+        }
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
+        File outputDir = new File(outputDirName);
+        if (!outputDir.exists()) {          
+            if (!outputDir.mkdirs()) {
+                System.out.println("Can't create the output directory " + outputDir.toString());
+                System.exit(1);
+            }
+        }
+
+        DexFile dexFile = new DexFile(dexFileFile);
+
+        InputStream templateStream = baksmali.class.getClassLoader().getResourceAsStream("templates/baksmali.stg");
+        StringTemplateGroup templates = new StringTemplateGroup(new InputStreamReader(templateStream));
 
         templates.registerRenderer(Long.class, new LongRenderer());
         templates.registerRenderer(Integer.class,  new IntegerRenderer());
@@ -55,10 +74,58 @@ public class baksmali {
         templates.registerRenderer(Float.class, new FloatRenderer());
         templates.registerRenderer(Character.class, new CharRenderer());
 
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
+        int classCount = dexFile.ClassDefsSection.size();
+        for (int i=0; i<classCount; i++) {
+            ClassDefItem classDef = dexFile.ClassDefsSection.getByIndex(i);
 
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
+            String classDescriptor = classDef.getClassType().getTypeDescriptor();
+            if (classDescriptor.charAt(0) != 'L' ||
+                classDescriptor.charAt(classDescriptor.length()-1) != ';') {
+                System.out.println("Unrecognized class descriptor - " + classDescriptor + " - skipping class");
+                continue;
+            }
+            //trim off the leading L and trailing ;
+            classDescriptor = classDescriptor.substring(1, classDescriptor.length()-1);
+            String[] pathElements = classDescriptor.split("/");
 
-        System.out.println(smaliFileST.toString());
+            //build the path to the smali file to generate for this class
+            StringBuilder smaliPath = new StringBuilder(outputDir.getPath());
+            for (String pathElement: pathElements) {
+                smaliPath.append(File.separatorChar);
+                smaliPath.append(pathElement);
+            }
+            smaliPath.append(".smali");
+
+            File smaliFile = new File(smaliPath.toString());
+
+            StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
+            smaliFileST.setAttribute("classDef", new ClassDefinition(classDef));
+
+            String output = smaliFileST.toString();
+
+            FileWriter writer = null;
+            try
+            {
+                if (!smaliFile.getParentFile().exists()) {
+                    if (!smaliFile.getParentFile().mkdirs()) {
+                        System.out.println("Unable to create directory " + smaliFile.getParentFile().toString() + " - skipping class");
+                        continue;
+                    }
+                }
+                if (!smaliFile.exists()){
+                    if (!smaliFile.createNewFile()) {
+                        System.out.println("Unable to create file " + smaliFile.toString() + " - skipping class");
+                        continue;
+                    }
+                }
+
+                writer = new FileWriter(smaliFile);
+                writer.write(output);
+            }finally
+            {
+                if (writer != null)
+                    writer.close();
+            }
+        }
     }
 }
