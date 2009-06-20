@@ -2,7 +2,7 @@ group baksmali;
 
 smaliFile(classDef) ::=
 <<
-.class <classDef.AccessFlags; separator=" "> <classDef.ClassType>
+.class <classDef.AccessFlags: {<it> }><classDef.ClassType>
 .super <classDef.SuperType>
 
 <if(classDef.SourceFile)>
@@ -79,7 +79,7 @@ annotation(annotationAdaptor) ::=
 
 field(fieldDef) ::=
 <<
-.field <fieldDef.AccessFlags; separator=" "> <fieldDef.FieldName>:<fieldDef.FieldType><if(fieldDef.InitialValue)> = <fieldDef.InitialValue: EncodedValue(it)><endif>
+.field <fieldDef.AccessFlags: {<it> }><fieldDef.FieldName>:<fieldDef.FieldType><if(fieldDef.InitialValue)> = <fieldDef.InitialValue: EncodedValue(it)><endif>
 <if(fieldDef.Annotations)>
     <fieldDef.Annotations: annotation(it); separator="\n\n">
 .end field
@@ -90,7 +90,7 @@ field(fieldDef) ::=
 
 method(methodDef) ::=
 <<
-.method <methodDef.AccessFlags; separator=" "> <methodDef.MethodName><methodDef.Prototype>
+.method <methodDef.AccessFlags: {<it> }><methodDef.MethodName><methodDef.Prototype>
 <if(methodDef.hasCode)>
     .registers <methodDef.RegisterCount>
   <if(methodDef.Parameters)>
@@ -101,12 +101,10 @@ method(methodDef) ::=
   <endif>
 
     <methodDef.MethodItems: MethodItem(it); separator="\n">
-.end method
 <elseif(methodDef.Annotations)>
     <methodDef.Annotations: annotation(it); separator="\n\n">
-.end method
 <endif>
-
+.end method
 >>
 
 MethodItem(MethodItem) ::=
@@ -206,7 +204,7 @@ Format22s(Instruction) ::=
 
 Format22t(Instruction) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, cond_<Instruction.Target>
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, cond_<Instruction.Target>:
 >>
 
 Format22x(Instruction) ::=
@@ -269,8 +267,15 @@ ArrayData(Instruction) ::=
 PackedSwitchData(Instruction) ::=
 <<
 .packed-switch <Instruction.FirstKey>
-        <Instruction.Targets: {pswitch_<it>:}; separator="\n">
+    <Instruction.Targets: {pswitch_<it>:}; separator="\n">
 .end packed-switch
+>>
+
+SparseSwitchData(Instruction) ::=
+<<
+.sparse-switch
+    <Instruction.Keys,Instruction.Targets:{key,target | <key> -> sswitch_<target>:}; separator="\n">
+.end sparse-switch
 >>
 
 
