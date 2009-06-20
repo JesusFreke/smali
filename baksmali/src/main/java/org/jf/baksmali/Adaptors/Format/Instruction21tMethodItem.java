@@ -36,7 +36,7 @@ public class Instruction21tMethodItem extends InstructionFormatMethodItem<Instru
     }
 
     public int getRegister() {
-        return instruction.getOffset();
+        return instruction.getRegister();
     }
 
     public String getTarget() {
