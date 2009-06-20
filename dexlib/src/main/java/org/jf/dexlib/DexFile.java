@@ -107,11 +107,41 @@ public class DexFile
 
         MapSection.readFrom(1, in);
 
-        for (MapField mapField: MapSection.items.get(0).getMapEntries()) {
-            Section section = sectionsByType.get(mapField.getSectionItemType());
-            if (section != null) {
-                in.setCursor(mapField.getSectionOffset());
-                section.readFrom(mapField.getSectionSize(), in);
+        MapField[] mapEntries = MapSection.items.get(0).getMapEntries();
+        HashMap<Integer, MapField> mapMap = new HashMap<Integer, MapField>();
+        for (MapField mapField: mapEntries) {
+            mapMap.put(mapField.getSectionItemType().getMapValue(), mapField);    
+        }
+
+        int[] sectionTypes = new int[] {
+            ItemType.TYPE_HEADER_ITEM.getMapValue(),
+            ItemType.TYPE_STRING_ID_ITEM.getMapValue(),
+            ItemType.TYPE_TYPE_ID_ITEM.getMapValue(),
+            ItemType.TYPE_PROTO_ID_ITEM.getMapValue(),
+            ItemType.TYPE_FIELD_ID_ITEM.getMapValue(),
+            ItemType.TYPE_METHOD_ID_ITEM.getMapValue(),
+            ItemType.TYPE_CLASS_DEF_ITEM.getMapValue(),
+            ItemType.TYPE_STRING_DATA_ITEM.getMapValue(),
+            ItemType.TYPE_ENCODED_ARRAY_ITEM.getMapValue(),
+            ItemType.TYPE_ANNOTATION_ITEM.getMapValue(),
+            ItemType.TYPE_ANNOTATION_SET_ITEM.getMapValue(),
+            ItemType.TYPE_ANNOTATION_SET_REF_LIST.getMapValue(),
+            ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM.getMapValue(),
+            ItemType.TYPE_TYPE_LIST.getMapValue(),
+            ItemType.TYPE_DEBUG_INFO_ITEM.getMapValue(),
+            ItemType.TYPE_CODE_ITEM.getMapValue(),
+            ItemType.TYPE_CLASS_DATA_ITEM.getMapValue(),
+            ItemType.TYPE_MAP_LIST.getMapValue()
+        };
+
+        for (int sectionType: sectionTypes) {
+            MapField mapField = mapMap.get(sectionType);
+            if (mapField != null) {
+                Section section = sectionsByType.get(mapField.getSectionItemType());
+                if (section != null) {
+                    in.setCursor(mapField.getSectionOffset());
+                    section.readFrom(mapField.getSectionSize(), in);
+                }
             }
         }
     }
