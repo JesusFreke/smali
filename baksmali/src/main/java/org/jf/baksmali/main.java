@@ -22,7 +22,7 @@ package org.jf.baksmali;
  */
 public class main {
 
-    public static final String VERSION = "0.9";
+    public static final String VERSION = "0.91";
 
 
     private static String USAGE_MESSAGE =
@@ -30,6 +30,9 @@ public class main {
         "  java -jar baksmali.jar --disassemble <.dex file> <output folder>\n" +
         "    disassembles the given dex file into a set of .smali files\n" +
         "    in the given folder\n" +
+        "  java -jar baksmali.jar --dump <.dex file> <dump file>\n" +
+        "    dumps the given dex file to a single annotated dump file\n" +
+        "    that follows the order and structure of the dex file.\n" +
         "  java -jar baksmali.jar --version\n" +
         "    Print the version of this tool (" + VERSION +
         ").\n" +
@@ -62,6 +65,9 @@ public class main {
                 gotCmd = true;
                 if (arg.equals("--disassemble")) {
                     baksmali.main(without(args, i));
+                    break;
+                } else if (arg.equals("--dump")) {
+                    dump.main(without(args, i));
                     break;
                 } else if (arg.equals("--version")) {
                     version();
