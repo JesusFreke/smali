@@ -60,7 +60,9 @@ public abstract class Item<T extends Item> {
         return offset;
     }
 
-    public void readFrom(Input in) {
+    public void readFrom(Input in, int index) {
+        this.offset = in.getCursor();
+        this.index = index;
         for (Field field: fields) {
             field.readFrom(in);
         }

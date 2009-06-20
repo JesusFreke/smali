@@ -50,10 +50,11 @@ public abstract class IndexedSection<T extends IndexedItem<T>> extends Section<T
 
     public void readFrom(int size, Input in) {
         super.setSize(size);
+        this.offset = in.getCursor();
 
         for (int i = 0; i < size(); i++) {
             T item = getByIndex(i);
-            item.readFrom(in);
+            item.readFrom(in, i);
             in.alignTo(item.getAlignment());
         }
     }
