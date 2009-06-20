@@ -393,7 +393,17 @@ public class MethodDefinition {
                 }
                 //index should never by 0, so this should be safe
                 if (index == instructions.size()) {
-                    index--;
+                    //if the end address is the same as the address of the last instruction, then
+                    //this try item ends at the next to last instruction.
+                    //otherwise, if the end address is past the address of the last instruction,
+                    //thin this try item ends at the last instruction
+                    if (instructions.get(instructions.size() - 1).getOffset() == endAddress) {
+                        //get the address for the next to last instruction
+                        index -= 2;
+                    } else {
+                        //get the address for the last instruction
+                        index--;
+                    }
                 } else {
                     index -= 2;
                 }
