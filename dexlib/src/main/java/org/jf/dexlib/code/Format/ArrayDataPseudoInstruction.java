@@ -60,6 +60,10 @@ public class ArrayDataPseudoInstruction extends Instruction
 
         int elementCount = byteCount / elementWidth;
 
+        if (byteCount % 2 != 0) {
+            byteCount++;
+        }
+
         encodedInstruction = new byte[byteCount+8];
         encodedInstruction[0] = 0x00;
         encodedInstruction[1] = 0x03; //fill-array-data psuedo-opcode
@@ -105,6 +109,13 @@ public class ArrayDataPseudoInstruction extends Instruction
 
         for (int i=0; i<size; i++) {
             elementsList.add(input.readBytes(elementWidth));
+        }
+        
+        if ((size * elementWidth) % 2 != 0) {
+            //the basic unit in an instruction stream in a 2-byte word. If
+            //the end of the array falls in the middle of a word, we need to
+            //read (and discard) the last byte of the word
+            input.readByte();
         }
 
         return new ArrayDataPseudoInstruction(dexFile, elementWidth, elementsList);
