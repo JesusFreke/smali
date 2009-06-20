@@ -44,14 +44,23 @@ public class LocalDebugMethodItem extends DebugMethodItem {
     }
 
     public String getType() {
+        if (local.type == null) {
+            return null;
+        }
         return local.type.getTypeDescriptor();
     }
 
     public String getName() {
+        if (local.name == null) {
+            return null;
+        }
         return local.name.getStringValue();
     }
 
     public String getSignature() {
+        if (local.signature == null) {
+            return null;
+        }
         return local.signature.getStringValue();
     }
 }
