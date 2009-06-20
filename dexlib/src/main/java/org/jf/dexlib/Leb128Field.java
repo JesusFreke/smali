@@ -41,7 +41,7 @@ public class Leb128Field extends CachedIntegerValueField {
         super(value, fieldName);
     }
 
-    public void readFrom(Input in) {
+    public void readFrom(Input in) {       
         value = in.readUnsignedLeb128();
     }
 
@@ -51,5 +51,45 @@ public class Leb128Field extends CachedIntegerValueField {
 
     public void writeValue(Output out) {
         out.writeUnsignedLeb128(value);
+    }
+
+    /**
+     * dx had a bug where it would write registers in the debug
+     * info as signed leb 128 values instead of unsigned. This class
+     * is used when it is important to keep the same format as the
+     * file being read in - for example when the intent is to immediately
+     * write the file back out (typically for dumping/annotation purposes)
+     */
+    public static class PossiblySignedLeb128Field extends Leb128Field {
+        private boolean signed = false;
+
+        public PossiblySignedLeb128Field(String fieldName) {
+            super (fieldName);
+        }
+
+        public void readFrom(Input in) {
+            int start = in.getCursor();
+            value = in.readUnsignedLeb128();
+            int end = in.getCursor();
+
+            if (Leb128Utils.unsignedLeb128Size(value) != (end - start)) {
+                signed = true;
+            }
+        }
+
+        public int place(int offset) {
+            if (signed) {
+                return offset + Leb128Utils.signedLeb128Size(value);
+            }
+            return offset + Leb128Utils.unsignedLeb128Size(value);
+        }
+
+        public void writeValue(Output out) {
+            if (signed) {
+                out.writeSignedLeb128(value);
+            } else {
+                out.writeUnsignedLeb128(value);
+            }
+        }
     }
 }

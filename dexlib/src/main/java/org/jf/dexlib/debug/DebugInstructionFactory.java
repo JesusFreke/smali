@@ -57,7 +57,7 @@ public abstract class DebugInstructionFactory {
             case 0x05:
                 return new EndLocal();
             case 0x06:
-                return new RestartLocal();
+                return new RestartLocal(dexFile.isForDumping());
             case 0x07:
                 return new SetPrologueEnd();
             case 0x08:

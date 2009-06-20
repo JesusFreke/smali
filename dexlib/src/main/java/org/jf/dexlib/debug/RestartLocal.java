@@ -28,25 +28,23 @@
 
 package org.jf.dexlib.debug;
 
-import org.jf.dexlib.ByteField;
-import org.jf.dexlib.CompositeField;
-import org.jf.dexlib.Field;
-import org.jf.dexlib.Leb128Field;
+import org.jf.dexlib.*;
 
 public class RestartLocal extends CompositeField<RestartLocal> implements DebugInstruction<RestartLocal> {
     private final ByteField opcode;
     private final Leb128Field registerNumber;
 
-    public RestartLocal() {
+    public RestartLocal(boolean forDumping) {
         super("DBG_RESTART_LOCAL");
         fields = new Field[] {
                 opcode = new ByteField((byte)0x06, "opcode"),
-                registerNumber = new Leb128Field("register_num")
+                registerNumber  = forDumping?new Leb128Field.PossiblySignedLeb128Field("register_num"):
+                        new Leb128Field("register_num")
         };
     }
 
     public RestartLocal(int registerNumber) {
-        this();
+        this(false);
         this.registerNumber.cacheValue(registerNumber);
     }
 

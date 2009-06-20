@@ -41,7 +41,8 @@ public class StartLocalExtended extends CompositeField<StartLocalExtended> imple
         super("DBG_START_LOCAL_EXTENDED");
         fields = new Field[] {
                 opcodeField = new ByteField((byte)0x04, "opcode"),
-                registerNumber = new Leb128Field("register_num"),
+                registerNumber = dexFile.isForDumping()?new Leb128Field.PossiblySignedLeb128Field("register_num"):
+                        new Leb128Field("register_num"),
                 localName = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
                         new Leb128p1Field(null), "name_idx"),
                 localType = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,

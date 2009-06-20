@@ -48,6 +48,7 @@ public class DexFile
     private int fileSize;
     private int dataOffset;
     private int dataSize;
+    private boolean forDumping;
 
     private final DexFile dexFile = this;
 
@@ -97,8 +98,14 @@ public class DexFile
     }
 
     public DexFile(File file) {
+        this(file, false);
+    }
+
+    public DexFile(File file, boolean forDumping) {
         this();
         Input in = new ByteArrayInput(FileUtils.readFile(file));
+
+        this.forDumping = forDumping;
 
         HeaderItemSection.readFrom(1, in);
         HeaderItem headerItem = HeaderItemSection.items.get(0);
@@ -178,6 +185,10 @@ public class DexFile
 
     public int getDataSize() {
         return dataSize;
+    }
+
+    public boolean isForDumping() {
+        return forDumping;
     }
 
     public void place() {
@@ -316,7 +327,7 @@ public class DexFile
 
     public final OffsettedSection<DebugInfoItem> DebugInfoItemsSection = new OffsettedSection<DebugInfoItem>() {
         protected DebugInfoItem make(int offset) {
-            return new DebugInfoItem(dexFile, offset); 
+            return new DebugInfoItem(dexFile, offset);
         }
     };
 
