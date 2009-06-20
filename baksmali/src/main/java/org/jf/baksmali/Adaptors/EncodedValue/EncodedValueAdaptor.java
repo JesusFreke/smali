@@ -66,7 +66,7 @@ public abstract class EncodedValueAdaptor {
                 EncodedIndexedItemReference methodEncodedReference = (EncodedIndexedItemReference)encodedValue.getValue();
                 return new EncodedIndexedItemAdaptor(new MethodReference((MethodIdItem)methodEncodedReference.getValue()));
             case VALUE_NULL:
-                return null;
+                return new SimpleEncodedValueAdaptor("null");
             case VALUE_SHORT:
                 return new SimpleEncodedValueAdaptor(((ShortEncodedValueSubField)encodedValue.getValue()).getValue());
             case VALUE_STRING:
