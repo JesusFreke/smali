@@ -144,7 +144,7 @@ public class smali
             if (dumpFilename != null) {
                 out.finishAnnotating();
 
-                FileWriter fileWriter = new FileWriter("classes.dump");
+                FileWriter fileWriter = new FileWriter(dumpFilename);
                 out.writeAnnotationsTo(fileWriter);
                 fileWriter.close();
             }
