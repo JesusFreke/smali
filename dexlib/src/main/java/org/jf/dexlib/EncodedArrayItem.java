@@ -54,24 +54,9 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
         };
     }
 
-    public void readFrom(Input in) {
-        super.readFrom(in);
-    }
-
-    public int place(int index, int offset) {
-        return super.place(index, offset);
-    }
-
-    public void writeTo(AnnotatedOutput out) {
-        super.writeTo(out);
-    }
 
     protected int getAlignment() {
         return 1;
-    }
-
-    public int getOffset() {
-        return super.getOffset();
     }
 
     public void add(int index, EncodedValue value) {
