@@ -44,15 +44,7 @@ public class AnnotationAdaptor {
     }
 
     public String getVisibility() {
-        switch (annotationItem.getVisibility()) {
-            case 0:
-                return "build";
-            case 1:
-                return "runtime";
-            case 2:
-                return "system";
-        }
-        return null;
+        return annotationItem.getVisibility().name();
     }
 
     public TypeReference getAnnotationType() {

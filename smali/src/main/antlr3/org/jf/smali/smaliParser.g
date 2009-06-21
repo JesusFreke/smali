@@ -126,7 +126,7 @@ tokens {
 @header {
 package org.jf.smali;
 
-import org.jf.dexlib.code.Format.*;
+import org.jf.dexlib.Code.Format.*;
 }
 
 

@@ -40,9 +40,9 @@ import java.util.HashMap;
 
 import org.jf.dexlib.*;
 import org.jf.dexlib.EncodedValue.*;
-import org.jf.dexlib.util.*;
-import org.jf.dexlib.code.*;
-import org.jf.dexlib.code.Format.*;
+import org.jf.dexlib.Util.*;
+import org.jf.dexlib.Code.*;
+import org.jf.dexlib.Code.Format.*;
 }
 
 @members {

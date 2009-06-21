@@ -45,7 +45,7 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
     private final FieldListField<MethodAnnotation> methodAnnotationListField;
     private final FieldListField<ParameterAnnotation> parameterAnnotationListField;
                                              
-    public AnnotationDirectoryItem(final DexFile dexFile, int offset) {
+    protected AnnotationDirectoryItem(final DexFile dexFile, int offset) {
         super(offset);
 
         fields = new Field[] {
@@ -76,7 +76,7 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
                 }
         };
     }
-    
+
     public AnnotationDirectoryItem(final DexFile dexFile,
                                    AnnotationSetItem classAnnotations,
                                    List<FieldAnnotation> fieldAnnotations,
@@ -134,7 +134,6 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
     public List<ParameterAnnotation> getParameterAnnotations() {
         return Collections.unmodifiableList(parameterAnnotationList);
     }
-
 
     public static class FieldAnnotation extends CompositeField<FieldAnnotation>
             implements Comparable<FieldAnnotation> {

@@ -61,11 +61,35 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
         return "annotation_item @0x" + Integer.toHexString(getOffset());
     }
 
-    public byte getVisibility() {
-        return (byte)visibilityField.getCachedValue();
+    public Visibility getVisibility() {
+        return Visibility.get((byte)visibilityField.getCachedValue());
     }
 
     public AnnotationEncodedValueSubField getEncodedAnnotation() {
         return annotationField;
+    }
+
+    public enum Visibility {
+        build(0x00),
+        runtime(0x01),
+        system(0x02);
+
+        public final byte value;
+
+        private Visibility(int value) {
+            this.value = (byte)value;
+        }
+
+        public static Visibility get(byte value) {
+            switch (value) {
+                case 0x00:
+                    return build;
+                case 0x01:
+                    return runtime;
+                case 0x02:
+                    return system;
+            }
+            return null;
+        }
     }
 }
