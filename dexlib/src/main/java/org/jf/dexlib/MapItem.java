@@ -52,21 +52,27 @@ public class MapItem extends IndexedItem<MapItem> {
     }
 
     public int place(int index, int offset) {
-        Collections.sort(mapEntries, new Comparator<MapField>() {
-            public int compare(MapField o1, MapField o2) {
-                return ((Integer)o1.getSectionOffset()).compareTo(o2.getSectionOffset());
-            }
-        });
 
+        //we have to check if there are any empty sections before we place this item,
+        //because we need to remove the empty sections, which will change the size of
+        //this item
         for (int i=0; i<mapEntries.size(); i++) {
             MapField mapField = mapEntries.get(i);
-            mapField.place(offset);
-            if (mapField.getSectionSize() == 0 /*&& mapField.getSectionItemType().getMapValue() > 0x06*/) {
+            if (mapField.getSection().size() == 0) {
                 mapEntries.remove(i--);
             }
         }
+        
+        offset = super.place(index, offset);
 
-        return super.place(index, offset);
+        //make sure the map items are in the same order as the corresponding sections
+        Collections.sort(mapEntries, new Comparator<MapField>() {
+            public int compare(MapField o1, MapField o2) {
+                return ((Integer)o1.getSection().getOffset()).compareTo(o2.getSection().getOffset());
+            }
+        });
+
+        return offset;
     }
 
     public static MapItem makeBlankMapItem(DexFile dexFile) {

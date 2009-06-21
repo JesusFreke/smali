@@ -56,6 +56,10 @@ public class MapField extends CompositeField<MapField> {
         return ItemType.fromInt(sectionTypeField.getCachedValue());
     }
 
+    public Section getSection() {
+        return sectionInfoField.getSection();
+    }
+
     public int getSectionSize() {
         return sectionInfoField.getSectionSize();
     }
