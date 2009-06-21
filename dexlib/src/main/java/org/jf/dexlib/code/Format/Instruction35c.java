@@ -116,7 +116,7 @@ public class Instruction35c extends Instruction
     }
 
     public byte getRegisterG() {
-        return NumberUtils.decodeLowUnsignedNibble(encodedInstruction[5]);
+        return NumberUtils.decodeHighUnsignedNibble(encodedInstruction[5]);
     }
 
     private void checkItem() {
