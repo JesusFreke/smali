@@ -45,9 +45,6 @@ import java.util.List;
  */
 public class DebugInfoBuilder
 {
-    //TODO: take a look at the debug bytecode generation logic in dx, and make sure that this does the same thing
-    //(in the interest of being able to exactly reproduce a given dx-generated dex file) 
-
     private static final int LINE_BASE = -4;
     private static final int LINE_RANGE = 15;
     private static final int FIRST_SPECIAL = 0x0a;
