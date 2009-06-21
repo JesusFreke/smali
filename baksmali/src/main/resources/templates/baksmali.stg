@@ -306,17 +306,17 @@ StartEpilogue(Epilogue) ::=
 
 StartLocal(StartLocal) ::=
 <<
-.local <Register(StartLocal.Register)>, <StartLocal.Name>:<StartLocal.Type>
+.local <Register(StartLocal.Register)>, <StartLocal.Name>:<StartLocal.Type><if(StartLocal.Signature)>,"<StartLocal.Signature>"<endif>
 >>
 
 EndLocal(EndLocal) ::=
 <<
-.end local <Register(EndLocal.Register)>       #<EndLocal.Name>:<EndLocal.Type>
+.end local <Register(EndLocal.Register)>       <if(EndLocal.Name)>#<EndLocal.Name>:<EndLocal.Type>,<if(EndLocal.Signature)>, "<EndLocal.Signature>"<endif><endif>
 >>
 
 RestartLocal(RestartLocal) ::=
 <<
-.restart local <Register(RestartLocal.Register)>       #<RestartLocal.Name>:<RestartLocal.Type>
+.restart local <Register(RestartLocal.Register)>       <if(RestartLocal.Name)>#<RestartLocal.Name>:<RestartLocal.Type>,<if(RestartLocal.Signature)>, "<RestartLocal.Signature>"<endif><endif>
 >>
 
 SetFile(SetFile) ::=

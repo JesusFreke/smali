@@ -29,6 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.Util.DebugInfoDecoder;
+import org.jf.dexlib.Util.Utf8Utils;
 
 public class LocalDebugMethodItem extends DebugMethodItem {
     private DebugInfoDecoder.Local local;
@@ -61,6 +62,6 @@ public class LocalDebugMethodItem extends DebugMethodItem {
         if (local.signature == null) {
             return null;
         }
-        return local.signature.getStringValue();
+        return Utf8Utils.escapeString(local.signature.getStringValue());
     }
 }
