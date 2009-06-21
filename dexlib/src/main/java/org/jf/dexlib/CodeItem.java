@@ -211,11 +211,9 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
         public void copyTo(DexFile dexFile, CachedIntegerValueField _copy) {
             EncodedCatchHandlerReference copy = (EncodedCatchHandlerReference)_copy;
-            EncodedCatchHandler copiedItem = copy.getEncodedCatchHandlerList().getByOffset(
-                encodedCatchHandler.getOffsetInList());
+            EncodedCatchHandler copiedItem = copy.getEncodedCatchHandlerList().intern(encodedCatchHandler);
             copy.setReference(copiedItem);
         }
-
 
         public void writeTo(AnnotatedOutput out) {
             cacheValue(encodedCatchHandler.getOffsetInList());
@@ -237,8 +235,11 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
     public class EncodedCatchHandlerList extends CompositeField<EncodedCatchHandlerList> {
         private boolean fieldPresent = false;
+        //this field is only valid when reading a dex file in
         protected HashMap<Integer, EncodedCatchHandler> itemsByOffset =
                 new HashMap<Integer, EncodedCatchHandler>();
+
+        protected HashMap<EncodedCatchHandler, EncodedCatchHandler> uniqueItems = null;
 
         private final DexFile dexFile;
 
@@ -249,8 +250,27 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                 itemsByOffset.put(offset, encodedCatchHandler);
             }
             return encodedCatchHandler;
+        }
 
+        public EncodedCatchHandler intern(EncodedCatchHandler item) {
+            if (uniqueItems == null) {
+                buildInternedItemMap();
+            }
+            EncodedCatchHandler encodedCatchHandler = uniqueItems.get(item);
+            if (encodedCatchHandler == null) {
+                encodedCatchHandler = new EncodedCatchHandler(dexFile, -1);
+                catchHandlerList.add(encodedCatchHandler);
+                item.copyTo(dexFile, encodedCatchHandler);
+                uniqueItems.put(encodedCatchHandler, encodedCatchHandler);
+            }
+            return encodedCatchHandler;
+        }
 
+        private void buildInternedItemMap() {
+            uniqueItems = new HashMap<EncodedCatchHandler, EncodedCatchHandler>();
+            for (EncodedCatchHandler item: catchHandlerList) {
+                uniqueItems.put(item, item);
+            }
         }
 
         public EncodedCatchHandlerList(final DexFile dexFile) {
@@ -318,6 +338,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             super.copyTo(dexFile, copy);
             copy.fieldPresent = fieldPresent;
             copy.itemsByOffset.clear();
+            int offset = 0;
             for (EncodedCatchHandler encodedCatchHandler: copy.listField.list) {
                 copy.itemsByOffset.put(encodedCatchHandler.offset, encodedCatchHandler);
             }
