@@ -23,6 +23,8 @@ import org.apache.maven.project.MavenProject;
 import org.jf.smali.smali;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Assembles files in the smali assembly language
@@ -55,6 +57,11 @@ public class SmaliMojo
      */
     private File outputFile;
 
+    /**
+     * @parameter default-value=null
+     */
+    private File dumpFile;
+
     public void execute()
         throws MojoExecutionException
     {
@@ -62,7 +69,18 @@ public class SmaliMojo
 
         try
         {
-            smali.main(new String[]{"--output=" + outputFile.getAbsolutePath(), sourceDirectory.getAbsolutePath()});
+            List<String> args = new ArrayList<String>();
+            args.add("--output=" + outputFile.getAbsolutePath());
+
+            if (dumpFile != null) {
+                args.add("--dump-to=" + dumpFile.getAbsolutePath());
+            }
+
+            args.add(sourceDirectory.getAbsolutePath());
+
+            
+
+            smali.main(args.toArray(new String[args.size()]));
         } catch (Exception ex)
         {
             throw new MojoExecutionException("oops!", ex);

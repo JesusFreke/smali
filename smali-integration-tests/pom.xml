@@ -25,6 +25,7 @@
                         <configuration>
                             <sourceDirectory>src/test/smali/junit-tests</sourceDirectory>
                             <outputFile>target/junit-tests/classes.dex</outputFile>
+                            <dumpFile>target/junit-tests/classes.dump</dumpFile>
                         </configuration>
                     </execution>
                 </executions>
