@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.dexlib.util.DebugInfoDecoder;
+import org.jf.dexlib.Util.DebugInfoDecoder;
 
 public class LocalDebugMethodItem extends DebugMethodItem {
     private DebugInfoDecoder.Local local;

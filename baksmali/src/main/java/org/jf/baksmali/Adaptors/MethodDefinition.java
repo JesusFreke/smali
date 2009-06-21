@@ -30,12 +30,12 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.Format.*;
 import org.jf.dexlib.*;
-import org.jf.dexlib.code.Format.*;
-import org.jf.dexlib.code.Instruction;
-import org.jf.dexlib.code.InstructionField;
-import org.jf.dexlib.code.Opcode;
-import org.jf.dexlib.util.AccessFlags;
-import org.jf.dexlib.util.DebugInfoDecoder;
+import org.jf.dexlib.Code.Format.*;
+import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.InstructionField;
+import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Util.AccessFlags;
+import org.jf.dexlib.Util.DebugInfoDecoder;
 
 import java.util.*;
 

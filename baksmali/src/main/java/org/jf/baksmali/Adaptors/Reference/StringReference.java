@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors.Reference;
 
 import org.jf.dexlib.StringIdItem;
-import org.jf.dexlib.util.Utf8Utils;
+import org.jf.dexlib.Util.Utf8Utils;
 
 public class StringReference extends Reference<StringIdItem> {
     public StringReference(StringIdItem item) {

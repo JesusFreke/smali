@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.code.Format.ArrayDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.code.Format.Instruction20t;
+import org.jf.dexlib.Code.Format.Instruction20t;
 
 public class Instruction20tMethodItem extends InstructionFormatMethodItem<Instruction20t> {
     public Instruction20tMethodItem(int offset, Instruction20t instruction) {

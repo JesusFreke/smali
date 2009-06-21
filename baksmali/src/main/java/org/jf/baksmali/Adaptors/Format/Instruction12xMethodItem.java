@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.code.Format.Instruction12x;
+import org.jf.dexlib.Code.Format.Instruction12x;
 
 public class Instruction12xMethodItem extends InstructionFormatMethodItem<Instruction12x> {
     public Instruction12xMethodItem(int offset, Instruction12x instruction) {

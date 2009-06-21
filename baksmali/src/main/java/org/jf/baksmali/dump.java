@@ -29,7 +29,7 @@
 package org.jf.baksmali;
 
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.util.ByteArrayAnnotatedOutput;
+import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
 
 import java.io.File;
 import java.io.FileWriter;

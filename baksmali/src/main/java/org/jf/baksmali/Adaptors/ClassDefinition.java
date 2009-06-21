@@ -30,7 +30,7 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.*;
-import org.jf.dexlib.util.AccessFlags;
+import org.jf.dexlib.Util.AccessFlags;
 
 import java.util.*;
 

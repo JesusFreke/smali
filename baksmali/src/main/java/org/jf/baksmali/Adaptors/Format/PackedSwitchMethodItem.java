@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.code.Format.PackedSwitchDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 
 public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSwitchDataPseudoInstruction> {
     private int baseAddress;

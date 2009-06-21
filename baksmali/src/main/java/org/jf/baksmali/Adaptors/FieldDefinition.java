@@ -34,7 +34,7 @@ import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.FieldIdItem;
 import org.jf.dexlib.AnnotationSetItem;
 import org.jf.dexlib.AnnotationItem;
-import org.jf.dexlib.util.AccessFlags;
+import org.jf.dexlib.Util.AccessFlags;
 
 import java.util.ArrayList;
 import java.util.List;

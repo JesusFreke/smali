@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.code.Format.SparseSwitchDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 
 public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSwitchDataPseudoInstruction> {
     private int baseAddress;

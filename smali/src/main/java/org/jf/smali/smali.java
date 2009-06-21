@@ -33,7 +33,7 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.util.ByteArrayAnnotatedOutput;
+import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
 
 import java.io.*;
 import java.util.LinkedHashSet;

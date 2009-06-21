@@ -29,7 +29,7 @@
 package org.jf.baksmali.Renderers;
 
 import org.antlr.stringtemplate.AttributeRenderer;
-import org.jf.dexlib.util.Utf8Utils;
+import org.jf.dexlib.Util.Utf8Utils;
 
 public class CharRenderer implements AttributeRenderer {
     public String toString(Object o) {

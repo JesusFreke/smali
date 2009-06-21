@@ -30,7 +30,7 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.code.Instruction;
+import org.jf.dexlib.Code.Instruction;
 
 public abstract class InstructionFormatMethodItem<T extends Instruction> extends MethodItem {
     protected T instruction;
