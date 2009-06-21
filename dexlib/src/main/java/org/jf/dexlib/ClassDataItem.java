@@ -114,26 +114,20 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
     }
 
     public List<EncodedField> getStaticFields() {
-        return (List<EncodedField>)staticFieldList.clone();
+        return Collections.unmodifiableList(staticFieldList);
     }
 
     public List<EncodedField> getInstanceFields() {
-        return (List<EncodedField>)instanceFieldList.clone();
+        return Collections.unmodifiableList(instanceFieldList);
     }
 
     public List<EncodedMethod> getDirectMethods() {
-        return (List<EncodedMethod>)directMethodList.clone();
+        return Collections.unmodifiableList(directMethodList);
     }
 
     public List<EncodedMethod> getVirtualMethods() {
-        return (List<EncodedMethod>)virtualMethodList.clone();
+        return Collections.unmodifiableList(virtualMethodList);
     }                                      
-
-    //TODO: GROT
-    public EncodedField getStaticFieldAtIndex(int i)
-    {
-        return staticFieldList.get(i);
-    }
 
     private static abstract class EncodedMember<T extends EncodedMember<T>> extends CompositeField<T> implements Field<T>, Comparable<T> 
     {

@@ -187,7 +187,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
 
             //All static fields before this one must have an initial value. Add any default values as needed
             for (int i=staticFieldInitialValuesList.size(); i < fieldIndex; i++) {
-                ClassDataItem.EncodedField staticField = classDataItem.getStaticFieldAtIndex(i);
+                ClassDataItem.EncodedField staticField = classDataItem.getStaticFields().get(i);
                 EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile,
                         staticField.getField().getFieldType().getTypeDescriptor());
                 EncodedValue encodedValue = new EncodedValue(dexFile, subField);
@@ -205,6 +205,10 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
 
     public void setAnnotations(AnnotationDirectoryItem annotations) {
         this.classAnnotationsReferenceField.setReference(annotations);
+    }
+
+    public void setClassDataItem(ClassDataItem classDataItem) {
+        this.classDataReferenceField.setReference(classDataItem);
     }
 
     public static int placeClassDefItems(IndexedSection<ClassDefItem> section, int offset) {
