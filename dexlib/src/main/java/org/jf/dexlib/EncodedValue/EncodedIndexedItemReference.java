@@ -121,4 +121,23 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
         return valueType;
     }
 
+    public int hashCode() {
+        if (item == null) {
+            return 0;
+        }
+        return item.hashCode();
+    }
+
+    public boolean equals(Object o) {
+     if (!(o instanceof EncodedIndexedItemReference)) {
+            return false;
+        }
+
+        EncodedIndexedItemReference other = (EncodedIndexedItemReference)o;
+        if (item != null) {
+            return item.equals(other.item);
+        } else {
+            return other.item == null;
+        }
+    }
 }
