@@ -194,7 +194,8 @@ public class DexFile
     public void place() {
         int offset = 0;
 
-        offset = 0x70;
+        offset = HeaderItemSection.place(offset);
+
         for (IndexedSection indexedSection: indexedSections) {
             indexedSection.unplace();
             offset = indexedSection.place(offset);
@@ -208,11 +209,6 @@ public class DexFile
             offset = offsettedSection.place(offset);
         }
 
-        HeaderItemSection.place(0);
-
-        if (offset % 4 != 0) {
-            offset += (4 - (offset % 4));
-        }
         offset = MapSection.place(offset);
 
         dataSize = offset - dataOffset;
