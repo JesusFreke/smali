@@ -79,8 +79,8 @@ public class MethodIdItem extends IndexedItem<MethodIdItem> {
         return prototypeReferenceField.getReference();
     }
 
-    public String getMethodName() {
-        return methodNameReferenceField.getReference().getStringValue();
+    public StringIdItem getMethodName() {
+        return methodNameReferenceField.getReference();
     }
 
     public int getParameterRegisterCount(boolean isStatic) {

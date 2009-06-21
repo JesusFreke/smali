@@ -55,12 +55,8 @@ public class MethodDefinition {
         this.parameterAnnotations = parameterAnnotations;
     }
 
-    private String methodName = null;
     public String getMethodName() {
-        if (methodName == null) {
-            methodName = methodIdItem.getMethodName(); 
-        }
-        return methodName;
+        return methodIdItem.getMethodName().getStringValue(); 
     }
 
     private List<String> accessFlags = null;

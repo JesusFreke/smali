@@ -40,7 +40,7 @@ public class MethodReference extends Reference<MethodIdItem> {
     }
 
     public String getMethodName() {
-        return item.getMethodName();
+        return item.getMethodName().getStringValue();
     }
 
     public String getPrototype() {
