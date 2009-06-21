@@ -42,7 +42,7 @@ public class ByteRenderer implements AttributeRenderer {
     public String toString(Object o, String s) {
         if (s.equals("unsigned")) {
             Byte b = (Byte)o;
-            return "0x" + Integer.toHexString(b & 0xFF);   
+            return "0x" + Integer.toHexString(b & 0xFF) + "t";   
         }
         return toString(o);
     }
