@@ -45,9 +45,9 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
     /** the endianness tag */
     private static final int ENDIAN_TAG = 0x12345678;
 
-    private final FixedByteArrayField magicField;
+    private final FixedSizeByteArrayField magicField;
     private final IntegerField checksumField;
-    private final FixedByteArrayField signatureField;
+    private final FixedSizeByteArrayField signatureField;
     private final IntegerField fileSizeField;
     private final IntegerField headerSizeField;
     private final IntegerField endianTagField;
@@ -69,14 +69,14 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
         try
         {
             fields = new Field[] {
-                    magicField = new FixedByteArrayField(MAGIC.getBytes("US-ASCII"), "magic"),
+                    magicField = new FixedSizeByteArrayField(MAGIC.getBytes("US-ASCII"), "magic"),
                     checksumField = new IntegerField("checksum") {
                         public void writeTo(AnnotatedOutput out) {
                             cacheValue(0);
                             super.writeTo(out);
                         }
                     },
-                    signatureField = new FixedByteArrayField(20, "signature") {
+                    signatureField = new FixedSizeByteArrayField(20, "signature") {
                         public void writeTo(AnnotatedOutput out) {
                             for (int i = 0; i < value.length; i++) {
                                 value[i] = 0;

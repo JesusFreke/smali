@@ -65,7 +65,6 @@ public abstract class OffsettedSection<T extends OffsettedItem<T>> extends Secti
             T item = getByOffset(in.getCursor());
             item.readFrom(in, i);
 
-            //TODO: why are we aligning afterwards?
             in.alignTo(item.getAlignment());
         }
         //sort the items list by offset

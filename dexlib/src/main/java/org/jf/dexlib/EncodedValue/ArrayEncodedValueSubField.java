@@ -32,6 +32,7 @@ import org.jf.dexlib.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class ArrayEncodedValueSubField extends CompositeField<ArrayEncodedValueSubField>
         implements  EncodedValueSubField<ArrayEncodedValueSubField>
@@ -85,6 +86,6 @@ public class ArrayEncodedValueSubField extends CompositeField<ArrayEncodedValueS
     }
 
     public List<EncodedValue> getValues() {
-        return (List<EncodedValue>)encodedValues.clone();
+        return Collections.unmodifiableList(encodedValues);
     }
 }

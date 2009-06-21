@@ -36,6 +36,7 @@ import org.jf.dexlib.util.Input;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Collections;
 
 public class CodeItem extends OffsettedItem<CodeItem> {
     private final ArrayList<InstructionField> instructionList;
@@ -119,11 +120,11 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     }
 
     public List<InstructionField> getInstructions() {
-        return (List<InstructionField>)instructionList.clone();
+        return Collections.unmodifiableList(instructionList);
     }
 
     public List<TryItem> getTries() {
-        return (List<TryItem>)tryItems.clone();
+        return Collections.unmodifiableList(tryItems);
     }
 
     public DebugInfoItem getDebugInfo() {
@@ -437,18 +438,8 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             }
         }
 
-        //TODO: GROT
-        public int getHandlerCount() {
-            return list.size();
-        }
-
-        //TODO: GROT
-        public EncodedTypeAddrPair getHandler(int index) {
-            return list.get(index);
-        }
-
         public List<EncodedTypeAddrPair> getHandlers() {
-            return (List<EncodedTypeAddrPair>)list.clone();
+            return Collections.unmodifiableList(list);
         }
     }
 

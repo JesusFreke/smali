@@ -29,26 +29,19 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.ByteArray;
 import org.jf.dexlib.util.Input;
 
-public class FixedByteArrayField implements Field<FixedByteArrayField> {
+public class FixedSizeByteArrayField implements Field<FixedSizeByteArrayField> {
     protected byte[] value;
     private final String fieldName; 
 
-    public FixedByteArrayField(int size, String fieldName) {
+    public FixedSizeByteArrayField(int size, String fieldName) {
         value = new byte[size];
         this.fieldName = fieldName;
     }
 
-    public FixedByteArrayField(byte[] bytes, String fieldName) {
+    public FixedSizeByteArrayField(byte[] bytes, String fieldName) {
         this.value = bytes.clone();
-        this.fieldName = fieldName;
-    }
-
-    public FixedByteArrayField(ByteArray byteArray, String fieldName) {
-        value = new byte[byteArray.size()];
-        byteArray.getBytes(value, 0);
         this.fieldName = fieldName;
     }
 
@@ -67,7 +60,7 @@ public class FixedByteArrayField implements Field<FixedByteArrayField> {
         return offset + value.length;
     }
 
-    public void copyTo(DexFile dexFile, FixedByteArrayField copy) {
+    public void copyTo(DexFile dexFile, FixedSizeByteArrayField copy) {
         copy.value = value.clone();
     }
 }

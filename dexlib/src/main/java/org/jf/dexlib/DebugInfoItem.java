@@ -36,6 +36,7 @@ import org.jf.dexlib.util.Input;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
     private final ArrayList<IndexedItemReference<StringIdItem>> parameterNames =
@@ -95,7 +96,7 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
     }
 
     public List<DebugInstruction> getDebugInstructions() {
-        return (List<DebugInstruction>)instructionFields.clone();
+        return Collections.unmodifiableList(instructionFields);
     }
 
     public List<String> getParameterNames() {

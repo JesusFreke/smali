@@ -86,6 +86,6 @@ public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEnc
     }
 
     public List<AnnotationElement> getAnnotationElements() {
-        return (List<AnnotationElement>)annotationElementList.clone();
+        return Collections.unmodifiableList(annotationElementList);
     }
 }

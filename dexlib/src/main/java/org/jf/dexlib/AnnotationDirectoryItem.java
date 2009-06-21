@@ -124,15 +124,15 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
     }
 
     public List<MethodAnnotation> getMethodAnnotations() {
-        return (List<MethodAnnotation>)methodAnnotationList.clone();
+        return Collections.unmodifiableList(methodAnnotationList);
     }
 
     public List<FieldAnnotation> getFieldAnnotations() {
-        return (List<FieldAnnotation>)fieldAnnotationList.clone();
+        return Collections.unmodifiableList(fieldAnnotationList);
     }
 
     public List<ParameterAnnotation> getParameterAnnotations() {
-        return (List<ParameterAnnotation>)parameterAnnotationList.clone();
+        return Collections.unmodifiableList(parameterAnnotationList);
     }
 
 

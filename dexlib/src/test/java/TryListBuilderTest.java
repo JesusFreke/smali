@@ -65,10 +65,12 @@ public class TryListBuilderTest
 
         Assert.assertTrue(encodedCatchHandler.getCatchAllAddress() == catchAllAddress);
 
-        Assert.assertTrue(encodedCatchHandler.getHandlerCount() == handlers.length);
+        List<CodeItem.EncodedTypeAddrPair> typeAddrPairs = encodedCatchHandler.getHandlers();
+
+        Assert.assertTrue(typeAddrPairs.size() == handlers.length);
 
         for (int i=0; i<handlers.length; i++) {
-            CodeItem.EncodedTypeAddrPair typeAddrPair = encodedCatchHandler.getHandler(i);
+            CodeItem.EncodedTypeAddrPair typeAddrPair = typeAddrPairs.get(i);
             Handler handler = handlers[i];
 
             Assert.assertTrue(typeAddrPair.getTypeReferenceField().getTypeDescriptor().compareTo(handler.type) == 0);

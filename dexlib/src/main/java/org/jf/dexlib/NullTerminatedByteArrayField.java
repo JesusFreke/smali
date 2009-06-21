@@ -45,12 +45,6 @@ public class NullTerminatedByteArrayField implements Field<NullTerminatedByteArr
         this.value = value.clone();
     }
 
-    public NullTerminatedByteArrayField(ByteArray byteArray, String fieldName) {
-        this(fieldName);
-        value = new byte[byteArray.size()];
-        byteArray.getBytes(value, 0);
-    }
-
     public void writeTo(AnnotatedOutput out) {
         out.annotate(fieldName);
         out.write(value);
