@@ -28,8 +28,8 @@
 
 package org.jf.dexlib.EncodedValue;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public class ByteEncodedValueSubField
     extends SimpleEncodedValueSubField<Byte, ByteEncodedValueSubField>

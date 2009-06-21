@@ -28,7 +28,7 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public abstract class SectionHeaderInfo extends CompositeField<SectionHeaderInfo> {
     private final String sectionName;

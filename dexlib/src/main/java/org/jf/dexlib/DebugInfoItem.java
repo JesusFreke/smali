@@ -28,11 +28,11 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.debug.DebugInstruction;
-import org.jf.dexlib.debug.DebugInstructionFactory;
-import org.jf.dexlib.debug.EndSequence;
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Debug.DebugInstruction;
+import org.jf.dexlib.Debug.DebugInstructionFactory;
+import org.jf.dexlib.Debug.EndSequence;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 import java.util.ArrayList;
 import java.util.List;

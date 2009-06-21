@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.ByteArray;
-import org.jf.dexlib.util.Utf8Utils;
+import org.jf.dexlib.Util.ByteArray;
+import org.jf.dexlib.Util.Utf8Utils;
 
 public class StringDataItem extends OffsettedItem<StringDataItem> implements Comparable<StringDataItem> {
     private String value = null;

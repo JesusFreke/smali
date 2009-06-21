@@ -28,7 +28,7 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.Input;
 
 import java.util.HashMap;
 import java.util.Collections;

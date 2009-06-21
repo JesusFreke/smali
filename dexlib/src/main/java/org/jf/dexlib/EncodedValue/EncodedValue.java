@@ -31,8 +31,8 @@ package org.jf.dexlib.EncodedValue;
 import org.jf.dexlib.CompositeField;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Field;
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public class EncodedValue extends CompositeField<EncodedValue> {
     private class ValueTypeArgField implements Field<ValueTypeArgField> {

@@ -68,10 +68,8 @@ public class MethodIdItem extends IndexedItem<MethodIdItem> {
     public String getMethodString() {
         if (cachedMethodString == null) {
             String parentClass = classTypeReferenceField.getReference().getTypeDescriptor();
-            //strip the leading L and trailing ;
-            parentClass = parentClass.substring(1, parentClass.length() - 1);
 
-            cachedMethodString = parentClass + methodNameReferenceField.getReference().getStringValue() +
+            cachedMethodString = parentClass + "->" + methodNameReferenceField.getReference().getStringValue() +
                     prototypeReferenceField.getReference().getPrototypeString();
         }
         return cachedMethodString;

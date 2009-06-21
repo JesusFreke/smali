@@ -28,7 +28,7 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.*;
+import org.jf.dexlib.Util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;

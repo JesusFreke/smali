@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public abstract class Item<T extends Item> {
     protected int offset = -1;
@@ -42,10 +42,6 @@ public abstract class Item<T extends Item> {
 
     public boolean isPlaced() {
         return offset > -1;
-    }
-
-    public void unplace() {
-        offset = -1;
     }
 
     public int place(int index, int offset) {

@@ -28,10 +28,10 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.ByteArrayInput;
-import org.jf.dexlib.util.FileUtils;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.ByteArrayInput;
+import org.jf.dexlib.Util.FileUtils;
+import org.jf.dexlib.Util.Input;
 
 import java.io.File;
 import java.security.DigestException;
@@ -197,15 +197,12 @@ public class DexFile
         offset = HeaderItemSection.place(offset);
 
         for (IndexedSection indexedSection: indexedSections) {
-            indexedSection.unplace();
             offset = indexedSection.place(offset);
         }
 
         dataOffset = offset;
 
         for (OffsettedSection offsettedSection: offsettedSections) {
-            offsettedSection.unplace();
-
             offset = offsettedSection.place(offset);
         }
 

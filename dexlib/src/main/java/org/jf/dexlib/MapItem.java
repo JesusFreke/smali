@@ -28,9 +28,6 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

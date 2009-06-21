@@ -28,9 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.ByteArray;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public class NullTerminatedByteArrayField implements Field<NullTerminatedByteArrayField> {
     protected byte[] value;

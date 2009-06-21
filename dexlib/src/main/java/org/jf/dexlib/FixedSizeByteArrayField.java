@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public class FixedSizeByteArrayField implements Field<FixedSizeByteArrayField> {
     protected byte[] value;

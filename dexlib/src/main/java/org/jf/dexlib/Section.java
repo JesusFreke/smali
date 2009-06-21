@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,12 +72,6 @@ public abstract class Section<T extends Item> {
         }
 
         return offset;
-    }
-
-    public void unplace() {
-        for (Item item: items) {
-            item.unplace();
-        }
     }
 
     public void writeTo(AnnotatedOutput out) {

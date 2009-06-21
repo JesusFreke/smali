@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.Output;
+import org.jf.dexlib.Util.Input;
+import org.jf.dexlib.Util.Output;
 
 public class IntegerField extends CachedIntegerValueField<IntegerField> {
     public IntegerField(String fieldName) {

@@ -30,8 +30,6 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.EncodedValue.ArrayEncodedValueSubField;
 import org.jf.dexlib.EncodedValue.EncodedValue;
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
 
 import java.util.ArrayList;
 

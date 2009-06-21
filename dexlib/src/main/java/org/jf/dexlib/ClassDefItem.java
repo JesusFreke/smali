@@ -30,7 +30,7 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.EncodedValueSubField;
-import org.jf.dexlib.util.TypeUtils;
+import org.jf.dexlib.Util.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -28,10 +28,10 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.code.InstructionField;
-import org.jf.dexlib.code.Opcode;
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Code.InstructionField;
+import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 import java.util.ArrayList;
 import java.util.HashMap;
