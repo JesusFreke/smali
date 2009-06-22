@@ -30,21 +30,89 @@ package org.jf.baksmali;
 
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
+import org.apache.commons.cli.*;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.FileOutputStream;
 
 public class dump {
 
     public static void main(String[] args) throws IOException {
+        Options options = new Options();
 
-        if (args.length < 2) {
-            throw new UsageException();
+        Option helpOption = OptionBuilder.withLongOpt("help")
+                                         .withDescription("prints the usage information for the --dump command")
+                                         .create("?");
+
+        Option outputFileOption = OptionBuilder.withLongOpt("output")
+                                              .withDescription("the file where the dump will be written. The default is <dexfile>.dump, where <dexfile> is the name of the given dex file")
+                                              .hasArg()
+                                              .withArgName("FILE")
+                                              .create("out");
+
+        Option writeDexFileOption = OptionBuilder.withLongOpt("write-dex-file")
+                                            .withDescription("optionally re-write out the dex file to the given file")
+                                            .hasArg()
+                                            .withArgName("FILE")
+                                            .create("writedex");
+
+        Option sortDexFileOption = OptionBuilder.withLongOpt("sort-dex-file")
+                                                .withDescription("optionally sorts the items in the dex file before dumping/writing it")
+                                                .create("sortdex");
+
+        Option unsignedRegisterOption = OptionBuilder.withLongOpt("unsigned-registers")
+                                                     .withDescription("always write the registers in the debug info as unsigned. By default we keep the same signed/unsigned format as what was in the original file")
+                                                     .create("unsigned");
+
+        options.addOption(helpOption);
+        options.addOption(outputFileOption);
+        options.addOption(writeDexFileOption);
+        options.addOption(sortDexFileOption);
+        options.addOption(unsignedRegisterOption);
+
+        CommandLineParser parser = new PosixParser();
+        CommandLine commandLine;
+
+        try {
+            commandLine = parser.parse(options, args);
+        } catch (ParseException ex) {
+            printHelp(options);
+            return;
         }
 
-        String dexFileName = args[0];
-        String outFile = args[1];
+        if (commandLine.hasOption("?")) {
+            printHelp(options);
+            return;
+        }
+
+        String[] leftover = commandLine.getArgs();
+
+        if (leftover.length != 1) {
+            printHelp(options);
+            return;
+        }
+
+        String dexFileName = leftover[0];
+        String outputDumpName = commandLine.getOptionValue("out", dexFileName + ".dump");
+
+        boolean writeDex = false;
+        String outputDexName = null;
+        if (commandLine.hasOption("writedex")) {
+            writeDex = true;
+            outputDexName = commandLine.getOptionValue("writedex");
+        }
+
+        boolean sortDex = false;
+        if (commandLine.hasOption("sortdex")) {
+            sortDex = true;
+        }
+
+        boolean unsignedRegisters = false;
+        if (commandLine.hasOption("unsigned")) {
+            unsignedRegisters = true;
+        }
 
         File dexFileFile = new File(dexFileName);
         if (!dexFileFile.exists()) {
@@ -52,25 +120,49 @@ public class dump {
             System.exit(1);
         }
 
-
-        DexFile dexFile = new DexFile(new File(dexFileName), true);
+        DexFile dexFile = new DexFile(new File(dexFileName), !unsignedRegisters);
 
         ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput();
         out.enableAnnotations(120, true);
+
+        if (sortDex) {
+            dexFile.place(true);
+        }
         dexFile.writeTo(out);
+
 
         out.finishAnnotating();
 
         FileWriter writer = null;
         try {
-            writer = new FileWriter(outFile);
+            writer = new FileWriter(outputDumpName);
             out.writeAnnotationsTo(writer);
             writer.close();
+
+            if (writeDex) {
+                byte[] bytes = out.toByteArray();
+
+                DexFile.calcSignature(bytes);
+                DexFile.calcChecksum(bytes);
+
+                FileOutputStream fileOutputStream = new FileOutputStream(outputDexName);
+                fileOutputStream.write(bytes);
+                fileOutputStream.close();
+            }
         }catch (IOException ex) {
             if (writer != null) {
                 writer.close();
             }
             throw ex;
         }
+    }
+
+    /**
+     * Prints the usage message.
+     */
+    private static void printHelp(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("java -jar baksmali.jar -dump [options] <dexfile>",
+                "Dumps the given dex file", options, "");
     }
 }

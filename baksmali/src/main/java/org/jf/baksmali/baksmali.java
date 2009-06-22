@@ -34,6 +34,7 @@ import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.ClassDefItem;
+import org.apache.commons.cli.*;
 
 import java.io.*;
 import java.net.URL;
@@ -41,12 +42,46 @@ import java.net.URL;
 public class baksmali {
     public static void main(String[] args) throws Exception
     {
-        if (args.length < 2) {
-            throw new UsageException();
+        Options options = new Options();
+
+        Option helpOption = OptionBuilder.withLongOpt("help")
+                                         .withDescription("prints the usage information for the -dis command")
+                                         .create("?");
+
+        Option outputDirOption = OptionBuilder.withLongOpt("output")
+                                              .withDescription("the directory where the disassembled files will be placed. The default is out")
+                                              .hasArg()
+                                              .withArgName("DIR")
+                                              .create("out");
+
+        options.addOption(helpOption);
+        options.addOption(outputDirOption);
+
+        CommandLineParser parser = new PosixParser();
+        CommandLine commandLine;
+
+        try {
+            commandLine = parser.parse(options, args);
+        } catch (ParseException ex) {
+            printHelp(options);
+            return;
+        }
+
+        if (commandLine.hasOption("?")) {
+            printHelp(options);
+            return;
         }
         
-        String dexFileName = args[0];
-        String outputDirName = args[1];
+
+        String[] leftover = commandLine.getArgs();
+
+        if (leftover.length != 1) {
+            printHelp(options);
+            return;
+        }
+
+        String dexFileName = leftover[0];
+        String outputDirName = commandLine.getOptionValue("out", "out");
 
         File dexFileFile = new File(dexFileName);
         if (!dexFileFile.exists()) {
@@ -127,5 +162,14 @@ public class baksmali {
                     writer.close();
             }
         }
+    }
+
+    /**
+     * Prints the usage message.
+     */
+    private static void printHelp(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("java -jar baksmali.jar -dis [-out <DIR>] <dexfile>",
+                "Disassembles the given dex file", options, "");
     }
 }

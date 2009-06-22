@@ -16,6 +16,8 @@
 
 package org.jf.baksmali;
 
+import org.apache.commons.cli.*;
+
 /**
  * Main class for baksmali. It recognizes enough options to be able to dispatch
  * to the right "actual" main.
@@ -24,20 +26,6 @@ public class main {
 
     public static final String VERSION = "0.91";
 
-
-    private static String USAGE_MESSAGE =
-        "usage:\n" +
-        "  java -jar baksmali.jar --disassemble <.dex file> <output folder>\n" +
-        "    disassembles the given dex file into a set of .smali files\n" +
-        "    in the given folder\n" +
-        "  java -jar baksmali.jar --dump <.dex file> <dump file>\n" +
-        "    dumps the given dex file to a single annotated dump file\n" +
-        "    that follows the order and structure of the dex file.\n" +
-        "  java -jar baksmali.jar --version\n" +
-        "    Print the version of this tool (" + VERSION +
-        ").\n" +
-        "  java -jar baksmali.jar --help\n" +
-        "    Print this message.";
 
     /**
      * This class is uninstantiable.
@@ -50,71 +38,91 @@ public class main {
      * Run!
      */
     public static void main(String[] args) {
-        boolean gotCmd = false;
-        boolean showUsage = false;
+        Options options = new Options();
+
+
+        Option versionOption = OptionBuilder.withLongOpt("version")
+                                            .withDescription("prints the version")
+                                            .create("v");
+
+        Option helpOption = OptionBuilder.withLongOpt("help")
+                                         .withDescription("prints the help message")
+                                         .create("?");
+
+        Option disassembleOption = OptionBuilder.withLongOpt("disassemble")
+                                                .withDescription("disassembles a dex file into individual files for each class that are placed into a folder structure that matches the package structure of the classes.")
+                                                .create("dis");
+
+        Option dumpOption = OptionBuilder.withLongOpt("dump")
+                                         .withDescription("Dumps a dex file into a single annotated dump file named FILE")
+                                         .create("dump");
+
+        OptionGroup mainCommand = new OptionGroup();
+        mainCommand.addOption(versionOption);
+        mainCommand.addOption(helpOption);
+        mainCommand.addOption(disassembleOption);
+        mainCommand.addOption(dumpOption);
+        mainCommand.setRequired(true);
+
+        options.addOptionGroup(mainCommand);
+
+        CommandLineParser parser = new PosixParser();
 
         try {
-            for (int i = 0; i < args.length; i++) {
-                String arg = args[i];
-                if (arg.equals("--") || !arg.startsWith("--")) {
-                    gotCmd = false;
-                    showUsage = true;
-                    break;
-                }
+            parser.parse(options, new String[]{args[0]});
+        } catch (ParseException ex) {
+            printHelp(options);
+            return;
+        }
 
-                gotCmd = true;
-                if (arg.equals("--disassemble")) {
-                    baksmali.main(without(args, i));
-                    break;
-                } else if (arg.equals("--dump")) {
-                    dump.main(without(args, i));
-                    break;
-                } else if (arg.equals("--version")) {
-                    version();
-                    break;
-                } else if (arg.equals("--help")) {
-                    showUsage = true;
-                    break;
-                } else {
-                    gotCmd = false;
-                }
+        try
+        {
+
+            String command = mainCommand.getSelected();
+            if (command.equals("?")) {
+                printHelp(options);
+                return;
             }
-        } catch (UsageException ex) {
-            showUsage = true;
+
+            if (command.equals("v")) {
+                version();
+                return;
+            }
+
+            if (command.equals("dis")) {
+                baksmali.main(without(args, 0));
+                return;
+            }
+
+            if (command.equals("dump")) {
+                dump.main(without(args, 0));
+            }
         } catch (RuntimeException ex) {
             System.err.println("\nUNEXPECTED TOP-LEVEL EXCEPTION:");
             ex.printStackTrace();
-            System.exit(2);
+            System.exit(1);
         } catch (Throwable ex) {
             System.err.println("\nUNEXPECTED TOP-LEVEL ERROR:");
             ex.printStackTrace();
-            System.exit(3);
+            System.exit(2);
         }
+    }
 
-        if (!gotCmd) {
-            System.err.println("error: no command specified");
-            showUsage = true;
-        }
-
-        if (showUsage) {
-            usage();
-            System.exit(1);
-        }
+    /**
+     * Prints the usage message.
+     */
+    private static void printHelp(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("java -jar baksmali.jar <command> [command-args]",
+                "use <command> --help to see the options each command accepts", options, "");
     }
 
     /**
      * Prints the version message.
      */
     private static void version() {
-        System.err.println("baksmali version " + VERSION);
+        System.err.println("baksmali v" + VERSION);
         System.exit(0);
-    }
-
-    /**
-     * Prints the usage message.
-     */
-    private static void usage() {
-        System.err.println(USAGE_MESSAGE);
     }
 
     /**
