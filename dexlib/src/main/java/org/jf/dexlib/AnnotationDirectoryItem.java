@@ -44,6 +44,14 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
     private final FieldListField<FieldAnnotation> fieldAnnotationListField;
     private final FieldListField<MethodAnnotation> methodAnnotationListField;
     private final FieldListField<ParameterAnnotation> parameterAnnotationListField;
+
+
+    //typically each AnnotationDirectoryItem will have a distinct parent. The only case that isn't true is when
+    //the AnnotationDirectoryItem *only* contains class annotations, with no other type of annotation. In that
+    //case, the same AnnotationDirectoryItem could be references from multiple classes.
+    //This isn't a problem though, because this field is only used in compareTo to determine the sort order,
+    //which handles it as a special case
+    private ClassDefItem parent = null;
                                              
     protected AnnotationDirectoryItem(final DexFile dexFile, int offset) {
         super(offset);
@@ -133,6 +141,48 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
 
     public List<ParameterAnnotation> getParameterAnnotations() {
         return Collections.unmodifiableList(parameterAnnotationList);
+    }
+
+
+    private boolean isInternable() {
+        //an instance is only internable if it has only class annotations, but
+        //no other type of annotation
+        if (classAnnotationsReferenceField.getReference() == null ||
+            fieldAnnotationList.size() > 0 ||
+            methodAnnotationList.size() > 0 ||
+            parameterAnnotationList.size() > 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public int hashCode() {
+        //an instance is only internable if it has only class annotations, but
+        //no other type of annotation
+        if (!isInternable()) {
+            return super.hashCode();
+        }
+        return classAnnotationsReferenceField.getReference().hashCode();
+    }
+
+    protected void setParent(ClassDefItem classDefItem) {
+        this.parent = classDefItem;
+    }
+
+    public int compareTo(AnnotationDirectoryItem annotationDirectoryItem) {
+        if (!isInternable()) {
+            if (!annotationDirectoryItem.isInternable()) {
+                return parent.compareTo(annotationDirectoryItem.parent);
+            }
+            return -1;
+        }
+
+        if (!annotationDirectoryItem.isInternable()) {
+            return 1;
+        }
+
+        return classAnnotationsReferenceField.getReference().compareTo(
+                annotationDirectoryItem.classAnnotationsReferenceField.getReference());
     }
 
     public static class FieldAnnotation extends CompositeField<FieldAnnotation>

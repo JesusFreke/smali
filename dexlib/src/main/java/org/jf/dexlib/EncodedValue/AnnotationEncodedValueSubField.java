@@ -35,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEncodedValueSubField>
-    implements EncodedValueSubField<AnnotationEncodedValueSubField> {
+    implements EncodedValueSubField<AnnotationEncodedValueSubField>, Comparable<EncodedValueSubField> {
 
     private final ArrayList<AnnotationElement> annotationElementList = new ArrayList<AnnotationElement>();
 
@@ -87,5 +87,26 @@ public class AnnotationEncodedValueSubField extends CompositeField<AnnotationEnc
 
     public List<AnnotationElement> getAnnotationElements() {
         return Collections.unmodifiableList(annotationElementList);
+    }
+
+    public int compareTo(EncodedValueSubField t) {
+        int comp = getValueType().compareTo(t.getValueType());
+        if (comp == 0) {
+            AnnotationEncodedValueSubField other = (AnnotationEncodedValueSubField)t;
+
+            comp = annotationType.compareTo(other.annotationType);
+            if (comp == 0) {
+                comp = ((Integer)annotationElementList.size()).compareTo(other.annotationElementList.size());
+                if (comp == 0) {
+                    for (int i=0; i<annotationElementList.size(); i++) {
+                        comp = annotationElementList.get(i).compareTo(other.annotationElementList.get(i));
+                        if (comp != 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return comp;
     }
 }

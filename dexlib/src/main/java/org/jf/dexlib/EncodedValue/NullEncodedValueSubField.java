@@ -32,7 +32,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 
 public class NullEncodedValueSubField
-    extends SimpleEncodedValueSubField<Object, NullEncodedValueSubField>
+    extends SimpleEncodedValueSubField<Integer, NullEncodedValueSubField>
 {
     public NullEncodedValueSubField() {
     }
@@ -54,5 +54,9 @@ public class NullEncodedValueSubField
 
     public ValueType getValueType() {
         return ValueType.VALUE_NULL;
+    }
+
+    public int compareTo(EncodedValueSubField t) {
+        return getValueType().compareTo(t.getValueType());
     }
 }

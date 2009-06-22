@@ -34,7 +34,7 @@ import org.jf.dexlib.Field;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 
-public class EncodedValue extends CompositeField<EncodedValue> {
+public class EncodedValue extends CompositeField<EncodedValue> implements Comparable<EncodedValue> {
     private class ValueTypeArgField implements Field<ValueTypeArgField> {
         private ValueType valueType;
         private byte valueArg;
@@ -89,7 +89,8 @@ public class EncodedValue extends CompositeField<EncodedValue> {
         }
     }
 
-    private class EncodedValueSubFieldWrapper implements Field<EncodedValueSubFieldWrapper> {
+    private class EncodedValueSubFieldWrapper
+            implements Field<EncodedValueSubFieldWrapper>, Comparable<EncodedValueSubFieldWrapper> {
         private final DexFile dexFile;
         private EncodedValueSubField subField;
 
@@ -141,6 +142,10 @@ public class EncodedValue extends CompositeField<EncodedValue> {
             EncodedValueSubFieldWrapper other = (EncodedValueSubFieldWrapper)o;
             return subField.equals(other.subField);
         }
+
+        public int compareTo(EncodedValueSubFieldWrapper encodedValueSubFieldWrapper) {
+            return subField.compareTo(encodedValueSubFieldWrapper.subField);
+        }
     }
 
     private final ValueTypeArgField valueTypeArg;
@@ -180,5 +185,9 @@ public class EncodedValue extends CompositeField<EncodedValue> {
 
     public EncodedValueSubField getValue() {
         return encodedValue.getEncodedValueSubField();
+    }
+
+    public int compareTo(EncodedValue encodedValue) {
+        return this.encodedValue.compareTo(encodedValue.encodedValue);
     }
 }

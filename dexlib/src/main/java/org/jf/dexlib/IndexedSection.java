@@ -77,10 +77,6 @@ public abstract class IndexedSection<T extends IndexedItem<T>> extends Section<T
         return itemToReturn;
     }
 
-    protected void sortSection() {
-        Collections.sort(items);
-    }
-
     public int place(int offset) {
         sortSection();
 

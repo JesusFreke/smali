@@ -34,7 +34,7 @@ import org.jf.dexlib.Util.EncodedValueUtils;
 import org.jf.dexlib.Util.Input;
 
 public class EncodedIndexedItemReference<T extends IndexedItem<T>>
-    implements EncodedValueSubField<EncodedIndexedItemReference<T>> {
+    implements EncodedValueSubField<EncodedIndexedItemReference<T>>, Comparable<EncodedValueSubField> {
     private int initialValueArg;
     private ValueType valueType;
 
@@ -139,5 +139,13 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
         } else {
             return other.item == null;
         }
+    }
+
+    public int compareTo(EncodedValueSubField t) {
+        int comp = getValueType().compareTo(t.getValueType());
+        if (comp == 0) {
+            return item.compareTo(((EncodedIndexedItemReference<T>)t).item);
+        }
+        return comp;
     }
 }

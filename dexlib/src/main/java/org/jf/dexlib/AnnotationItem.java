@@ -69,6 +69,14 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
         return annotationField;
     }
 
+    public int compareTo(AnnotationItem annotationItem) {
+        int comp = ((Integer)visibilityField.getCachedValue()).compareTo(annotationItem.visibilityField.getCachedValue());
+        if (comp == 0) {
+            comp = annotationField.compareTo(annotationItem.annotationField);
+        }
+        return comp;
+    }
+
     public enum Visibility {
         build(0x00),
         runtime(0x01),

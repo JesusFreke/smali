@@ -33,11 +33,13 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.AnnotationItem;
 import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
 
 import java.io.*;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.List;
 
 public class smali
 {
@@ -125,7 +127,7 @@ public class smali
             System.exit(1);
         }
 
-        dexFile.place();
+        dexFile.place(false);
         try
         {
             ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput();

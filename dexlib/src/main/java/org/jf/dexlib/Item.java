@@ -31,7 +31,7 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 
-public abstract class Item<T extends Item> {
+public abstract class Item<T extends Item> implements Comparable<T> {
     protected int offset = -1;
     protected int index = -1;
     

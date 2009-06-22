@@ -66,13 +66,13 @@ public class NumberUtils {
     }
 
     public static long decodeLong(byte[] array, int startIndex) {
-        return  array[startIndex++] |
-                (array[startIndex++] >> 8) |
-                (array[startIndex++] >> 16) |
-                (array[startIndex++] >> 24) |
-                ((long)array[startIndex++] >> 32) |
-                ((long)array[startIndex++] >> 40) |
-                ((long)array[startIndex++] >> 48) |
-                ((long)array[startIndex++] >> 56);
+        return  (array[startIndex++] & 0xffL) |
+                ((array[startIndex++] & 0xffL) << 8) |
+                ((array[startIndex++] & 0xffL) << 16) |
+                ((array[startIndex++] & 0xffL) << 24) |
+                ((array[startIndex++] & 0xffL) << 32) |
+                ((array[startIndex++] & 0xffL) << 40) |
+                ((array[startIndex++] & 0xffL) << 48) |
+                ((array[startIndex] & 0xffL) << 56);
     }
 }

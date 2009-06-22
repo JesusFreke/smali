@@ -49,6 +49,7 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
     private final EncodedMemberList<EncodedMethod> directMethodsListField;
     private final EncodedMemberList<EncodedMethod> virtualMethodsListField;
 
+    private ClassDefItem parent = null;
 
     public ClassDataItem(final DexFile dexFile, int offset) {
         super(offset);
@@ -310,6 +311,10 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
                     this.codeItemReferenceField = new OffsettedItemReference<CodeItem>(dexFile, codeItem,
                             new Leb128Field(null), "code_off")
             };
+
+            if (codeItem != null) {
+                codeItem.setParent(methodIdItem);
+            }
         }
 
         protected void setPreviousMember(EncodedMethod previousMethod) {
@@ -327,6 +332,14 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
         public boolean isDirect() {
             return ((accessFlagsField.getCachedValue() & (AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
                     AccessFlags.CONSTRUCTOR.getValue())) != 0);
+        }
+
+        public void readFrom(Input in) {
+            super.readFrom(in);
+            CodeItem codeItem = codeItemReferenceField.getReference();
+            if (codeItem != null) {
+                codeItem.setParent(methodReferenceField.getReference());
+            }
         }
 
         public int getAccessFlags() {
@@ -395,5 +408,22 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
 
     public String getConciseIdentity() {
         return "class_data_item @0x" + Integer.toHexString(getOffset());
+    }
+
+    protected void setParent(ClassDefItem classDefItem) {
+        this.parent = classDefItem;
+    }
+
+    public int compareTo(ClassDataItem other) {
+        if (parent == null) {
+            if (other.parent == null) {
+                return 0;
+            }
+            return -1;
+        }
+        if (other.parent == null) {
+            return 1;
+        }
+        return parent.compareTo(other.parent);
     }
 }

@@ -83,4 +83,22 @@ public class AnnotationSetItem extends OffsettedItem<AnnotationSetItem> {
         }
         return annotationItems;
     }
+
+    public int compareTo(AnnotationSetItem annotationSetItem) {
+        if (annotationSetItem == null) {
+            return 1;
+        }
+
+        int comp = ((Integer)annotationReferences.size()).compareTo(annotationSetItem.annotationReferences.size());
+        if (comp == 0) {
+            for (int i=0; i<annotationReferences.size(); i++) {
+                comp = annotationReferences.get(i).getReference().compareTo(
+                        annotationSetItem.annotationReferences.get(i).getReference());
+                if (comp != 0) {
+                    break;
+                }
+            }
+        }
+        return comp;
+    }
 }

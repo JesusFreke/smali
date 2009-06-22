@@ -54,6 +54,8 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     private final FieldListField<TryItem> triesListField;
     private final EncodedCatchHandlerList catchHandlersListField;
 
+    private MethodIdItem parent = null;
+
     public CodeItem(final DexFile dexFile, int offset) {
         super(offset);
 
@@ -105,6 +107,10 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         inArgumentCountField.cacheValue(inArguments);
         outArgumentCountField.cacheValue(instructionListField.getOutArguments());
         debugInfoReferenceField.setReference(debugInfo);
+
+        if (debugInfo != null) {
+            debugInfo.setParent(this);
+        }
     }
 
     protected int getAlignment() {
@@ -131,6 +137,10 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         return debugInfoReferenceField.getReference();
     }
 
+    protected void setParent(MethodIdItem methodIdItem) {
+        this.parent = methodIdItem;
+    }
+
     public void copyTo(DexFile dexFile, CodeItem copy)
     {
         for (int i = 0; i < fields.length-2; i++) {
@@ -140,11 +150,38 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         //the catchHandler copies will already exist
         catchHandlersListField.copyTo(dexFile, copy.catchHandlersListField);
         triesListField.copyTo(dexFile, copy.triesListField);
+
+        DebugInfoItem copyDebugInfo = copy.getDebugInfo();
+        if (copy != null) {
+            copyDebugInfo.setParent(copy);
+        }
+    }
+
+    public void readFrom(Input in, int index) {
+        super.readFrom(in, index);
+
+        DebugInfoItem debugInfoItem = debugInfoReferenceField.getReference();
+        if (debugInfoItem != null) {
+            debugInfoItem.setParent(this);
+        }
     }
 
     public String getConciseIdentity() {
         //TODO: should mention the method name here
         return "code_item @0x" + Integer.toHexString(getOffset());
+    }
+
+    public int compareTo(CodeItem other) {
+        if (parent == null) {
+            if (other.parent == null) {
+                return 0;
+            }
+            return -1;
+        }
+        if (other.parent == null) {
+            return 1;
+        }
+        return parent.compareTo(other.parent);
     }
 
     public static class TryItem extends CompositeField<TryItem> {

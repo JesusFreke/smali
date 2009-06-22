@@ -31,7 +31,7 @@ package org.jf.dexlib;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TypeListItem extends OffsettedItem<TypeListItem> implements Comparable<TypeListItem> {
+public class TypeListItem extends OffsettedItem<TypeListItem> {
     private final ArrayList<IndexedItemReference<TypeIdItem>> typeList = new ArrayList<IndexedItemReference<TypeIdItem>>();
 
     private final ListSizeField sizeField;

@@ -49,6 +49,8 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
     private final FieldListField<IndexedItemReference<StringIdItem>> parameterNamesField;
     private final DebugInstructionList debugInstructionListField;
 
+    private CodeItem parent = null;
+
     public DebugInfoItem(final DexFile dexFile, int offset) {
         super(offset);
 
@@ -87,6 +89,10 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
         return ItemType.TYPE_DEBUG_INFO_ITEM;
     }
 
+    protected void setParent(CodeItem codeItem) {
+        this.parent = codeItem;
+    }
+
     public String getConciseIdentity() {
         return "debug_info_item @0x" + Integer.toHexString(getOffset());
     }
@@ -113,6 +119,18 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
         return parameterNamesList;
     }
 
+    public int compareTo(DebugInfoItem other) {
+        if (parent == null) {
+            if (other.parent == null) {
+                return 0;
+            }
+            return -1;
+        }
+        if (other.parent == null) {
+            return 1;
+        }
+        return parent.compareTo(other.parent);
+    }
 
 
     private class DebugInstructionList implements Field<DebugInstructionList> {

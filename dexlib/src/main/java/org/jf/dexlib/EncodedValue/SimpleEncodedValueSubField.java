@@ -30,7 +30,8 @@ package org.jf.dexlib.EncodedValue;
 
 import org.jf.dexlib.DexFile;
 
-public abstract class SimpleEncodedValueSubField<V, T extends SimpleEncodedValueSubField<V,T>> implements EncodedValueSubField<T>
+public abstract class SimpleEncodedValueSubField<V extends Comparable<V>, T extends SimpleEncodedValueSubField<V,T>>
+        implements EncodedValueSubField<T>, Comparable<EncodedValueSubField>
 {
     protected V value;
     protected byte valueArg = 0;
@@ -64,5 +65,13 @@ public abstract class SimpleEncodedValueSubField<V, T extends SimpleEncodedValue
             return other.value == null;
         }
         return value.equals(other.value);
+    }
+
+    public int compareTo(EncodedValueSubField t) {
+        int comp = getValueType().compareTo(t.getValueType());
+        if (comp == 0) {
+            return value.compareTo(((SimpleEncodedValueSubField<V, T>)t).value);
+        }
+        return comp;
     }
 }

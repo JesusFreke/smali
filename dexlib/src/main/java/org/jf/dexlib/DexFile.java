@@ -38,6 +38,7 @@ import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.zip.Adler32;
 
 public class DexFile
@@ -90,10 +91,10 @@ public class DexFile
                 AnnotationDirectoriesSection,
                 TypeListsSection,
                 StringDataSection,
-                DebugInfoItemsSection,
                 AnnotationsSection,
                 EncodedArraysSection,
-                ClassDataSection
+                ClassDataSection,
+                DebugInfoItemsSection               
         };
     }
 
@@ -135,9 +136,9 @@ public class DexFile
             ItemType.TYPE_ANNOTATION_SET_REF_LIST.getMapValue(),
             ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM.getMapValue(),
             ItemType.TYPE_TYPE_LIST.getMapValue(),
-            ItemType.TYPE_DEBUG_INFO_ITEM.getMapValue(),
             ItemType.TYPE_CODE_ITEM.getMapValue(),
             ItemType.TYPE_CLASS_DATA_ITEM.getMapValue(),
+            ItemType.TYPE_DEBUG_INFO_ITEM.getMapValue(),
             ItemType.TYPE_MAP_LIST.getMapValue()
         };
 
@@ -191,7 +192,7 @@ public class DexFile
         return forDumping;
     }
 
-    public void place() {
+    public void place(boolean sort) {
         int offset = 0;
 
         offset = HeaderItemSection.place(offset);
@@ -203,6 +204,9 @@ public class DexFile
         dataOffset = offset;
 
         for (OffsettedSection offsettedSection: offsettedSections) {
+            if (sort) {
+                offsettedSection.sortSection();
+            }
             offset = offsettedSection.place(offset);
         }
 

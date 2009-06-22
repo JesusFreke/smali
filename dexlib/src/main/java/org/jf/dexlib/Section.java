@@ -33,6 +33,8 @@ import org.jf.dexlib.Util.Input;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Collections;
 
 public abstract class Section<T extends Item> {
     protected ArrayList<T> items;
@@ -112,6 +114,10 @@ public abstract class Section<T extends Item> {
         return offset;
     }
 
+    public List<T> getItems() {
+        return Collections.unmodifiableList(items);
+    }
+
     protected T getInternedItem(T item) {
         if (uniqueItems == null) {
             buildInternedItemMap();
@@ -124,6 +130,10 @@ public abstract class Section<T extends Item> {
         for (T item: items) {
             uniqueItems.put(item, item);
         }
+    }
+
+    protected void sortSection() {
+        Collections.sort(items);
     }
 
     public abstract T intern(DexFile dexFile, T item);

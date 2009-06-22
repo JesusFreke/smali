@@ -69,11 +69,17 @@ public class StringDataItem extends OffsettedItem<StringDataItem> implements Com
         return value;
     }
 
+    public byte[] getStringBytes() {
+        return stringByteArray.value;
+    }
+
     public String getConciseIdentity() {
-        return "string_data_item: " + getStringValue();
+        return "string_data_item: " + Utf8Utils.escapeString(getStringValue());
     }
 
     public int compareTo(StringDataItem o) {
         return getStringValue().compareTo(o.getStringValue());
     }
+
+
 }

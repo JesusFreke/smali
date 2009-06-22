@@ -72,4 +72,8 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
     public ArrayEncodedValueSubField getEncodedArray() {
         return encodedArray;
     }
+
+    public int compareTo(EncodedArrayItem encodedArrayItem) {
+        return encodedArray.compareTo(encodedArrayItem.encodedArray);
+    }
 }

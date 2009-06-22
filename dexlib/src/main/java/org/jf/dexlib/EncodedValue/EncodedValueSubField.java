@@ -35,4 +35,5 @@ public interface EncodedValueSubField<T extends EncodedValueSubField> extends Fi
     public void setInitialValueArg(byte valueArg);
     public byte getValueArg();
     public ValueType getValueType();
+    public int compareTo(EncodedValueSubField encodedValueSubField);
 }
