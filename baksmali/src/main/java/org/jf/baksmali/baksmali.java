@@ -40,68 +40,19 @@ import java.io.*;
 import java.net.URL;
 
 public class baksmali {
-    public static void main(String[] args) throws Exception
+    public static void disassembleDexFile(DexFile dexFile, String outputDirectory)
     {
-        Options options = new Options();
-
-        Option helpOption = OptionBuilder.withLongOpt("help")
-                                         .withDescription("prints the usage information for the -dis command")
-                                         .create("?");
-
-        Option outputDirOption = OptionBuilder.withLongOpt("output")
-                                              .withDescription("the directory where the disassembled files will be placed. The default is out")
-                                              .hasArg()
-                                              .withArgName("DIR")
-                                              .create("out");
-
-        options.addOption(helpOption);
-        options.addOption(outputDirOption);
-
-        CommandLineParser parser = new PosixParser();
-        CommandLine commandLine;
-
-        try {
-            commandLine = parser.parse(options, args);
-        } catch (ParseException ex) {
-            printHelp(options);
-            return;
-        }
-
-        if (commandLine.hasOption("?")) {
-            printHelp(options);
-            return;
-        }
-        
-
-        String[] leftover = commandLine.getArgs();
-
-        if (leftover.length != 1) {
-            printHelp(options);
-            return;
-        }
-
-        String dexFileName = leftover[0];
-        String outputDirName = commandLine.getOptionValue("out", "out");
-
-        File dexFileFile = new File(dexFileName);
-        if (!dexFileFile.exists()) {
-            System.out.println("Can't find the file " + dexFileFile.toString());
-            System.exit(1);
-        }
-
-        File outputDir = new File(outputDirName);
-        if (!outputDir.exists()) {          
-            if (!outputDir.mkdirs()) {
-                System.out.println("Can't create the output directory " + outputDir.toString());
+        File outputDirectoryFile = new File(outputDirectory);
+        if (!outputDirectoryFile.exists()) {
+            if (!outputDirectoryFile.mkdirs()) {
+                System.err.println("Can't create the output directory " + outputDirectory);
                 System.exit(1);
             }
         }
 
-        DexFile dexFile = new DexFile(dexFileFile);
-
+        //load and initialize the templates
         InputStream templateStream = baksmali.class.getClassLoader().getResourceAsStream("templates/baksmali.stg");
         StringTemplateGroup templates = new StringTemplateGroup(new InputStreamReader(templateStream));
-
         templates.registerRenderer(Long.class, new LongRenderer());
         templates.registerRenderer(Integer.class,  new IntegerRenderer());
         templates.registerRenderer(Short.class, new ShortRenderer());
@@ -109,22 +60,33 @@ public class baksmali {
         templates.registerRenderer(Float.class, new FloatRenderer());
         templates.registerRenderer(Character.class, new CharRenderer());
 
-        int classCount = dexFile.ClassDefsSection.size();
-        for (int i=0; i<classCount; i++) {
-            ClassDefItem classDef = dexFile.ClassDefsSection.getByIndex(i);
 
-            String classDescriptor = classDef.getClassType().getTypeDescriptor();
+        for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
+            /**
+             * The path for the disassembly file is based on the package name
+             * The class descriptor will look something like:
+             * Ljava/lang/Object;
+             * Where the there is leading 'L' and a trailing ';', and the parts of the
+             * package name are separated by '/'
+             */
+
+            String classDescriptor = classDefItem.getClassType().getTypeDescriptor();
+
+            //validate that the descriptor is formatted like we expect
             if (classDescriptor.charAt(0) != 'L' ||
                 classDescriptor.charAt(classDescriptor.length()-1) != ';') {
-                System.out.println("Unrecognized class descriptor - " + classDescriptor + " - skipping class");
+                System.err.println("Unrecognized class descriptor - " + classDescriptor + " - skipping class");
                 continue;
             }
+
             //trim off the leading L and trailing ;
             classDescriptor = classDescriptor.substring(1, classDescriptor.length()-1);
+
+            //trim off the leading 'L' and trailing ';', and get the individual package elements
             String[] pathElements = classDescriptor.split("/");
 
             //build the path to the smali file to generate for this class
-            StringBuilder smaliPath = new StringBuilder(outputDir.getPath());
+            StringBuilder smaliPath = new StringBuilder(outputDirectory);
             for (String pathElement: pathElements) {
                 smaliPath.append(File.separatorChar);
                 smaliPath.append(pathElement);
@@ -133,43 +95,50 @@ public class baksmali {
 
             File smaliFile = new File(smaliPath.toString());
 
+            //create and initialize the top level string template
             StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-            smaliFileST.setAttribute("classDef", new ClassDefinition(classDef));
+            smaliFileST.setAttribute("classDef", new ClassDefinition(classDefItem));
 
+            //generate the disassembly
             String output = smaliFileST.toString();
 
+            //write the disassembly
             FileWriter writer = null;
             try
             {
-                if (!smaliFile.getParentFile().exists()) {
-                    if (!smaliFile.getParentFile().mkdirs()) {
-                        System.out.println("Unable to create directory " + smaliFile.getParentFile().toString() + " - skipping class");
+                File smaliParent = smaliFile.getParentFile();
+                if (!smaliParent.exists()) {
+                    if (!smaliParent.mkdirs()) {
+                        System.err.println("Unable to create directory " + smaliParent.toString() + " - skipping class");
                         continue;
                     }
                 }
+
                 if (!smaliFile.exists()){
                     if (!smaliFile.createNewFile()) {
-                        System.out.println("Unable to create file " + smaliFile.toString() + " - skipping class");
+                        System.err.println("Unable to create file " + smaliFile.toString() + " - skipping class");
                         continue;
                     }
                 }
 
                 writer = new FileWriter(smaliFile);
                 writer.write(output);
-            }finally
+            } catch (Throwable ex) {
+                System.err.println("\n\nError occured while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
+                ex.printStackTrace();
+                continue;
+            }
+            finally
             {
-                if (writer != null)
-                    writer.close();
+                if (writer != null) {
+                    try {
+                        writer.close();
+                    } catch (Throwable ex) {
+                        System.err.println("\n\nError occured while closing file " + smaliFile.toString());
+                        ex.printStackTrace();
+                    };
+                }
             }
         }
-    }
-
-    /**
-     * Prints the usage message.
-     */
-    private static void printHelp(Options options) {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("java -jar baksmali.jar -dis [-out <DIR>] <dexfile>",
-                "Disassembles the given dex file", options, "");
     }
 }
