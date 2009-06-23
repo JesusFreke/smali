@@ -26,10 +26,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-/**
- * Main class for baksmali. It recognizes enough options to be able to dispatch
- * to the right "actual" main.
- */
 public class main {
 
     public static final String VERSION = "0.91";
