@@ -95,7 +95,7 @@ public class main {
         if (commandLine.hasOption("D")) {
             doDump = true;
             disassemble = false;
-            dumpFileName = commandLine.getOptionValue("d", inputDexFileName + ".dump");
+            dumpFileName = commandLine.getOptionValue("D", inputDexFileName + ".dump");
         }
 
         if (commandLine.hasOption("w")) {
