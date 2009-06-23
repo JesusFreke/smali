@@ -38,11 +38,6 @@ public class dump {
     public static void dump(DexFile dexFile, String dumpFileName, String outputDexFileName, boolean sort)
             throws IOException {
 
-        boolean dumpToStdOut = false;
-        if (dumpFileName != null && dumpFileName.equals("-")) {
-            dumpToStdOut = true;
-        }
-
         if (sort) {
             //sort all items, to guarantee a unique ordering
             dexFile.setSortAllItems(true);         
@@ -65,23 +60,20 @@ public class dump {
             out.finishAnnotating();
             FileWriter writer = null;
 
-            if (dumpToStdOut) {
-                out.writeAnnotationsTo(new OutputStreamWriter(System.out));
-            } else {
-                try {
-                    writer = new FileWriter(dumpFileName);
-                    out.writeAnnotationsTo(writer);
-                } catch (IOException ex) {
-                    System.err.println("\n\nThere was an error while dumping the dex file to " + dumpFileName);
-                    ex.printStackTrace();
-                } finally {
-                    if (writer != null) {
-                        try {
-                            writer.close();
-                        } catch (IOException ex) {
-                            System.err.println("\n\nThere was an error while closing the dump file " + dumpFileName);
-                            ex.printStackTrace();
-                        }
+
+            try {
+                writer = new FileWriter(dumpFileName);
+                out.writeAnnotationsTo(writer);
+            } catch (IOException ex) {
+                System.err.println("\n\nThere was an error while dumping the dex file to " + dumpFileName);
+                ex.printStackTrace();
+            } finally {
+                if (writer != null) {
+                    try {
+                        writer.close();
+                    } catch (IOException ex) {
+                        System.err.println("\n\nThere was an error while closing the dump file " + dumpFileName);
+                        ex.printStackTrace();
                     }
                 }
             }

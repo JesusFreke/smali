@@ -30,9 +30,10 @@ public class main {
 
     public static final String VERSION = "0.91";
 
-    private static Options options;
+    private static final Options options;
 
     static {
+        options = new Options();
         buildOptions();
     }
 
@@ -161,16 +162,13 @@ public class main {
      * Prints the version message.
      */
     private static void version() {
-        System.out.println("baksmali " + VERSION);
+        System.out.println("baksmali " + VERSION + " (http://smali.googlecode.com)");
         System.out.println("Copyright (C) 2009 Ben Gruver");
-        System.out.println("License: \"new\" BSD license");
-        System.out.println("http://smali.googlecode.com");
+        System.out.println("BSD license (http://www.opensource.org/licenses/bsd-license.php)");
         System.exit(0);
     }
 
     private static void buildOptions() {
-        options = new Options();
-
         Option versionOption = OptionBuilder.withLongOpt("version")
                 .withDescription("prints the version then exits")
                 .create("v");
@@ -182,13 +180,13 @@ public class main {
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE (<dexfile>.dump by default), along with the normal disassembly.")
                 .hasOptionalArg()
-                .withArgName("FILE|-")
+                .withArgName("FILE")
                 .create("d");
 
         Option dumpOnlyOption = OptionBuilder.withLongOpt("dump-only")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE (<dexfile>.dump by default), and does not generate the disassembly")
                 .hasOptionalArg()
-                .withArgName("FILE|-")
+                .withArgName("FILE")
                 .create("D");
 
         Option writeDexOption = OptionBuilder.withLongOpt("write-dex")
@@ -204,7 +202,7 @@ public class main {
                 .create("o");
 
         Option sortOption = OptionBuilder.withLongOpt("sort")
-                .withDescription("when dumping or rewriting, sort the items in the dex file before dumping/writing.")
+                .withDescription("sort the items in the dex file into a canonical order before dumping/writing")
                 .create("s");
 
         Option fixSignedRegisterOption = OptionBuilder.withLongOpt("fix-signed-registers")
