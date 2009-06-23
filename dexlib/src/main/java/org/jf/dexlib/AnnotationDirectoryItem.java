@@ -54,7 +54,7 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
     private ClassDefItem parent = null;
                                              
     protected AnnotationDirectoryItem(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 classAnnotationsReferenceField = new OffsettedItemReference<AnnotationSetItem>(

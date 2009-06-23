@@ -34,7 +34,7 @@ public class FieldIdItem extends IndexedItem<FieldIdItem> {
     private final IndexedItemReference<StringIdItem> fieldNameReferenceField;
 
     public FieldIdItem(DexFile dexFile, int index) {
-        super(index);
+        super(dexFile, index);
         fields = new Field[] {
                 classTypeReferenceField = new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
                         new ShortIntegerField(null), "class_idx"),

@@ -29,7 +29,8 @@
 package org.jf.dexlib;
 
 public abstract class IndexedItem<T extends IndexedItem> extends Item<T> {
-    protected IndexedItem(int index) {
+    protected IndexedItem(DexFile dexFile, int index) {
+        super(dexFile);
         this.index = index;
     }
 }

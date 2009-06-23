@@ -34,18 +34,23 @@ public class RestartLocal extends CompositeField<RestartLocal> implements DebugI
     private final ByteField opcode;
     private final Leb128Field registerNumber;
 
-    public RestartLocal(boolean forDumping) {
+    public RestartLocal(DexFile dexFile) {
         super("DBG_RESTART_LOCAL");
         fields = new Field[] {
                 opcode = new ByteField((byte)0x06, "opcode"),
-                registerNumber  = forDumping?new Leb128Field.PossiblySignedLeb128Field("register_num"):
+                registerNumber  = dexFile.getPreserveSignedRegisters()?new Leb128Field.PossiblySignedLeb128Field("register_num"):
                         new Leb128Field("register_num")
         };
     }
 
     public RestartLocal(int registerNumber) {
-        this(false);
-        this.registerNumber.cacheValue(registerNumber);
+        super("DBG_RESTART_LOCAL");
+        fields = new Field[] {
+                this.opcode = new ByteField((byte)0x06, "opcode"),
+                this.registerNumber = new Leb128Field(registerNumber, "register_num")
+        };
+
+
     }
 
     public byte getOpcode() {

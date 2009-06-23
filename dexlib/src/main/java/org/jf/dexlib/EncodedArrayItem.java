@@ -37,7 +37,7 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
     private final ArrayEncodedValueSubField encodedArray;
     
     public EncodedArrayItem(DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 encodedArray = new ArrayEncodedValueSubField(dexFile)
@@ -45,7 +45,7 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
     }
 
     public EncodedArrayItem(DexFile dexFile, ArrayList<EncodedValue> encodedValues) {
-        super(0);
+        super(dexFile, 0);
 
         fields = new Field[] {
                 encodedArray = new ArrayEncodedValueSubField(dexFile, encodedValues)

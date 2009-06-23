@@ -35,8 +35,8 @@ import java.util.Comparator;
 public class MapItem extends IndexedItem<MapItem> {
     private ArrayList<MapField> mapEntries = new ArrayList<MapField>();
 
-    public MapItem(final DexFile dexFile, int index) {
-        super(index);
+    protected MapItem(final DexFile dexFile, int index) {
+        super(dexFile, index);
 
         fields = new Field[] {
                 new ListSizeField(mapEntries, new IntegerField("size")),
@@ -46,6 +46,29 @@ public class MapItem extends IndexedItem<MapItem> {
                     }
                 }
         };
+    }
+
+    protected MapItem(final DexFile dexFile) {
+        this(dexFile, 0);
+
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_HEADER_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_STRING_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_TYPE_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_PROTO_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_FIELD_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_METHOD_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CLASS_DEF_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_STRING_DATA_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ENCODED_ARRAY_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_SET_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_SET_REF_LIST.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_TYPE_LIST.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_DEBUG_INFO_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CODE_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CLASS_DATA_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_MAP_LIST.getMapValue()));
     }
 
     public int place(int index, int offset) {
@@ -70,32 +93,6 @@ public class MapItem extends IndexedItem<MapItem> {
         });
 
         return offset;
-    }
-
-    public static MapItem makeBlankMapItem(DexFile dexFile) {
-        MapItem mapItem = new MapItem(dexFile, 0);
-
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_HEADER_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_STRING_ID_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_TYPE_ID_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_PROTO_ID_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_FIELD_ID_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_METHOD_ID_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CLASS_DEF_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_STRING_DATA_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ENCODED_ARRAY_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_SET_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_SET_REF_LIST.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_TYPE_LIST.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_DEBUG_INFO_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CODE_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CLASS_DATA_ITEM.getMapValue()));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_MAP_LIST.getMapValue()));
-
-
-        return mapItem;
     }
 
     public MapField[] getMapEntries() {

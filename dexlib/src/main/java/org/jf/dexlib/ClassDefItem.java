@@ -50,7 +50,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
     private final DexFile dexFile;
 
     public ClassDefItem(DexFile dexFile, int index) {
-        super(index);
+        super(dexFile, index);
 
         this.dexFile = dexFile;
 

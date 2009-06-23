@@ -37,7 +37,8 @@ import java.util.Comparator;
 public abstract class OffsettedSection<T extends OffsettedItem<T>> extends Section<T> {
     protected HashMap<Integer, T> itemsByOffset;    
     
-    public OffsettedSection() {
+    public OffsettedSection(DexFile dexFile) {
+        super(dexFile);
         itemsByOffset = new HashMap<Integer, T>();
     }
 
@@ -77,7 +78,7 @@ public abstract class OffsettedSection<T extends OffsettedItem<T>> extends Secti
 
     protected abstract T make(int offset);
 
-    public T intern(DexFile dexFile, T item) {
+    public T intern(T item) {
         T itemToReturn = getInternedItem(item);
 
         if (itemToReturn == null) {

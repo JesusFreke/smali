@@ -52,7 +52,7 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
     private ClassDefItem parent = null;
 
     public ClassDataItem(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 staticFieldsCountField = new ListSizeField(staticFieldList,

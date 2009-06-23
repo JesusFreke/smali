@@ -36,7 +36,7 @@ public class ProtoIdItem extends IndexedItem<ProtoIdItem> {
     private final OffsettedItemReference<TypeListItem> parametersReferenceField;
 
     public ProtoIdItem(DexFile dexFile, int index) {
-        super(index);
+        super(dexFile, index);
         fields = new Field[] {
                 shortyDescriptorReferenceField = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
                         new IntegerField(null), "shorty_idx"),
@@ -88,7 +88,7 @@ public class ProtoIdItem extends IndexedItem<ProtoIdItem> {
         if (typeList == null) {
             return 0;
         } else {
-            return typeList.getCount();
+            return typeList.getTypeCount();
         }
     }
 

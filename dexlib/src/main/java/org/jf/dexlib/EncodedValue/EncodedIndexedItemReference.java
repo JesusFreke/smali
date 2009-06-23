@@ -100,8 +100,7 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
         if (item == null) {
             return;
         }
-        T copiedItem = copy.section.intern(dexFile, item);
-        copy.item = copiedItem;
+        copy.item = copy.section.intern(item);
     }
 
     public T getValue() {

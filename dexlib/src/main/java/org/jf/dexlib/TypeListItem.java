@@ -34,14 +34,13 @@ import java.util.List;
 public class TypeListItem extends OffsettedItem<TypeListItem> {
     private final ArrayList<IndexedItemReference<TypeIdItem>> typeList = new ArrayList<IndexedItemReference<TypeIdItem>>();
 
-    private final ListSizeField sizeField;
     private final FieldListField<IndexedItemReference<TypeIdItem>> listField;
 
     public TypeListItem(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
-                sizeField = new ListSizeField(typeList, new IntegerField("size")),
+                new ListSizeField(typeList, new IntegerField("size")),
                 listField = new FieldListField<IndexedItemReference<TypeIdItem>>(typeList, "type_item") {
                     protected IndexedItemReference<TypeIdItem> make() {
                         return new IndexedItemReference<TypeIdItem>(dexFile.TypeIdsSection,
@@ -61,6 +60,7 @@ public class TypeListItem extends OffsettedItem<TypeListItem> {
         }
     }
 
+    //TODO: write a read only List<T> wrapper for List<ItemReference<T>> and return that instead
     public List<TypeIdItem> getTypes() {
         ArrayList<TypeIdItem> list = new ArrayList<TypeIdItem>(typeList.size());
 
@@ -80,7 +80,7 @@ public class TypeListItem extends OffsettedItem<TypeListItem> {
         return wordCount;
     }
 
-    public int getCount() {
+    public int getTypeCount() {
         return typeList.size();
     }
 

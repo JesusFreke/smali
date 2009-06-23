@@ -70,7 +70,7 @@ public abstract class ItemReference<T extends Item<T>, S extends ItemReference<T
             return;
         }
         Section<T> section = copy.getSection();
-        T copiedItem = section.intern(dexFile, referencedItem);
+        T copiedItem = section.intern(referencedItem);
         copy.setReference(copiedItem);
     }
 

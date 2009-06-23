@@ -161,16 +161,16 @@ public abstract class Instruction {
         if (referencedItem != null) {
         switch (opcode.referenceType) {
                 case string:
-                    clone.referencedItem = dexFile.StringIdsSection.intern(dexFile, (StringIdItem)referencedItem);
+                    clone.referencedItem = dexFile.StringIdsSection.intern((StringIdItem)referencedItem);
                     break;
                 case type:
-                    clone.referencedItem = dexFile.TypeIdsSection.intern(dexFile, (TypeIdItem)referencedItem);
+                    clone.referencedItem = dexFile.TypeIdsSection.intern((TypeIdItem)referencedItem);
                     break;
                 case field:
-                    clone.referencedItem = dexFile.FieldIdsSection.intern(dexFile, (FieldIdItem)referencedItem);
+                    clone.referencedItem = dexFile.FieldIdsSection.intern((FieldIdItem)referencedItem);
                     break;
                 case method:
-                    clone.referencedItem = dexFile.MethodIdsSection.intern(dexFile, (MethodIdItem)referencedItem);
+                    clone.referencedItem = dexFile.MethodIdsSection.intern((MethodIdItem)referencedItem);
                     break;
                 case none:
                     break;

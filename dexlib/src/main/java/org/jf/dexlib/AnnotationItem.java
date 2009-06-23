@@ -35,7 +35,7 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
     private final AnnotationEncodedValueSubField annotationField;
 
     public AnnotationItem(DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 visibilityField = new ByteField("visibility"),
@@ -45,7 +45,7 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
 
     public AnnotationItem(DexFile dexFile, AnnotationVisibility visibility,
                           AnnotationEncodedValueSubField annotation) {
-        super(-1);
+        super(dexFile, -1);
 
         fields = new Field[] {
                 this.visibilityField = new ByteField(visibility.value, "visibility"),

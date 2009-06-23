@@ -57,7 +57,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     private MethodIdItem parent = null;
 
     public CodeItem(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         instructionList = new ArrayList<InstructionField>();
 

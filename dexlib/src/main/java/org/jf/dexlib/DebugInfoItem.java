@@ -52,7 +52,7 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
     private CodeItem parent = null;
 
     public DebugInfoItem(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 lineStartField = new Leb128Field("line_start"),

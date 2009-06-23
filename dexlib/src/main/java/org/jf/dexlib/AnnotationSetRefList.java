@@ -39,7 +39,7 @@ public class AnnotationSetRefList extends OffsettedItem<AnnotationSetRefList> {
     private final FieldListField<OffsettedItemReference<AnnotationSetItem>> annotationSetsListField;
 
     public AnnotationSetRefList(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 annotationSetCountField = new ListSizeField(annotationSetReferences, new IntegerField("size")),

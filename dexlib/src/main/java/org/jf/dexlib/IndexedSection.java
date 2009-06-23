@@ -33,7 +33,8 @@ import org.jf.dexlib.Util.Input;
 import java.util.Collections;
 
 public abstract class IndexedSection<T extends IndexedItem<T>> extends Section<T> {
-    public IndexedSection() {
+    public IndexedSection(DexFile dexFile) {
+        super(dexFile);
     }
 
     public T getByIndex(int index) {
@@ -61,7 +62,7 @@ public abstract class IndexedSection<T extends IndexedItem<T>> extends Section<T
     
     protected abstract T make(int index);
 
-    public T intern(DexFile dexFile, T item) {
+    public T intern(T item) {
         T itemToReturn = getInternedItem(item);
 
         if (itemToReturn == null) {
@@ -78,7 +79,9 @@ public abstract class IndexedSection<T extends IndexedItem<T>> extends Section<T
     }
 
     public int place(int offset) {
-        sortSection();
+        if (!dexFile.getInplace()) {
+            sortSection();
+        }
 
         return super.place(offset);
     }

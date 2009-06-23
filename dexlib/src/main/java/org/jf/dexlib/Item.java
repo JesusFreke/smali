@@ -34,10 +34,12 @@ import org.jf.dexlib.Util.Input;
 public abstract class Item<T extends Item> implements Comparable<T> {
     protected int offset = -1;
     protected int index = -1;
+    protected final DexFile dexFile;
     
     protected Field[] fields;
 
-    protected Item() {
+    protected Item(DexFile dexFile) {
+        this.dexFile = dexFile;
     }
 
     public boolean isPlaced() {

@@ -34,7 +34,7 @@ public class StringIdItem extends IndexedItem<StringIdItem> {
     private final OffsettedItemReference<StringDataItem> stringDataReferenceField;
 
     public StringIdItem(DexFile dexFile, int index) {
-        super(index);
+        super(dexFile, index);
         fields = new Field[] {
                 stringDataReferenceField = new OffsettedItemReference<StringDataItem>(dexFile.StringDataSection,
                         new IntegerField(null), "string_data_off")
@@ -47,7 +47,7 @@ public class StringIdItem extends IndexedItem<StringIdItem> {
     }
 
     public StringIdItem(DexFile dexFile, String value) {
-        this(dexFile, new StringDataItem(value));
+        this(dexFile, new StringDataItem(dexFile, value));
     }
 
     protected int getAlignment() {

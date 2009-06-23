@@ -37,8 +37,8 @@ public class StringDataItem extends OffsettedItem<StringDataItem> implements Com
     private final Leb128Field stringSize;
     private final NullTerminatedByteArrayField stringByteArray;
 
-    public StringDataItem(int offset) {
-        super(offset);
+    public StringDataItem(DexFile dexFile, int offset) {
+        super(dexFile, offset);
 
         fields = new Field[] {
                 stringSize = new Leb128Field("string_length"),
@@ -46,8 +46,8 @@ public class StringDataItem extends OffsettedItem<StringDataItem> implements Com
         };
     }
 
-    public StringDataItem(String value) {
-        super(-1);
+    public StringDataItem(DexFile dexFile, String value) {
+        super(dexFile, -1);
 
         this.value = value; 
 

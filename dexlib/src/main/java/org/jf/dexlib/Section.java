@@ -37,8 +37,9 @@ import java.util.List;
 import java.util.Collections;
 
 public abstract class Section<T extends Item> {
-    protected ArrayList<T> items;
+    protected final ArrayList<T> items;
     protected HashMap<T, T> uniqueItems = null;
+    protected final DexFile dexFile;
 
     /**
      * When offset > -1, this section is "placed" at the specified offset. All
@@ -49,7 +50,8 @@ public abstract class Section<T extends Item> {
      */
     protected int offset = -1;
 
-    public Section() {
+    public Section(DexFile dexFile) {
+        this.dexFile = dexFile;
         items = new ArrayList<T>();
     }
 
@@ -136,5 +138,5 @@ public abstract class Section<T extends Item> {
         Collections.sort(items);
     }
 
-    public abstract T intern(DexFile dexFile, T item);
+    public abstract T intern(T item);
 }
