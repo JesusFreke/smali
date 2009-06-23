@@ -30,27 +30,115 @@ package org.jf.baksmali;
 
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.DexFile;
-import org.jf.baksmali.wrappers.ClassDefinition;
+import org.jf.dexlib.ClassDefItem;
+import org.apache.commons.cli.*;
 
-import java.io.FileReader;
-import java.io.File;
+import java.io.*;
+import java.net.URL;
 
 public class baksmali {
-    public static void main(String[] args) throws Exception
+    public static void disassembleDexFile(DexFile dexFile, String outputDirectory)
     {
-        String dexFileName = args[0];
-        String outputDir = args[1];
+        File outputDirectoryFile = new File(outputDirectory);
+        if (!outputDirectoryFile.exists()) {
+            if (!outputDirectoryFile.mkdirs()) {
+                System.err.println("Can't create the output directory " + outputDirectory);
+                System.exit(1);
+            }
+        }
 
-        DexFile dexFile = new DexFile(new File(dexFileName));
+        //load and initialize the templates
+        InputStream templateStream = baksmali.class.getClassLoader().getResourceAsStream("templates/baksmali.stg");
+        StringTemplateGroup templates = new StringTemplateGroup(new InputStreamReader(templateStream));
+        templates.registerRenderer(Long.class, new LongRenderer());
+        templates.registerRenderer(Integer.class,  new IntegerRenderer());
+        templates.registerRenderer(Short.class, new ShortRenderer());
+        templates.registerRenderer(Byte.class, new ByteRenderer());
+        templates.registerRenderer(Float.class, new FloatRenderer());
+        templates.registerRenderer(Character.class, new CharRenderer());
 
-        StringTemplateGroup templates = new StringTemplateGroup(
-                new FileReader("src/main/resources/templates/baksmali.stg"));
 
-        StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
+        for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
+            /**
+             * The path for the disassembly file is based on the package name
+             * The class descriptor will look something like:
+             * Ljava/lang/Object;
+             * Where the there is leading 'L' and a trailing ';', and the parts of the
+             * package name are separated by '/'
+             */
 
-        smaliFileST.setAttribute("classDef", new ClassDefinition(dexFile.ClassDefsSection.getByIndex(0)));
+            String classDescriptor = classDefItem.getClassType().getTypeDescriptor();
 
-        System.out.println(smaliFileST.toString());
+            //validate that the descriptor is formatted like we expect
+            if (classDescriptor.charAt(0) != 'L' ||
+                classDescriptor.charAt(classDescriptor.length()-1) != ';') {
+                System.err.println("Unrecognized class descriptor - " + classDescriptor + " - skipping class");
+                continue;
+            }
+
+            //trim off the leading L and trailing ;
+            classDescriptor = classDescriptor.substring(1, classDescriptor.length()-1);
+
+            //trim off the leading 'L' and trailing ';', and get the individual package elements
+            String[] pathElements = classDescriptor.split("/");
+
+            //build the path to the smali file to generate for this class
+            StringBuilder smaliPath = new StringBuilder(outputDirectory);
+            for (String pathElement: pathElements) {
+                smaliPath.append(File.separatorChar);
+                smaliPath.append(pathElement);
+            }
+            smaliPath.append(".smali");
+
+            File smaliFile = new File(smaliPath.toString());
+
+            //create and initialize the top level string template
+            StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
+            smaliFileST.setAttribute("classDef", new ClassDefinition(classDefItem));
+
+            //generate the disassembly
+            String output = smaliFileST.toString();
+
+            //write the disassembly
+            FileWriter writer = null;
+            try
+            {
+                File smaliParent = smaliFile.getParentFile();
+                if (!smaliParent.exists()) {
+                    if (!smaliParent.mkdirs()) {
+                        System.err.println("Unable to create directory " + smaliParent.toString() + " - skipping class");
+                        continue;
+                    }
+                }
+
+                if (!smaliFile.exists()){
+                    if (!smaliFile.createNewFile()) {
+                        System.err.println("Unable to create file " + smaliFile.toString() + " - skipping class");
+                        continue;
+                    }
+                }
+
+                writer = new FileWriter(smaliFile);
+                writer.write(output);
+            } catch (Throwable ex) {
+                System.err.println("\n\nError occured while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
+                ex.printStackTrace();
+                continue;
+            }
+            finally
+            {
+                if (writer != null) {
+                    try {
+                        writer.close();
+                    } catch (Throwable ex) {
+                        System.err.println("\n\nError occured while closing file " + smaliFile.toString());
+                        ex.printStackTrace();
+                    };
+                }
+            }
+        }
     }
 }

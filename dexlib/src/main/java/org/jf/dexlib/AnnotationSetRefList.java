@@ -28,8 +28,6 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +39,7 @@ public class AnnotationSetRefList extends OffsettedItem<AnnotationSetRefList> {
     private final FieldListField<OffsettedItemReference<AnnotationSetItem>> annotationSetsListField;
 
     public AnnotationSetRefList(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 annotationSetCountField = new ListSizeField(annotationSetReferences, new IntegerField("size")),
@@ -75,5 +73,33 @@ public class AnnotationSetRefList extends OffsettedItem<AnnotationSetRefList> {
 
     public String getConciseIdentity() {
         return "annotation_set_item @0x" + Integer.toHexString(getOffset());
+    }
+
+    public int getCount() {
+        return annotationSetReferences.size();
+    }
+
+    public List<AnnotationSetItem> getAnnotationSets() {
+        List<AnnotationSetItem> annotationSets = new ArrayList<AnnotationSetItem>();
+
+        for (OffsettedItemReference<AnnotationSetItem> annotationSetReference: annotationSetReferences) {
+            annotationSets.add(annotationSetReference.getReference());
+        }
+
+        return annotationSets;
+    }
+
+    public int compareTo(AnnotationSetRefList annotationSetRefList) {
+        int comp = ((Integer)annotationSetReferences.size()).compareTo(annotationSetRefList.annotationSetReferences.size());
+        if (comp == 0) {
+            for (int i=0; i<annotationSetReferences.size(); i++) {
+                comp = annotationSetReferences.get(i).getReference().compareTo(
+                        annotationSetRefList.annotationSetReferences.get(i).getReference());
+                if (comp != 0) {
+                    break;
+                }
+            }
+        }
+        return comp;
     }
 }

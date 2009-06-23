@@ -28,8 +28,9 @@
 
 package org.jf.dexlib;
 
-public abstract class IndexedItem<T extends IndexedItem> extends Item<T> implements Comparable<T> {
-    protected IndexedItem(int index) {
+public abstract class IndexedItem<T extends IndexedItem> extends Item<T> {
+    protected IndexedItem(DexFile dexFile, int index) {
+        super(dexFile);
         this.index = index;
     }
 }

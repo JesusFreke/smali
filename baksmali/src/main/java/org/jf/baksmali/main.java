@@ -16,116 +16,209 @@
 
 package org.jf.baksmali;
 
-import org.jf.baksmali.UsageException;
+import org.apache.commons.cli.*;
+import org.jf.dexlib.DexFile;
+import org.jf.baksmali.Renderers.*;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
-/**
- * Main class for baksmali. It recognizes enough options to be able to dispatch
- * to the right "actual" main.
- */
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.IOException;
+
 public class main {
 
-    public static final String VERSION = "0.9";
+    public static final String VERSION = "0.91";
 
+    private static final Options options;
 
-    private static String USAGE_MESSAGE =
-        "usage:\n" +
-        "  java -jar baksmali.jar --disassemble <.dex file> <output folder>\n" +
-        "    disassembles the given dex file into a set of .smali files\n" +
-        "    in the given folder\n" +
-        "  java -jar baksmali.jar --version\n" +
-        "    Print the version of this tool (" + VERSION +
-        ").\n" +
-        "  java -jar baksmali.jar --help\n" +
-        "    Print this message.";
+    static {
+        options = new Options();
+        buildOptions();
+    }
 
     /**
      * This class is uninstantiable.
      */
     private main() {
-        // This space intentionally left blank.
     }
 
     /**
      * Run!
      */
     public static void main(String[] args) {
-        boolean gotCmd = false;
-        boolean showUsage = false;
+        CommandLineParser parser = new PosixParser();
+        CommandLine commandLine;
 
         try {
-            for (int i = 0; i < args.length; i++) {
-                String arg = args[i];
-                if (arg.equals("--") || !arg.startsWith("--")) {
-                    gotCmd = false;
-                    showUsage = true;
-                    break;
-                }
+            commandLine = parser.parse(options, args);
+        } catch (ParseException ex) {
+            usage();
+            return;
+        }
 
-                gotCmd = true;
-                if (arg.equals("--disassemble")) {
-                    baksmali.main(without(args, i));
-                    break;
-                } else if (arg.equals("--version")) {
-                    version();
-                    break;
-                } else if (arg.equals("--help")) {
-                    showUsage = true;
-                    break;
-                } else {
-                    gotCmd = false;
+        boolean disassemble = true;
+        boolean doDump = false;
+        boolean write = false;
+        boolean sort = false;
+        boolean fixRegisters = false;
+
+        String outputDirectory = "out";
+        String dumpFileName = null;
+        String outputDexFileName = null;
+        String inputDexFileName = null;
+
+        String[] remainingArgs = commandLine.getArgs();
+
+        if (commandLine.hasOption("v")) {
+            version();
+            return;
+        }
+
+        if (commandLine.hasOption("?")) {
+            usage();
+            return;
+        }
+
+        if (remainingArgs.length != 1) {
+            usage();
+            return;
+        }
+
+        inputDexFileName = remainingArgs[0];
+
+        if (commandLine.hasOption("d")) {
+            doDump = true;
+            dumpFileName = commandLine.getOptionValue("d", inputDexFileName + ".dump");
+        }
+
+        if (commandLine.hasOption("D")) {
+            doDump = true;
+            disassemble = false;
+            dumpFileName = commandLine.getOptionValue("D", inputDexFileName + ".dump");
+        }
+
+        if (commandLine.hasOption("w")) {
+            write = true;
+            outputDexFileName = commandLine.getOptionValue("w");
+        }
+
+        if (commandLine.hasOption("o")) {
+            outputDirectory = commandLine.getOptionValue("o");
+        }
+
+        if (commandLine.hasOption("s")) {
+            sort = true;
+        }
+
+        if (commandLine.hasOption("f")) {
+            fixRegisters = true;
+        }
+
+        try {
+            File dexFileFile = new File(inputDexFileName);
+            if (!dexFileFile.exists()) {
+                System.err.println("Can't find the file " + inputDexFileName);
+                System.exit(1);
+            }
+
+            //Read in and parse the dex file
+            DexFile dexFile = new DexFile(dexFileFile, !fixRegisters);
+
+            if (disassemble) {
+                baksmali.disassembleDexFile(dexFile, outputDirectory);
+            }
+
+            if (doDump || write) {
+                try
+                {
+                    dump.dump(dexFile, dumpFileName, outputDexFileName, sort);
+                }catch (IOException ex) {
+                    System.err.println("Error occured while writing dump file");
+                    ex.printStackTrace();
                 }
             }
-        } catch (UsageException ex) {
-            showUsage = true;
         } catch (RuntimeException ex) {
-            System.err.println("\nUNEXPECTED TOP-LEVEL EXCEPTION:");
+            System.err.println("\n\nUNEXPECTED TOP-LEVEL EXCEPTION:");
             ex.printStackTrace();
-            System.exit(2);
+            System.exit(1);
         } catch (Throwable ex) {
-            System.err.println("\nUNEXPECTED TOP-LEVEL ERROR:");
+            System.err.println("\n\nUNEXPECTED TOP-LEVEL ERROR:");
             ex.printStackTrace();
-            System.exit(3);
-        }
-
-        if (!gotCmd) {
-            System.err.println("error: no command specified");
-            showUsage = true;
-        }
-
-        if (showUsage) {
-            usage();
             System.exit(1);
         }
-    }
-
-    /**
-     * Prints the version message.
-     */
-    private static void version() {
-        System.err.println("baksmali version " + VERSION);
-        System.exit(0);
     }
 
     /**
      * Prints the usage message.
      */
     private static void usage() {
-        System.err.println(USAGE_MESSAGE);
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("java -jar baksmali.jar [options] <dex-file>",
+                "disassembles and/or dumps a dex file", options, "");
     }
 
     /**
-     * Returns a copy of the given args array, but without the indicated
-     * element.
-     *
-     * @param orig non-null; original array
-     * @param n which element to omit
-     * @return non-null; new array
+     * Prints the version message.
      */
-    private static String[] without(String[] orig, int n) {
-        int len = orig.length - 1;
-        String[] newa = new String[len];
-        System.arraycopy(orig, 0, newa, 0, n);
-        System.arraycopy(orig, n + 1, newa, n, len - n);
-        return newa;
+    private static void version() {
+        System.out.println("baksmali " + VERSION + " (http://smali.googlecode.com)");
+        System.out.println("Copyright (C) 2009 Ben Gruver");
+        System.out.println("BSD license (http://www.opensource.org/licenses/bsd-license.php)");
+        System.exit(0);
+    }
+
+    private static void buildOptions() {
+        Option versionOption = OptionBuilder.withLongOpt("version")
+                .withDescription("prints the version then exits")
+                .create("v");
+
+        Option helpOption = OptionBuilder.withLongOpt("help")
+                .withDescription("prints the help message then exits")
+                .create("?");
+
+        Option dumpOption = OptionBuilder.withLongOpt("dump-to")
+                .withDescription("dumps the given dex file into a single annotated dump file named FILE (<dexfile>.dump by default), along with the normal disassembly.")
+                .hasOptionalArg()
+                .withArgName("FILE")
+                .create("d");
+
+        Option dumpOnlyOption = OptionBuilder.withLongOpt("dump-only")
+                .withDescription("dumps the given dex file into a single annotated dump file named FILE (<dexfile>.dump by default), and does not generate the disassembly")
+                .hasOptionalArg()
+                .withArgName("FILE")
+                .create("D");
+
+        Option writeDexOption = OptionBuilder.withLongOpt("write-dex")
+                .withDescription("additionally rewrites the input dex file to FILE")
+                .hasArg()
+                .withArgName("FILE")
+                .create("w");
+
+        Option outputDirOption = OptionBuilder.withLongOpt("output")
+                .withDescription("the directory where the disassembled files will be placed. The default is out")
+                .hasArg()
+                .withArgName("DIR")
+                .create("o");
+
+        Option sortOption = OptionBuilder.withLongOpt("sort")
+                .withDescription("sort the items in the dex file into a canonical order before dumping/writing")
+                .create("s");
+
+        Option fixSignedRegisterOption = OptionBuilder.withLongOpt("fix-signed-registers")
+                .withDescription("when dumping or rewriting, fix any registers in the debug info that are encoded as a signed value")
+                .create("f");
+
+        OptionGroup dumpCommand = new OptionGroup();
+        dumpCommand.addOption(dumpOption);
+        dumpCommand.addOption(dumpOnlyOption);
+
+        options.addOption(versionOption);
+        options.addOption(helpOption);
+        options.addOptionGroup(dumpCommand);
+        options.addOption(writeDexOption);
+        options.addOption(outputDirOption);
+        options.addOption(sortOption);
+        options.addOption(fixSignedRegisterOption);
     }
 }

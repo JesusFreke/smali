@@ -28,9 +28,6 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-import org.jf.dexlib.util.AnnotatedOutput;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,8 +35,8 @@ import java.util.Comparator;
 public class MapItem extends IndexedItem<MapItem> {
     private ArrayList<MapField> mapEntries = new ArrayList<MapField>();
 
-    public MapItem(final DexFile dexFile, int index) {
-        super(index);
+    protected MapItem(final DexFile dexFile, int index) {
+        super(dexFile, index);
 
         fields = new Field[] {
                 new ListSizeField(mapEntries, new IntegerField("size")),
@@ -51,53 +48,51 @@ public class MapItem extends IndexedItem<MapItem> {
         };
     }
 
+    protected MapItem(final DexFile dexFile) {
+        this(dexFile, 0);
+
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_HEADER_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_STRING_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_TYPE_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_PROTO_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_FIELD_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_METHOD_ID_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CLASS_DEF_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_STRING_DATA_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ENCODED_ARRAY_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_SET_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATION_SET_REF_LIST.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_TYPE_LIST.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_DEBUG_INFO_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CODE_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_CLASS_DATA_ITEM.getMapValue()));
+        mapEntries.add(new MapField(dexFile, (short)ItemType.TYPE_MAP_LIST.getMapValue()));
+    }
+
     public int place(int index, int offset) {
+
+        //we have to check if there are any empty sections before we place this item,
+        //because we need to remove the empty sections, which will change the size of
+        //this item
         for (int i=0; i<mapEntries.size(); i++) {
             MapField mapField = mapEntries.get(i);
-            mapField.place(offset);
-            if (mapField.getSectionSize() == 0 /*&& mapField.getSectionItemType().getMapValue() > 0x06*/) {
+            if (mapField.getSection().size() == 0) {
                 mapEntries.remove(i--);
             }
         }
+        
+        offset = super.place(index, offset);
 
-        return super.place(index, offset);
-    }
-
-    public void writeTo(AnnotatedOutput out) {
+        //make sure the map items are in the same order as the corresponding sections
         Collections.sort(mapEntries, new Comparator<MapField>() {
-
             public int compare(MapField o1, MapField o2) {
-                return ((Integer)o1.getSectionOffset()).compareTo(o2.getSectionOffset());
+                return ((Integer)o1.getSection().getOffset()).compareTo(o2.getSection().getOffset());
             }
         });
 
-        super.writeTo(out);
-    }
-
-    public static MapItem makeBlankMapItem(DexFile dexFile) {
-        MapItem mapItem = new MapItem(dexFile, 0);
-
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x0000));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x0001));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x0002));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x0003));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x0004));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x0005));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x0006));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x1002));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x1003));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x2001));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x2006));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x1001));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x2002));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x2003));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x2004));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x2005));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x2000));
-        mapItem.mapEntries.add(new MapField(dexFile, (short)0x1000));
-
-
-        return mapItem;
+        return offset;
     }
 
     public MapField[] getMapEntries() {

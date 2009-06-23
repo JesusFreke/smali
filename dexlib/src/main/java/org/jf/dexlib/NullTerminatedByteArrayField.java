@@ -28,9 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.ByteArray;
-import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public class NullTerminatedByteArrayField implements Field<NullTerminatedByteArrayField> {
     protected byte[] value;
@@ -43,12 +42,6 @@ public class NullTerminatedByteArrayField implements Field<NullTerminatedByteArr
     public NullTerminatedByteArrayField(byte[] value, String fieldName) {
         this(fieldName);
         this.value = value.clone();
-    }
-
-    public NullTerminatedByteArrayField(ByteArray byteArray, String fieldName) {
-        this(fieldName);
-        value = new byte[byteArray.size()];
-        byteArray.getBytes(value, 0);
     }
 
     public void writeTo(AnnotatedOutput out) {

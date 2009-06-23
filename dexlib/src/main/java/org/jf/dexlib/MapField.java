@@ -28,19 +28,16 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-
 public class MapField extends CompositeField<MapField> {
     private final ShortIntegerField sectionTypeField;
-    private final ShortIntegerField unusedField;
     private final SectionHeaderInfo sectionInfoField;
 
-    public MapField(final DexFile dexFile) {
+    protected MapField(final DexFile dexFile) {
         super("map_entry");
         fields = new Field[] {
                 //TODO: add an annotation for the item type
                 sectionTypeField = new ShortIntegerField("type"),
-                unusedField = new ShortIntegerField((short)0, "not used"),
+                new ShortIntegerField((short)0, "padding"),
                 sectionInfoField = new SectionHeaderInfo("section") {
                     protected Section getSection() {
                         return dexFile.getSectionForType(getSectionItemType());
@@ -49,20 +46,46 @@ public class MapField extends CompositeField<MapField> {
         };
     }
 
-    public MapField(final DexFile dexFile, short sectionType) {
+    protected MapField(final DexFile dexFile, short sectionType) {
         this(dexFile);
         sectionTypeField.cacheValue(sectionType);
     }
- 
+
+    /**
+     * Get the <code>ItemType</code> of the section that this map field represents
+     * @return The <code>ItemType</code> of the section that this map field represents
+     */
     public ItemType getSectionItemType() {
         return ItemType.fromInt(sectionTypeField.getCachedValue());
     }
 
-    public int getSectionSize() {
+    /**
+     * Get the <code>Section</code> object that this map field represents 
+     * @return The <code>Section</code> object that this map field represents 
+     */
+    public Section getSection() {
+        Section s;
+        return sectionInfoField.getSection();
+    }
+
+    /**
+     * This returns the cached size of the section that this map field represents. This is used while
+     * reading in the given section, to retrieve the size of the section that is stored in this map
+     * field.
+     * 
+     * @return the cached size of the section that this map field represents
+     */
+    protected int getCachedSectionSize() {
         return sectionInfoField.getSectionSize();
     }
 
-    public int getSectionOffset() {
+    /**
+     * This returns the cached size of the section that this map field represents. This is used while
+     * reading in the given section, to retrieve the offset of the section that is stored in this map
+     * field
+     * @return
+     */
+    protected int getCachedSectionOffset() {
         return sectionInfoField.getSectionOffset();
     }
 }

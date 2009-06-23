@@ -28,15 +28,15 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-import org.jf.dexlib.debug.DebugInstructionFactory;
-import org.jf.dexlib.debug.EndSequence;
-import org.jf.dexlib.debug.DebugInstruction;
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.Debug.DebugInstruction;
+import org.jf.dexlib.Debug.DebugInstructionFactory;
+import org.jf.dexlib.Debug.EndSequence;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
     private final ArrayList<IndexedItemReference<StringIdItem>> parameterNames =
@@ -49,8 +49,10 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
     private final FieldListField<IndexedItemReference<StringIdItem>> parameterNamesField;
     private final DebugInstructionList debugInstructionListField;
 
+    private CodeItem parent = null;
+
     public DebugInfoItem(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 lineStartField = new Leb128Field("line_start"),
@@ -87,9 +89,49 @@ public class DebugInfoItem extends OffsettedItem<DebugInfoItem> {
         return ItemType.TYPE_DEBUG_INFO_ITEM;
     }
 
+    protected void setParent(CodeItem codeItem) {
+        this.parent = codeItem;
+    }
+
     public String getConciseIdentity() {
         return "debug_info_item @0x" + Integer.toHexString(getOffset());
     }
+
+    public int getLineStart() {
+        return lineStartField.getCachedValue();
+    }
+
+    public List<DebugInstruction> getDebugInstructions() {
+        return Collections.unmodifiableList(instructionFields);
+    }
+
+    public List<String> getParameterNames() {
+        List<String> parameterNamesList = new ArrayList<String>();
+
+        for (IndexedItemReference<StringIdItem> parameterNameReference: parameterNames) {
+            StringIdItem parameterNameItem = parameterNameReference.getReference();
+            if (parameterNameItem == null) {
+                parameterNamesList.add(null);
+            } else {
+                parameterNamesList.add(parameterNameItem.getStringValue());
+            }
+        }
+        return parameterNamesList;
+    }
+
+    public int compareTo(DebugInfoItem other) {
+        if (parent == null) {
+            if (other.parent == null) {
+                return 0;
+            }
+            return -1;
+        }
+        if (other.parent == null) {
+            return 1;
+        }
+        return parent.compareTo(other.parent);
+    }
+
 
     private class DebugInstructionList implements Field<DebugInstructionList> {
         private final DexFile dexFile;

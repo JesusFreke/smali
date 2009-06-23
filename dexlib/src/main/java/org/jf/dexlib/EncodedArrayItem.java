@@ -28,11 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
 import org.jf.dexlib.EncodedValue.ArrayEncodedValueSubField;
 import org.jf.dexlib.EncodedValue.EncodedValue;
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.AnnotatedOutput;
 
 import java.util.ArrayList;
 
@@ -40,7 +37,7 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
     private final ArrayEncodedValueSubField encodedArray;
     
     public EncodedArrayItem(DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 encodedArray = new ArrayEncodedValueSubField(dexFile)
@@ -48,31 +45,16 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
     }
 
     public EncodedArrayItem(DexFile dexFile, ArrayList<EncodedValue> encodedValues) {
-        super(0);
+        super(dexFile, 0);
 
         fields = new Field[] {
                 encodedArray = new ArrayEncodedValueSubField(dexFile, encodedValues)
         };
     }
 
-    public void readFrom(Input in) {
-        super.readFrom(in);
-    }
-
-    public int place(int index, int offset) {
-        return super.place(index, offset);
-    }
-
-    public void writeTo(AnnotatedOutput out) {
-        super.writeTo(out);
-    }
 
     protected int getAlignment() {
         return 1;
-    }
-
-    public int getOffset() {
-        return super.getOffset();
     }
 
     public void add(int index, EncodedValue value) {
@@ -85,5 +67,13 @@ public class EncodedArrayItem extends OffsettedItem<EncodedArrayItem> {
 
     public String getConciseIdentity() {
         return "encoded_array @0x" + Integer.toHexString(getOffset());
+    }
+
+    public ArrayEncodedValueSubField getEncodedArray() {
+        return encodedArray;
+    }
+
+    public int compareTo(EncodedArrayItem encodedArrayItem) {
+        return encodedArray.compareTo(encodedArrayItem.encodedArray);
     }
 }

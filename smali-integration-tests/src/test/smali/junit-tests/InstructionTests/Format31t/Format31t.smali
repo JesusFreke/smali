@@ -81,7 +81,7 @@ Label13:
     return-void
 
 PackedSwitch:
-    .packed-switch switch: 10
+    .packed-switch 10
         Label10:
         Label11:
         Label12:
@@ -120,7 +120,7 @@ Label99:
     return-void
 
 SparseSwitch:
-    .sparse-switch switch:
+    .sparse-switch
         10 -> Label10:
         13 -> Label13:
         15 -> Label15:

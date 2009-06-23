@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.ByteArray;
-import org.jf.dexlib.util.Utf8Utils;
+import org.jf.dexlib.Util.ByteArray;
+import org.jf.dexlib.Util.Utf8Utils;
 
 public class StringDataItem extends OffsettedItem<StringDataItem> implements Comparable<StringDataItem> {
     private String value = null;
@@ -37,8 +37,8 @@ public class StringDataItem extends OffsettedItem<StringDataItem> implements Com
     private final Leb128Field stringSize;
     private final NullTerminatedByteArrayField stringByteArray;
 
-    public StringDataItem(int offset) {
-        super(offset);
+    public StringDataItem(DexFile dexFile, int offset) {
+        super(dexFile, offset);
 
         fields = new Field[] {
                 stringSize = new Leb128Field("string_length"),
@@ -46,8 +46,8 @@ public class StringDataItem extends OffsettedItem<StringDataItem> implements Com
         };
     }
 
-    public StringDataItem(String value) {
-        super(-1);
+    public StringDataItem(DexFile dexFile, String value) {
+        super(dexFile, -1);
 
         this.value = value; 
 
@@ -69,11 +69,17 @@ public class StringDataItem extends OffsettedItem<StringDataItem> implements Com
         return value;
     }
 
+    public byte[] getStringBytes() {
+        return stringByteArray.value;
+    }
+
     public String getConciseIdentity() {
-        return "string_data_item: " + getStringValue();
+        return "string_data_item: " + Utf8Utils.escapeString(getStringValue());
     }
 
     public int compareTo(StringDataItem o) {
         return getStringValue().compareTo(o.getStringValue());
     }
+
+
 }

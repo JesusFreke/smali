@@ -32,7 +32,7 @@ public class TypeIdItem extends IndexedItem<TypeIdItem> {
     private final IndexedItemReference<StringIdItem> typeDescriptorReferenceField;
 
     public TypeIdItem(DexFile dexFile, int index) {
-        super(index);
+        super(dexFile, index);
         fields = new Field[] {
                 typeDescriptorReferenceField = new IndexedItemReference<StringIdItem>(dexFile.StringIdsSection,
                         new IntegerField(null), "descriptor_idx")

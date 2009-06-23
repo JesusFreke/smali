@@ -28,12 +28,13 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.Input;
 
 import java.util.Collections;
 
 public abstract class IndexedSection<T extends IndexedItem<T>> extends Section<T> {
-    public IndexedSection() {
+    public IndexedSection(DexFile dexFile) {
+        super(dexFile);
     }
 
     public T getByIndex(int index) {
@@ -50,17 +51,18 @@ public abstract class IndexedSection<T extends IndexedItem<T>> extends Section<T
 
     public void readFrom(int size, Input in) {
         super.setSize(size);
+        this.offset = in.getCursor();
 
         for (int i = 0; i < size(); i++) {
             T item = getByIndex(i);
-            item.readFrom(in);
+            item.readFrom(in, i);
             in.alignTo(item.getAlignment());
         }
     }
     
     protected abstract T make(int index);
 
-    public T intern(DexFile dexFile, T item) {
+    public T intern(T item) {
         T itemToReturn = getInternedItem(item);
 
         if (itemToReturn == null) {
@@ -76,12 +78,10 @@ public abstract class IndexedSection<T extends IndexedItem<T>> extends Section<T
         return itemToReturn;
     }
 
-    protected void sortSection() {
-        Collections.sort(items);
-    }
-
     public int place(int offset) {
-        sortSection();
+        if (!dexFile.getInplace()) {
+            sortSection();
+        }
 
         return super.place(offset);
     }

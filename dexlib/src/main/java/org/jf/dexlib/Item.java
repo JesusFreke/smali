@@ -28,25 +28,22 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.ItemType;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
-public abstract class Item<T extends Item> {
+public abstract class Item<T extends Item> implements Comparable<T> {
     protected int offset = -1;
     protected int index = -1;
+    protected final DexFile dexFile;
     
     protected Field[] fields;
 
-    protected Item() {
+    protected Item(DexFile dexFile) {
+        this.dexFile = dexFile;
     }
 
     public boolean isPlaced() {
         return offset > -1;
-    }
-
-    public void unplace() {
-        offset = -1;
     }
 
     public int place(int index, int offset) {
@@ -61,7 +58,9 @@ public abstract class Item<T extends Item> {
         return offset;
     }
 
-    public void readFrom(Input in) {
+    public void readFrom(Input in, int index) {
+        this.offset = in.getCursor();
+        this.index = index;
         for (Field field: fields) {
             field.readFrom(in);
         }

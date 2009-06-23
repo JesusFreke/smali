@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public abstract class ItemReference<T extends Item<T>, S extends ItemReference<T,S>> implements Field<S> {
     private T item = null;
@@ -70,7 +70,7 @@ public abstract class ItemReference<T extends Item<T>, S extends ItemReference<T
             return;
         }
         Section<T> section = copy.getSection();
-        T copiedItem = section.intern(dexFile, referencedItem);
+        T copiedItem = section.intern(referencedItem);
         copy.setReference(copiedItem);
     }
 

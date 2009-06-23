@@ -1,0 +1,407 @@
+group baksmali;
+
+smaliFile(classDef) ::=
+<<
+.class <classDef.AccessFlags: {<it> }><classDef.ClassType>
+.super <classDef.SuperType>
+
+<if(classDef.SourceFile)>
+.source "<classDef.SourceFile>"
+
+
+<endif>
+<if(classDef.Interfaces)>
+
+# interfaces
+<classDef.Interfaces: implement(it); separator="\n">
+
+<endif>
+<if(classDef.Annotations)>
+
+
+# annotations
+<classDef.Annotations: annotation(it); separator="\n\n">
+
+<endif>
+<if(classDef.StaticFields)>
+
+
+# static fields
+<classDef.StaticFields: field(it); separator="\n">
+
+<endif>
+<if(classDef.InstanceFields)>
+
+
+# instance fields
+<classDef.InstanceFields: field(it); separator="\n">
+
+<endif>
+<if(classDef.DirectMethods)>
+
+
+# direct methods
+<classDef.DirectMethods: method(it); separator="\n\n">
+
+<endif>
+<if(classDef.VirtualMethods)>
+
+
+# virtual methods
+<classDef.VirtualMethods: method(it); separator="\n\n">
+
+<endif>
+>>
+
+
+
+                 
+implement(interface) ::=
+<<
+.implements <interface>
+>>
+
+
+annotation(annotationAdaptor) ::=
+<<
+.annotation <annotationAdaptor.Visibility> <Reference(annotationAdaptor.AnnotationType)>
+<if(annotationAdaptor.Elements)>
+    <annotationAdaptor.Elements: AnnotationElement(it); separator="\n">
+<endif>
+<if(annotationAdaptor.Elements)>
+
+
+<endif>
+.end annotation
+>>
+
+
+
+field(fieldDef) ::=
+<<
+.field <fieldDef.AccessFlags: {<it> }><fieldDef.FieldName>:<fieldDef.FieldType><if(fieldDef.InitialValue)> = <fieldDef.InitialValue: EncodedValue(it)><endif>
+<if(fieldDef.Annotations)>
+    <fieldDef.Annotations: annotation(it); separator="\n\n">
+.end field
+
+<endif>
+>>
+
+
+method(methodDef) ::=
+<<
+.method <methodDef.AccessFlags: {<it> }><methodDef.MethodName><methodDef.Prototype>
+<if(methodDef.hasCode)>
+    .registers <methodDef.RegisterCount>
+  <if(methodDef.Parameters)>
+    <methodDef.Parameters: Parameter(it); separator="\n">
+  <endif>
+  <if(methodDef.Annotations)>
+    <methodDef.Annotations: annotation(it); separator="\n\n">
+  <endif>
+
+    <methodDef.MethodItems: MethodItem(it); separator="\n">
+<elseif(methodDef.Annotations)>
+    <methodDef.Annotations: annotation(it); separator="\n\n">
+<endif>
+.end method
+>>
+
+MethodItem(MethodItem) ::=
+<<
+<MethodItem: (MethodItem.Template)(MethodItem)>
+>>
+
+Parameter(Parameter) ::=
+<<
+.parameter<if(Parameter.ParameterName)> "<Parameter.ParameterName>"<endif><if(Parameter.Annotations)>
+
+    <Parameter.Annotations: annotation(it); separator="\n\n">
+.end parameter
+<endif>
+>>
+
+
+
+Format31tLabelMap ::= [
+    "fill-array-data":"array_",
+    "packed-switch":"pswitch_data_",
+    "sparse-switch":"sswitch_data_"
+]
+
+
+Register(num) ::=
+<<
+v<num; format="decimal">
+>>
+
+
+
+Format10t(Instruction) ::=
+<<
+<Instruction.Opcode> goto_<Instruction.Target>:
+>>
+
+Format10x(Instruction) ::=
+<<
+<Instruction.Opcode>
+>>
+
+Format11n(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+>>
+
+Format11x(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>
+>>
+
+Format12x(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
+>>
+
+Format20t(Instruction) ::=
+<<
+<Instruction.Opcode> goto_<Instruction.Target>:
+>>
+
+Format21c(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, <Reference(Instruction.Reference)>
+>>
+
+Format21h(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+>>
+
+Format21s(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+>>
+
+Format21t(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, cond_<Instruction.Target>:
+>>
+
+Format22b(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Instruction.Literal>
+>>
+
+Format22c(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Reference(Instruction.Reference)>
+>>
+
+Format22s(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Instruction.Literal>
+>>
+
+Format22t(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, cond_<Instruction.Target>:
+>>
+
+Format22x(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
+>>
+
+Format23x(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Register(Instruction.RegisterC)>
+>>
+
+Format30t(Instruction) ::=
+<<
+<Instruction.Opcode> goto_<Instruction.Target>:
+>>
+
+Format31c(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, <Reference(Instruction.Reference)>
+>>
+
+Format31i(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+>>
+
+Format31t(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, <Format31tLabelMap.(Instruction.Opcode)><Instruction.Target>:
+>>
+
+Format32x(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
+>>
+
+Format35c(Instruction) ::=
+<<
+<Instruction.Opcode> {<Instruction.Registers: Register(it); separator=", ">}, <Reference(Instruction.Reference)>
+>>
+
+Format3rc(Instruction) ::=
+<<
+<Instruction.Opcode> {<Register(Instruction.StartRegister)> .. <Register(Instruction.LastRegister)>}, <Reference(Instruction.Reference)>
+>>
+
+Format51l(Instruction) ::=
+<<
+<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+>>
+
+ArrayData(Instruction) ::=
+<<
+.array-data <Instruction.ElementWidth>
+    <Instruction.Values: {<it.ByteArray; format="unsigned",separator=" ">}; separator="\n">
+.end array-data
+>>
+
+PackedSwitchData(Instruction) ::=
+<<
+.packed-switch <Instruction.FirstKey>
+    <Instruction.Targets: {pswitch_<it>:}; separator="\n">
+.end packed-switch
+>>
+
+SparseSwitchData(Instruction) ::=
+<<
+.sparse-switch
+    <Instruction.Keys,Instruction.Targets:{key,target | <key> -> sswitch_<target>:}; separator="\n">
+.end sparse-switch
+>>
+
+
+Label(Label) ::=
+<<
+<Label.Prefix><Label.HexOffset>:
+>>
+
+EndTryLabel(Label) ::=
+<<
+<Label.Prefix><Label.LabelOffset; format="barehex">:
+>>
+
+Line(Line) ::=
+<<
+.line <Line.Line; format="decimal">
+>>
+
+EndPrologue(Prologue) ::=
+<<
+.prologue
+>>
+
+StartEpilogue(Epilogue) ::=
+<<
+.epilogue
+>>
+
+StartLocal(StartLocal) ::=
+<<
+.local <Register(StartLocal.Register)>, <StartLocal.Name>:<StartLocal.Type><if(StartLocal.Signature)>,"<StartLocal.Signature>"<endif>
+>>
+
+EndLocal(EndLocal) ::=
+<<
+.end local <Register(EndLocal.Register)>       <if(EndLocal.Name)>#<EndLocal.Name>:<EndLocal.Type>,<if(EndLocal.Signature)>, "<EndLocal.Signature>"<endif><endif>
+>>
+
+RestartLocal(RestartLocal) ::=
+<<
+.restart local <Register(RestartLocal.Register)>       <if(RestartLocal.Name)>#<RestartLocal.Name>:<RestartLocal.Type>,<if(RestartLocal.Signature)>, "<RestartLocal.Signature>"<endif><endif>
+>>
+
+SetFile(SetFile) ::=
+<<
+.source "<SetFile.FileName>" 
+>>
+
+Blank(Blank) ::=
+<<
+
+>>
+
+Catch(Catch) ::=
+<<
+.catch <Reference(Catch.ExceptionType)> {try_start_<Catch.StartAddress; format="barehex">: .. try_end_<Catch.EndAddress; format="barehex">:} handler_<Catch.HandlerAddress; format="barehex">:
+>>
+
+CatchAll(Catch) ::=
+<<
+.catchall {try_start_<Catch.StartAddress; format="barehex">: .. try_end_<Catch.EndAddress; format="barehex">:} handler_<Catch.HandlerAddress; format="barehex">: 
+>>
+
+
+Reference(ReferencedItem) ::=
+<<
+<(ReferencedItem.Template)(ReferencedItem)>
+>>
+
+StringReference(StringReference) ::=
+<<
+"<StringReference.EscapedValue>"
+>>
+
+FieldReference(FieldReference) ::=
+<<
+<FieldReference.ContainingClass>-><FieldReference.FieldName>:<FieldReference.FieldType>
+>>
+
+MethodReference(MethodReference) ::=
+<<
+<MethodReference.ContainingClass>-><MethodReference.MethodName><MethodReference.Prototype>
+>>
+
+TypeReference(TypeReference) ::=
+<<
+<TypeReference.TypeDescriptor>
+>>
+
+
+
+EncodedValue(EncodedValue) ::=
+<<
+<(EncodedValue.Format)(EncodedValue)>
+>>
+
+SimpleEncodedValue(EncodedValue) ::=
+<<
+<EncodedValue.Value>
+>>
+
+EncodedIndexedItemReference(EncodedValue) ::=
+<<
+<Reference(EncodedValue.Value)>
+>>
+
+ArrayEncodedValue(EncodedValue) ::=
+<<
+{
+    <EncodedValue.Value: EncodedValue(it); separator=",\n">
+}
+>>
+
+EnumEncodedValue(EncodedValue) ::=
+<<
+.enum <Reference(EncodedValue.Value)>
+>>
+
+AnnotationEncodedValue(EncodedValue) ::=
+<<
+.subannotation <Reference(EncodedValue.AnnotationType)>
+    <EncodedValue.Elements: AnnotationElement(it); separator="\n">
+.end subannotation
+>>
+
+AnnotationElement(AnnotationElement) ::=
+<<
+<AnnotationElement.Name> = <EncodedValue(AnnotationElement.Value)>
+>>

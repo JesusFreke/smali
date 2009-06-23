@@ -29,14 +29,13 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.EncodedValue.AnnotationEncodedValueSubField;
-import org.jf.dexlib.ItemType;
 
 public class AnnotationItem extends OffsettedItem<AnnotationItem> {
     private final ByteField visibilityField;
     private final AnnotationEncodedValueSubField annotationField;
 
     public AnnotationItem(DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 visibilityField = new ByteField("visibility"),
@@ -46,7 +45,7 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
 
     public AnnotationItem(DexFile dexFile, AnnotationVisibility visibility,
                           AnnotationEncodedValueSubField annotation) {
-        super(-1);
+        super(dexFile, -1);
 
         fields = new Field[] {
                 this.visibilityField = new ByteField(visibility.value, "visibility"),
@@ -60,5 +59,45 @@ public class AnnotationItem extends OffsettedItem<AnnotationItem> {
 
     public String getConciseIdentity() {
         return "annotation_item @0x" + Integer.toHexString(getOffset());
+    }
+
+    public Visibility getVisibility() {
+        return Visibility.get((byte)visibilityField.getCachedValue());
+    }
+
+    public AnnotationEncodedValueSubField getEncodedAnnotation() {
+        return annotationField;
+    }
+
+    public int compareTo(AnnotationItem annotationItem) {
+        int comp = ((Integer)visibilityField.getCachedValue()).compareTo(annotationItem.visibilityField.getCachedValue());
+        if (comp == 0) {
+            comp = annotationField.compareTo(annotationItem.annotationField);
+        }
+        return comp;
+    }
+
+    public enum Visibility {
+        build(0x00),
+        runtime(0x01),
+        system(0x02);
+
+        public final byte value;
+
+        private Visibility(int value) {
+            this.value = (byte)value;
+        }
+
+        public static Visibility get(byte value) {
+            switch (value) {
+                case 0x00:
+                    return build;
+                case 0x01:
+                    return runtime;
+                case 0x02:
+                    return system;
+            }
+            return null;
+        }
     }
 }

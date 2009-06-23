@@ -31,9 +31,11 @@ package org.jf.dexlib.EncodedValue;
 import org.jf.dexlib.*;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
 
 public class ArrayEncodedValueSubField extends CompositeField<ArrayEncodedValueSubField>
-        implements  EncodedValueSubField<ArrayEncodedValueSubField>
+        implements  EncodedValueSubField<ArrayEncodedValueSubField>, Comparable<EncodedValueSubField>
 {
 
     private final ArrayList<EncodedValue> encodedValues;
@@ -81,5 +83,27 @@ public class ArrayEncodedValueSubField extends CompositeField<ArrayEncodedValueS
 
     public void add(int index, EncodedValue encodedValue) {
         encodedValues.add(index, encodedValue);
+    }
+
+    public List<EncodedValue> getValues() {
+        return Collections.unmodifiableList(encodedValues);
+    }
+
+    public int compareTo(EncodedValueSubField t) {
+        int comp = getValueType().compareTo(t.getValueType());
+        if (comp == 0) {
+            ArrayEncodedValueSubField other = (ArrayEncodedValueSubField)t;
+
+            comp = ((Integer)encodedValues.size()).compareTo(other.encodedValues.size());
+            if (comp == 0) {
+                for (int i=0; i<encodedValues.size(); i++) {
+                    comp = encodedValues.get(i).compareTo(other.encodedValues.get(i));
+                    if (comp != 0) {
+                        break;
+                    }
+                }
+            }
+        }
+        return comp;
     }
 }

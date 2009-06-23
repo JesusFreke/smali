@@ -29,7 +29,8 @@
 package org.jf.dexlib;
 
 public abstract class OffsettedItem<T extends OffsettedItem<T>> extends Item<T> {
-    public OffsettedItem(int offset) {
+    public OffsettedItem(DexFile dexFile, int offset) {
+        super(dexFile);
         this.offset = offset;
     }
 }

@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.AnnotatedOutput;
-import org.jf.dexlib.util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Output;
 
 public abstract class CachedIntegerValueField<T extends CachedIntegerValueField>
         implements Field<T> {
