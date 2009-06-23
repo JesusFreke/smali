@@ -171,6 +171,20 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return ((Integer)this.offset).compareTo(o.offset);
     }
 
+    public void copyTo(DexFile dexFile, ClassDefItem copy) {
+        super.copyTo(dexFile, copy);
+
+        AnnotationDirectoryItem annotationDirectoryItem = copy.classAnnotationsReferenceField.getReference();
+        if (annotationDirectoryItem != null) {
+            annotationDirectoryItem.setParent(copy);
+        }
+
+        ClassDataItem classDataItem = copy.classDataReferenceField.getReference();
+        if (classDataItem != null) {
+            classDataItem.setParent(copy);
+        }
+    }
+
     public void addField(ClassDataItem.EncodedField encodedField, EncodedValue initialValue) {
         //fields are added in ClassDefItem instead of ClassDataItem because we need to grab
         //the static initializers for StaticFieldInitialValues

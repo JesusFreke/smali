@@ -109,9 +109,11 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
 
     public int place(int index, int offset)
     {
-        Collections.sort(fieldAnnotationList);
-        Collections.sort(methodAnnotationList);
-        Collections.sort(parameterAnnotationList);
+        if (!dexFile.getInplace()) {
+            Collections.sort(fieldAnnotationList);
+            Collections.sort(methodAnnotationList);
+            Collections.sort(parameterAnnotationList);
+        }
         return super.place(index, offset);
     }
 

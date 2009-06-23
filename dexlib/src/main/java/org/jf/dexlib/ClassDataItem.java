@@ -342,6 +342,15 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
             }
         }
 
+        public void copyTo(DexFile dexFile, EncodedMethod copy) {
+            super.copyTo(dexFile, copy);
+
+            CodeItem codeItem = copy.codeItemReferenceField.getReference();
+            if (codeItem != null) {
+                codeItem.setParent(copy.methodReferenceField.getReference());
+            }
+        }
+
         public int getAccessFlags() {
             return accessFlagsField.getCachedValue();
         }
