@@ -588,7 +588,7 @@ public class DexFile
             return new MapItem(dexFile, index);
         }
 
-        public MapItem intern(DexFile dexFile, MapItem item) {
+        public MapItem intern(MapItem item) {
             this.items.add(item);
             return item;
         }

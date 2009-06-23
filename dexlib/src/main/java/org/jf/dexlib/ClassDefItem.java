@@ -209,7 +209,9 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
 
     public void setAnnotations(AnnotationDirectoryItem annotations) {
         this.classAnnotationsReferenceField.setReference(annotations);
-        annotations.setParent(this);
+        if (annotations != null) {
+            annotations.setParent(this);
+        }
     }
 
     public void setClassDataItem(ClassDataItem classDataItem) {
@@ -261,12 +263,14 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         public int placeSection(int offset) {
             currentOffset = offset;
 
-            //presort the list, to guarantee a unique ordering
-            Collections.sort(section.items, new Comparator<ClassDefItem>() {
-                public int compare(ClassDefItem classDefItem, ClassDefItem classDefItem1) {
-                    return classDefItem.getClassType().compareTo(classDefItem1.getClassType());
-                }
-            });
+            if (section.dexFile.getSortAllItems()) {
+                //presort the list, to guarantee a unique ordering
+                Collections.sort(section.items, new Comparator<ClassDefItem>() {
+                    public int compare(ClassDefItem classDefItem, ClassDefItem classDefItem1) {
+                        return classDefItem.getClassType().compareTo(classDefItem1.getClassType());
+                    }
+                });
+            }
 
             for (ClassDefItem classDefItem: section.items) {
                 classDefItem.offset = -1;

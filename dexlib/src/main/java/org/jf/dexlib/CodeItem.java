@@ -152,7 +152,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         triesListField.copyTo(dexFile, copy.triesListField);
 
         DebugInfoItem copyDebugInfo = copy.getDebugInfo();
-        if (copy != null) {
+        if (copyDebugInfo != null) {
             copyDebugInfo.setParent(copy);
         }
     }
