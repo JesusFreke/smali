@@ -37,6 +37,9 @@ options {
 package org.jf.smali;
 
 import java.util.HashMap;
+import java.util.regex.*;
+import java.lang.Float;
+import java.lang.Double;
 
 import org.jf.dexlib.*;
 import org.jf.dexlib.EncodedValue.*;
@@ -91,6 +94,42 @@ import org.jf.dexlib.Code.Format.*;
 		}
 		//the parser wouldn't accept a negative register, i.e. v-1, so we don't have to check for val<0;
 		return val;
+	}
+	
+	private static Pattern specialFloatRegex = Pattern.compile("((-)?infinityf)|(nanf)", Pattern.CASE_INSENSITIVE);
+	private float parseFloat(String floatString) {
+		Matcher m = specialFloatRegex.matcher(floatString);
+		if (m.matches()) {
+			//got an infinity
+			if (m.start(1) != -1) {
+				if (m.start(2) != -1) {
+					return Float.NEGATIVE_INFINITY;
+				} else {
+					return Float.POSITIVE_INFINITY;
+				}
+			} else {
+				return Float.NaN;
+			}			
+		}
+		return Float.parseFloat(floatString);
+	}
+	
+	private static Pattern specialDoubleRegex = Pattern.compile("((-)?infinityd?)|(nand?)", Pattern.CASE_INSENSITIVE);
+	private double parseDouble(String doubleString) {
+		Matcher m = specialDoubleRegex.matcher(doubleString);
+		if (m.matches()) {
+			//got an infinity
+			if (m.start(1) != -1) {
+				if (m.start(2) != -1) {
+					return Double.NEGATIVE_INFINITY;
+				} else {
+					return Double.POSITIVE_INFINITY;
+				}
+			} else {
+				return Double.NaN;
+			}
+		}
+		return Double.parseDouble(doubleString);
 	}
 	
 	public String getErrorMessage(RecognitionException e, String[] tokenNames) {
@@ -1220,10 +1259,10 @@ byte_literal returns[byte value]
 	:	BYTE_LITERAL { $value = literalTools.parseByte($BYTE_LITERAL.text); };
 	
 float_literal returns[float value]
-	:	FLOAT_LITERAL { $value = Float.parseFloat($FLOAT_LITERAL.text); };
+	:	FLOAT_LITERAL { $value = parseFloat($FLOAT_LITERAL.text); };
 	
 double_literal returns[double value]
-	:	DOUBLE_LITERAL { $value = Double.parseDouble($DOUBLE_LITERAL.text); };
+	:	DOUBLE_LITERAL { $value = parseDouble($DOUBLE_LITERAL.text); };
 
 char_literal returns[char value]
 	:	CHAR_LITERAL { $value = $CHAR_LITERAL.text.charAt(1); };

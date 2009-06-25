@@ -1057,13 +1057,18 @@ fragment BINARY_EXPONENT
 fragment FLOAT_LITERAL_EMIT
 	:	FLOAT_LITERAL {emit($FLOAT_LITERAL, FLOAT_LITERAL);};
 fragment FLOAT_LITERAL
-	:	'-'? (FLOATING_POINT_NUMBER | ('0' .. '9')+) ('f' | 'F');
+	:	'-'? (	FLOATING_POINT_NUMBER ('f' | 'F')
+	 	     |  ('0' .. '9')+ ('f' | 'F')
+	 	     |  ('i' | 'I') ('n' | 'N') ('f' | 'F') ('i' | 'I') ('n' | 'N') ('i' | 'I') ('t' | 'T') ('y' | 'Y') ('f' | 'F'))
+	|	('n' | 'N') ('a' | 'A') ('n' | 'N') ('f' | 'F');
        
 fragment DOUBLE_LITERAL_EMIT
 	:	DOUBLE_LITERAL {emit($DOUBLE_LITERAL, DOUBLE_LITERAL);};
 fragment DOUBLE_LITERAL
-	:	'-'? FLOATING_POINT_NUMBER ('d' | 'D')?
-	|	'-'? ('0' .. '9')+ ('d' | 'D');
+	:	'-'? (	FLOATING_POINT_NUMBER ('d' | 'D')?
+	 	     |  ('0' .. '9')+ ('d' | 'D')
+	 	     |  ('i' | 'I') ('n' | 'N') ('f' | 'F') ('i' | 'I') ('n' | 'N') ('i' | 'I') ('t' | 'T') ('y' | 'Y') ('d' | 'D')?)
+	|	('n' | 'N') ('a' | 'A') ('n' | 'N') ('d' | 'D')?;
 
 
 fragment CHAR_LITERAL_EMIT
