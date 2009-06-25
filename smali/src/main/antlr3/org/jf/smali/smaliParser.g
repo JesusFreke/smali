@@ -191,18 +191,20 @@ smali_file
 		}
 		
 		if (!$smali_file::hasSuperSpec) {
-			throw new SemanticException(input, "The file must contain a .super directive");
+			if (!$class_spec.className.equals("Ljava/lang/Object;")) {
+				throw new SemanticException(input, "The file must contain a .super directive");
+			}
 		}
 	}
 	->	^(I_CLASS_DEF
 			class_spec
-			super_spec
+			super_spec?
 			implements_spec*
 			source_spec?
 			^(I_METHODS method*) ^(I_FIELDS field*) ^(I_ANNOTATIONS annotation*));
 		
-class_spec
-	:	CLASS_DIRECTIVE access_list CLASS_DESCRIPTOR -> CLASS_DESCRIPTOR access_list;
+class_spec returns[String className]
+	:	CLASS_DIRECTIVE access_list CLASS_DESCRIPTOR {$className = $CLASS_DESCRIPTOR.text;} -> CLASS_DESCRIPTOR access_list;
 
 super_spec
 	:	SUPER_DIRECTIVE CLASS_DESCRIPTOR -> ^(I_SUPER[$start, "I_SUPER"] CLASS_DESCRIPTOR);

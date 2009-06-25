@@ -142,7 +142,7 @@ smali_file
 
 
 header	returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem sourceSpec]
-:	class_spec super_spec implements_list source_spec
+:	class_spec super_spec? implements_list source_spec
 	{
 		classDataItem = new ClassDataItem(dexFile, 0);
 		classDefItem = new ClassDefItem(dexFile, $class_spec.type, $class_spec.accessFlags, 

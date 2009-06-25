@@ -92,7 +92,11 @@ public class ClassDefinition {
     }
 
     public String getSuperType() {
-        return classDefItem.getSuperclass().getTypeDescriptor();
+        TypeIdItem superClass = classDefItem.getSuperclass();
+        if (superClass != null) {
+            return superClass.getTypeDescriptor();
+        }
+        return null;
     }
 
     public String getSourceFile() {
