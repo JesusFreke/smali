@@ -62,6 +62,7 @@ public class main {
         boolean write = false;
         boolean sort = false;
         boolean fixRegisters = false;
+        boolean readOnly = false;
 
         String outputDirectory = "out";
         String dumpFileName = null;
@@ -86,6 +87,10 @@ public class main {
         }
 
         inputDexFileName = remainingArgs[0];
+
+        if (commandLine.hasOption("r")) {
+            readOnly = true;
+        }
 
         if (commandLine.hasOption("d")) {
             doDump = true;
@@ -124,6 +129,10 @@ public class main {
 
             //Read in and parse the dex file
             DexFile dexFile = new DexFile(dexFileFile, !fixRegisters);
+
+            if (readOnly) {
+                return;
+            }
 
             if (disassemble) {
                 baksmali.disassembleDexFile(dexFile, outputDirectory);
@@ -177,6 +186,10 @@ public class main {
                 .withDescription("prints the help message then exits")
                 .create("?");
 
+        Option readonlyOption = OptionBuilder.withLongOpt("read-only")
+                .withDescription("reads in the dex file and then exits")
+                .create("r");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE (<dexfile>.dump by default), along with the normal disassembly.")
                 .hasOptionalArg()
@@ -212,6 +225,7 @@ public class main {
         OptionGroup dumpCommand = new OptionGroup();
         dumpCommand.addOption(dumpOption);
         dumpCommand.addOption(dumpOnlyOption);
+        dumpCommand.addOption(readonlyOption);
 
         options.addOption(versionOption);
         options.addOption(helpOption);
