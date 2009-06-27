@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jf</groupId>
     <artifactId>baksmali</artifactId>
-    <version>0.91-SNAPSHOT</version>
+    <version>${aversion}</version>
     <parent>
         <groupId>org.jf</groupId>
         <artifactId>smali-pom</artifactId>
-        <version>0.91-SNAPSHOT</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
     <build>
         <plugins>
@@ -68,6 +68,16 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources/properties</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources/templates</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
     </build>
     <dependencies>
         <dependency>
@@ -78,7 +88,7 @@
         <dependency>
             <groupId>org.jf</groupId>
             <artifactId>dexlib</artifactId>
-            <version>0.91-SNAPSHOT</version>
+            <version>${version}</version>
         </dependency>
         <dependency>
             <groupId>commons-cli</groupId>

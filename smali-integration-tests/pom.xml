@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jf</groupId>
     <artifactId>smali-integration-tests</artifactId>
-    <version>0.91-SNAPSHOT</version>
+    <version>${aversion}</version>
     <packaging>pom</packaging>
     <parent>
         <groupId>org.jf</groupId>
         <artifactId>smali-pom</artifactId>
-        <version>0.91-SNAPSHOT</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
     <build>
         <plugins>

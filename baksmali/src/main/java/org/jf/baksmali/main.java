@@ -25,16 +25,27 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.Properties;
 
 public class main {
 
-    public static final String VERSION = "0.91";
+    public static final String VERSION;
 
     private static final Options options;
 
     static {
         options = new Options();
         buildOptions();
+
+        InputStream templateStream = baksmali.class.getClassLoader().getResourceAsStream("baksmali.properties");
+        Properties properties = new Properties();
+        String version = "(unknown)";
+        try {
+            properties.load(templateStream);
+            version = properties.getProperty("application.version");
+        } catch (IOException ex) {
+        }
+        VERSION = version;
     }
 
     /**

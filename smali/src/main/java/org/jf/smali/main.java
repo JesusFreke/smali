@@ -24,12 +24,10 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
+import java.io.*;
 import java.util.Set;
 import java.util.LinkedHashSet;
+import java.util.Properties;
 
 /**
  * Main class for smali. It recognizes enough options to be able to dispatch
@@ -37,13 +35,23 @@ import java.util.LinkedHashSet;
  */
 public class main {
 
-    public static final String VERSION = "0.91";
+    public static final String VERSION;
 
     private final static Options options;
 
     static {
         options = new Options();
         buildOptions();
+
+        InputStream templateStream = main.class.getClassLoader().getResourceAsStream("smali.properties");
+        Properties properties = new Properties();
+        String version = "(unknown)";
+        try {
+            properties.load(templateStream);
+            version = properties.getProperty("application.version");
+        } catch (IOException ex) {
+        }
+        VERSION = version;
     }
 
     

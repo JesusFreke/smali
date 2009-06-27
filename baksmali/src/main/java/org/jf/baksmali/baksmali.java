@@ -34,10 +34,8 @@ import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.ClassDefItem;
-import org.apache.commons.cli.*;
 
 import java.io.*;
-import java.net.URL;
 
 public class baksmali {
     public static void disassembleDexFile(DexFile dexFile, String outputDirectory)
