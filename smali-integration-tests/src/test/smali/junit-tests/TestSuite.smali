@@ -24,6 +24,7 @@
                 LFieldTest;,
                 LSpecialInstructionPaddingTest;,
                 LStaticFieldInitializerTest;,
+                LLineTest;,
                 LFormat10x;,
                 LFormat10t;,
                 LFormat11n;,
