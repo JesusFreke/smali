@@ -1239,9 +1239,9 @@ integral_literal returns[int value]
 	:	long_literal
 		{
 			literalTools.checkInt($long_literal.value);
-			$value = (short)$long_literal.value;
+			$value = (int)$long_literal.value;
 		}
-	|	integer_literal {$value = (short)$integer_literal.value;}
+	|	integer_literal {$value = $integer_literal.value;}
 	|	short_literal {$value = $short_literal.value;}
 	|	byte_literal {$value = $byte_literal.value;};
 		

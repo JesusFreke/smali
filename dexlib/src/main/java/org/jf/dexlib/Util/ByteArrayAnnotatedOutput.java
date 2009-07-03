@@ -228,17 +228,18 @@ public final class ByteArrayAnnotatedOutput
 
     /** {@inheritDoc} */
     public int writeUnsignedLeb128(int value) {
-        int remaining = value >> 7;
+        long remaining = (value & 0xFFFFFFFFL) >> 7;
+        long lValue = value;
         int count = 0;
 
         while (remaining != 0) {
-            writeByte((value & 0x7f) | 0x80);
-            value = remaining;
+            writeByte((int)(lValue & 0x7f) | 0x80);
+            lValue = remaining;
             remaining >>= 7;
             count++;
         }
 
-        writeByte(value & 0x7f);
+        writeByte((int)(lValue & 0x7f));
         return count + 1;
     }
 

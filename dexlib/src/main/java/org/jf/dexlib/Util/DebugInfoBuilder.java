@@ -221,6 +221,7 @@ public class DebugInfoBuilder
                 addressDelta = 0;
             }
 
+            //TODO: need to handle the case when the line delta is larger than a signed int
             debugInstructions.add(new SpecialOpcode(calculateSpecialOpcode(lineDelta, addressDelta)));
 
 
