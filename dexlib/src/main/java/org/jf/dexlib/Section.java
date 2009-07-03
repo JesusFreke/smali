@@ -28,15 +28,18 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Collections;
 
 public abstract class Section<T extends Item> {
-    protected ArrayList<T> items;
+    protected final ArrayList<T> items;
     protected HashMap<T, T> uniqueItems = null;
+    protected final DexFile dexFile;
 
     /**
      * When offset > -1, this section is "placed" at the specified offset. All
@@ -47,7 +50,8 @@ public abstract class Section<T extends Item> {
      */
     protected int offset = -1;
 
-    public Section() {
+    public Section(DexFile dexFile) {
+        this.dexFile = dexFile;
         items = new ArrayList<T>();
     }
 
@@ -72,12 +76,6 @@ public abstract class Section<T extends Item> {
         }
 
         return offset;
-    }
-
-    public void unplace() {
-        for (Item item: items) {
-            item.unplace();
-        }
     }
 
     public void writeTo(AnnotatedOutput out) {
@@ -118,6 +116,10 @@ public abstract class Section<T extends Item> {
         return offset;
     }
 
+    public List<T> getItems() {
+        return Collections.unmodifiableList(items);
+    }
+
     protected T getInternedItem(T item) {
         if (uniqueItems == null) {
             buildInternedItemMap();
@@ -132,5 +134,9 @@ public abstract class Section<T extends Item> {
         }
     }
 
-    public abstract T intern(DexFile dexFile, T item);
+    protected void sortSection() {
+        Collections.sort(items);
+    }
+
+    public abstract T intern(T item);
 }

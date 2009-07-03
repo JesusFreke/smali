@@ -28,8 +28,7 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 import java.io.UnsupportedEncodingException;
 
@@ -46,9 +45,9 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
     /** the endianness tag */
     private static final int ENDIAN_TAG = 0x12345678;
 
-    private final FixedByteArrayField magicField;
+    private final FixedSizeByteArrayField magicField;
     private final IntegerField checksumField;
-    private final FixedByteArrayField signatureField;
+    private final FixedSizeByteArrayField signatureField;
     private final IntegerField fileSizeField;
     private final IntegerField headerSizeField;
     private final IntegerField endianTagField;
@@ -64,20 +63,20 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
     private final IntegerField dataSizeField;
     private final IntegerField dataOffField;
 
-    public HeaderItem(final DexFile file, int index) {
-        super(index);
+    public HeaderItem(final DexFile dexFile, int index) {
+        super(dexFile, index);
 
         try
         {
             fields = new Field[] {
-                    magicField = new FixedByteArrayField(MAGIC.getBytes("US-ASCII"), "magic"),
+                    magicField = new FixedSizeByteArrayField(MAGIC.getBytes("US-ASCII"), "magic"),
                     checksumField = new IntegerField("checksum") {
                         public void writeTo(AnnotatedOutput out) {
                             cacheValue(0);
                             super.writeTo(out);
                         }
                     },
-                    signatureField = new FixedByteArrayField(20, "signature") {
+                    signatureField = new FixedSizeByteArrayField(20, "signature") {
                         public void writeTo(AnnotatedOutput out) {
                             for (int i = 0; i < value.length; i++) {
                                 value[i] = 0;
@@ -85,64 +84,49 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
                             super.writeTo(out);
                         }
                     },
-                    fileSizeField = new IntegerField("file_size") {
-                        public void writeTo(AnnotatedOutput out) {
-                            cacheValue(file.getFileSize());
-                            super.writeTo(out);
-                        }
-                    },
+                    fileSizeField = new IntegerField("file_size"),
                     headerSizeField = new IntegerField(HEADER_SIZE,"header_size"),
                     endianTagField = new IntegerField(ENDIAN_TAG,"endian_tag"),
                     linkSizeField = new IntegerField(0,"link_size"),
                     linkOffField = new IntegerField(0,"link_off"),
                     mapOffField = new IntegerField("map_off") {
                         public void writeTo(AnnotatedOutput out) {
-                            cacheValue(file.MapSection.getOffset());
+                            cacheValue(dexFile.MapSection.getOffset());
                             super.writeTo(out);
                         }
                     },
                     StringIdsHeaderField = new SectionHeaderInfo("string_ids") {
                         protected Section getSection() {
-                            return file.StringIdsSection;
+                            return dexFile.StringIdsSection;
                         }
                     },
                     TypeIdsHeaderField = new SectionHeaderInfo("type_ids") {
                          protected Section getSection() {
-                             return file.TypeIdsSection;
+                             return dexFile.TypeIdsSection;
                          }
                     },
                     ProtoIdsHeaderField = new SectionHeaderInfo("proto_ids") {
                          protected Section getSection() {
-                             return file.ProtoIdsSection;
+                             return dexFile.ProtoIdsSection;
                          }
                     },
                     FieldIdsHeaderField = new SectionHeaderInfo("field_ids") {
                          protected Section getSection() {
-                             return file.FieldIdsSection;
+                             return dexFile.FieldIdsSection;
                          }
                     },
                     MethodIdsHeaderField = new SectionHeaderInfo("method_ids") {
                          protected Section getSection() {
-                             return file.MethodIdsSection;
+                             return dexFile.MethodIdsSection;
                          }
                     },
                     ClassDefsHeaderField = new SectionHeaderInfo("class_defs") {
                          protected Section getSection() {
-                             return file.ClassDefsSection;
+                             return dexFile.ClassDefsSection;
                          }
                     },
-                    dataSizeField = new IntegerField("data_size") {
-                        public void writeTo(AnnotatedOutput out) {
-                            cacheValue(file.getDataSize());
-                            super.writeTo(out);
-                        }
-                    },
-                    dataOffField = new IntegerField("data_off") {
-                        public void writeTo(AnnotatedOutput out) {
-                            cacheValue(file.getDataOffset());
-                            super.writeTo(out);
-                        }
-                    }
+                    dataSizeField = new IntegerField("data_size"),
+                    dataOffField = new IntegerField("data_off")
             };
         } catch (UnsupportedEncodingException ex) {
             throw new RuntimeException("Error while creating the magic header field.", ex);
@@ -168,5 +152,17 @@ public class HeaderItem extends IndexedItem<HeaderItem> {
     public int compareTo(HeaderItem o) {
         //there is only 1 header item
         return 0;
+    }
+
+    protected void setFileSize(int size) {
+        this.fileSizeField.cacheValue(size);
+    }
+
+    protected void setDataSize(int size) {
+        this.dataSizeField.cacheValue(size);
+    }
+
+    protected void setDataOffset(int offset) {
+        this.dataOffField.cacheValue(offset);
     }
 }

@@ -28,8 +28,7 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-import org.jf.dexlib.util.*;
+import org.jf.dexlib.Util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,9 +49,10 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
     private final EncodedMemberList<EncodedMethod> directMethodsListField;
     private final EncodedMemberList<EncodedMethod> virtualMethodsListField;
 
+    private ClassDefItem parent = null;
 
     public ClassDataItem(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         fields = new Field[] {
                 staticFieldsCountField = new ListSizeField(staticFieldList,
@@ -96,37 +96,39 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
 
     public int addField(EncodedField encodedField) {
         if (encodedField.isStatic()) {
-            staticFieldList.add(encodedField);
-            Collections.sort(staticFieldList);
-            return Collections.binarySearch(staticFieldList, encodedField);
+            int index = Collections.binarySearch(staticFieldList, encodedField);
+            if (index >= 0) {
+                throw new RuntimeException("A static field of that name and type is already present");
+            }
+            index = (index + 1) * -1;
+            staticFieldList.add(index, encodedField);
+            return index;
         } else {
-            instanceFieldList.add(encodedField);
-            Collections.sort(instanceFieldList);
-            return Collections.binarySearch(instanceFieldList, encodedField);
+            int index = Collections.binarySearch(instanceFieldList, encodedField);
+            if (index >= 0) {
+                throw new RuntimeException("An instance field of that name and type is already present");
+            }
+            index = (index + 1) * -1;
+            instanceFieldList.add(index, encodedField);
+            return index;
         }
     }
 
     public List<EncodedField> getStaticFields() {
-        return (List<EncodedField>)staticFieldList.clone();
+        return Collections.unmodifiableList(staticFieldList);
     }
 
     public List<EncodedField> getInstanceFields() {
-        return (List<EncodedField>)instanceFieldList.clone();
+        return Collections.unmodifiableList(instanceFieldList);
     }
 
     public List<EncodedMethod> getDirectMethods() {
-        return (List<EncodedMethod>)directMethodList.clone();
+        return Collections.unmodifiableList(directMethodList);
     }
 
     public List<EncodedMethod> getVirtualMethods() {
-        return (List<EncodedMethod>)virtualMethodList.clone();
+        return Collections.unmodifiableList(virtualMethodList);
     }                                      
-
-    //TODO: GROT
-    public EncodedField getStaticFieldAtIndex(int i)
-    {
-        return staticFieldList.get(i);
-    }
 
     private static abstract class EncodedMember<T extends EncodedMember<T>> extends CompositeField<T> implements Field<T>, Comparable<T> 
     {
@@ -269,7 +271,7 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
             return (accessFlagsField.getCachedValue() & AccessFlags.STATIC.getValue()) != 0;
         }
 
-        public FieldIdItem getFieldReference() {
+        public FieldIdItem getField() {
             return fieldReferenceField.getReference();
         }
 
@@ -309,6 +311,10 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
                     this.codeItemReferenceField = new OffsettedItemReference<CodeItem>(dexFile, codeItem,
                             new Leb128Field(null), "code_off")
             };
+
+            if (codeItem != null) {
+                codeItem.setParent(methodIdItem);
+            }
         }
 
         protected void setPreviousMember(EncodedMethod previousMethod) {
@@ -326,6 +332,23 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
         public boolean isDirect() {
             return ((accessFlagsField.getCachedValue() & (AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
                     AccessFlags.CONSTRUCTOR.getValue())) != 0);
+        }
+
+        public void readFrom(Input in) {
+            super.readFrom(in);
+            CodeItem codeItem = codeItemReferenceField.getReference();
+            if (codeItem != null) {
+                codeItem.setParent(methodReferenceField.getReference());
+            }
+        }
+
+        public void copyTo(DexFile dexFile, EncodedMethod copy) {
+            super.copyTo(dexFile, copy);
+
+            CodeItem codeItem = copy.codeItemReferenceField.getReference();
+            if (codeItem != null) {
+                codeItem.setParent(copy.methodReferenceField.getReference());
+            }
         }
 
         public int getAccessFlags() {
@@ -394,5 +417,22 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
 
     public String getConciseIdentity() {
         return "class_data_item @0x" + Integer.toHexString(getOffset());
+    }
+
+    protected void setParent(ClassDefItem classDefItem) {
+        this.parent = classDefItem;
+    }
+
+    public int compareTo(ClassDataItem other) {
+        if (parent == null) {
+            if (other.parent == null) {
+                return 0;
+            }
+            return -1;
+        }
+        if (other.parent == null) {
+            return 1;
+        }
+        return parent.compareTo(other.parent);
     }
 }

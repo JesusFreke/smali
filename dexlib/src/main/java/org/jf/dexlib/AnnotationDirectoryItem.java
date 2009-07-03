@@ -28,11 +28,9 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryItem> {
     private final ArrayList<FieldAnnotation> fieldAnnotationList = new ArrayList<FieldAnnotation>();
@@ -46,9 +44,17 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
     private final FieldListField<FieldAnnotation> fieldAnnotationListField;
     private final FieldListField<MethodAnnotation> methodAnnotationListField;
     private final FieldListField<ParameterAnnotation> parameterAnnotationListField;
+
+
+    //typically each AnnotationDirectoryItem will have a distinct parent. The only case that isn't true is when
+    //the AnnotationDirectoryItem *only* contains class annotations, with no other type of annotation. In that
+    //case, the same AnnotationDirectoryItem could be references from multiple classes.
+    //This isn't a problem though, because this field is only used in compareTo to determine the sort order,
+    //which handles it as a special case
+    private ClassDefItem parent = null;
                                              
-    public AnnotationDirectoryItem(final DexFile dexFile, int offset) {
-        super(offset);
+    protected AnnotationDirectoryItem(final DexFile dexFile, int offset) {
+        super(dexFile, offset);
 
         fields = new Field[] {
                 classAnnotationsReferenceField = new OffsettedItemReference<AnnotationSetItem>(
@@ -78,7 +84,7 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
                 }
         };
     }
-    
+
     public AnnotationDirectoryItem(final DexFile dexFile,
                                    AnnotationSetItem classAnnotations,
                                    List<FieldAnnotation> fieldAnnotations,
@@ -103,9 +109,11 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
 
     public int place(int index, int offset)
     {
-        Collections.sort(fieldAnnotationList);
-        Collections.sort(methodAnnotationList);
-        Collections.sort(parameterAnnotationList);
+        if (!dexFile.getInplace()) {
+            Collections.sort(fieldAnnotationList);
+            Collections.sort(methodAnnotationList);
+            Collections.sort(parameterAnnotationList);
+        }
         return super.place(index, offset);
     }
 
@@ -119,6 +127,64 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
 
     public String getConciseIdentity() {
         return "annotation_directory_item @0x" + Integer.toHexString(getOffset());
+    }
+
+    public AnnotationSetItem getClassAnnotations() {
+        return classAnnotationsReferenceField.getReference();
+    }
+
+    public List<MethodAnnotation> getMethodAnnotations() {
+        return Collections.unmodifiableList(methodAnnotationList);
+    }
+
+    public List<FieldAnnotation> getFieldAnnotations() {
+        return Collections.unmodifiableList(fieldAnnotationList);
+    }
+
+    public List<ParameterAnnotation> getParameterAnnotations() {
+        return Collections.unmodifiableList(parameterAnnotationList);
+    }
+
+
+    private boolean isInternable() {
+        //an instance is only internable if it has only class annotations, but
+        //no other type of annotation
+        if (classAnnotationsReferenceField.getReference() == null ||
+            fieldAnnotationList.size() > 0 ||
+            methodAnnotationList.size() > 0 ||
+            parameterAnnotationList.size() > 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public int hashCode() {
+        //an instance is only internable if it has only class annotations, but
+        //no other type of annotation
+        if (!isInternable()) {
+            return super.hashCode();
+        }
+        return classAnnotationsReferenceField.getReference().hashCode();
+    }
+
+    protected void setParent(ClassDefItem classDefItem) {
+        this.parent = classDefItem;
+    }
+
+    public int compareTo(AnnotationDirectoryItem annotationDirectoryItem) {
+        if (!isInternable()) {
+            if (!annotationDirectoryItem.isInternable()) {
+                return parent.compareTo(annotationDirectoryItem.parent);
+            }
+            return -1;
+        }
+
+        if (!annotationDirectoryItem.isInternable()) {
+            return 1;
+        }
+
+        return classAnnotationsReferenceField.getReference().compareTo(
+                annotationDirectoryItem.classAnnotationsReferenceField.getReference());
     }
 
     public static class FieldAnnotation extends CompositeField<FieldAnnotation>
@@ -146,57 +212,82 @@ public class AnnotationDirectoryItem extends OffsettedItem<AnnotationDirectoryIt
             return ((Integer) fieldReferenceField.getReference().getIndex()).compareTo(
                     o.fieldReferenceField.getReference().getIndex());
         }
+
+        public FieldIdItem getField() {
+            return fieldReferenceField.getReference();
+        }
+
+        public AnnotationSetItem getAnnotationSet() {
+            return annotationSetReferenceField.getReference();
+        }
     }
 
     public static class MethodAnnotation extends CompositeField<MethodAnnotation>
             implements Comparable<MethodAnnotation> {
-        private final IndexedItemReference<MethodIdItem> method;
-        private final OffsettedItemReference<AnnotationSetItem> annotationSet;
+        private final IndexedItemReference<MethodIdItem> methodReferenceField;
+        private final OffsettedItemReference<AnnotationSetItem> annotationSetReferenceField;
 
         public MethodAnnotation(DexFile dexFile) {
             super("method_annotation");
             fields = new Field[] {
-                    method = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection,
+                    methodReferenceField = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection,
                             new IntegerField(null), "method_idx"),
-                    annotationSet = new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection,
+                    annotationSetReferenceField = new OffsettedItemReference<AnnotationSetItem>(dexFile.AnnotationSetsSection,
                             new IntegerField(null), "annotations_off")
             };
         }
 
         public MethodAnnotation(DexFile dexFile, MethodIdItem method, AnnotationSetItem annotationSet) {
             this(dexFile);
-            this.method.setReference(method);
-            this.annotationSet.setReference(annotationSet);
+            this.methodReferenceField.setReference(method);
+            this.annotationSetReferenceField.setReference(annotationSet);
         }
 
         public int compareTo(MethodAnnotation o) {
-            return ((Integer)method.getReference().getIndex()).compareTo(o.method.getReference().getIndex());
+            return ((Integer) methodReferenceField.getReference().getIndex()).compareTo(o.methodReferenceField.getReference().getIndex());
+        }
+
+        public MethodIdItem getMethod() {
+            return methodReferenceField.getReference();
+        }
+
+        public AnnotationSetItem getAnnotationSet() {
+            return annotationSetReferenceField.getReference();
         }
     }
 
     public static class ParameterAnnotation extends CompositeField<ParameterAnnotation>
             implements Comparable<ParameterAnnotation> {
-        private final IndexedItemReference<MethodIdItem> method;
-        private final OffsettedItemReference<AnnotationSetRefList> parameterAnnotations;
-        
+        private final IndexedItemReference<MethodIdItem> methodReferenceField;
+        private final OffsettedItemReference<AnnotationSetRefList> parameterAnnotationsReferenceField;
+
         public ParameterAnnotation(DexFile dexFile) {
             super("parameter_annotation");              
             fields = new Field[] {
-                    method = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection,
+                    methodReferenceField = new IndexedItemReference<MethodIdItem>(dexFile.MethodIdsSection,
                             new IntegerField(null), "method_idx"),
-                    parameterAnnotations = new OffsettedItemReference<AnnotationSetRefList>(
+                    parameterAnnotationsReferenceField = new OffsettedItemReference<AnnotationSetRefList>(
                             dexFile.AnnotationSetRefListsSection, new IntegerField(null), "annotations_off")
             };
         }
 
         public ParameterAnnotation(DexFile dexFile, MethodIdItem method, AnnotationSetRefList parameterAnnotations) {
             this(dexFile);
-            this.method.setReference(method);
-            this.parameterAnnotations.setReference(parameterAnnotations);
+            this.methodReferenceField.setReference(method);
+            this.parameterAnnotationsReferenceField.setReference(parameterAnnotations);
         }
 
         public int compareTo(ParameterAnnotation o) {
-            return ((Integer)method.getReference().getIndex()).compareTo(o.method.getReference().getIndex());
+            return ((Integer) methodReferenceField.getReference().getIndex()).compareTo(o.methodReferenceField.getReference().getIndex());
         }
+
+        public MethodIdItem getMethod() {
+            return methodReferenceField.getReference();
+        }
+
+        public AnnotationSetRefList getParameterAnnotations() {
+            return parameterAnnotationsReferenceField.getReference();
+        }
+
     }
 }

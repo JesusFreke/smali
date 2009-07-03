@@ -20,12 +20,11 @@ package org.jf;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.jf.smali.main;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
-import org.jf.smali.smali;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Assembles files in the smali assembly language
@@ -58,6 +57,11 @@ public class SmaliMojo
      */
     private File outputFile;
 
+    /**
+     * @parameter default-value=null
+     */
+    private File dumpFile;
+
     public void execute()
         throws MojoExecutionException
     {
@@ -65,7 +69,19 @@ public class SmaliMojo
 
         try
         {
-            smali.main(new String[]{"--output=" + outputFile.getAbsolutePath(), sourceDirectory.getAbsolutePath()});
+            List<String> args = new ArrayList<String>();
+            args.add("-o");
+            args.add(outputFile.getAbsolutePath());
+
+
+            if (dumpFile != null) {
+                args.add("-d");
+                args.add(dumpFile.getAbsolutePath());
+            }
+
+            args.add(sourceDirectory.getAbsolutePath());
+
+            main.main(args.toArray(new String[args.size()]));
         } catch (Exception ex)
         {
             throw new MojoExecutionException("oops!", ex);

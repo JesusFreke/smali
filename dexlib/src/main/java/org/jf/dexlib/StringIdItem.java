@@ -28,11 +28,13 @@
 
 package org.jf.dexlib;
 
+import org.jf.dexlib.Util.Utf8Utils;
+
 public class StringIdItem extends IndexedItem<StringIdItem> {
     private final OffsettedItemReference<StringDataItem> stringDataReferenceField;
 
     public StringIdItem(DexFile dexFile, int index) {
-        super(index);
+        super(dexFile, index);
         fields = new Field[] {
                 stringDataReferenceField = new OffsettedItemReference<StringDataItem>(dexFile.StringDataSection,
                         new IntegerField(null), "string_data_off")
@@ -45,7 +47,7 @@ public class StringIdItem extends IndexedItem<StringIdItem> {
     }
 
     public StringIdItem(DexFile dexFile, String value) {
-        this(dexFile, new StringDataItem(value));
+        this(dexFile, new StringDataItem(dexFile, value));
     }
 
     protected int getAlignment() {
@@ -57,11 +59,15 @@ public class StringIdItem extends IndexedItem<StringIdItem> {
     }
 
     public String getConciseIdentity() {
-        return "string_id_item: " + getStringValue();
+        return "string_id_item: " + Utf8Utils.escapeString(getStringValue());
     }
 
     public String getStringValue() {
         return stringDataReferenceField.getReference().getStringValue();
+    }
+
+    public StringDataItem getStringData() {
+        return stringDataReferenceField.getReference();
     }
 
     public int compareTo(StringIdItem o) {

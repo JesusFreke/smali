@@ -27,12 +27,13 @@
  */
 
 
-import org.jf.dexlib.util.TryListBuilder;
-import org.jf.dexlib.util.Pair;
-import org.jf.dexlib.TypeIdItem;
-import org.jf.dexlib.DexFile;
 import org.jf.dexlib.CodeItem;
-import org.junit.*;
+import org.jf.dexlib.DexFile;
+import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.Util.Pair;
+import org.jf.dexlib.Util.TryListBuilder;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -64,10 +65,12 @@ public class TryListBuilderTest
 
         Assert.assertTrue(encodedCatchHandler.getCatchAllAddress() == catchAllAddress);
 
-        Assert.assertTrue(encodedCatchHandler.getHandlerCount() == handlers.length);
+        List<CodeItem.EncodedTypeAddrPair> typeAddrPairs = encodedCatchHandler.getHandlers();
+
+        Assert.assertTrue(typeAddrPairs.size() == handlers.length);
 
         for (int i=0; i<handlers.length; i++) {
-            CodeItem.EncodedTypeAddrPair typeAddrPair = encodedCatchHandler.getHandler(i);
+            CodeItem.EncodedTypeAddrPair typeAddrPair = typeAddrPairs.get(i);
             Handler handler = handlers[i];
 
             Assert.assertTrue(typeAddrPair.getTypeReferenceField().getTypeDescriptor().compareTo(handler.type) == 0);
@@ -79,7 +82,7 @@ public class TryListBuilderTest
     public void singleTryTest() {
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, "Ljava/lang/Exception;");
         tryListBuilder.addHandler(typeIdItem, 2, 5, 100);
 
@@ -95,7 +98,7 @@ public class TryListBuilderTest
     public void singleTryWithCatchAllTest() {
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, "Ljava/lang/Exception;");
         tryListBuilder.addHandler(typeIdItem, 2, 5, 100);
 
@@ -114,7 +117,7 @@ public class TryListBuilderTest
         //      |-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, "Ljava/lang/Exception;");
         tryListBuilder.addHandler(typeIdItem, 2, 5, 100);
 
@@ -135,7 +138,7 @@ public class TryListBuilderTest
         //         |-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, "Ljava/lang/Exception;");
         tryListBuilder.addHandler(typeIdItem, 2, 5, 100);
 
@@ -156,7 +159,7 @@ public class TryListBuilderTest
         //|-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, "Ljava/lang/Exception;");
         tryListBuilder.addHandler(typeIdItem, 5, 10, 101);
         tryListBuilder.addHandler(typeIdItem, 2, 5, 100);
@@ -176,7 +179,7 @@ public class TryListBuilderTest
         //|-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, "Ljava/lang/Exception;");
 
         tryListBuilder.addHandler(typeIdItem, 10, 15, 101);
@@ -198,7 +201,7 @@ public class TryListBuilderTest
         //|-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -218,7 +221,7 @@ public class TryListBuilderTest
         //   |-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -242,7 +245,7 @@ public class TryListBuilderTest
         //|-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -265,7 +268,7 @@ public class TryListBuilderTest
         // |---|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -288,7 +291,7 @@ public class TryListBuilderTest
         //|-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -311,7 +314,7 @@ public class TryListBuilderTest
         //|---|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -333,7 +336,7 @@ public class TryListBuilderTest
         //|-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -355,7 +358,7 @@ public class TryListBuilderTest
         //  |---|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -377,7 +380,7 @@ public class TryListBuilderTest
         //|-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
 
@@ -401,7 +404,7 @@ public class TryListBuilderTest
         //|--------------------|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
         TypeIdItem typeIdItem1 = new TypeIdItem(dexFile, "Ljava/lang/Exception1;");
         TypeIdItem typeIdItem2 = new TypeIdItem(dexFile, "Ljava/lang/Exception2;");
         TypeIdItem typeIdItem3= new TypeIdItem(dexFile, "Ljava/lang/Exception3;");
@@ -431,7 +434,7 @@ public class TryListBuilderTest
         // |---|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
 
         tryListBuilder.addCatchAllHandler(2, 8, 100);
         tryListBuilder.addCatchAllHandler(4, 6, 101);
@@ -451,7 +454,7 @@ public class TryListBuilderTest
         //|-----|
         TryListBuilder tryListBuilder = new TryListBuilder();
 
-        DexFile dexFile = DexFile.makeBlankDexFile();
+        DexFile dexFile = new DexFile();
 
         tryListBuilder.addCatchAllHandler(4, 6, 100);
         tryListBuilder.addCatchAllHandler(2, 8, 101);

@@ -28,14 +28,15 @@
 
 package org.jf.dexlib.EncodedValue;
 
-import org.jf.dexlib.util.EncodedValueUtils;
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.EncodedValueUtils;
+import org.jf.dexlib.Util.Input;
 
 public class IntEncodedValueSubField
         extends SimpleEncodedValueSubField<Integer, IntEncodedValueSubField>
 {
     public IntEncodedValueSubField() {
+        return;
     }
 
     public IntEncodedValueSubField(int value) {

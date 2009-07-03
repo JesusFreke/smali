@@ -28,14 +28,12 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.ItemType;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.EncodedValueSubField;
-import org.jf.dexlib.util.TypeUtils;
+import org.jf.dexlib.Util.TypeUtils;
+import org.jf.dexlib.Util.Input;
 
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ClassDefItem extends IndexedItem<ClassDefItem> {
     private final IndexedItemReference<TypeIdItem> classTypeReferenceField;
@@ -52,7 +50,7 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
     private final DexFile dexFile;
 
     public ClassDefItem(DexFile dexFile, int index) {
-        super(index);
+        super(dexFile, index);
 
         this.dexFile = dexFile;
 
@@ -91,6 +89,10 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         classInterfacesListReferenceField.setReference(implementsList);
         sourceFileReferenceField.setReference(source);        
         classDataReferenceField.setReference(classDataItem);
+
+        if (classDataItem != null) {
+            classDataItem.setParent(this);
+        }
     }
 
     public TypeIdItem getSuperclass() {
@@ -113,6 +115,14 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return classTypeReferenceField.getReference().getTypeDescriptor();
     }
 
+    public String getSourceFile() {
+        StringIdItem stringIdItem = sourceFileReferenceField.getReference();
+        if (stringIdItem == null) {
+            return null;
+        }
+        return stringIdItem.getStringValue();
+    }
+
     public int getAccessFlags() {
         return accessFlagsField.getCachedValue();
     }
@@ -128,6 +138,10 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
 
     public ClassDataItem getClassData() {
         return classDataReferenceField.getReference();
+    }
+
+    public AnnotationDirectoryItem getAnnotationDirectory() {
+        return classAnnotationsReferenceField.getReference();
     }
 
     public String getConciseIdentity() {
@@ -146,10 +160,29 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
         return classTypeReferenceField.equals(other.classTypeReferenceField);
     }
 
+    public EncodedArrayItem getStaticInitializers() {
+        return staticFieldInitialValuesReferenceField.getReference();        
+    }
+
     public int compareTo(ClassDefItem o) {
-        //sorting is implemented in SortClassDefItemSection, so this class doesn't
-        //need an implementation of compareTo
-        return 0;
+        //The actual sorting for this class is implemented in SortClassDefItemSection.
+        //This method is just used for sorting the associated ClassDataItem items, so
+        //we can just do the comparison based on the offsets of the items
+        return ((Integer)this.offset).compareTo(o.offset);
+    }
+
+    public void copyTo(DexFile dexFile, ClassDefItem copy) {
+        super.copyTo(dexFile, copy);
+
+        AnnotationDirectoryItem annotationDirectoryItem = copy.classAnnotationsReferenceField.getReference();
+        if (annotationDirectoryItem != null) {
+            annotationDirectoryItem.setParent(copy);
+        }
+
+        ClassDataItem classDataItem = copy.classDataReferenceField.getReference();
+        if (classDataItem != null) {
+            classDataItem.setParent(copy);
+        }
     }
 
     public void addField(ClassDataItem.EncodedField encodedField, EncodedValue initialValue) {
@@ -172,19 +205,48 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
 
             //All static fields before this one must have an initial value. Add any default values as needed
             for (int i=staticFieldInitialValuesList.size(); i < fieldIndex; i++) {
-                ClassDataItem.EncodedField staticField = classDataItem.getStaticFieldAtIndex(i);
+                ClassDataItem.EncodedField staticField = classDataItem.getStaticFields().get(i);
                 EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile,
-                        staticField.getFieldReference().getFieldType().getTypeDescriptor());
+                        staticField.getField().getFieldType().getTypeDescriptor());
                 EncodedValue encodedValue = new EncodedValue(dexFile, subField);
                 staticFieldInitialValuesList.add(i, encodedValue);
             }
 
             staticFieldInitialValuesList.add(fieldIndex, initialValue);
+        } else if (staticFieldInitialValuesList != null && encodedField.isStatic() && fieldIndex < staticFieldInitialValuesList.size()) {
+            EncodedValueSubField subField = TypeUtils.makeDefaultValueForType(dexFile,
+                    encodedField.getField().getFieldType().getTypeDescriptor());
+            EncodedValue encodedValue = new EncodedValue(dexFile, subField);
+            staticFieldInitialValuesList.add(fieldIndex, encodedValue);
         }
     }
 
     public void setAnnotations(AnnotationDirectoryItem annotations) {
         this.classAnnotationsReferenceField.setReference(annotations);
+        if (annotations != null) {
+            annotations.setParent(this);
+        }
+    }
+
+    public void setClassDataItem(ClassDataItem classDataItem) {
+        this.classDataReferenceField.setReference(classDataItem);
+        if (classDataItem != null) {
+            classDataItem.setParent(this);
+        }
+    }
+
+    public void readFrom(Input in, int index) {
+        super.readFrom(in, index);
+
+        ClassDataItem classDataItem = classDataReferenceField.getReference();
+        if (classDataItem != null) {
+            classDataItem.setParent(this);
+        }
+
+        AnnotationDirectoryItem annotationDirectoryItem = classAnnotationsReferenceField.getReference();
+        if (annotationDirectoryItem != null) {
+            annotationDirectoryItem.setParent(this);
+        }
     }
 
     public static int placeClassDefItems(IndexedSection<ClassDefItem> section, int offset) {
@@ -214,6 +276,20 @@ public class ClassDefItem extends IndexedItem<ClassDefItem> {
 
         public int placeSection(int offset) {
             currentOffset = offset;
+
+            if (section.dexFile.getSortAllItems()) {
+                //presort the list, to guarantee a unique ordering
+                Collections.sort(section.items, new Comparator<ClassDefItem>() {
+                    public int compare(ClassDefItem classDefItem, ClassDefItem classDefItem1) {
+                        return classDefItem.getClassType().compareTo(classDefItem1.getClassType());
+                    }
+                });
+            }
+
+            for (ClassDefItem classDefItem: section.items) {
+                classDefItem.offset = -1;
+            }
+
             for (ClassDefItem classDefItem: section.items) {
                 placeClass(classDefItem);
             }

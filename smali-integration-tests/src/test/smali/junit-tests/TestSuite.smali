@@ -20,8 +20,11 @@
 .end annotation
 
 .annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
-    value = {   LFieldTest;,
+    value = {   LExceptionTest;,
+                LFieldTest;,
                 LSpecialInstructionPaddingTest;,
+                LStaticFieldInitializerTest;,
+                LLineTest;,
                 LFormat10x;,
                 LFormat10t;,
                 LFormat11n;,

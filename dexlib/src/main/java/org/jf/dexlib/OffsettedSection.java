@@ -28,14 +28,17 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.util.Input;
+import org.jf.dexlib.Util.Input;
 
 import java.util.HashMap;
+import java.util.Collections;
+import java.util.Comparator;
 
 public abstract class OffsettedSection<T extends OffsettedItem<T>> extends Section<T> {
     protected HashMap<Integer, T> itemsByOffset;    
     
-    public OffsettedSection() {
+    public OffsettedSection(DexFile dexFile) {
+        super(dexFile);
         itemsByOffset = new HashMap<Integer, T>();
     }
 
@@ -57,19 +60,25 @@ public abstract class OffsettedSection<T extends OffsettedItem<T>> extends Secti
         return item;
     }
 
-    public void readFrom(int size, Input in) {        
+    public void readFrom(int size, Input in) {
+        this.offset = in.getCursor();
         for (int i = 0; i < size; i++) {
             T item = getByOffset(in.getCursor());
-            item.readFrom(in);
+            item.readFrom(in, i);
 
-            //TODO: why are we aligning afterwards?
             in.alignTo(item.getAlignment());
         }
+        //sort the items list by offset
+        Collections.sort(items, new Comparator<T>() {
+            public int compare(T t, T t1) {
+                return ((Integer)t.getOffset()).compareTo(t1.getOffset());
+            }
+        });
     }
 
     protected abstract T make(int offset);
 
-    public T intern(DexFile dexFile, T item) {
+    public T intern(T item) {
         T itemToReturn = getInternedItem(item);
 
         if (itemToReturn == null) {

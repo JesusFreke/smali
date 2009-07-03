@@ -28,16 +28,15 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.code.Instruction;
-import org.jf.dexlib.code.Opcode;
-import org.jf.dexlib.code.InstructionField;
-import org.jf.dexlib.ItemType;
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.Code.InstructionField;
+import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Collections;
 
 public class CodeItem extends OffsettedItem<CodeItem> {
     private final ArrayList<InstructionField> instructionList;
@@ -55,8 +54,10 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     private final FieldListField<TryItem> triesListField;
     private final EncodedCatchHandlerList catchHandlersListField;
 
+    private MethodIdItem parent = null;
+
     public CodeItem(final DexFile dexFile, int offset) {
-        super(offset);
+        super(dexFile, offset);
 
         instructionList = new ArrayList<InstructionField>();
 
@@ -106,6 +107,10 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         inArgumentCountField.cacheValue(inArguments);
         outArgumentCountField.cacheValue(instructionListField.getOutArguments());
         debugInfoReferenceField.setReference(debugInfo);
+
+        if (debugInfo != null) {
+            debugInfo.setParent(this);
+        }
     }
 
     protected int getAlignment() {
@@ -121,7 +126,19 @@ public class CodeItem extends OffsettedItem<CodeItem> {
     }
 
     public List<InstructionField> getInstructions() {
-        return (List<InstructionField>)instructionList.clone();
+        return Collections.unmodifiableList(instructionList);
+    }
+
+    public List<TryItem> getTries() {
+        return Collections.unmodifiableList(tryItems);
+    }
+
+    public DebugInfoItem getDebugInfo() {
+        return debugInfoReferenceField.getReference();
+    }
+
+    protected void setParent(MethodIdItem methodIdItem) {
+        this.parent = methodIdItem;
     }
 
     public void copyTo(DexFile dexFile, CodeItem copy)
@@ -133,11 +150,38 @@ public class CodeItem extends OffsettedItem<CodeItem> {
         //the catchHandler copies will already exist
         catchHandlersListField.copyTo(dexFile, copy.catchHandlersListField);
         triesListField.copyTo(dexFile, copy.triesListField);
+
+        DebugInfoItem copyDebugInfo = copy.getDebugInfo();
+        if (copyDebugInfo != null) {
+            copyDebugInfo.setParent(copy);
+        }
+    }
+
+    public void readFrom(Input in, int index) {
+        super.readFrom(in, index);
+
+        DebugInfoItem debugInfoItem = debugInfoReferenceField.getReference();
+        if (debugInfoItem != null) {
+            debugInfoItem.setParent(this);
+        }
     }
 
     public String getConciseIdentity() {
         //TODO: should mention the method name here
         return "code_item @0x" + Integer.toHexString(getOffset());
+    }
+
+    public int compareTo(CodeItem other) {
+        if (parent == null) {
+            if (other.parent == null) {
+                return 0;
+            }
+            return -1;
+        }
+        if (other.parent == null) {
+            return 1;
+        }
+        return parent.compareTo(other.parent);
     }
 
     public static class TryItem extends CompositeField<TryItem> {
@@ -205,11 +249,9 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
         public void copyTo(DexFile dexFile, CachedIntegerValueField _copy) {
             EncodedCatchHandlerReference copy = (EncodedCatchHandlerReference)_copy;
-            EncodedCatchHandler copiedItem = copy.getEncodedCatchHandlerList().getByOffset(
-                encodedCatchHandler.getOffsetInList());
+            EncodedCatchHandler copiedItem = copy.getEncodedCatchHandlerList().intern(encodedCatchHandler);
             copy.setReference(copiedItem);
         }
-
 
         public void writeTo(AnnotatedOutput out) {
             cacheValue(encodedCatchHandler.getOffsetInList());
@@ -231,8 +273,11 @@ public class CodeItem extends OffsettedItem<CodeItem> {
 
     public class EncodedCatchHandlerList extends CompositeField<EncodedCatchHandlerList> {
         private boolean fieldPresent = false;
+        //this field is only valid when reading a dex file in
         protected HashMap<Integer, EncodedCatchHandler> itemsByOffset =
                 new HashMap<Integer, EncodedCatchHandler>();
+
+        protected HashMap<EncodedCatchHandler, EncodedCatchHandler> uniqueItems = null;
 
         private final DexFile dexFile;
 
@@ -243,8 +288,27 @@ public class CodeItem extends OffsettedItem<CodeItem> {
                 itemsByOffset.put(offset, encodedCatchHandler);
             }
             return encodedCatchHandler;
+        }
 
+        public EncodedCatchHandler intern(EncodedCatchHandler item) {
+            if (uniqueItems == null) {
+                buildInternedItemMap();
+            }
+            EncodedCatchHandler encodedCatchHandler = uniqueItems.get(item);
+            if (encodedCatchHandler == null) {
+                encodedCatchHandler = new EncodedCatchHandler(dexFile, -1);
+                catchHandlerList.add(encodedCatchHandler);
+                item.copyTo(dexFile, encodedCatchHandler);
+                uniqueItems.put(encodedCatchHandler, encodedCatchHandler);
+            }
+            return encodedCatchHandler;
+        }
 
+        private void buildInternedItemMap() {
+            uniqueItems = new HashMap<EncodedCatchHandler, EncodedCatchHandler>();
+            for (EncodedCatchHandler item: catchHandlerList) {
+                uniqueItems.put(item, item);
+            }
         }
 
         public EncodedCatchHandlerList(final DexFile dexFile) {
@@ -312,6 +376,7 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             super.copyTo(dexFile, copy);
             copy.fieldPresent = fieldPresent;
             copy.itemsByOffset.clear();
+            int offset = 0;
             for (EncodedCatchHandler encodedCatchHandler: copy.listField.list) {
                 copy.itemsByOffset.put(encodedCatchHandler.offset, encodedCatchHandler);
             }
@@ -410,12 +475,8 @@ public class CodeItem extends OffsettedItem<CodeItem> {
             }
         }
 
-        public int getHandlerCount() {
-            return list.size();
-        }
-
-        public EncodedTypeAddrPair getHandler(int index) {
-            return list.get(index);
+        public List<EncodedTypeAddrPair> getHandlers() {
+            return Collections.unmodifiableList(list);
         }
     }
 

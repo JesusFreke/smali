@@ -29,12 +29,12 @@
 package org.jf.dexlib.EncodedValue;
 
 import org.jf.dexlib.*;
-import org.jf.dexlib.util.Input;
-import org.jf.dexlib.util.EncodedValueUtils;
-import org.jf.dexlib.util.AnnotatedOutput;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.EncodedValueUtils;
+import org.jf.dexlib.Util.Input;
 
 public class EncodedIndexedItemReference<T extends IndexedItem<T>>
-    implements EncodedValueSubField<EncodedIndexedItemReference<T>> {
+    implements EncodedValueSubField<EncodedIndexedItemReference<T>>, Comparable<EncodedValueSubField> {
     private int initialValueArg;
     private ValueType valueType;
 
@@ -100,8 +100,7 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
         if (item == null) {
             return;
         }
-        T copiedItem = copy.section.intern(dexFile, item);
-        copy.item = copiedItem;
+        copy.item = copy.section.intern(item);
     }
 
     public T getValue() {
@@ -121,4 +120,31 @@ public class EncodedIndexedItemReference<T extends IndexedItem<T>>
         return valueType;
     }
 
+    public int hashCode() {
+        if (item == null) {
+            return 0;
+        }
+        return item.hashCode();
+    }
+
+    public boolean equals(Object o) {
+     if (!(o instanceof EncodedIndexedItemReference)) {
+            return false;
+        }
+
+        EncodedIndexedItemReference other = (EncodedIndexedItemReference)o;
+        if (item != null) {
+            return item.equals(other.item);
+        } else {
+            return other.item == null;
+        }
+    }
+
+    public int compareTo(EncodedValueSubField t) {
+        int comp = getValueType().compareTo(t.getValueType());
+        if (comp == 0) {
+            return item.compareTo(((EncodedIndexedItemReference<T>)t).item);
+        }
+        return comp;
+    }
 }
