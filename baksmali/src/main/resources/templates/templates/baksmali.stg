@@ -5,9 +5,9 @@ smaliFile(classDef) ::=
 .class <classDef.AccessFlags: {<it> }><classDef.ClassType>
 <if(classDef.SuperType)>
 .super <classDef.SuperType>
-</n>
 <endif>
 <if(classDef.SourceFile)>
+
 .source "<classDef.SourceFile>"
 
 
