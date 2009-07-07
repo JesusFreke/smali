@@ -105,7 +105,7 @@ tokens {
 @lexer::header {
 package org.jf.smali;
 
-import java.util.ArrayDeque;
+import java.util.LinkedList;
 }
 
 @lexer::init {
@@ -113,7 +113,7 @@ import java.util.ArrayDeque;
 }
 
 @lexer::members {
-	protected ArrayDeque<Token> tokens = new ArrayDeque<Token>();
+	protected LinkedList<Token> tokens = new LinkedList<Token>();
 	
 	public void reset() {
 		super.reset();
