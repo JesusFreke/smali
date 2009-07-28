@@ -287,7 +287,7 @@ public class ClassDataItem extends OffsettedItem<ClassDataItem> {
         private final OffsettedItemReference<CodeItem> codeItemReferenceField;
 
         public EncodedMethod(DexFile dexFile, final EncodedMethod previousMethod) {
-            super("encedod_method");
+            super("encoded_method");
             Leb128DeltaField previousIndexField = null;
             if (previousMethod != null) {
                 previousIndexField = previousMethod.methodIndexField;
