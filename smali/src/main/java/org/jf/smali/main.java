@@ -270,7 +270,7 @@ public class main {
                 .create("d");
 
         Option outputOption = OptionBuilder.withLongOpt("output")
-                .withDescription("the directory where the disassembled files will be placed. The default is out.dex")
+                .withDescription("the name of the dex file that will be written. The default is out.dex")
                 .hasArg()
                 .withArgName("FILE")
                 .create("o");
