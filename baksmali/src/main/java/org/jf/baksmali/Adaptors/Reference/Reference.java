@@ -30,14 +30,14 @@ package org.jf.baksmali.Adaptors.Reference;
 
 import org.jf.dexlib.*;
 
-public abstract class Reference<T extends IndexedItem> {
+public abstract class Reference<T extends Item> {
     protected T item;
 
     protected Reference(T item) {
         this.item = item;
     }
 
-    public static Reference makeReference(IndexedItem item) {
+    public static Reference makeReference(Item item) {
         switch (item.getItemType()) {
             case TYPE_METHOD_ID_ITEM:
                 return new MethodReference((MethodIdItem)item);

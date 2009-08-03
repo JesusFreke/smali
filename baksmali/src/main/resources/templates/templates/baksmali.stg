@@ -262,21 +262,21 @@ Format51l(Instruction) ::=
 ArrayData(Instruction) ::=
 <<
 .array-data <Instruction.ElementWidth>
-    <Instruction.Values: {<it.ByteArray; format="unsigned",separator=" ">}; separator="\n">
+    <Instruction.Values: {<it; format="unsigned",separator=" ">}; separator="\n">
 .end array-data
 >>
 
 PackedSwitchData(Instruction) ::=
 <<
 .packed-switch <Instruction.FirstKey>
-    <Instruction.Targets: {pswitch_<it>:}; separator="\n">
+    <Instruction.Targets: {pswitch_<it.Target>:}; separator="\n">
 .end packed-switch
 >>
 
 SparseSwitchData(Instruction) ::=
 <<
 .sparse-switch
-    <Instruction.Keys,Instruction.Targets:{key,target | <key> -> sswitch_<target>:}; separator="\n">
+    <Instruction.Targets:{<it.Value> -> sswitch_<it.Target>:}; separator="\n">
 .end sparse-switch
 >>
 

@@ -28,16 +28,16 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.dexlib.EncodedValue.ArrayEncodedValueSubField;
 import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.dexlib.EncodedValue.ArrayEncodedValue;
 
 import java.util.List;
 import java.util.ArrayList;
 
 public class ArrayEncodedValueAdaptor extends EncodedValueAdaptor {
-    private ArrayEncodedValueSubField encodedArray;
+    private ArrayEncodedValue encodedArray;
 
-    public ArrayEncodedValueAdaptor(ArrayEncodedValueSubField encodedArray) {
+    public ArrayEncodedValueAdaptor(ArrayEncodedValue encodedArray) {
         this.encodedArray = encodedArray;        
     }
 
@@ -48,7 +48,7 @@ public class ArrayEncodedValueAdaptor extends EncodedValueAdaptor {
     public Object getValue() {
         List<EncodedValueAdaptor> encodedValues = new ArrayList<EncodedValueAdaptor>();
 
-        for (EncodedValue encodedValue: encodedArray.getValues()) {
+        for (EncodedValue encodedValue: encodedArray.values) {
             encodedValues.add(EncodedValueAdaptor.make(encodedValue));
         }
         return encodedValues;

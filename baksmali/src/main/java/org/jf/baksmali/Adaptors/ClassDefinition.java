@@ -38,9 +38,9 @@ public class ClassDefinition {
     private ClassDefItem classDefItem;
     private ClassDataItem classDataItem;
 
-    private HashMap<Integer, AnnotationSetItem> methodAnnotations = new HashMap<Integer, AnnotationSetItem>();
-    private HashMap<Integer, AnnotationSetItem> fieldAnnotations = new HashMap<Integer, AnnotationSetItem>();
-    private HashMap<Integer, AnnotationSetRefList> parameterAnnotations = new HashMap<Integer, AnnotationSetRefList>();
+    private HashMap<Integer, AnnotationSetItem> methodAnnotationsMap = new HashMap<Integer, AnnotationSetItem>();
+    private HashMap<Integer, AnnotationSetItem> fieldAnnotationsMap = new HashMap<Integer, AnnotationSetItem>();
+    private HashMap<Integer, AnnotationSetRefList> parameterAnnotationsMap = new HashMap<Integer, AnnotationSetRefList>();
 
     public ClassDefinition(ClassDefItem classDefItem) {
         this.classDefItem = classDefItem;
@@ -49,32 +49,29 @@ public class ClassDefinition {
     }
 
     private void buildAnnotationMaps() {
-        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotationDirectory();
+        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
         if (annotationDirectory == null) {
             return;
         }
 
-        List<AnnotationDirectoryItem.MethodAnnotation> methodAnnotationList = annotationDirectory.getMethodAnnotations();
-        if (methodAnnotationList != null) {
-            for (AnnotationDirectoryItem.MethodAnnotation methodAnnotation: methodAnnotationList) {
-                methodAnnotations.put(methodAnnotation.getMethod().getIndex(), methodAnnotation.getAnnotationSet());
+        annotationDirectory.iterateMethodAnnotations(new AnnotationDirectoryItem.MethodAnnotationIteratorDelegate() {
+            public void processMethodAnnotations(MethodIdItem method, AnnotationSetItem methodAnnotations) {
+                methodAnnotationsMap.put(method.getIndex(), methodAnnotations);
             }
-        }
+        });
 
-        List<AnnotationDirectoryItem.FieldAnnotation> fieldAnnotationList = annotationDirectory.getFieldAnnotations();
-        if (fieldAnnotationList != null) {
-            for (AnnotationDirectoryItem.FieldAnnotation fieldAnnotation: fieldAnnotationList) {
-                fieldAnnotations.put(fieldAnnotation.getField().getIndex(), fieldAnnotation.getAnnotationSet());
+        annotationDirectory.iterateFieldAnnotations(new AnnotationDirectoryItem.FieldAnnotationIteratorDelegate() {
+            public void processFieldAnnotations(FieldIdItem field, AnnotationSetItem fieldAnnotations) {
+                fieldAnnotationsMap.put(field.getIndex(), fieldAnnotations);
             }
-        }
+        });
 
-        List<AnnotationDirectoryItem.ParameterAnnotation> parameterAnnotationList =
-                annotationDirectory.getParameterAnnotations();
-        if (parameterAnnotationList != null) {
-            for (AnnotationDirectoryItem.ParameterAnnotation parameterAnnotation: parameterAnnotationList) {
-                parameterAnnotations.put(parameterAnnotation.getMethod().getIndex(), parameterAnnotation.getParameterAnnotations());
+        annotationDirectory.iteratParameterAnnotations(
+        new AnnotationDirectoryItem.ParameterAnnotationIteratorDelegate() {
+            public void processParameterAnnotations(MethodIdItem method, AnnotationSetRefList parameterAnnotations) {
+                parameterAnnotationsMap.put(method.getIndex(), parameterAnnotations);
             }
-        }
+        });
     }
 
     public List<String> getAccessFlags() {
@@ -100,16 +97,16 @@ public class ClassDefinition {
     }
 
     public String getSourceFile() {
-        return classDefItem.getSourceFile();
+        return classDefItem.getSourceFile().getStringValue();
     }
 
     public List<String> getInterfaces() {
         List<String> interfaces = new ArrayList<String>();
 
-        List<TypeIdItem> interfaceList = classDefItem.getInterfaces();
+        TypeListItem interfaceList = classDefItem.getInterfaces();
 
         if (interfaceList != null) {
-            for (TypeIdItem typeIdItem: interfaceList) {
+            for (TypeIdItem typeIdItem: interfaceList.getTypes()) {
                 interfaces.add(typeIdItem.getTypeDescriptor());
             }
         }
@@ -122,22 +119,22 @@ public class ClassDefinition {
 
         if (classDataItem != null) {
 
-            EncodedArrayItem encodedStaticInitializers = classDefItem.getStaticInitializers();
+            EncodedArrayItem encodedStaticInitializers = classDefItem.getStaticFieldInitializers();
 
-            List<EncodedValue> staticInitializers;
+            EncodedValue[] staticInitializers;
             if (encodedStaticInitializers != null) {
-                staticInitializers = encodedStaticInitializers.getEncodedArray().getValues();
+                staticInitializers = encodedStaticInitializers.getEncodedArray().values;
             } else {
-                staticInitializers = new ArrayList<EncodedValue>();
+                staticInitializers = new EncodedValue[0];
             }
 
             int i=0;
             for (ClassDataItem.EncodedField field: classDataItem.getStaticFields()) {
                 EncodedValue encodedValue = null;
-                if (i < staticInitializers.size()) {
-                    encodedValue = staticInitializers.get(i);
+                if (i < staticInitializers.length) {
+                    encodedValue = staticInitializers[i];
                 }
-                AnnotationSetItem annotationSet = fieldAnnotations.get(field.getField().getIndex());
+                AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
                 staticFields.add(new FieldDefinition(field, encodedValue, annotationSet));
                 i++;
             }
@@ -150,7 +147,7 @@ public class ClassDefinition {
 
         if (classDataItem != null) {
             for (ClassDataItem.EncodedField field: classDataItem.getInstanceFields()) {
-                AnnotationSetItem annotationSet = fieldAnnotations.get(field.getField().getIndex());
+                AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
                 instanceFields.add(new FieldDefinition(field, annotationSet));
             }
         }
@@ -163,8 +160,8 @@ public class ClassDefinition {
 
         if (classDataItem != null) {
             for (ClassDataItem.EncodedMethod method: classDataItem.getDirectMethods()) {
-                AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
-                AnnotationSetRefList parameterAnnotationList = parameterAnnotations.get(method.getMethod().getIndex());
+                AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
+                AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
                 directMethods.add(new MethodDefinition(method, annotationSet, parameterAnnotationList));
             }
         }
@@ -177,8 +174,8 @@ public class ClassDefinition {
 
         if (classDataItem != null) {
             for (ClassDataItem.EncodedMethod method: classDataItem.getVirtualMethods()) {
-                AnnotationSetItem annotationSet = methodAnnotations.get(method.getMethod().getIndex());
-                AnnotationSetRefList parameterAnnotationList = parameterAnnotations.get(method.getMethod().getIndex());
+                AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
+                AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
                 virtualMethods.add(new MethodDefinition(method, annotationSet, parameterAnnotationList));
             }
         }
@@ -187,7 +184,7 @@ public class ClassDefinition {
     }
 
     public List<AnnotationAdaptor> getAnnotations() {
-        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotationDirectory();
+        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
         if (annotationDirectory == null) {
             return null;
         }
@@ -199,7 +196,7 @@ public class ClassDefinition {
 
         List<AnnotationAdaptor> annotationAdaptors = new ArrayList<AnnotationAdaptor>();
 
-        for (AnnotationItem annotationItem: annotationSet.getAnnotationItems()) {
+        for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
             annotationAdaptors.add(new AnnotationAdaptor(annotationItem));
         }
         return annotationAdaptors;

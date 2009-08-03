@@ -29,6 +29,9 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
+
+import java.util.Iterator;
 
 public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSwitchDataPseudoInstruction> {
     private int baseAddress;
@@ -42,14 +45,27 @@ public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSw
         return instruction.getFirstKey();
     }
 
-    public String[] getTargets() {
-        int[] targetValues = instruction.getTargets();
-        String[] targets = new String[targetValues.length];
+    private static class PackedSwitchTarget {
+        public String Target;
+    }
 
-        for (int i=0; i<targetValues.length; i++) {
-            targets[i] = Integer.toHexString(targetValues[i] + baseAddress);
-        }
+    public Iterator<PackedSwitchTarget> getTargets() {
+        return new Iterator<PackedSwitchTarget>() {
+            Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.getTargets();
+            PackedSwitchTarget packedSwitchTarget = new PackedSwitchTarget();
 
-        return targets;
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            public PackedSwitchTarget next() {
+                PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
+                packedSwitchTarget.Target = Integer.toHexString(target.target + baseAddress);
+                return packedSwitchTarget;
+            }
+
+            public void remove() {
+            }
+        };
     }
 }

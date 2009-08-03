@@ -34,6 +34,7 @@ import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.ClassDefItem;
+import org.jf.dexlib.StringIdItem;
 
 import java.io.*;
 
@@ -57,7 +58,8 @@ public class baksmali {
         templates.registerRenderer(Byte.class, new ByteRenderer());
         templates.registerRenderer(Float.class, new FloatRenderer());
         templates.registerRenderer(Character.class, new CharRenderer());
-
+        templates.registerRenderer(StringIdItem.class, new StringIdItemRenderer());
+        
 
         for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
             /**

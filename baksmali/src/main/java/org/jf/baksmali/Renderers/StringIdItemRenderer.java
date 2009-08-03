@@ -26,20 +26,17 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.baksmali.Renderers;
 
-import org.jf.dexlib.Code.Format.Instruction3rc;
+import org.antlr.stringtemplate.AttributeRenderer;
+import org.jf.dexlib.StringIdItem;
 
-public class Instruction3rcMethodItem extends ReferenceInstructionFormatMethodItem<Instruction3rc> {
-    public Instruction3rcMethodItem(int offset, Instruction3rc instruction) {
-        super(offset, instruction);
+public class StringIdItemRenderer implements AttributeRenderer {
+    public String toString(Object o) {
+        return ((StringIdItem)o).getStringValue();
     }
 
-    public int getStartRegister() {
-        return instruction.getStartRegister();
-    }
-
-    public int getLastRegister() {
-        return instruction.getStartRegister() + instruction.getRegCount() - 1;
+    public String toString(Object o, String s) {
+        return toString(o);
     }
 }

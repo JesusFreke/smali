@@ -30,6 +30,8 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 
+import java.util.Iterator;
+
 public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSwitchDataPseudoInstruction> {
     private int baseAddress;
 
@@ -38,18 +40,29 @@ public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSw
         this.baseAddress = baseAddress;
     }
 
-    public int[] getKeys() {
-        return instruction.getKeys();
+    private static class SparseSwitchTarget {
+        public int Value;
+        public String Target;
     }
 
-    public String[] getTargets() {
-        int[] targetValues = instruction.getTargets();
-        String[] targets = new String[targetValues.length];
+    public Iterator<SparseSwitchTarget> getTargets() {
+        return new Iterator<SparseSwitchTarget>() {
+            Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.getTargets();
+            SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
 
-        for (int i=0; i<targetValues.length; i++) {
-            targets[i] = Integer.toHexString(targetValues[i] + baseAddress);
-        }
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
 
-        return targets;
+            public SparseSwitchTarget next() {
+                SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
+                sparseSwitchTarget.Value = target.value;
+                sparseSwitchTarget.Target = Integer.toHexString(target.target + baseAddress);
+                return sparseSwitchTarget;
+            }
+
+            public void remove() {
+            }
+        };
     }
 }

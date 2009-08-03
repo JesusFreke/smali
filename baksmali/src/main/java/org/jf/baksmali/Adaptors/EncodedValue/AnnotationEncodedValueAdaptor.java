@@ -28,17 +28,18 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.dexlib.EncodedValue.AnnotationEncodedValueSubField;
-import org.jf.dexlib.EncodedValue.AnnotationElement;
+import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
+import org.jf.dexlib.StringIdItem;
 import org.jf.baksmali.Adaptors.Reference.TypeReference;
 
 import java.util.List;
 import java.util.ArrayList;
 
 public class AnnotationEncodedValueAdaptor extends EncodedValueAdaptor {
-    private AnnotationEncodedValueSubField encodedAnnotation;
+    private AnnotationEncodedSubValue encodedAnnotation;
 
-    public AnnotationEncodedValueAdaptor(AnnotationEncodedValueSubField encodedAnnotation) {
+    public AnnotationEncodedValueAdaptor(AnnotationEncodedSubValue encodedAnnotation) {
         this.encodedAnnotation = encodedAnnotation;
     }
 
@@ -51,32 +52,35 @@ public class AnnotationEncodedValueAdaptor extends EncodedValueAdaptor {
     }
 
     public TypeReference getAnnotationType() {
-        return new TypeReference(encodedAnnotation.getAnnotationType());
+        return new TypeReference(encodedAnnotation.annotationType);
     }
 
     public List<AnnotationElementAdaptor> getElements() {
         List<AnnotationElementAdaptor> elements = new ArrayList<AnnotationElementAdaptor>();
 
-        for (AnnotationElement annotationElement: encodedAnnotation.getAnnotationElements()) {
-            elements.add(new AnnotationElementAdaptor(annotationElement));
+        for (int i=0; i<encodedAnnotation.names.length; i++) {
+            elements.add(new AnnotationElementAdaptor(encodedAnnotation.names[i], encodedAnnotation.values[i]));
         }
+
         return elements;
     }
 
 
     public static class AnnotationElementAdaptor {
-        private AnnotationElement annotationElement;
+        private StringIdItem name;
+        private EncodedValue value;
 
-        public AnnotationElementAdaptor(AnnotationElement annotationElement) {
-            this.annotationElement = annotationElement;
+        public AnnotationElementAdaptor(StringIdItem name, EncodedValue value) {
+            this.name = name;
+            this.value = value;
         }
 
         public String getName() {
-            return annotationElement.getName().getStringValue();
+            return name.getStringValue();
         }
 
         public EncodedValueAdaptor getValue() {
-            return EncodedValueAdaptor.make(annotationElement.getEncodedValue());
+            return EncodedValueAdaptor.make(value);
         }
     }
 }

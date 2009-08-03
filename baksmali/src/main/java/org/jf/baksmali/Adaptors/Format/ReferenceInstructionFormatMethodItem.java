@@ -28,18 +28,17 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.Instruction3rc;
+import org.jf.dexlib.Code.InstructionWithReference;
+import org.jf.baksmali.Adaptors.Reference.Reference;
 
-public class Instruction3rcMethodItem extends ReferenceInstructionFormatMethodItem<Instruction3rc> {
-    public Instruction3rcMethodItem(int offset, Instruction3rc instruction) {
+public abstract class ReferenceInstructionFormatMethodItem<T extends InstructionWithReference>
+    extends InstructionFormatMethodItem<T> {
+
+    public ReferenceInstructionFormatMethodItem(int offset, T instruction) {
         super(offset, instruction);
     }
 
-    public int getStartRegister() {
-        return instruction.getStartRegister();
-    }
-
-    public int getLastRegister() {
-        return instruction.getStartRegister() + instruction.getRegCount() - 1;
+    public Reference getReference() {
+        return Reference.makeReference(instruction.getReferencedItem());
     }
 }

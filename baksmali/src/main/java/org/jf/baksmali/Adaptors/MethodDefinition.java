@@ -30,12 +30,12 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.Format.*;
 import org.jf.dexlib.*;
+import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
-import org.jf.dexlib.Code.InstructionField;
 import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.InstructionIterator;
 import org.jf.dexlib.Util.AccessFlags;
-import org.jf.dexlib.Util.DebugInfoDecoder;
 
 import java.util.*;
 
@@ -49,8 +49,8 @@ public class MethodDefinition {
     public MethodDefinition(ClassDataItem.EncodedMethod encodedMethod, AnnotationSetItem annotationSet,
                             AnnotationSetRefList parameterAnnotations) {
         this.encodedMethod = encodedMethod;
-        this.methodIdItem = encodedMethod.getMethod();
-        this.codeItem = encodedMethod.getCodeItem();
+        this.methodIdItem = encodedMethod.method;
+        this.codeItem = encodedMethod.codeItem;
         this.annotationSet = annotationSet;
         this.parameterAnnotations = parameterAnnotations;
     }
@@ -64,7 +64,7 @@ public class MethodDefinition {
         if (accessFlags == null) {
             accessFlags = new ArrayList<String>();
 
-            for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(encodedMethod.getAccessFlags())) {
+            for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(encodedMethod.accessFlags)) {
                 accessFlags.add(accessFlag.toString());
             }
         }
@@ -106,7 +106,7 @@ public class MethodDefinition {
 
         List<AnnotationAdaptor> annotationAdaptors = new ArrayList<AnnotationAdaptor>();
 
-        for (AnnotationItem annotationItem: annotationSet.getAnnotationItems()) {
+        for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
             annotationAdaptors.add(new AnnotationAdaptor(annotationItem));
         }
         return annotationAdaptors;
@@ -122,9 +122,9 @@ public class MethodDefinition {
 
         List<AnnotationSetItem> annotations = new ArrayList<AnnotationSetItem>();
         if (parameterAnnotations != null) {
-            List<AnnotationSetItem> _annotations = parameterAnnotations.getAnnotationSets();
+            AnnotationSetItem[] _annotations = parameterAnnotations.getAnnotationSets();
             if (_annotations != null) {
-                annotations.addAll(_annotations);
+                annotations.addAll(Arrays.asList(_annotations));
             }
 
             parameterCount = annotations.size();
@@ -132,9 +132,11 @@ public class MethodDefinition {
 
         List<String> parameterNames = new ArrayList<String>();
         if (debugInfoItem != null) {
-            List<String> _parameterNames = debugInfoItem.getParameterNames();
+            StringIdItem[] _parameterNames = debugInfoItem.getParameterNames();
             if (_parameterNames != null) {
-                parameterNames.addAll(_parameterNames);
+                for (StringIdItem parameterName: _parameterNames) {
+                    parameterNames.add(parameterName.getStringValue());
+                }
             }
 
             if (parameterCount < parameterNames.size()) {
@@ -160,27 +162,7 @@ public class MethodDefinition {
         return parameterAdaptors;
     }
 
-    private List<List<AnnotationAdaptor>> getParameterAnnotations() {
-        if (parameterAnnotations == null) {
-            return null;
-        }
-
-        List<List<AnnotationAdaptor>> parameterAnnotationList = new ArrayList<List<AnnotationAdaptor>>();
-
-        List<AnnotationSetItem> annotationSets = parameterAnnotations.getAnnotationSets();
-
-        for (AnnotationSetItem annotationSet: annotationSets) {
-            List<AnnotationAdaptor> parameterAnnotationAdaptors = new ArrayList<AnnotationAdaptor>();
-            for (AnnotationItem annotationItem: annotationSet.getAnnotationItems()) {
-                parameterAnnotationAdaptors.add(new AnnotationAdaptor(annotationItem));
-            }
-            parameterAnnotationList.add(parameterAnnotationAdaptors);
-        }
-
-        return parameterAnnotationList;
-    }
-
-    public List<String> getParameterNames() {
+    public StringIdItem[] getParameterNames() {
         if (codeItem == null) {
             return null;
         }
@@ -189,8 +171,8 @@ public class MethodDefinition {
         if (debugInfoItem == null) {
             return null;
         }
-        
-        return debugInfoItem.getParameterNames();        
+
+        return debugInfoItem.getParameterNames();
     }
 
     private List<MethodItem> methodItems = null;
@@ -228,24 +210,44 @@ public class MethodDefinition {
                 return;
             }
 
-            int offset = 0;
-            for (InstructionField instructionField: codeItem.getInstructions()) {
-                Instruction instruction = instructionField.getInstruction();
-                if (instruction.getOpcode() == Opcode.PACKED_SWITCH) {
-                    packedSwitchMap.put(offset+((Instruction31t)instruction).getOffset(), offset);
-                } else if (instruction.getOpcode() == Opcode.SPARSE_SWITCH) {
-                    sparseSwitchMap.put(offset+((Instruction31t)instruction).getOffset(), offset);
-                }
+            final byte[] encodedInstructions = codeItem.getEncodedInstructions();
 
-                offset += instructionField.getSize(offset * 2) / 2;
-            }
+            InstructionIterator.IterateInstructions(encodedInstructions,
+                    new InstructionIterator.ProcessRawInstructionDelegate() {
+                        public void ProcessNormalInstruction(Opcode opcode, int index) {
+                            if (opcode == Opcode.PACKED_SWITCH) {
+                                Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
+                                        methodIdItem.getDexFile(), opcode, encodedInstructions, index);
+                                packedSwitchMap.put(ins.getOffset(), index/2);
+                            } else if (opcode == Opcode.SPARSE_SWITCH) {
+                                Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
+                                        methodIdItem.getDexFile(), opcode, encodedInstructions, index);
+                                sparseSwitchMap.put(ins.getOffset(),  index/2);
+                            }
+                        }
 
-            offset = 0;
-            for (InstructionField instructionField: codeItem.getInstructions()) {
-                addMethodItemsForInstruction(offset, instructionField);
-                blanks.add(new BlankMethodItem(offset));
-                offset += instructionField.getSize(offset*2) / 2;
-            }
+                        public void ProcessReferenceInstruction(Opcode opcode, int index) {
+                        }
+
+                        public void ProcessPackedSwitchInstruction(int index, int targetCount, int instructionLength) {
+                        }
+
+                        public void ProcessSparseSwitchInstruction(int index, int targetCount, int instructionLength) {
+                        }
+
+                        public void ProcessFillArrayDataInstruction(int index, int elementWidth, int elementCount, int instructionLength) {
+                        }
+                    });
+
+            InstructionIterator.IterateInstructions(methodIdItem.getDexFile(), encodedInstructions,
+                    new InstructionIterator.ProcessInstructionDelegate() {
+                        public void ProcessInstruction(int index, Instruction instruction) {
+                            int offset = index/2;
+                            addMethodItemsForInstruction(offset, instruction);
+                            blanks.add(new BlankMethodItem(offset));
+                        }
+                    });
+            
             blanks.remove(blanks.size()-1);
 
             addTries();
@@ -253,9 +255,7 @@ public class MethodDefinition {
             addDebugInfo();
         }
 
-        private void addMethodItemsForInstruction(int offset, InstructionField instructionField) {
-            Instruction instruction = instructionField.getInstruction();
-
+        private void addMethodItemsForInstruction(int offset, Instruction instruction) {
             switch (instruction.getFormat()) {
                 case Format10t:
                     instructions.add(new Instruction10tMethodItem(offset, (Instruction10t)instruction));
@@ -321,11 +321,11 @@ public class MethodDefinition {
                     return;
                 case Format31t:
                     instructions.add(new Instruction31tMethodItem(offset, (Instruction31t)instruction));
-                    if (instruction.getOpcode() == Opcode.FILL_ARRAY_DATA) {
+                    if (instruction.opcode == Opcode.FILL_ARRAY_DATA) {
                         labels.add(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), "array_"));
-                    } else if (instruction.getOpcode() == Opcode.PACKED_SWITCH) {
+                    } else if (instruction.opcode == Opcode.PACKED_SWITCH) {
                         labels.add(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), "pswitch_data_"));
-                    } else if (instruction.getOpcode() == Opcode.SPARSE_SWITCH) {
+                    } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
                         labels.add(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), "sswitch_data_"));
                     }
                     return;
@@ -346,36 +346,50 @@ public class MethodDefinition {
                     return;
                 case PackedSwitchData:
                 {
-                    Integer baseAddress = packedSwitchMap.get(offset);
+                    final Integer baseAddress = packedSwitchMap.get(offset);
 
                     if (baseAddress != null) {
+                        PackedSwitchDataPseudoInstruction packedSwitchInstruction =
+                                (PackedSwitchDataPseudoInstruction)instruction;
+
                         instructions.add(new PackedSwitchMethodItem(offset,
-                                (PackedSwitchDataPseudoInstruction)instruction, baseAddress));
-                        for (int target: ((PackedSwitchDataPseudoInstruction)instruction).getTargets()) {
-                            labels.add(new LabelMethodItem(baseAddress + target, "pswitch_"));
+                                packedSwitchInstruction, baseAddress));
+
+                        Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator =
+                                packedSwitchInstruction.getTargets();
+                        while (iterator.hasNext()) {
+                            PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
+                            labels.add(new LabelMethodItem(baseAddress + target.target, "pswitch_"));
                         }
                     }
                     return;
                 }
                 case SparseSwitchData:
                 {
-                    Integer baseAddress = sparseSwitchMap.get(offset);
+                    final Integer baseAddress = sparseSwitchMap.get(offset);
+
                     if (baseAddress != null) {
+                        SparseSwitchDataPseudoInstruction sparseSwitchInstruction =
+                                (SparseSwitchDataPseudoInstruction)instruction;
+
                         instructions.add(new SparseSwitchMethodItem(offset,
-                                (SparseSwitchDataPseudoInstruction)instruction, baseAddress));
-                        for (int target: ((SparseSwitchDataPseudoInstruction)instruction).getTargets()) {
-                            labels.add(new LabelMethodItem(baseAddress + target, "sswitch_"));
+                                sparseSwitchInstruction, baseAddress));
+
+                        Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator =
+                                sparseSwitchInstruction.getTargets();
+                        while (iterator.hasNext()) {
+                            SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
+                            labels.add(new LabelMethodItem(baseAddress + target.target, "sswitch_"));
                         }
                     }
-                    return;
                 }
             }
         }
 
         private void addTries() {
             for (CodeItem.TryItem tryItem: codeItem.getTries()) {
-                int startAddress = tryItem.getStartAddress();
-                int endAddress = tryItem.getEndAddress();
+                int startAddress = tryItem.startAddress;
+                int endAddress = tryItem.startAddress + tryItem.instructionCount;
 
                 /**
                  * The end address points to the address immediately after the end of the last
@@ -407,7 +421,7 @@ public class MethodDefinition {
                 int lastInstructionOffset = instructions.get(index).getOffset();
 
                 //add the catch all handler if it exists
-                int catchAllAddress = tryItem.getHandler().getCatchAllAddress();
+                int catchAllAddress = tryItem.encodedCatchHandler.catchAllHandlerAddress;
                 if (catchAllAddress != -1) {
                     CatchMethodItem catchMethodItem = new CatchMethodItem(lastInstructionOffset, null, startAddress,
                             endAddress, catchAllAddress) {
@@ -427,17 +441,17 @@ public class MethodDefinition {
 
                 //add the rest of the handlers
                 //TODO: find adjacent handlers for the same type and combine them
-                for (CodeItem.EncodedTypeAddrPair handler: tryItem.getHandler().getHandlers()) {
+                for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
                     //use the offset from the last covered instruction
                     CatchMethodItem catchMethodItem = new CatchMethodItem(lastInstructionOffset,
-                            handler.getTypeReferenceField(), startAddress, endAddress, handler.getHandlerAddress());
+                            handler.exceptionType, startAddress, endAddress, handler.handlerAddress);
                     catches.add(catchMethodItem);
 
                     labels.add(new LabelMethodItem(startAddress, "try_start_"));
                     //use the offset from the last covered instruction, but make the label
                     //name refer to the address of the next instruction
                     labels.add(new EndTryLabelMethodItem(lastInstructionOffset, endAddress));
-                    labels.add(new LabelMethodItem(handler.getHandlerAddress(), "handler_"));
+                    labels.add(new LabelMethodItem(handler.handlerAddress, "handler_"));
                 }
             }
         }
@@ -448,48 +462,65 @@ public class MethodDefinition {
                 return;
             }
 
-            DebugInfoDecoder decoder = new DebugInfoDecoder(debugInfoItem, new DebugInfoDelegate(),
-                    codeItem.getRegisterCount());
-            decoder.decode();
-        }
+            DebugInstructionIterator.DecodeInstructions(debugInfoItem, codeItem.getRegisterCount(),
+                    new DebugInstructionIterator.ProcessDecodedDebugInstructionDelegate() {
+                        @Override
+                        public void ProcessStartLocal(int codeAddress, int length, int registerNum, StringIdItem name,
+                                                      TypeIdItem type) {
+                            debugItems.add(new LocalDebugMethodItem(codeAddress, "StartLocal", -1, registerNum, name,
+                                    type, null));
+                        }
 
-        private class DebugInfoDelegate implements DebugInfoDecoder.DebugInfoDelegate {
+                        @Override
+                        public void ProcessStartLocalExtended(int codeAddress, int length, int registerNum,
+                                                              StringIdItem name, TypeIdItem type,
+                                                              StringIdItem signature) {
+                            debugItems.add(new LocalDebugMethodItem(codeAddress, "StartLocal", -1, registerNum, name,
+                                    type, signature));
+                        }
 
-            public void endPrologue(int address) {
-                debugItems.add(new DebugMethodItem(address, "EndPrologue", -4));
-            }
+                        @Override
+                        public void ProcessEndLocal(int codeAddress, int length, int registerNum, StringIdItem name,
+                                                    TypeIdItem type, StringIdItem signature) {
+                            debugItems.add(new LocalDebugMethodItem(codeAddress, "EndLocal", -1, registerNum, name,
+                                    type, signature));
+                        }
 
-            public void startEpilogue(int address) {
-                debugItems.add(new DebugMethodItem(address, "StartEpilogue", -4));
-            }
+                        @Override
+                        public void ProcessRestartLocal(int codeAddress, int length, int registerNum, StringIdItem name,
+                                                        TypeIdItem type, StringIdItem signature) {
+                            debugItems.add(new LocalDebugMethodItem(codeAddress, "RestartLocal", -1, registerNum, name,
+                                    type, signature));
+                        }
 
-            public void startLocal(int address, DebugInfoDecoder.Local local) {
-                debugItems.add(new LocalDebugMethodItem(address, "StartLocal", -1, local));
-            }
+                        @Override
+                        public void ProcessSetPrologueEnd(int codeAddress) {
+                            debugItems.add(new DebugMethodItem(codeAddress, "EndPrologue", -4));
+                        }
 
-            public void endLocal(int address, DebugInfoDecoder.Local local) {
-                debugItems.add(new LocalDebugMethodItem(address, "EndLocal", -1, local));
-            }
+                        @Override
+                        public void ProcessSetEpilogueBegin(int codeAddress) {
+                            debugItems.add(new DebugMethodItem(codeAddress, "StartEpilogue", -4));
+                        }
 
-            public void restartLocal(int address, DebugInfoDecoder.Local local) {
-                debugItems.add(new LocalDebugMethodItem(address, "RestartLocal", -1, local));
-            }
+                        @Override
+                        public void ProcessSetFile(int codeAddress, int length, final StringIdItem name) {
+                            debugItems.add(new DebugMethodItem(codeAddress, "SetFile", -3) {
+                                    public String getFileName() {
+                                        return name.getStringValue();
+                                    }
+                            });
+                        }
 
-            public void setFile(int address, final StringIdItem fileName) {
-                debugItems.add(new DebugMethodItem(address, "SetFile", -3) {
-                    public String getFileName() {
-                        return fileName.getStringValue();
-                    }
-                });
-            }
-
-            public void line(int address, final int line) {
-                debugItems.add(new DebugMethodItem(address, "Line", -2) {
-                    public int getLine() {
-                        return line;
-                    }
-                });
-            }
+                        @Override
+                        public void ProcessLineEmit(int codeAddress, final int line) {
+                             debugItems.add(new DebugMethodItem(codeAddress, "Line", -2) {
+                                public int getLine() {
+                                    return line;
+                                }
+                            });
+                        }
+                    });
         }
     }
 }

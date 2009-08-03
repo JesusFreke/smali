@@ -29,9 +29,12 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
+import org.jf.dexlib.Util.ByteArray;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
+import java.util.Arrays;
 
 public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPseudoInstruction> {
     public ArrayDataMethodItem(int offset, ArrayDataPseudoInstruction instruction) {
@@ -42,24 +45,24 @@ public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPs
         return instruction.getElementWidth();
     }
 
-    public List<ByteArray> getValues() {
-        List<ByteArray> values = new ArrayList<ByteArray>();
+    public Iterator<byte[]> getValues() {
+        return new Iterator<byte[]>() {
+            int position;
+            final Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
 
-        for (byte[] byteArray: instruction.getValues()) {
-            values.add(new ByteArray(byteArray));
-        }
-        return values;
-    }
+            public boolean hasNext() {
+                return iterator.hasNext();                
+            }
 
-    public static class ByteArray
-    {
-        byte[] byteArray;
-        public ByteArray(byte[] byteArray) {
-            this.byteArray = byteArray;
-        }
+            public byte[] next() {
+                ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
+                byte[] array = new byte[element.elementWidth];
+                System.arraycopy(element.buffer, element.bufferIndex, array, 0, element.elementWidth);
+                return array;
+            }
 
-        public byte[] getByteArray() {
-            return byteArray;
-        }
+            public void remove() {
+            }
+        };
     }
 }

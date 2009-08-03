@@ -46,14 +46,10 @@ public abstract class InstructionFormatMethodItem<T extends Instruction> extends
     }
 
     public String getOpcode() {
-        return instruction.getOpcode().name;
+        return instruction.opcode.name;
     }
 
     public String getTemplate() {
         return instruction.getFormat().name();
-    }
-
-    public Reference getReference() {
-        return Reference.makeReference(instruction.getReferencedItem());
     }
 }

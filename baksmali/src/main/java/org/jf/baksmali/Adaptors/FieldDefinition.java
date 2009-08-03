@@ -52,7 +52,7 @@ public class FieldDefinition {
     public FieldDefinition(ClassDataItem.EncodedField encodedField, EncodedValue initialValue,
                            AnnotationSetItem annotationSet) {
         this.encodedField = encodedField;
-        this.fieldIdItem = encodedField.getField();
+        this.fieldIdItem = encodedField.field;
         this.initialValue = initialValue;
         this.annotationSet = annotationSet;
     }
@@ -62,7 +62,7 @@ public class FieldDefinition {
         if (accessFlags == null) {
             accessFlags = new ArrayList<String>();
 
-            for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(encodedField.getAccessFlags())) {
+            for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(encodedField.accessFlags)) {
                 accessFlags.add(accessFlag.toString());
             }
         }
@@ -100,7 +100,7 @@ public class FieldDefinition {
 
         List<AnnotationAdaptor> annotationAdaptors = new ArrayList<AnnotationAdaptor>();
 
-        for (AnnotationItem annotationItem: annotationSet.getAnnotationItems()) {
+        for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
             annotationAdaptors.add(new AnnotationAdaptor(annotationItem));
         }
         return annotationAdaptors;

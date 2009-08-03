@@ -29,8 +29,8 @@
 package org.jf.baksmali.Adaptors;
 
 public class DebugMethodItem extends MethodItem {
-    private String template;
-    private int sortOrder;
+    private final String template;
+    private final int sortOrder;
 
     public DebugMethodItem(int offset, String template, int sortOrder) {
         super(offset);

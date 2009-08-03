@@ -28,7 +28,6 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.dexlib.IndexedItem;
 import org.jf.baksmali.Adaptors.Reference.Reference;
 
 public class EncodedIndexedItemAdaptor extends EncodedValueAdaptor {

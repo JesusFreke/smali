@@ -30,7 +30,7 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.Instruction31c;
 
-public class Instruction31cMethodItem extends InstructionFormatMethodItem<Instruction31c> {
+public class Instruction31cMethodItem extends ReferenceInstructionFormatMethodItem<Instruction31c> {
     public Instruction31cMethodItem(int offset, Instruction31c instruction) {
         super(offset, instruction);
     }

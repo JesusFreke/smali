@@ -28,40 +28,21 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.dexlib.Util.DebugInfoDecoder;
-import org.jf.dexlib.Util.Utf8Utils;
+import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.StringIdItem;
 
 public class LocalDebugMethodItem extends DebugMethodItem {
-    private DebugInfoDecoder.Local local;
+    public final int Register;
+    public final StringIdItem Name;
+    public final TypeIdItem Type;
+    public final StringIdItem Signature;
 
-    public LocalDebugMethodItem(int offset, String template, int sortOrder, DebugInfoDecoder.Local local) {
+    public LocalDebugMethodItem(int offset, String template, int sortOrder, int register, StringIdItem name,
+                                TypeIdItem type, StringIdItem signature) {
         super(offset, template, sortOrder);
-        this.local = local;
-
-    }
-
-    public int getRegister() {
-        return local.register;
-    }
-
-    public String getType() {
-        if (local.type == null) {
-            return null;
-        }
-        return local.type.getTypeDescriptor();
-    }
-
-    public String getName() {
-        if (local.name == null) {
-            return null;
-        }
-        return local.name.getStringValue();
-    }
-
-    public String getSignature() {
-        if (local.signature == null) {
-            return null;
-        }
-        return Utf8Utils.escapeString(local.signature.getStringValue());
+        this.Register = register;
+        this.Name = name;
+        this.Type = type;
+        this.Signature = signature;
     }
 }

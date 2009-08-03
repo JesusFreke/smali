@@ -53,7 +53,7 @@ public class ParameterAdaptor {
         }
 
         List<AnnotationAdaptor> annotations = new ArrayList<AnnotationAdaptor>();
-        for (AnnotationItem annotationItem: parameterAnnotations.getAnnotationItems()) {
+        for (AnnotationItem annotationItem: parameterAnnotations.getAnnotations()) {
             annotations.add(new AnnotationAdaptor(annotationItem));
         }
         return annotations;
