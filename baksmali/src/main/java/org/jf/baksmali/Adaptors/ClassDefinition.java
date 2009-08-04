@@ -97,6 +97,11 @@ public class ClassDefinition {
     }
 
     public String getSourceFile() {
+        StringIdItem sourceFile = classDefItem.getSourceFile();
+
+        if (sourceFile == null) {
+            return null;
+        }
         return classDefItem.getSourceFile().getStringValue();
     }
 
