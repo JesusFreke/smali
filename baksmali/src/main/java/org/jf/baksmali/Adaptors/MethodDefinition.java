@@ -135,7 +135,7 @@ public class MethodDefinition {
             StringIdItem[] _parameterNames = debugInfoItem.getParameterNames();
             if (_parameterNames != null) {
                 for (StringIdItem parameterName: _parameterNames) {
-                    parameterNames.add(parameterName.getStringValue());
+                    parameterNames.add(parameterName==null?null:parameterName.getStringValue());
                 }
             }
 
