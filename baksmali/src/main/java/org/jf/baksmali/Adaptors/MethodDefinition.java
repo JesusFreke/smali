@@ -387,6 +387,9 @@ public class MethodDefinition {
         }
 
         private void addTries() {
+            if (codeItem.getTries() == null) {
+                return;
+            }
             for (CodeItem.TryItem tryItem: codeItem.getTries()) {
                 int startAddress = tryItem.startAddress;
                 int endAddress = tryItem.startAddress + tryItem.instructionCount;
