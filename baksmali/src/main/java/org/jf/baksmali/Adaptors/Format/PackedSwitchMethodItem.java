@@ -45,23 +45,18 @@ public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSw
         return instruction.getFirstKey();
     }
 
-    private static class PackedSwitchTarget {
-        public String Target;
-    }
-
-    public Iterator<PackedSwitchTarget> getTargets() {
-        return new Iterator<PackedSwitchTarget>() {
+    public Iterator<String> getTargets() {
+        return new Iterator<String>() {
             Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.getTargets();
-            PackedSwitchTarget packedSwitchTarget = new PackedSwitchTarget();
+
 
             public boolean hasNext() {
                 return iterator.hasNext();
             }
 
-            public PackedSwitchTarget next() {
-                PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
-                packedSwitchTarget.Target = Integer.toHexString(target.target + baseAddress);
-                return packedSwitchTarget;
+            public String next() {
+                PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();                 
+                return Integer.toHexString(target.target + baseAddress);
             }
 
             public void remove() {

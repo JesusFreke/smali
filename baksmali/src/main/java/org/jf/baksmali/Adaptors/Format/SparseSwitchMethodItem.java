@@ -48,7 +48,6 @@ public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSw
     public Iterator<SparseSwitchTarget> getTargets() {
         return new Iterator<SparseSwitchTarget>() {
             Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.getTargets();
-            SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
 
             public boolean hasNext() {
                 return iterator.hasNext();
@@ -56,6 +55,7 @@ public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSw
 
             public SparseSwitchTarget next() {
                 SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
+                SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
                 sparseSwitchTarget.Value = target.value;
                 sparseSwitchTarget.Target = Integer.toHexString(target.target + baseAddress);
                 return sparseSwitchTarget;

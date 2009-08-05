@@ -269,7 +269,7 @@ ArrayData(Instruction) ::=
 PackedSwitchData(Instruction) ::=
 <<
 .packed-switch <Instruction.FirstKey>
-    <Instruction.Targets: {pswitch_<it.Target>:}; separator="\n">
+    <Instruction.Targets: {pswitch_<it>:}; separator="\n">
 .end packed-switch
 >>
 
