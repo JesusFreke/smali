@@ -218,11 +218,11 @@ public class MethodDefinition {
                             if (opcode == Opcode.PACKED_SWITCH) {
                                 Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
                                         methodIdItem.getDexFile(), opcode, encodedInstructions, index);
-                                packedSwitchMap.put(ins.getOffset(), index/2);
+                                packedSwitchMap.put(index/2 + ins.getOffset(), index/2);
                             } else if (opcode == Opcode.SPARSE_SWITCH) {
                                 Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
                                         methodIdItem.getDexFile(), opcode, encodedInstructions, index);
-                                sparseSwitchMap.put(ins.getOffset(),  index/2);
+                                sparseSwitchMap.put(index/2 + ins.getOffset(),  index/2);
                             }
                         }
 
