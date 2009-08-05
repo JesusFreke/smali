@@ -33,16 +33,16 @@ import org.jf.dexlib.StringIdItem;
 
 public class LocalDebugMethodItem extends DebugMethodItem {
     public final int Register;
-    public final StringIdItem Name;
-    public final TypeIdItem Type;
-    public final StringIdItem Signature;
+    public final String Name;
+    public final String Type;
+    public final String Signature;
 
     public LocalDebugMethodItem(int offset, String template, int sortOrder, int register, StringIdItem name,
                                 TypeIdItem type, StringIdItem signature) {
         super(offset, template, sortOrder);
         this.Register = register;
-        this.Name = name;
-        this.Type = type;
-        this.Signature = signature;
+        this.Name = name==null?null:name.getStringValue();
+        this.Type = type==null?null:type.getTypeDescriptor();
+        this.Signature = signature==null?null:signature.getStringValue();
     }
 }
