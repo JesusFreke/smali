@@ -45,8 +45,8 @@ public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPs
         return instruction.getElementWidth();
     }
 
-    public Iterator<byte[]> getValues() {
-        return new Iterator<byte[]>() {
+    public Iterator<ByteArray> getValues() {
+        return new Iterator<ByteArray>() {
             int position;
             final Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
 
@@ -54,15 +54,23 @@ public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPs
                 return iterator.hasNext();                
             }
 
-            public byte[] next() {
+            public ByteArray next() {
                 ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
                 byte[] array = new byte[element.elementWidth];
                 System.arraycopy(element.buffer, element.bufferIndex, array, 0, element.elementWidth);
-                return array;
+                return new ByteArray(array);
             }
 
             public void remove() {
             }
         };
+    }
+
+    public static class ByteArray
+    {
+        public final byte[] ByteArray;
+        public ByteArray(byte[] byteArray) {
+            this.ByteArray = byteArray;
+        }
     }
 }

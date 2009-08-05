@@ -262,7 +262,7 @@ Format51l(Instruction) ::=
 ArrayData(Instruction) ::=
 <<
 .array-data <Instruction.ElementWidth>
-    <Instruction.Values: {<it; format="unsigned",separator=" ">}; separator="\n">
+    <Instruction.Values: {<it.ByteArray; format="unsigned",separator=" ">}; separator="\n">
 .end array-data
 >>
 
