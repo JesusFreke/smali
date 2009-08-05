@@ -132,7 +132,8 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
 
     /** {@inheritDoc} */
     protected void readItem(Input in, ReadContext readContext) {
-        readContext.getOffsettedItemByOffset(ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
+        classAnnotations = (AnnotationSetItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_ANNOTATION_SET_ITEM,
+                in.readInt());
         fieldAnnotationFields = new FieldIdItem[in.readInt()];
         fieldAnnotations = new AnnotationSetItem[fieldAnnotationFields.length];
 
