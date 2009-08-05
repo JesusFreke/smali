@@ -31,7 +31,7 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 
-import java.nio.charset.Charset;
+import java.io.UnsupportedEncodingException;
 
 public class HeaderItem extends Item<HeaderItem> {
     /**
@@ -57,7 +57,13 @@ public class HeaderItem extends Item<HeaderItem> {
 
     /** {@inheritDoc} */
     protected void readItem(Input in, ReadContext readContext) {
-        byte[] expectedMagic = MAGIC.getBytes(Charset.forName("US-ASCII"));
+        byte[] expectedMagic;
+        try {
+            expectedMagic = MAGIC.getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex);
+        }
+        
         byte[] readMagic = in.readBytes(8);
 
         for (int i=0; i<8; i++) {
@@ -165,7 +171,14 @@ public class HeaderItem extends Item<HeaderItem> {
             out.annotate(4, "data_off");
         }
 
-        out.write(MAGIC.getBytes(Charset.forName("US-ASCII")));
+        byte[] magic;
+        try {
+            magic = MAGIC.getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        out.write(magic);
         out.writeInt(0); //checksum
         out.write(new byte[20]); //signature
         out.writeInt(dexFile.getFileSize());
