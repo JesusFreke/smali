@@ -171,7 +171,7 @@ public class DebugInstructionIterator {
                     StringIdItem name = dexFile.StringIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
                     TypeIdItem type = dexFile.TypeIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
                     locals[registerNum] = new Local(registerNum, name, type, null);
-                    processDecodedDebugInstruction.ProcessStartLocal(startOffset, in.getCursor() - startOffset, registerNum,
+                    processDecodedDebugInstruction.ProcessStartLocal(address, in.getCursor() - startOffset, registerNum,
                             name, type);
                     break;
                 }
@@ -182,7 +182,7 @@ public class DebugInstructionIterator {
                     TypeIdItem type = dexFile.TypeIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
                     StringIdItem signature = dexFile.StringIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
                     locals[registerNum] = new Local(registerNum, name, type, signature);
-                    processDecodedDebugInstruction.ProcessStartLocalExtended(startOffset, in.getCursor() - startOffset,
+                    processDecodedDebugInstruction.ProcessStartLocalExtended(address, in.getCursor() - startOffset,
                             registerNum, name, type, signature);
                     break;
                 }
@@ -191,10 +191,10 @@ public class DebugInstructionIterator {
                     int registerNum = in.readUnsignedLeb128();
                     Local local = locals[registerNum];
                     if (local == null) {
-                        processDecodedDebugInstruction.ProcessEndLocal(startOffset, in.getCursor() - startOffset, registerNum,
+                        processDecodedDebugInstruction.ProcessEndLocal(address, in.getCursor() - startOffset, registerNum,
                                 null, null, null);
                     } else {
-                        processDecodedDebugInstruction.ProcessEndLocal(startOffset, in.getCursor() - startOffset, registerNum,
+                        processDecodedDebugInstruction.ProcessEndLocal(address, in.getCursor() - startOffset, registerNum,
                                 local.name, local.type, local.signature);
                     }
                     break;
@@ -204,10 +204,10 @@ public class DebugInstructionIterator {
                     int registerNum = in.readUnsignedLeb128();
                     Local local = locals[registerNum];
                     if (local == null) {
-                        processDecodedDebugInstruction.ProcessRestartLocal(startOffset, in.getCursor() - startOffset,
+                        processDecodedDebugInstruction.ProcessRestartLocal(address, in.getCursor() - startOffset,
                                 registerNum, null, null, null);
                     } else {
-                        processDecodedDebugInstruction.ProcessRestartLocal(startOffset, in.getCursor() - startOffset,
+                        processDecodedDebugInstruction.ProcessRestartLocal(address, in.getCursor() - startOffset,
                                 registerNum, local.name, local.type, local.signature);
                     }
 
@@ -215,18 +215,18 @@ public class DebugInstructionIterator {
                 }
                 case 0x07:
                 {
-                    processDecodedDebugInstruction.ProcessSetPrologueEnd(startOffset);
+                    processDecodedDebugInstruction.ProcessSetPrologueEnd(address);
                     break;
                 }
                 case 0x08:
                 {
-                    processDecodedDebugInstruction.ProcessSetEpilogueBegin(startOffset);
+                    processDecodedDebugInstruction.ProcessSetEpilogueBegin(address);
                     break;
                 }
                 case 0x09:
                 {
                     StringIdItem name = dexFile.StringIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
-                    processDecodedDebugInstruction.ProcessSetFile(startOffset, in.getCursor() - startOffset, name);
+                    processDecodedDebugInstruction.ProcessSetFile(address, in.getCursor() - startOffset, name);
                     break;
                 }
                 default:
