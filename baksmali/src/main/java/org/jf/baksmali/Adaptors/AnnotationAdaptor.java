@@ -44,7 +44,7 @@ public class AnnotationAdaptor {
     }
 
     public String getVisibility() {
-        return annotationItem.getVisibility().name();
+        return annotationItem.getVisibility().name().toLowerCase();
     }
 
     public TypeReference getAnnotationType() {
