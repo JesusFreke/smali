@@ -1,0 +1,185 @@
+/*
+ * [The "BSD licence"]
+ * Copyright (c) 2009 Ben Gruver
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.jf.dexlib;
+
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
+import org.jf.dexlib.Util.AlignmentUtils;
+
+public abstract class Item<T extends Item> implements Comparable<T> {
+    /**
+     * The offset of this item in the dex file, or -1 if not known
+     */
+    private int offset = -1;
+
+    /**
+     * The index of this item in the containing section, or -1 if not known
+     */
+    private int index = -1;
+
+    /**
+     * The DexFile that this item is associatedr with
+     */
+    protected final DexFile dexFile;
+
+    /**
+     * The constructor that is used when reading in a <code>DexFile</code>
+     * @param dexFile the <code>DexFile</code> that this item is associated with
+     */
+    protected Item(DexFile dexFile) {
+        this.dexFile = dexFile;
+    }
+
+    /**
+     * Read in the item from the given input stream, and initialize the index
+     * @param in the <code>Input</code> object to read from
+     * @param index the index within the containing section of the item being read in
+     * @param readContext a <code>ReadContext</code> object to hold information that is
+     * only needed while reading in a file  
+     */
+    protected void readFrom(Input in, int index, ReadContext readContext) {
+        assert in.getCursor() % getItemType().ItemAlignment == 0:"The Input cursor is not aligned";
+
+        this.offset = in.getCursor();
+        this.index = index;
+        this.readItem(in, readContext);    
+    }
+
+    /**
+     * Place the item at the given offset and index, and return the offset of the byte following this item
+     * @param offset The offset to place the item at
+     * @param index The index of the item within the containing section
+     * @return The offset of the byte following this item
+     */
+    protected int placeAt(int offset, int index) {
+        assert offset % getItemType().ItemAlignment == 0:"The offset is not aligned";
+
+        this.offset = offset;
+        this.index = index;
+        return this.placeItem(offset);
+    }
+
+    /**
+     * Write and annotate this item to the output stream
+     * @param out The output stream to write and annotate to
+     */
+    protected void writeTo(AnnotatedOutput out) {
+        assert out.getCursor() % getItemType().ItemAlignment == 0:"The Output cursor is not aligned";
+
+        if (out.getCursor() != offset) {
+            throw new RuntimeException("Item was placed at offset 0x" + Integer.toHexString(offset) +
+                    "but is being written to offset 0x" + Integer.toHexString(out.getCursor()));
+        }
+
+        if (out.annotates()) {
+            out.annotate(0, "[0x" + Integer.toHexString(index) + "] " + this.getItemType().TypeName);
+        }
+
+        out.indent();
+        writeItem(out);
+        out.deindent();
+    }
+
+    /**
+     * Returns a human readable form of this item
+     * @return a human readable form of this item
+     */
+    public String toString() {
+        return getConciseIdentity();
+    }
+
+    /**
+     * The method in the concrete item subclass that actually reads in the data for the item
+     *
+     * The logic in this method can assume that the given Input object is valid and is
+     * aligned as neccessary.
+     *
+     * This method is for internal use only
+     * @param in the <code>Input</code> object to read from
+     * @param readContext a <code>ReadContext</code> object to hold information that is
+     * only needed while reading in a file 
+     */
+    protected abstract void readItem(Input in, ReadContext readContext);
+
+    /**
+     * The method should finalize the layout of the item and return the offset of the byte
+     * immediately following the item.
+     *
+     * The implementation of this method can assume that the offset argument has already been
+     * aligned based on the item's alignment requirements
+     *
+     * This method is for internal use only
+     * @param offset the (pre-aligned) offset to place the item at
+     * @return the size of the item, in bytes
+     */
+    protected abstract int placeItem(int offset);
+
+    /**
+     * The method in the concrete item subclass that actually writes and annotates the data
+     * for the item.
+     *
+     * The logic in this method can assume that the given Output object is valid and is
+     * aligned as neccessary
+     * 
+     * @param out The <code>AnnotatedOutput</code> object to write/annotate to
+     */
+    protected abstract void writeItem(AnnotatedOutput out);
+
+    /**
+     * @return An ItemType enum that represents the item type of this item 
+     */
+    public abstract ItemType getItemType();
+
+    /**
+     * @return A concise (human-readable) string value that conveys the identity of this item
+     */
+    public abstract String getConciseIdentity();
+
+
+    /**
+     * @return the offset in the dex file where this item is located
+     */
+    public int getOffset() {
+        return offset;
+    }
+
+    /**
+     * @return the index of this item within the item's containing section
+     */
+    public int getIndex() {
+        return index;
+    }
+
+    /**
+     * @return the <code>DexFile</code> that contains this item
+     */
+    public DexFile getDexFile() {
+        return dexFile;
+    }
+}
