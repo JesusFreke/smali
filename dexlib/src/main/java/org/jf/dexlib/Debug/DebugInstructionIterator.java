@@ -231,7 +231,7 @@ public class DebugInstructionIterator {
                 }
                 default:
                 {
-                    byte base = (byte)((debugOpcode & 0xFF) - 0x0A);
+                    int base = ((debugOpcode & 0xFF) - 0x0A);
                     address += base / 15;
                     line += (base % 15) - 4;
                     processDecodedDebugInstruction.ProcessLineEmit(address, line);
