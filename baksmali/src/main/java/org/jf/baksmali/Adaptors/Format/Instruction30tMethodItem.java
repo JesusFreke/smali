@@ -29,13 +29,15 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.Instruction30t;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 public class Instruction30tMethodItem extends InstructionFormatMethodItem<Instruction30t> {
-    public Instruction30tMethodItem(int offset, Instruction30t instruction) {
-        super(offset, instruction);
+    public Instruction30tMethodItem(int offset, StringTemplateGroup stg, Instruction30t instruction) {
+        super(offset, stg, instruction);
     }
 
-    public String getTarget() {
-        return Integer.toHexString(getOffset() + instruction.getOffset());
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("Target", Integer.toHexString(getOffset() + instruction.getOffset()));
     }
 }

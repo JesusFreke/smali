@@ -30,6 +30,8 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
 import org.jf.dexlib.Util.ByteArray;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,33 +39,27 @@ import java.util.Iterator;
 import java.util.Arrays;
 
 public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPseudoInstruction> {
-    public ArrayDataMethodItem(int offset, ArrayDataPseudoInstruction instruction) {
-        super(offset, instruction);
+    public ArrayDataMethodItem(int offset, StringTemplateGroup stg,  ArrayDataPseudoInstruction instruction) {
+        super(offset, stg, instruction);
     }
 
-    public int getElementWidth() {
-        return instruction.getElementWidth();
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("ElementWidth", instruction.getElementWidth());
+        template.setAttribute("Values", getValues());
     }
 
-    public Iterator<ByteArray> getValues() {
-        return new Iterator<ByteArray>() {
-            int position;
-            final Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
+    private List<ByteArray> getValues() {
+        List<ByteArray> values = new ArrayList<ByteArray>();        
+        Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
 
-            public boolean hasNext() {
-                return iterator.hasNext();                
-            }
+        while (iterator.hasNext()) {
+            ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
+            byte[] array = new byte[element.elementWidth];
+            System.arraycopy(element.buffer, element.bufferIndex, array, 0, element.elementWidth);
+            values.add(new ByteArray(array));
+        }
 
-            public ByteArray next() {
-                ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
-                byte[] array = new byte[element.elementWidth];
-                System.arraycopy(element.buffer, element.bufferIndex, array, 0, element.elementWidth);
-                return new ByteArray(array);
-            }
-
-            public void remove() {
-            }
-        };
+        return values;
     }
 
     public static class ByteArray

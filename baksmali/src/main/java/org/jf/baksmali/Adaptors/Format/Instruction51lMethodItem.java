@@ -29,17 +29,16 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.Instruction51l;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 public class Instruction51lMethodItem extends InstructionFormatMethodItem<Instruction51l> {
-    public Instruction51lMethodItem(int offset, Instruction51l instruction) {
-        super(offset, instruction);
+    public Instruction51lMethodItem(int offset, StringTemplateGroup stg, Instruction51l instruction) {
+        super(offset, stg, instruction);
     }
 
-    public int getRegister() {
-        return instruction.getRegister();
-    }
-
-    public long getLiteral() {
-        return instruction.getLiteral();
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("Register", instruction.getRegister());
+        template.setAttribute("Literal", instruction.getLiteral());
     }
 }

@@ -30,19 +30,29 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.StringIdItem;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 public class LocalDebugMethodItem extends DebugMethodItem {
-    public final int Register;
-    public final String Name;
-    public final String Type;
-    public final String Signature;
+    private final int register;
+    private final String name;
+    private final String type;
+    private final String signature;
 
-    public LocalDebugMethodItem(int offset, String template, int sortOrder, int register, StringIdItem name,
-                                TypeIdItem type, StringIdItem signature) {
-        super(offset, template, sortOrder);
-        this.Register = register;
-        this.Name = name==null?null:name.getStringValue();
-        this.Type = type==null?null:type.getTypeDescriptor();
-        this.Signature = signature==null?null:signature.getStringValue();
+    public LocalDebugMethodItem(int offset, StringTemplateGroup stg, String templateName, int sortOrder, int register,
+                                StringIdItem name, TypeIdItem type, StringIdItem signature) {
+        super(offset, stg, templateName, sortOrder);
+        this.register = register;
+        this.name = name==null?null:name.getStringValue();
+        this.type = type==null?null:type.getTypeDescriptor();
+        this.signature = signature==null?null:signature.getStringValue();
+    }
+
+    @Override
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("Register", Integer.toString(register));
+        template.setAttribute("Name", name);
+        template.setAttribute("Type", type);
+        template.setAttribute("Signature", signature);
     }
 }

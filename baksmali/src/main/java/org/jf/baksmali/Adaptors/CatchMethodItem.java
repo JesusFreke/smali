@@ -30,23 +30,24 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.TypeIdItem;
 import org.jf.baksmali.Adaptors.Reference.TypeReference;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 public class CatchMethodItem extends MethodItem {
-    private TypeIdItem exceptionType;
-    private int startAddress;
-    private int endAddress;
-    private int handlerAddress;
+    private final StringTemplateGroup stg;
+    private final TypeIdItem exceptionType;
+    private final int startAddress;
+    private final int endAddress;
+    private final int handlerAddress;
 
-    public CatchMethodItem(int offset, TypeIdItem exceptionType, int startAddress, int endAddress, int handlerAddress) {
+    public CatchMethodItem(int offset, StringTemplateGroup stg, TypeIdItem exceptionType, int startAddress,
+                           int endAddress, int handlerAddress) {
         super(offset);
+        this.stg = stg;
         this.exceptionType = exceptionType;
         this.startAddress = startAddress;
         this.endAddress = endAddress;
         this.handlerAddress = handlerAddress;
-    }
-
-    public String getTemplate() {
-        return "Catch";
     }
 
     public int getSortOrder() {
@@ -54,19 +55,19 @@ public class CatchMethodItem extends MethodItem {
         return 102;
     }
 
-    public TypeReference getExceptionType() {
-        return new TypeReference(exceptionType);
+    protected String getTemplateName() {
+        return "Catch";
     }
 
-    public int getStartAddress() {
-        return startAddress;
-    }
-
-    public int getEndAddress() {
-        return endAddress;
-    }
-
-    public int getHandlerAddress() {
-        return handlerAddress;
+    @Override
+    public String toString() {
+        StringTemplate template = stg.getInstanceOf(getTemplateName());
+        if (exceptionType != null) {
+            template.setAttribute("ExceptionType", new TypeReference(exceptionType));
+        }
+        template.setAttribute("StartAddress", Integer.toHexString(startAddress));
+        template.setAttribute("EndAddress", Integer.toHexString(endAddress));
+        template.setAttribute("HandlerAddress", Integer.toHexString(handlerAddress));
+        return template.toString();
     }
 }

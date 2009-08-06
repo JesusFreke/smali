@@ -29,15 +29,24 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSwitchDataPseudoInstruction> {
     private int baseAddress;
 
-    public SparseSwitchMethodItem(int offset, SparseSwitchDataPseudoInstruction instruction, int baseAddress) {
-        super(offset, instruction);
+    public SparseSwitchMethodItem(int offset, StringTemplateGroup stg, SparseSwitchDataPseudoInstruction instruction,
+                                  int baseAddress) {
+        super(offset, stg, instruction);
         this.baseAddress = baseAddress;
+    }
+
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("Targets", getTargets());
     }
 
     private static class SparseSwitchTarget {
@@ -45,24 +54,19 @@ public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSw
         public String Target;
     }
 
-    public Iterator<SparseSwitchTarget> getTargets() {
-        return new Iterator<SparseSwitchTarget>() {
-            Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.getTargets();
+    private List<SparseSwitchTarget> getTargets() {
+        List<SparseSwitchTarget> targets = new ArrayList<SparseSwitchTarget>();
 
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
+        Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.getTargets();
 
-            public SparseSwitchTarget next() {
-                SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
-                SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
-                sparseSwitchTarget.Value = target.value;
-                sparseSwitchTarget.Target = Integer.toHexString(target.target + baseAddress);
-                return sparseSwitchTarget;
-            }
+        while (iterator.hasNext()) {
+            SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
+            SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
+            sparseSwitchTarget.Value = target.value;
+            sparseSwitchTarget.Target = Integer.toHexString(target.target + baseAddress);
+            targets.add(sparseSwitchTarget);
+        }
 
-            public void remove() {
-            }
-        };
+        return targets;
     }
 }

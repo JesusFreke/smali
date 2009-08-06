@@ -29,17 +29,18 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.Instruction22c;
+import org.jf.baksmali.Adaptors.Reference.Reference;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public class Instruction22cMethodItem extends ReferenceInstructionFormatMethodItem<Instruction22c> {
-    public Instruction22cMethodItem(int offset, Instruction22c instruction) {
-        super(offset, instruction);
+public class Instruction22cMethodItem extends InstructionFormatMethodItem<Instruction22c> {
+    public Instruction22cMethodItem(int offset, StringTemplateGroup stg, Instruction22c instruction) {
+        super(offset, stg, instruction);
     }
 
-    public int getRegisterA() {
-        return instruction.getRegisterA();
-    }
-
-    public int getRegisterB() {
-        return instruction.getRegisterB();
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("Reference", Reference.makeReference(instruction.getReferencedItem()));
+        template.setAttribute("RegisterA", instruction.getRegisterA());
+        template.setAttribute("RegisterB", instruction.getRegisterB());
     }
 }

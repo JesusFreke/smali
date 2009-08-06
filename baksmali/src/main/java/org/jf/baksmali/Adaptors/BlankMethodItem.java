@@ -28,17 +28,27 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
+
 //a "spacer" between instructions
 public class BlankMethodItem extends MethodItem {
-    public BlankMethodItem(int offset) {
+    private static StringTemplate template;
+
+    public BlankMethodItem(StringTemplateGroup stg, int offset) {
         super(offset);
+        if (template == null) {
+            template = stg.getInstanceOf("Blank");
+        }
     }
 
-    public String getTemplate() {
-        return "Blank";
-    }
 
     public int getSortOrder() {
         return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public String toString() {
+        return template.toString();
     }
 }

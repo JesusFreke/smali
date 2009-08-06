@@ -29,21 +29,17 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.Instruction22t;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 public class Instruction22tMethodItem extends InstructionFormatMethodItem<Instruction22t> {
-    public Instruction22tMethodItem(int offset, Instruction22t instruction) {
-        super(offset, instruction);
+    public Instruction22tMethodItem(int offset, StringTemplateGroup stg, Instruction22t instruction) {
+        super(offset, stg, instruction);
     }
 
-    public int getRegisterA() {
-        return instruction.getRegisterA();
-    }
-
-    public int getRegisterB() {
-        return instruction.getRegisterB();
-    }
-
-    public String getTarget() {
-        return Integer.toHexString(getOffset() + instruction.getOffset());
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("RegisterA", instruction.getRegisterA());
+        template.setAttribute("RegisterB", instruction.getRegisterB());
+        template.setAttribute("Target", Integer.toHexString(getOffset() + instruction.getOffset()));
     }
 }

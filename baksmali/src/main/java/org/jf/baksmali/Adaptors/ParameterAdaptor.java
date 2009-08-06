@@ -30,31 +30,31 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.AnnotationSetItem;
 import org.jf.dexlib.AnnotationItem;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
 import java.util.List;
 import java.util.ArrayList;
 
 public class ParameterAdaptor {
-    private String parameterName;
-    private AnnotationSetItem parameterAnnotations;
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, String parameterName,
+                                                AnnotationSetItem parameterAnnotations) {
+        StringTemplate template = stg.getInstanceOf("Parameter");
 
-    public ParameterAdaptor(String parameterName, AnnotationSetItem parameterAnnotations) {
-        this.parameterName = parameterName;
-        this.parameterAnnotations = parameterAnnotations;
+        template.setAttribute("ParameterName", parameterName);
+        template.setAttribute("Annotations", getAnnotations(stg, parameterAnnotations));
+        return template;
     }
 
-    public String getParameterName() {
-        return parameterName;
-    }
-
-    public List<AnnotationAdaptor> getAnnotations() {
+    private static List<StringTemplate> getAnnotations(StringTemplateGroup stg,
+                                                       AnnotationSetItem parameterAnnotations) {
         if (parameterAnnotations == null) {
             return null;
         }
 
-        List<AnnotationAdaptor> annotations = new ArrayList<AnnotationAdaptor>();
+        List<StringTemplate> annotations = new ArrayList<StringTemplate>();
         for (AnnotationItem annotationItem: parameterAnnotations.getAnnotations()) {
-            annotations.add(new AnnotationAdaptor(annotationItem));
+            annotations.add(AnnotationAdaptor.makeTemplate(stg, annotationItem));
         }
         return annotations;
     }

@@ -31,12 +31,16 @@ package org.jf.baksmali.Adaptors.Format;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.Reference.Reference;
 import org.jf.dexlib.Code.Instruction;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
 public abstract class InstructionFormatMethodItem<T extends Instruction> extends MethodItem {
-    protected T instruction;
+    private final StringTemplateGroup stg;
+    protected final T instruction;
 
-    public InstructionFormatMethodItem(int offset, T instruction) {
+    public InstructionFormatMethodItem(int offset, StringTemplateGroup stg, T instruction) {
         super(offset);
+        this.stg = stg;
         this.instruction = instruction;
     }
 
@@ -52,4 +56,14 @@ public abstract class InstructionFormatMethodItem<T extends Instruction> extends
     public String getTemplate() {
         return instruction.getFormat().name();
     }
+
+    @Override
+    public String toString() {
+        StringTemplate template = stg.getInstanceOf(instruction.getFormat().name());
+        template.setAttribute("Opcode", instruction.opcode.name);
+        setAttributes(template);
+        return template.toString();
+    }
+
+    protected abstract void setAttributes(StringTemplate template);
 }

@@ -29,9 +29,14 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.Instruction10x;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 public class Instruction10xMethodItem extends InstructionFormatMethodItem<Instruction10x> {
-    public Instruction10xMethodItem(int offset, Instruction10x instruction) {
-        super(offset, instruction);
+    public Instruction10xMethodItem(int offset, StringTemplateGroup stg, Instruction10x instruction) {
+        super(offset, stg, instruction);
+    }
+
+    protected void setAttributes(StringTemplate template) {
     }
 }

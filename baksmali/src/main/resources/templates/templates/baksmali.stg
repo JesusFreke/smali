@@ -22,35 +22,35 @@ smaliFile(classDef) ::=
 
 
 # annotations
-<classDef.Annotations: annotation(it); separator="\n\n">
+<classDef.Annotations; separator="\n\n">
 
 <endif>
-<if(classDef.StaticFields)>
+<if(classDef.HasStaticFields)>
 
 
 # static fields
-<classDef.StaticFields: field(it); separator="\n">
+<classDef.StaticFields; separator="\n">
 
 <endif>
-<if(classDef.InstanceFields)>
+<if(classDef.HasInstanceFields)>
 
 
 # instance fields
-<classDef.InstanceFields: field(it); separator="\n">
+<classDef.InstanceFields; separator="\n">
 
 <endif>
-<if(classDef.DirectMethods)>
+<if(classDef.HasDirectMethods)>
 
 
 # direct methods
-<classDef.DirectMethods: method(it); separator="\n\n">
+<classDef.DirectMethods; separator="\n\n">
 
 <endif>
-<if(classDef.VirtualMethods)>
+<if(classDef.HasVirtualMethods)>
 
 
 # virtual methods
-<classDef.VirtualMethods: method(it); separator="\n\n">
+<classDef.VirtualMethods; separator="\n\n">
 
 <endif>
 >>
@@ -64,13 +64,13 @@ implement(interface) ::=
 >>
 
 
-annotation(annotationAdaptor) ::=
+annotation(Visibility, AnnotationType, Elements) ::=
 <<
-.annotation <annotationAdaptor.Visibility> <Reference(annotationAdaptor.AnnotationType)>
-<if(annotationAdaptor.Elements)>
-    <annotationAdaptor.Elements: AnnotationElement(it); separator="\n">
+.annotation <Visibility> <Reference(AnnotationType)>
+<if(Elements)>
+    <Elements: AnnotationElement(it); separator="\n">
 <endif>
-<if(annotationAdaptor.Elements)>
+<if(Elements)>
 
 
 <endif>
@@ -79,46 +79,41 @@ annotation(annotationAdaptor) ::=
 
 
 
-field(fieldDef) ::=
+field(AccessFlags, FieldName, FieldType, Annotations, InitialValue) ::=
 <<
-.field <fieldDef.AccessFlags: {<it> }><fieldDef.FieldName>:<fieldDef.FieldType><if(fieldDef.InitialValue)> = <fieldDef.InitialValue: EncodedValue(it)><endif>
-<if(fieldDef.Annotations)>
-    <fieldDef.Annotations: annotation(it); separator="\n\n">
+.field <AccessFlags: {<it> }><FieldName>:<FieldType><if(InitialValue)> = <InitialValue: EncodedValue(it)><endif>
+<if(Annotations)>
+    <Annotations; separator="\n\n">
 .end field
 
 <endif>
 >>
 
 
-method(methodDef) ::=
+method(AccessFlags, MethodName, Prototype, HasCode, RegisterCount, Parameters, Annotations, MethodItems) ::=
 <<
-.method <methodDef.AccessFlags: {<it> }><methodDef.MethodName><methodDef.Prototype>
-<if(methodDef.hasCode)>
-    .registers <methodDef.RegisterCount>
-  <if(methodDef.Parameters)>
-    <methodDef.Parameters: Parameter(it); separator="\n">
+.method <AccessFlags: {<it> }><MethodName><Prototype>
+<if(HasCode)>
+    .registers <RegisterCount>
+  <if(Parameters)>
+    <Parameters; separator="\n">
   <endif>
-  <if(methodDef.Annotations)>
-    <methodDef.Annotations: annotation(it); separator="\n\n">
+  <if(Annotations)>
+    <Annotations; separator="\n\n">
   <endif>
 
-    <methodDef.MethodItems: MethodItem(it); separator="\n">
-<elseif(methodDef.Annotations)>
-    <methodDef.Annotations: annotation(it); separator="\n\n">
+    <MethodItems; separator="\n">
+<elseif(Annotations)>
+    <Annotations; separator="\n\n">
 <endif>
 .end method
 >>
 
-MethodItem(MethodItem) ::=
+Parameter(ParameterName, Annotations) ::=
 <<
-<MethodItem: (MethodItem.Template)(MethodItem)>
->>
+.parameter<if(ParameterName)> "<ParameterName>"<endif><if(Annotations)>
 
-Parameter(Parameter) ::=
-<<
-.parameter<if(Parameter.ParameterName)> "<Parameter.ParameterName>"<endif><if(Parameter.Annotations)>
-
-    <Parameter.Annotations: annotation(it); separator="\n\n">
+    <Annotations; separator="\n\n">
 .end parameter
 <endif>
 >>
@@ -139,161 +134,156 @@ v<num; format="decimal">
 
 
 
-Format10t(Instruction) ::=
+Format10t(Opcode, Target) ::=
 <<
-<Instruction.Opcode> goto_<Instruction.Target>:
+<Opcode> goto_<Target>:
 >>
 
-Format10x(Instruction) ::=
+Format10x(Opcode) ::=
 <<
-<Instruction.Opcode>
+<Opcode>
 >>
 
-Format11n(Instruction) ::=
+Format11n(Opcode, Register, Literal) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+<Opcode> <Register(Register)>, <Literal>
 >>
 
-Format11x(Instruction) ::=
+Format11x(Opcode, Register) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>
+<Opcode> <Register(Register)>
 >>
 
-Format12x(Instruction) ::=
+Format12x(Opcode, RegisterA, RegisterB) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>
 >>
 
-Format20t(Instruction) ::=
+Format20t(Opcode, Target) ::=
 <<
-<Instruction.Opcode> goto_<Instruction.Target>:
+<Opcode> goto_<Target>:
 >>
 
-Format21c(Instruction) ::=
+Format21c(Opcode, Register, Reference) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, <Reference(Instruction.Reference)>
+<Opcode> <Register(Register)>, <Reference(Reference)>
 >>
 
-Format21h(Instruction) ::=
+Format21h(Opcode, Register, Literal) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+<Opcode> <Register(Register)>, <Literal>
 >>
 
-Format21s(Instruction) ::=
+Format21s(Opcode, Register, Literal) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+<Opcode> <Register(Register)>, <Literal>
 >>
 
-Format21t(Instruction) ::=
+Format21t(Opcode, Register, Target) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, cond_<Instruction.Target>:
+<Opcode> <Register(Register)>, cond_<Target>:
 >>
 
-Format22b(Instruction) ::=
+Format22b(Opcode, RegisterA, RegisterB, Literal) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Instruction.Literal>
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Literal>
 >>
 
-Format22c(Instruction) ::=
+Format22c(Opcode, RegisterA, RegisterB, Reference) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Reference(Instruction.Reference)>
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Reference(Reference)>
 >>
 
-Format22s(Instruction) ::=
+Format22s(Opcode, RegisterA, RegisterB, Literal) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Instruction.Literal>
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Literal>
 >>
 
-Format22t(Instruction) ::=
+Format22t(Opcode, RegisterA, RegisterB, Target) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, cond_<Instruction.Target>:
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, cond_<Target>:
 >>
 
-Format22x(Instruction) ::=
+Format22x(Opcode, RegisterA, RegisterB) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>
 >>
 
-Format23x(Instruction) ::=
+Format23x(Opcode, RegisterA, RegisterB, RegisterC) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>, <Register(Instruction.RegisterC)>
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Register(RegisterC)>
 >>
 
-Format30t(Instruction) ::=
+Format30t(Opcode, Target) ::=
 <<
-<Instruction.Opcode> goto_<Instruction.Target>:
+<Opcode> goto_<Target>:
 >>
 
-Format31c(Instruction) ::=
+Format31c(Opcode, Register, Reference) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, <Reference(Instruction.Reference)>
+<Opcode> <Register(Register)>, <Reference(Reference)>
 >>
 
-Format31i(Instruction) ::=
+Format31i(Opcode, Register, Literal) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+<Opcode> <Register(Register)>, <Literal>
 >>
 
-Format31t(Instruction) ::=
+Format31t(Opcode, Register, Target) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, <Format31tLabelMap.(Instruction.Opcode)><Instruction.Target>:
+<Opcode> <Register(Register)>, <Format31tLabelMap.(Opcode)><Target>:
 >>
 
-Format32x(Instruction) ::=
+Format32x(Opcode, RegisterA, RegisterB) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.RegisterA)>, <Register(Instruction.RegisterB)>
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>
 >>
 
-Format35c(Instruction) ::=
+Format35c(Opcode, Registers, Reference) ::=
 <<
-<Instruction.Opcode> {<Instruction.Registers: Register(it); separator=", ">}, <Reference(Instruction.Reference)>
+<Opcode> {<Registers: Register(it); separator=", ">}, <Reference(Reference)>
 >>
 
-Format3rc(Instruction) ::=
+Format3rc(Opcode, StartRegister, LastRegister, Reference) ::=
 <<
-<Instruction.Opcode> {<Register(Instruction.StartRegister)> .. <Register(Instruction.LastRegister)>}, <Reference(Instruction.Reference)>
+<Opcode> {<Register(StartRegister)> .. <Register(LastRegister)>}, <Reference(Reference)>
 >>
 
-Format51l(Instruction) ::=
+Format51l(Opcode, Register, Literal) ::=
 <<
-<Instruction.Opcode> <Register(Instruction.Register)>, <Instruction.Literal>
+<Opcode> <Register(Register)>, <Literal>
 >>
 
-ArrayData(Instruction) ::=
+ArrayData(Opcode, ElementWidth, Values) ::=
 <<
-.array-data <Instruction.ElementWidth>
+.array-data <ElementWidth>
     <Instruction.Values: {<it.ByteArray; format="unsigned",separator=" ">}; separator="\n">
 .end array-data
 >>
 
-PackedSwitchData(Instruction) ::=
+PackedSwitchData(Opcode, FirstKey, Targets) ::=
 <<
-.packed-switch <Instruction.FirstKey>
-    <Instruction.Targets: {pswitch_<it>:}; separator="\n">
+.packed-switch <FirstKey>
+    <Targets: {pswitch_<it>:}; separator="\n">
 .end packed-switch
 >>
 
-SparseSwitchData(Instruction) ::=
+SparseSwitchData(Opcode, Targets) ::=
 <<
 .sparse-switch
-    <Instruction.Targets:{<it.Value> -> sswitch_<it.Target>:}; separator="\n">
+    <Targets:{<it.Value> -> sswitch_<it.Target>:}; separator="\n">
 .end sparse-switch
 >>
 
 
-Label(Label) ::=
+Label(Prefix, HexOffset) ::=
 <<
-<Label.Prefix><Label.HexOffset>:
->>
-
-EndTryLabel(Label) ::=
-<<
-<Label.Prefix><Label.LabelOffset; format="barehex">:
+<Prefix><HexOffset>:
 >>
 
 Line(Line) ::=
 <<
-.line <Line.Line; format="decimal">
+.line <Line; format="decimal">
 >>
 
 EndPrologue(Prologue) ::=
@@ -306,24 +296,24 @@ StartEpilogue(Epilogue) ::=
 .epilogue
 >>
 
-StartLocal(StartLocal) ::=
+StartLocal(Register, Name, Type, Signature) ::=
 <<
-.local <Register(StartLocal.Register)>, <StartLocal.Name>:<StartLocal.Type><if(StartLocal.Signature)>,"<StartLocal.Signature>"<endif>
+.local <Register(Register)>, <Name>:<Type><if(Signature)>,"<Signature>"<endif>
 >>
 
-EndLocal(EndLocal) ::=
+EndLocal(Register, Name, Type, Signature) ::=
 <<
-.end local <Register(EndLocal.Register)>       <if(EndLocal.Name)>#<EndLocal.Name>:<EndLocal.Type>,<if(EndLocal.Signature)>, "<EndLocal.Signature>"<endif><endif>
+.end local <Register(Register)>       <if(Name)>#<Name>:<Type>,<if(Signature)>, "<Signature>"<endif><endif>
 >>
 
-RestartLocal(RestartLocal) ::=
+RestartLocal(Register, Name, Type, Signature) ::=
 <<
-.restart local <Register(RestartLocal.Register)>       <if(RestartLocal.Name)>#<RestartLocal.Name>:<RestartLocal.Type>,<if(RestartLocal.Signature)>, "<RestartLocal.Signature>"<endif><endif>
+.restart local <Register(Register)>       <if(Name)>#<Name>:<Type>,<if(Signature)>, "<Signature>"<endif><endif>
 >>
 
-SetFile(SetFile) ::=
+SetFile(FileName) ::=
 <<
-.source "<SetFile.FileName>" 
+.source "<FileName>" 
 >>
 
 Blank(Blank) ::=
@@ -331,14 +321,14 @@ Blank(Blank) ::=
 
 >>
 
-Catch(Catch) ::=
+Catch(ExceptionType, StartAddress, EndAddress, HandlerAddress) ::=
 <<
-.catch <Reference(Catch.ExceptionType)> {try_start_<Catch.StartAddress; format="barehex">: .. try_end_<Catch.EndAddress; format="barehex">:} handler_<Catch.HandlerAddress; format="barehex">:
+.catch <Reference(ExceptionType)> {try_start_<StartAddress>: .. try_end_<EndAddress>:} handler_<HandlerAddress>:
 >>
 
-CatchAll(Catch) ::=
+CatchAll(StartAddress, EndAddress, HandlerAddress) ::=
 <<
-.catchall {try_start_<Catch.StartAddress; format="barehex">: .. try_end_<Catch.EndAddress; format="barehex">:} handler_<Catch.HandlerAddress; format="barehex">: 
+.catchall {try_start_<StartAddress>: .. try_end_<EndAddress>:} handler_<HandlerAddress>: 
 >>
 
 

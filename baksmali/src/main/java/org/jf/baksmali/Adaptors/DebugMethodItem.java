@@ -28,21 +28,33 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
+
 public class DebugMethodItem extends MethodItem {
-    private final String template;
+    private final StringTemplateGroup stg;
+    private final String templateName;
     private final int sortOrder;
 
-    public DebugMethodItem(int offset, String template, int sortOrder) {
+    public DebugMethodItem(int offset, StringTemplateGroup stg, String templateName, int sortOrder) {
         super(offset);
-        this.template = template;
+        this.stg = stg;
+        this.templateName = templateName;
         this.sortOrder = sortOrder;
-    }
-
-    public String getTemplate() {
-        return template;
     }
 
     public int getSortOrder() {
         return sortOrder;
+    }
+
+    @Override
+    public String toString() {
+        StringTemplate template = stg.getInstanceOf(templateName);
+        setAttributes(template);
+        return template.toString();
+    }
+
+    protected void setAttributes(StringTemplate template)
+    {
     }
 }

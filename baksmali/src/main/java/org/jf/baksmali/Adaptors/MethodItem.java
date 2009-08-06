@@ -35,7 +35,6 @@ public abstract class MethodItem implements Comparable<MethodItem> {
         this.offset = offset;
     }
 
-
     public int getOffset() {
         return offset;
     }
@@ -44,8 +43,6 @@ public abstract class MethodItem implements Comparable<MethodItem> {
         return Integer.toHexString(offset);
     }
 
-    //return the name of the template that should be used to render this item
-    public abstract String getTemplate();
     //return an arbitrary integer that determines how this item will be sorted with
     //others at the same offset
     public abstract int getSortOrder();

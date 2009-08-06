@@ -97,7 +97,7 @@ public class baksmali {
 
             //create and initialize the top level string template
             StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-            smaliFileST.setAttribute("classDef", new ClassDefinition(classDefItem));
+            smaliFileST.setAttribute("classDef", new ClassDefinition(templates, classDefItem));
 
             //generate the disassembly
             String output = smaliFileST.toString();

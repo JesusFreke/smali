@@ -31,77 +31,56 @@ package org.jf.baksmali.Adaptors;
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.EncodedValue.EncodedValue;
-import org.jf.dexlib.FieldIdItem;
 import org.jf.dexlib.AnnotationSetItem;
 import org.jf.dexlib.AnnotationItem;
 import org.jf.dexlib.Util.AccessFlags;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FieldDefinition {
-    private ClassDataItem.EncodedField encodedField;
-    private FieldIdItem fieldIdItem;
-    private EncodedValue initialValue;
-    private AnnotationSetItem annotationSet;
+    public static StringTemplate createTemplate(StringTemplateGroup stg, ClassDataItem.EncodedField encodedField,
+                                                EncodedValue initialValue, AnnotationSetItem annotationSet) {
+        StringTemplate template = stg.getInstanceOf("field");
 
-    public FieldDefinition(ClassDataItem.EncodedField encodedField, AnnotationSetItem annotationSet) {
-        this(encodedField, null, annotationSet);
-    }
-
-    public FieldDefinition(ClassDataItem.EncodedField encodedField, EncodedValue initialValue,
-                           AnnotationSetItem annotationSet) {
-        this.encodedField = encodedField;
-        this.fieldIdItem = encodedField.field;
-        this.initialValue = initialValue;
-        this.annotationSet = annotationSet;
-    }
-
-    private List<String> accessFlags = null;
-    public List<String> getAccessFlags() {
-        if (accessFlags == null) {
-            accessFlags = new ArrayList<String>();
-
-            for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(encodedField.accessFlags)) {
-                accessFlags.add(accessFlag.toString());
-            }
+        template.setAttribute("AccessFlags", getAccessFlags(encodedField));
+        template.setAttribute("FieldName", encodedField.field.getFieldName().getStringValue());
+        template.setAttribute("FieldType", encodedField.field.getFieldType().getTypeDescriptor());
+        template.setAttribute("Annotations", getAnnotations(stg, annotationSet));
+        
+        if (initialValue != null) {
+            template.setAttribute("InitialValue", EncodedValueAdaptor.make(initialValue));
         }
+
+        return template;
+    }
+
+    public static StringTemplate createTemplate(StringTemplateGroup stg, ClassDataItem.EncodedField encodedField,
+                                                AnnotationSetItem annotationSet) {
+        return createTemplate(stg, encodedField, null, annotationSet);
+    }
+
+    private static List<String> getAccessFlags(ClassDataItem.EncodedField encodedField) {
+        List<String> accessFlags = new ArrayList<String>();
+
+        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(encodedField.accessFlags)) {
+            accessFlags.add(accessFlag.toString());
+        }
+
         return accessFlags;
     }
 
-    private String fieldName = null;
-    public String getFieldName() {
-        if (fieldName == null) {
-            fieldName = fieldIdItem.getFieldName().getStringValue();
-        }
-        return fieldName;
-    }
-
-    private String fieldType = null;
-    public String getFieldType() {
-        if (fieldType == null) {
-            fieldType = fieldIdItem.getFieldType().getTypeDescriptor();
-        }
-        return fieldType;
-    }
-
-    private EncodedValueAdaptor encodedValueAdaptor = null;
-    public EncodedValueAdaptor getInitialValue() {
-        if (encodedValueAdaptor == null && initialValue != null) {
-            encodedValueAdaptor = EncodedValueAdaptor.make(initialValue);
-        }
-        return encodedValueAdaptor;
-    }
-
-    public List<AnnotationAdaptor> getAnnotations() {
+    private static List<StringTemplate> getAnnotations(StringTemplateGroup stg, AnnotationSetItem annotationSet) {
         if (annotationSet == null) {
             return null;
         }
-
-        List<AnnotationAdaptor> annotationAdaptors = new ArrayList<AnnotationAdaptor>();
+        
+        List<StringTemplate> annotationAdaptors = new ArrayList<StringTemplate>();
 
         for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
-            annotationAdaptors.add(new AnnotationAdaptor(annotationItem));
+            annotationAdaptors.add(AnnotationAdaptor.makeTemplate(stg, annotationItem));
         }
         return annotationAdaptors;
     }

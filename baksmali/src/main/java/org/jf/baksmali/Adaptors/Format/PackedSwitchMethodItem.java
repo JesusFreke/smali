@@ -30,37 +30,36 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSwitchDataPseudoInstruction> {
     private int baseAddress;
 
-    public PackedSwitchMethodItem(int offset, PackedSwitchDataPseudoInstruction instruction, int baseAddress) {
-        super(offset, instruction);
+    public PackedSwitchMethodItem(int offset, StringTemplateGroup stg, PackedSwitchDataPseudoInstruction instruction,
+                                  int baseAddress) {
+        super(offset, stg, instruction);
         this.baseAddress = baseAddress;
     }
 
-    public int getFirstKey() {
-        return instruction.getFirstKey();
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("FirstKey", instruction.getFirstKey());
+        template.setAttribute("Targets", getTargets());
     }
 
-    public Iterator<String> getTargets() {
-        return new Iterator<String>() {
-            Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.getTargets();
+    private List<String> getTargets() {
+        List<String> targets = new ArrayList<String>();
 
+        Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.getTargets();
+        while (iterator.hasNext()) {
+            PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
+            targets.add(Integer.toHexString(target.target + baseAddress));
+        }
 
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            public String next() {
-                PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();                 
-                return Integer.toHexString(target.target + baseAddress);
-            }
-
-            public void remove() {
-            }
-        };
+        return targets;
     }
 }

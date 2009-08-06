@@ -28,11 +28,16 @@
 
 package org.jf.baksmali.Adaptors;
 
-public class LabelMethodItem extends MethodItem {
-    private String labelPrefix;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-    public LabelMethodItem(int offset, String labelPrefix) {
+public class LabelMethodItem extends MethodItem {
+    private final StringTemplateGroup stg;
+    private final String labelPrefix;
+
+    public LabelMethodItem(int offset, StringTemplateGroup stg, String labelPrefix) {
         super(offset);
+        this.stg = stg;
         this.labelPrefix = labelPrefix;
     }
 
@@ -51,14 +56,6 @@ public class LabelMethodItem extends MethodItem {
         return result;
     }
 
-    public String getPrefix() {
-        return labelPrefix;
-    }
-
-    public String getTemplate() {
-        return "Label";
-    }
-
     public int hashCode() {
         //force it to call equals when two labels are at the same address
         return getOffset();
@@ -69,5 +66,17 @@ public class LabelMethodItem extends MethodItem {
             return false;
         }
         return this.compareTo((MethodItem)o) == 0;
+    }
+
+    @Override
+    public String toString() {
+        StringTemplate template = stg.getInstanceOf("Label");
+        template.setAttribute("Prefix", labelPrefix);
+        template.setAttribute("HexOffset", getLabelOffset());
+        return template.toString();
+    }
+
+    public String getLabelOffset() {
+        return getHexOffset();
     }
 }

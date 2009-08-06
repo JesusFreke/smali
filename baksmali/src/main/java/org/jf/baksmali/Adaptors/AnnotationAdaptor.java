@@ -31,27 +31,21 @@ package org.jf.baksmali.Adaptors;
 import org.jf.dexlib.AnnotationItem;
 import org.jf.baksmali.Adaptors.EncodedValue.AnnotationEncodedValueAdaptor;
 import org.jf.baksmali.Adaptors.Reference.TypeReference;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 import java.util.List;
 
 public class AnnotationAdaptor {
-    private AnnotationItem annotationItem;
-    private AnnotationEncodedValueAdaptor encodedAnnotationAdaptor;
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, AnnotationItem annotationItem) {
+        StringTemplate template = stg.getInstanceOf("annotation");
 
-    public AnnotationAdaptor(AnnotationItem annotationItem) {
-        this.annotationItem = annotationItem;
-        this.encodedAnnotationAdaptor = new AnnotationEncodedValueAdaptor(annotationItem.getEncodedAnnotation());
-    }
+        AnnotationEncodedValueAdaptor aeva = new AnnotationEncodedValueAdaptor(annotationItem.getEncodedAnnotation());
 
-    public String getVisibility() {
-        return annotationItem.getVisibility().name().toLowerCase();
-    }
+        template.setAttribute("Visibility", annotationItem.getVisibility().name().toLowerCase());
+        template.setAttribute("AnnotationType", aeva.getAnnotationType());
+        template.setAttribute("Elements", aeva.getElements());
 
-    public TypeReference getAnnotationType() {
-        return encodedAnnotationAdaptor.getAnnotationType();
-    }
-
-    public List<AnnotationEncodedValueAdaptor.AnnotationElementAdaptor> getElements() {
-        return encodedAnnotationAdaptor.getElements();
+        return template;
     }
 }
