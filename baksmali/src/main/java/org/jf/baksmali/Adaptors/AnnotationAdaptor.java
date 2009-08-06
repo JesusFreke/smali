@@ -40,11 +40,8 @@ public class AnnotationAdaptor {
     public static StringTemplate makeTemplate(StringTemplateGroup stg, AnnotationItem annotationItem) {
         StringTemplate template = stg.getInstanceOf("annotation");
 
-        AnnotationEncodedValueAdaptor aeva = new AnnotationEncodedValueAdaptor(annotationItem.getEncodedAnnotation());
-
         template.setAttribute("Visibility", annotationItem.getVisibility().name().toLowerCase());
-        template.setAttribute("AnnotationType", aeva.getAnnotationType());
-        template.setAttribute("Elements", aeva.getElements());
+        AnnotationEncodedValueAdaptor.setAttributesForAnnotation(template, annotationItem.getEncodedAnnotation());
 
         return template;
     }

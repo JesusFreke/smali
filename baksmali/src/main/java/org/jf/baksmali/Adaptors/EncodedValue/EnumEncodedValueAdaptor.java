@@ -29,20 +29,13 @@
 package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.baksmali.Adaptors.Reference.FieldReference;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
-public class EnumEncodedValueAdaptor extends EncodedValueAdaptor {
-    private FieldReference fieldReference;
-
-    public EnumEncodedValueAdaptor(FieldReference fieldReference) {
-        this.fieldReference = fieldReference;
-    }
-
-
-    public String getFormat() {
-        return "EnumEncodedValue";
-    }
-
-    public Object getValue() {
-        return fieldReference;
+public class EnumEncodedValueAdaptor {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, FieldReference fieldReference) {
+        StringTemplate template = stg.getInstanceOf("EnumEncodedValue");
+        template.setAttribute("Value", fieldReference);
+        return template;
     }
 }

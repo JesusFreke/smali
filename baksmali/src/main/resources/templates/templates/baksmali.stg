@@ -68,7 +68,7 @@ annotation(Visibility, AnnotationType, Elements) ::=
 <<
 .annotation <Visibility> <Reference(AnnotationType)>
 <if(Elements)>
-    <Elements: AnnotationElement(it); separator="\n">
+    <Elements; separator="\n">
 <endif>
 <if(Elements)>
 
@@ -81,7 +81,7 @@ annotation(Visibility, AnnotationType, Elements) ::=
 
 field(AccessFlags, FieldName, FieldType, Annotations, InitialValue) ::=
 <<
-.field <AccessFlags: {<it> }><FieldName>:<FieldType><if(InitialValue)> = <InitialValue: EncodedValue(it)><endif>
+.field <AccessFlags: {<it> }><FieldName>:<FieldType><if(InitialValue)> = <InitialValue><endif>
 <if(Annotations)>
     <Annotations; separator="\n\n">
 .end field
@@ -359,41 +359,36 @@ TypeReference(TypeReference) ::=
 
 
 
-EncodedValue(EncodedValue) ::=
+SimpleEncodedValue(Value) ::=
 <<
-<(EncodedValue.Format)(EncodedValue)>
+<Value>
 >>
 
-SimpleEncodedValue(EncodedValue) ::=
+EncodedIndexedItemReference(Value) ::=
 <<
-<EncodedValue.Value>
+<Reference(Value)>
 >>
 
-EncodedIndexedItemReference(EncodedValue) ::=
-<<
-<Reference(EncodedValue.Value)>
->>
-
-ArrayEncodedValue(EncodedValue) ::=
+ArrayEncodedValue(Value) ::=
 <<
 {
-    <EncodedValue.Value: EncodedValue(it); separator=",\n">
+    <Value; separator=",\n">
 }
 >>
 
-EnumEncodedValue(EncodedValue) ::=
+EnumEncodedValue(Value) ::=
 <<
-.enum <Reference(EncodedValue.Value)>
+.enum <Reference(Value)>
 >>
 
-AnnotationEncodedValue(EncodedValue) ::=
+AnnotationEncodedValue(AnnotationType, Elements) ::=
 <<
-.subannotation <Reference(EncodedValue.AnnotationType)>
-    <EncodedValue.Elements: AnnotationElement(it); separator="\n">
+.subannotation <Reference(AnnotationType)>
+    <Elements; separator="\n">
 .end subannotation
 >>
 
-AnnotationElement(AnnotationElement) ::=
+AnnotationElement(Name, Value) ::=
 <<
-<AnnotationElement.Name> = <EncodedValue(AnnotationElement.Value)>
+<Name> = <Value>
 >>

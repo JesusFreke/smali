@@ -28,18 +28,13 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-public class SimpleEncodedValueAdaptor extends EncodedValueAdaptor {
-    private Object value;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-    public SimpleEncodedValueAdaptor(Object value) {
-        this.value = value;
-    }
-
-    public String getFormat() {
-        return "SimpleEncodedValue";
-    }
-
-    public Object getValue() {
-        return value;
+public class SimpleEncodedValueAdaptor {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, Object value) {
+        StringTemplate template = stg.getInstanceOf("SimpleEncodedValue");
+        template.setAttribute("Value", value);
+        return template;
     }
 }

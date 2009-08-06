@@ -51,7 +51,7 @@ public class FieldDefinition {
         template.setAttribute("Annotations", getAnnotations(stg, annotationSet));
         
         if (initialValue != null) {
-            template.setAttribute("InitialValue", EncodedValueAdaptor.make(initialValue));
+            template.setAttribute("InitialValue", EncodedValueAdaptor.make(stg, initialValue));
         }
 
         return template;

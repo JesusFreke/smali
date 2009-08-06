@@ -30,26 +30,24 @@ package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.ArrayEncodedValue;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
 import java.util.List;
 import java.util.ArrayList;
 
-public class ArrayEncodedValueAdaptor extends EncodedValueAdaptor {
-    private ArrayEncodedValue encodedArray;
-
-    public ArrayEncodedValueAdaptor(ArrayEncodedValue encodedArray) {
-        this.encodedArray = encodedArray;        
+public class ArrayEncodedValueAdaptor {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, ArrayEncodedValue encodedArray) {
+        StringTemplate template = stg.getInstanceOf("ArrayEncodedValue");
+        template.setAttribute("Value", getValue(stg, encodedArray));
+        return template;
     }
 
-    public String getFormat() {
-        return "ArrayEncodedValue";
-    }
-
-    public Object getValue() {
-        List<EncodedValueAdaptor> encodedValues = new ArrayList<EncodedValueAdaptor>();
+    private static List<StringTemplate> getValue(StringTemplateGroup stg, ArrayEncodedValue encodedArray) {
+        List<StringTemplate> encodedValues = new ArrayList<StringTemplate>();
 
         for (EncodedValue encodedValue: encodedArray.values) {
-            encodedValues.add(EncodedValueAdaptor.make(encodedValue));
+            encodedValues.add(EncodedValueAdaptor.make(stg, encodedValue));
         }
         return encodedValues;
     }

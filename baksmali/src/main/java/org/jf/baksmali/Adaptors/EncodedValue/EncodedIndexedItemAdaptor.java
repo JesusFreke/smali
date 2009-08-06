@@ -29,19 +29,13 @@
 package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.baksmali.Adaptors.Reference.Reference;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
-public class EncodedIndexedItemAdaptor extends EncodedValueAdaptor {
-    private Reference reference;
-
-    public EncodedIndexedItemAdaptor(Reference reference) {
-        this.reference = reference;
-    }
-
-    public String getFormat() {
-        return "EncodedIndexedItemReference";
-    }
-
-    public Object getValue() {
-        return reference;
+public class EncodedIndexedItemAdaptor {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, Reference reference) {
+        StringTemplate template = stg.getInstanceOf("EncodedIndexedItemReference");
+        template.setAttribute("Value", reference);
+        return template;
     }
 }

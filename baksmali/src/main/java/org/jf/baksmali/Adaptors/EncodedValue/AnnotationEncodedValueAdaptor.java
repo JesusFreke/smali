@@ -32,55 +32,45 @@ import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
 import org.jf.dexlib.StringIdItem;
 import org.jf.baksmali.Adaptors.Reference.TypeReference;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
 import java.util.List;
 import java.util.ArrayList;
 
-public class AnnotationEncodedValueAdaptor extends EncodedValueAdaptor {
-    private AnnotationEncodedSubValue encodedAnnotation;
-
-    public AnnotationEncodedValueAdaptor(AnnotationEncodedSubValue encodedAnnotation) {
-        this.encodedAnnotation = encodedAnnotation;
+public abstract class AnnotationEncodedValueAdaptor {
+    
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, AnnotationEncodedSubValue encodedAnnotation) {
+        StringTemplate template = stg.getInstanceOf("AnnotationEncodedValue");
+        template.setAttribute("AnnotationType", new TypeReference(encodedAnnotation.annotationType));
+        template.setAttribute("Elements", getElements(stg, encodedAnnotation));
+        return template;
     }
 
-    public String getFormat() {
-        return "AnnotationEncodedValue";
+    public static void setAttributesForAnnotation(StringTemplate template,
+                                                  AnnotationEncodedSubValue encodedAnnotation) {
+        template.setAttribute("AnnotationType", new TypeReference(encodedAnnotation.annotationType));
+        template.setAttribute("Elements", getElements(template.getGroup(), encodedAnnotation));
     }
 
-    public Object getValue() {
-        return this;
-    }
-
-    public TypeReference getAnnotationType() {
-        return new TypeReference(encodedAnnotation.annotationType);
-    }
-
-    public List<AnnotationElementAdaptor> getElements() {
-        List<AnnotationElementAdaptor> elements = new ArrayList<AnnotationElementAdaptor>();
+    private static List<String> getElements(StringTemplateGroup stg,
+                                                              AnnotationEncodedSubValue encodedAnnotation) {
+        List<String> elements = new ArrayList<String>();
 
         for (int i=0; i<encodedAnnotation.names.length; i++) {
-            elements.add(new AnnotationElementAdaptor(encodedAnnotation.names[i], encodedAnnotation.values[i]));
+            elements.add(AnnotationElementAdaptor.toString(stg, encodedAnnotation.names[i], encodedAnnotation.values[i]));
         }
 
         return elements;
     }
 
 
-    public static class AnnotationElementAdaptor {
-        private StringIdItem name;
-        private EncodedValue value;
-
-        public AnnotationElementAdaptor(StringIdItem name, EncodedValue value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        public String getName() {
-            return name.getStringValue();
-        }
-
-        public EncodedValueAdaptor getValue() {
-            return EncodedValueAdaptor.make(value);
+    private static class AnnotationElementAdaptor {
+        public static String toString(StringTemplateGroup stg, StringIdItem name, EncodedValue value) {
+            StringTemplate template = stg.getInstanceOf("AnnotationElement");
+            template.setAttribute("Name", name);
+            template.setAttribute("Value", EncodedValueAdaptor.make(stg, value));
+            return template.toString();
         }
     }
 }
