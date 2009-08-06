@@ -171,7 +171,7 @@ public class ProtoIdItem extends Item<ProtoIdItem> {
      */
     private void calcHashCode() {
         hashCode = returnType.hashCode();
-        hashCode = 31 * hashCode + parameters.hashCode();
+        hashCode = 31 * hashCode + (parameters==null?0:parameters.hashCode());
     }
 
     @Override
