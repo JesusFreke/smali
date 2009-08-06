@@ -257,7 +257,7 @@ Format51l(Opcode, Register, Literal) ::=
 ArrayData(Opcode, ElementWidth, Values) ::=
 <<
 .array-data <ElementWidth>
-    <Instruction.Values: {<it.ByteArray; format="unsigned",separator=" ">}; separator="\n">
+    <Values: {<it.ByteArray; format="unsigned",separator=" ">}; separator="\n">
 .end array-data
 >>
 
