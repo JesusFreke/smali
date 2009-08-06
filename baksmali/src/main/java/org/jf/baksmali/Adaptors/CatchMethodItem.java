@@ -63,7 +63,7 @@ public class CatchMethodItem extends MethodItem {
     public String toString() {
         StringTemplate template = stg.getInstanceOf(getTemplateName());
         if (exceptionType != null) {
-            template.setAttribute("ExceptionType", new TypeReference(exceptionType));
+            template.setAttribute("ExceptionType", TypeReference.makeTemplate(stg, exceptionType));
         }
         template.setAttribute("StartAddress", Integer.toHexString(startAddress));
         template.setAttribute("EndAddress", Integer.toHexString(endAddress));

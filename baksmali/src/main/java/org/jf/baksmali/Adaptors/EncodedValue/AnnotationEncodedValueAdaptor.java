@@ -42,14 +42,15 @@ public abstract class AnnotationEncodedValueAdaptor {
     
     public static StringTemplate makeTemplate(StringTemplateGroup stg, AnnotationEncodedSubValue encodedAnnotation) {
         StringTemplate template = stg.getInstanceOf("AnnotationEncodedValue");
-        template.setAttribute("AnnotationType", new TypeReference(encodedAnnotation.annotationType));
+        template.setAttribute("AnnotationType", TypeReference.makeTemplate(stg, encodedAnnotation.annotationType));
         template.setAttribute("Elements", getElements(stg, encodedAnnotation));
         return template;
     }
 
     public static void setAttributesForAnnotation(StringTemplate template,
                                                   AnnotationEncodedSubValue encodedAnnotation) {
-        template.setAttribute("AnnotationType", new TypeReference(encodedAnnotation.annotationType));
+        template.setAttribute("AnnotationType", TypeReference.makeTemplate(template.getGroup(),
+                encodedAnnotation.annotationType));
         template.setAttribute("Elements", getElements(template.getGroup(), encodedAnnotation));
     }
 

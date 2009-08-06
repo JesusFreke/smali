@@ -29,29 +29,21 @@
 package org.jf.baksmali.Adaptors.Reference;
 
 import org.jf.dexlib.*;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public abstract class Reference<T extends Item> {
-    protected T item;
-
-    protected Reference(T item) {
-        this.item = item;
-    }
-
-    public static Reference makeReference(Item item) {
+public abstract class Reference {
+    public static StringTemplate makeReference(StringTemplateGroup stg, Item item) {
         switch (item.getItemType()) {
             case TYPE_METHOD_ID_ITEM:
-                return new MethodReference((MethodIdItem)item);
+                return MethodReference.makeTemplate(stg, (MethodIdItem)item);
             case TYPE_FIELD_ID_ITEM:
-                return new FieldReference((FieldIdItem)item);
+                return FieldReference.makeTemplate(stg, (FieldIdItem)item);
             case TYPE_STRING_ID_ITEM:
-                return new StringReference((StringIdItem)item);
+                return StringReference.makeTemplate(stg, (StringIdItem)item);
             case TYPE_TYPE_ID_ITEM:
-                return new TypeReference((TypeIdItem)item);
+                return TypeReference.makeTemplate(stg, (TypeIdItem)item);
         }
         return null;
-    }
-
-    public String getTemplate() {
-        return this.getClass().getSimpleName();
     }
 }

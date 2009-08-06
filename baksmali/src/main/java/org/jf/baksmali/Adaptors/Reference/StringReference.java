@@ -30,13 +30,13 @@ package org.jf.baksmali.Adaptors.Reference;
 
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.Util.Utf8Utils;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public class StringReference extends Reference<StringIdItem> {
-    public StringReference(StringIdItem item) {
-        super(item);
-    }
-
-    public String getEscapedValue() {
-        return Utf8Utils.escapeString(item.getStringValue());
+public class StringReference {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, StringIdItem item) {
+        StringTemplate template = stg.getInstanceOf("StringReference");
+        template.setAttribute("EscapedValue", Utf8Utils.escapeString(item.getStringValue()));
+        return template;
     }
 }

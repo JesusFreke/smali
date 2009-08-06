@@ -66,7 +66,7 @@ implement(interface) ::=
 
 annotation(Visibility, AnnotationType, Elements) ::=
 <<
-.annotation <Visibility> <Reference(AnnotationType)>
+.annotation <Visibility> <AnnotationType>
 <if(Elements)>
     <Elements; separator="\n">
 <endif>
@@ -166,7 +166,7 @@ Format20t(Opcode, Target) ::=
 
 Format21c(Opcode, Register, Reference) ::=
 <<
-<Opcode> <Register(Register)>, <Reference(Reference)>
+<Opcode> <Register(Register)>, <Reference>
 >>
 
 Format21h(Opcode, Register, Literal) ::=
@@ -191,7 +191,7 @@ Format22b(Opcode, RegisterA, RegisterB, Literal) ::=
 
 Format22c(Opcode, RegisterA, RegisterB, Reference) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Reference(Reference)>
+<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Reference>
 >>
 
 Format22s(Opcode, RegisterA, RegisterB, Literal) ::=
@@ -221,7 +221,7 @@ Format30t(Opcode, Target) ::=
 
 Format31c(Opcode, Register, Reference) ::=
 <<
-<Opcode> <Register(Register)>, <Reference(Reference)>
+<Opcode> <Register(Register)>, <Reference>
 >>
 
 Format31i(Opcode, Register, Literal) ::=
@@ -241,12 +241,12 @@ Format32x(Opcode, RegisterA, RegisterB) ::=
 
 Format35c(Opcode, Registers, Reference) ::=
 <<
-<Opcode> {<Registers: Register(it); separator=", ">}, <Reference(Reference)>
+<Opcode> {<Registers: Register(it); separator=", ">}, <Reference>
 >>
 
 Format3rc(Opcode, StartRegister, LastRegister, Reference) ::=
 <<
-<Opcode> {<Register(StartRegister)> .. <Register(LastRegister)>}, <Reference(Reference)>
+<Opcode> {<Register(StartRegister)> .. <Register(LastRegister)>}, <Reference>
 >>
 
 Format51l(Opcode, Register, Literal) ::=
@@ -323,7 +323,7 @@ Blank(Blank) ::=
 
 Catch(ExceptionType, StartAddress, EndAddress, HandlerAddress) ::=
 <<
-.catch <Reference(ExceptionType)> {try_start_<StartAddress>: .. try_end_<EndAddress>:} handler_<HandlerAddress>:
+.catch <ExceptionType> {try_start_<StartAddress>: .. try_end_<EndAddress>:} handler_<HandlerAddress>:
 >>
 
 CatchAll(StartAddress, EndAddress, HandlerAddress) ::=
@@ -332,29 +332,25 @@ CatchAll(StartAddress, EndAddress, HandlerAddress) ::=
 >>
 
 
-Reference(ReferencedItem) ::=
+
+StringReference(EscapedValue) ::=
 <<
-<(ReferencedItem.Template)(ReferencedItem)>
+"<EscapedValue>"
 >>
 
-StringReference(StringReference) ::=
+FieldReference(ContainingClass, FieldName, FieldType) ::=
 <<
-"<StringReference.EscapedValue>"
+<ContainingClass>-><FieldName>:<FieldType>
 >>
 
-FieldReference(FieldReference) ::=
+MethodReference(ContainingClass, MethodName, Prototype) ::=
 <<
-<FieldReference.ContainingClass>-><FieldReference.FieldName>:<FieldReference.FieldType>
+<ContainingClass>-><MethodName><Prototype>
 >>
 
-MethodReference(MethodReference) ::=
+TypeReference(TypeDescriptor) ::=
 <<
-<MethodReference.ContainingClass>-><MethodReference.MethodName><MethodReference.Prototype>
->>
-
-TypeReference(TypeReference) ::=
-<<
-<TypeReference.TypeDescriptor>
+<TypeDescriptor>
 >>
 
 
@@ -366,7 +362,7 @@ SimpleEncodedValue(Value) ::=
 
 EncodedIndexedItemReference(Value) ::=
 <<
-<Reference(Value)>
+<Value>
 >>
 
 ArrayEncodedValue(Value) ::=
@@ -378,12 +374,12 @@ ArrayEncodedValue(Value) ::=
 
 EnumEncodedValue(Value) ::=
 <<
-.enum <Reference(Value)>
+.enum <Value>
 >>
 
 AnnotationEncodedValue(AnnotationType, Elements) ::=
 <<
-.subannotation <Reference(AnnotationType)>
+.subannotation <AnnotationType>
     <Elements; separator="\n">
 .end subannotation
 >>

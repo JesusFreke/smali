@@ -29,33 +29,15 @@
 package org.jf.baksmali.Adaptors.Reference;
 
 import org.jf.dexlib.FieldIdItem;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public class FieldReference extends Reference<FieldIdItem> {
-    public FieldReference(FieldIdItem item) {
-        super(item);
-    }
-
-    private String containingClass = null;
-    public String getContainingClass() {
-        if (containingClass == null) {
-            containingClass = item.getContainingClass().getTypeDescriptor();
-        }
-        return containingClass;
-    }
-
-    private String fieldName = null;
-    public String getFieldName() {
-        if (fieldName == null) {
-            fieldName = item.getFieldName().getStringValue();
-        }
-        return fieldName;
-    }
-
-    private String fieldType = null;
-    public String getFieldType() {
-        if (fieldType == null) {
-            fieldType = item.getFieldType().getTypeDescriptor();
-        }
-        return fieldType;
+public class FieldReference {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, FieldIdItem item) {
+        StringTemplate template = stg.getInstanceOf("FieldReference");
+        template.setAttribute("ContainingClass", item.getContainingClass().getTypeDescriptor());
+        template.setAttribute("FieldName", item.getFieldName().getStringValue());
+        template.setAttribute("FieldType", item.getFieldType().getTypeDescriptor());
+        return template;
     }
 }

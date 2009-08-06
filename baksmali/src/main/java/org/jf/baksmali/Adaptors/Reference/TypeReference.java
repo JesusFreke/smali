@@ -29,13 +29,13 @@
 package org.jf.baksmali.Adaptors.Reference;
 
 import org.jf.dexlib.TypeIdItem;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public class TypeReference extends Reference<TypeIdItem> {
-    public TypeReference(TypeIdItem item) {
-        super(item);
-    }
-
-    public String getTypeDescriptor() {
-        return item.getTypeDescriptor();
+public class TypeReference {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, TypeIdItem item) {
+        StringTemplate template = stg.getInstanceOf("TypeReference");
+        template.setAttribute("TypeDescriptor", item.getTypeDescriptor());
+        return template;
     }
 }

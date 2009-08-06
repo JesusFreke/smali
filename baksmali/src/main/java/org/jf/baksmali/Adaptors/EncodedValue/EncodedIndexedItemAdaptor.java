@@ -33,7 +33,7 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 
 public class EncodedIndexedItemAdaptor {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, Reference reference) {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, StringTemplate reference) {
         StringTemplate template = stg.getInstanceOf("EncodedIndexedItemReference");
         template.setAttribute("Value", reference);
         return template;

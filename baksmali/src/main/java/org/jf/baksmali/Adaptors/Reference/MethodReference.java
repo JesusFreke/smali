@@ -29,21 +29,15 @@
 package org.jf.baksmali.Adaptors.Reference;
 
 import org.jf.dexlib.MethodIdItem;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
-public class MethodReference extends Reference<MethodIdItem> {
-    public MethodReference(MethodIdItem item) {
-        super(item);
-    }
-
-    public String getContainingClass() {
-        return item.getContainingClass().getTypeDescriptor();
-    }
-
-    public String getMethodName() {
-        return item.getMethodName().getStringValue();
-    }
-
-    public String getPrototype() {
-        return item.getPrototype().getPrototypeString();
+public class MethodReference {
+    public static StringTemplate makeTemplate(StringTemplateGroup stg, MethodIdItem item) {
+        StringTemplate template = stg.getInstanceOf("MethodReference");
+        template.setAttribute("ContainingClass", item.getContainingClass().getTypeDescriptor());
+        template.setAttribute("MethodName", item.getMethodName().getStringValue());
+        template.setAttribute("Prototype", item.getPrototype().getPrototypeString());
+        return template;
     }
 }

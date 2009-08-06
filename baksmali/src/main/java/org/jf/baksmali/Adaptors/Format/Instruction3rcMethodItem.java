@@ -39,7 +39,8 @@ public class Instruction3rcMethodItem extends InstructionFormatMethodItem<Instru
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(instruction.getReferencedItem()));
+        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
+                instruction.getReferencedItem()));
         template.setAttribute("StartRegister", instruction.getStartRegister());
         template.setAttribute("LastRegister", instruction.getStartRegister() + instruction.getRegCount() - 1);
     }
