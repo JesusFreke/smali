@@ -33,6 +33,8 @@ import org.jf.baksmali.Adaptors.Reference.Reference;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
+import java.util.Arrays;
+
 public class Instruction35cMethodItem extends InstructionFormatMethodItem<Instruction35c> {
     public Instruction35cMethodItem(int offset, StringTemplateGroup stg, Instruction35c instruction) {
         super(offset, stg, instruction);
@@ -41,25 +43,35 @@ public class Instruction35cMethodItem extends InstructionFormatMethodItem<Instru
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
                 instruction.getReferencedItem()));
-        template.setAttribute("Registers", getRegisters());
+        setRegistersAttribute(template);
     }
 
-    private int[] getRegisters() {
+    private void setRegistersAttribute(StringTemplate template) {
         switch (instruction.getRegCount()) {
             case 1:
-                return new int[] {instruction.getRegisterD()};
+                template.setAttribute("Registers", (int)instruction.getRegisterD());
+                return;
             case 2:
-                return new int[] {instruction.getRegisterD(), instruction.getRegisterE()};
+                template.setAttribute("Registers", (int)instruction.getRegisterD());
+                template.setAttribute("Registers", (int)instruction.getRegisterE());
+                return;
             case 3:
-                return new int[] {instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF()};
+                template.setAttribute("Registers", (int)instruction.getRegisterD());
+                template.setAttribute("Registers", (int)instruction.getRegisterE());
+                template.setAttribute("Registers", (int)instruction.getRegisterF());
+                return;
             case 4:
-                return new int[] {instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),
-                        instruction.getRegisterG()};
+                template.setAttribute("Registers", (int)instruction.getRegisterD());
+                template.setAttribute("Registers", (int)instruction.getRegisterE());
+                template.setAttribute("Registers", (int)instruction.getRegisterF());
+                template.setAttribute("Registers", (int)instruction.getRegisterG());
+                return;
             case 5:
-                return new int[] {instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),
-                        instruction.getRegisterG(), instruction.getRegisterA()};
-            default:
-                return new int[0];
+                template.setAttribute("Registers", (int)instruction.getRegisterD());
+                template.setAttribute("Registers", (int)instruction.getRegisterE());
+                template.setAttribute("Registers", (int)instruction.getRegisterF());
+                template.setAttribute("Registers", (int)instruction.getRegisterG());
+                template.setAttribute("Registers", (int)instruction.getRegisterA());
         }
     }
 }
