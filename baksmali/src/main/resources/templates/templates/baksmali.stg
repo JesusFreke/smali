@@ -1,56 +1,57 @@
 group baksmali;
 
-smaliFile(classDef) ::=
+smaliFile(AccessFlags, ClassType, SuperType, SourceFile, Interfaces, Annotations, StaticFields,
+          InstanceFields, DirectMethods, VirtualMethods) ::=
 <<
-.class <classDef.AccessFlags: {<it> }><classDef.ClassType>
-<if(classDef.SuperType)>
-.super <classDef.SuperType>
+.class <AccessFlags: {<it> }><ClassType>
+<if(SuperType)>
+.super <SuperType>
 <endif>
-<if(classDef.SourceFile)>
+<if(SourceFile)>
 
-.source "<classDef.SourceFile>"
+.source "<SourceFile>"
 
 
 <endif>
-<if(classDef.Interfaces)>
+<if(Interfaces)>
 
 # interfaces
-<classDef.Interfaces: implement(it); separator="\n">
+<Interfaces: implement(it); separator="\n">
 
 <endif>
-<if(classDef.Annotations)>
+<if(Annotations)>
 
 
 # annotations
-<classDef.Annotations; separator="\n\n">
+<Annotations; separator="\n\n">
 
 <endif>
-<if(classDef.HasStaticFields)>
+<if(StaticFields)>
 
 
 # static fields
-<classDef.StaticFields; separator="\n">
+<StaticFields; separator="\n">
 
 <endif>
-<if(classDef.HasInstanceFields)>
+<if(InstanceFields)>
 
 
 # instance fields
-<classDef.InstanceFields; separator="\n">
+<InstanceFields; separator="\n">
 
 <endif>
-<if(classDef.HasDirectMethods)>
+<if(DirectMethods)>
 
 
 # direct methods
-<classDef.DirectMethods; separator="\n\n">
+<DirectMethods; separator="\n\n">
 
 <endif>
-<if(classDef.HasVirtualMethods)>
+<if(VirtualMethods)>
 
 
 # virtual methods
-<classDef.VirtualMethods; separator="\n\n">
+<VirtualMethods; separator="\n\n">
 
 <endif>
 >>

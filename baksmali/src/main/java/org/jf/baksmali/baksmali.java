@@ -96,8 +96,9 @@ public class baksmali {
             File smaliFile = new File(smaliPath.toString());
 
             //create and initialize the top level string template
-            StringTemplate smaliFileST = templates.getInstanceOf("smaliFile");
-            smaliFileST.setAttribute("classDef", new ClassDefinition(templates, classDefItem));
+            ClassDefinition classDefinition = new ClassDefinition(templates, classDefItem);
+
+            StringTemplate smaliFileST = classDefinition.makeTemplate();
 
             //generate the disassembly
             String output = smaliFileST.toString();
@@ -126,7 +127,6 @@ public class baksmali {
             } catch (Throwable ex) {
                 System.err.println("\n\nError occured while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
                 ex.printStackTrace();
-                continue;
             }
             finally
             {
@@ -136,7 +136,7 @@ public class baksmali {
                     } catch (Throwable ex) {
                         System.err.println("\n\nError occured while closing file " + smaliFile.toString());
                         ex.printStackTrace();
-                    };
+                    }
                 }
             }
         }

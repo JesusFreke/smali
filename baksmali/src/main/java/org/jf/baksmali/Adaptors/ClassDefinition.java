@@ -52,6 +52,23 @@ public class ClassDefinition {
         buildAnnotationMaps();
     }
 
+    public StringTemplate makeTemplate() {
+        StringTemplate template = stg.getInstanceOf("smaliFile");
+
+        template.setAttribute("AccessFlags", getAccessFlags());
+        template.setAttribute("ClassType", classDefItem.getClassType().getTypeDescriptor());
+        template.setAttribute("SuperType", getSuperType());
+        template.setAttribute("SourceFile", getSourceFile());
+        template.setAttribute("Interfaces", getInterfaces());
+        template.setAttribute("Annotations", getAnnotations());
+        template.setAttribute("StaticFields", getStaticFields());
+        template.setAttribute("InstanceFields", getInstanceFields());
+        template.setAttribute("DirectMethods", getDirectMethods());
+        template.setAttribute("VirtualMethods", getVirtualMethods());
+
+        return template;
+    }
+
     private void buildAnnotationMaps() {
         AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
         if (annotationDirectory == null) {
@@ -78,7 +95,7 @@ public class ClassDefinition {
         });
     }
 
-    public List<String> getAccessFlags() {
+    private List<String> getAccessFlags() {
         List<String> accessFlags = new ArrayList<String>();
 
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForClass(classDefItem.getAccessFlags())) {
@@ -88,11 +105,8 @@ public class ClassDefinition {
         return accessFlags;
     }
 
-    public String getClassType() {
-        return classDefItem.getClassType().getTypeDescriptor();
-    }
 
-    public String getSuperType() {
+    private String getSuperType() {
         TypeIdItem superClass = classDefItem.getSuperclass();
         if (superClass != null) {
             return superClass.getTypeDescriptor();
@@ -100,7 +114,7 @@ public class ClassDefinition {
         return null;
     }
 
-    public String getSourceFile() {
+    private String getSourceFile() {
         StringIdItem sourceFile = classDefItem.getSourceFile();
 
         if (sourceFile == null) {
@@ -109,7 +123,7 @@ public class ClassDefinition {
         return classDefItem.getSourceFile().getStringValue();
     }
 
-    public List<String> getInterfaces() {
+    private List<String> getInterfaces() {
         List<String> interfaces = new ArrayList<String>();
 
         TypeListItem interfaceList = classDefItem.getInterfaces();
@@ -123,17 +137,26 @@ public class ClassDefinition {
         return interfaces;
     }
 
-    public String getHasStaticFields() {
-        if (classDataItem != null) {
-            ClassDataItem.EncodedField fields[] = classDataItem.getStaticFields();
-            if (fields != null && fields.length > 0) {
-                return "true";
-            }
+    private List<StringTemplate> getAnnotations() {
+        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
+        if (annotationDirectory == null) {
+            return null;
         }
-        return null;
+
+        AnnotationSetItem annotationSet = annotationDirectory.getClassAnnotations();
+        if (annotationSet == null) {
+            return null;
+        }
+
+        List<StringTemplate> annotations = new ArrayList<StringTemplate>();
+
+        for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
+            annotations.add(AnnotationAdaptor.makeTemplate(stg, annotationItem));
+        }
+        return annotations;
     }
 
-    public List<StringTemplate> getStaticFields() {
+    private List<StringTemplate> getStaticFields() {
         List<StringTemplate> staticFields = new ArrayList<StringTemplate>();
 
         if (classDataItem != null) {
@@ -161,17 +184,7 @@ public class ClassDefinition {
         return staticFields;
     }
 
-    public String getHasInstanceFields() {
-        if (classDataItem != null) {
-            ClassDataItem.EncodedField fields[] = classDataItem.getInstanceFields();
-            if (fields != null && fields.length > 0) {
-                return "true";
-            }
-        }
-        return null;
-    }
-
-    public List<StringTemplate> getInstanceFields() {
+    private List<StringTemplate> getInstanceFields() {
         List<StringTemplate> instanceFields = new ArrayList<StringTemplate>();
 
         if (classDataItem != null) {
@@ -184,17 +197,7 @@ public class ClassDefinition {
         return instanceFields;       
     }
 
-    public String getHasDirectMethods() {
-        if (classDataItem != null) {
-            ClassDataItem.EncodedMethod[] methods = classDataItem.getDirectMethods();
-            if (methods != null && methods.length > 0) {
-                return "true";
-            }
-        }
-        return null;
-    }
-
-    public List<StringTemplate> getDirectMethods() {
+    private List<StringTemplate> getDirectMethods() {
         List<StringTemplate> directMethods = new ArrayList<StringTemplate>();
 
         if (classDataItem != null) {
@@ -208,17 +211,7 @@ public class ClassDefinition {
         return directMethods;
     }
 
-    public String getHasVirtualMethods() {
-        if (classDataItem != null) {
-            ClassDataItem.EncodedMethod[] methods = classDataItem.getVirtualMethods();
-            if (methods != null && methods.length > 0) {
-                return "true";
-            }
-        }
-        return null;
-    }
-
-    public List<StringTemplate> getVirtualMethods() {
+    private List<StringTemplate> getVirtualMethods() {
         List<StringTemplate> virtualMethods = new ArrayList<StringTemplate>();
 
         if (classDataItem != null) {
@@ -230,24 +223,5 @@ public class ClassDefinition {
         }
 
         return virtualMethods;
-    }
-
-    public List<StringTemplate> getAnnotations() {
-        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
-        if (annotationDirectory == null) {
-            return null;
-        }
-
-        AnnotationSetItem annotationSet = annotationDirectory.getClassAnnotations();
-        if (annotationSet == null) {
-            return null;
-        }
-
-        List<StringTemplate> annotations = new ArrayList<StringTemplate>();
-
-        for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
-            annotations.add(AnnotationAdaptor.makeTemplate(stg, annotationItem));
-        }
-        return annotations;
     }
 }
