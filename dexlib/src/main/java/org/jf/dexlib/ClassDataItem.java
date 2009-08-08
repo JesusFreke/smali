@@ -389,7 +389,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
             this.accessFlags = accessFlags;
             this.codeItem = codeItem;
             if (codeItem != null) {
-                codeItem.setParent(method);
+                codeItem.setParent(this);
             }   
         }
 
@@ -408,7 +408,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
             accessFlags = in.readUnsignedLeb128();
             codeItem = (CodeItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_CODE_ITEM, in.readUnsignedLeb128());
             if (codeItem != null) {
-                codeItem.setParent(method);
+                codeItem.setParent(this);
             }
         }
 

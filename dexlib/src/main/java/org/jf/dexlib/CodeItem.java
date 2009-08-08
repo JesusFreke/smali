@@ -47,7 +47,7 @@ public class CodeItem extends Item<CodeItem> {
     private TryItem[] tries;
     private EncodedCatchHandler[] encodedCatchHandlers;
 
-    private MethodIdItem parent;
+    private ClassDataItem.EncodedMethod parent;
     
     /**
      * Creates a new uninitialized <code>CodeItem</code>
@@ -274,7 +274,7 @@ public class CodeItem extends Item<CodeItem> {
         if (other.parent == null) {
             return 1;
         }
-        return parent.compareTo(other.parent);
+        return parent.method.compareTo(other.parent.method);
     }
 
     /**
@@ -307,17 +307,17 @@ public class CodeItem extends Item<CodeItem> {
 
     /**
      * Sets the <code>MethodIdItem</code> of the method that this <code>CodeItem</code> is associated with
-     * @param methodIdItem the <code>MethodIdItem</code> of the method that this <code>CodeItem</code> is associated
+     * @param encodedMethod the <code>EncodedMethod</code> of the method that this <code>CodeItem</code> is associated
      * with
      */
-    protected void setParent(MethodIdItem methodIdItem) {
-        this.parent = methodIdItem;
+    protected void setParent(ClassDataItem.EncodedMethod encodedMethod) {
+        this.parent = encodedMethod;
     }
 
     /**
      * @return the MethodIdItem of the method that this CodeItem belongs to
      */
-    public MethodIdItem getParent() {
+    public ClassDataItem.EncodedMethod getParent() {
         return parent;
     }
 
