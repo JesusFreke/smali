@@ -227,69 +227,69 @@ public class MethodDefinition {
         private void addMethodItemsForInstruction(int offset, Instruction instruction) {
             switch (instruction.getFormat()) {
                 case Format10t:
-                    instructions.add(new Instruction10tMethodItem(offset, stg,(Instruction10t)instruction));
+                    instructions.add(new Instruction10tMethodItem(codeItem, offset, stg,(Instruction10t)instruction));
                     labels.add(new LabelMethodItem(offset + ((Instruction10t)instruction).getOffset(), stg, "goto_"));
                     return;
                 case Format10x:
-                    instructions.add(new Instruction10xMethodItem(offset, stg, (Instruction10x)instruction));
+                    instructions.add(new Instruction10xMethodItem(codeItem, offset, stg, (Instruction10x)instruction));
                     return;
                 case Format11n:
-                    instructions.add(new Instruction11nMethodItem(offset, stg, (Instruction11n)instruction));
+                    instructions.add(new Instruction11nMethodItem(codeItem, offset, stg, (Instruction11n)instruction));
                     return;
                 case Format11x:
-                    instructions.add(new Instruction11xMethodItem(offset, stg, (Instruction11x)instruction));
+                    instructions.add(new Instruction11xMethodItem(codeItem, offset, stg, (Instruction11x)instruction));
                     return;                
                 case Format12x:
-                    instructions.add(new Instruction12xMethodItem(offset, stg, (Instruction12x)instruction));
+                    instructions.add(new Instruction12xMethodItem(codeItem, offset, stg, (Instruction12x)instruction));
                     return;
                 case Format20t:
-                    instructions.add(new Instruction20tMethodItem(offset, stg, (Instruction20t)instruction));
+                    instructions.add(new Instruction20tMethodItem(codeItem, offset, stg, (Instruction20t)instruction));
                     labels.add(new LabelMethodItem(offset + ((Instruction20t)instruction).getOffset(), stg, "goto_"));
                     return;
                 case Format21c:
-                    instructions.add(new Instruction21cMethodItem(offset, stg, (Instruction21c)instruction));
+                    instructions.add(new Instruction21cMethodItem(codeItem, offset, stg, (Instruction21c)instruction));
                     return;
                 case Format21h:
-                    instructions.add(new Instruction21hMethodItem(offset, stg, (Instruction21h)instruction));
+                    instructions.add(new Instruction21hMethodItem(codeItem, offset, stg, (Instruction21h)instruction));
                     return;
                 case Format21s:
-                    instructions.add(new Instruction21sMethodItem(offset, stg, (Instruction21s)instruction));
+                    instructions.add(new Instruction21sMethodItem(codeItem, offset, stg, (Instruction21s)instruction));
                     return;
                 case Format21t:
-                    instructions.add(new Instruction21tMethodItem(offset, stg, (Instruction21t)instruction));
+                    instructions.add(new Instruction21tMethodItem(codeItem, offset, stg, (Instruction21t)instruction));
                     labels.add(new LabelMethodItem(offset + ((Instruction21t)instruction).getOffset(), stg, "cond_"));
                     return;
                 case Format22b:
-                    instructions.add(new Instruction22bMethodItem(offset, stg, (Instruction22b)instruction));
+                    instructions.add(new Instruction22bMethodItem(codeItem, offset, stg, (Instruction22b)instruction));
                     return;
                 case Format22c:
-                    instructions.add(new Instruction22cMethodItem(offset, stg, (Instruction22c)instruction));
+                    instructions.add(new Instruction22cMethodItem(codeItem, offset, stg, (Instruction22c)instruction));
                     return;
                 case Format22s:
-                    instructions.add(new Instruction22sMethodItem(offset, stg, (Instruction22s)instruction));
+                    instructions.add(new Instruction22sMethodItem(codeItem, offset, stg, (Instruction22s)instruction));
                     return;
                 case Format22t:
-                    instructions.add(new Instruction22tMethodItem(offset, stg, (Instruction22t)instruction));
+                    instructions.add(new Instruction22tMethodItem(codeItem, offset, stg, (Instruction22t)instruction));
                     labels.add(new LabelMethodItem(offset + ((Instruction22t)instruction).getOffset(), stg, "cond_"));
                     return;
                 case Format22x:
-                    instructions.add(new Instruction22xMethodItem(offset, stg, (Instruction22x)instruction));
+                    instructions.add(new Instruction22xMethodItem(codeItem, offset, stg, (Instruction22x)instruction));
                     return;
                 case Format23x:
-                    instructions.add(new Instruction23xMethodItem(offset, stg, (Instruction23x)instruction));
+                    instructions.add(new Instruction23xMethodItem(codeItem, offset, stg, (Instruction23x)instruction));
                     return;
                 case Format30t:
-                    instructions.add(new Instruction30tMethodItem(offset, stg, (Instruction30t)instruction));
+                    instructions.add(new Instruction30tMethodItem(codeItem, offset, stg, (Instruction30t)instruction));
                     labels.add(new LabelMethodItem(offset + ((Instruction30t)instruction).getOffset(), stg, "goto_"));
                     return;
                 case Format31c:
-                    instructions.add(new Instruction31cMethodItem(offset, stg, (Instruction31c)instruction));
+                    instructions.add(new Instruction31cMethodItem(codeItem, offset, stg, (Instruction31c)instruction));
                     return;
                 case Format31i:
-                    instructions.add(new Instruction31iMethodItem(offset, stg, (Instruction31i)instruction));
+                    instructions.add(new Instruction31iMethodItem(codeItem, offset, stg, (Instruction31i)instruction));
                     return;
                 case Format31t:
-                    instructions.add(new Instruction31tMethodItem(offset, stg, (Instruction31t)instruction));
+                    instructions.add(new Instruction31tMethodItem(codeItem, offset, stg, (Instruction31t)instruction));
                     if (instruction.opcode == Opcode.FILL_ARRAY_DATA) {
                         labels.add(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), stg,
                                 "array_"));
@@ -302,19 +302,19 @@ public class MethodDefinition {
                     }
                     return;
                 case Format32x:
-                    instructions.add(new Instruction32xMethodItem(offset, stg, (Instruction32x)instruction));
+                    instructions.add(new Instruction32xMethodItem(codeItem, offset, stg, (Instruction32x)instruction));
                     return;
                 case Format35c:
-                    instructions.add(new Instruction35cMethodItem(offset, stg, (Instruction35c)instruction));
+                    instructions.add(new Instruction35cMethodItem(codeItem, offset, stg, (Instruction35c)instruction));
                     return;
                 case Format3rc:
-                    instructions.add(new Instruction3rcMethodItem(offset, stg, (Instruction3rc)instruction));
+                    instructions.add(new Instruction3rcMethodItem(offset, stg, (Instruction3rc)instruction, codeItem));
                     return;
                 case Format51l:
-                    instructions.add(new Instruction51lMethodItem(offset, stg, (Instruction51l)instruction));
+                    instructions.add(new Instruction51lMethodItem(codeItem, offset, stg, (Instruction51l)instruction));
                     return;
                 case ArrayData:
-                    instructions.add(new ArrayDataMethodItem(offset, stg, (ArrayDataPseudoInstruction)instruction));
+                    instructions.add(new ArrayDataMethodItem(codeItem, offset, stg, (ArrayDataPseudoInstruction)instruction));
                     return;
                 case PackedSwitchData:
                 {
@@ -324,7 +324,7 @@ public class MethodDefinition {
                         PackedSwitchDataPseudoInstruction packedSwitchInstruction =
                                 (PackedSwitchDataPseudoInstruction)instruction;
 
-                        instructions.add(new PackedSwitchMethodItem(offset, stg,
+                        instructions.add(new PackedSwitchMethodItem(codeItem, offset, stg,
                                 packedSwitchInstruction, baseAddress));
 
                         Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator =
@@ -344,7 +344,7 @@ public class MethodDefinition {
                         SparseSwitchDataPseudoInstruction sparseSwitchInstruction =
                                 (SparseSwitchDataPseudoInstruction)instruction;
 
-                        instructions.add(new SparseSwitchMethodItem(offset, stg, 
+                        instructions.add(new SparseSwitchMethodItem(codeItem, offset, stg,
                                 sparseSwitchInstruction, baseAddress));
 
                         Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator =
@@ -442,30 +442,30 @@ public class MethodDefinition {
                         @Override
                         public void ProcessStartLocal(int codeAddress, int length, int registerNum, StringIdItem name,
                                                       TypeIdItem type) {
-                            debugItems.add(new LocalDebugMethodItem(codeAddress, stg, "StartLocal", -1, registerNum,
-                                    name, type, null));
+                            debugItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "StartLocal", -1,
+                                    registerNum, name, type, null));
                         }
 
                         @Override
                         public void ProcessStartLocalExtended(int codeAddress, int length, int registerNum,
                                                               StringIdItem name, TypeIdItem type,
                                                               StringIdItem signature) {
-                            debugItems.add(new LocalDebugMethodItem(codeAddress, stg, "StartLocal", -1, registerNum,
-                                    name, type, signature));
+                            debugItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "StartLocal", -1,
+                                    registerNum, name, type, signature));
                         }
 
                         @Override
                         public void ProcessEndLocal(int codeAddress, int length, int registerNum, StringIdItem name,
                                                     TypeIdItem type, StringIdItem signature) {
-                            debugItems.add(new LocalDebugMethodItem(codeAddress, stg, "EndLocal", -1, registerNum, name,
-                                    type, signature));
+                            debugItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "EndLocal", -1,
+                                    registerNum, name, type, signature));
                         }
 
                         @Override
                         public void ProcessRestartLocal(int codeAddress, int length, int registerNum, StringIdItem name,
                                                         TypeIdItem type, StringIdItem signature) {
-                            debugItems.add(new LocalDebugMethodItem(codeAddress, stg, "RestartLocal", -1, registerNum,
-                                    name, type, signature));
+                            debugItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "RestartLocal", -1,
+                                    registerNum, name, type, signature));
                         }
 
                         @Override

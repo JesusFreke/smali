@@ -28,17 +28,19 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.Instruction12x;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.dexlib.Code.Format.Instruction12x;
+import org.jf.dexlib.CodeItem;
 
 public class Instruction12xMethodItem extends InstructionFormatMethodItem<Instruction12x> {
-    public Instruction12xMethodItem(int offset, StringTemplateGroup stg, Instruction12x instruction) {
-        super(offset, stg, instruction);
+    public Instruction12xMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                    Instruction12x instruction) {
+        super(codeItem, offset, stg, instruction);
     }
-   
+
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("RegisterA", instruction.getRegisterA());
-        template.setAttribute("RegisterB", instruction.getRegisterB());
+        template.setAttribute("RegisterA", formatRegister(instruction.getRegisterA()));
+        template.setAttribute("RegisterB", formatRegister(instruction.getRegisterB()));
     }
 }

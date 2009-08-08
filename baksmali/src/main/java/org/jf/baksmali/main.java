@@ -74,6 +74,7 @@ public class main {
         boolean sort = false;
         boolean fixRegisters = false;
         boolean readOnly = false;
+        boolean noParameterRegisters = false;
 
         String outputDirectory = "out";
         String dumpFileName = null;
@@ -131,6 +132,10 @@ public class main {
             fixRegisters = true;
         }
 
+        if (commandLine.hasOption("p")) {
+            noParameterRegisters = true;
+        }
+
         try {
             File dexFileFile = new File(inputDexFileName);
             if (!dexFileFile.exists()) {
@@ -146,7 +151,7 @@ public class main {
             }
 
             if (disassemble) {
-                baksmali.disassembleDexFile(dexFile, outputDirectory);
+                baksmali.disassembleDexFile(dexFile, outputDirectory, noParameterRegisters);
             }
 
             if (doDump || write) {
@@ -230,8 +235,14 @@ public class main {
                 .create("s");
 
         Option fixSignedRegisterOption = OptionBuilder.withLongOpt("fix-signed-registers")
-                .withDescription("when dumping or rewriting, fix any registers in the debug info that are encoded as a signed value")
+                .withDescription("when dumping or rewriting, fix any registers in the debug info that are encoded as" +
+                        " a signed value")
                 .create("f");
+
+        Option noParameterRegistersOption = OptionBuilder.withLongOpt("no-parameter-registers")
+                .withDescription("use the v<n> syntax instead of the p<n> syntax for registers mapped to method" +
+                        " parameters")
+                .create("p");
 
         OptionGroup dumpCommand = new OptionGroup();
         dumpCommand.addOption(dumpOption);
@@ -245,5 +256,6 @@ public class main {
         options.addOption(outputDirOption);
         options.addOption(sortOption);
         options.addOption(fixSignedRegisterOption);
+        options.addOption(noParameterRegistersOption);
     }
 }

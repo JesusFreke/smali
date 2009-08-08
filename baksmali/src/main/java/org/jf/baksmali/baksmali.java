@@ -39,8 +39,12 @@ import org.jf.dexlib.StringIdItem;
 import java.io.*;
 
 public class baksmali {
-    public static void disassembleDexFile(DexFile dexFile, String outputDirectory)
+    public static boolean noParameterRegisters = false;
+
+    public static void disassembleDexFile(DexFile dexFile, String outputDirectory, boolean noParameterRegisters)
     {
+        baksmali.noParameterRegisters = noParameterRegisters;
+        
         File outputDirectoryFile = new File(outputDirectory);
         if (!outputDirectoryFile.exists()) {
             if (!outputDirectoryFile.mkdirs()) {

@@ -28,20 +28,22 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.Instruction22c;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.Adaptors.Reference.Reference;
+import org.jf.dexlib.Code.Format.Instruction22c;
+import org.jf.dexlib.CodeItem;
 
 public class Instruction22cMethodItem extends InstructionFormatMethodItem<Instruction22c> {
-    public Instruction22cMethodItem(int offset, StringTemplateGroup stg, Instruction22c instruction) {
-        super(offset, stg, instruction);
+    public Instruction22cMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                    Instruction22c instruction) {
+        super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
                 instruction.getReferencedItem()));
-        template.setAttribute("RegisterA", instruction.getRegisterA());
-        template.setAttribute("RegisterB", instruction.getRegisterB());
+        template.setAttribute("RegisterA", formatRegister(instruction.getRegisterA()));
+        template.setAttribute("RegisterB", formatRegister(instruction.getRegisterB()));
     }
 }

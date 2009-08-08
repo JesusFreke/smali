@@ -28,13 +28,15 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.Instruction10t;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.dexlib.Code.Format.Instruction10t;
+import org.jf.dexlib.CodeItem;
 
 public class Instruction10tMethodItem extends InstructionFormatMethodItem<Instruction10t> {
-    public Instruction10tMethodItem(int offset, StringTemplateGroup stg, Instruction10t instruction) {
-        super(offset, stg, instruction);
+    public Instruction10tMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                    Instruction10t instruction) {
+        super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {

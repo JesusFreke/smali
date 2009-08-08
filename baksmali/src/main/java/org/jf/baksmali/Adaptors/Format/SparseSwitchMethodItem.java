@@ -28,20 +28,21 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
+import org.jf.dexlib.CodeItem;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSwitchDataPseudoInstruction> {
     private int baseAddress;
 
-    public SparseSwitchMethodItem(int offset, StringTemplateGroup stg, SparseSwitchDataPseudoInstruction instruction,
-                                  int baseAddress) {
-        super(offset, stg, instruction);
+    public SparseSwitchMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                  SparseSwitchDataPseudoInstruction instruction, int baseAddress) {
+        super(codeItem, offset, stg, instruction);
         this.baseAddress = baseAddress;
     }
 

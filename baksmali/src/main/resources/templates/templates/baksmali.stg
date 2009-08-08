@@ -128,13 +128,6 @@ Format31tLabelMap ::= [
 ]
 
 
-Register(num) ::=
-<<
-v<num; format="decimal">
->>
-
-
-
 Format10t(Opcode, Target) ::=
 <<
 <Opcode> goto_<Target>:
@@ -147,17 +140,17 @@ Format10x(Opcode) ::=
 
 Format11n(Opcode, Register, Literal) ::=
 <<
-<Opcode> <Register(Register)>, <Literal>
+<Opcode> <Register>, <Literal>
 >>
 
 Format11x(Opcode, Register) ::=
 <<
-<Opcode> <Register(Register)>
+<Opcode> <Register>
 >>
 
 Format12x(Opcode, RegisterA, RegisterB) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>
+<Opcode> <RegisterA>, <RegisterB>
 >>
 
 Format20t(Opcode, Target) ::=
@@ -167,52 +160,52 @@ Format20t(Opcode, Target) ::=
 
 Format21c(Opcode, Register, Reference) ::=
 <<
-<Opcode> <Register(Register)>, <Reference>
+<Opcode> <Register>, <Reference>
 >>
 
 Format21h(Opcode, Register, Literal) ::=
 <<
-<Opcode> <Register(Register)>, <Literal>
+<Opcode> <Register>, <Literal>
 >>
 
 Format21s(Opcode, Register, Literal) ::=
 <<
-<Opcode> <Register(Register)>, <Literal>
+<Opcode> <Register>, <Literal>
 >>
 
 Format21t(Opcode, Register, Target) ::=
 <<
-<Opcode> <Register(Register)>, cond_<Target>:
+<Opcode> <Register>, cond_<Target>:
 >>
 
 Format22b(Opcode, RegisterA, RegisterB, Literal) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Literal>
+<Opcode> <RegisterA>, <RegisterB>, <Literal>
 >>
 
 Format22c(Opcode, RegisterA, RegisterB, Reference) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Reference>
+<Opcode> <RegisterA>, <RegisterB>, <Reference>
 >>
 
 Format22s(Opcode, RegisterA, RegisterB, Literal) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Literal>
+<Opcode> <RegisterA>, <RegisterB>, <Literal>
 >>
 
 Format22t(Opcode, RegisterA, RegisterB, Target) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, cond_<Target>:
+<Opcode> <RegisterA>, <RegisterB>, cond_<Target>:
 >>
 
 Format22x(Opcode, RegisterA, RegisterB) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>
+<Opcode> <RegisterA>, <RegisterB>
 >>
 
 Format23x(Opcode, RegisterA, RegisterB, RegisterC) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>, <Register(RegisterC)>
+<Opcode> <RegisterA>, <RegisterB>, <RegisterC>
 >>
 
 Format30t(Opcode, Target) ::=
@@ -222,37 +215,37 @@ Format30t(Opcode, Target) ::=
 
 Format31c(Opcode, Register, Reference) ::=
 <<
-<Opcode> <Register(Register)>, <Reference>
+<Opcode> <Register>, <Reference>
 >>
 
 Format31i(Opcode, Register, Literal) ::=
 <<
-<Opcode> <Register(Register)>, <Literal>
+<Opcode> <Register>, <Literal>
 >>
 
 Format31t(Opcode, Register, Target) ::=
 <<
-<Opcode> <Register(Register)>, <Format31tLabelMap.(Opcode)><Target>:
+<Opcode> <Register>, <Format31tLabelMap.(Opcode)><Target>:
 >>
 
 Format32x(Opcode, RegisterA, RegisterB) ::=
 <<
-<Opcode> <Register(RegisterA)>, <Register(RegisterB)>
+<Opcode> <RegisterA>, <RegisterB>
 >>
 
 Format35c(Opcode, Registers, Reference) ::=
 <<
-<Opcode> {<Registers: Register(it); separator=", ">}, <Reference>
+<Opcode> {<Registers; separator=", ">}, <Reference>
 >>
 
 Format3rc(Opcode, StartRegister, LastRegister, Reference) ::=
 <<
-<Opcode> {<Register(StartRegister)> .. <Register(LastRegister)>}, <Reference>
+<Opcode> {<StartRegister> .. <LastRegister>}, <Reference>
 >>
 
 Format51l(Opcode, Register, Literal) ::=
 <<
-<Opcode> <Register(Register)>, <Literal>
+<Opcode> <Register>, <Literal>
 >>
 
 ArrayData(Opcode, ElementWidth, Values) ::=
@@ -304,17 +297,17 @@ StartEpilogue(Epilogue) ::=
 
 StartLocal(Register, Name, Type, Signature) ::=
 <<
-.local <Register(Register)>, <Name>:<Type><if(Signature)>,"<Signature>"<endif>
+.local <Register>, <Name>:<Type><if(Signature)>,"<Signature>"<endif>
 >>
 
 EndLocal(Register, Name, Type, Signature) ::=
 <<
-.end local <Register(Register)>       <if(Name)>#<Name>:<Type>,<if(Signature)>, "<Signature>"<endif><endif>
+.end local <Register>       <if(Name)>#<Name>:<Type>,<if(Signature)>, "<Signature>"<endif><endif>
 >>
 
 RestartLocal(Register, Name, Type, Signature) ::=
 <<
-.restart local <Register(Register)>       <if(Name)>#<Name>:<Type>,<if(Signature)>, "<Signature>"<endif><endif>
+.restart local <Register>       <if(Name)>#<Name>:<Type>,<if(Signature)>, "<Signature>"<endif><endif>
 >>
 
 SetFile(FileName) ::=

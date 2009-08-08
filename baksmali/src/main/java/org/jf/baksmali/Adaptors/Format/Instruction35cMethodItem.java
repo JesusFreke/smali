@@ -28,16 +28,16 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.Instruction35c;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
-
-import java.util.Arrays;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.Adaptors.Reference.Reference;
+import org.jf.dexlib.Code.Format.Instruction35c;
+import org.jf.dexlib.CodeItem;
 
 public class Instruction35cMethodItem extends InstructionFormatMethodItem<Instruction35c> {
-    public Instruction35cMethodItem(int offset, StringTemplateGroup stg, Instruction35c instruction) {
-        super(offset, stg, instruction);
+    public Instruction35cMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                    Instruction35c instruction) {
+        super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
@@ -49,29 +49,29 @@ public class Instruction35cMethodItem extends InstructionFormatMethodItem<Instru
     private void setRegistersAttribute(StringTemplate template) {
         switch (instruction.getRegCount()) {
             case 1:
-                template.setAttribute("Registers", (int)instruction.getRegisterD());
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
                 return;
             case 2:
-                template.setAttribute("Registers", (int)instruction.getRegisterD());
-                template.setAttribute("Registers", (int)instruction.getRegisterE());
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterE()));
                 return;
             case 3:
-                template.setAttribute("Registers", (int)instruction.getRegisterD());
-                template.setAttribute("Registers", (int)instruction.getRegisterE());
-                template.setAttribute("Registers", (int)instruction.getRegisterF());
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterE()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterF()));
                 return;
             case 4:
-                template.setAttribute("Registers", (int)instruction.getRegisterD());
-                template.setAttribute("Registers", (int)instruction.getRegisterE());
-                template.setAttribute("Registers", (int)instruction.getRegisterF());
-                template.setAttribute("Registers", (int)instruction.getRegisterG());
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterE()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterF()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterG()));
                 return;
             case 5:
-                template.setAttribute("Registers", (int)instruction.getRegisterD());
-                template.setAttribute("Registers", (int)instruction.getRegisterE());
-                template.setAttribute("Registers", (int)instruction.getRegisterF());
-                template.setAttribute("Registers", (int)instruction.getRegisterG());
-                template.setAttribute("Registers", (int)instruction.getRegisterA());
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterE()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterF()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterG()));
+                template.setAttribute("Registers", formatRegister(instruction.getRegisterA()));
         }
     }
 }

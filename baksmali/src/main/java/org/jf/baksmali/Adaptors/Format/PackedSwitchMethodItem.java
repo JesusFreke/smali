@@ -28,21 +28,21 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
+import org.jf.dexlib.CodeItem;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSwitchDataPseudoInstruction> {
     private int baseAddress;
 
-    public PackedSwitchMethodItem(int offset, StringTemplateGroup stg, PackedSwitchDataPseudoInstruction instruction,
-                                  int baseAddress) {
-        super(offset, stg, instruction);
+    public PackedSwitchMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                  PackedSwitchDataPseudoInstruction instruction, int baseAddress) {
+        super(codeItem, offset, stg, instruction);
         this.baseAddress = baseAddress;
     }
 

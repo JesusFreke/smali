@@ -28,19 +28,17 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
-import org.jf.dexlib.Util.ByteArray;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
+import org.jf.dexlib.CodeItem;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Iterator;
-import java.util.Arrays;
 
 public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPseudoInstruction> {
-    public ArrayDataMethodItem(int offset, StringTemplateGroup stg,  ArrayDataPseudoInstruction instruction) {
-        super(offset, stg, instruction);
+    public ArrayDataMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                               ArrayDataPseudoInstruction instruction) {
+        super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
@@ -53,10 +51,10 @@ public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPs
         while (iterator.hasNext()) {
             ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
 
-            StringTemplate template =  parentTemplate.getGroup().getInstanceOf("ArrayElement");
+            StringTemplate template = parentTemplate.getGroup().getInstanceOf("ArrayElement");
 
-            for (int i=element.bufferIndex; i<element.bufferIndex + element.elementWidth; i++) {
-                template.setAttribute("Bytes", element.buffer[i]);
+            for (int i = element.bufferIndex; i < element.bufferIndex + element.elementWidth; i++) {
+                template.setAttribute("Bytes", (Byte)element.buffer[i]);
             }
 
             parentTemplate.setAttribute("Values", template);

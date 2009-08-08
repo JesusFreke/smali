@@ -28,18 +28,22 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.baksmali.Adaptors.MethodItem;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.Code.Instruction;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.Adaptors.MethodItem;
+import org.jf.baksmali.Adaptors.RegisterFormatter;
+import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.CodeItem;
 
 public abstract class InstructionFormatMethodItem<T extends Instruction> extends MethodItem {
+    protected final CodeItem codeItem;
     private final StringTemplateGroup stg;
     protected final T instruction;
 
-    public InstructionFormatMethodItem(int offset, StringTemplateGroup stg, T instruction) {
+
+    public InstructionFormatMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg, T instruction) {
         super(offset);
+        this.codeItem = codeItem;
         this.stg = stg;
         this.instruction = instruction;
     }
@@ -55,6 +59,10 @@ public abstract class InstructionFormatMethodItem<T extends Instruction> extends
 
     public String getTemplate() {
         return instruction.getFormat().name();
+    }
+
+    protected String formatRegister(int register) {
+        return RegisterFormatter.formatRegister(codeItem, register);
     }
 
     @Override

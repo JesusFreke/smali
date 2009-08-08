@@ -30,19 +30,21 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.StringIdItem;
+import org.jf.dexlib.CodeItem;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
 public class LocalDebugMethodItem extends DebugMethodItem {
-    private final int register;
+    private final String register;
     private final String name;
     private final String type;
     private final String signature;
 
-    public LocalDebugMethodItem(int offset, StringTemplateGroup stg, String templateName, int sortOrder, int register,
-                                StringIdItem name, TypeIdItem type, StringIdItem signature) {
+    public LocalDebugMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg, String templateName,
+                                int sortOrder, int register, StringIdItem name, TypeIdItem type,
+                                StringIdItem signature) {
         super(offset, stg, templateName, sortOrder);
-        this.register = register;
+        this.register = RegisterFormatter.formatRegister(codeItem, register);
         this.name = name==null?null:name.getStringValue();
         this.type = type==null?null:type.getTypeDescriptor();
         this.signature = signature==null?null:signature.getStringValue();
@@ -50,7 +52,7 @@ public class LocalDebugMethodItem extends DebugMethodItem {
 
     @Override
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Register", Integer.toString(register));
+        template.setAttribute("Register", register);
         template.setAttribute("Name", name);
         template.setAttribute("Type", type);
         template.setAttribute("Signature", signature);

@@ -28,18 +28,20 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.Instruction23x;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.dexlib.Code.Format.Instruction23x;
+import org.jf.dexlib.CodeItem;
 
 public class Instruction23xMethodItem extends InstructionFormatMethodItem<Instruction23x> {
-    public Instruction23xMethodItem(int offset, StringTemplateGroup stg, Instruction23x instruction) {
-        super(offset, stg, instruction);
+    public Instruction23xMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                    Instruction23x instruction) {
+        super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("RegisterA", instruction.getRegisterA());
-        template.setAttribute("RegisterB", instruction.getRegisterB());
-        template.setAttribute("RegisterC", instruction.getRegisterC());
+        template.setAttribute("RegisterA", formatRegister(instruction.getRegisterA()));
+        template.setAttribute("RegisterB", formatRegister(instruction.getRegisterB()));
+        template.setAttribute("RegisterC", formatRegister(instruction.getRegisterC()));
     }
 }
