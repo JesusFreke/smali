@@ -314,6 +314,13 @@ public class CodeItem extends Item<CodeItem> {
         this.parent = methodIdItem;
     }
 
+    /**
+     * @return the MethodIdItem of the method that this CodeItem belongs to
+     */
+    public MethodIdItem getParent() {
+        return parent;
+    }
+
     public static class TryItem {
         /**
          * The address (in 2-byte words) within the code where the try block starts
