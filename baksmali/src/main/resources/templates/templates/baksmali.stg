@@ -258,8 +258,13 @@ Format51l(Opcode, Register, Literal) ::=
 ArrayData(Opcode, ElementWidth, Values) ::=
 <<
 .array-data <ElementWidth>
-    <Values: {<it.ByteArray; format="unsigned",separator=" ">}; separator="\n">
+    <Values; separator="\n">
 .end array-data
+>>
+
+ArrayElement(Bytes) ::=
+<<
+<Bytes; format="unsigned",separator=" ">
 >>
 
 PackedSwitchData(Opcode, FirstKey, Targets) ::=

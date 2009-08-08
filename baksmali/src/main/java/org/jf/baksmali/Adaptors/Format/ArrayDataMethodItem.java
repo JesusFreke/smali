@@ -45,28 +45,21 @@ public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPs
 
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("ElementWidth", instruction.getElementWidth());
-        template.setAttribute("Values", getValues());
+        setValuesAttribute(template);
     }
 
-    private List<ByteArray> getValues() {
-        List<ByteArray> values = new ArrayList<ByteArray>();        
+    private void setValuesAttribute(StringTemplate parentTemplate) {
         Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
-
         while (iterator.hasNext()) {
             ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
-            byte[] array = new byte[element.elementWidth];
-            System.arraycopy(element.buffer, element.bufferIndex, array, 0, element.elementWidth);
-            values.add(new ByteArray(array));
-        }
 
-        return values;
-    }
+            StringTemplate template =  parentTemplate.getGroup().getInstanceOf("ArrayElement");
 
-    public static class ByteArray
-    {
-        public final byte[] ByteArray;
-        public ByteArray(byte[] byteArray) {
-            this.ByteArray = byteArray;
+            for (int i=element.bufferIndex; i<element.bufferIndex + element.elementWidth; i++) {
+                template.setAttribute("Bytes", element.buffer[i]);
+            }
+
+            parentTemplate.setAttribute("Values", template);
         }
     }
 }
