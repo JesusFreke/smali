@@ -75,7 +75,8 @@ public class StringDataItem extends Item<StringDataItem> {
 
     /** {@inheritDoc} */
     protected int placeItem(int offset) {
-        return offset + 4 + Utf8Utils.stringToUtf8Bytes(stringValue).length + 1;
+        return offset + Leb128Utils.unsignedLeb128Size(stringValue.length()) +
+                Utf8Utils.stringToUtf8Bytes(stringValue).length + 1;
     }
 
     /** {@inheritDoc} */
