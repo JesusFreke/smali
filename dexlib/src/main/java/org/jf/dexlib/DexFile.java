@@ -428,7 +428,7 @@ public class DexFile
         int sectionCount = 0;
 
         for (Section section: sectionsByType) {
-            if (section.ItemType.isIndexedItem() || section.getItems().size() > 0) {
+            if (section != null && (section.ItemType.isIndexedItem() || section.getItems().size() > 0)) {
                 sectionCount++;
             }
         }
@@ -436,7 +436,7 @@ public class DexFile
         Section[] sections = new Section[sectionCount];
         sectionCount = 0;
         for (Section section: sectionsByType) {
-            if (section.ItemType.isIndexedItem() || section.getItems().size() > 0) {
+            if (section != null && (section.ItemType.isIndexedItem() || section.getItems().size() > 0)) {
                 sections[sectionCount++] = section;
             }
         }
@@ -462,20 +462,37 @@ public class DexFile
     public void place() {
         int offset = HeaderItem.placeAt(0, 0);
 
-        for (IndexedSection indexedSection: indexedSections) {
+        int sectionsPosition = 0;
+        Section[] sections;
+        if (this.inplace) {
+            sections = this.getOrderedSections();
+        } else {
+            sections = new Section[indexedSections.length + offsettedSections.length];
+            System.arraycopy(indexedSections, 0, sections, 0, indexedSections.length);
+            System.arraycopy(offsettedSections, 0, sections, indexedSections.length,  offsettedSections.length);
+        }
+
+        while (sectionsPosition < sections.length && sections[sectionsPosition].ItemType.isIndexedItem()) {
+            Section section = sections[sectionsPosition];
             if (!this.inplace) {
-                indexedSection.sortSection();
+                section.sortSection();
             }
-            offset = indexedSection.placeAt(offset);
+
+            offset = section.placeAt(offset);
+
+            sectionsPosition++;
         }
 
         dataOffset = offset;
         
-        for (OffsettedSection offsettedSection: offsettedSections) {
+        while (sectionsPosition < sections.length) {
+            Section section = sections[sectionsPosition];
             if (this.sortAllItems && !this.inplace) {
-                offsettedSection.sortSection();
+                section.sortSection();
             }
-            offset = offsettedSection.placeAt(offset);
+            offset = section.placeAt(offset);
+
+            sectionsPosition++;
         }
 
         offset = MapItem.placeAt(offset, 0);
@@ -499,13 +516,19 @@ public class DexFile
     public void writeTo(AnnotatedOutput out) {
         HeaderItem.writeTo(out);
 
-        for (IndexedSection indexedSection: indexedSections) {
-            indexedSection.writeTo(out);
+        int sectionsPosition = 0;
+        Section[] sections;
+        if (this.inplace) {
+            sections = this.getOrderedSections();
+        } else {
+            sections = new Section[indexedSections.length + offsettedSections.length];
+            System.arraycopy(indexedSections, 0, sections, 0, indexedSections.length);
+            System.arraycopy(offsettedSections, 0, sections, indexedSections.length,  offsettedSections.length);
         }
 
-        //TODO: if inplace is true, we need to use the order of the sections as they were in the original file
-        for (OffsettedSection offsettedSection: offsettedSections) {
-            offsettedSection.writeTo(out);
+        while (sectionsPosition < sections.length) {
+            sections[sectionsPosition].writeTo(out);
+            sectionsPosition++;
         }
 
         out.alignTo(MapItem.getItemType().ItemAlignment);
