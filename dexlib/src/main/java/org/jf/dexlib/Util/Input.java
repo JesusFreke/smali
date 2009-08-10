@@ -105,6 +105,17 @@ public interface Input {
      */
     public int readUnsignedLeb128();
 
+
+    /**
+     * Reads a unsigned value as a DWARFv3-style LEB128 integer. It specifically
+     * checks for the case when the value was incorrectly formatted as a signed
+     * LEB128, and returns the appropriate unsigned value, but negated
+     * @return If the value was formatted as a ULEB128, it returns the actual unsigned
+     * value. Otherwise, if the value was formatted as a signed LEB128, it negates the
+     * "correct" unsigned value and returns that 
+     */
+    public int readUnsignedOrSignedLeb128();
+
     /**
      * reads a <code>byte[]</code> from this instance.
      *

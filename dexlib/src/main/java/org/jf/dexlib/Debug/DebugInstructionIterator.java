@@ -71,33 +71,55 @@ public class DebugInstructionIterator {
                 }
                 case 0x03:
                 {
-                    int registerNum = in.readUnsignedLeb128();
+                    int registerNum = in.readUnsignedOrSignedLeb128();
+                    boolean isSignedRegister = false;
+                    if (registerNum < 0) {
+                        isSignedRegister = true;
+                        registerNum = ~registerNum;
+                    }
                     int nameIndex = in.readUnsignedLeb128() - 1;
                     int typeIndex = in.readUnsignedLeb128() - 1;
                     processDebugInstruction.ProcessStartLocal(startOffset, in.getCursor() - startOffset, registerNum,
-                            nameIndex, typeIndex);
+                            nameIndex, typeIndex, isSignedRegister);
                     break;
                 }
                 case 0x04:
                 {
-                    int registerNum = in.readUnsignedLeb128();
+                    int registerNum = in.readUnsignedOrSignedLeb128();
+                    boolean isSignedRegister = false;
+                    if (registerNum < 0) {
+                        isSignedRegister = true;
+                        registerNum = ~registerNum;
+                    }
                     int nameIndex = in.readUnsignedLeb128() - 1;
                     int typeIndex = in.readUnsignedLeb128() - 1;
                     int signatureIndex = in.readUnsignedLeb128() - 1;
                     processDebugInstruction.ProcessStartLocalExtended(startOffset, in.getCursor() - startOffset,
-                            registerNum, nameIndex, typeIndex, signatureIndex);
+                            registerNum, nameIndex, typeIndex, signatureIndex, isSignedRegister);
                     break;
                 }
                 case 0x05:
                 {
-                    int registerNum = in.readUnsignedLeb128();
-                    processDebugInstruction.ProcessEndLocal(startOffset, in.getCursor() - startOffset, registerNum);
+                    int registerNum = in.readUnsignedOrSignedLeb128();
+                    boolean isSignedRegister = false;
+                    if (registerNum < 0) {
+                        isSignedRegister = true;
+                        registerNum = ~registerNum;
+                    }
+                    processDebugInstruction.ProcessEndLocal(startOffset, in.getCursor() - startOffset, registerNum,
+                            isSignedRegister);
                     break;
                 }
                 case 0x06:
                 {
-                    int registerNum = in.readUnsignedLeb128();
-                    processDebugInstruction.ProcessRestartLocal(startOffset, in.getCursor() - startOffset, registerNum);
+                    int registerNum = in.readUnsignedOrSignedLeb128();
+                    boolean isSignedRegister = false;
+                    if (registerNum < 0) {
+                        isSignedRegister = true;
+                        registerNum = ~registerNum;
+                    }
+                    processDebugInstruction.ProcessRestartLocal(startOffset, in.getCursor() - startOffset, registerNum,
+                            isSignedRegister);
                     break;
                 }
                 case 0x07:
@@ -255,18 +277,19 @@ public class DebugInstructionIterator {
             ProcessStaticOpcode(startOffset, length);
         }
 
-        public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex, int typeIndex) {
+        public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex, int typeIndex,
+                                      boolean registerIsSigned) {
         }
 
         public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
-                                              int typeIndex,int signatureIndex) {
+                                              int typeIndex,int signatureIndex, boolean registerIsSigned) {
         }
 
-        public void ProcessEndLocal(int startOffset, int length, int registerNum) {
+        public void ProcessEndLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
             ProcessStaticOpcode(startOffset, length);
         }
 
-        public void ProcessRestartLocal(int startOffset, int length, int registerNum) {
+        public void ProcessRestartLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
             ProcessStaticOpcode(startOffset, length);
         }
 

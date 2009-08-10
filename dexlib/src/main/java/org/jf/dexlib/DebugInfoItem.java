@@ -116,7 +116,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                 new DebugInstructionIterator.ProcessRawDebugInstructionDelegate() {
                     @Override
                     public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
-                                                  int typeIndex) {
+                                                  int typeIndex, boolean registerIsSigned) {
                         if (nameIndex != -1) {
                             referencedItemsList.add(dexFile.StringIdsSection.getItemByIndex(nameIndex));
                         }
@@ -127,7 +127,8 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
                     @Override
                     public void ProcessStartLocalExtended(int startOffset, int length, int registerNume, int nameIndex,
-                                                          int typeIndex, int signatureIndex) {
+                                                          int typeIndex, int signatureIndex,
+                                                          boolean registerIsSigned) {
                         if (nameIndex != -1) {
                             referencedItemsList.add(dexFile.StringIdsSection.getItemByIndex(nameIndex));
                         }
@@ -191,15 +192,20 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
                     @Override
                     public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
-                                                  int typeIndex) {
-                        this.length+=Leb128Utils.unsignedLeb128Size(registerNum);
-                        if (nameIndex != 0) {
+                                                  int typeIndex, boolean registerIsSigned) {
+                        this.length++;
+                        if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
+                            this.length += Leb128Utils.signedLeb128Size(registerNum);
+                        } else {
+                            this.length+=Leb128Utils.unsignedLeb128Size(registerNum);
+                        }
+                        if (nameIndex != -1) {
                             this.length+=
                                Leb128Utils.unsignedLeb128Size(referencedItems[referencedItemsPosition++].getIndex()+1);
                         } else {
                             this.length++;
                         }
-                        if (typeIndex != 0) {
+                        if (typeIndex != -1) {
                             this.length+=
                                 Leb128Utils.unsignedLeb128Size(referencedItems[referencedItemsPosition++].getIndex()+1);
                         } else {
@@ -210,21 +216,27 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
                     @Override
                     public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
-                                                          int typeIndex, int signatureIndex) {
-                        this.length+=Leb128Utils.unsignedLeb128Size(registerNum);
-                        if (nameIndex != 0) {
+                                                          int typeIndex, int signatureIndex,
+                                                          boolean registerIsSigned) {
+                        this.length++;
+                        if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
+                            this.length += Leb128Utils.signedLeb128Size(registerNum);
+                        } else {
+                            this.length+=Leb128Utils.unsignedLeb128Size(registerNum);
+                        }
+                        if (nameIndex != -1) {
                             this.length+=
                                Leb128Utils.unsignedLeb128Size(referencedItems[referencedItemsPosition++].getIndex()+1);
                         } else {
                             this.length++;
                         }
-                        if (typeIndex != 0) {
+                        if (typeIndex != -1) {
                             this.length+=
                                Leb128Utils.unsignedLeb128Size(referencedItems[referencedItemsPosition++].getIndex()+1);
                         } else {
                             this.length++;
                         }
-                        if (signatureIndex != 0) {
+                        if (signatureIndex != -1) {
                             this.length+=
                                Leb128Utils.unsignedLeb128Size(referencedItems[referencedItemsPosition++].getIndex()+1);
                         } else {
@@ -234,7 +246,8 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
                     @Override
                     public void ProcessSetFile(int startOffset, int length, int nameIndex) {
-                        if (nameIndex != 0) {
+                        this.length++;
+                        if (nameIndex != -1) {
                             this.length+=
                                Leb128Utils.unsignedLeb128Size(referencedItems[referencedItemsPosition++].getIndex()+1);
                         } else {
@@ -270,7 +283,12 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
                     @Override
                     public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
-                                                  int typeIndex) {
+                                                  int typeIndex, boolean registerIsSigned) {
+                        if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
+                            out.writeSignedLeb128(registerNum);
+                        } else {
+                            out.writeUnsignedLeb128(registerNum);
+                        }
                         out.writeUnsignedLeb128(registerNum);
                         if (nameIndex != -1) {
                             out.writeUnsignedLeb128(referencedItems[referencedItemsPosition++].getIndex() + 1);
@@ -286,8 +304,13 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
                     @Override
                     public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
-                                                          int typeIndex, int signatureIndex) {
-                        out.writeUnsignedLeb128(registerNum);
+                                                          int typeIndex, int signatureIndex,
+                                                          boolean registerIsSigned) {
+                        if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
+                            out.writeSignedLeb128(registerNum);
+                        } else {
+                            out.writeUnsignedLeb128(registerNum);
+                        }
                         if (nameIndex != -1) {
                             out.writeUnsignedLeb128(referencedItems[referencedItemsPosition++].getIndex() + 1);
                         } else {

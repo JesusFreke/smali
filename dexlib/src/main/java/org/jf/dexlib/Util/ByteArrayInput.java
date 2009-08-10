@@ -152,6 +152,52 @@ public class ByteArrayInput
                 ((data[readAt + 7] & 0xffL) << 58);
     }
 
+
+    /** {@inheritDoc} */
+    public int readUnsignedOrSignedLeb128() {
+        int end = cursor;
+        int currentByteValue;
+        int result;
+
+        result = data[end++] & 0xff;
+        if (result > 0x7f) {
+            currentByteValue = data[end++] & 0xff;
+            result = (result & 0x7f) | ((currentByteValue & 0x7f) << 7);
+            if (currentByteValue > 0x7f) {
+                currentByteValue = data[end++] & 0xff;
+                result |= (currentByteValue & 0x7f) << 14;
+                if (currentByteValue > 0x7f) {
+                    currentByteValue = data[end++] & 0xff;
+                    result |= (currentByteValue & 0x7f) << 21;
+                    if (currentByteValue > 0x7f) {
+                        currentByteValue = data[end++] & 0xff;
+                        if (currentByteValue > 0x0f) {
+                            throwInvalidLeb();
+                        }
+                        result |= currentByteValue << 28;
+                    }
+                }
+            }
+        } else {
+            cursor = end;
+            return result;
+        }
+
+        cursor = end;
+
+        //If the last byte is 0, then this was an unsigned value (incorrectly) written in a signed format
+        //The caller wants to know if this is the case, so we'll return the negated value instead
+        //If there was only a single byte that had a value of 0, then we would have returned in the above
+        //"else"
+        if (data[end-1] == 0) {
+            return ~result;
+        }
+        return result;
+    }
+
+
+        
+
     /** {@inheritDoc} */
     public int readUnsignedLeb128() {
         int end = cursor;
