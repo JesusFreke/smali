@@ -79,6 +79,7 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      */
     protected int placeAt(int offset, int index) {
         assert offset % getItemType().ItemAlignment == 0:"The offset is not aligned";
+        assert !dexFile.getInplace() || (offset == this.offset && this.index == index);
 
         this.offset = offset;
         this.index = index;

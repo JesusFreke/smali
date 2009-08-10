@@ -85,6 +85,7 @@ public abstract class Section<T extends Item> {
     protected int placeAt(int offset) {
         if (items.size() > 0) {
             offset = AlignmentUtils.alignOffset(offset, ItemType.ItemAlignment);
+            assert !DexFile.getInplace() || offset == this.offset;
             this.offset = offset;
 
             for (int i=0; i < items.size(); i++) {
