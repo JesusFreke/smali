@@ -95,7 +95,7 @@ public abstract class Item<T extends Item> implements Comparable<T> {
 
         if (out.getCursor() != offset) {
             throw new RuntimeException("Item was placed at offset 0x" + Integer.toHexString(offset) +
-                    "but is being written to offset 0x" + Integer.toHexString(out.getCursor()));
+                    " but is being written to offset 0x" + Integer.toHexString(out.getCursor()));
         }
 
         if (out.annotates()) {
