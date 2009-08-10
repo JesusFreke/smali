@@ -169,14 +169,15 @@ public class CodeItem extends Item<CodeItem> {
     protected int placeItem(int offset) {
         offset += 16 + encodedInstructions.length;
         if (tries != null && tries.length > 0) {
-            if (encodedInstructions.length % 2 == 1) {
-                offset++;
+            if (encodedInstructions.length % 4 != 0) {
+                offset+=2;
             }
 
             offset += tries.length * 8;
             int encodedCatchHandlerBaseOffset = offset;
+            offset += Leb128Utils.unsignedLeb128Size(encodedCatchHandlers.length);
             for (EncodedCatchHandler encodedCatchHandler: encodedCatchHandlers) {
-                offset += encodedCatchHandler.place(offset, encodedCatchHandlerBaseOffset);
+                offset = encodedCatchHandler.place(offset, encodedCatchHandlerBaseOffset);
             }
         }
         return offset;
