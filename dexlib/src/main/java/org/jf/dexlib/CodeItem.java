@@ -237,7 +237,7 @@ public class CodeItem extends Item<CodeItem> {
         InstructionWriter.writeInstructions(encodedInstructions, referencedItems, out);
 
         if (tries != null && tries.length > 0) {
-            if ((tries.length % 2) == 1) {
+            if ((encodedInstructions.length % 4) != 0) {
                 out.writeShort(0);
             }
 
