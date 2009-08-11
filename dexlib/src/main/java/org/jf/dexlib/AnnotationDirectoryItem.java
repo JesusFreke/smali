@@ -200,6 +200,9 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         }
 
         out.writeInt(classAnnotations==null?0:classAnnotations.getOffset());
+        out.writeInt(fieldAnnotations.length);
+        out.writeInt(methodAnnotations.length);
+        out.writeInt(parameterAnnotations.length);
 
         for (int i=0; i<fieldAnnotations.length; i++) {
             out.writeInt(fieldAnnotationFields[i].getIndex());
