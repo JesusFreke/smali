@@ -427,11 +427,11 @@ public class ClassDataItem extends Item<ClassDataItem> {
                 out.annotate("access_flags");
                 out.writeUnsignedLeb128(accessFlags);
                 out.annotate("code_off");
-                out.writeUnsignedLeb128(codeItem==null?0:codeItem.getIndex());
+                out.writeUnsignedLeb128(codeItem==null?0:codeItem.getOffset());
             }else {
                 out.writeUnsignedLeb128(method.getIndex() - previousIndex);
                 out.writeUnsignedLeb128(accessFlags);
-                out.writeUnsignedLeb128(codeItem==null?0:codeItem.getIndex());
+                out.writeUnsignedLeb128(codeItem==null?0:codeItem.getOffset());
             }
         }
 
