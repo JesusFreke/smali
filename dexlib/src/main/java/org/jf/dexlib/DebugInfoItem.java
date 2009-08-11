@@ -29,6 +29,7 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.Debug.DebugInstructionIterator;
+import org.jf.dexlib.Debug.DebugOpcode;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.Leb128Utils;
@@ -284,12 +285,12 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     @Override
                     public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
                                                   int typeIndex, boolean registerIsSigned) {
+                        out.writeByte(DebugOpcode.DBG_START_LOCAL.value);
                         if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
                             out.writeSignedLeb128(registerNum);
                         } else {
                             out.writeUnsignedLeb128(registerNum);
                         }
-                        out.writeUnsignedLeb128(registerNum);
                         if (nameIndex != -1) {
                             out.writeUnsignedLeb128(referencedItems[referencedItemsPosition++].getIndex() + 1);
                         } else {
@@ -306,6 +307,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
                                                           int typeIndex, int signatureIndex,
                                                           boolean registerIsSigned) {
+                        out.writeByte(DebugOpcode.DBG_START_LOCAL_EXTENDED.value);
                         if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
                             out.writeSignedLeb128(registerNum);
                         } else {
@@ -330,6 +332,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
                     @Override
                     public void ProcessSetFile(int startOffset, int length, int nameIndex) {
+                        out.writeByte(DebugOpcode.DBG_SET_FILE.value);
                         if (nameIndex != -1) {
                             out.writeUnsignedLeb128(referencedItems[referencedItemsPosition++].getIndex() + 1);
                         } else {
