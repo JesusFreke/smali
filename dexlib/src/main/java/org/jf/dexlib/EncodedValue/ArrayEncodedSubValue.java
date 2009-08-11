@@ -66,7 +66,6 @@ public class ArrayEncodedSubValue extends EncodedValue {
 
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
-        out.writeByte(ValueType.VALUE_ARRAY.value);
         out.writeUnsignedLeb128(values.length);
         for (EncodedValue encodedValue: values) {
             encodedValue.writeValue(out);
