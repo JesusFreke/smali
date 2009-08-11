@@ -64,7 +64,7 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * only needed while reading in a file  
      */
     protected void readFrom(Input in, int index, ReadContext readContext) {
-        assert in.getCursor() % getItemType().ItemAlignment == 0:"The Input cursor is not aligned";
+        assert in.getCursor() % getItemType().ItemAlignment == 0;
 
         this.offset = in.getCursor();
         this.index = index;
