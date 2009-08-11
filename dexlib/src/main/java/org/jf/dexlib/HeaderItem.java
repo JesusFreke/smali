@@ -30,6 +30,7 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
+import org.jf.dexlib.Util.Utf8Utils;
 
 import java.io.UnsupportedEncodingException;
 
@@ -144,33 +145,6 @@ public class HeaderItem extends Item<HeaderItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
-        if (out.annotates()) {
-            //TODO: add human readable representations of the underlying data where appropriate
-            out.annotate(8, "magic");
-            out.annotate(4, "checksum");
-            out.annotate(20, "signature");
-            out.annotate(4, "file_size");
-            out.annotate(4, "header_size");
-            out.annotate(4, "endian_tag");
-            out.annotate(4, "link_size");
-            out.annotate(4, "link_off");
-            out.annotate(4, "map_off");
-            out.annotate(4, "string_ids_size");
-            out.annotate(4, "string_ids_off");
-            out.annotate(4, "type_ids_size");
-            out.annotate(4, "type_ids_off");
-            out.annotate(4, "proto_ids_size");
-            out.annotate(4, "proto_ids_off");
-            out.annotate(4, "field_ids_size");
-            out.annotate(4, "field_ids_off");
-            out.annotate(4, "method_ids_size");
-            out.annotate(4, "method_ids_off");
-            out.annotate(4, "class_defs_size");
-            out.annotate(4, "class_defs_off");
-            out.annotate(4, "data_size");
-            out.annotate(4, "data_off");
-        }
-
         byte[] magic;
         try {
             magic = MAGIC.getBytes("US-ASCII");
@@ -178,28 +152,75 @@ public class HeaderItem extends Item<HeaderItem> {
             throw new RuntimeException(ex);
         }
 
+        out.annotate("magic: " + Utf8Utils.escapeString(MAGIC));
         out.write(magic);
-        out.writeInt(0); //checksum
-        out.write(new byte[20]); //signature
+
+        out.annotate("checksum");
+        out.writeInt(0);
+
+        out.annotate("signature");
+        out.write(new byte[20]);
+
+        out.annotate("file_size: 0x" + Integer.toHexString(dexFile.getFileSize()) + " (" + dexFile.getFileSize() +
+                " bytes)");
         out.writeInt(dexFile.getFileSize());
+
+        out.annotate("header_size: 0x" + Integer.toHexString(HEADER_SIZE));
         out.writeInt(HEADER_SIZE);
+
+        out.annotate("endian_tag: 0x" + Integer.toHexString(LITTLE_ENDIAN));
         out.writeInt(LITTLE_ENDIAN);
-        out.writeInt(0); //link_size
-        out.writeInt(0); //link_off
+
+        out.annotate("link_size: 0");
+        out.writeInt(0);
+
+        out.annotate("link_off: 0");
+        out.writeInt(0);
+        
+        out.annotate("map_off: 0x" + Integer.toHexString(dexFile.MapItem.getOffset()));
         out.writeInt(dexFile.MapItem.getOffset());
+
+        out.annotate("string_ids_size: " + dexFile.StringIdsSection.getItems().size());        
         out.writeInt(dexFile.StringIdsSection.getItems().size());
+
+        out.annotate("string_ids_off: 0x" + Integer.toHexString(dexFile.StringIdsSection.getOffset()));
         out.writeInt(dexFile.StringIdsSection.getOffset());
+
+        out.annotate("type_ids_size: " + dexFile.TypeIdsSection.getItems().size());
         out.writeInt(dexFile.TypeIdsSection.getItems().size());
+
+        out.annotate("type_ids_off: 0x" + Integer.toHexString(dexFile.TypeIdsSection.getOffset()));
         out.writeInt(dexFile.TypeIdsSection.getOffset());
+
+        out.annotate("proto_ids_size: " + dexFile.ProtoIdsSection.getItems().size());
         out.writeInt(dexFile.ProtoIdsSection.getItems().size());
+
+        out.annotate("proto_ids_off: 0x" + Integer.toHexString(dexFile.ProtoIdsSection.getOffset()));
         out.writeInt(dexFile.ProtoIdsSection.getOffset());
+
+        out.annotate("field_ids_size: " + dexFile.FieldIdsSection.getItems().size());
         out.writeInt(dexFile.FieldIdsSection.getItems().size());
+
+        out.annotate("field_ids_off: 0x" + Integer.toHexString(dexFile.FieldIdsSection.getOffset()));
         out.writeInt(dexFile.FieldIdsSection.getOffset());
+
+        out.annotate("method_ids_size: " + dexFile.MethodIdsSection.getItems().size());
         out.writeInt(dexFile.MethodIdsSection.getItems().size());
+
+        out.annotate("method_ids_off: 0x" + Integer.toHexString(dexFile.MethodIdsSection.getOffset()));
         out.writeInt(dexFile.MethodIdsSection.getOffset());
+
+        out.annotate("class_defs_size: " + dexFile.ClassDefsSection.getItems().size());
         out.writeInt(dexFile.ClassDefsSection.getItems().size());
+
+        out.annotate("class_defs_off: 0x" + Integer.toHexString(dexFile.ClassDefsSection.getOffset()));
         out.writeInt(dexFile.ClassDefsSection.getOffset());
+
+        out.annotate("data_size: 0x" + Integer.toHexString(dexFile.getDataSize()) + " (" + dexFile.getDataSize() +
+                " bytes)");
         out.writeInt(dexFile.getDataSize());
+
+        out.annotate("data_off: 0x" + Integer.toHexString(dexFile.getDataOffset()));
         out.writeInt(dexFile.getDataOffset());        
     }
 
