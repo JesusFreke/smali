@@ -28,10 +28,7 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Util.AnnotatedOutput;
-import org.jf.dexlib.Util.ByteArrayInput;
-import org.jf.dexlib.Util.FileUtils;
-import org.jf.dexlib.Util.Input;
+import org.jf.dexlib.Util.*;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Item;
 import org.jf.dexlib.StringDataItem;
@@ -495,6 +492,8 @@ public class DexFile
             sectionsPosition++;
         }
 
+
+        offset = AlignmentUtils.alignOffset(offset, ItemType.TYPE_MAP_LIST.ItemAlignment);
         offset = MapItem.placeAt(offset, 0);
 
         fileSize = offset;
