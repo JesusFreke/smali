@@ -78,7 +78,7 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @return The offset of the byte following this item
      */
     protected int placeAt(int offset, int index) {
-        assert offset % getItemType().ItemAlignment == 0:"The offset is not aligned";
+        assert offset % getItemType().ItemAlignment == 0;
         assert !dexFile.getInplace() || (offset == this.offset && this.index == index);
 
         this.offset = offset;
@@ -91,12 +91,8 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @param out The output stream to write and annotate to
      */
     protected void writeTo(AnnotatedOutput out) {
-        assert out.getCursor() % getItemType().ItemAlignment == 0:"The Output cursor is not aligned";
-
-        if (out.getCursor() != offset) {
-            throw new RuntimeException("Item was placed at offset 0x" + Integer.toHexString(offset) +
-                    " but is being written to offset 0x" + Integer.toHexString(out.getCursor()));
-        }
+        assert out.getCursor() % getItemType().ItemAlignment == 0;
+        assert out.getCursor() == offset;
 
         if (out.annotates()) {
             out.annotate(0, "[0x" + Integer.toHexString(index) + "] " + this.getItemType().TypeName);
