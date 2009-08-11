@@ -384,19 +384,25 @@ public class DexFile
         return this.inplace;
     }
 
+    /**
+     * @return the size of the file, in bytes
+     */
     public int getFileSize() {
-        //TODO: implement this
-        return 0;
+        return fileSize;
     }
 
+    /**
+     * @return the size of the data section, in bytes
+     */
     public int getDataSize() {
-        //TODO: implement this
-        return 0;
+        return dataSize;
     }
 
+    /**
+     * @return the offset where the data section begins
+     */
     public int getDataOffset() {
-        //TODO: implement this
-        return 0;
+        return dataOffset;
     }
 
     /**
