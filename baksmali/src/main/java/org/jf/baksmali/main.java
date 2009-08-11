@@ -73,7 +73,6 @@ public class main {
         boolean write = false;
         boolean sort = false;
         boolean fixRegisters = false;
-        boolean readOnly = false;
         boolean noParameterRegisters = false;
 
         String outputDirectory = "out";
@@ -100,19 +99,13 @@ public class main {
 
         inputDexFileName = remainingArgs[0];
 
-        if (commandLine.hasOption("r")) {
-            readOnly = true;
+        if (commandLine.hasOption("n")) {
+            disassemble = false;
         }
 
         if (commandLine.hasOption("d")) {
             doDump = true;
             dumpFileName = commandLine.getOptionValue("d", inputDexFileName + ".dump");
-        }
-
-        if (commandLine.hasOption("D")) {
-            doDump = true;
-            disassemble = false;
-            dumpFileName = commandLine.getOptionValue("D", inputDexFileName + ".dump");
         }
 
         if (commandLine.hasOption("w")) {
@@ -145,10 +138,6 @@ public class main {
 
             //Read in and parse the dex file
             DexFile dexFile = new DexFile(dexFileFile, !fixRegisters);
-
-            if (readOnly) {
-                return;
-            }
 
             if (disassemble) {
                 baksmali.disassembleDexFile(dexFile, outputDirectory, noParameterRegisters);
@@ -202,21 +191,16 @@ public class main {
                 .withDescription("prints the help message then exits")
                 .create("?");
 
-        Option readonlyOption = OptionBuilder.withLongOpt("read-only")
-                .withDescription("reads in the dex file and then exits")
-                .create("r");
+        Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
+                .withDescription("suppresses the output of the disassembly")
+                .create("n");
 
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
-                .withDescription("dumps the given dex file into a single annotated dump file named FILE (<dexfile>.dump by default), along with the normal disassembly.")
+                .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
+                        " (<dexfile>.dump by default), along with the normal disassembly.")
                 .hasOptionalArg()
                 .withArgName("FILE")
                 .create("d");
-
-        Option dumpOnlyOption = OptionBuilder.withLongOpt("dump-only")
-                .withDescription("dumps the given dex file into a single annotated dump file named FILE (<dexfile>.dump by default), and does not generate the disassembly")
-                .hasOptionalArg()
-                .withArgName("FILE")
-                .create("D");
 
         Option writeDexOption = OptionBuilder.withLongOpt("write-dex")
                 .withDescription("additionally rewrites the input dex file to FILE")
@@ -245,13 +229,11 @@ public class main {
                 .create("p");
 
         OptionGroup dumpCommand = new OptionGroup();
-        dumpCommand.addOption(dumpOption);
-        dumpCommand.addOption(dumpOnlyOption);
-        dumpCommand.addOption(readonlyOption);
 
         options.addOption(versionOption);
         options.addOption(helpOption);
-        options.addOptionGroup(dumpCommand);
+        options.addOption(dumpOption);
+        options.addOption(noDisassemblyOption);
         options.addOption(writeDexOption);
         options.addOption(outputDirOption);
         options.addOption(sortOption);
