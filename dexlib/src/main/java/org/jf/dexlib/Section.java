@@ -107,7 +107,7 @@ public abstract class Section<T extends Item> {
      */
     protected void writeTo(AnnotatedOutput out) {
         for (Item item: items) {
-            Assert.assertTrue("This section contains a null item", item != null);
+            assert item!=null;
             out.alignTo(ItemType.ItemAlignment);
             item.writeTo(out);
             out.annotate(0, " ");
