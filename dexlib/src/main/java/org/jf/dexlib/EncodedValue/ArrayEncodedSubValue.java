@@ -75,7 +75,7 @@ public class ArrayEncodedSubValue extends EncodedValue {
 
     /** {@inheritDoc} */
     public int placeValue(int offset) {
-        offset = offset + 1 + Leb128Utils.unsignedLeb128Size(values.length);
+        offset = offset + Leb128Utils.unsignedLeb128Size(values.length);
         for (EncodedValue encodedValue: values) {
             offset = encodedValue.placeValue(offset);
         }
