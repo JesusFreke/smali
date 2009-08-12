@@ -519,6 +519,11 @@ public class DexFile
      * signature and checksum in the header
      */
     public void writeTo(AnnotatedOutput out) {
+
+        out.annotate(0, "-----------------------------");
+        out.annotate(0, "header item");
+        out.annotate(0, "-----------------------------");
+        out.annotate(0, " ");
         HeaderItem.writeTo(out);
 
         int sectionsPosition = 0;

@@ -106,13 +106,18 @@ public abstract class Section<T extends Item> {
      * @param out the <code>AnnotatedOutput</code> object to write to
      */
     protected void writeTo(AnnotatedOutput out) {
+        out.annotate(0, " ");
+        out.annotate(0, "-----------------------------");
+        out.annotate(0, this.ItemType.TypeName + " section");
+        out.annotate(0, "-----------------------------");
+        out.annotate(0, " ");
+
         for (Item item: items) {
             assert item!=null;
             out.alignTo(ItemType.ItemAlignment);
             item.writeTo(out);
             out.annotate(0, " ");
         }
-        out.annotate(0, " ");
     }
 
     /**

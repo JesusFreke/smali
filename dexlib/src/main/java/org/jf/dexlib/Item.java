@@ -95,7 +95,7 @@ public abstract class Item<T extends Item> implements Comparable<T> {
         assert out.getCursor() == offset;
 
         if (out.annotates()) {
-            out.annotate(0, "[0x" + Integer.toHexString(index) + "] " + this.getItemType().TypeName);
+            out.annotate(0, "[" + index + "] " + this.getItemType().TypeName);
         }
 
         out.indent();
