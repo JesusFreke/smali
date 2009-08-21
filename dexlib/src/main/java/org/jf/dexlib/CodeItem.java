@@ -228,9 +228,6 @@ public class CodeItem extends Item<CodeItem> {
                                     "fill_array_data instruction");
                         }
                     });
-            if (tries != null && (tries.length % 2 == 1)) {
-                out.annotate(2, "padding");
-            }
         }
 
         out.writeShort(registerCount);
@@ -520,7 +517,7 @@ public class CodeItem extends Item<CodeItem> {
                 out.annotate("size: 0x" + Integer.toHexString(handlers.length) + " (" + handlers.length + ")");
 
                 int size = handlers.length;
-                if (catchAllHandlerAddress < 0) {
+                if (catchAllHandlerAddress > -1) {
                     size = size * -1;
                 }
                 out.writeSignedLeb128(size);
@@ -539,7 +536,7 @@ public class CodeItem extends Item<CodeItem> {
                 }
             } else {
                 int size = handlers.length;
-                if (catchAllHandlerAddress < 0) {
+                if (catchAllHandlerAddress > -1) {
                     size = size * -1;
                 }
                 out.writeSignedLeb128(size);
