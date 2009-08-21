@@ -81,12 +81,21 @@ public class AnnotationEncodedSubValue extends EncodedValue {
 
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
+        out.annotate("annotation_type: " + annotationType.getTypeDescriptor());
         out.writeUnsignedLeb128(annotationType.getIndex());
+        out.annotate("element_count: 0x" + Integer.toHexString(names.length) + " (" + names.length + ")");
         out.writeUnsignedLeb128(names.length);
 
         for (int i=0; i<names.length; i++) {
+            out.annotate(0, "[" + i + "] annotation_element");
+            out.indent();
+            out.annotate("element_name: " + names[i].getStringValue());
             out.writeUnsignedLeb128(names[i].getIndex());
+            out.annotate(0, "element_value:");
+            out.indent();
             values[i].writeValue(out);
+            out.deindent();
+            out.deindent();
         }
     }
 

@@ -266,15 +266,15 @@ public class DebugInstructionIterator {
     {
         //TODO: add javadocs
         public void ProcessEndSequence(int startOffset) {
-            ProcessStaticOpcode(startOffset, 1);
+            ProcessStaticOpcode(DebugOpcode.DBG_END_SEQUENCE, startOffset, 1);
         }
 
         public void ProcessAdvancePC(int startOffset, int length, int addressDiff) {
-            ProcessStaticOpcode(startOffset, length);
+            ProcessStaticOpcode(DebugOpcode.DBG_ADVANCE_PC, startOffset, length);
         }
 
         public void ProcessAdvanceLine(int startOffset, int length, int lineDiff) {
-            ProcessStaticOpcode(startOffset, length);
+            ProcessStaticOpcode(DebugOpcode.DBG_ADVANCE_LINE, startOffset, length);
         }
 
         public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex, int typeIndex,
@@ -286,29 +286,29 @@ public class DebugInstructionIterator {
         }
 
         public void ProcessEndLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
-            ProcessStaticOpcode(startOffset, length);
+            ProcessStaticOpcode(DebugOpcode.DBG_END_LOCAL, startOffset, length);
         }
 
         public void ProcessRestartLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
-            ProcessStaticOpcode(startOffset, length);
+            ProcessStaticOpcode(DebugOpcode.DBG_RESTART_LOCAL, startOffset, length);
         }
 
         public void ProcessSetPrologueEnd(int startOffset) {
-            ProcessStaticOpcode(startOffset, 1);
+            ProcessStaticOpcode(DebugOpcode.DBG_SET_PROLOGUE_END, startOffset, 1);
         }
 
         public void ProcessSetEpilogueBegin(int startOffset) {
-            ProcessStaticOpcode(startOffset, 1);
+            ProcessStaticOpcode(DebugOpcode.DBG_SET_EPILOGUE_BEGIN, startOffset, 1);
         }
 
         public void ProcessSetFile(int startOffset, int length, int nameIndex) {
         }
 
         public void ProcessSpecialOpcode(int startOffset, int debugOpcode, int lineDiff, int addressDiff) {
-            ProcessStaticOpcode(startOffset, 1);
+            ProcessStaticOpcode(DebugOpcode.DBG_SPECIAL_OPCODE, startOffset, 1);
         }
 
-        public void ProcessStaticOpcode(int startOffset, int length) {
+        public void ProcessStaticOpcode(DebugOpcode debugOpcode, int startOffset, int length) {
         }
     }
 

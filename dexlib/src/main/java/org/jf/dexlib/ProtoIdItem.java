@@ -99,7 +99,7 @@ public class ProtoIdItem extends Item<ProtoIdItem> {
             if (parameters == null) {
                 out.annotate(4, "parameters:");
             } else {
-                out.annotate(4, "parameters: " + parameters.getTypeListString());
+                out.annotate(4, "parameters: " + parameters.getTypeListString(""));
             }
         }
 
@@ -145,7 +145,7 @@ public class ProtoIdItem extends Item<ProtoIdItem> {
         if (cachedPrototypeString == null) {
             StringBuilder sb = new StringBuilder("(");
             if (parameters != null) {
-                sb.append(parameters.getTypeListString());
+                sb.append(parameters.getTypeListString(""));
             }
             sb.append(")");
             sb.append(returnType.getTypeDescriptor());

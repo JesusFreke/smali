@@ -58,6 +58,9 @@ public class AnnotationEncodedValue extends AnnotationEncodedSubValue {
 
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
+        if (out.annotates()) {
+            out.annotate("value_type=" + ValueType.VALUE_ANNOTATION.name() + ",value_arg=0");
+        }
         out.writeByte(ValueType.VALUE_ANNOTATION.value);
         super.writeValue(out);
     }

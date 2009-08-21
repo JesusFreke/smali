@@ -88,9 +88,8 @@ public class AnnotationItem extends Item<AnnotationItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate("visibility");
+            out.annotate("visibility: " + visibility.name());
             out.writeByte(visibility.value);
-            out.annotate("annotation");
             annotationValue.writeValue(out);
         }else {
             out.writeByte(visibility.value);

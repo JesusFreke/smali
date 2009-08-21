@@ -30,6 +30,7 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.AccessFlags;
 
 import java.util.*;
 
@@ -139,14 +140,18 @@ public class ClassDefItem extends Item<ClassDefItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate(4, "class_idx");
-            out.annotate(4, "access_flags");
-            out.annotate(4, "superclass_idx");
-            out.annotate(4, "interfaces_off");
-            out.annotate(4, "source_file_idx");
-            out.annotate(4, "annotations_off");
-            out.annotate(4, "class_data_off");
-            out.annotate(4, "static_values_off");
+            out.annotate(4, "class_type: " + classType.getTypeDescriptor());
+            out.annotate(4, "access_flags: " + AccessFlags.formatAccessFlagsForClass(accessFlags));
+            out.annotate(4, "superclass_type: " + (superType==null?"":superType.getTypeDescriptor()));
+            out.annotate(4, "interfaces: " +
+                    (implementedInterfaces==null?"":implementedInterfaces.getTypeListString(" ")));
+            out.annotate(4, "source_file: " + (sourceFile==null?"":sourceFile.getStringValue()));
+            out.annotate(4, "annotations_off: " +
+                    (annotations==null?"":"0x"+Integer.toHexString(annotations.getOffset())));
+            out.annotate(4, "class_data_off:" +
+                    (classData==null?"":"0x"+Integer.toHexString(classData.getOffset())));
+            out.annotate(4, "static_values_off: " +
+                    (staticFieldInitializers==null?"":"0x"+Integer.toHexString(staticFieldInitializers.getOffset())));
         }
         out.writeInt(classType.getIndex());
         out.writeInt(accessFlags);

@@ -147,36 +147,56 @@ public class ClassDataItem extends Item<ClassDataItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate("static_fields_size");
+            out.annotate("static_fields_size: 0x" + Integer.toHexString(staticFields.length) + " (" +
+                    staticFields.length + ")");
             out.writeUnsignedLeb128(staticFields.length);
-            out.annotate("instance_fields_size");
+            out.annotate("instance_fields_size: 0x" + Integer.toHexString(instanceFields.length) + " (" +
+                    instanceFields.length + ")");
             out.writeUnsignedLeb128(instanceFields.length);
-            out.annotate("direct_methods_size");
+            out.annotate("direct_methods_size: 0x" + Integer.toHexString(directMethods.length) + " (" +
+                    directMethods.length + ")");
             out.writeUnsignedLeb128(directMethods.length);
-            out.annotate("virtual_methods_size");
+            out.annotate("virtual_methods_size: 0x" + Integer.toHexString(virtualMethods.length) + " (" +
+                    virtualMethods.length + ")");
             out.writeUnsignedLeb128(virtualMethods.length);
 
+            int index = 0;
             EncodedField previousEncodedField = null;
             for (EncodedField encodedField: staticFields) {
+                out.annotate("[" + index++ + "] static_field");
+                out.indent();
                 encodedField.writeTo(out, previousEncodedField);
+                out.deindent();
                 previousEncodedField = encodedField;
             }
 
+            index = 0;
             previousEncodedField = null;
             for (EncodedField encodedField: instanceFields) {
+                out.annotate("[" + index++ + "] instance_field");
+                out.indent();
                 encodedField.writeTo(out, previousEncodedField);
+                out.deindent();
                 previousEncodedField = encodedField;
             }
 
+            index = 0;
             EncodedMethod previousEncodedMethod = null;
             for (EncodedMethod encodedMethod: directMethods) {
+                out.annotate("[" + index++ + "] direct_method");
+                out.indent();
                 encodedMethod.writeTo(out, previousEncodedMethod);
+                out.deindent();
                 previousEncodedMethod = encodedMethod;
             }
 
+            index = 0;
             previousEncodedMethod = null;
             for (EncodedMethod encodedMethod: virtualMethods) {
+                out.annotate("[" + index++ + "] virtual_method");
+                out.indent();
                 encodedMethod.writeTo(out, previousEncodedMethod);
+                out.deindent();
                 previousEncodedMethod = encodedMethod;
             }
         } else {
@@ -315,9 +335,9 @@ public class ClassDataItem extends Item<ClassDataItem> {
             int previousIndex = previousEncodedField==null?0:previousEncodedField.field.getIndex();
 
             if (out.annotates()) {
-                out.annotate("field_idx_diff");
+                out.annotate("field: " + field.getFieldString());
                 out.writeUnsignedLeb128(field.getIndex() - previousIndex);
-                out.annotate("access_flags");
+                out.annotate("access_flags: " + AccessFlags.formatAccessFlagsForField(accessFlags));
                 out.writeUnsignedLeb128(accessFlags);
             }else {
                 out.writeUnsignedLeb128(field.getIndex() - previousIndex);
@@ -422,12 +442,17 @@ public class ClassDataItem extends Item<ClassDataItem> {
             int previousIndex = previousEncodedMethod==null?0:previousEncodedMethod.method.getIndex();
 
             if (out.annotates()) {
-                out.annotate("method_idx_diff");
+                out.annotate("method: " + method.getMethodString());
                 out.writeUnsignedLeb128(method.getIndex() - previousIndex);
-                out.annotate("access_flags");
+                out.annotate("access_flags: " + AccessFlags.formatAccessFlagsForMethod(accessFlags));
                 out.writeUnsignedLeb128(accessFlags);
-                out.annotate("code_off");
-                out.writeUnsignedLeb128(codeItem==null?0:codeItem.getOffset());
+                if (codeItem != null) {
+                    out.annotate("code_off: 0x" + codeItem.getOffset());
+                    out.writeUnsignedLeb128(codeItem.getOffset());
+                } else {
+                    out.annotate("code_off: 0x0");
+                    out.writeUnsignedLeb128(0);
+                }
             }else {
                 out.writeUnsignedLeb128(method.getIndex() - previousIndex);
                 out.writeUnsignedLeb128(accessFlags);

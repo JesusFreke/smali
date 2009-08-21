@@ -58,6 +58,12 @@ public class FloatEncodedValue extends EncodedValue {
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
         byte[] bytes = EncodedValueUtils.encodeRightZeroExtendedValue(((long)Float.floatToRawIntBits(value)) << 32);
+
+        if (out.annotates()) {
+            out.annotate(1, "value_type=" + ValueType.VALUE_FLOAT.name() + ",value_arg=" + (bytes.length - 1));
+            out.annotate(bytes.length, "value: " + value);
+        }
+
         out.writeByte(ValueType.VALUE_FLOAT.value | ((bytes.length - 1) << 5));
         out.write(bytes);
     }

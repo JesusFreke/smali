@@ -187,7 +187,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     private int referencedItemsPosition = 0;
 
                     @Override
-                    public void ProcessStaticOpcode(int startOffset, int length) {
+                    public void ProcessStaticOpcode(DebugOpcode opcode, int startOffset, int length) {
                         this.length+=length;
                     }
 
@@ -261,6 +261,19 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(final AnnotatedOutput out) {
+
+        if (out.annotates()) {
+            writeItemWithAnnotations(out);
+        } else {
+            writeItemWithNoAnnotations(out);
+        }
+    }
+
+    /**
+     * Helper method that writes the item, without writing annotations
+     * @param out the AnnotatedOutput object
+     */
+    private void writeItemWithNoAnnotations(final AnnotatedOutput out) {
         out.writeUnsignedLeb128(lineStart);
         out.writeUnsignedLeb128(parameterNames.length);
         for (StringIdItem parameterName: parameterNames) {
@@ -278,7 +291,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     private int referencedItemsPosition = 0;
 
                     @Override
-                    public void ProcessStaticOpcode(int startOffset, int length) {
+                    public void ProcessStaticOpcode(DebugOpcode opcode, int startOffset, int length) {
                         out.write(encodedDebugInfo, startOffset, length);
                     }
 
@@ -341,6 +354,200 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
                 });
     }
+
+    /**
+     * Helper method that writes and annotates the item
+     * @param out the AnnotatedOutput object
+     */
+    private void writeItemWithAnnotations(final AnnotatedOutput out) {
+        out.annotate(0, parent.getParent().method.getMethodString());
+        out.annotate("line_start: 0x" + Integer.toHexString(lineStart) + " (" + lineStart + ")");
+        out.writeUnsignedLeb128(lineStart);
+        out.annotate("parameters_size: 0x" + Integer.toHexString(parameterNames.length) + " (" + parameterNames.length
+                + ")");
+        out.writeUnsignedLeb128(parameterNames.length);
+        int index = 0;
+        for (StringIdItem parameterName: parameterNames) {
+            int indexp1;
+            if (parameterName == null) {
+                out.annotate("[" + index++ +"] parameterName: ");
+                indexp1 = 0;
+            } else {
+                out.annotate("[" + index++ +"] parameterName: " + parameterName.getStringValue());
+                indexp1 = parameterName.getIndex() + 1;
+            }
+            out.writeUnsignedLeb128(indexp1);
+        }
+
+        DebugInstructionIterator.IterateInstructions(new ByteArrayInput(encodedDebugInfo),
+                new DebugInstructionIterator.ProcessRawDebugInstructionDelegate() {
+                    private int referencedItemsPosition = 0;
+
+                    @Override
+                    public void ProcessEndSequence(int startOffset) {
+                        out.annotate("DBG_END_SEQUENCE");
+                        out.writeByte(DebugOpcode.DBG_END_SEQUENCE.value);
+                    }
+
+                    @Override
+                    public void ProcessAdvancePC(int startOffset, int length, int addressDiff) {
+                        out.annotate("DBG_ADVANCE_PC");
+                        out.writeByte(DebugOpcode.DBG_ADVANCE_PC.value);
+                        out.indent();
+                        out.annotate("addr_diff: 0x" + Integer.toHexString(addressDiff) + " (" + addressDiff + ")");
+                        out.writeUnsignedLeb128(addressDiff);
+                        out.deindent();
+                    }
+
+                    @Override
+                    public void ProcessAdvanceLine(int startOffset, int length, int lineDiff) {
+                        out.annotate("DBG_ADVANCE_LINE");
+                        out.writeByte(DebugOpcode.DBG_ADVANCE_LINE.value);
+                        out.indent();
+                        out.annotate("line_diff: 0x" + Integer.toHexString(lineDiff) + " (" + lineDiff + ")");
+                        out.writeSignedLeb128(lineDiff);
+                        out.deindent();
+                    }
+
+                    @Override
+                    public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
+                                                  int typeIndex, boolean registerIsSigned) {
+                        out.annotate("DBG_START_LOCAL");
+                        out.writeByte(DebugOpcode.DBG_START_LOCAL.value);
+                        out.indent();
+                        out.annotate("register_num: 0x" + Integer.toHexString(registerNum) + " (" + registerNum + ")");
+                        if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
+                            out.writeSignedLeb128(registerNum);
+                        } else {
+                            out.writeUnsignedLeb128(registerNum);
+                        }
+                        if (nameIndex != -1) {
+                            Item nameItem = referencedItems[referencedItemsPosition++];
+                            assert nameItem instanceof StringIdItem;
+                            out.annotate("name: " + ((StringIdItem)nameItem).getStringValue());
+                            out.writeUnsignedLeb128(nameItem.getIndex() + 1);
+                        } else {
+                            out.annotate("name: ");
+                            out.writeByte(0);
+                        }
+                        if (typeIndex != -1) {
+                            Item typeItem = referencedItems[referencedItemsPosition++];
+                            assert typeItem instanceof TypeIdItem;
+                            out.annotate("type: " + ((TypeIdItem)typeItem).getTypeDescriptor());
+                            out.writeUnsignedLeb128(typeItem.getIndex() + 1);
+                        } else {
+                            out.annotate("type: ");
+                            out.writeByte(0);
+                        }
+                        out.deindent();
+                    }
+
+                    @Override
+                    public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
+                                                          int typeIndex, int signatureIndex,
+                                                          boolean registerIsSigned) {
+                        out.annotate("DBG_START_LOCAL_EXTENDED");
+                        out.writeByte(DebugOpcode.DBG_START_LOCAL_EXTENDED.value);
+                        out.indent();
+                        out.annotate("register_num: 0x" + Integer.toHexString(registerNum) + " (" + registerNum + ")");
+                        if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
+                            out.writeSignedLeb128(registerNum);
+                        } else {
+                            out.writeUnsignedLeb128(registerNum);
+                        }
+                        if (nameIndex != -1) {
+                            Item nameItem = referencedItems[referencedItemsPosition++];
+                            assert nameItem instanceof StringIdItem;
+                            out.annotate("name: " + ((StringIdItem)nameItem).getStringValue());
+                            out.writeUnsignedLeb128(nameItem.getIndex() + 1);
+                        } else {
+                            out.annotate("name: ");
+                            out.writeByte(0);
+                        }
+                        if (typeIndex != -1) {
+                            Item typeItem = referencedItems[referencedItemsPosition++];
+                            assert typeItem instanceof TypeIdItem;
+                            out.annotate("type: " + ((TypeIdItem)typeItem).getTypeDescriptor());
+                            out.writeUnsignedLeb128(typeItem.getIndex() + 1);
+                        } else {
+                            out.annotate("type: ");
+                            out.writeByte(0);
+                        }
+                        if (signatureIndex != -1) {
+                            Item signatureItem = referencedItems[referencedItemsPosition++];
+                            assert signatureItem instanceof StringIdItem;
+                            out.annotate("signature: " + ((StringIdItem)signatureItem).getStringValue());
+                            out.writeUnsignedLeb128(signatureItem.getIndex() + 1);
+                        } else {
+                            out.annotate("signature: ");
+                            out.writeByte(0);
+                        }
+                        out.deindent();
+                    }
+
+                    @Override
+                    public void ProcessEndLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
+                        out.annotate("DBG_END_LOCAL");
+                        out.writeByte(DebugOpcode.DBG_END_LOCAL.value);
+                        out.annotate("register_num: 0x" + Integer.toHexString(registerNum) + " (" + registerNum + ")");
+                        if (registerIsSigned) {
+                            out.writeSignedLeb128(registerNum);
+                        } else {
+                            out.writeUnsignedLeb128(registerNum);
+                        }
+                    }
+
+                    @Override
+                    public void ProcessRestartLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
+                        out.annotate("DBG_RESTART_LOCAL");
+                        out.writeByte(DebugOpcode.DBG_RESTART_LOCAL.value);
+                        out.annotate("register_num: 0x" + Integer.toHexString(registerNum) + " (" + registerNum + ")");
+                        if (registerIsSigned) {
+                            out.writeSignedLeb128(registerNum);
+                        } else {
+                            out.writeUnsignedLeb128(registerNum);
+                        }
+                    }
+
+                    @Override
+                    public void ProcessSetPrologueEnd(int startOffset) {
+                        out.annotate("DBG_SET_PROLOGUE_END");
+                        out.writeByte(DebugOpcode.DBG_SET_PROLOGUE_END.value);
+                    }
+
+                    @Override
+                    public void ProcessSetEpilogueBegin(int startOffset) {
+                        out.annotate("DBG_SET_EPILOGUE_BEGIN");
+                        out.writeByte(DebugOpcode.DBG_SET_EPILOGUE_BEGIN.value);
+                    }
+
+                    @Override
+                    public void ProcessSetFile(int startOffset, int length, int nameIndex) {
+                        out.annotate("DBG_SET_FILE");
+                        out.writeByte(DebugOpcode.DBG_SET_FILE.value);
+                        if (nameIndex != -1) {
+                            Item sourceItem = referencedItems[referencedItemsPosition++];
+                            assert sourceItem instanceof StringIdItem;
+                            out.annotate("source_file: \"" + ((StringIdItem)sourceItem).getStringValue() + "\"");
+                            out.writeUnsignedLeb128(sourceItem.getIndex() + 1);
+                        } else {
+                            out.annotate("source_file: ");
+                            out.writeByte(0);
+                        }
+                    }
+
+                    @Override
+                    public void ProcessSpecialOpcode(int startOffset, int debugOpcode, int lineDiff, int addressDiff) {
+                        out.annotate("DBG_SPECIAL_OPCODE: line_diff=0x" + Integer.toHexString(lineDiff) + "(" +
+                                lineDiff +"),addressDiff=0x" + Integer.toHexString(addressDiff) + "(" + addressDiff +
+                                ")");
+                        out.writeByte(debugOpcode);
+                    }
+                });
+    }
+
+
+
 
     /** {@inheritDoc} */
     public ItemType getItemType() {

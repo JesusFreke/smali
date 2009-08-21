@@ -66,9 +66,22 @@ public class ArrayEncodedSubValue extends EncodedValue {
 
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
-        out.writeUnsignedLeb128(values.length);
-        for (EncodedValue encodedValue: values) {
-            encodedValue.writeValue(out);
+        if (out.annotates())
+        {
+            out.annotate("array_size: 0x" + Integer.toHexString(values.length) + " (" + values.length + ")");
+            out.writeUnsignedLeb128(values.length);
+            int index = 0;
+            for (EncodedValue encodedValue: values) {
+                out.annotate(0, "[" + index++ + "] array_element");
+                out.indent();
+                encodedValue.writeValue(out);
+                out.deindent();
+            }
+        } else {
+            out.writeUnsignedLeb128(values.length);
+            for (EncodedValue encodedValue: values) {
+                encodedValue.writeValue(out);
+            }
         }
     }
 

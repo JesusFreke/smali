@@ -37,7 +37,7 @@ public enum DebugOpcode {
     DBG_END_LOCAL((byte)0x05),
     DBG_RESTART_LOCAL((byte)0x06),
     DBG_SET_PROLOGUE_END((byte)0x07),
-    DBG_SET_EPILOGUE_END((byte)0x08),
+    DBG_SET_EPILOGUE_BEGIN((byte)0x08),
     DBG_SET_FILE((byte)0x09),
     DBG_SPECIAL_OPCODE((byte)0x0A);
 

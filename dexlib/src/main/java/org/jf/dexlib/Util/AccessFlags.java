@@ -78,37 +78,87 @@ public enum AccessFlags
         this.validForField = validForField;
     }
 
-    public static List<AccessFlags> getAccessFlagsForClass(int accessFlagValue) {
-        ArrayList<AccessFlags> accessFlags = new ArrayList<AccessFlags>();
-
+    public static AccessFlags[] getAccessFlagsForClass(int accessFlagValue) {
+        int size = 0;
         for (AccessFlags accessFlag: AccessFlags.values()) {
             if (accessFlag.validForClass && (accessFlagValue & accessFlag.value) != 0) {
-                accessFlags.add(accessFlag);
+                size++;
+            }
+        }
+
+        AccessFlags[] accessFlags = new AccessFlags[size];
+        int accessFlagsPosition = 0;
+        for (AccessFlags accessFlag: AccessFlags.values()) {
+            if (accessFlag.validForClass && (accessFlagValue & accessFlag.value) != 0) {
+                accessFlags[accessFlagsPosition++] = accessFlag;
             }
         }
         return accessFlags;
     }
 
-    public static List<AccessFlags> getAccessFlagsForMethod(int accessFlagValue) {
-        ArrayList<AccessFlags> accessFlags = new ArrayList<AccessFlags>();
+    private static String formatAccessFlags(AccessFlags[] accessFlags) {
+        int size = 0;
+        for (AccessFlags accessFlag: accessFlags) {
+            size += accessFlag.toString().length() + 1;
+        }
 
+        StringBuilder sb = new StringBuilder(size);
+        for (AccessFlags accessFlag: accessFlags) {
+            sb.append(accessFlag.toString());
+            sb.append(" ");
+        }
+        if (accessFlags.length > 0) {
+            sb.delete(sb.length() - 1, sb.length());
+        }
+        return sb.toString();
+    }
+
+    public static String formatAccessFlagsForClass(int accessFlagValue) {
+        return formatAccessFlags(getAccessFlagsForClass(accessFlagValue));
+    }
+
+    public static AccessFlags[] getAccessFlagsForMethod(int accessFlagValue) {
+        int size = 0;
         for (AccessFlags accessFlag: AccessFlags.values()) {
             if (accessFlag.validForMethod && (accessFlagValue & accessFlag.value) != 0) {
-                accessFlags.add(accessFlag);
+                size++;
+            }
+        }
+
+        AccessFlags[] accessFlags = new AccessFlags[size];
+        int accessFlagsPosition = 0;
+        for (AccessFlags accessFlag: AccessFlags.values()) {
+            if (accessFlag.validForMethod && (accessFlagValue & accessFlag.value) != 0) {
+                accessFlags[accessFlagsPosition++] = accessFlag;
             }
         }
         return accessFlags;
     }
 
-    public static List<AccessFlags> getAccessFlagsForField(int accessFlagValue) {
-        ArrayList<AccessFlags> accessFlags = new ArrayList<AccessFlags>();
+    public static String formatAccessFlagsForMethod(int accessFlagValue) {
+        return formatAccessFlags(getAccessFlagsForMethod(accessFlagValue));
+    }
 
+    public static AccessFlags[] getAccessFlagsForField(int accessFlagValue) {
+        int size = 0;
         for (AccessFlags accessFlag: AccessFlags.values()) {
             if (accessFlag.validForField && (accessFlagValue & accessFlag.value) != 0) {
-                accessFlags.add(accessFlag);
+                size++;
+            }
+        }
+
+        AccessFlags[] accessFlags = new AccessFlags[size];
+        int accessFlagsPosition = 0;
+        for (AccessFlags accessFlag: AccessFlags.values()) {
+            if (accessFlag.validForField && (accessFlagValue & accessFlag.value) != 0) {
+                accessFlags[accessFlagsPosition++] = accessFlag;
             }
         }
         return accessFlags;
+    }
+
+    public static String formatAccessFlagsForField(int accessFlagValue) {
+        return formatAccessFlags(getAccessFlagsForField(accessFlagValue));
     }
 
     public static AccessFlags getAccessFlag(String accessFlag) {

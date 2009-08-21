@@ -79,9 +79,6 @@ public class EncodedArrayItem extends Item<EncodedArrayItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
-        if (out.annotates()) {
-            out.annotate("encoded_array");
-        }
         encodedArray.writeValue(out);
     }
     

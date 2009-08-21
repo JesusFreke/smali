@@ -54,8 +54,12 @@ public class ByteEncodedValue extends EncodedValue {
 
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
+        if (out.annotates()) {
+            out.annotate(1, "value_type=" + ValueType.VALUE_BYTE.name() + ",value_arg=0");
+            out.annotate(1, "value: 0x" + Integer.toHexString(value) + " (" + value + ")");
+        }
         out.writeByte(ValueType.VALUE_BYTE.value);
-        out.writeByte(value);
+        out.writeByte(value);        
     }
 
     /** {@inheritDoc} */

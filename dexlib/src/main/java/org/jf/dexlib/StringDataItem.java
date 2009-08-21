@@ -83,11 +83,14 @@ public class StringDataItem extends Item<StringDataItem> {
     protected void writeItem(AnnotatedOutput out) {
         byte[] encodedValue = Utf8Utils.stringToUtf8Bytes(stringValue);
         if (out.annotates()) {
-            out.annotate(stringValue.length(), "string_size");
-            out.annotate(encodedValue.length + 1, "string_data (" + Utf8Utils.escapeString(stringValue) + ")");
-        }
+            out.annotate("string_size: 0x" + Integer.toHexString(stringValue.length()) + " (" + stringValue.length() +
+                    ")");
+            out.writeUnsignedLeb128(stringValue.length());
 
-        out.writeUnsignedLeb128(stringValue.length());
+            out.annotate(encodedValue.length + 1, "string_data: \"" + Utf8Utils.escapeString(stringValue) + "\"");
+        } else {
+            out.writeUnsignedLeb128(stringValue.length());
+        }
         out.write(encodedValue);
         out.writeByte(0);
     }
@@ -99,7 +102,7 @@ public class StringDataItem extends Item<StringDataItem> {
 
     /** {@inheritDoc} */
     public String getConciseIdentity() {
-        return "string_data_item: " + Utf8Utils.escapeString(getStringValue());
+        return "string_data_item: \"" + Utf8Utils.escapeString(getStringValue()) + "\"";
     }
 
     /** {@inheritDoc} */

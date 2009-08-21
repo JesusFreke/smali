@@ -58,6 +58,12 @@ public class DoubleEncodedValue extends EncodedValue {
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
         byte[] bytes = EncodedValueUtils.encodeRightZeroExtendedValue(Double.doubleToRawLongBits(value));
+
+        if (out.annotates()) {
+            out.annotate(1, "value_type=" + ValueType.VALUE_DOUBLE.name() + ",value_arg=" + (bytes.length - 1));
+            out.annotate(bytes.length, "value: " + value);
+        }
+
         out.writeByte(ValueType.VALUE_DOUBLE.value | ((bytes.length - 1) << 5));
         out.write(bytes);
     }

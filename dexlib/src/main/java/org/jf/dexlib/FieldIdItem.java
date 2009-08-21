@@ -96,9 +96,9 @@ public class FieldIdItem extends Item<FieldIdItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate(2, classType.getConciseIdentity());
-            out.annotate(2, fieldType.getConciseIdentity());
-            out.annotate(4, fieldName.getConciseIdentity());
+            out.annotate(2, "class_type: " + classType.getTypeDescriptor());
+            out.annotate(2, "field_type: " + fieldType.getTypeDescriptor());
+            out.annotate(4, "field_name: " + fieldName.getStringValue());
         }
 
         out.writeShort(classType.getIndex());
@@ -155,6 +155,27 @@ public class FieldIdItem extends Item<FieldIdItem> {
      */
     public StringIdItem getFieldName() {
         return fieldName;
+    }
+
+    String cachedFieldString = null;
+    /**
+     * @return a string formatted like LclassName;->fieldName:fieldType
+     */
+    public String getFieldString() {
+        if (cachedFieldString == null) {
+            String typeDescriptor = classType.getTypeDescriptor();
+            String fieldName = this.fieldName.getStringValue();
+            String fieldType = this.fieldType.getTypeDescriptor();
+
+            StringBuffer sb = new StringBuffer(typeDescriptor.length() + fieldName.length() + fieldType.length() + 3);
+            sb.append(typeDescriptor);
+            sb.append("->");
+            sb.append(fieldName);
+            sb.append(":");
+            sb.append(fieldType);
+            cachedFieldString = sb.toString();
+        }
+        return cachedFieldString;
     }
 
     /**

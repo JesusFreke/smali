@@ -30,6 +30,7 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.ReadOnlyArrayList;
 
 import java.util.List;
 
@@ -91,19 +92,15 @@ public class TypeListItem extends Item<TypeListItem> {
         //yes, the code to write the item is duplicated. This eliminates the need to iterate over the list twice 
 
         if (out.annotates()) {
-            out.annotate(4, "size: " + typeList.length);
-            out.writeInt(typeList.length);
+            out.annotate(4, "size: 0x" + Integer.toHexString(typeList.length) + " (" + typeList.length +")");
 
             for (TypeIdItem typeIdItem: typeList) {
-                out.annotate(2, typeIdItem.getConciseIdentity());
-                out.writeShort(typeIdItem.getIndex());
+                out.annotate(2, "type_id_item: " + typeIdItem.getTypeDescriptor());
             }
-        } else {
-
-            out.writeInt(typeList.length);
-            for (TypeIdItem typeIdItem: typeList) {
-                out.writeShort(typeIdItem.getIndex());
-            }            
+        }
+        out.writeInt(typeList.length);
+        for (TypeIdItem typeIdItem: typeList) {
+            out.writeShort(typeIdItem.getIndex());
         }
     }
     
@@ -114,7 +111,7 @@ public class TypeListItem extends Item<TypeListItem> {
 
     /** {@inheritDoc} */
     public String getConciseIdentity() {
-        return "type_list: " + getTypeListString();
+        return "type_list: " + getTypeListString("");
     }
 
     /** {@inheritDoc} */
@@ -154,22 +151,27 @@ public class TypeListItem extends Item<TypeListItem> {
         return wordCount;
     }
 
-    private String cachedTypeListString = null;
     /**
      * @return a string consisting of the type descriptors in this <code>TypeListItem</code>
-     * that are directly concatenated together
+     * that are separated by the given separator
+     * @param separator the separator between each type
      */
-    public String getTypeListString() {
-        
-        if (cachedTypeListString == null) {
-            StringBuilder sb = new StringBuilder();
-
-            for (TypeIdItem typeIdItem: typeList) {
-                sb.append(typeIdItem.getTypeDescriptor());
-            }
-            cachedTypeListString = sb.toString();
+    public String getTypeListString(String separator) {
+        int size = 0;
+        for (TypeIdItem typeIdItem: typeList) {
+            size += typeIdItem.getTypeDescriptor().length();
+            size += separator.length();
         }
-        return cachedTypeListString;
+
+        StringBuilder sb = new StringBuilder(size);
+        for (TypeIdItem typeIdItem: typeList) {
+            sb.append(typeIdItem.getTypeDescriptor());
+            sb.append(separator);
+        }
+        if (typeList.length > 0) {
+            sb.delete(sb.length() - separator.length(), sb.length());
+        }
+        return sb.toString();
     }
 
     /**
@@ -202,8 +204,8 @@ public class TypeListItem extends Item<TypeListItem> {
     /**
      * @return an array of the <code>TypeIdItems</code> in this <code>TypeListItem</code>
      */
-    public TypeIdItem[] getTypes() {
-        return typeList.clone();
+    public List<TypeIdItem> getTypes() {
+        return new ReadOnlyArrayList<TypeIdItem>(typeList);
     }
 
     /**

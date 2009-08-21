@@ -186,33 +186,46 @@ public class CodeItem extends Item<CodeItem> {
     /** {@inheritDoc} */
     protected void writeItem(final AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate(2, "registers_size");
-            out.annotate(2, "ins_size");
-            out.annotate(2, "outs_size");
-            out.annotate(2, "tries_size");
-            out.annotate(4, "debug_info_off");
-            out.annotate(4, "insns_size");
+            out.annotate(0, parent.method.getMethodString());
+            out.annotate(2, "registers_size: 0x" + Integer.toHexString(registerCount) + " (" + registerCount + ")");
+            out.annotate(2, "ins_size: 0x" + Integer.toHexString(inWords) + " (" + inWords + ")");
+            out.annotate(2, "outs_size: 0x" + Integer.toHexString(outWords) + " (" + outWords + ")");
+            int triesLength = tries==null?0:tries.length;
+            out.annotate(2, "tries_size: 0x" + Integer.toHexString(triesLength) + " (" + triesLength + ")");
+            if (debugInfo == null) {
+                out.annotate(4, "debug_info_off:");
+            } else {
+                out.annotate(4, "debug_info_off: 0x" + debugInfo.getOffset());
+            }
+            out.annotate(4, "insns_size: 0x" + Integer.toHexString(encodedInstructions.length / 2) + " (" +
+                    (encodedInstructions.length / 2) + ")");
             InstructionIterator.IterateInstructions(encodedInstructions,
                     new InstructionIterator.ProcessRawInstructionDelegate() {
 
                         public void ProcessNormalInstruction(Opcode opcode, int index) {
-                            out.annotate(opcode.format.size, opcode.name + " instruction");
+                            out.annotate(opcode.format.size, "[0x" + Integer.toHexString(index/2) + "] " + opcode.name +
+                                    " instruction");
                         }
 
                         public void ProcessReferenceInstruction(Opcode opcode, int index) {
-                            out.annotate(opcode.format.size, opcode.name + " instruction");
+                            out.annotate(opcode.format.size, "[0x" + Integer.toHexString(index/2) + "] " + opcode.name +
+                                    " instruction");
                         }
 
                         public void ProcessPackedSwitchInstruction(int index, int targetCount, int instructionLength) {
-                            out.annotate(instructionLength, "packed_switch instruction");
+                            out.annotate(instructionLength, "[0x" + Integer.toHexString(index/2) + "] " +
+                                    "packed_switch instruction");
                         }
 
                         public void ProcessSparseSwitchInstruction(int index, int targetCount, int instructionLength) {
-                            out.annotate(instructionLength, "sparse_switch instruction");
+                            out.annotate(instructionLength, "[0x" + Integer.toHexString(index/2) + "] " +
+                                    "sparse_switch instruction");
                         }
 
-                        public void ProcessFillArrayDataInstruction(int index, int elementWidth, int elementCount, int instructionLength) {
-                            out.annotate(instructionLength, "fill_array_data instruction");
+                        public void ProcessFillArrayDataInstruction(int index, int elementWidth, int elementCount,
+                                                                    int instructionLength) {
+                            out.annotate(instructionLength, "[0x" + Integer.toHexString(index/2) + "] " +
+                                    "fill_array_data instruction");
                         }
                     });
             if (tries != null && (tries.length % 2 == 1)) {
@@ -237,18 +250,45 @@ public class CodeItem extends Item<CodeItem> {
         InstructionWriter.writeInstructions(encodedInstructions, referencedItems, out);
 
         if (tries != null && tries.length > 0) {
-            if ((encodedInstructions.length % 4) != 0) {
-                out.writeShort(0);
-            }
+            if (out.annotates()) {
+                if ((encodedInstructions.length % 4) != 0) {
+                    out.annotate("padding");
+                    out.writeShort(0);
+                }
 
-            for (TryItem tryItem: tries) {
-                tryItem.writeTo(out);
-            }
+                int index = 0;
+                for (TryItem tryItem: tries) {
+                    out.annotate(0, "[0x" + Integer.toHexString(index++) + "] try_item");
+                    out.indent();
+                    tryItem.writeTo(out);
+                    out.deindent();
+                }
 
-            out.writeUnsignedLeb128(encodedCatchHandlers.length);
+                out.annotate("handler_count: 0x" + Integer.toHexString(encodedCatchHandlers.length) + "(" +
+                        encodedCatchHandlers.length + ")");
+                out.writeUnsignedLeb128(encodedCatchHandlers.length);
 
-            for (EncodedCatchHandler encodedCatchHandler: encodedCatchHandlers) {
-                encodedCatchHandler.writeTo(out);
+                index = 0;
+                for (EncodedCatchHandler encodedCatchHandler: encodedCatchHandlers) {
+                    out.annotate(0, "[" + Integer.toHexString(index++) + "] encoded_catch_handler");
+                    out.indent();
+                    encodedCatchHandler.writeTo(out);
+                    out.deindent();
+                }
+            } else {
+                if ((encodedInstructions.length % 4) != 0) {
+                    out.writeShort(0);
+                }
+
+                for (TryItem tryItem: tries) {
+                    tryItem.writeTo(out);
+                }
+
+                out.writeUnsignedLeb128(encodedCatchHandlers.length);
+
+                for (EncodedCatchHandler encodedCatchHandler: encodedCatchHandlers) {
+                    encodedCatchHandler.writeTo(out);
+                }
             }
         }
     }
@@ -373,9 +413,10 @@ public class CodeItem extends Item<CodeItem> {
          */
         private void writeTo(AnnotatedOutput out) {
             if (out.annotates()) {
-                out.annotate(4, "start_addr");
-                out.annotate(2, "insn_count");
-                out.annotate(2, "handler_off");
+                out.annotate(4, "start_addr: 0x" + Integer.toHexString(startAddress));
+                out.annotate(2, "insn_count: 0x" + Integer.toHexString(instructionCount) + " (" + instructionCount +
+                        ")");
+                out.annotate(2, "handler_off: 0x" + Integer.toHexString(encodedCatchHandler.getOffsetInList()));
             }
 
             out.writeInt(startAddress);
@@ -476,7 +517,7 @@ public class CodeItem extends Item<CodeItem> {
          */
         private void writeTo(AnnotatedOutput out) {
             if (out.annotates()) {
-                out.annotate("size");
+                out.annotate("size: 0x" + Integer.toHexString(handlers.length) + " (" + handlers.length + ")");
 
                 int size = handlers.length;
                 if (catchAllHandlerAddress < 0) {
@@ -484,12 +525,16 @@ public class CodeItem extends Item<CodeItem> {
                 }
                 out.writeSignedLeb128(size);
 
+                int index = 0;
                 for (EncodedTypeAddrPair handler: handlers) {
+                    out.annotate(0, "[" + index++ + "] encoded_type_addr_pair");
+                    out.indent();
                     handler.writeTo(out);
+                    out.deindent();
                 }
 
                 if (catchAllHandlerAddress > -1) {
-                    out.annotate("catch_all_addr");
+                    out.annotate("catch_all_addr: 0x" + Integer.toHexString(catchAllHandlerAddress));
                     out.writeUnsignedLeb128(catchAllHandlerAddress);
                 }
             } else {
@@ -556,10 +601,10 @@ public class CodeItem extends Item<CodeItem> {
          */
         private void writeTo(AnnotatedOutput out) {
             if (out.annotates()) {
-                out.annotate("type_idx");
+                out.annotate("exception_type: " + exceptionType.getTypeDescriptor());
                 out.writeUnsignedLeb128(exceptionType.getIndex());
 
-                out.annotate("addr");
+                out.annotate("handler_addr: 0x" + Integer.toHexString(handlerAddress));
                 out.writeUnsignedLeb128(handlerAddress);
             } else {
                 out.writeUnsignedLeb128(exceptionType.getIndex());

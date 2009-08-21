@@ -26,47 +26,23 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib.EncodedValue;
+package org.jf.dexlib.Util;
 
-import org.jf.dexlib.Util.AnnotatedOutput;
+import java.util.AbstractList;
+import java.util.RandomAccess;
 
-public class NullEncodedValue extends EncodedValue {
-    /**
-     * The singleton value
-     */
-    public static final NullEncodedValue NullValue = new NullEncodedValue();
+public class ReadOnlyArrayList<T> extends AbstractList<T> implements RandomAccess {
+    private final T[] arr;
 
-    /**
-     * Constructs a new <code>NullEncodedValue</code>
-     */
-    private NullEncodedValue() {
+    public ReadOnlyArrayList(T[] arr) {
+        this.arr = arr;
     }
 
-    /** {@inheritDoc} */
-    public void writeValue(AnnotatedOutput out) {
-        if (out.annotates()) {
-            out.annotate("value_type=" + ValueType.VALUE_NULL.name() + ",value_arg=0");
-        }        
-        out.writeByte(ValueType.VALUE_NULL.value);
+    public int size() {
+        return arr.length;
     }
 
-    /** {@inheritDoc} */
-    public int placeValue(int offset) {
-        return offset + 1;
-    }
-
-    /** {@inheritDoc} */
-    protected int compareValue(EncodedValue o) {
-        return 0;
-    }
-
-    /** {@inheritDoc} */
-    public ValueType getValueType() {
-        return ValueType.VALUE_NULL;
-    }
-
-    @Override
-    public int hashCode() {
-        return 1;
+    public T get(int i) {
+        return arr[i];
     }
 }

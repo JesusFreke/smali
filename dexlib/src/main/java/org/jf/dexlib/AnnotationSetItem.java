@@ -84,9 +84,10 @@ public class AnnotationSetItem extends Item<AnnotationSetItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate(4, "size");
-            for (int i=0; i<annotations.length; i++) {
-                out.annotate(4, "annotation_off");
+            out.annotate(4, "size: 0x" + Integer.toHexString(annotations.length) + " (" + annotations.length + ")");
+            for (AnnotationItem annotationItem: annotations) {
+                out.annotate(4, "annotation_off: 0x" + Integer.toHexString(annotationItem.getOffset()) + " - " +
+                        annotationItem.getEncodedAnnotation().annotationType.getTypeDescriptor());
             }
         }
         out.writeInt(annotations.length);

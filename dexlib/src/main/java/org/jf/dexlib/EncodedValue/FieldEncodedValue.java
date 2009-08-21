@@ -61,6 +61,12 @@ public class FieldEncodedValue extends EncodedValue {
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
         byte[] bytes = EncodedValueUtils.encodeUnsignedIntegralValue(value.getIndex());
+
+        if (out.annotates()) {
+            out.annotate(1, "value_type=" + ValueType.VALUE_FIELD.name() + ",value_arg=" + (bytes.length - 1));
+            out.annotate(bytes.length, "value: " + value.getFieldString());
+        }
+
         out.writeByte(ValueType.VALUE_FIELD.value | ((bytes.length - 1) << 5));
         out.write(bytes);
     }

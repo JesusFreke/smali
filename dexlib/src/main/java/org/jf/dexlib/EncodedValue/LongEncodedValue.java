@@ -57,6 +57,12 @@ public class LongEncodedValue extends EncodedValue {
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
         byte[] bytes = EncodedValueUtils.encodeSignedIntegralValue(value);
+
+        if (out.annotates()) {
+            out.annotate(1, "value_type=" + ValueType.VALUE_LONG.name() + ",value_arg=" + (bytes.length - 1));
+            out.annotate(bytes.length, "value: 0x" + Long.toHexString(value) + " (" + value + ")");
+        }
+
         out.writeByte(ValueType.VALUE_LONG.value | ((bytes.length - 1) << 5));
         out.write(bytes);
     }

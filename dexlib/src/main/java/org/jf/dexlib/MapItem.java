@@ -86,21 +86,31 @@ public class MapItem extends Item<MapItem> {
     protected void writeItem(AnnotatedOutput out) {
         Assert.assertTrue(getOffset() > 0);
 
+        int index = 0;
+        out.annotate(0, "[" + index++ + "]");
+        out.indent();
         writeSectionInfo(out, ItemType.TYPE_HEADER_ITEM, 1, 0);
+        out.deindent();
 
         for (Section section: dexFile.getOrderedSections()) {
+            out.annotate(0, "[" + index++ + "]");
+            out.indent();
             writeSectionInfo(out, section.ItemType, section.getItems().size(), section.getOffset());
+            out.deindent();
         }
 
+        out.annotate(0, "[" + index++ + "]");
+        out.indent();
         writeSectionInfo(out, ItemType.TYPE_MAP_LIST, 1, dexFile.MapItem.getOffset());
+        out.deindent();
     }
 
     private void writeSectionInfo(AnnotatedOutput out, ItemType itemType, int sectionSize, int sectionOffset) {
         if (out.annotates()) {
-            out.annotate(2, "ItemType: " + itemType);
+            out.annotate(2, "item_type: " + itemType);
             out.annotate(2, "unused");
-            out.annotate(4, "Section Size: " + sectionSize);
-            out.annotate(4, "Section Offset: " + Hex.u4(sectionOffset));
+            out.annotate(4, "section_size: 0x" + Integer.toHexString(sectionSize) + " (" + sectionSize + ")");
+            out.annotate(4, "section_off: 0x" + Integer.toHexString(sectionOffset));
         }
 
         out.writeShort(itemType.MapValue);

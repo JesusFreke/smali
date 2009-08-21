@@ -31,6 +31,7 @@ package org.jf.dexlib.EncodedValue;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.EncodedValueUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Utf8Utils;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.DexFile;
 
@@ -61,6 +62,12 @@ public class StringEncodedValue extends EncodedValue {
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
         byte[] bytes = EncodedValueUtils.encodeUnsignedIntegralValue(value.getIndex());
+
+        if (out.annotates()) {
+            out.annotate(1, "value_type=" + ValueType.VALUE_STRING.name() + ",value_arg=" + (bytes.length - 1));
+            out.annotate(bytes.length, "value: \"" + Utf8Utils.escapeString(value.getStringValue()) + "\"");
+        }
+
         out.writeByte(ValueType.VALUE_STRING.value | ((bytes.length - 1) << 5));
         out.write(bytes);
     }

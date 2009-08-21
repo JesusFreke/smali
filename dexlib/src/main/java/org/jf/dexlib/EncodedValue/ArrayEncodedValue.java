@@ -53,6 +53,9 @@ public class ArrayEncodedValue extends ArrayEncodedSubValue {
 
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
+        if (out.annotates()) {
+            out.annotate("value_type=" + ValueType.VALUE_ARRAY.name() + ",value_arg=0");
+        }
         out.writeByte(ValueType.VALUE_ARRAY.value);
         super.writeValue(out);
     }

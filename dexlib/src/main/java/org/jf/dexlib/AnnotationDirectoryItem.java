@@ -177,25 +177,49 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate(4, "class_annotations_off");
-            out.annotate(4, "annotated_fields_size");
-            out.annotate(4, "annotated_methods_size");
-            out.annotate(4, "annotated_parameters_size");
+            if (!isInternable() && parent != null) {
+                out.annotate(0, parent.getClassType().getTypeDescriptor());
+            }
+            if (classAnnotations != null) {
+                out.annotate(4, "class_annotations_off: 0x" + Integer.toHexString(classAnnotations.getOffset()));
+            } else {
+                out.annotate(4, "class_annotations_off:");
+            }
+
+            out.annotate(4, "annotated_fields_size: 0x" + Integer.toHexString(fieldAnnotations.length) + " (" +
+                    fieldAnnotations.length + ")");
+            out.annotate(4, "annotated_methods_size: 0x" + Integer.toHexString(methodAnnotations.length) + " (" +
+                    methodAnnotations.length + ")");
+            out.annotate(4, "annotated_parameters_size: 0x" + Integer.toHexString(parameterAnnotations.length) + " (" +
+                    parameterAnnotations.length + ")");
 
 
+            int index = 0;
             for (int i=0; i<fieldAnnotations.length; i++) {
-                out.annotate(4, "field_idx");
-                out.annotate(4, "annotations_off");
+                out.annotate(0, "[" + index++ + "] field_annotation");
+
+                out.indent();
+                out.annotate(4, "field: " + fieldAnnotationFields[i].getFieldName().getStringValue() + ":" +
+                        fieldAnnotationFields[i].getFieldType().getTypeDescriptor());
+                out.annotate(4, "annotations_off: 0x" + Integer.toHexString(fieldAnnotations[i].getOffset()));
+                out.deindent();
             }
 
+            index = 0;
             for (int i=0; i<methodAnnotations.length; i++) {
-                out.annotate(4, "method_idx");
-                out.annotate(4, "annotations_off");
+                out.annotate(0, "[" + index++ + "] method_annotation");
+                out.indent();
+                out.annotate(4, "method: " + methodAnnotationMethods[i].getMethodString());
+                out.annotate(4, "annotations_off: 0x" + Integer.toHexString(methodAnnotations[i].getOffset()));
+                out.deindent();
             }
 
+            index = 0;
             for (int i=0; i<parameterAnnotations.length; i++) {
-                out.annotate(4, "method_idx");
-                out.annotate(4, "annotations_off");
+                out.annotate(0, "[" + index++ + "] parameter_annotation");
+                out.indent();
+                out.annotate(4, "method: " + parameterAnnotationMethods[i].getMethodString());
+                out.annotate(4, "annotations_off: 0x" + Integer.toHexString(parameterAnnotations[i].getOffset()));
             }
         }
 

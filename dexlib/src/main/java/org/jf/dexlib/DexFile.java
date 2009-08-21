@@ -526,6 +526,8 @@ public class DexFile
         out.annotate(0, " ");
         HeaderItem.writeTo(out);
 
+        out.annotate(0, " ");
+
         int sectionsPosition = 0;
         Section[] sections;
         if (this.inplace) {
@@ -542,6 +544,12 @@ public class DexFile
         }
 
         out.alignTo(MapItem.getItemType().ItemAlignment);
+        
+        out.annotate(0, " ");
+        out.annotate(0, "-----------------------------");
+        out.annotate(0, "map item");
+        out.annotate(0, "-----------------------------");
+        out.annotate(0, " ");
         MapItem.writeTo(out);
     }
 

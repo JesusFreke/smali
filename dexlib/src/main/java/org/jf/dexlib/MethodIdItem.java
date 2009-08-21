@@ -91,9 +91,9 @@ public class MethodIdItem extends Item<MethodIdItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate(2, classType.getConciseIdentity());
-            out.annotate(2, methodPrototype.getConciseIdentity());
-            out.annotate(4, methodName.getConciseIdentity());
+            out.annotate(2, "class_type: " + classType.getTypeDescriptor());
+            out.annotate(2, "method_prototype: " + methodPrototype.getPrototypeString());
+            out.annotate(4, "method_name: " + methodName.getStringValue());
         }
 
         out.writeShort(classType.getIndex());
@@ -132,8 +132,17 @@ public class MethodIdItem extends Item<MethodIdItem> {
      */
     public String getMethodString() {
         if (cachedMethodString == null) {
-            cachedMethodString = classType.getTypeDescriptor() + "->" + methodName.getStringValue() +
-                    methodPrototype.getPrototypeString();
+            String classType = this.classType.getTypeDescriptor();
+            String methodName = this.methodName.getStringValue();
+            String prototypeString = methodPrototype.getPrototypeString();
+
+            StringBuilder sb = new StringBuilder(classType.length() + methodName.length() + prototypeString.length() +
+                    2);
+            sb.append(classType);
+            sb.append("->");
+            sb.append(methodName);
+            sb.append(prototypeString);
+            cachedMethodString = sb.toString();
         }
         return cachedMethodString;
     }

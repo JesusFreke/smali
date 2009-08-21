@@ -57,6 +57,14 @@ public class CharEncodedValue extends EncodedValue {
     /** {@inheritDoc} */
     public void writeValue(AnnotatedOutput out) {
         byte[] bytes = EncodedValueUtils.encodeUnsignedIntegralValue(value);
+
+        if (out.annotates()) {
+            out.annotate(1, "value_type=" + ValueType.VALUE_CHAR.name() + ",value_arg=" + (bytes.length - 1));
+            char[] c = Character.toChars(value);
+            assert c.length > 0;
+            out.annotate(bytes.length, "value: 0x" + Integer.toHexString(value) + " '" + c[0] + "'");
+        }
+
         out.writeByte(ValueType.VALUE_CHAR.value | ((bytes.length - 1) << 5));
         out.write(bytes);
     }
