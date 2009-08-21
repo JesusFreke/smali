@@ -79,7 +79,7 @@ public class BooleanEncodedValue extends EncodedValue {
         if (out.annotates()) {
             out.annotate("value_type=" + ValueType.VALUE_BOOLEAN.name() + ",value=" + Boolean.toString(value));
         }
-        out.writeByte(ValueType.VALUE_BOOLEAN.value | (value?1:0 << 5));
+        out.writeByte(ValueType.VALUE_BOOLEAN.value | ((value?1:0) << 5));
     }
 
     /** {@inheritDoc} */
