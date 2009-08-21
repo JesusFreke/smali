@@ -244,7 +244,7 @@ public class CodeItem extends Item<CodeItem> {
         if (debugInfo == null) {
             out.writeInt(0);
         } else {
-            out.writeInt(debugInfo.getIndex());
+            out.writeInt(debugInfo.getOffset());
         }
         out.writeInt(encodedInstructions.length / 2);
         InstructionWriter.writeInstructions(encodedInstructions, referencedItems, out);
