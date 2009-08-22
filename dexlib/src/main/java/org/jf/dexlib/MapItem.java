@@ -62,7 +62,7 @@ public class MapItem extends Item<MapItem> {
         Section[] sections = dexFile.getOrderedSections();
         //the list returned by getOrderedSections doesn't contain the header
         //or map section, so add 2 to the length
-        return offset + (sections.length + 2) * 12;
+        return offset + 4 + (sections.length + 2) * 12;
     }
 
     /** {@inheritDoc} */
