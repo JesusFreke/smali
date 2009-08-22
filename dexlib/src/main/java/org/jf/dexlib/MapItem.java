@@ -85,6 +85,11 @@ public class MapItem extends Item<MapItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         Assert.assertTrue(getOffset() > 0);
+        Section[] sections = dexFile.getOrderedSections();
+
+        out.annotate("map_size: 0x" + Integer.toHexString(sections.length + 2) + " (" +
+                Integer.toString(sections.length + 2) + ")");
+        out.writeInt(sections.length + 2);
 
         int index = 0;
         out.annotate(0, "[" + index++ + "]");
