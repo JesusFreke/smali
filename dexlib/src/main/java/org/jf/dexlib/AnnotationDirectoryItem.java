@@ -103,30 +103,67 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
      * <code>DexFile</code>
      * @param dexFile The <code>DexFile</code> that this item belongs to
      * @param classAnnotations The annotations associated with the class
-     * @param fieldAnnotationFields An array of <code>FieldIdItem</code> objects that the annotations in
-     * <code>fieldAnnotations</code> are associated with
-     * @param fieldAnnotations An array of <code>AnnotationSetItem</code> objects that contain the annotations for the
-     * fields in <code>fieldAnnotationFields</code>
-     * @param methodAnnotationMethods An array of <code>MethodIdItem</code> objects that the annotations in
-     * <code>methodAnnotations</code> are associated with
-     * @param methodAnnotations An array of <code>AnnotationSetItem</code> objects that contain the annotations for the
-     * methods in <code>methodAnnotationMethods</code>
-     * @param parameterAnnotationMethods An array of <code>MethodIdItem</code> objects that the annotations in
-     * <code>parameterAnnotations</code> are associated with
-     * @param parameterAnnotations An array of <code>AnnotationSetRefList</code> objects that contain the parameter
-     * annotations for the methods in <code>parameterAnnotationMethods</code>
+     * @param fieldAnnotations A list of <code>FieldAnnotation</code> objects containing the field annotations
+     * @param methodAnnotations A list of <code>MethodAnnotation</code> objects containing the method annotations
+     * @param parameterAnnotations A list of <code>ParameterAnnotation</code> objects containin the parameter
+     * annotations
      * @return an <code>AnnotationItem</code> for the given values, and that has been interned into the given
      * <code>DexFile</code>
      */
     public static AnnotationDirectoryItem getInternedAnnotationDirectoryItem(DexFile dexFile,
                                     AnnotationSetItem classAnnotations,
-                                    FieldIdItem[] fieldAnnotationFields, AnnotationSetItem[] fieldAnnotations,
-                                    MethodIdItem[] methodAnnotationMethods, AnnotationSetItem[] methodAnnotations,
-                                    MethodIdItem[] parameterAnnotationMethods,
-                                    AnnotationSetRefList[] parameterAnnotations) {
+                                    List<FieldAnnotation> fieldAnnotations,
+                                    List<MethodAnnotation> methodAnnotations,
+                                    List<ParameterAnnotation> parameterAnnotations) {
+        FieldIdItem[] fieldAnnotationFields = null;
+        AnnotationSetItem[] fieldAnnotationsArray = null;
+        MethodIdItem[] methodAnnotationMethods = null;
+        AnnotationSetItem[] methodAnnotationsArray = null;
+        MethodIdItem[] parameterAnnotationMethods = null;
+        AnnotationSetRefList[] parameterAnnotationsArray = null;
+
+        if (fieldAnnotations != null && fieldAnnotations.size() > 0) {
+            fieldAnnotationFields = new FieldIdItem[fieldAnnotations.size()];
+            fieldAnnotationsArray = new AnnotationSetItem[fieldAnnotations.size()];
+
+            Collections.sort(fieldAnnotations);
+
+            int index = 0;
+            for (FieldAnnotation fieldAnnotation: fieldAnnotations) {
+                fieldAnnotationFields[index] = fieldAnnotation.field;
+                fieldAnnotationsArray[index++] = fieldAnnotation.annotationSet;
+            }
+        }
+
+        if (methodAnnotations != null && methodAnnotations.size() > 0) {
+            methodAnnotationMethods = new MethodIdItem[methodAnnotations.size()];
+            methodAnnotationsArray = new AnnotationSetItem[methodAnnotations.size()];
+
+            Collections.sort(methodAnnotations);
+
+            int index = 0;
+            for (MethodAnnotation methodAnnotation: methodAnnotations) {
+                methodAnnotationMethods[index] = methodAnnotation.method;
+                methodAnnotationsArray[index++] = methodAnnotation.annotationSet;
+            }
+        }
+
+        if (parameterAnnotations != null && parameterAnnotations.size() > 0) {
+            parameterAnnotationMethods = new MethodIdItem[parameterAnnotations.size()];
+            parameterAnnotationsArray = new AnnotationSetRefList[parameterAnnotations.size()];
+
+            Collections.sort(parameterAnnotations);
+
+            int index = 0;
+            for (ParameterAnnotation parameterAnnotation: parameterAnnotations) {
+                parameterAnnotationMethods[index] = parameterAnnotation.method;
+                parameterAnnotationsArray[index++] = parameterAnnotation.annotationSet;
+            }
+        }
+
         AnnotationDirectoryItem annotationDirectoryItem = new AnnotationDirectoryItem(dexFile, classAnnotations,
-                fieldAnnotationFields, fieldAnnotations, methodAnnotationMethods, methodAnnotations,
-                parameterAnnotationMethods, parameterAnnotations);
+                fieldAnnotationFields, fieldAnnotationsArray, methodAnnotationMethods, methodAnnotationsArray,
+                parameterAnnotationMethods, parameterAnnotationsArray);
         return dexFile.AnnotationDirectoriesSection.intern(annotationDirectoryItem);
     }
 
@@ -361,5 +398,47 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
 
         AnnotationDirectoryItem other = (AnnotationDirectoryItem)o;
         return (this.compareTo(other) == 0);
+    }
+
+    public static class FieldAnnotation implements Comparable<FieldAnnotation> {
+        public final FieldIdItem field;
+        public final AnnotationSetItem annotationSet;
+
+        public FieldAnnotation(FieldIdItem field, AnnotationSetItem annotationSet) {
+            this.field = field;
+            this.annotationSet = annotationSet;
+        }
+
+        public int compareTo(FieldAnnotation other) {
+            return field.compareTo(other.field);
+        }
+    }
+
+    public static class MethodAnnotation implements Comparable<MethodAnnotation> {
+        public final MethodIdItem method;
+        public final AnnotationSetItem annotationSet;
+
+        public MethodAnnotation(MethodIdItem method, AnnotationSetItem annotationSet) {
+            this.method = method;
+            this.annotationSet = annotationSet;
+        }
+
+        public int compareTo(MethodAnnotation other) {
+            return method.compareTo(other.method);
+        }
+    }
+
+    public static class ParameterAnnotation implements Comparable<ParameterAnnotation> {
+        public final MethodIdItem method;
+        public final AnnotationSetRefList annotationSet;
+
+        public ParameterAnnotation(MethodIdItem method, AnnotationSetRefList annotationSet) {
+            this.method = method;
+            this.annotationSet = annotationSet;
+        }
+
+        public int compareTo(ParameterAnnotation other) {
+            return method.compareTo(other.method);
+        }
     }
 }
