@@ -30,6 +30,9 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.*;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 public class ClassDataItem extends Item<ClassDataItem> {
     private EncodedField[] staticFields;
     private EncodedField[] instanceFields;
@@ -75,6 +78,13 @@ public class ClassDataItem extends Item<ClassDataItem> {
     public static ClassDataItem getInternedClassDataItem(DexFile dexFile, EncodedField[] staticFields,
                                                          EncodedField[] instanceFields, EncodedMethod[] directMethods,
                                                          EncodedMethod[] virtualMethods) {
+        if (!dexFile.getInplace()) {
+            Arrays.sort(staticFields);
+            Arrays.sort(instanceFields);
+            Arrays.sort(directMethods);
+            Arrays.sort(virtualMethods);
+        }
+
         ClassDataItem classDataItem = new ClassDataItem(dexFile, staticFields, instanceFields, directMethods,
                 virtualMethods);
         return dexFile.ClassDataSection.intern(classDataItem);
