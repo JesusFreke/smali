@@ -52,11 +52,10 @@ public class TypeListItem extends Item<TypeListItem> {
      * @param dexFile The <code>DexFile</code> that this item belongs to
      * @param typeList A list of the types that this <code>TypeListItem</code> represents
      */
-    private TypeListItem(DexFile dexFile, List<TypeIdItem> typeList) {
+    private TypeListItem(DexFile dexFile, TypeIdItem[] typeList) {
         super(dexFile);
 
-        this.typeList = new TypeIdItem[typeList.size()];
-        typeList.toArray(this.typeList);
+        this.typeList = typeList;
     }
     
     /**
@@ -67,7 +66,7 @@ public class TypeListItem extends Item<TypeListItem> {
      * @return a <code>TypeListItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static TypeListItem getInternedTypeListItem(DexFile dexFile, List<TypeIdItem> typeList) {
+    public static TypeListItem getInternedTypeListItem(DexFile dexFile, TypeIdItem[] typeList) {
         TypeListItem typeListItem = new TypeListItem(dexFile, typeList);
         return dexFile.TypeListsSection.intern(typeListItem);
     }
