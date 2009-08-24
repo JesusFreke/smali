@@ -28,12 +28,10 @@
 
 package org.jf.dexlib.Util;
 
-import junit.framework.Assert;
-
 public abstract class AlignmentUtils {
     public static int alignOffset(int offset, int alignment) {
         int mask = alignment - 1;
-        Assert.assertFalse("bogus alignment", (alignment < 0) || ((mask & alignment) != 0));
+        assert (alignment >= 0) && ((mask & alignment) == 0);
         return (offset + mask) & ~mask;
     }
 }
