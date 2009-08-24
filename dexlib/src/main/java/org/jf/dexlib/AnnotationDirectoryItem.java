@@ -201,14 +201,10 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
 
     /** {@inheritDoc} */
     protected int placeItem(int offset) {
-        if (!dexFile.getInplace()) {
-            ArrayUtils.sortTwoArrays(fieldAnnotationFields, fieldAnnotations);
-            ArrayUtils.sortTwoArrays(methodAnnotationMethods, methodAnnotations);
-            ArrayUtils.sortTwoArrays(parameterAnnotationMethods, parameterAnnotations);
-        }
-
-        return offset + 16 + fieldAnnotations.length * 8 + methodAnnotations.length * 8 +
-                parameterAnnotations.length * 8;
+        return offset + 16 + (
+                (fieldAnnotations==null?0:fieldAnnotations.length) +
+                (methodAnnotations==null?0:methodAnnotations.length) +
+                (parameterAnnotations==null?0:parameterAnnotations.length)) * 8;
     }
 
     /** {@inheritDoc} */
@@ -261,23 +257,29 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         }
 
         out.writeInt(classAnnotations==null?0:classAnnotations.getOffset());
-        out.writeInt(fieldAnnotations.length);
-        out.writeInt(methodAnnotations.length);
-        out.writeInt(parameterAnnotations.length);
+        out.writeInt(fieldAnnotations==null?0:fieldAnnotations.length);
+        out.writeInt(methodAnnotations==null?0:methodAnnotations.length);
+        out.writeInt(parameterAnnotations==null?0:parameterAnnotations.length);
 
-        for (int i=0; i<fieldAnnotations.length; i++) {
-            out.writeInt(fieldAnnotationFields[i].getIndex());
-            out.writeInt(fieldAnnotations[i].getOffset());
+        if (fieldAnnotations != null) {
+            for (int i=0; i<fieldAnnotations.length; i++) {
+                out.writeInt(fieldAnnotationFields[i].getIndex());
+                out.writeInt(fieldAnnotations[i].getOffset());
+            }
         }
 
-        for (int i=0; i<methodAnnotations.length; i++) {
-            out.writeInt(methodAnnotationMethods[i].getIndex());
-            out.writeInt(methodAnnotations[i].getOffset());
+        if (methodAnnotations != null) {
+            for (int i=0; i<methodAnnotations.length; i++) {
+                out.writeInt(methodAnnotationMethods[i].getIndex());
+                out.writeInt(methodAnnotations[i].getOffset());
+            }
         }
 
-        for (int i=0; i<parameterAnnotations.length; i++) {
-            out.writeInt(parameterAnnotationMethods[i].getIndex());
-            out.writeInt(parameterAnnotations[i].getOffset());
+        if (parameterAnnotations != null) {
+            for (int i=0; i<parameterAnnotations.length; i++) {
+                out.writeInt(parameterAnnotationMethods[i].getIndex());
+                out.writeInt(parameterAnnotations[i].getOffset());
+            }
         }
     }
 
@@ -361,9 +363,9 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
      */
     private boolean isInternable() {
         return classAnnotations != null &&
-               fieldAnnotations.length == 0 &&
-               methodAnnotations.length == 0 &&
-               parameterAnnotations.length == 0;
+               (fieldAnnotations == null || fieldAnnotations.length == 0) &&
+               (methodAnnotations == null || methodAnnotations.length == 0) &&
+               (parameterAnnotations == null || parameterAnnotations.length == 0);
     }
 
     /**

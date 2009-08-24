@@ -66,8 +66,10 @@ public class TypeListItem extends Item<TypeListItem> {
      * @return a <code>TypeListItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static TypeListItem getInternedTypeListItem(DexFile dexFile, TypeIdItem[] typeList) {
-        TypeListItem typeListItem = new TypeListItem(dexFile, typeList);
+    public static TypeListItem getInternedTypeListItem(DexFile dexFile, List<TypeIdItem> typeList) {
+        TypeIdItem[] typeArray = new TypeIdItem[typeList.size()];
+        typeList.toArray(typeArray);
+        TypeListItem typeListItem = new TypeListItem(dexFile, typeArray);
         return dexFile.TypeListsSection.intern(typeListItem);
     }
 

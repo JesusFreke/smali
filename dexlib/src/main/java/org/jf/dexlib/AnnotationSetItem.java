@@ -31,6 +31,8 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
+import java.util.List;
+
 public class AnnotationSetItem extends Item<AnnotationSetItem> {
     private int hashCode = 0;
 
@@ -61,8 +63,10 @@ public class AnnotationSetItem extends Item<AnnotationSetItem> {
      * @param annotations The annotations for this <code>AnnotationSetItem</code>
      * @return an <code>AnnotationSetItem</code> for the given annotations
      */
-    public static AnnotationSetItem getInternedAnnotationSetItem(DexFile dexFile, AnnotationItem[] annotations) {
-        AnnotationSetItem annotationSetItem = new AnnotationSetItem(dexFile, annotations);
+    public static AnnotationSetItem getInternedAnnotationSetItem(DexFile dexFile, List<AnnotationItem> annotations) {
+        AnnotationItem[] annotationsArray = new AnnotationItem[annotations.size()];
+        annotations.toArray(annotationsArray);
+        AnnotationSetItem annotationSetItem = new AnnotationSetItem(dexFile, annotationsArray);
         return dexFile.AnnotationSetsSection.intern(annotationSetItem);
     }
 

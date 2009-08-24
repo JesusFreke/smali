@@ -30,8 +30,8 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.*;
 
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.List;
+import java.util.Collections;
 
 public class ClassDataItem extends Item<ClassDataItem> {
     private EncodedField[] staticFields;
@@ -75,18 +75,41 @@ public class ClassDataItem extends Item<ClassDataItem> {
      * @param virtualMethods The virtual methods for this class
      * @return a new <code>ClassDataItem</code> with the given values
      */
-    public static ClassDataItem getInternedClassDataItem(DexFile dexFile, EncodedField[] staticFields,
-                                                         EncodedField[] instanceFields, EncodedMethod[] directMethods,
-                                                         EncodedMethod[] virtualMethods) {
-        if (!dexFile.getInplace()) {
-            Arrays.sort(staticFields);
-            Arrays.sort(instanceFields);
-            Arrays.sort(directMethods);
-            Arrays.sort(virtualMethods);
+    public static ClassDataItem getInternedClassDataItem(DexFile dexFile, List<EncodedField> staticFields,
+                                                         List<EncodedField> instanceFields,
+                                                         List<EncodedMethod> directMethods,
+                                                         List<EncodedMethod> virtualMethods) {
+        EncodedField[] staticFieldsArray = null;
+        EncodedField[] instanceFieldsArray = null;
+        EncodedMethod[] directMethodsArray = null;
+        EncodedMethod[] virtualMethodsArray = null;
+
+        if (staticFields != null && staticFields.size() > 0) {
+            Collections.sort(staticFields);
+            staticFieldsArray = new EncodedField[staticFields.size()];
+            staticFields.toArray(staticFieldsArray);
         }
 
-        ClassDataItem classDataItem = new ClassDataItem(dexFile, staticFields, instanceFields, directMethods,
-                virtualMethods);
+        if (instanceFields != null && instanceFields.size() > 0) {
+            Collections.sort(instanceFields);
+            instanceFieldsArray = new EncodedField[instanceFields.size()];
+            instanceFields.toArray(instanceFieldsArray);
+        }
+
+        if (directMethods != null && directMethods.size() > 0) {
+            Collections.sort(directMethods);
+            directMethodsArray = new EncodedMethod[directMethods.size()];
+            directMethods.toArray(directMethodsArray);
+        }
+
+        if (virtualMethods != null && virtualMethods.size() > 0) {
+            Collections.sort(virtualMethods);
+            virtualMethodsArray = new EncodedMethod[virtualMethods.size()];
+            virtualMethods.toArray(virtualMethodsArray);
+        }
+
+        ClassDataItem classDataItem = new ClassDataItem(dexFile, staticFieldsArray, instanceFieldsArray,
+                directMethodsArray, virtualMethodsArray);
         return dexFile.ClassDataSection.intern(classDataItem);
     }
 
@@ -301,7 +324,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
         return virtualMethods;
     }                                      
 
-    public static class EncodedField {
+    public static class EncodedField implements Comparable<EncodedField> {
         /**
          * The <code>FieldIdItem</code> that this <code>EncodedField</code> is associated with
          */
@@ -390,7 +413,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
         }
     }
 
-    public static class EncodedMethod {
+    public static class EncodedMethod implements Comparable<EncodedMethod> {
         /**
          * The <code>MethodIdItem</code> that this <code>EncodedMethod</code> is associated with
          */

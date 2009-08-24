@@ -104,24 +104,22 @@ public class ClassDefItem extends Item<ClassDefItem> {
      * @param sourceFile The main source file that this class is defined in, or null if not available
      * @param annotations The annotations for this class and its fields, methods and method parameters, or null if none
      * @param classData The <code>ClassDataItem</code> containing the method and field definitions for this class
-     * @param staticFieldInitializers The initial values for this class's static fields, or null if none. The initial
-     * values should be in the same order as the fields in the <code>staticFields</code. parameter It can contain
-     * fewer items than static fields, in which case the remaining static fields will be initialized with a default
-     * value of null/0. The initial value for any fields that don't specifically have a value can be either the
-     * type-appropriate null/0 encoded value, or null.
-     * @param staticFields The static fields that correspond to the initial values in
-     * <code>staticFieldInitializers</code>. The static fields are needed in order to sort the initial values correctly 
+     * @param staticFieldInitializers The initial values for this class's static fields, or null if none. If it is not
+     * null, it must contain the same number of items as the number of static fields in this class. The value in the
+     * <code>StaticFieldInitializer</code> for any field that doesn't have an explicit initial value can either be null
+     * or be the type-appropriate null/0 value.   
      * @return a <code>ClassDefItem</code> for the given values, and that has been interned into the given
      * <code>DexFile</code>
      */
     public static ClassDefItem getInternedClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags,
                          TypeIdItem superType, TypeListItem implementedInterfaces, StringIdItem sourceFile,
                          AnnotationDirectoryItem annotations, ClassDataItem classData,
-                         EncodedValue[] staticFieldInitializers, ClassDataItem.EncodedField[] staticFields) {
+                         List<StaticFieldInitializer> staticFieldInitializers) {
         EncodedArrayItem encodedArrayItem = null;
-        if(!dexFile.getInplace() && staticFieldInitializers != null) {
-            encodedArrayItem = makeStaticFieldInitializersItem(dexFile, staticFieldInitializers,
-                    staticFields);
+        if(!dexFile.getInplace() && staticFieldInitializers != null && staticFieldInitializers.size() > 0) {
+            assert classData != null;
+            assert staticFieldInitializers.size() == classData.getStaticFields().length;
+            encodedArrayItem = makeStaticFieldInitializersItem(dexFile, staticFieldInitializers);
         }
 
         ClassDefItem classDefItem = new ClassDefItem(dexFile, classType, accessFlags, superType, implementedInterfaces,
@@ -301,63 +299,51 @@ public class ClassDefItem extends Item<ClassDefItem> {
                     }
                 }
 
-                currentOffset = classDefItem.placeAt(currentIndex++, currentOffset);
+                currentOffset = classDefItem.placeAt(currentOffset, currentIndex++);
                 unplacedClassDefsByType.remove(classDefItem.classType);
             }
         }
     }
 
+    public static class StaticFieldInitializer implements Comparable<StaticFieldInitializer> {
+        public final EncodedValue value;
+        public final ClassDataItem.EncodedField field;
+        public StaticFieldInitializer(EncodedValue value, ClassDataItem.EncodedField field) {
+            this.value = value;
+            this.field = field;
+        }
+
+        public int compareTo(StaticFieldInitializer other) {
+            return field.compareTo(other.field);
+        }
+    }
+
+
     /**
      * A helper method to sort the static field initializers and populate the default values as needed
      * @param dexFile the <code>DexFile</code>
      * @param staticFieldInitializers the initial values
-     * @param fields the fields that correspond to each initial value in <code>staticFieldInitializers</code>
      * @return an interned EncodedArrayItem containing the static field initializers
      */
     private static EncodedArrayItem makeStaticFieldInitializersItem(DexFile dexFile,
-                                                                    EncodedValue[] staticFieldInitializers,
-                                                                    ClassDataItem.EncodedField[] fields) {
-        class FieldAndValue {
-            public final EncodedValue value;
-            public final ClassDataItem.EncodedField field;
-            public FieldAndValue(ClassDataItem.EncodedField field, EncodedValue value) {
-                this.field = field;
-                this.value = value;
-            }
-        }
-
-        if (staticFieldInitializers == null || staticFieldInitializers.length == 0) {
+                                                               List<StaticFieldInitializer> staticFieldInitializers) {
+        if (staticFieldInitializers == null || staticFieldInitializers.size() == 0) {
             return null;
         }
 
-        int len = fields.length;
+        int len = staticFieldInitializers.size();
 
-        FieldAndValue[] fieldAndValues = new FieldAndValue[len];
-
-        for (int i=0; i<len; i++) {
-            EncodedValue encodedValue = null;
-            if (i < staticFieldInitializers.length) {
-                encodedValue = staticFieldInitializers[i];
-            }
-            ClassDataItem.EncodedField encodedField = fields[i];
-
-            fieldAndValues[i] = new FieldAndValue(encodedField, encodedValue);
-        }
-
-        Arrays.sort(fieldAndValues, new Comparator<FieldAndValue>() {
-            public int compare(FieldAndValue a, FieldAndValue b) {
-                return a.field.compareTo(b.field);
-            }
-        });
+        Collections.sort(staticFieldInitializers);
 
         int lastIndex = -1;
-        for (int i=0; i<len; i++) {
-            FieldAndValue fav = fieldAndValues[i];
+        for (int i=len-1; i>=0; i--) {
+            StaticFieldInitializer staticFieldInitializer = staticFieldInitializers.get(i);
 
-            if (fav.value != null &&
-                    (fav.value.compareTo(TypeUtils.makeDefaultValueForType(dexFile,
-                    fav.field.field.getFieldType().getTypeDescriptor())) != 0)) {
+            if (staticFieldInitializer.value != null &&
+                    (staticFieldInitializer.value.compareTo(TypeUtils.makeDefaultValueForType(dexFile,
+                    staticFieldInitializer.field.field.getFieldType().getTypeDescriptor())) != 0)) {
                 lastIndex = i;
+                break;
             }
         }
 
@@ -369,11 +355,11 @@ public class ClassDefItem extends Item<ClassDefItem> {
         EncodedValue[] values = new EncodedValue[lastIndex+1];
 
         for (int i=0; i<=lastIndex; i++) {
-            FieldAndValue fav = fieldAndValues[i];
-            EncodedValue encodedValue = fav.value;
+            StaticFieldInitializer staticFieldInitializer = staticFieldInitializers.get(i);
+            EncodedValue encodedValue = staticFieldInitializer.value;
             if (encodedValue == null) {
                 encodedValue = TypeUtils.makeDefaultValueForType(dexFile,
-                        fav.field.field.getFieldType().getTypeDescriptor());
+                        staticFieldInitializer.field.field.getFieldType().getTypeDescriptor());
             }
 
             values[i] = encodedValue;

@@ -37,6 +37,8 @@ import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.SparseArray;
 import org.jf.dexlib.Util.Leb128Utils;
 
+import java.util.List;
+
 public class CodeItem extends Item<CodeItem> {
     private int registerCount;
     private int inWords;
@@ -101,9 +103,10 @@ public class CodeItem extends Item<CodeItem> {
      * @param outWords the maximum number of 2-byte words for the arguments of any method call in this code
      * @param debugInfo the debug information for this code/method
      * @param encodedInstructions the instructions, encoded as a byte array
-     * @param referencedItems an array of the items referenced by instructions, in order of occurance in the code
-     * @param tries an array of the tries defined for this code/method
-     * @param encodedCatchHandlers an array of the exception handlers defined for this code/method
+     * @param referencedItems a list of the items referenced by instructions, in order of occurance in the code,
+     * or null if none
+     * @param tries a list of the tries defined for this code/method or null if none
+     * @param encodedCatchHandlers a list of the exception handlers defined for this code/method or null if none
      * @return a new <code>CodeItem</code> with the given values.
      */
     public static CodeItem getInternedCodeItem(DexFile dexFile,
@@ -112,11 +115,30 @@ public class CodeItem extends Item<CodeItem> {
                     int outWords,
                     DebugInfoItem debugInfo,
                     byte[] encodedInstructions,
-                    Item[] referencedItems,
-                    TryItem[] tries,
-                    EncodedCatchHandler[] encodedCatchHandlers) {
+                    List<Item> referencedItems,
+                    List<TryItem> tries,
+                    List<EncodedCatchHandler> encodedCatchHandlers) {
+        Item[] referencedItemsArray = null;
+        TryItem[] triesArray = null;
+        EncodedCatchHandler[] encodedCatchHandlersArray = null;
+
+        if (referencedItems != null && referencedItems.size() > 0) {
+            referencedItemsArray = new Item[referencedItems.size()];
+            referencedItems.toArray(referencedItemsArray);
+        }
+
+        if (tries != null && tries.size() > 0) {
+            triesArray = new TryItem[tries.size()];
+            tries.toArray(triesArray);
+        }
+
+        if (encodedCatchHandlers != null && encodedCatchHandlers.size() > 0) {
+            encodedCatchHandlersArray = new EncodedCatchHandler[encodedCatchHandlers.size()];
+            encodedCatchHandlers.toArray(encodedCatchHandlersArray);
+        }
+
         CodeItem codeItem = new CodeItem(dexFile, registerCount, inWords, outWords, debugInfo, encodedInstructions,
-                referencedItems, tries, encodedCatchHandlers);
+                referencedItemsArray, triesArray, encodedCatchHandlersArray);
         return dexFile.CodeItemsSection.intern(codeItem);
     }
 
