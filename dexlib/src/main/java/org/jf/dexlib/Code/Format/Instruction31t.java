@@ -32,23 +32,19 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction31t extends Instruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
-    public Instruction31t(Opcode opcode, short regA, int offB) {
-        super(opcode);
-
+    public static void emit(Output out, Opcode opcode, short regA, int offB) {
         if (regA >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        buffer[0] = opcode.value;
-        buffer[1] = (byte) regA;
-        buffer[2] = (byte) offB;
-        buffer[3] = (byte) (offB >> 8);
-        buffer[4] = (byte) (offB >> 16);
-        buffer[5] = (byte) (offB >> 24);
+        out.writeByte(opcode.value);
+        out.writeByte(regA);
+        out.writeInt(offB);
     }
 
     private Instruction31t(Opcode opcode, byte[] buffer, int bufferIndex) {

@@ -32,23 +32,22 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction23x extends Instruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
-    public Instruction23x(Opcode opcode, short regA, short regB, short regC) {
-        super(opcode);
-
+    public static void emit(Output out, Opcode opcode, short regA, short regB, short regC) {
         if (regA >= 1 << 8 ||
                 regB >= 1 << 8 ||
                 regC >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        buffer[0] = opcode.value;
-        buffer[1] = (byte) regA;
-        buffer[2] = (byte) regB;
-        buffer[3] = (byte) regC;
+        out.writeByte(opcode.value);
+        out.writeByte(regA);
+        out.writeByte(regB);
+        out.writeByte(regC);
     }
 
     private Instruction23x(Opcode opcode, byte[] buffer, int bufferIndex) {

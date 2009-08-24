@@ -32,20 +32,18 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction20t extends Instruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
-    public Instruction20t(Opcode opcode, short offA) {
-        super(opcode);
-
+    public static void emit(Output out, Opcode opcode, short offA) {
         if (offA == 0) {
             throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
         }
 
-        buffer[0] = opcode.value;
-        buffer[2] = (byte) offA;
-        buffer[3] = (byte) (offA >> 8);
+        out.writeByte(opcode.value);
+        out.writeShort(offA);
     }
 
     private Instruction20t(Opcode opcode, byte[] buffer, int bufferIndex) {

@@ -32,19 +32,15 @@ import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction30t extends Instruction
 {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
-    public Instruction30t(Opcode opcode, int offA) {
-        super(opcode);
-
-        buffer[0] = opcode.value;
-        buffer[2] = (byte)offA;
-        buffer[3] = (byte)(offA >> 8);
-        buffer[4] = (byte)(offA >> 16);
-        buffer[5] = (byte)(offA >> 24);
+    public static void emit(Output out, Opcode opcode, int offA) {
+        out.writeByte(opcode.value);
+        out.writeInt(offA);
     }
 
     private Instruction30t(Opcode opcode, byte[] buffer, int bufferIndex) {

@@ -34,20 +34,19 @@ import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Item;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction31c extends InstructionWithReference {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
-    public Instruction31c(Opcode opcode, short regA, Item referencedItem) {
-        super(opcode, referencedItem);
-
+    public static void emit(Output out, Opcode opcode, short regA) {
         if (regA >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        buffer[0] = opcode.value;
-        buffer[1] = (byte) regA;
-        //the item index will be set later, during placement/writing
+        out.writeByte(opcode.value);
+        out.writeByte(regA);
+        out.writeInt(0);
     }
 
     private Instruction31c(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {

@@ -31,14 +31,13 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction10x extends Instruction {
     public static final InstructionFactory Factory = new Factory();
 
-    public Instruction10x(Opcode opcode) {
-        super(opcode);
-
-        buffer[0] = opcode.value;
+    public static void emit(Output out, Opcode opcode) {
+        out.writeByte(opcode.value);
     }
 
     public Instruction10x(Opcode opcode, byte[] buffer, int bufferIndex) {

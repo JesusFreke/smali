@@ -37,13 +37,12 @@ import org.jf.dexlib.Item;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction3rc extends InstructionWithReference {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
-    public Instruction3rc(Opcode opcode, short regCount, int startReg, Item referencedItem) {
-        super(opcode, referencedItem);
-
+    public static void emit(Output out, Opcode opcode, short regCount, int startReg, Item referencedItem) {
         if (regCount >= 1 << 8) {
             throw new RuntimeException("regCount must be less than 256");
         }
@@ -58,19 +57,18 @@ public class Instruction3rc extends InstructionWithReference {
             throw new RuntimeException("The beginning register of the range cannot be negative");
         }
 
-        buffer[0] = opcode.value;
-        buffer[1] = (byte) regCount;
-        //the item index will be set later, during placement/writing
-        buffer[4] = (byte) startReg;
-        buffer[5] = (byte) (startReg >> 8);
+        out.writeByte(opcode.value);
+        out.writeByte(regCount);
+        out.writeShort(0);
+        out.writeShort(startReg);
 
-        checkItem();
+        checkItem(opcode, referencedItem, regCount);
     }
 
     private Instruction3rc(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
         super(dexFile, opcode, buffer, bufferIndex);
 
-        checkItem();
+        checkItem(opcode, getReferencedItem(), getRegCount());
     }
 
     public Format getFormat() {
@@ -85,9 +83,7 @@ public class Instruction3rc extends InstructionWithReference {
         return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
     }
 
-    private void checkItem() {
-        Item item = getReferencedItem();
-
+    private static void checkItem(Opcode opcode, Item item, int regCount) {
         if (opcode == FILLED_NEW_ARRAY_RANGE) {
             //check data for filled-new-array/range opcode
             String type = ((TypeIdItem) item).getTypeDescriptor();
@@ -104,7 +100,7 @@ public class Instruction3rc extends InstructionWithReference {
             if (opcode != INVOKE_STATIC_RANGE) {
                 parameterRegisterCount++;
             }
-            if (parameterRegisterCount != getRegCount()) {
+            if (parameterRegisterCount != regCount) {
                 throw new RuntimeException("regCount does not match the number of arguments of the method");
             }
         }

@@ -31,19 +31,18 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction10t extends Instruction {
     public static final InstructionFactory Factory = new Factory();
 
-    public Instruction10t(Opcode opcode, byte offA) {
-        super(opcode);
-
+    public static void emit(Output out, Opcode opcode, byte offA) {
         if (offA == 0) {
             throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
         }
 
-        buffer[0] = opcode.value;
-        buffer[1] = offA;
+        out.writeByte(opcode.value);
+        out.writeByte(offA);
     }
 
     private Instruction10t(Opcode opcode, byte[] buffer, int bufferIndex) {

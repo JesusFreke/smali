@@ -32,13 +32,12 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction11n extends Instruction {
     public static final InstructionFactory Factory = new Factory();
 
-    public Instruction11n(Opcode opcode, byte regA, byte litB) {
-        super(opcode);
-
+    public static void emit(Output out, Opcode opcode, byte regA, byte litB) {
         if (regA >= 1 << 4) {
             throw new RuntimeException("The register number must be less than v16");
         }
@@ -48,8 +47,8 @@ public class Instruction11n extends Instruction {
             throw new RuntimeException("The literal value must be between -8 and 7 inclusive");
         }
 
-        buffer[0] = opcode.value;
-        buffer[1] = (byte) ((litB << 4) | regA);
+        out.writeByte(opcode.value);
+        out.writeByte((litB << 4) | regA);
     }
 
     private Instruction11n(Opcode opcode, byte[] buffer, int bufferIndex) {

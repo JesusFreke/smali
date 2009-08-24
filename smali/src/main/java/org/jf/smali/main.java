@@ -227,8 +227,7 @@ public class main {
         if (dexGen.getNumberOfSyntaxErrors() > 0) {
             return false;
         }
-
-        dexFile.ClassDefsSection.intern(dexGen.classDefItem);
+        
         return true;
     }
 

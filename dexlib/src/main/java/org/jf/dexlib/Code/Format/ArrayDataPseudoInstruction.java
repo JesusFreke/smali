@@ -31,6 +31,7 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 import org.jf.dexlib.DexFile;
 
 import java.util.Iterator;
@@ -44,27 +45,18 @@ public class ArrayDataPseudoInstruction extends Instruction {
         return size + (size & 0x01) + 8;
     }
 
-    public ArrayDataPseudoInstruction(int elementWidth, byte[] encodedValues) {
-        super(Opcode.NOP, encodedValues.length + (encodedValues.length & 1) + 8);
-
+    public static void emit(Output out, int elementWidth, byte[] encodedValues) {
         if (encodedValues.length % elementWidth != 0) {
             throw new RuntimeException("There are not a whole number of " + elementWidth + " byte elements");
         }
 
-        int elementCount = buffer.length / elementWidth;
+        int elementCount = encodedValues.length / elementWidth;
 
-        buffer[0] = 0x00;
-        buffer[1] = 0x03; //fill-array-data psuedo-opcode
-
-        buffer[2] = (byte) elementWidth;
-        buffer[3] = (byte) (elementWidth >> 8);
-
-        buffer[4] = (byte) elementCount;
-        buffer[5] = (byte) (elementCount >> 8);
-        buffer[6] = (byte) (elementCount >> 16);
-        buffer[7] = (byte) (elementCount >> 24);
-
-        System.arraycopy(encodedValues, 0, buffer, 8, encodedValues.length);
+        out.writeByte(0x00);
+        out.writeShort(0x03);
+        out.writeShort(elementWidth);
+        out.writeInt(elementCount);
+        out.write(encodedValues);
     }
 
     public ArrayDataPseudoInstruction(byte[] buffer, int bufferIndex) {

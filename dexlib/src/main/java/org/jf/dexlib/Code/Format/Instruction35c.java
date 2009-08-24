@@ -37,14 +37,13 @@ import org.jf.dexlib.Item;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 
 public class Instruction35c extends InstructionWithReference {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
-    public Instruction35c(Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
+    public static void emit(Output out, Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
                           byte regA, Item referencedItem) {
-        super(opcode, referencedItem);
-
         if (regCount > 5) {
             throw new RuntimeException("regCount cannot be greater than 5");
         }
@@ -57,13 +56,13 @@ public class Instruction35c extends InstructionWithReference {
             throw new RuntimeException("All register args must fit in 4 bits");
         }
 
-        buffer[0] = opcode.value;
-        buffer[1] = (byte) ((regCount << 4) | regA);
-        //the item index will be set later, during placement/writing        
-        buffer[4] = (byte) ((regE << 4) | regD);
-        buffer[5] = (byte) ((regG << 4) | regF);
+        out.writeByte(opcode.value);
+        out.writeByte((regCount << 4) | regA);
+        out.writeShort(0);
+        out.writeByte((regE << 4) | regD);
+        out.writeByte((regG << 4) | regF);
 
-        checkItem();
+        checkItem(opcode, referencedItem, regCount);
     }
 
     private Instruction35c(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
@@ -73,7 +72,7 @@ public class Instruction35c extends InstructionWithReference {
             throw new RuntimeException("regCount cannot be greater than 5");
         }
 
-        checkItem();
+        checkItem(opcode, getReferencedItem(), getRegCount());
     }
 
     public Format getFormat() {
@@ -104,9 +103,7 @@ public class Instruction35c extends InstructionWithReference {
         return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 5]);
     }
 
-    private void checkItem() {
-        Item item = getReferencedItem();
-
+    private static void checkItem(Opcode opcode, Item item, int regCount) {
         if (opcode == FILLED_NEW_ARRAY) {
             //check data for filled-new-array opcode
             String type = ((TypeIdItem) item).getTypeDescriptor();
@@ -123,7 +120,7 @@ public class Instruction35c extends InstructionWithReference {
             if (opcode != INVOKE_STATIC) {
                 parameterRegisterCount++;
             }
-            if (parameterRegisterCount != getRegCount()) {
+            if (parameterRegisterCount != regCount) {
                 throw new RuntimeException("regCount does not match the number of arguments of the method");
             }
         }

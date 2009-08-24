@@ -31,6 +31,7 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.Output;
 import org.jf.dexlib.DexFile;
 
 import java.util.Iterator;
@@ -43,34 +44,19 @@ public class PackedSwitchDataPseudoInstruction extends Instruction {
         return getTargetCount() * 4 + 8;
     }
 
-    public PackedSwitchDataPseudoInstruction(int firstKey, int[] targets) {
-        super(Opcode.NOP, targets.length * 4 + 8);
-        
-        /*this.firstKey = firstKey;
-        this.targets = targets;*/
-
+    public static void emit(Output out, int firstKey, int[] targets) {
         if (targets.length > 0xFFFF) {
             throw new RuntimeException("The packed-switch data contains too many elements. " +
                     "The maximum number of switch elements is 65535");
         }
 
-        buffer[0] = 0x00;
-        buffer[1] = 0x01; //packed-switch pseudo-opcode
-
-        buffer[2] = (byte) targets.length;
-        buffer[3] = (byte) (targets.length >> 8);
-
-        buffer[4] = (byte) firstKey;
-        buffer[5] = (byte) (firstKey >> 8);
-        buffer[6] = (byte) (firstKey >> 16);
-        buffer[7] = (byte) (firstKey >> 24);
-
-        int position = 8;
+        out.writeByte(0x00);
+        out.writeByte(0x01);
+        out.writeShort(targets.length);
+        out.writeInt(firstKey);
+        
         for (int target : targets) {
-            buffer[position++] = (byte) target;
-            buffer[position++] = (byte) (target >> 8);
-            buffer[position++] = (byte) (target >> 16);
-            buffer[position++] = (byte) (target >> 24);
+            out.writeInt(target);
         }
     }
 
