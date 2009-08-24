@@ -58,11 +58,26 @@ public class TypeIdItem extends Item<TypeIdItem> {
      * the given <code>DexFile</code>
      * @param dexFile The <code>DexFile</code> that this item will belong to
      * @param typeDescriptor The <code>StringIdItem</code> containing the type descriptor that
+     * this <code>TypeIdItem</code> represents
      * @return a <code>TypeIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
     public static TypeIdItem getInternedTypeIdItem(DexFile dexFile, StringIdItem typeDescriptor) {
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, typeDescriptor);
+        return dexFile.TypeIdsSection.intern(typeIdItem);
+    }
+
+    /**
+     * Returns a <code>TypeIdItem</code> for the given values, and that has been interned into
+     * the given <code>DexFile</code>
+     * @param dexFile The <code>DexFile</code> that this item will belong to
+     * @param typeDescriptor The string containing the type descriptor that this
+     * <code>TypeIdItem</code> represents
+     * @return a <code>TypeIdItem</code> for the given values, and that has been interned into
+     * the given <code>DexFile</code>
+     */
+    public static TypeIdItem getInternedTypeIdItem(DexFile dexFile, String typeDescriptor) {
+        TypeIdItem typeIdItem = new TypeIdItem(dexFile, StringIdItem.getInternedStringIdItem(dexFile, typeDescriptor));
         return dexFile.TypeIdsSection.intern(typeIdItem);
     }
 
