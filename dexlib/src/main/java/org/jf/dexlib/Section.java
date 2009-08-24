@@ -34,8 +34,6 @@ import org.jf.dexlib.Util.AlignmentUtils;
 
 import java.util.*;
 
-import junit.framework.Assert;
-
 public abstract class Section<T extends Item> {
     /**
      * A list of the items that this section contains.
@@ -90,7 +88,7 @@ public abstract class Section<T extends Item> {
 
             for (int i=0; i < items.size(); i++) {
                 T item = items.get(i);
-                Assert.assertTrue("This section contains a null item", item != null);
+                assert item != null;
                 offset = AlignmentUtils.alignOffset(offset, ItemType.ItemAlignment);
                 offset = item.placeAt(offset, i);
             }
@@ -179,6 +177,7 @@ public abstract class Section<T extends Item> {
         T internedItem = getInternedItem(item);
         if (internedItem == null) {
             uniqueItems.put(item, item);
+            items.add(item);
             return item;
         }
         return internedItem;
@@ -202,7 +201,7 @@ public abstract class Section<T extends Item> {
     private void buildInternedItemMap() {
         uniqueItems = new HashMap<T,T>();
         for (T item: items) {
-            Assert.assertTrue("item shouldn't be null here", item != null);
+            assert item != null;
             uniqueItems.put(item, item);
         }
     }
