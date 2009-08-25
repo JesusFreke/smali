@@ -40,6 +40,7 @@ public class Instruction30t extends Instruction
 
     public static void emit(Output out, Opcode opcode, int offA) {
         out.writeByte(opcode.value);
+        out.writeByte(0);
         out.writeInt(offA);
     }
 

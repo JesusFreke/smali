@@ -38,6 +38,7 @@ public class Instruction10x extends Instruction {
 
     public static void emit(Output out, Opcode opcode) {
         out.writeByte(opcode.value);
+        out.writeByte(0);
     }
 
     public Instruction10x(Opcode opcode, byte[] buffer, int bufferIndex) {

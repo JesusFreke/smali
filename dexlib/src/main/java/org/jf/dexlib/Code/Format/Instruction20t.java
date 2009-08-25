@@ -43,6 +43,7 @@ public class Instruction20t extends Instruction {
         }
 
         out.writeByte(opcode.value);
+        out.writeByte(0);
         out.writeShort(offA);
     }
 
