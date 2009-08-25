@@ -37,12 +37,12 @@ public final class Leb128Utils {
     public static int unsignedLeb128Size(int value) {
         // TODO: This could be much cleverer.
         
-        int remaining = value >> 7;
+        int remaining = value >>> 7;
         int count = 0;
 
         while (remaining != 0) {
             value = remaining;
-            remaining >>= 7;
+            remaining >>>= 7;
             count++;
         }
 

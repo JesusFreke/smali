@@ -223,13 +223,13 @@ public final class ByteArrayOutput implements Output
 
     /** {@inheritDoc} */
     public int writeUnsignedLeb128(int value) {
-        int remaining = value >> 7;
+        int remaining = value >>> 7;
         int count = 0;
 
         while (remaining != 0) {
             writeByte((value & 0x7f) | 0x80);
             value = remaining;
-            remaining >>= 7;
+            remaining >>>= 7;
             count++;
         }
 
