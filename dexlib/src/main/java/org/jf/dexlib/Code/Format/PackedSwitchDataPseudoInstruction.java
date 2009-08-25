@@ -50,6 +50,11 @@ public class PackedSwitchDataPseudoInstruction extends Instruction {
                     "The maximum number of switch elements is 65535");
         }
 
+        //write out padding, if necessary
+        if (out.getCursor() % 4 != 0) {
+            out.writeShort(0);
+        }
+
         out.writeByte(0x00);
         out.writeByte(0x01);
         out.writeShort(targets.length);

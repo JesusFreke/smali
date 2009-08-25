@@ -50,10 +50,15 @@ public class ArrayDataPseudoInstruction extends Instruction {
             throw new RuntimeException("There are not a whole number of " + elementWidth + " byte elements");
         }
 
+        //write out padding, if necessary
+        if (out.getCursor() % 4 != 0) {
+            out.writeShort(0);
+        }
+
         int elementCount = encodedValues.length / elementWidth;
 
         out.writeByte(0x00);
-        out.writeShort(0x03);
+        out.writeByte(0x03);
         out.writeShort(elementWidth);
         out.writeInt(elementCount);
         out.write(encodedValues);
