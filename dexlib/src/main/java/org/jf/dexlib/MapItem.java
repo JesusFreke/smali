@@ -30,9 +30,6 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
-import org.jf.dexlib.Util.Hex;
-
-import junit.framework.Assert;
 
 /**
  * This item represents a map_list item from the dex specification. It contains a
@@ -84,7 +81,7 @@ public class MapItem extends Item<MapItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
-        Assert.assertTrue(getOffset() > 0);
+        assert getOffset() > 0;
         Section[] sections = dexFile.getOrderedSections();
 
         out.annotate("map_size: 0x" + Integer.toHexString(sections.length + 2) + " (" +
