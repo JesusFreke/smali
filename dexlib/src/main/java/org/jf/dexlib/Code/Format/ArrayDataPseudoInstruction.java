@@ -62,6 +62,10 @@ public class ArrayDataPseudoInstruction extends Instruction {
         out.writeShort(elementWidth);
         out.writeInt(elementCount);
         out.write(encodedValues);
+        if ((encodedValues.length % 2) != 0) {
+            //must write out an even number of bytes
+            out.writeByte(0);
+        }
     }
 
     public ArrayDataPseudoInstruction(byte[] buffer, int bufferIndex) {
