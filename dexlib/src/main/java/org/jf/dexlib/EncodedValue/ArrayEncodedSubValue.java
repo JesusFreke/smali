@@ -105,7 +105,7 @@ public class ArrayEncodedSubValue extends EncodedValue {
         }
 
         for (int i=0; i<values.length; i++) {
-            comp = values[i].compareValue(other.values[i]);
+            comp = values[i].compareTo(other.values[i]);
             if (comp != 0) {
                 return comp;
             }
