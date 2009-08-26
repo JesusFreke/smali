@@ -36,12 +36,12 @@ public abstract class Item<T extends Item> implements Comparable<T> {
     /**
      * The offset of this item in the dex file, or -1 if not known
      */
-    private int offset = -1;
+    protected int offset = -1;
 
     /**
      * The index of this item in the containing section, or -1 if not known
      */
-    private int index = -1;
+    protected int index = -1;
 
     /**
      * The DexFile that this item is associatedr with

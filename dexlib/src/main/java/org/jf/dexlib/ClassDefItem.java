@@ -268,6 +268,12 @@ public class ClassDefItem extends Item<ClassDefItem> {
                 });
             }
 
+            //we need to initialize the offset for all the classes to -1, so we can tell which ones
+            //have been placed
+            for (ClassDefItem classDefItem: section.items) {
+                classDefItem.offset = -1;
+            }
+
             for (ClassDefItem classDefItem: section.items) {
                 placeClass(classDefItem);
             }
