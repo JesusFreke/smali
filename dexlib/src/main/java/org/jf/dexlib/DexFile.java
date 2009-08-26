@@ -40,6 +40,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.zip.Adler32;
 
 /**
@@ -598,6 +599,13 @@ public class DexFile
             }
 
             int ret = ClassDefItem.placeClassDefItems(this, offset);
+
+            Collections.sort(this.items, new Comparator<ClassDefItem>() {
+
+                public int compare(ClassDefItem a, ClassDefItem b) {
+                    return a.getOffset() - b.getOffset();
+                }
+            });
 
             this.offset = items.get(0).getOffset();
             return ret;
