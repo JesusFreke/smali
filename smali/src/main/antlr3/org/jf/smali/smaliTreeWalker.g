@@ -560,7 +560,10 @@ method_prototype returns[ProtoIdItem protoIdItem]
 	{
 		TypeIdItem returnType = $type_descriptor.type;
 		List<TypeIdItem> parameterTypes = $field_type_list.types;
-		TypeListItem parameterTypeListItem = TypeListItem.getInternedTypeListItem(dexFile, parameterTypes);
+		TypeListItem parameterTypeListItem = null;
+		if (parameterTypes != null && parameterTypes.size() > 0) {
+			parameterTypeListItem = TypeListItem.getInternedTypeListItem(dexFile, parameterTypes);
+		}
 		
 		$protoIdItem = ProtoIdItem.getInternedProtoIdItem(dexFile, returnType, parameterTypeListItem);
 	};
