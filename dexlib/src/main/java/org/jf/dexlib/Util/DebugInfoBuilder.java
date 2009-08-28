@@ -270,7 +270,7 @@ public class DebugInfoBuilder
                 lineDelta = 0;
             }
             if (lineDelta < 2 && addressDelta > 16 || lineDelta > 1 && addressDelta > 15) {
-                emitAdvancePC(out, addressDelta);
+                emitAdvancePC(out, address);
                 addressDelta = 0;
             }
 
