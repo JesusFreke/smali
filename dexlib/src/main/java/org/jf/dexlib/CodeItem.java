@@ -572,6 +572,39 @@ public class CodeItem extends Item<CodeItem> {
                 }
             }
         }
+
+        @Override
+        public int hashCode() {
+            int hash = 0;
+            for (EncodedTypeAddrPair handler: handlers) {
+                hash = hash * 31 + handler.hashCode();
+            }
+            hash = hash * 31 + catchAllHandlerAddress;
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this==o) {
+                return true;
+            }
+            if (o==null || !this.getClass().equals(o.getClass())) {
+                return false;
+            }
+
+            EncodedCatchHandler other = (EncodedCatchHandler)o;
+            if (handlers.length != other.handlers.length || catchAllHandlerAddress != other.catchAllHandlerAddress) {
+                return false;
+            }
+
+            for (int i=0; i<handlers.length; i++) {
+                if (!handlers[i].equals(other.handlers[i])) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
     public static class EncodedTypeAddrPair {
@@ -629,6 +662,24 @@ public class CodeItem extends Item<CodeItem> {
                 out.writeUnsignedLeb128(exceptionType.getIndex());
                 out.writeUnsignedLeb128(handlerAddress);
             }
+        }
+
+        @Override
+        public int hashCode() {
+            return exceptionType.hashCode() * 31 + handlerAddress;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this==o) {
+                return true;
+            }
+            if (o==null || !this.getClass().equals(o.getClass())) {
+                return false;
+            }
+
+            EncodedTypeAddrPair other = (EncodedTypeAddrPair)o;
+            return exceptionType == other.exceptionType && handlerAddress == other.handlerAddress;
         }
     }
 }
