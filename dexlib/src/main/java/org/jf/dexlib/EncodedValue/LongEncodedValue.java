@@ -76,7 +76,7 @@ public class LongEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         LongEncodedValue other = (LongEncodedValue)o;
 
-        return Long.signum(value - other.value);
+        return (value<other.value?-1:(value>other.value?1:0));
     }
 
     /** {@inheritDoc} */

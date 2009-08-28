@@ -76,7 +76,7 @@ public class IntEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         IntEncodedValue other = (IntEncodedValue)o;
 
-        return value - other.value;
+        return (value<other.value?-1:(value>other.value?1:0));
     }
 
     /** {@inheritDoc} */

@@ -76,7 +76,7 @@ public class ShortEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         ShortEncodedValue other = (ShortEncodedValue)o;
 
-        return value - other.value;
+         return (value<other.value?-1:(value>other.value?1:0));
     }
 
     /** {@inheritDoc} */

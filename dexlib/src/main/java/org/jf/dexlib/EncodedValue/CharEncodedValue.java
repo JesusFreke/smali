@@ -78,7 +78,7 @@ public class CharEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         CharEncodedValue other = (CharEncodedValue)o;
 
-        return value - other.value;
+         return (value<other.value?-1:(value>other.value?1:0));
     }
 
     /** {@inheritDoc} */
