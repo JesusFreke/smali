@@ -29,6 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.Util.AccessFlags;
 import org.jf.baksmali.baksmali;
 
 /**
@@ -48,7 +49,7 @@ public class RegisterFormatter {
     public static String[] formatFormat3rcRegisters(CodeItem codeItem, int startRegister, int lastRegister) {
         if (!baksmali.noParameterRegisters) {
             int parameterRegisterCount = codeItem.getParent().method.getPrototype().getParameterRegisterCount()
-                + (codeItem.getParent().isDirect()?0:1);
+                + (((codeItem.getParent().accessFlags & AccessFlags.STATIC.getValue())==0)?1:0);
             int registerCount = codeItem.getRegisterCount();
 
             assert startRegister <= lastRegister;
@@ -74,7 +75,7 @@ public class RegisterFormatter {
     public static String formatRegister(CodeItem codeItem, int register) {
         if (!baksmali.noParameterRegisters) {
             int parameterRegisterCount = codeItem.getParent().method.getPrototype().getParameterRegisterCount()
-                + (codeItem.getParent().isDirect()?0:1);
+                + (((codeItem.getParent().accessFlags & AccessFlags.STATIC.getValue())==0)?1:0);
             int registerCount = codeItem.getRegisterCount();
             if (register >= registerCount - parameterRegisterCount) {
                 return "p" + (register - (registerCount - parameterRegisterCount));
