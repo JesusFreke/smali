@@ -51,6 +51,20 @@ public final class FileUtils {
      * @return non-null; contents of the file
      */
     public static byte[] readFile(File file) {
+        return readFile(file, 0, -1);
+    }
+
+    /**
+     * Reads the specified block from the given file, translating
+     * {@link IOException} to a {@link RuntimeException} of some sort.
+     *
+     * @param file non-null; the file to read
+     * @param offset the offset to begin reading
+     * @param length the number of bytes to read, or -1 to read to the
+     * end of the file
+     * @return non-null; contents of the file
+     */
+    public static byte[] readFile(File file, int offset, int length) {
         if (!file.exists()) {
             throw new RuntimeException(file + ": file not found");
         }
@@ -64,16 +78,33 @@ public final class FileUtils {
         }
 
         long longLength = file.length();
-        int length = (int) longLength;
-        if (length != longLength) {
+        int fileLength = (int) longLength;
+        if (fileLength != longLength) {
             throw new RuntimeException(file + ": file too long");
+        }
+
+        if (length == -1) {
+            length = fileLength - offset;
+        }
+
+        if (offset + length > fileLength) {
+            throw new RuntimeException(file + ": file too short");
         }
 
         byte[] result = new byte[length];
 
         try {
             FileInputStream in = new FileInputStream(file);
-            int at = 0;
+
+            int at = offset;
+            while(at > 0) {
+                long amt = in.skip(at);
+                if (amt == -1) {
+                    throw new RuntimeException(file + ": unexpected EOF");
+                }
+                at -= amt;
+            }
+
             while (length > 0) {
                 int amt = in.read(result, at, length);
                 if (amt == -1) {

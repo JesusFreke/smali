@@ -34,6 +34,7 @@ import org.jf.dexlib.Item;
 import org.jf.dexlib.StringDataItem;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -266,7 +267,40 @@ public class DexFile
     public DexFile(File file, boolean preserveSignedRegisters) {
         this(preserveSignedRegisters);
 
-        Input in = new ByteArrayInput(FileUtils.readFile(file));
+        byte[] magic = FileUtils.readFile(file, 0, 8);
+        byte[] dexMagic, odexMagic;
+
+        try {
+            dexMagic = HeaderItem.MAGIC.getBytes("US-ASCII");
+            odexMagic = OdexHeaderItem.MAGIC.getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        boolean isDex = true;
+        boolean isOdex = true;
+        for (int i=0; i<8; i++) {
+            if (magic[i] != dexMagic[i]) {
+                isDex = false;
+            }
+            if (magic[i] != odexMagic[i]) {
+                isOdex = false;
+            }
+        }
+
+        Input in;
+
+        if (isOdex) {
+            byte[] odexHeaderBytes = FileUtils.readFile(file, 0, 40);
+            Input odexHeaderIn = new ByteArrayInput(odexHeaderBytes);
+            OdexHeaderItem odexHeader = new OdexHeaderItem(odexHeaderIn);
+
+            in = new ByteArrayInput(FileUtils.readFile(file, odexHeader.dexOffset, odexHeader.dexLength));
+        } else if (isDex) {
+            in = new ByteArrayInput(FileUtils.readFile(file));
+        } else {
+            throw new RuntimeException("bad magic value");
+        }
 
         ReadContext readContext = new ReadContext(this);
 

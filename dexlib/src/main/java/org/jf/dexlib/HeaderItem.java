@@ -36,10 +36,10 @@ import java.io.UnsupportedEncodingException;
 
 public class HeaderItem extends Item<HeaderItem> {
     /**
-     * non-null; the file format magic number, represented as the
+     * the file format magic number, represented as the
      * low-order bytes of a string
      */
-    private static final String MAGIC = "dex\n035" + '\0';
+    public static final String MAGIC = "dex\n035" + '\0';
 
     /** size of this section, in bytes */
     private static final int HEADER_SIZE = 0x70;
