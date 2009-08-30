@@ -28,27 +28,20 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.baksmali.Adaptors.RegisterFormatter;
-import org.jf.dexlib.Code.Format.Instruction3rc;
+import org.jf.dexlib.Code.Format.Instruction22cs;
 import org.jf.dexlib.CodeItem;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public class Instruction3rcMethodItem extends InstructionFormatMethodItem<Instruction3rc> {
-    public Instruction3rcMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction3rc instruction) {
+public class Instruction22csMethodItem extends InstructionFormatMethodItem<Instruction22cs> {
+    public Instruction22csMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                    Instruction22cs instruction) {
         super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
-                instruction.getReferencedItem()));
-
-        String[] registers = RegisterFormatter.formatFormat3rcRegisters(codeItem, instruction.getStartRegister(),
-                instruction.getStartRegister() + instruction.getRegCount() - 1);
-
-        template.setAttribute("StartRegister", registers[0]);
-        template.setAttribute("LastRegister", registers[1]);
+        template.setAttribute("FieldOffset", instruction.getFieldOffset());
+        template.setAttribute("RegisterA", formatRegister(instruction.getRegisterA()));
+        template.setAttribute("RegisterB", formatRegister(instruction.getRegisterB()));
     }
 }

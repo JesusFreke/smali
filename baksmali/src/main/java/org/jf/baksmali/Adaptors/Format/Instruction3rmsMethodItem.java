@@ -28,22 +28,20 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.baksmali.Adaptors.RegisterFormatter;
-import org.jf.dexlib.Code.Format.Instruction3rc;
+import org.antlr.stringtemplate.StringTemplate;
+import org.jf.dexlib.Code.Format.Instruction3rms;
 import org.jf.dexlib.CodeItem;
+import org.jf.baksmali.Adaptors.RegisterFormatter;
 
-public class Instruction3rcMethodItem extends InstructionFormatMethodItem<Instruction3rc> {
-    public Instruction3rcMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction3rc instruction) {
+public class Instruction3rmsMethodItem extends InstructionFormatMethodItem<Instruction3rms> {
+    public Instruction3rmsMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                     Instruction3rms instruction) {
         super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
-                instruction.getReferencedItem()));
+        template.setAttribute("MethodIndex", instruction.getMethodIndex());
 
         String[] registers = RegisterFormatter.formatFormat3rcRegisters(codeItem, instruction.getStartRegister(),
                 instruction.getStartRegister() + instruction.getRegCount() - 1);

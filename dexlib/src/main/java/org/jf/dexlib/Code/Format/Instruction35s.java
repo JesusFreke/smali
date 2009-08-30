@@ -26,29 +26,33 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.dexlib.Code.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.baksmali.Adaptors.RegisterFormatter;
-import org.jf.dexlib.Code.Format.Instruction3rc;
-import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Item;
+import org.jf.dexlib.DexFile;
 
-public class Instruction3rcMethodItem extends InstructionFormatMethodItem<Instruction3rc> {
-    public Instruction3rcMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction3rc instruction) {
-        super(codeItem, offset, stg, instruction);
+public class Instruction35s extends Instruction35c {
+    public static final Instruction.InstructionFactory Factory = new Factory();
+
+    public static void emit(Output out, Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
+                          byte regA, Item referencedItem) {
+        Instruction35c.emit(out, opcode, regCount, regD, regE, regF, regG, regA, referencedItem);
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
-                instruction.getReferencedItem()));
+    private Instruction35s(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
+        super(dexFile, opcode, buffer, bufferIndex);
+    }
 
-        String[] registers = RegisterFormatter.formatFormat3rcRegisters(codeItem, instruction.getStartRegister(),
-                instruction.getStartRegister() + instruction.getRegCount() - 1);
+    public Format getFormat() {
+        return Format.Format35s;
+    }
 
-        template.setAttribute("StartRegister", registers[0]);
-        template.setAttribute("LastRegister", registers[1]);
+    private static class Factory implements Instruction.InstructionFactory {
+        public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
+            return new Instruction35s(dexFile, opcode, buffer, bufferIndex);
+        }
     }
 }

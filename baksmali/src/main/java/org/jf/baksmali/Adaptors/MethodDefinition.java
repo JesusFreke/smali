@@ -265,6 +265,10 @@ public class MethodDefinition {
                 case Format22c:
                     instructions.add(new Instruction22cMethodItem(codeItem, offset, stg, (Instruction22c)instruction));
                     return;
+                case Format22cs:
+                    instructions.add(new Instruction22csMethodItem(codeItem, offset, stg,
+                            (Instruction22cs)instruction));
+                    return;
                 case Format22s:
                     instructions.add(new Instruction22sMethodItem(codeItem, offset, stg, (Instruction22s)instruction));
                     return;
@@ -307,8 +311,19 @@ public class MethodDefinition {
                 case Format35c:
                     instructions.add(new Instruction35cMethodItem(codeItem, offset, stg, (Instruction35c)instruction));
                     return;
+                case Format35s:
+                    instructions.add(new Instruction35sMethodItem(codeItem, offset, stg, (Instruction35s)instruction));
+                    return;
+                case Format35ms:
+                    instructions.add(new Instruction35msMethodItem(codeItem, offset, stg,
+                            (Instruction35ms)instruction));
+                    return;
                 case Format3rc:
-                    instructions.add(new Instruction3rcMethodItem(offset, stg, (Instruction3rc)instruction, codeItem));
+                    instructions.add(new Instruction3rcMethodItem(codeItem, offset, stg, (Instruction3rc)instruction));
+                    return;
+                case Format3rms:
+                    instructions.add(new Instruction3rmsMethodItem(codeItem, offset, stg,
+                            (Instruction3rms)instruction));
                     return;
                 case Format51l:
                     instructions.add(new Instruction51lMethodItem(codeItem, offset, stg, (Instruction51l)instruction));

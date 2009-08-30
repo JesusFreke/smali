@@ -65,7 +65,7 @@ public class Instruction35c extends InstructionWithReference {
         checkItem(opcode, referencedItem, regCount);
     }
 
-    private Instruction35c(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
+    protected Instruction35c(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
         super(dexFile, opcode, buffer, bufferIndex);
 
         if (getRegCount() > 5) {
