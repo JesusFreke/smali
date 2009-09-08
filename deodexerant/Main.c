@@ -43,6 +43,7 @@ typedef struct InlineSub {
     int     inlineIdx;
 } InlineSub;
 
+static DexStringCache stringCache;
 
 static ClassObject* findCommonSuperclass(ClassObject* c1, ClassObject* c2);
 
@@ -234,7 +235,7 @@ static ClassObject* findCommonSuperclass(ClassObject* c1, ClassObject* c2)
  * This returns "false" if the world is too screwed up to do anything
  * useful at all.
  */
-loadAllClasses(DvmDex* pDvmDex)
+int loadAllClasses(DvmDex* pDvmDex)
 {
     u4 count = pDvmDex->pDexFile->pHeader->classDefsSize;
     u4 idx;
@@ -313,13 +314,13 @@ Field *lookupField(char *classType, int offset)
 
 Method *lookupInlineMethod(int index)
 {
-    InlineOperation *inlineTable = dvmGetInlineOpsTable();
+    const InlineOperation *inlineTable = dvmGetInlineOpsTable();
     int count = dvmGetInlineOpsTableLength();
     
     if (index >= count)
 	return NULL;
     
-    InlineOperation *inlineOp = &inlineTable[index];
+    const InlineOperation *inlineOp = &inlineTable[index];
     
     ClassObject *clazz = dvmFindSystemClassNoInit(inlineOp->classDescriptor);
     if (clazz == NULL)
@@ -333,27 +334,41 @@ Method *lookupInlineMethod(int index)
     return method;
 }
 
-Method *lookupVirtualMethod(char *classType, int index, ClassObject **clazz)
+int dumpVirtualMethods(char *classType, FILE *clientOut)
 {
+    ClassObject *clazz;
     if (classType[0] == '[')
-	*clazz = dvmFindArrayClass(classType, NULL);
+	clazz = dvmFindArrayClass(classType, NULL);
     else
-	*clazz = dvmFindSystemClassNoInit(classType);
+	clazz = dvmFindSystemClassNoInit(classType);
     
-    if (*clazz == NULL)
-	return NULL;
+    
+    if (clazz == NULL)
+    {
+	fprintf(clientOut, "err: could not find class %s\n", classType);
+	return 0;
+    }
     
     //interface classes don't have virtual methods, by definition. But it's possible
     //to call virtual methods defined on the Object class via an interface type
-    if (dvmIsInterfaceClass(*clazz))
-	*clazz = dvmFindSystemClassNoInit("Ljava/lang/Object;");
-    
-    if (index >= (*clazz)->vtableCount)
-	return NULL;
-    
-    Method *method = (*clazz)->vtable[index];
-    
-    return method;
+    if (dvmIsInterfaceClass(clazz))
+    {
+	clazz = dvmFindSystemClassNoInit("Ljava/lang/Object;");
+	if (clazz == NULL)
+	{
+	    fprintf(clientOut, "err: could not find class %s\n", classType);
+	    return 0;
+	}
+    }
+
+    int i;
+    for (i=0; i<clazz->vtableCount; i++)
+    {
+	Method *method = clazz->vtable[i];
+	fprintf(clientOut, "vtable: %s%s\n", method->name,
+		 dexProtoGetMethodDescriptor(&method->prototype, &stringCache));
+    }
+    return 1;
 }
 
 Method *lookupSuperMethod(char *classType, int index, ClassObject **clazz)
@@ -465,7 +480,7 @@ int main(int argc, char* const argv[])
     mapAddr = mmap(NULL, inputInfo.st_size, PROT_READ|PROT_WRITE,
 		MAP_SHARED, odexFd, 0);
     if (mapAddr == MAP_FAILED) {
-	printf(stderr, "unable to mmap DEX cache: %s\n", strerror(errno));
+	fprintf(stderr, "unable to mmap DEX cache: %s\n", strerror(errno));
 	return 1;
     }
 
@@ -517,9 +532,8 @@ int main(int argc, char* const argv[])
     }
 
     char *command = NULL;
-    int len = 0;
-    DexStringCache cache;
-    dexStringCacheInit(&cache);
+    unsigned int len = 0;
+    dexStringCacheInit(&stringCache);
 
     while ((command = fgetln(clientIn, &len)) != NULL) {
 	while (len > 0 && (command[len-1] == '\r' || command[len-1] == '\n'))
@@ -528,9 +542,7 @@ int main(int argc, char* const argv[])
 	memcpy(buf, command, len);
 	buf[len] = 0;
 	
-	/*struct timeval tv;
-	gettimeofday(&tv, NULL); 
-	printf("start %07d %s\n", tv.tv_usec, buf);*/
+	//printf("%s\n", buf);
 
 	char *cmd = strtok(buf, " ");
 	if (cmd == NULL) {
@@ -615,7 +627,7 @@ int main(int argc, char* const argv[])
 		else
 		    methodType = "virtual";
 		
-		fprintf(clientOut, "%s method: %s->%s%s\n", methodType, method->clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &cache));
+		fprintf(clientOut, "%s method: %s->%s%s\n", methodType, method->clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &stringCache));
 		fflush(clientOut);
 		break;
 	    }
@@ -624,38 +636,18 @@ int main(int argc, char* const argv[])
 		char *classType = strtok(NULL, " ");
 		if (classType == NULL)
 		{
-		    fprintf(clientOut, "err: no classType for virtual method lookup\n");
+		    fprintf(clientOut, "err: no classType for vtable dump\n");
 		    fflush(clientOut);
 		    break;
 		}
 		
-		char *indexStr = strtok(NULL, " ");
-		if (indexStr == NULL)
-		{
-		    fprintf(clientOut, "err: no vtable index for virtual method lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-
-		char *end;
-		int index = strtol(indexStr, &end, 10);
-		if (*end != '\0')
-		{
-		    fprintf(clientOut, "err: vtable index not a valid number for virtual method lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-
-		ClassObject *clazz;
-		Method *method = lookupVirtualMethod(classType, index, &clazz);
-		if (method == NULL)
-		{
-		    fprintf(clientOut, "err: method not found\n");
+		if (!dumpVirtualMethods(classType, clientOut)) {
+		    fprintf(clientOut, "err: error encountered while dumping virtual methods\n");
 		    fflush(clientOut);
 		    break;
 		}
 		
-		fprintf(clientOut, "method: %s->%s%s\n", clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &cache));
+		fprintf(clientOut, "done\n");
 		fflush(clientOut);
 		break;
 	    }
@@ -695,7 +687,7 @@ int main(int argc, char* const argv[])
 		    break;
 		}
 		
-		fprintf(clientOut, "method: %s->%s%s\n", clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &cache));
+		fprintf(clientOut, "method: %s->%s%s\n", clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &stringCache));
 		fflush(clientOut);
 		break;
 	    }
@@ -732,7 +724,7 @@ int main(int argc, char* const argv[])
 		
 		if (clazz1 == NULL)
 		{
-		    fprintf(clientOut, "err: class %s could not be found for common superclass lookup\n");
+		    fprintf(clientOut, "err: class %s could not be found for common superclass lookup\n", classType1);
 		    fflush(clientOut);
 		    break;
 		}		    
@@ -753,7 +745,7 @@ int main(int argc, char* const argv[])
 		
 		if (clazz2 == NULL)
 		{
-		    fprintf(clientOut, "err: class %s could not be found for common superclass lookup\n");
+		    fprintf(clientOut, "err: class %s could not be found for common superclass lookup\n", classType2);
 		    fflush(clientOut);
 		    break;
 		}		    
