@@ -40,6 +40,6 @@ public class Instruction22csnMethodItem extends InstructionFormatMethodItem<Inst
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Register", instruction.RegisterNum);
+        template.setAttribute("Register", formatRegister(instruction.RegisterNum));
     }
 }

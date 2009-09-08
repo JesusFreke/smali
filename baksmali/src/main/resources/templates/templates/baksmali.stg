@@ -200,8 +200,8 @@ Format22csf(Opcode, RegisterA, RegisterB, Reference) ::=
 
 Format22csn(Opcode, Register) ::=
 <<
-#Couldn't determine field access while deodexing, replaced with generic method call
-invoke-virtual <Register>, Ljava/lang/Object;->hashCode()I
+#Couldn't determine the field while deodexing, replaced with generic method call
+invoke-virtual-range {<Register> .. <Register>}, Ljava/lang/Object;->hashCode()I
 >>
 
 Format22s(Opcode, RegisterA, RegisterB, Literal) ::=
@@ -277,7 +277,7 @@ Format35msf(Opcode, Registers, Reference) ::=
 Format35msn(Opcode, Register) ::=
 <<
 #Couldn't determine method while deodexing, replaced with generic method call
-invoke-virtual <Register>, Ljava/lang/Object;->hashCode()I
+invoke-virtual-range {<Register> .. <Register>}, Ljava/lang/Object;->hashCode()I
 >>
 
 Format3rc(Opcode, StartRegister, LastRegister, Reference) ::=
