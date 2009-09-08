@@ -1,0 +1,26 @@
+usage:
+deodexerant <odex_file> <port>
+
+deodexerant is a binary that is intended to run on an android phone, in order
+to provide assistance to baksmali in deodexing .odex files. It communicates
+over TCP and implements a simplistic protocol for looking up various
+information needed during the deodex process, which can only be provided by
+the dalvik vm. I.E. vtable lookups, field lookups by byte offset, superclass
+lookups for classes not defined in the .odex file being processed, etc.
+
+deodexerant is intended to be build within the AOSP build system. Assuming
+you have $MYDROID set to the root of the AOSP source tree, and $SMALI
+set to the root of the smali source tree,
+
+1. cp -r $SMALI/deodexerant $MYDROID/dalvik/deodexerant
+2. cd $MYDROID/dalvik/deodexerant
+3. source ../../build/envsetup.sh
+4. mm
+
+It should should spit out a deodexerant binary at
+
+$MYDROID/out/target/product/common/system/bin/deodexerant
+
+Or wherever your current build setup is configured to stick those types of
+things
+
