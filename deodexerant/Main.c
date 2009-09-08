@@ -285,7 +285,7 @@ int loadAllClasses(DvmDex* pDvmDex)
     return true;
 }
 
-Field *lookupField(char *classType, int offset)
+int dumpFields(char *classType, FILE *clientOut)
 {
     ClassObject *clazz;
     if (classType[0] == '[')
@@ -294,44 +294,54 @@ Field *lookupField(char *classType, int offset)
 	clazz = dvmFindSystemClassNoInit(classType);
     
     if (clazz == NULL)
-	return NULL;
+	return 0;
     
     int i;
     do
     {
 	InstField *pField = clazz->ifields;
 	for (i=0; i<clazz->ifieldCount; i++, pField++)
-	{
-	    if (pField->byteOffset == offset)
-		return &pField->field;
-	}
+	    fprintf(clientOut, "field: %d %s:%s\n", pField->byteOffset, pField->field.name, pField->field.signature);
 	
 	clazz = clazz->super;
     } while (clazz != NULL);
 
-    return NULL;
+    return 1;
 }
 
-Method *lookupInlineMethod(int index)
+int dumpInlineMethods(FILE *clientOut)
 {
     const InlineOperation *inlineTable = dvmGetInlineOpsTable();
     int count = dvmGetInlineOpsTableLength();
     
-    if (index >= count)
-	return NULL;
+    int i;
+    for (i=0; i<count; i++) {
+	const InlineOperation *inlineOp = &inlineTable[i];
     
-    const InlineOperation *inlineOp = &inlineTable[index];
+	ClassObject *clazz = dvmFindSystemClassNoInit(inlineOp->classDescriptor);
+	if (clazz == NULL)
+	    return 0;
+	
+	char *methodType;
+	Method *method = dvmFindDirectMethodByDescriptor(clazz, inlineOp->methodName, inlineOp->methodSignature);
+	if (method == NULL)
+	{
+	    method = dvmFindVirtualMethodByDescriptor(clazz, inlineOp->methodName, inlineOp->methodSignature);
+	    methodType = "virtual";
+	} else {
+	    if (dvmIsStaticMethod(method))
+		methodType = "static";
+	    else
+		methodType = "direct";
+	}
+			
+	if (method == NULL)
+	    return 0;
+	
+	fprintf(clientOut, "inline: %s %s->%s%s\n", methodType, method->clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &stringCache));
+    }
     
-    ClassObject *clazz = dvmFindSystemClassNoInit(inlineOp->classDescriptor);
-    if (clazz == NULL)
-	return NULL;
-    
-    Method *method = dvmFindDirectMethodByDescriptor(clazz, inlineOp->methodName, inlineOp->methodSignature);
-    if (method != NULL)
-	return method;
-
-    method = dvmFindVirtualMethodByDescriptor(clazz, inlineOp->methodName, inlineOp->methodSignature);
-    return method;
+    return 1;
 }
 
 int dumpVirtualMethods(char *classType, FILE *clientOut)
@@ -369,27 +379,6 @@ int dumpVirtualMethods(char *classType, FILE *clientOut)
 		 dexProtoGetMethodDescriptor(&method->prototype, &stringCache));
     }
     return 1;
-}
-
-Method *lookupSuperMethod(char *classType, int index, ClassObject **clazz)
-{
-    if (classType[0] == '[')
-	*clazz = dvmFindArrayClass(classType, NULL);
-    else
-	*clazz = dvmFindSystemClassNoInit(classType);
-    
-    if (*clazz == NULL)
-	return NULL;
-    *clazz = (*clazz)->super;
-    if (*clazz == NULL)
-	return NULL;
-    
-    if (index >= (*clazz)->vtableCount)
-	return NULL;
-    
-    Method *method = (*clazz)->vtable[index];
-    
-    return method;
 }
 
 ClassObject *lookupSuperclass(char *classType)
@@ -563,71 +552,27 @@ int main(int argc, char* const argv[])
 		    break;
 		}
 		
-		char *offsetStr = strtok(NULL, " ");
-		if (offsetStr == NULL)
+		if (!dumpFields(classType, clientOut))
 		{
-		    fprintf(clientOut, "err: no offset for field lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-
-		char *end;
-		int offset = strtol(offsetStr, &end, 10);
-		if (*end != '\0')
-		{
-		    fprintf(clientOut, "err: offset not a valid number for field lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-
-		Field *field = lookupField(classType, offset);
-		if (field == NULL)
-		{
-		    fprintf(clientOut, "err: field not found\n");
+		    fprintf(clientOut, "err: error while dumping fields\n");
 		    fflush(clientOut);
 		    break;
 		}
 		
-		fprintf(clientOut, "field: %s->%s:%s\n", classType, field->name, field->signature);
+		fprintf(clientOut, "done\n");
 		fflush(clientOut);
 		break;
 	    }
 	    case 'I':
 	    {
-		char *indexStr = strtok(NULL, " ");
-		if (indexStr == NULL)
-		{
-		    fprintf(clientOut, "err: no index for inline method lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-		
-		char *end;
-		int index = strtol(indexStr, &end, 10);
-		if (*end != '\0')
-		{
-		    fprintf(clientOut, "err: index not a valid number for inline method lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-		
-		Method *method = lookupInlineMethod(index);
-		if (method == NULL)
+		if (!dumpInlineMethods(clientOut))
 		{
 		    fprintf(clientOut, "err: inline method not found\n");
 		    fflush(clientOut);
 		    break;
 		}
 		
-		char *methodType;
-		if (dvmIsStaticMethod(method))
-		    methodType = "static";
-		else if (dvmIsDirectMethod(method))
-		    methodType = "direct";
-		else
-		    methodType = "virtual";
-		
-		fprintf(clientOut, "%s method: %s->%s%s\n", methodType, method->clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &stringCache));
+		fprintf(clientOut, "done\n");
 		fflush(clientOut);
 		break;
 	    }
@@ -648,46 +593,6 @@ int main(int argc, char* const argv[])
 		}
 		
 		fprintf(clientOut, "done\n");
-		fflush(clientOut);
-		break;
-	    }
-	    case 'S':
-	    {
-		char *classType = strtok(NULL, " ");
-		if (classType == NULL)
-		{
-		    fprintf(clientOut, "err: no classType for super method lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-		
-		char *indexStr = strtok(NULL, " ");
-		if (indexStr == NULL)
-		{
-		    fprintf(clientOut, "err: no vtable index for super method lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-
-		char *end;
-		int index = strtol(indexStr, &end, 10);
-		if (*end != '\0')
-		{
-		    fprintf(clientOut, "err: vtable index not a valid number for super method lookup\n");
-		    fflush(clientOut);
-		    break;
-		}
-
-		ClassObject *clazz;
-		Method *method = lookupSuperMethod(classType, index, &clazz);
-		if (method == NULL)
-		{
-		    fprintf(clientOut, "err: method not found\n");
-		    fflush(clientOut);
-		    break;
-		}
-		
-		fprintf(clientOut, "method: %s->%s%s\n", clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &stringCache));
 		fflush(clientOut);
 		break;
 	    }
