@@ -37,10 +37,15 @@ import java.io.InputStreamReader;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Deodexerant {
     private final String host;
     private final int port;
+
+    private final HashMap<TypeIdItem, ClassData> vtableMap = new HashMap<TypeIdItem, ClassData>();
 
     public final DexFile dexFile;
 
@@ -77,9 +82,27 @@ public class Deodexerant {
             throw new RuntimeException("Invalid response from deodexerant");
         }
 
-        String methodDescriptor = response.substring(colon+2); 
+        String methodDescriptor = response.substring(colon+2);
 
-        MethodIdItem method = parseAndLookupMethod(methodDescriptor);
+        Matcher m = fullMethodPattern.matcher(methodDescriptor);
+        if (!m.matches()) {
+            throw new RuntimeException("Invalid method descriptor: " + methodDescriptor);
+        }
+
+        String classType = m.group(1);
+        String methodName = m.group(2);
+        String methodParams = m.group(3);
+        String methodRet = m.group(4);
+
+        TypeIdItem classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, classType);
+        if (classTypeItem == null) {
+            throw new RuntimeException("Could not find type " + classType + " in the dex file");
+        }
+
+        MethodIdItem method = parseAndResolveMethod(classTypeItem, methodName, methodParams, methodRet);
+        if (method == null) {
+            throw new RuntimeException("Could not find method " + methodDescriptor + " in the dex file");
+        }
 
         return new InlineMethod(method, type);
     }
@@ -99,20 +122,33 @@ public class Deodexerant {
         return parseAndLookupField(fieldDescriptor);
     }
 
-    public MethodIdItem lookupVirtualMethod(TypeIdItem type, int methodIndex, boolean superLookup) {
-        connectIfNeeded();
+    private ClassData getClassData(TypeIdItem type) {
+        ClassData classData = vtableMap.get(type);
+        if (classData == null) {
+            classData = new ClassData(type);
+            vtableMap.put(type, classData);
+        }
+        return classData;
+    }
 
-        String commandChar = superLookup?"S":"V";
-        String response = sendCommand(commandChar + " " + type.getTypeDescriptor() + " " + methodIndex);
+    public MethodIdItem lookupVirtualMethod(TypeIdItem type, int methodIndex, boolean lookupSuper) {
+        if (lookupSuper) {
+            String classType = type.getTypeDescriptor();
 
-        int colon = response.indexOf(':');
-        if (colon == -1) {
-            throw new RuntimeException("Invalid response from deodexerant");
+            do
+            {
+                classType = lookupSuperclass(type.getTypeDescriptor());
+                if (classType == null) {
+                    throw new RuntimeException("Could not find any superclass for type " + type.getTypeDescriptor() +
+                            " in the dex file");
+                }
+                type = TypeIdItem.getInternedTypeIdItem(dexFile, classType);
+            } while (type == null);
         }
 
-        String methodDescriptor = response.substring(colon+2);
+        ClassData classData = getClassData(type);
 
-        return parseAndLookupMethod(methodDescriptor);
+        return classData.lookupMethod(methodIndex);
     }
 
     public String lookupSuperclass(String typeDescriptor) {
@@ -145,6 +181,8 @@ public class Deodexerant {
 
     private String sendCommand(String cmd) {
         try {
+            connectIfNeeded();
+            
             out.println(cmd);
             out.flush();
             String response = in.readLine();
@@ -153,6 +191,34 @@ public class Deodexerant {
                 throw new RuntimeException(error);
             }
             return response;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    //The command is still just a single line, but we're expecting a multi-line
+    //response. The repsonse is considered finished when a line starting with "err"
+    //or with "done" is encountered
+    private List<String> sendMultlineCommand(String cmd) {
+        try {
+            connectIfNeeded();
+
+            out.println(cmd);
+            out.flush();
+
+            ArrayList<String> responseLines = new ArrayList<String>();
+            String response = in.readLine();
+            while (!response.startsWith("done"))
+            {
+                if (response.startsWith("err")) {
+                    throw new RuntimeException(response.substring(5));
+                }
+
+                responseLines.add(response);
+                response = in.readLine();
+            }
+            
+            return responseLines;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -173,24 +239,17 @@ public class Deodexerant {
         }
     }
 
-    private static final Pattern methodPattern = Pattern.compile("(\\[*(?:L[^;]+;|[ZBSCIJFD]))->([^(]+)\\(([^)]*)\\)(.+)");
-    private MethodIdItem parseAndLookupMethod(String method) {
-        //expecting a string like Lsome/class;->someMethod(IIII)Lreturn/type;
-
-        Matcher m = methodPattern.matcher(method);
-        if (!m.matches()) {
-            throw new RuntimeException("invalid method string: " + method);
+    private MethodIdItem parseAndResolveMethod(TypeIdItem classType, String methodName, String methodParams,
+                                               String methodRet) {
+        StringIdItem methodNameItem = StringIdItem.getInternedStringIdItem(dexFile, methodName);
+        if (methodNameItem == null) {
+            return null;
         }
-
-        String clazz = m.group(1);
-        String methodName = m.group(2);
-        String params = m.group(3);
-        String ret = m.group(4);
 
         LinkedList<TypeIdItem> paramList = new LinkedList<TypeIdItem>();
 
-        for (int i=0; i<params.length(); i++) {
-            switch (params.charAt(i)) {
+        for (int i=0; i<methodParams.length(); i++) {
+            switch (methodParams.charAt(i)) {
                 case 'Z':
                 case 'B':
                 case 'S':
@@ -199,16 +258,16 @@ public class Deodexerant {
                 case 'J':
                 case 'F':
                 case 'D':
-                    paramList.add(getType(dexFile, Character.toString(params.charAt(i))));
+                    paramList.add(getType(Character.toString(methodParams.charAt(i))));
                     break;
                 case 'L':
                 {
-                    int end = params.indexOf(';', i);
+                    int end = methodParams.indexOf(';', i);
                     if (end == -1) {
-                        throw new RuntimeException("invalid parameter in the method string: " + method);
+                        throw new RuntimeException("invalid parameter in the method");
                     }
 
-                    paramList.add(getType(dexFile, params.substring(i, end+1)));
+                    paramList.add(getType(methodParams.substring(i, end+1)));
                     i = end;
                     break;
                 }
@@ -216,10 +275,10 @@ public class Deodexerant {
                 {
                     int end;
                     int typeStart = i+1;
-                    while (typeStart < params.length() && params.charAt(typeStart) == '[') {
+                    while (typeStart < methodParams.length() && methodParams.charAt(typeStart) == '[') {
                         typeStart++;
                     }
-                    switch (params.charAt(typeStart)) {
+                    switch (methodParams.charAt(typeStart)) {
                         case 'Z':
                         case 'B':
                         case 'S':
@@ -231,26 +290,23 @@ public class Deodexerant {
                             end = typeStart;
                             break;
                         case 'L':
-                            end = params.indexOf(';', typeStart);
+                            end = methodParams.indexOf(';', typeStart);
                             if (end == -1) {
-                                throw new RuntimeException("invalid parameter in the method string: " + method);
+                                throw new RuntimeException("invalid parameter in the method");
                             }
                             break;
                         default:
-                            throw new RuntimeException("invalid parameter in the method string: " + method);
+                            throw new RuntimeException("invalid parameter in the method");
                     }
 
-                    paramList.add(getType(dexFile, params.substring(i, end+1)));
+                    paramList.add(getType(methodParams.substring(i, end+1)));
                     i = end;
-                    break;                    
+                    break;
                 }
                 default:
-                    throw new RuntimeException("invalid parameter in the method string: " + method);                    
+                    throw new RuntimeException("invalid parameter in the method");
             }
         }
-
-        TypeIdItem classType = getType(dexFile, clazz);
-        TypeIdItem retType = getType(dexFile, ret);
 
         TypeListItem paramListItem = null;
         if (paramList.size() > 0) {
@@ -259,15 +315,12 @@ public class Deodexerant {
                 throw new RuntimeException("Could not find type list item in dex file");
             }
         }
-        
+
+        TypeIdItem retType = getType(methodRet);
+
         ProtoIdItem protoItem = ProtoIdItem.getInternedProtoIdItem(dexFile, retType, paramListItem);
         if (protoItem == null) {
-            throw new RuntimeException("Could not find prototype item in dex file");
-        }
-
-        StringIdItem methodNameItem = StringIdItem.getInternedStringIdItem(dexFile, methodName);
-        if (methodNameItem == null) {
-            throw new RuntimeException("Could not find method name item in dex file");
+            return null;
         }
 
         MethodIdItem methodIdItem;
@@ -285,10 +338,12 @@ public class Deodexerant {
                 superclassDescriptor = lookupSuperclass(superclassDescriptor);
                 classType = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
             }
-
         } while (classType != null);
         throw new RuntimeException("Could not find method in dex file");
     }
+
+    private static final Pattern fullMethodPattern = Pattern.compile("(\\[*(?:L[^;]+;|[ZBSCIJFD]))->([^(]+)\\(([^)]*)\\)(.+)");
+    private static final Pattern shortMethodPattern = Pattern.compile("([^(]+)\\(([^)]*)\\)(.+)");
 
     private static final Pattern fieldPattern = Pattern.compile("(\\[*L[^;]+;)->([^:]+):(.+)");
     private FieldIdItem parseAndLookupField(String field) {
@@ -342,11 +397,69 @@ public class Deodexerant {
         }
     }
 
-    private static TypeIdItem getType(DexFile dexFile, String typeDescriptor) {
+    private TypeIdItem getType(String typeDescriptor) {
         TypeIdItem type = TypeIdItem.getInternedTypeIdItem(dexFile, typeDescriptor);
         if (type == null) {
             throw new RuntimeException("Could not find type \"" + typeDescriptor + "\" in dex file"); 
         }
         return type;
+    }
+
+
+
+    private class ClassData {
+        public final TypeIdItem ClassType;
+
+        public boolean vtableLoaded;
+        public String[] MethodNames;
+        public String[] MethodParams;
+        public String[] MethodRets;
+        public MethodIdItem[] resolvedMethods;
+
+
+        public ClassData(TypeIdItem classType) {
+            this.ClassType = classType;
+        }
+
+        public MethodIdItem lookupMethod(int index) {
+            if (!vtableLoaded) {
+                loadvtable();
+            }
+
+            if (resolvedMethods[index] == null) {
+                    resolvedMethods[index] = parseAndResolveMethod(ClassType, MethodNames[index], MethodParams[index],
+                        MethodRets[index]);
+            }
+            return resolvedMethods[index]; 
+        }
+
+        private void loadvtable() {
+            List<String> responseLines = sendMultlineCommand("V " + ClassType.getTypeDescriptor());
+
+            MethodNames = new String[responseLines.size()];
+            MethodParams = new String[responseLines.size()];
+            MethodRets = new String[responseLines.size()];
+            resolvedMethods = new MethodIdItem[responseLines.size()];
+            
+            int index = 0;
+            for (String vtableEntry: responseLines) {
+                if (!vtableEntry.startsWith("vtable: ")) {
+                    throw new RuntimeException("Invalid response from deodexerant");
+                }
+
+                String method = vtableEntry.substring(8);
+                Matcher m = shortMethodPattern.matcher(method);
+                if (!m.matches()) {
+                    throw new RuntimeException("invalid method string: " + method);
+                }
+
+                MethodNames[index] = m.group(1);
+                MethodParams[index] = m.group(2);
+                MethodRets[index] = m.group(3);
+                index++;
+            }
+
+            vtableLoaded = true;
+        }
     }
 }
