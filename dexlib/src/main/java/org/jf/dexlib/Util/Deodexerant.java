@@ -426,6 +426,9 @@ public class Deodexerant {
                 loadvtable();
             }
 
+            if (index >= resolvedMethods.length) {
+                throw new RuntimeException("Invalid vtable index " + index + ". Too large.");
+            }
             if (resolvedMethods[index] == null) {
                     resolvedMethods[index] = parseAndResolveMethod(ClassType, MethodNames[index], MethodParams[index],
                         MethodRets[index]);
