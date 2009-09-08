@@ -31,16 +31,12 @@ package org.jf.dexlib.Util;
 import org.jf.dexlib.*;
 
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.HashMap;
 
 public class Deodexerant {
     private final String host;
@@ -103,10 +99,7 @@ public class Deodexerant {
         return parseAndLookupField(fieldDescriptor);
     }
 
-    private static HashMap<Integer, MethodIdItem> cachedVirtualMethods = new HashMap<Integer, MethodIdItem>();
     public MethodIdItem lookupVirtualMethod(TypeIdItem type, int methodIndex, boolean superLookup) {
-        int hash = type.hashCode() + methodIndex * 31;
-
         connectIfNeeded();
 
         String commandChar = superLookup?"S":"V";
@@ -180,7 +173,7 @@ public class Deodexerant {
         }
     }
 
-    private static final Pattern methodPattern = Pattern.compile("(\\[*(?:L[^;]+;)|[ZBSCIJFD])->([^(]+)\\(([^)]*)\\)(.+)");
+    private static final Pattern methodPattern = Pattern.compile("(\\[*(?:L[^;]+;|[ZBSCIJFD]))->([^(]+)\\(([^)]*)\\)(.+)");
     private MethodIdItem parseAndLookupMethod(String method) {
         //expecting a string like Lsome/class;->someMethod(IIII)Lreturn/type;
 
