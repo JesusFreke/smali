@@ -198,7 +198,7 @@ Format22csf(Opcode, RegisterA, RegisterB, Reference) ::=
 <Opcode> <RegisterA>, <RegisterB>, <Reference>
 >>
 
-Format22csn(Register) ::=
+Format22csn(Opcode, Register) ::=
 <<
 #Couldn't determine field access while deodexing, replaced with generic method call
 invoke-virtual <Register>, Ljava/lang/Object;->hashCode()I
@@ -274,7 +274,7 @@ Format35msf(Opcode, Registers, Reference) ::=
 <Opcode> {<Registers; separator=", ">}, <Reference>
 >>
 
-Format35msn(Register) ::=
+Format35msn(Opcode, Register) ::=
 <<
 #Couldn't determine method while deodexing, replaced with generic method call
 invoke-virtual <Register>, Ljava/lang/Object;->hashCode()I
