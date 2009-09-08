@@ -54,16 +54,6 @@ public class StringIdItem extends Item<StringIdItem> {
     }
 
     /**
-     * Creates a new <code>StringIdItem</code> and associated <code>StringDataItem</code>
-     * for the given <code>String</code> value
-     * @param dexFile The <code>DexFile</code> that this item will belong to
-     * @param stringValue The string value that this item represents
-     */
-    private StringIdItem(DexFile dexFile, String stringValue) {
-        this(dexFile, StringDataItem.getInternedStringDataItem(dexFile, stringValue));
-    }
-    
-    /**
      * Returns a <code>StringIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      * @param dexFile The <code>DexFile</code> that this item will belong to
@@ -72,7 +62,11 @@ public class StringIdItem extends Item<StringIdItem> {
      * the given <code>DexFile</code>
      */
     public static StringIdItem getInternedStringIdItem(DexFile dexFile, String stringValue) {
-        StringIdItem stringIdItem = new StringIdItem(dexFile, stringValue);
+        StringDataItem stringDataItem = StringDataItem.getInternedStringDataItem(dexFile, stringValue);
+        if (stringDataItem == null) {
+            return null;
+        }
+        StringIdItem stringIdItem = new StringIdItem(dexFile, stringDataItem);
         return dexFile.StringIdsSection.intern(stringIdItem);
     }
 

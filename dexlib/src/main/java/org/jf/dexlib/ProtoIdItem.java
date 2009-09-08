@@ -156,6 +156,20 @@ public class ProtoIdItem extends Item<ProtoIdItem> {
     }
 
     /**
+     * @return the return type of the method
+     */
+    public TypeIdItem getReturnType() {
+        return returnType;
+    }
+
+    /**
+     * @return a <code>TypeListItem</code> containing the method parameter types
+     */
+    public TypeListItem getParameters() {
+        return parameters;
+    }
+
+    /**
      * @return the number of registers required for the parameters of this <code>ProtoIdItem</code>
      */
     public int getParameterRegisterCount() {

@@ -31,13 +31,14 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.InstructionWithReference;
 import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.SingleRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Item;
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.Output;
 
-public class Instruction21c extends InstructionWithReference {
+public class Instruction21c extends InstructionWithReference implements SingleRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
     public static void emit(Output out, Opcode opcode, short regA, Item referencedItem) {
@@ -69,7 +70,7 @@ public class Instruction21c extends InstructionWithReference {
         return Format.Format21c;
     }
 
-    public short getRegister() {
+    public int getRegisterA() {
         return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
     }
 

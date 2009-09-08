@@ -42,6 +42,6 @@ public class Instruction22sMethodItem extends InstructionFormatMethodItem<Instru
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("RegisterA", formatRegister(instruction.getRegisterA()));
         template.setAttribute("RegisterB", formatRegister(instruction.getRegisterB()));
-        template.setAttribute("Literal", instruction.getLiteral());
+        template.setAttribute("Literal", (int)instruction.getLiteral());
     }
 }

@@ -30,11 +30,13 @@ package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.SingleRegisterInstruction;
+import org.jf.dexlib.Code.LiteralInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.Output;
 
-public class Instruction11n extends Instruction {
+public class Instruction11n extends Instruction implements SingleRegisterInstruction, LiteralInstruction {
     public static final InstructionFactory Factory = new Factory();
 
     public static void emit(Output out, Opcode opcode, byte regA, byte litB) {
@@ -59,11 +61,11 @@ public class Instruction11n extends Instruction {
         return Format.Format11n;
     }
 
-    public byte getRegister() {
+    public int getRegisterA() {
         return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
     }
 
-    public byte getLiteral() {
+    public long getLiteral() {
         return NumberUtils.decodeHighSignedNibble(buffer[bufferIndex + 1]);
     }
 

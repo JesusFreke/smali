@@ -40,7 +40,13 @@ public class Instruction51lMethodItem extends InstructionFormatMethodItem<Instru
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Register", formatRegister(instruction.getRegister()));
-        template.setAttribute("Literal", instruction.getLiteral());
+        template.setAttribute("Register", formatRegister(instruction.getRegisterA()));
+
+        long lit = instruction.getLiteral();
+        if (lit <= Integer.MAX_VALUE && lit >= Integer.MIN_VALUE) {
+            template.setAttribute("Literal", (int)instruction.getLiteral());
+        } else {
+            template.setAttribute("Literal", instruction.getLiteral());
+        }
     }
 }

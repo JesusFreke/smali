@@ -30,11 +30,12 @@ package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.Output;
 
-public class Instruction22x extends Instruction {
+public class Instruction22x extends Instruction implements TwoRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
 
     public static void emit(Output out, Opcode opcode, short regA, int regB) {
@@ -59,7 +60,7 @@ public class Instruction22x extends Instruction {
         return Format.Format22x;
     }
 
-    public short getRegisterA() {
+    public int getRegisterA() {
         return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
     }
 

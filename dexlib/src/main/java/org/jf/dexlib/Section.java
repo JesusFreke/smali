@@ -174,8 +174,11 @@ public abstract class Section<T extends Item> {
      * as the item passed to this method.
      */
     protected T intern(T item) {
+        if (item == null) {
+            return null;
+        }
         T internedItem = getInternedItem(item);
-        if (internedItem == null) {
+        if (internedItem == null && !item.dexFile.getInterningDisabled()) {
             uniqueItems.put(item, item);
             items.add(item);
             return item;

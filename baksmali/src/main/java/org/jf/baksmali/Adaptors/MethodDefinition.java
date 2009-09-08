@@ -29,6 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.Format.*;
+import org.jf.baksmali.baksmali;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Code.Format.*;
@@ -178,44 +179,69 @@ public class MethodDefinition {
                 return;
             }
 
-            final byte[] encodedInstructions = codeItem.getEncodedInstructions();
+            if (baksmali.deodexUtil != null && dexFile.isOdex()) {
+                List<Instruction> instructions = baksmali.deodexUtil.deodexerizeCode(codeItem);
 
-            InstructionIterator.IterateInstructions(encodedInstructions,
-                    new InstructionIterator.ProcessRawInstructionDelegate() {
-                        public void ProcessNormalInstruction(Opcode opcode, int index) {
-                            if (opcode == Opcode.PACKED_SWITCH) {
-                                Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
-                                        dexFile, opcode, encodedInstructions, index);
-                                packedSwitchMap.put(index/2 + ins.getOffset(), index/2);
-                            } else if (opcode == Opcode.SPARSE_SWITCH) {
-                                Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
-                                        dexFile, opcode, encodedInstructions, index);
-                                sparseSwitchMap.put(index/2 + ins.getOffset(),  index/2);
+                int offset = 0;
+                for (Instruction instruction: instructions) {
+                    if (instruction.opcode == Opcode.PACKED_SWITCH) {
+                        Instruction31t ins = (Instruction31t)instruction;
+                        packedSwitchMap.put(offset + ins.getOffset(), offset);
+                    } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
+                        Instruction31t ins = (Instruction31t)instruction;
+                        sparseSwitchMap.put(offset + ins.getOffset(), offset);
+                    }
+
+                    offset += instruction.getSize()/2;
+                }
+
+                offset = 0;
+                for (Instruction instruction: instructions) {
+                    addMethodItemsForInstruction(offset, instruction);
+                    blanks.add(new BlankMethodItem(stg, offset));
+
+                    offset += instruction.getSize()/2;
+                }
+            } else {
+                final byte[] encodedInstructions = codeItem.getEncodedInstructions();
+
+                InstructionIterator.IterateInstructions(encodedInstructions,
+                        new InstructionIterator.ProcessRawInstructionDelegate() {
+                            public void ProcessNormalInstruction(Opcode opcode, int index) {
+                                if (opcode == Opcode.PACKED_SWITCH) {
+                                    Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
+                                            dexFile, opcode, encodedInstructions, index);
+                                    packedSwitchMap.put(index/2 + ins.getOffset(), index/2);
+                                } else if (opcode == Opcode.SPARSE_SWITCH) {
+                                    Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
+                                            dexFile, opcode, encodedInstructions, index);
+                                    sparseSwitchMap.put(index/2 + ins.getOffset(),  index/2);
+                                }
                             }
-                        }
 
-                        public void ProcessReferenceInstruction(Opcode opcode, int index) {
-                        }
+                            public void ProcessReferenceInstruction(Opcode opcode, int index) {
+                            }
 
-                        public void ProcessPackedSwitchInstruction(int index, int targetCount, int instructionLength) {
-                        }
+                            public void ProcessPackedSwitchInstruction(int index, int targetCount, int instructionLength) {
+                            }
 
-                        public void ProcessSparseSwitchInstruction(int index, int targetCount, int instructionLength) {
-                        }
+                            public void ProcessSparseSwitchInstruction(int index, int targetCount, int instructionLength) {
+                            }
 
-                        public void ProcessFillArrayDataInstruction(int index, int elementWidth, int elementCount,
-                                                                    int instructionLength) {
-                        }
-                    });
+                            public void ProcessFillArrayDataInstruction(int index, int elementWidth, int elementCount,
+                                                                        int instructionLength) {
+                            }
+                        });
 
-            InstructionIterator.IterateInstructions(dexFile, encodedInstructions,
-                    new InstructionIterator.ProcessInstructionDelegate() {
-                        public void ProcessInstruction(int index, Instruction instruction) {
-                            int offset = index/2;
-                            addMethodItemsForInstruction(offset, instruction);
-                            blanks.add(new BlankMethodItem(stg, offset));
-                        }
-                    });
+                InstructionIterator.IterateInstructions(dexFile, encodedInstructions,
+                        new InstructionIterator.ProcessInstructionDelegate() {
+                            public void ProcessInstruction(int index, Instruction instruction) {
+                                int offset = index/2;
+                                addMethodItemsForInstruction(offset, instruction);
+                                blanks.add(new BlankMethodItem(stg, offset));
+                            }
+                        });
+            }
             
             blanks.remove(blanks.size()-1);
 
@@ -269,6 +295,14 @@ public class MethodDefinition {
                     instructions.add(new Instruction22csMethodItem(codeItem, offset, stg,
                             (Instruction22cs)instruction));
                     return;
+                case Format22csf:
+                    instructions.add(new Instruction22csfMethodItem(codeItem, offset, stg,
+                            (Instruction22csf)instruction));
+                    return;
+                case Format22csn:
+                    instructions.add(new Instruction22csnMethodItem(codeItem, offset, stg,
+                            (Instruction22csn)instruction));
+                    return;
                 case Format22s:
                     instructions.add(new Instruction22sMethodItem(codeItem, offset, stg, (Instruction22s)instruction));
                     return;
@@ -314,9 +348,21 @@ public class MethodDefinition {
                 case Format35s:
                     instructions.add(new Instruction35sMethodItem(codeItem, offset, stg, (Instruction35s)instruction));
                     return;
+                case Format35sf:
+                    instructions.add(new Instruction35sfMethodItem(codeItem, offset, stg,
+                            (Instruction35sf)instruction));
+                    return;
                 case Format35ms:
                     instructions.add(new Instruction35msMethodItem(codeItem, offset, stg,
                             (Instruction35ms)instruction));
+                    return;
+                case Format35msf:
+                    instructions.add(new Instruction35msfMethodItem(codeItem, offset, stg,
+                            (Instruction35msf)instruction));
+                    return;
+                case Format35msn:
+                    instructions.add(new Instruction35msnMethodItem(codeItem, offset, stg,
+                            (Instruction35msn)instruction));
                     return;
                 case Format3rc:
                     instructions.add(new Instruction3rcMethodItem(codeItem, offset, stg, (Instruction3rc)instruction));
@@ -324,6 +370,10 @@ public class MethodDefinition {
                 case Format3rms:
                     instructions.add(new Instruction3rmsMethodItem(codeItem, offset, stg,
                             (Instruction3rms)instruction));
+                    return;
+                case Format3rmsf:
+                    instructions.add(new Instruction3rmsfMethodItem(codeItem, offset, stg,
+                            (Instruction3rmsf)instruction));
                     return;
                 case Format51l:
                     instructions.add(new Instruction51lMethodItem(codeItem, offset, stg, (Instruction51l)instruction));

@@ -30,10 +30,11 @@ package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.Output;
 
-public class Instruction10t extends Instruction {
+public class Instruction10t extends Instruction implements OffsetInstruction {
     public static final InstructionFactory Factory = new Factory();
 
     public static void emit(Output out, Opcode opcode, byte offA) {
@@ -57,7 +58,7 @@ public class Instruction10t extends Instruction {
         return Format.Format10t;
     }
 
-    public byte getOffset() {
+    public int getOffset() {
         return buffer[bufferIndex + 1];
     }
 

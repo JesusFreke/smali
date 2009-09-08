@@ -166,10 +166,17 @@ public class DexFile
      */
     private final DexFile dexFile = this;
 
+    /**
+     * Is this file an odex file? This is only set when reading in an odex file
+     */
+    private boolean isOdex = false;
+
 
     private int dataOffset;
     private int dataSize;
     private int fileSize;
+
+    private boolean disableInterning = false;
 
 
     /**
@@ -278,7 +285,7 @@ public class DexFile
         }
 
         boolean isDex = true;
-        boolean isOdex = true;
+        this.isOdex = true;
         for (int i=0; i<8; i++) {
             if (magic[i] != dexMagic[i]) {
                 isDex = false;
@@ -399,6 +406,30 @@ public class DexFile
      */
     public void setSortAllItems(boolean value) {
         this.sortAllItems = value;
+    }
+
+    /**
+     * Disables adding new items to this dex file. The various getInterned*() type
+     * methods on individual items will return null if there isn't an existing item
+     * that matches  
+     */
+    public void disableInterning() {
+        this.disableInterning = true; 
+    }
+
+    /**
+     * @return a boolean value indicating whether interning new items has been disabled
+     * for this dex file
+     */
+    public boolean getInterningDisabled() {
+        return disableInterning;
+    }
+
+    /**
+     * @return a boolean value indicating whether this dex file was created by reading in an odex file
+     */
+    public boolean isOdex() {
+        return this.isOdex;
     }
 
     /**

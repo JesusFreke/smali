@@ -26,23 +26,33 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.dexlib.Code.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.Code.Format.Instruction21c;
-import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.Opcode;
 
-public class Instruction21cMethodItem extends InstructionFormatMethodItem<Instruction21c> {
-    public Instruction21cMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction21c instruction) {
-        super(codeItem, offset, stg, instruction);
+/**
+ * This represents a "fixed" Format22cs instruction, where the object register is always null and so the correct type
+ * can't be determined. How this is handled is "implementation dependent". baksmali just replaces it with a call to
+ * object->hashCode(). Since the object register is always null, this will have the same effect as tring to access
+ * whatever field that was trying to be accessed - namely, a NPE
+ */
+public class Instruction22csn extends Instruction {
+
+    /**
+     * this is the first register, i.e. the object register. The others don't matter, because we don't know what
+     * the original field is/was.
+     */
+    public final int RegisterNum;
+
+    public Instruction22csn(int registerNum) {
+        //the opcode should be ignored. It just needs to be a 4 byte opcode
+        super(Opcode.IGET_QUICK);
+        this.RegisterNum = registerNum;
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
-                instruction.getReferencedItem()));
-        template.setAttribute("Register", formatRegister(instruction.getRegisterA()));
+
+    public Format getFormat() {
+        return Format.Format35msn;
     }
 }

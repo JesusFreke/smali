@@ -35,15 +35,22 @@ import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.StringIdItem;
+import org.jf.dexlib.Util.Deodexerant;
+import org.jf.dexlib.Util.DeodexUtil;
 
 import java.io.*;
 
 public class baksmali {
     public static boolean noParameterRegisters = false;
+    public static DeodexUtil deodexUtil = null;
 
-    public static void disassembleDexFile(DexFile dexFile, String outputDirectory, boolean noParameterRegisters)
+    public static void disassembleDexFile(DexFile dexFile, Deodexerant deodexerant, String outputDirectory,
+                                          boolean noParameterRegisters)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
+        if (deodexerant != null) {
+            baksmali.deodexUtil = new DeodexUtil(deodexerant);
+        }
         
         File outputDirectoryFile = new File(outputDirectory);
         if (!outputDirectoryFile.exists()) {
@@ -75,6 +82,9 @@ public class baksmali {
              */
 
             String classDescriptor = classDefItem.getClassType().getTypeDescriptor();
+
+            //TODO: GROT
+            System.out.println(classDescriptor);
 
             //validate that the descriptor is formatted like we expect
             if (classDescriptor.charAt(0) != 'L' ||

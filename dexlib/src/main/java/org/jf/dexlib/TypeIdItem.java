@@ -77,7 +77,11 @@ public class TypeIdItem extends Item<TypeIdItem> {
      * the given <code>DexFile</code>
      */
     public static TypeIdItem getInternedTypeIdItem(DexFile dexFile, String typeDescriptor) {
-        TypeIdItem typeIdItem = new TypeIdItem(dexFile, StringIdItem.getInternedStringIdItem(dexFile, typeDescriptor));
+        StringIdItem stringIdItem = StringIdItem.getInternedStringIdItem(dexFile, typeDescriptor);
+        if (stringIdItem == null) {
+            return null;
+        }
+        TypeIdItem typeIdItem = new TypeIdItem(dexFile, stringIdItem);
         return dexFile.TypeIdsSection.intern(typeIdItem);
     }
 

@@ -28,21 +28,28 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.Code.Format.Instruction21c;
+import org.jf.dexlib.Code.Format.Instruction3rc;
+import org.jf.dexlib.Code.Format.Instruction3rmsf;
 import org.jf.dexlib.CodeItem;
+import org.jf.baksmali.Adaptors.Reference.Reference;
+import org.jf.baksmali.Adaptors.RegisterFormatter;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public class Instruction21cMethodItem extends InstructionFormatMethodItem<Instruction21c> {
-    public Instruction21cMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction21c instruction) {
+public class Instruction3rmsfMethodItem extends InstructionFormatMethodItem<Instruction3rmsf> {
+    public Instruction3rmsfMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                    Instruction3rmsf instruction) {
         super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
                 instruction.getReferencedItem()));
-        template.setAttribute("Register", formatRegister(instruction.getRegisterA()));
+
+        String[] registers = RegisterFormatter.formatFormat3rcRegisters(codeItem, instruction.getStartRegister(),
+                instruction.getStartRegister() + instruction.getRegCount() - 1);
+
+        template.setAttribute("StartRegister", registers[0]);
+        template.setAttribute("LastRegister", registers[1]);
     }
 }

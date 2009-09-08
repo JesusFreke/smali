@@ -40,7 +40,7 @@ public class Instruction11xMethodItem extends InstructionFormatMethodItem<Instru
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Register", formatRegister(instruction.getRegister()));
+        template.setAttribute("Register", formatRegister(instruction.getRegisterA()));
     }
 }
 

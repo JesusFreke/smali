@@ -26,23 +26,46 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.dexlib.Code.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.baksmali.Adaptors.Reference.Reference;
-import org.jf.dexlib.Code.Format.Instruction21c;
-import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.InstructionWithReference;
+import org.jf.dexlib.MethodIdItem;
 
-public class Instruction21cMethodItem extends InstructionFormatMethodItem<Instruction21c> {
-    public Instruction21cMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction21c instruction) {
-        super(codeItem, offset, stg, instruction);
+public class Instruction35msf extends InstructionWithReference {
+    private final Instruction35ms unfixedInstruction;
+
+    public Instruction35msf(Opcode opcode, Instruction35ms unfixedInstruction, MethodIdItem method) {
+        //the opcode should be the "fixed" opcode. i.e. iget-object, etc. (NOT the "quick" version)
+        super(opcode, method);
+        this.unfixedInstruction = unfixedInstruction;
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
-                instruction.getReferencedItem()));
-        template.setAttribute("Register", formatRegister(instruction.getRegisterA()));
+    public Format getFormat() {
+        return Format.Format35msf;
+    }
+
+    public int getRegisterA() {
+        return unfixedInstruction.getRegisterA();
+    }
+
+    public byte getRegCount() {
+        return unfixedInstruction.getRegCount();
+    }
+
+    public byte getRegisterD() {
+        return unfixedInstruction.getRegisterD();
+    }
+
+    public byte getRegisterE() {
+        return unfixedInstruction.getRegisterE();
+    }
+
+    public byte getRegisterF() {
+        return unfixedInstruction.getRegisterF();
+    }
+
+    public byte getRegisterG() {
+        return unfixedInstruction.getRegisterG();
     }
 }

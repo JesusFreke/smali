@@ -28,16 +28,14 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Code.InstructionReader;
-import org.jf.dexlib.Code.InstructionIterator;
-import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Code.InstructionWriter;
+import org.jf.dexlib.Code.*;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.SparseArray;
 import org.jf.dexlib.Util.Leb128Utils;
 
 import java.util.List;
+import java.util.LinkedList;
 
 public class CodeItem extends Item<CodeItem> {
     private int registerCount;
@@ -359,6 +357,13 @@ public class CodeItem extends Item<CodeItem> {
     }
 
     /**
+     * @return an array of the <code>EncodedCatchHandler</code> objects in this <code>CodeItem</code>
+     */
+    public EncodedCatchHandler[] getHandlers() {
+        return encodedCatchHandlers;
+    }
+
+    /**
      * @return the <code>DebugInfoItem</code> associated with this <code>CodeItem</code>
      */
     public DebugInfoItem getDebugInfo() {
@@ -379,6 +384,28 @@ public class CodeItem extends Item<CodeItem> {
      */
     public ClassDataItem.EncodedMethod getParent() {
         return parent;
+    }
+
+    /**
+     * Used by OdexUtil to update this <code>CodeItem</code> with a deodexed version of the instructions
+     * @param newEncodedInstructions
+     */
+    public void updateCode(byte[] newEncodedInstructions) {
+        final LinkedList<Item> referencedItemsList = new LinkedList<Item>();
+
+
+        InstructionIterator.IterateInstructions(dexFile, newEncodedInstructions,
+                new InstructionIterator.ProcessInstructionDelegate() {
+                    public void ProcessInstruction(int index, Instruction instruction) {
+                        if (instruction.opcode.referenceType != ReferenceType.none) {
+                            referencedItemsList.add(((InstructionWithReference)instruction).getReferencedItem());
+                        }
+                    }
+                });
+
+        referencedItems = new Item[referencedItemsList.size()];
+        referencedItemsList.toArray(referencedItems);
+        encodedInstructions = newEncodedInstructions;
     }
 
     public static class TryItem {
