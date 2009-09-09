@@ -225,7 +225,6 @@ public class DeodexUtil {
         List<Instruction> instructions = new ArrayList<Instruction>(insns.size());
         for (insn i: insns) {
             if (i.instruction.opcode.odexOnly) {
-                //TODO: could probably get rid of insn.fixed
                 assert i.fixedInstruction != null;
                 instructions.add(i.fixedInstruction);
             } else {
