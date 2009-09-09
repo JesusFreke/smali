@@ -204,10 +204,9 @@ public class DeodexUtil {
             didSomething = false;
             somethingLeftToDo = false;
             for (insn i: insns) {
-                if (i.instruction.opcode.odexOnly && !i.fixed) {
+                if (i.instruction.opcode.odexOnly && i.fixedInstruction == null) {
                     if (deodexInstruction(i, offset, encodedInstructions)) {
                         didSomething = true;
-                        i.fixed = true;
                     } else {
                         somethingLeftToDo = true;
                     }
@@ -227,7 +226,6 @@ public class DeodexUtil {
         for (insn i: insns) {
             if (i.instruction.opcode.odexOnly) {
                 //TODO: could probably get rid of insn.fixed
-                assert i.fixed;
                 assert i.fixedInstruction != null;
                 instructions.add(i.fixedInstruction);
             } else {
@@ -764,40 +762,18 @@ public class DeodexUtil {
         Reference,
         Conflicted;
 
-        //TODO: make a table lookup for this
+        private static RegisterType[][] mergeTable  =
+                {
+                       //Unknown        Null            Nonreference    Reference   Conflicted  
+                        {Unknown,       Null,           NonReference,   Reference,  Conflicted}, //Unknown
+                        {Null,          Null,           NonReference,   Reference,  Conflicted}, //Null
+                        {NonReference,  NonReference,   NonReference,   Conflicted, Conflicted}, //NonReference
+                        {Reference,     Reference,      Conflicted,     Reference,  Conflicted}, //Referenced
+                        {Conflicted,    Conflicted,     Conflicted,     Conflicted, Conflicted}, //Conflicted
+                };
+
         public static RegisterType mergeRegisterTypes(RegisterType type1, RegisterType type2) {
-            if (type1 == type2) {
-                return type1;
-            }
-            if (type1 == Conflicted || type2 == Conflicted) {
-                return Conflicted;
-            }
-            
-            if (type1 == Unknown) {
-                return type2;
-            }
-
-            if (type2 == Unknown) {
-                return type1;
-            }
-
-            if (type1 == Null) {
-                if (type2 == Reference || type2 == NonReference) {
-                    return type2;
-                }
-            }
-            if (type2 == Null) {
-                if (type1 == Reference || type1 == NonReference) {
-                    return type1;
-                }
-            }
-
-            if ((type1 == Reference && type2 == NonReference) || (type1 == NonReference && type2 == Reference)) {
-                return Conflicted;
-            }
-
-            assert false;
-            return null;
+            return mergeTable[type1.ordinal()][type2.ordinal()];
         }
     }
 
