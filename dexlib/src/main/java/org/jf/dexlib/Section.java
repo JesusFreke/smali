@@ -52,7 +52,7 @@ public abstract class Section<T extends Item> {
     /**
      * The offset of this section within the <code>DexFile</code>
      */
-    protected int offset = -1;
+    protected int offset = 0;
 
     /**
      * The type of item that this section holds
@@ -93,7 +93,7 @@ public abstract class Section<T extends Item> {
                 offset = item.placeAt(offset, i);
             }
         } else {
-            this.offset = -1;
+            this.offset = 0;
         }
 
         return offset;

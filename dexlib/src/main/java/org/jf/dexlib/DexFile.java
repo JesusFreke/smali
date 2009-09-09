@@ -497,7 +497,7 @@ public class DexFile
         int sectionCount = 0;
 
         for (Section section: sectionsByType) {
-            if (section != null && (section.ItemType.isIndexedItem() || section.getItems().size() > 0)) {
+            if (section != null && section.getItems().size() > 0) {
                 sectionCount++;
             }
         }
@@ -505,7 +505,7 @@ public class DexFile
         Section[] sections = new Section[sectionCount];
         sectionCount = 0;
         for (Section section: sectionsByType) {
-            if (section != null && (section.ItemType.isIndexedItem() || section.getItems().size() > 0)) {
+            if (section != null && section.getItems().size() > 0) {
                 sections[sectionCount++] = section;
             }
         }
