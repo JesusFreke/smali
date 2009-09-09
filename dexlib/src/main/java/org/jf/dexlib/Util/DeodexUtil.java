@@ -140,7 +140,7 @@ public class DeodexUtil {
     private List<insn> makeInsnList(final CodeItem codeItem) {
 
         final ArrayList<insn> insns = new ArrayList<insn>();
-        final HashMap<Integer, insn> insnsMap = new HashMap<Integer, insn>();
+        final SparseArray<insn> insnsMap = new SparseArray<insn>();
 
         byte[] encodedInstructions = codeItem.getEncodedInstructions().clone();
 
@@ -149,7 +149,7 @@ public class DeodexUtil {
             public void ProcessInstruction(int index, Instruction instruction) {
                 insn i = new insn(codeItem, instruction, insnsMap, index/2);
                 insns.add(i);
-                insnsMap.put(index/2, i);
+                insnsMap.append(index/2, i);
             }
         });
 
@@ -793,11 +793,11 @@ public class DeodexUtil {
          * True if this instruction can throw an exception
          */
         public final boolean canThrow;
-        //TODO: ugh, boxed Integers. need to find/write a primitive integer hash map
+
         /**
          * maps an instruction stream offset to an insn
          */
-        public final HashMap<Integer, insn> insnsMap;
+        public final SparseArray<insn> insnsMap;
 
         /**
          * Instructions that can execution could pass on to next 
@@ -857,7 +857,7 @@ public class DeodexUtil {
         public final RegisterType[] registerMap;
         public final TypeIdItem[] registerTypes;
 
-        public insn(CodeItem codeItem, Instruction instruction, HashMap<Integer, insn> insnsMap, int offset) {
+        public insn(CodeItem codeItem, Instruction instruction, SparseArray<insn> insnsMap, int offset) {
             this.codeItem = codeItem;
             this.instruction = instruction;
             this.offset = offset;
@@ -1323,8 +1323,6 @@ public class DeodexUtil {
             
             if (exceptionHandlers != null && canThrow) {
                 for (insn handlerinsn: exceptionHandlers) {
-                    //TODO: we should be able to copy the register map info from this instruction, recursively
-                    //if needed, i.e. if the first instruction in a handler is also covered by a try block
                     handlerinsn.initializeRegistersFromParams();
                 }
             }
