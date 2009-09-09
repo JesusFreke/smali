@@ -1355,9 +1355,6 @@ public class DeodexUtil {
         public void updateRegisterReferenceType(TypeIdItem type) {
             this.registerReferenceType = type;
             this.propogateRegisters();
-            //TODO: need to handle the case when propogating the registers causes a change in a register that would
-            //change the result of a previously deodexed instruction. maybe just set fixed to false, and make
-            //sure to re-iterate over them?
         }
 
         public void propogateRegisters() {
