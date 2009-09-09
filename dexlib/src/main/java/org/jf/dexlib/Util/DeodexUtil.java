@@ -195,26 +195,21 @@ public class DeodexUtil {
     public List<Instruction> deodexerizeCode(CodeItem codeItem) {
         List<insn> insns = makeInsnList(codeItem);
 
-        byte[] encodedInstructions = codeItem.getEncodedInstructions().clone();
-
         boolean didSomething;
         boolean somethingLeftToDo;
         do {
-            int offset = 0;
             didSomething = false;
             somethingLeftToDo = false;
             for (insn i: insns) {
                 if (i.instruction.opcode.odexOnly && i.fixedInstruction == null) {
-                    if (deodexInstruction(i, offset, encodedInstructions)) {
+                    if (deodexInstruction(i)) {
                         didSomething = true;
                     } else {
                         somethingLeftToDo = true;
                     }
                 }
-
-                offset += i.instruction.getSize()/2;
             }
-        } while (didSomething && somethingLeftToDo);
+        } while (didSomething);
         if (somethingLeftToDo) {
             System.err.println("warning: could not fully deodex the method " +
                     codeItem.getParent().method.getContainingClass().getTypeDescriptor() + "->" +
@@ -234,7 +229,7 @@ public class DeodexUtil {
         return instructions;
     }
 
-    private boolean deodexInstruction(insn i, int offset, byte[] encodedInstructions) {
+    private boolean deodexInstruction(insn i) {
         switch (i.instruction.opcode) {
             case INVOKE_EXECUTE_INLINE:
             {
@@ -838,6 +833,12 @@ public class DeodexUtil {
          */
         public Instruction fixedInstruction;
 
+        /**
+         * This is only used for odexed instructions, and should contain the register num of the object reference
+         * that the instruction acts on. More specifically, it's only for odexed instructions that require the
+         * type of the object register in order to look up the correct information. 
+         */
+        public int objectRegisterNum = -1;
 
         /**
          * Whether this instruction can be the first instruction to successfully execute. This could be the first
@@ -863,6 +864,29 @@ public class DeodexUtil {
             this.offset = offset;
             this.canThrow = DeodexUtil.instructionThrowTable.get(instruction.opcode.value & 0xFF);
             this.insnsMap = insnsMap;
+
+            if (instruction.opcode.odexOnly) {
+                switch (instruction.opcode) {
+                    case IGET_QUICK:
+                    case IGET_WIDE_QUICK:
+                    case IGET_OBJECT_QUICK:
+                    case IPUT_QUICK:
+                    case IPUT_WIDE_QUICK:
+                    case IPUT_OBJECT_QUICK:
+                        objectRegisterNum = ((Instruction22cs)instruction).getRegisterB();
+                        break;
+                    case INVOKE_VIRTUAL_QUICK:
+                    case INVOKE_SUPER_QUICK:
+                        objectRegisterNum = ((Instruction35ms)instruction).getRegisterD();
+                        break;
+                    case INVOKE_VIRTUAL_RANGE_QUICK:
+                    case INVOKE_SUPER_RANGE_QUICK:
+                        objectRegisterNum = ((Instruction3rms)instruction).getStartRegister();
+                        break;
+                    default:
+                        break;
+                }
+            }
 
             registerMap = new RegisterType[codeItem.getRegisterCount()];
             registerTypes = new TypeIdItem[codeItem.getRegisterCount()];
@@ -1348,6 +1372,13 @@ public class DeodexUtil {
                 }
             }
 
+            //if the next instruction is an odexed instruction and requires the type of it's object
+            //register to figure out the correct method/field to use, then objectRegisterNum will
+            //be set to the register number containing the object reference that it uses.
+            //if that instruction has already been fixed, but we have newer information and update
+            //the register type, we need to clear out the fixed instruction, so it gets re-fixed,
+            //with the new register information
+
             for (insn nextInsn: successors) {
                 boolean somethingChanged = false;
 
@@ -1367,6 +1398,10 @@ public class DeodexUtil {
                             TypeIdItem regReferenceType = findCommonSuperclass(registerTypes[i],
                                     nextInsn.registerTypes[i]);
                             if (regReferenceType != nextInsn.registerTypes[i]) {
+                                //see comment above for loop
+                                if (i == nextInsn.objectRegisterNum) {
+                                    nextInsn.fixedInstruction = null;
+                                }
                                 somethingChanged = true;
                                 nextInsn.registerTypes[i] = regReferenceType;
                             }
@@ -1382,12 +1417,22 @@ public class DeodexUtil {
                     if (registerType == RegisterType.Reference) {
                         if (registerReferenceType != null) {
                             if (nextInsn.registerTypes[registerNum] != registerReferenceType) {
+                                //see comment above for loop
+                                if (registerNum == nextInsn.objectRegisterNum) {
+                                    nextInsn.fixedInstruction = null;
+                                }
+                                
                                 somethingChanged = true;
                                 nextInsn.registerTypes[registerNum] = registerReferenceType;
                             }
                         } else {
                             TypeIdItem type = destRegisterType();
                             if (type != nextInsn.registerTypes[registerNum]) {
+                                //see comment above for loop
+                                if (registerNum == nextInsn.objectRegisterNum) {
+                                    nextInsn.fixedInstruction = null;
+                                }
+                                
                                 somethingChanged = true;
                                 nextInsn.registerTypes[registerNum] = type;
                             }
