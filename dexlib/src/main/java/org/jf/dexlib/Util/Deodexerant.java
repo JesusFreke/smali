@@ -45,7 +45,7 @@ public class Deodexerant {
     private final String host;
     private final int port;
 
-    private final HashMap<TypeIdItem, ClassData> vtableMap = new HashMap<TypeIdItem, ClassData>();
+    private final HashMap<String, ClassData> vtableMap = new HashMap<String, ClassData>();
     private final HashMap<CommonSuperclassLookup, String> cachedCommonSuperclassLookup =
             new HashMap<CommonSuperclassLookup, String>();
     private InlineMethod[] inlineMethods;
@@ -101,13 +101,7 @@ public class Deodexerant {
             String methodParams = m.group(3);
             String methodRet = m.group(4);
 
-            TypeIdItem classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, classType);
-            if (classTypeItem == null) {
-                inlineMethods[i] = null;
-                continue;
-            }
-
-            MethodIdItem method = parseAndResolveMethod(classTypeItem, methodName, methodParams, methodRet);
+            MethodIdItem method = parseAndResolveMethod(classType, methodName, methodParams, methodRet);
             if (method == null) {
                 inlineMethods[i] = null;
                 continue;
@@ -129,13 +123,26 @@ public class Deodexerant {
         return inlineMethods[inlineMethodIndex];
     }
 
-    public FieldIdItem lookupField(TypeIdItem type, int fieldOffset) {
-        ClassData classData = getClassData(type);
+    private TypeIdItem resolveTypeOrSupertype(String type) {
+        TypeIdItem typeItem = TypeIdItem.getInternedTypeIdItem(dexFile, type);
 
+        while (typeItem == null) {
+            type = lookupSuperclass(type);
+            if (type == null) {
+                throw new RuntimeException("Could not find the type or a supertype of " + type + " in the dex file");
+            }
+
+            typeItem = TypeIdItem.getInternedTypeIdItem(dexFile, type);            
+        }
+        return typeItem;
+    }
+
+    public FieldIdItem lookupField(String type, int fieldOffset) {
+        ClassData classData = getClassData(type);
         return classData.lookupField(fieldOffset);
     }
 
-    private ClassData getClassData(TypeIdItem type) {
+    private ClassData getClassData(String type) {
         ClassData classData = vtableMap.get(type);
         if (classData == null) {
             classData = new ClassData(type);
@@ -144,22 +151,12 @@ public class Deodexerant {
         return classData;
     }
 
-    public MethodIdItem lookupVirtualMethod(TypeIdItem type, int methodIndex, boolean lookupSuper) {
+    public MethodIdItem lookupVirtualMethod(String classType, int methodIndex, boolean lookupSuper) {
         if (lookupSuper) {
-            String classType = type.getTypeDescriptor();
-
-            do
-            {
-                classType = lookupSuperclass(type.getTypeDescriptor());
-                if (classType == null) {
-                    throw new RuntimeException("Could not find any superclass for type " + type.getTypeDescriptor() +
-                            " in the dex file");
-                }
-                type = TypeIdItem.getInternedTypeIdItem(dexFile, classType);
-            } while (type == null);
+            classType = lookupSuperclass(classType);
         }
 
-        ClassData classData = getClassData(type);
+        ClassData classData = getClassData(classType);
 
         return classData.lookupMethod(methodIndex);
     }
@@ -260,8 +257,10 @@ public class Deodexerant {
         }
     }
 
-    private MethodIdItem parseAndResolveMethod(TypeIdItem classType, String methodName, String methodParams,
+    private MethodIdItem parseAndResolveMethod(String classType, String methodName, String methodParams,
                                                String methodRet) {
+        TypeIdItem classTypeItem = resolveTypeOrSupertype(classType);
+        
         StringIdItem methodNameItem = StringIdItem.getInternedStringIdItem(dexFile, methodName);
         if (methodNameItem == null) {
             return null;
@@ -347,17 +346,17 @@ public class Deodexerant {
         MethodIdItem methodIdItem;
 
         do {
-            methodIdItem = MethodIdItem.getInternedMethodIdItem(dexFile, classType, protoItem, methodNameItem);
+            methodIdItem = MethodIdItem.getInternedMethodIdItem(dexFile, classTypeItem, protoItem, methodNameItem);
             if (methodIdItem != null) {
                 return methodIdItem;
             }
 
-            String superclassDescriptor = lookupSuperclass(classType.getTypeDescriptor());
-            classType = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
+            String superclassDescriptor = lookupSuperclass(classTypeItem.getTypeDescriptor());
+            classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
 
-            while (classType == null && superclassDescriptor != null) {
+            while (classTypeItem == null && superclassDescriptor != null) {
                 superclassDescriptor = lookupSuperclass(superclassDescriptor);
-                classType = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
+                classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
             }
         } while (classType != null);
         throw new RuntimeException("Could not find method in dex file");
@@ -368,13 +367,14 @@ public class Deodexerant {
     //private static final Pattern fieldPattern = Pattern.compile("(\\[*L[^;]+;)->([^:]+):(.+)");
 
 
-    private FieldIdItem parseAndResolveField(TypeIdItem classType, String field) {
+    private FieldIdItem parseAndResolveField(String classType, String field) {
         //expecting a string like someField:Lfield/type;
         String[] parts = field.split(":");
         if (parts.length != 2) {
             throw new RuntimeException("Invalid field descriptor " + field);
         }
 
+        TypeIdItem classTypeItem = resolveTypeOrSupertype(classType);
         String fieldName = parts[0];
         String fieldType = parts[1];
 
@@ -391,17 +391,17 @@ public class Deodexerant {
         FieldIdItem fieldIdItem;
 
         do {
-            fieldIdItem = FieldIdItem.getInternedFieldIdItem(dexFile, classType, fieldTypeItem, fieldNameItem);
+            fieldIdItem = FieldIdItem.getInternedFieldIdItem(dexFile, classTypeItem, fieldTypeItem, fieldNameItem);
             if (fieldIdItem != null) {
                 return fieldIdItem;
             }
 
-            String superclassDescriptor = lookupSuperclass(classType.getTypeDescriptor());
-            classType = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
+            String superclassDescriptor = lookupSuperclass(classTypeItem.getTypeDescriptor());
+            classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
 
-            while (classType == null && superclassDescriptor != null) {
+            while (classTypeItem == null && superclassDescriptor != null) {
                 superclassDescriptor = lookupSuperclass(superclassDescriptor);
-                classType = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
+                classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
             }
 
         } while (classType != null);
@@ -434,7 +434,7 @@ public class Deodexerant {
 
 
     private class ClassData {
-        private final TypeIdItem ClassType;
+        private final String ClassType;
 
         private boolean vtableLoaded = false;
         private String[] methodNames;
@@ -447,7 +447,7 @@ public class Deodexerant {
         private SparseArray<FieldIdItem> resolvedFields;
 
 
-        public ClassData(TypeIdItem classType) {
+        public ClassData(String classType) {
             this.ClassType = classType;
         }
 
@@ -487,7 +487,7 @@ public class Deodexerant {
         }
 
         private void loadvtable() {
-            List<String> responseLines = sendMultilineCommand("V " + ClassType.getTypeDescriptor());
+            List<String> responseLines = sendMultilineCommand("V " + ClassType);
 
             methodNames = new String[responseLines.size()];
             methodParams = new String[responseLines.size()];
@@ -516,7 +516,7 @@ public class Deodexerant {
         }
 
         private void loadFields() {
-            List<String> responseLines = sendMultilineCommand("F " + ClassType.getTypeDescriptor());
+            List<String> responseLines = sendMultilineCommand("F " + ClassType);
 
             instanceFields = new SparseArray<String>(responseLines.size());
             resolvedFields = new SparseArray<FieldIdItem>(responseLines.size());

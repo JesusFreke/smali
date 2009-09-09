@@ -262,7 +262,8 @@ public class DeodexUtil {
                 insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
-                    nextInstruction.registerReferenceType = inlineMethod.methodIdItem.getPrototype().getReturnType();
+                    nextInstruction.registerReferenceType =
+                            inlineMethod.methodIdItem.getPrototype().getReturnType().getTypeDescriptor();
                 }
                 
                 return true;
@@ -296,7 +297,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -304,7 +305,7 @@ public class DeodexUtil {
                 FieldIdItem field = deodexerant.lookupField(type, ins.getFieldOffset());
                 if (field == null) {
                     throw new RuntimeException("Could not find the field with offset " + ins.getFieldOffset() +
-                            " for class: " + type.getTypeDescriptor());
+                            " for class: " + type);
                 }
                 String fieldType = field.getFieldType().getTypeDescriptor();
 
@@ -358,7 +359,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -366,7 +367,7 @@ public class DeodexUtil {
                 FieldIdItem field = deodexerant.lookupField(type, ins.getFieldOffset());
                 if (field == null) {
                     throw new RuntimeException("Could not find the field with offset " + ins.getFieldOffset() +
-                            " for class: " + type.getTypeDescriptor());
+                            " for class: " + type);
                 }
 
                 assert field.getFieldType().getTypeDescriptor().charAt(0) == 'J' ||
@@ -399,7 +400,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -407,7 +408,7 @@ public class DeodexUtil {
                 FieldIdItem field = deodexerant.lookupField(type, ins.getFieldOffset());
                 if (field == null) {
                     throw new RuntimeException("Could not find the field with offset " + ins.getFieldOffset() +
-                            " for class: " + type.getTypeDescriptor());
+                            " for class: " + type);
                 }
 
                 assert field.getFieldType().getTypeDescriptor().charAt(0) == 'L' ||
@@ -415,7 +416,7 @@ public class DeodexUtil {
 
                 i.fixedInstruction = new Instruction22csf(Opcode.IGET_OBJECT, (Instruction22cs)i.instruction, field);
 
-                i.updateRegisterReferenceType(field.getFieldType());
+                i.updateRegisterReferenceType(field.getFieldType().getTypeDescriptor());
                 return true;
             }
             case IPUT_QUICK:
@@ -442,7 +443,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -450,7 +451,7 @@ public class DeodexUtil {
                 FieldIdItem field = deodexerant.lookupField(type, ins.getFieldOffset());
                 if (field == null) {
                     throw new RuntimeException("Could not find the field with offset " + ins.getFieldOffset() +
-                            " for class: " + type.getTypeDescriptor());
+                            " for class: " + type);
                 }
                 String fieldType = field.getFieldType().getTypeDescriptor();
 
@@ -504,7 +505,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -512,7 +513,7 @@ public class DeodexUtil {
                 FieldIdItem field = deodexerant.lookupField(type, ins.getFieldOffset());
                 if (field == null) {
                     throw new RuntimeException("Could not find the field with offset " + ins.getFieldOffset() +
-                            " for class: " + type.getTypeDescriptor());
+                            " for class: " + type);
                 }
 
                 assert field.getFieldType().getTypeDescriptor().charAt(0) == 'J' ||
@@ -546,7 +547,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -554,7 +555,7 @@ public class DeodexUtil {
                 FieldIdItem field = deodexerant.lookupField(type, ins.getFieldOffset());
                 if (field == null) {
                     throw new RuntimeException("Could not find the field with offset " + ins.getFieldOffset() +
-                            " for class: " + type.getTypeDescriptor());
+                            " for class: " + type);
                 }
 
                 assert field.getFieldType().getTypeDescriptor().charAt(0) == 'L' ||
@@ -588,7 +589,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -596,7 +597,7 @@ public class DeodexUtil {
                 MethodIdItem method = deodexerant.lookupVirtualMethod(type, ins.getMethodIndex(), false);
                 if (method == null) {
                     throw new RuntimeException("Could not find the virtual method with vtable index " +
-                            ins.getMethodIndex() + " for class: " + type.getTypeDescriptor());
+                            ins.getMethodIndex() + " for class: " + type);
                 }
 
                 i.fixedInstruction = new Instruction35msf(Opcode.INVOKE_VIRTUAL, (Instruction35ms)i.instruction,
@@ -605,7 +606,8 @@ public class DeodexUtil {
                 insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
-                    nextInstruction.updateRegisterReferenceType(method.getPrototype().getReturnType());
+                    nextInstruction.updateRegisterReferenceType(
+                            method.getPrototype().getReturnType().getTypeDescriptor());
                 }
                 return true;
             }
@@ -633,7 +635,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -641,7 +643,7 @@ public class DeodexUtil {
                 MethodIdItem method = deodexerant.lookupVirtualMethod(type, ins.getMethodIndex(), false);
                 if (method == null) {
                     throw new RuntimeException("Could not find the virtual method with vtable index " +
-                            ins.getMethodIndex() + " for class: " + type.getTypeDescriptor());
+                            ins.getMethodIndex() + " for class: " + type);
                 }
 
                 i.fixedInstruction = new Instruction3rmsf(Opcode.INVOKE_VIRTUAL_RANGE, (Instruction3rms)i.instruction,
@@ -650,7 +652,8 @@ public class DeodexUtil {
                 insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
-                    nextInstruction.updateRegisterReferenceType(method.getPrototype().getReturnType());
+                    nextInstruction.updateRegisterReferenceType(
+                            method.getPrototype().getReturnType().getTypeDescriptor());
                 }
                 return true;
             }
@@ -678,7 +681,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -686,7 +689,7 @@ public class DeodexUtil {
                 MethodIdItem method = deodexerant.lookupVirtualMethod(type, ins.getMethodIndex(), true);
                 if (method == null) {
                     throw new RuntimeException("Could not find the super method with vtable index " +
-                            ins.getMethodIndex() + " for class: " + type.getTypeDescriptor());
+                            ins.getMethodIndex() + " for class: " + type);
                 }
 
                 i.fixedInstruction = new Instruction35msf(Opcode.INVOKE_SUPER, (Instruction35ms)i.instruction,
@@ -695,7 +698,8 @@ public class DeodexUtil {
                 insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
-                    nextInstruction.updateRegisterReferenceType(method.getPrototype().getReturnType());
+                    nextInstruction.updateRegisterReferenceType(
+                            method.getPrototype().getReturnType().getTypeDescriptor());
                 }
                 return true;
             }
@@ -723,7 +727,7 @@ public class DeodexUtil {
                     return false;
                 }
 
-                TypeIdItem type = i.registerTypes[registerNum];
+                String type = i.registerTypes[registerNum];
                 if (type == null) {
                     return false;
                 }
@@ -731,7 +735,7 @@ public class DeodexUtil {
                 MethodIdItem method = deodexerant.lookupVirtualMethod(type, ins.getMethodIndex(), true);
                 if (method == null) {
                     throw new RuntimeException("Could not find the super method with vtable index " +
-                            ins.getMethodIndex() + " for class: " + type.getTypeDescriptor());
+                            ins.getMethodIndex() + " for class: " + type);
                 }
 
                 i.fixedInstruction = new Instruction3rmsf(Opcode.INVOKE_SUPER_RANGE, (Instruction3rms)i.instruction,
@@ -740,7 +744,8 @@ public class DeodexUtil {
                 insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
-                    nextInstruction.updateRegisterReferenceType(method.getPrototype().getReturnType());
+                    nextInstruction.updateRegisterReferenceType(
+                            method.getPrototype().getReturnType().getTypeDescriptor());
                 }
                 return true;
             }
@@ -826,7 +831,7 @@ public class DeodexUtil {
          * if setsRegister is true, and the register type is a reference, this is the
          * reference type of the register, or null if not known yet. 
          */
-        public TypeIdItem registerReferenceType;
+        public String registerReferenceType;
 
         /**
          * Stores a "fake" fixed instruction, which is included in the instruction list that deodexerizeCode produces  
@@ -856,7 +861,7 @@ public class DeodexUtil {
         public boolean fixed = false;
 
         public final RegisterType[] registerMap;
-        public final TypeIdItem[] registerTypes;
+        public final String[] registerTypes;
 
         public insn(CodeItem codeItem, Instruction instruction, SparseArray<insn> insnsMap, int offset) {
             this.codeItem = codeItem;
@@ -889,7 +894,7 @@ public class DeodexUtil {
             }
 
             registerMap = new RegisterType[codeItem.getRegisterCount()];
-            registerTypes = new TypeIdItem[codeItem.getRegisterCount()];
+            registerTypes = new String[codeItem.getRegisterCount()];
 
             for (int i=0; i<registerMap.length; i++) {
                 registerMap[i] = RegisterType.Unknown;
@@ -1112,12 +1117,11 @@ public class DeodexUtil {
                     registerType = RegisterType.Reference;
                     //typically, there will only be a single exception type for a particular handler block, so optimize
                     //the array size for that case, but support the case of multiple exception types as well
-                    List<TypeIdItem> exceptionTypes = new ArrayList<TypeIdItem>(1);
+                    List<String> exceptionTypes = new ArrayList<String>(1);
                     for (CodeItem.TryItem tryItem: codeItem.getTries()) {
                         if (tryItem.encodedCatchHandler.catchAllHandlerAddress == this.offset) {
                             //if this is a catch all handler, the only possible type is Ljava/lang/Throwable;
-                            registerReferenceType = TypeIdItem.getInternedTypeIdItem(codeItem.getDexFile(),
-                                    "Ljava/lang/Throwable;");
+                            registerReferenceType = "Ljava/lang/Throwable;";
 
                             //it's possible that Ljava/lang/Throwable; hasn't be interned into the dex file. since
                             //we've turned off interning for the current dex file, we will just get a null back.
@@ -1130,7 +1134,7 @@ public class DeodexUtil {
 
                         for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
                             if (handler.handlerAddress == this.offset) {
-                                exceptionTypes.add(handler.exceptionType);
+                                exceptionTypes.add(handler.exceptionType.getTypeDescriptor());
                             }
                         }
                     }
@@ -1174,8 +1178,7 @@ public class DeodexUtil {
                     setsRegister = true;
                     registerNum = ((SingleRegisterInstruction)instruction).getRegisterA();
                     registerType = RegisterType.Reference;
-                    registerReferenceType = TypeIdItem.getInternedTypeIdItem(this.codeItem.getDexFile(),
-                            "Ljava/lang/String;");
+                    registerReferenceType = "Ljava/lang/String;";
                     break;
                 }
                 case CONST_CLASS:
@@ -1183,8 +1186,7 @@ public class DeodexUtil {
                     setsRegister = true;
                     registerNum = ((SingleRegisterInstruction)instruction).getRegisterA();
                     registerType = RegisterType.Reference;
-                    registerReferenceType = TypeIdItem.getInternedTypeIdItem(this.codeItem.getDexFile(),
-                            "Ljava/lang/Class;");
+                    registerReferenceType = "Ljava/lang/Class;";
                     break;
                 }
                 case CHECK_CAST:
@@ -1194,7 +1196,8 @@ public class DeodexUtil {
                     setsRegister = true;
                     registerNum = ((SingleRegisterInstruction)instruction).getRegisterA();
                     registerType = RegisterType.Reference;
-                    registerReferenceType = (TypeIdItem)((InstructionWithReference)instruction).getReferencedItem();
+                    registerReferenceType =
+                         ((TypeIdItem)((InstructionWithReference)instruction).getReferencedItem()).getTypeDescriptor();
                     break;
                 }
                 case IGET_OBJECT:
@@ -1204,7 +1207,7 @@ public class DeodexUtil {
                     registerNum = ((SingleRegisterInstruction)instruction).getRegisterA();
                     registerType = RegisterType.Reference;
                     registerReferenceType = ((FieldIdItem)((InstructionWithReference)instruction).getReferencedItem())
-                            .getFieldType();
+                            .getFieldType().getTypeDescriptor();
                     break;
                 }
             }
@@ -1214,59 +1217,31 @@ public class DeodexUtil {
             addSuccessor(getInstructionAtOffset(offset + instruction.getSize()/2));
         }
 
-        private TypeIdItem findCommonSuperclass(TypeIdItem item1, TypeIdItem item2) {
-            if (item1 == item2) {
-                return item1;
+        private String findCommonSuperclass(String type1, String type2) {
+            if (type1 == null) {
+                return type2;
             }
-            if (item1 == null) {
-                return item2;
-            }
-            if (item2 == null) {
-                return item1;
-            }
-
-            String superclass =
-                    deodexerant.lookupCommonSuperclass(item1.getTypeDescriptor(), item2.getTypeDescriptor());
-
-            TypeIdItem superType = TypeIdItem.getInternedTypeIdItem(codeItem.getDexFile(), superclass);
-            //if the class isn't interned, let's see if we can find a superclass that is interned. This should be safe
-            //because there should be no fields or methods specific to this type being referenced.. otherwise it would
-            //already be interned
-            //TODO: array types need to be handled correctly
-            while (superType == null && superclass != null) {
-                superclass = deodexerant.lookupSuperclass(superclass);
-                if (superclass != null) {
-                    superType = TypeIdItem.getInternedTypeIdItem(codeItem.getDexFile(), superclass);
-                }
-            }
-            //we might not find anything. if so, just return null. This should be ok, due to the same reasoning as
-            //above
-            return superType;
-        }
-
-        private TypeIdItem findCommonSuperclass(List<TypeIdItem> exceptionTypes) {
-            assert exceptionTypes.size() > 1;
-
-            String superclass = exceptionTypes.get(0).getTypeDescriptor();
-
-            for (int i=1; i<exceptionTypes.size(); i++) {
-                superclass = deodexerant.lookupCommonSuperclass(superclass, exceptionTypes.get(i).getTypeDescriptor());
+            if (type2 == null) {
+                return type1;
             }
             
-            TypeIdItem superType = TypeIdItem.getInternedTypeIdItem(codeItem.getDexFile(), superclass);
-            //if the class isn't interned, let's see if we can find a superclass that is interned. This should be safe
-            //because there should be no fields or methods specific to this type being referenced.. otherwise it would
-            //already be interned
-            //TODO: array types need to be handled correctly
-            while (superType == null && superclass != null) {
-                superclass = deodexerant.lookupSuperclass(superclass);
-                if (superclass != null) {
-                    superType = TypeIdItem.getInternedTypeIdItem(codeItem.getDexFile(), superclass);
-                }
+            if (type1.equals(type2)) {
+                return type1;
             }
-            //we might not find anything. if so, just return null. This should be ok, due to the same reasoning as
-            //above
-            return superType;
+
+            return deodexerant.lookupCommonSuperclass(type1, type2);
+        }
+
+        private String findCommonSuperclass(List<String> exceptionTypes) {
+            assert exceptionTypes.size() > 1;
+
+            String supertype = exceptionTypes.get(0);
+
+            for (int i=1; i<exceptionTypes.size(); i++) {
+                supertype = deodexerant.lookupCommonSuperclass(supertype, exceptionTypes.get(i));
+            }
+
+            return supertype;
         }
 
         private void addSuccessor(insn i) {
@@ -1281,7 +1256,7 @@ public class DeodexUtil {
             }
         }
 
-        private TypeIdItem getReturnType(Instruction instruction) {
+        private String getReturnType(Instruction instruction) {
             switch (instruction.opcode) {
                 case INVOKE_DIRECT:
                 case INVOKE_INTERFACE:
@@ -1294,10 +1269,10 @@ public class DeodexUtil {
                 case INVOKE_SUPER_RANGE:
                 case INVOKE_VIRTUAL_RANGE:
                     return ((MethodIdItem)((InstructionWithReference)instruction).getReferencedItem()).getPrototype().
-                            getReturnType();
+                            getReturnType().getTypeDescriptor();
                 case FILLED_NEW_ARRAY:
                 case FILLED_NEW_ARRAY_RANGE:
-                    return (TypeIdItem)((InstructionWithReference)instruction).getReferencedItem();
+                    return ((TypeIdItem)((InstructionWithReference)instruction).getReferencedItem()).getTypeDescriptor();
             }
             return null;
         }
@@ -1312,7 +1287,7 @@ public class DeodexUtil {
             if ((codeItem.getParent().accessFlags & AccessFlags.STATIC.getValue()) == 0) {
                 int thisRegister = methodRegisters - paramRegisters - 1;
                 registerMap[thisRegister] = RegisterType.Reference;
-                registerTypes[thisRegister] = method.getContainingClass();
+                registerTypes[thisRegister] = method.getContainingClass().getTypeDescriptor();
             }
 
             int paramRegister = methodRegisters - paramRegisters;
@@ -1336,7 +1311,7 @@ public class DeodexUtil {
                         case 'L':
                         case '[':
                             registerMap[paramRegister] = RegisterType.Reference;
-                            registerTypes[paramRegister++] = paramType;
+                            registerTypes[paramRegister++] = paramType.getTypeDescriptor();
                             break;
                         default:
                             assert false;
@@ -1352,7 +1327,7 @@ public class DeodexUtil {
             }
         }
 
-        public void updateRegisterReferenceType(TypeIdItem type) {
+        public void updateRegisterReferenceType(String type) {
             this.registerReferenceType = type;
             this.propogateRegisters();
         }
@@ -1392,9 +1367,9 @@ public class DeodexUtil {
                             nextInsn.registerMap[i] = regType;
                         }
                         if (regType == RegisterType.Reference) {
-                            TypeIdItem regReferenceType = findCommonSuperclass(registerTypes[i],
+                            String regReferenceType = findCommonSuperclass(registerTypes[i],
                                     nextInsn.registerTypes[i]);
-                            if (regReferenceType != nextInsn.registerTypes[i]) {
+                            if (!regReferenceType.equals(nextInsn.registerTypes[i])) {
                                 //see comment above for loop
                                 if (i == nextInsn.objectRegisterNum) {
                                     nextInsn.fixedInstruction = null;
@@ -1413,7 +1388,7 @@ public class DeodexUtil {
                     }
                     if (registerType == RegisterType.Reference) {
                         if (registerReferenceType != null) {
-                            if (nextInsn.registerTypes[registerNum] != registerReferenceType) {
+                            if (!registerReferenceType.equals(nextInsn.registerTypes[registerNum])) {
                                 //see comment above for loop
                                 if (registerNum == nextInsn.objectRegisterNum) {
                                     nextInsn.fixedInstruction = null;
@@ -1423,8 +1398,11 @@ public class DeodexUtil {
                                 nextInsn.registerTypes[registerNum] = registerReferenceType;
                             }
                         } else {
-                            TypeIdItem type = destRegisterType();
-                            if (type != nextInsn.registerTypes[registerNum]) {
+                            String type = destRegisterType();
+                            String nextType = nextInsn.registerTypes[registerNum];
+
+                            if ((type == null && nextType == null) ||
+                                    !type.equals(nextInsn.registerTypes[registerNum])) {
                                 //see comment above for loop
                                 if (registerNum == nextInsn.objectRegisterNum) {
                                     nextInsn.fixedInstruction = null;
@@ -1450,7 +1428,7 @@ public class DeodexUtil {
             }
         }
 
-        private TypeIdItem destRegisterType() {
+        private String destRegisterType() {
             if (registerReferenceType != null) {
                 return registerReferenceType;
             }
@@ -1471,16 +1449,13 @@ public class DeodexUtil {
                     assert registerMap[registerNum] == RegisterType.Reference ||
                            registerMap[registerNum] == RegisterType.Null;
 
-                    TypeIdItem type = registerTypes[registerNum];
+                    String type = registerTypes[registerNum];
                     if (type == null) {
                         return null;
                     }
 
-                    String typeDescriptor = type.getTypeDescriptor();
-                    assert typeDescriptor.charAt(0) == '[';
-                    //TODO: probably need to try to lookup the supertype if not found 
-                    return TypeIdItem.getInternedTypeIdItem(codeItem.getDexFile(),
-                            typeDescriptor.substring(1));
+                    assert type.charAt(0) == '[';
+                    return type.substring(1);
                 }
                 case MOVE_RESULT_OBJECT:
                 case IGET_OBJECT_QUICK:
