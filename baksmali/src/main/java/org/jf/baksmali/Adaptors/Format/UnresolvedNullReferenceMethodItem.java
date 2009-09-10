@@ -28,18 +28,18 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.Instruction22csn;
+import org.jf.dexlib.Code.Format.UnresolvedNullReference;
 import org.jf.dexlib.CodeItem;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
-public class Instruction22csnMethodItem extends InstructionFormatMethodItem<Instruction22csn> {
-    public Instruction22csnMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction22csn instruction) {
+public class UnresolvedNullReferenceMethodItem extends InstructionFormatMethodItem<UnresolvedNullReference> {
+    public UnresolvedNullReferenceMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+                                    UnresolvedNullReference instruction) {
         super(codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Register", formatRegister(instruction.RegisterNum));
+        template.setAttribute("Register", formatRegister(instruction.ObjectRegisterNum));
     }
 }

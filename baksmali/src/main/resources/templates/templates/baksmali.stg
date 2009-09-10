@@ -198,12 +198,6 @@ Format22csf(Opcode, RegisterA, RegisterB, Reference) ::=
 <Opcode> <RegisterA>, <RegisterB>, <Reference>
 >>
 
-Format22csn(Opcode, Register) ::=
-<<
-#Couldn't determine the field while deodexing, replaced with generic method call
-invoke-virtual/range {<Register> .. <Register>}, Ljava/lang/Object;->hashCode()I
->>
-
 Format22s(Opcode, RegisterA, RegisterB, Literal) ::=
 <<
 <Opcode> <RegisterA>, <RegisterB>, <Literal>
@@ -274,12 +268,6 @@ Format35msf(Opcode, Registers, Reference) ::=
 <Opcode> {<Registers; separator=", ">}, <Reference>
 >>
 
-Format35msn(Opcode, Register) ::=
-<<
-#Couldn't determine method while deodexing, replaced with generic method call
-invoke-virtual/range {<Register> .. <Register>}, Ljava/lang/Object;->hashCode()I
->>
-
 Format3rc(Opcode, StartRegister, LastRegister, Reference) ::=
 <<
 <Opcode> {<StartRegister> .. <LastRegister>}, <Reference>
@@ -299,6 +287,21 @@ Format51l(Opcode, Register, Literal) ::=
 <<
 <Opcode> <Register>, <Literal>
 >>
+
+CommentedOutMethodItem(MethodItem) ::=
+<<
+#<MethodItem>
+>>
+
+UnresolvedNullReference(Opcode, Register) ::=
+<<
+#Couldn't resolve optimized instruction while deodexing, due to the object register
+#always being null. Replaced with generic method call
+invoke-virtual/range {<Register> .. <Register>}, Ljava/lang/Object;->hashCode()I
+goto/32 0
+>>
+
+
 
 ArrayData(Opcode, ElementWidth, Values) ::=
 <<
@@ -327,9 +330,9 @@ SparseSwitchData(Opcode, Targets) ::=
 >>
 
 
-Label(Prefix, HexOffset) ::=
+Label(Prefix, HexOffset, CommentedOut) ::=
 <<
-<Prefix><HexOffset>:
+<if(CommentedOut)>#<endif><Prefix><HexOffset>:
 >>
 
 Line(Line) ::=

@@ -34,7 +34,7 @@ public class EndTryLabelMethodItem extends LabelMethodItem {
     private int labelOffset;
 
     public EndTryLabelMethodItem(int offset, StringTemplateGroup stg, int labelOffset) {
-        super(offset, stg, "try_end_");
+        super(offset, stg, "try_end_", false);
         this.labelOffset = labelOffset;
     }
 

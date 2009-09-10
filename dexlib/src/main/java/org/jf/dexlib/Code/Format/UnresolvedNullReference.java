@@ -26,20 +26,33 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Format;
+package org.jf.dexlib.Code.Format;
 
-import org.jf.dexlib.Code.Format.Instruction35msn;
-import org.jf.dexlib.CodeItem;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
+import org.jf.dexlib.Code.Instruction;
 
-public class Instruction35msnMethodItem extends InstructionFormatMethodItem<Instruction35msn> {
-    public Instruction35msnMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction35msn instruction) {
-        super(codeItem, offset, stg, instruction);
+/**
+ * This represents a "fixed" odexed instruction, where the object register is always null and so the correct type
+ * can't be determined. How this is handled is "implementation dependent". baksmali just replaces it with a call to
+ * object->hashCode(). Since the object register is always null, this will have the same effect as tring to access
+ * whatever method/field that was trying to be accessed - namely, a NPE
+ */
+public class UnresolvedNullReference extends Instruction {
+    public final Instruction OriginalInstruction;
+    //the register number that holds the (null) reference type that the instruction operates on
+    public final int ObjectRegisterNum;
+
+    public UnresolvedNullReference(Instruction originalInstruction, int objectRegisterNumber) {
+        super(originalInstruction.opcode);
+        this.OriginalInstruction = originalInstruction;
+        this.ObjectRegisterNum = objectRegisterNumber;
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Register", formatRegister(instruction.RegisterNum));
+    @Override
+    public int getSize() {
+        return OriginalInstruction.getSize();
+    }
+
+    public Format getFormat() {
+        return Format.UnresolvedNullReference;
     }
 }

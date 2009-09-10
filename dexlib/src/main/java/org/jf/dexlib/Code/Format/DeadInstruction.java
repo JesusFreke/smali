@@ -29,30 +29,21 @@
 package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
-import org.jf.dexlib.Code.Opcode;
 
-/**
- * This represents a "fixed" Format22cs instruction, where the object register is always null and so the correct type
- * can't be determined. How this is handled is "implementation dependent". baksmali just replaces it with a call to
- * object->hashCode(). Since the object register is always null, this will have the same effect as tring to access
- * whatever field that was trying to be accessed - namely, a NPE
- */
-public class Instruction22csn extends Instruction {
+public class DeadInstruction extends Instruction {
+    public final Instruction OriginalInstruction;
 
-    /**
-     * this is the first register, i.e. the object register. The others don't matter, because we don't know what
-     * the original field is/was.
-     */
-    public final int RegisterNum;
-
-    public Instruction22csn(int registerNum) {
-        //the opcode should be ignored. It just needs to be a 4 byte opcode
-        super(Opcode.IGET_QUICK);
-        this.RegisterNum = registerNum;
+    public DeadInstruction(Instruction originalInstruction) {
+        super(originalInstruction.opcode);
+        this.OriginalInstruction = originalInstruction;
     }
 
+    @Override
+    public int getSize() {
+        return OriginalInstruction.getSize();
+    }
 
     public Format getFormat() {
-        return Format.Format35msn;
+        return Format.DeadInstruction;
     }
 }

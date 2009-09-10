@@ -26,32 +26,29 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib.Code.Format;
+package org.jf.baksmali.Adaptors;
 
-import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Code.Instruction;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
-/**
- * This represents a "fixed" Format35ms, or Format3rms instruction, where the object register is always null and so the
- * correct type can't be determined. How this is handled is "implementation dependent". baksmali just replaces it with
- * a call to object->hashCode(). Since the object register is always null, this will have the same effect as calling
- * whatever the original method was - namely, a NPE
- */
-public class Instruction35msn extends Instruction {
+public class CommentedOutMethodItem extends MethodItem {
+    private final StringTemplateGroup stg;
+    private final MethodItem commentedOutMethodItem;
 
-    /**
-     * this is the first register, i.e. the object register. The others don't matter, because we don't know what
-     * the original method call is/was. 
-     */
-    public final int RegisterNum;
-
-    public Instruction35msn(int registerNum) {
-        super(Opcode.INVOKE_VIRTUAL);
-        this.RegisterNum = registerNum;
+    public CommentedOutMethodItem(StringTemplateGroup stg, MethodItem commentedOutMethodItem) {
+        super(commentedOutMethodItem.getOffset());
+        this.stg = stg;
+        this.commentedOutMethodItem = commentedOutMethodItem;
     }
 
+    public int getSortOrder() {
+        return commentedOutMethodItem.getSortOrder() + 1;
+    }
 
-    public Format getFormat() {
-        return Format.Format35msn;
+    @Override
+    public String toString() {
+        StringTemplate template = stg.getInstanceOf("CommentedOutMethodItem");
+        template.setAttribute("MethodItem", commentedOutMethodItem);
+        return template.toString();
     }
 }

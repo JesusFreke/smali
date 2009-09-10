@@ -34,15 +34,25 @@ import org.antlr.stringtemplate.StringTemplate;
 public class LabelMethodItem extends MethodItem {
     private final StringTemplateGroup stg;
     private final String labelPrefix;
+    private boolean isCommentedOut = false;
 
-    public LabelMethodItem(int offset, StringTemplateGroup stg, String labelPrefix) {
+    public LabelMethodItem(int offset, StringTemplateGroup stg, String labelPrefix, boolean isCommentedOut) {
         super(offset);
         this.stg = stg;
         this.labelPrefix = labelPrefix;
+        this.isCommentedOut = isCommentedOut;
     }
 
     public int getSortOrder() {
         return 0;
+    }
+
+    public boolean isCommentedOut() {
+        return isCommentedOut;
+    }
+
+    public void setCommentedOut(boolean isCommentedOut) {
+        this.isCommentedOut = isCommentedOut;
     }
 
     public int compareTo(MethodItem methodItem) {
@@ -71,6 +81,7 @@ public class LabelMethodItem extends MethodItem {
     @Override
     public String toString() {
         StringTemplate template = stg.getInstanceOf("Label");
+        template.setAttribute("CommentedOut", this.isCommentedOut);
         template.setAttribute("Prefix", labelPrefix);
         template.setAttribute("HexOffset", getLabelOffset());
         return template.toString();

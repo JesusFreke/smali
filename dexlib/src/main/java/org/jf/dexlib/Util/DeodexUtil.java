@@ -205,7 +205,9 @@ public class DeodexUtil {
                     if (deodexInstruction(i)) {
                         didSomething = true;
                     } else {
-                        somethingLeftToDo = true;
+                        if (!i.dead) {
+                            somethingLeftToDo = true;
+                        }
                     }
                 }
             }
@@ -219,7 +221,13 @@ public class DeodexUtil {
 
         List<Instruction> instructions = new ArrayList<Instruction>(insns.size());
         for (insn i: insns) {
-            if (i.instruction.opcode.odexOnly) {
+            if (i.dead) {
+                if (i.fixedInstruction != null) {
+                    instructions.add(new DeadInstruction(i.fixedInstruction));
+                } else {
+                    instructions.add(new DeadInstruction(i.instruction));
+                }   
+            } else if (i.instruction.opcode.odexOnly) {
                 assert i.fixedInstruction != null;
                 instructions.add(i.fixedInstruction);
             } else {
@@ -289,7 +297,7 @@ public class DeodexUtil {
                 //We actually just create an Instruction2csn, which doesn't have any method/field info associated with
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction22csn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
 
@@ -351,7 +359,7 @@ public class DeodexUtil {
                 //We actually just create an Instruction2csn, which doesn't have any method/field info associated with
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction22csn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
 
@@ -392,7 +400,7 @@ public class DeodexUtil {
                 //We actually just create an Instruction2csn, which doesn't have any method/field info associated with
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction22csn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
                 
@@ -435,7 +443,7 @@ public class DeodexUtil {
                 //We actually just create an Instruction2csn, which doesn't have any method/field info associated with
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction22csn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
                 
@@ -497,7 +505,7 @@ public class DeodexUtil {
                 //We actually just create an Instruction2csn, which doesn't have any method/field info associated with
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction22csn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
                 
@@ -539,7 +547,7 @@ public class DeodexUtil {
                 //We actually just create an Instruction2csn, which doesn't have any method/field info associated with
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction22csn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
                 
@@ -581,7 +589,8 @@ public class DeodexUtil {
                 //We actually just create an Instruction3msn, which doesn't have any method info associated with it,
                 //and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction35msn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
+                    i.propogateDeadness();
                     return true;
                 }
 
@@ -627,7 +636,7 @@ public class DeodexUtil {
                 //We actually just create an Instruction3msn, which doesn't have any method info associated with it,
                 //and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction35msn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
 
@@ -673,7 +682,9 @@ public class DeodexUtil {
                 //We actually just create an Instruction3msn, which doesn't have any method info associated with it,
                 //and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction35msn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
+                    //we need to mark any following instructions as dead 
+                    i.propogateDeadness();
                     return true;
                 }                
 
@@ -719,7 +730,7 @@ public class DeodexUtil {
                 //We actually just create an Instruction3msn, which doesn't have any method info associated with it,
                 //and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
-                    i.fixedInstruction = new Instruction35msn(registerNum);
+                    i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
 
@@ -805,6 +816,11 @@ public class DeodexUtil {
         public LinkedList<insn> successors = new LinkedList<insn>();
 
         /**
+         * Instructions that can pass on execution to this one
+         */
+        public LinkedList<insn> predecessors = new LinkedList<insn>();
+
+        /**
          * If this instruction is in a try block, these are the first instructions for each
          * exception handler 
          */
@@ -859,6 +875,12 @@ public class DeodexUtil {
          * If this is an odex instruction, and has been fixed.
          */
         public boolean fixed = false;
+
+        /**
+         * If this code is dead. Note that not all dead code is marked. Only the dead code that comes after an odexed
+         * instruction can't be resolved because its object register is always null.
+         */
+        public boolean dead = false;
 
         public final RegisterType[] registerMap;
         public final String[] registerTypes;
@@ -1246,6 +1268,7 @@ public class DeodexUtil {
 
         private void addSuccessor(insn i) {
             successors.add(i);
+            i.predecessors.add(this);
 
             //if the next instruction can throw an exception, and is covered by exception handlers,
             //then the execution can in effect go directly from this instruction into the handler
@@ -1332,6 +1355,38 @@ public class DeodexUtil {
             this.propogateRegisters();
         }
 
+        /**
+         * This is initially called when this instruction is an odexed instruction that can't be resolved because
+         * the object register is always null. For each of its successor instructions, it checks if all of the other
+         * predecessors of that successor are also "dead". If so, it marks it as dead and recursively calls
+         * propogateDeadness on it. The effect is that all the code that follows after the initial unresolved
+         * instruction is marked dead, until a non-dead code path merges with the dead code path (and it becomes...
+         * undead. mmMMmmMMmm brains)
+         */
+        public void propogateDeadness() {
+            for (insn successor: successors) {
+                //the first instruction of the method (or the first instruction of any exception handlers covering
+                //the first instruction) can never be dead  
+                if (successor.firstInstruction) {
+                    continue;
+                }
+
+                boolean allSucessorsPredecessorsDead = true;
+                for (insn successorPredecessor: successor.predecessors) {
+                    if (successorPredecessor != this) {
+                        if (!successorPredecessor.dead) {
+                            allSucessorsPredecessorsDead = false;
+                            break;
+                        }
+                    }
+                }
+                if (allSucessorsPredecessorsDead) {
+                    successor.dead = true;
+                    successor.propogateDeadness();
+                }
+            }
+        }
+
         public void propogateRegisters() {
             visited = true;
 
@@ -1399,7 +1454,6 @@ public class DeodexUtil {
                             }
                         } else {
                             String type = destRegisterType();
-                            String nextType = nextInsn.registerTypes[registerNum];
 
                             if (type != null && !type.equals(nextInsn.registerTypes[registerNum])) {
                                 //see comment above for loop
