@@ -1369,7 +1369,7 @@ public class DeodexUtil {
                         if (regType == RegisterType.Reference) {
                             String regReferenceType = findCommonSuperclass(registerTypes[i],
                                     nextInsn.registerTypes[i]);
-                            if (!regReferenceType.equals(nextInsn.registerTypes[i])) {
+                            if (regReferenceType != null && !regReferenceType.equals(nextInsn.registerTypes[i])) {
                                 //see comment above for loop
                                 if (i == nextInsn.objectRegisterNum) {
                                     nextInsn.fixedInstruction = null;
@@ -1401,8 +1401,7 @@ public class DeodexUtil {
                             String type = destRegisterType();
                             String nextType = nextInsn.registerTypes[registerNum];
 
-                            if ((type == null && nextType == null) ||
-                                    !type.equals(nextInsn.registerTypes[registerNum])) {
+                            if (type != null && !type.equals(nextInsn.registerTypes[registerNum])) {
                                 //see comment above for loop
                                 if (registerNum == nextInsn.objectRegisterNum) {
                                     nextInsn.fixedInstruction = null;
