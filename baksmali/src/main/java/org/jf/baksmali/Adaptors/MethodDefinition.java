@@ -512,6 +512,7 @@ public class MethodDefinition {
                 }
                 case DeadInstruction:
                 {
+                    //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
                     addMethodItemsForInstruction(offset, ((DeadInstruction)instruction).OriginalInstruction, true, null);
                     return;
                 }
