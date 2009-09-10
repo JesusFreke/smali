@@ -83,9 +83,6 @@ public class baksmali {
 
             String classDescriptor = classDefItem.getClassType().getTypeDescriptor();
 
-            //TODO: GROT
-            System.out.println(classDescriptor);
-
             //validate that the descriptor is formatted like we expect
             if (classDescriptor.charAt(0) != 'L' ||
                 classDescriptor.charAt(classDescriptor.length()-1) != ';') {
