@@ -298,6 +298,7 @@ public class DeodexUtil {
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
+                    i.propogateDeadness();
                     return true;
                 }
 
@@ -360,6 +361,7 @@ public class DeodexUtil {
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
+                    i.propogateDeadness();
                     return true;
                 }
 
@@ -401,6 +403,7 @@ public class DeodexUtil {
                 //it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
+                    i.propogateDeadness();
                     return true;
                 }
                 
@@ -637,6 +640,7 @@ public class DeodexUtil {
                 //and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
+                    i.propogateDeadness();
                     return true;
                 }
 
@@ -731,6 +735,7 @@ public class DeodexUtil {
                 //and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
+                    i.propogateDeadness();
                     return true;
                 }
 
