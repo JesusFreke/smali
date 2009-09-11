@@ -352,14 +352,16 @@ public class Deodexerant {
             }
 
             String superclassDescriptor = lookupSuperclass(classTypeItem.getTypeDescriptor());
+            if (superclassDescriptor == null) {
+                return null; 
+            }
             classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
 
             while (classTypeItem == null && superclassDescriptor != null) {
                 superclassDescriptor = lookupSuperclass(superclassDescriptor);
                 classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
             }
-        } while (classType != null);
-        throw new RuntimeException("Could not find method in dex file");
+        } while (true);
     }
 
     private static final Pattern fullMethodPattern = Pattern.compile("(\\[*(?:L[^;]+;|[ZBSCIJFD]))->([^(]+)\\(([^)]*)\\)(.+)");
