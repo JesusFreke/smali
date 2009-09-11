@@ -531,7 +531,7 @@ int main(int argc, char* const argv[])
 	memcpy(buf, command, len);
 	buf[len] = 0;
 	
-	printf("%s\n", buf);
+	//printf("%s\n", buf);
 
 	char *cmd = strtok(buf, " ");
 	if (cmd == NULL) {
