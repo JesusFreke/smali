@@ -387,7 +387,7 @@ ClassObject *lookupSuperclass(char *classType)
     
     if (clazz == NULL)
 	return NULL;
-    
+  
     return clazz->super;
 }
 
@@ -531,7 +531,7 @@ int main(int argc, char* const argv[])
 	memcpy(buf, command, len);
 	buf[len] = 0;
 	
-	//printf("%s\n", buf);
+	printf("%s\n", buf);
 
 	char *cmd = strtok(buf, " ");
 	if (cmd == NULL) {
@@ -607,6 +607,13 @@ int main(int argc, char* const argv[])
 		}
 		
 		ClassObject *clazz = lookupSuperclass(classType);
+		if (clazz == NULL)
+		{
+		    fprintf(clientOut, "class: \n");
+		    fflush(clientOut);
+		    break;
+		}
+
 		fprintf(clientOut, "class: %s\n", clazz->descriptor);
 		fflush(clientOut);
 		break;
