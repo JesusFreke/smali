@@ -821,7 +821,7 @@ label returns[String labelName]
 	:	LABEL
 		{
 			String label = $LABEL.text;
-			return label.substring(0, label.length()-1);
+			return label.substring(1, label.length());
 		};
 		
 offset	returns[int offsetValue]

@@ -130,7 +130,7 @@ Format31tLabelMap ::= [
 
 Format10t(Opcode, Target) ::=
 <<
-<Opcode> goto_<Target>:
+<Opcode> :goto_<Target>
 >>
 
 Format10x(Opcode) ::=
@@ -155,7 +155,7 @@ Format12x(Opcode, RegisterA, RegisterB) ::=
 
 Format20t(Opcode, Target) ::=
 <<
-<Opcode> goto_<Target>:
+<Opcode> :goto_<Target>
 >>
 
 Format21c(Opcode, Register, Reference) ::=
@@ -175,7 +175,7 @@ Format21s(Opcode, Register, Literal) ::=
 
 Format21t(Opcode, Register, Target) ::=
 <<
-<Opcode> <Register>, cond_<Target>:
+<Opcode> <Register>, :cond_<Target>
 >>
 
 Format22b(Opcode, RegisterA, RegisterB, Literal) ::=
@@ -205,7 +205,7 @@ Format22s(Opcode, RegisterA, RegisterB, Literal) ::=
 
 Format22t(Opcode, RegisterA, RegisterB, Target) ::=
 <<
-<Opcode> <RegisterA>, <RegisterB>, cond_<Target>:
+<Opcode> <RegisterA>, <RegisterB>, :cond_<Target>
 >>
 
 Format22x(Opcode, RegisterA, RegisterB) ::=
@@ -220,7 +220,7 @@ Format23x(Opcode, RegisterA, RegisterB, RegisterC) ::=
 
 Format30t(Opcode, Target) ::=
 <<
-<Opcode> goto_<Target>:
+<Opcode> :goto_<Target>
 >>
 
 Format31c(Opcode, Register, Reference) ::=
@@ -235,7 +235,7 @@ Format31i(Opcode, Register, Literal) ::=
 
 Format31t(Opcode, Register, Target) ::=
 <<
-<Opcode> <Register>, <Format31tLabelMap.(Opcode)><Target>:
+<Opcode> <Register>, :<Format31tLabelMap.(Opcode)><Target>
 >>
 
 Format32x(Opcode, RegisterA, RegisterB) ::=
@@ -318,21 +318,21 @@ ArrayElement(Bytes) ::=
 PackedSwitchData(Opcode, FirstKey, Targets) ::=
 <<
 .packed-switch <FirstKey>
-    <Targets: {pswitch_<it>:}; separator="\n">
+    <Targets: {:pswitch_<it>}; separator="\n">
 .end packed-switch
 >>
 
 SparseSwitchData(Opcode, Targets) ::=
 <<
 .sparse-switch
-    <Targets:{<it.Value> -> sswitch_<it.Target>:}; separator="\n">
+    <Targets:{<it.Value> -> :sswitch_<it.Target>}; separator="\n">
 .end sparse-switch
 >>
 
 
 Label(Prefix, HexOffset, CommentedOut) ::=
 <<
-<if(CommentedOut)>#<endif><Prefix><HexOffset>:
+:<if(CommentedOut)>#<endif><Prefix><HexOffset>
 >>
 
 Line(Line) ::=
@@ -377,12 +377,12 @@ Blank(Blank) ::=
 
 Catch(ExceptionType, StartAddress, EndAddress, HandlerAddress) ::=
 <<
-.catch <ExceptionType> {try_start_<StartAddress>: .. try_end_<EndAddress>:} handler_<HandlerAddress>:
+.catch <ExceptionType> {:try_start_<StartAddress> .. :try_end_<EndAddress>} :handler_<HandlerAddress>
 >>
 
 CatchAll(StartAddress, EndAddress, HandlerAddress) ::=
 <<
-.catchall {try_start_<StartAddress>: .. try_end_<EndAddress>:} handler_<HandlerAddress>: 
+.catchall {:try_start_<StartAddress> .. :try_end_<EndAddress>} :handler_<HandlerAddress> 
 >>
 
 
