@@ -277,12 +277,8 @@ public class DexFile
         byte[] magic = FileUtils.readFile(file, 0, 8);
         byte[] dexMagic, odexMagic;
 
-        try {
-            dexMagic = HeaderItem.MAGIC.getBytes("US-ASCII");
-            odexMagic = OdexHeaderItem.MAGIC.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException ex) {
-            throw new RuntimeException(ex);
-        }
+        dexMagic = HeaderItem.MAGIC;
+        odexMagic = OdexHeaderItem.MAGIC;
 
         boolean isDex = true;
         this.isOdex = true;
@@ -306,6 +302,7 @@ public class DexFile
         } else if (isDex) {
             in = new ByteArrayInput(FileUtils.readFile(file));
         } else {
+            
             StringBuilder sb = new StringBuilder();
             sb.append("bad magic value:");
             for (int i=0; i<8; i++) {

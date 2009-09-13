@@ -39,7 +39,8 @@ public class HeaderItem extends Item<HeaderItem> {
      * the file format magic number, represented as the
      * low-order bytes of a string
      */
-    public static final String MAGIC = "dex\n035" + '\0';
+    public static final byte[] MAGIC = new byte[] {0x64, 0x65, 0x78, 0x0A, 0x30, 0x33, 0x35, 0x00};//"dex\n035" + '\0';
+
 
     /** size of this section, in bytes */
     private static final int HEADER_SIZE = 0x70;
@@ -58,17 +59,10 @@ public class HeaderItem extends Item<HeaderItem> {
 
     /** {@inheritDoc} */
     protected void readItem(Input in, ReadContext readContext) {
-        byte[] expectedMagic;
-        try {
-            expectedMagic = MAGIC.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException ex) {
-            throw new RuntimeException(ex);
-        }
-        
         byte[] readMagic = in.readBytes(8);
 
         for (int i=0; i<8; i++) {
-            if (expectedMagic[i] != readMagic[i]) {
+            if (MAGIC[i] != readMagic[i]) {
                 throw new RuntimeException("The magic value is not the expected value");
             }
         }
@@ -145,15 +139,13 @@ public class HeaderItem extends Item<HeaderItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
-        byte[] magic;
-        try {
-            magic = MAGIC.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException ex) {
-            throw new RuntimeException(ex);
+        StringBuilder magicBuilder = new StringBuilder();
+        for (int i=0; i<8; i++) {
+            magicBuilder.append((char)MAGIC[i]);
         }
 
-        out.annotate("magic: " + Utf8Utils.escapeString(MAGIC));
-        out.write(magic);
+        out.annotate("magic: " + Utf8Utils.escapeString(magicBuilder.toString()));
+        out.write(MAGIC);
 
         out.annotate("checksum");
         out.writeInt(0);

@@ -38,7 +38,7 @@ public class OdexHeaderItem {
      * the file format magic number, represented as the
      * low-order bytes of a string
      */
-    public static final String MAGIC = "dey\n035" + '\0';
+    public static final byte[] MAGIC = new byte[] {0x64, 0x65, 0x79, 0x0A, 0x30, 0x33, 0x35, 0x00};//"dey\n035" + '\0';
 
     public final byte[] magic;
     public final int dexOffset;
@@ -52,15 +52,8 @@ public class OdexHeaderItem {
     public OdexHeaderItem(Input in) {
         magic = in.readBytes(8);
 
-        byte[] expectedMagic;
-        try {
-            expectedMagic = MAGIC.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException ex) {
-            throw new RuntimeException(ex);
-        }
-
         for (int i=0; i<8; i++) {
-            if (expectedMagic[i] != magic[i]) {
+            if (MAGIC[i] != magic[i]) {
                 throw new RuntimeException("The magic value is not the expected value");
             }
         }
