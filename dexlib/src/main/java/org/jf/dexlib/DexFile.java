@@ -306,7 +306,13 @@ public class DexFile
         } else if (isDex) {
             in = new ByteArrayInput(FileUtils.readFile(file));
         } else {
-            throw new RuntimeException("bad magic value");
+            StringBuilder sb = new StringBuilder();
+            sb.append("bad magic value:");
+            for (int i=0; i<8; i++) {
+                sb.append(" ");
+                sb.append(magic[i]);
+            }
+            throw new RuntimeException(sb.toString());
         }
 
         ReadContext readContext = new ReadContext(this);
