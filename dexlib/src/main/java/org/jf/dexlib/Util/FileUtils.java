@@ -19,6 +19,7 @@ package org.jf.dexlib.Util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * File I/O utilities.
@@ -38,7 +39,8 @@ public final class FileUtils {
      * @param fileName non-null; name of the file to read
      * @return non-null; contents of the file
      */
-    public static byte[] readFile(String fileName) {
+    public static byte[] readFile(String fileName)
+            throws IOException {
         File file = new File(fileName);
         return readFile(file);
     }
@@ -50,7 +52,8 @@ public final class FileUtils {
      * @param file non-null; the file to read
      * @return non-null; contents of the file
      */
-    public static byte[] readFile(File file) {
+    public static byte[] readFile(File file)
+            throws IOException {
         return readFile(file, 0, -1);
     }
 
@@ -64,7 +67,8 @@ public final class FileUtils {
      * end of the file
      * @return non-null; contents of the file
      */
-    public static byte[] readFile(File file, int offset, int length) {
+    public static byte[] readFile(File file, int offset, int length)
+            throws IOException {
         if (!file.exists()) {
             throw new RuntimeException(file + ": file not found");
         }
@@ -91,33 +95,38 @@ public final class FileUtils {
             throw new RuntimeException(file + ": file too short");
         }
 
-        byte[] result = new byte[length];
+        FileInputStream in = new FileInputStream(file);
 
-        try {
-            FileInputStream in = new FileInputStream(file);
-
-            int at = offset;
-            while(at > 0) {
-                long amt = in.skip(at);
-                if (amt == -1) {
-                    throw new RuntimeException(file + ": unexpected EOF");
-                }
-                at -= amt;
+        int at = offset;
+        while(at > 0) {
+            long amt = in.skip(at);
+            if (amt == -1) {
+                throw new RuntimeException(file + ": unexpected EOF");
             }
-
-            while (length > 0) {
-                int amt = in.read(result, at, length);
-                if (amt == -1) {
-                    throw new RuntimeException(file + ": unexpected EOF");
-                }
-                at += amt;
-                length -= amt;
-            }
-            in.close();
-        } catch (IOException ex) {
-            throw new RuntimeException(file + ": trouble reading", ex);
+            at -= amt;
         }
 
+        byte[] result = readStream(in, length);
+
+        in.close();
+
+        return result;
+    }
+
+    public static byte[] readStream(InputStream in, int length)
+            throws IOException {
+        byte[] result = new byte[length];
+        int at=0;
+
+        while (length > 0) {
+            int amt = in.read(result, at, length);
+            if (amt == -1) {
+                throw new RuntimeException("unexpected EOF");
+            }
+            at += amt;
+            length -= amt;
+        }
+        
         return result;
     }
 }

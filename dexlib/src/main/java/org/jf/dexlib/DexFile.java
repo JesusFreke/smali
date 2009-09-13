@@ -33,8 +33,7 @@ import org.jf.dexlib.*;
 import org.jf.dexlib.Item;
 import org.jf.dexlib.StringDataItem;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -43,6 +42,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.zip.Adler32;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipException;
+import java.util.zip.ZipEntry;
 
 /**
  * <h3>Main use cases</h3>
@@ -236,8 +238,10 @@ public class DexFile
     /**
      * Construct a new DexFile instance by reading in the given dex file.
      * @param file The dex file to read in
+     * @throws IOException if an IOException occurs
      */
-    public DexFile(String file) {
+    public DexFile(String file)
+            throws IOException {
         this(new File(file), true);
     }
 
@@ -249,16 +253,20 @@ public class DexFile
      * @param preserveSignedRegisters If true, keep track of any registers in the debug information
      * that are signed, so they will be written in the same format. See
      * <code>getPreserveSignedRegisters()</code>
+     * @throws IOException if an IOException occurs
      */
-    public DexFile(String file, boolean preserveSignedRegisters) {
+    public DexFile(String file, boolean preserveSignedRegisters)
+            throws IOException {
         this(new File(file), preserveSignedRegisters);
     }
 
     /**
      * Construct a new DexFile instance by reading in the given dex file.
      * @param file The dex file to read in
+     * @throws IOException if an IOException occurs
      */
-    public DexFile(File file) {
+    public DexFile(File file)
+            throws IOException {
         this(file, true);
     }
 
@@ -270,14 +278,54 @@ public class DexFile
      * @param preserveSignedRegisters If true, keep track of any registers in the debug information
      * that are signed, so they will be written in the same format.
      * @see #getPreserveSignedRegisters
+     * @throws IOException if an IOException occurs
      */
-    public DexFile(File file, boolean preserveSignedRegisters) {
+    public DexFile(File file, boolean preserveSignedRegisters)
+            throws IOException {
         this(preserveSignedRegisters);
 
+        long fileLength;
+        InputStream inputStream;
         byte[] magic = FileUtils.readFile(file, 0, 8);
+
+        //do we have a zip file?
+        if (magic[0] == 0x50 && magic[1] == 0x4B) {
+            ZipFile zipFile = new ZipFile(file);
+            ZipEntry zipEntry = zipFile.getEntry("classes.dex");
+            if (zipEntry == null) {
+                throw new RuntimeException("zip file " + file.getName() + " does not contain a classes.dex file");
+            }
+            fileLength = zipEntry.getSize();
+            if (fileLength < 40) {
+                throw new RuntimeException("The classes.dex file in " + file.getName() + " is too small to be a" +
+                        " valid dex file");
+            } else if (fileLength > Integer.MAX_VALUE) {
+                throw new RuntimeException("The classes.dex file in " + file.getName() + " is too large to read in");
+            }
+            inputStream = new BufferedInputStream(zipFile.getInputStream(zipEntry));
+
+            inputStream.mark(8);
+            for (int i=0; i<8; i++) {
+                magic[i] = (byte)inputStream.read();
+            }
+            inputStream.reset();
+            
+        } else {
+            fileLength = file.length();
+            if (fileLength < 40) {
+                throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
+            }
+            if (fileLength < 40) {
+                throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
+            } else if (fileLength > Integer.MAX_VALUE) {
+                throw new RuntimeException(file.getName() + " is too large to read in");
+            }
+            inputStream = new FileInputStream(file);
+        }
+
         byte[] dexMagic, odexMagic;
 
-        dexMagic = HeaderItem.MAGIC;
+        dexMagic = org.jf.dexlib.HeaderItem.MAGIC;
         odexMagic = OdexHeaderItem.MAGIC;
 
         boolean isDex = true;
@@ -294,20 +342,18 @@ public class DexFile
         Input in;
 
         if (isOdex) {
-            byte[] odexHeaderBytes = FileUtils.readFile(file, 0, 40);
+            byte[] odexHeaderBytes = FileUtils.readStream(inputStream, 40);
             Input odexHeaderIn = new ByteArrayInput(odexHeaderBytes);
             OdexHeaderItem odexHeader = new OdexHeaderItem(odexHeaderIn);
 
-            in = new ByteArrayInput(FileUtils.readFile(file, odexHeader.dexOffset, odexHeader.dexLength));
+            in = new ByteArrayInput(FileUtils.readStream(inputStream, odexHeader.dexLength));
         } else if (isDex) {
-            in = new ByteArrayInput(FileUtils.readFile(file));
+            in = new ByteArrayInput(FileUtils.readStream(inputStream, (int)fileLength));
         } else {
-            
-            StringBuilder sb = new StringBuilder();
-            sb.append("bad magic value:");
+            StringBuffer sb = new StringBuffer("bad magic value:");
             for (int i=0; i<8; i++) {
                 sb.append(" ");
-                sb.append(magic[i]);
+                sb.append(Hex.u1(magic[i]));
             }
             throw new RuntimeException(sb.toString());
         }
