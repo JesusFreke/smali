@@ -438,16 +438,16 @@ instruction returns [int size]
 		INSTRUCTION_FORMAT32x REGISTER REGISTER {$size = Format.Format32x.size;}
 		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER)		
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACKET register_list CLOSE_BRACKET fully_qualified_method {$size = Format.Format35c.size;}
+		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACE register_list CLOSE_BRACE fully_qualified_method {$size = Format.Format35c.size;}
 		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
 	|	//e.g. filled-new-array {v0,v1}, I
-		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACKET register_list CLOSE_BRACKET nonvoid_type_descriptor {$size = Format.Format35c.size;}
+		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACE register_list CLOSE_BRACE nonvoid_type_descriptor {$size = Format.Format35c.size;}
 		-> ^(I_STATEMENT_FORMAT35c_TYPE[$start, "I_STATEMENT_FORMAT35c_TYPE"] INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACKET register_range CLOSE_BRACKET fully_qualified_method {$size = Format.Format3rc.size;}
+		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACE register_range CLOSE_BRACE fully_qualified_method {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
 	|	//e.g. filled-new-array/range {v0..v6} I
-		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACKET register_range CLOSE_BRACKET nonvoid_type_descriptor {$size = Format.Format3rc.size;}
+		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACE register_range CLOSE_BRACE nonvoid_type_descriptor {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
 	|	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER fixed_literal {$size = Format.Format51l.size;}
@@ -600,7 +600,7 @@ literal
 	|	enum_literal;
 	
 array_literal
-	:	ARRAY_START literal* ARRAY_END
+	:	OPEN_BRACE literal* CLOSE_BRACE
 		-> ^(I_ENCODED_ARRAY[$start, "I_ENCODED_ARRAY"] literal*);
 		
 annotation
