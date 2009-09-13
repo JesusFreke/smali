@@ -332,7 +332,7 @@ SparseSwitchData(Opcode, Targets) ::=
 
 Label(Prefix, HexOffset, CommentedOut) ::=
 <<
-:<if(CommentedOut)>#<endif><Prefix><HexOffset>
+<if(CommentedOut)>#<endif>:<Prefix><HexOffset>
 >>
 
 Line(Line) ::=
