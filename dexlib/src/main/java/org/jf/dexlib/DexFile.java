@@ -285,77 +285,86 @@ public class DexFile
         this(preserveSignedRegisters);
 
         long fileLength;
-        InputStream inputStream;
         byte[] magic = FileUtils.readFile(file, 0, 8);
 
-        //do we have a zip file?
-        if (magic[0] == 0x50 && magic[1] == 0x4B) {
-            ZipFile zipFile = new ZipFile(file);
-            ZipEntry zipEntry = zipFile.getEntry("classes.dex");
-            if (zipEntry == null) {
-                throw new RuntimeException("zip file " + file.getName() + " does not contain a classes.dex file");
-            }
-            fileLength = zipEntry.getSize();
-            if (fileLength < 40) {
-                throw new RuntimeException("The classes.dex file in " + file.getName() + " is too small to be a" +
-                        " valid dex file");
-            } else if (fileLength > Integer.MAX_VALUE) {
-                throw new RuntimeException("The classes.dex file in " + file.getName() + " is too large to read in");
-            }
-            inputStream = new BufferedInputStream(zipFile.getInputStream(zipEntry));
+        InputStream inputStream = null;
+        Input in = null;
+        ZipFile zipFile = null;
+        
+        try {
+            //do we have a zip file?
+            if (magic[0] == 0x50 && magic[1] == 0x4B) {
+                zipFile = new ZipFile(file);
+                ZipEntry zipEntry = zipFile.getEntry("classes.dex");
+                if (zipEntry == null) {
+                    throw new RuntimeException("zip file " + file.getName() + " does not contain a classes.dex file");
+                }
+                fileLength = zipEntry.getSize();
+                if (fileLength < 40) {
+                    throw new RuntimeException("The classes.dex file in " + file.getName() + " is too small to be a" +
+                            " valid dex file");
+                } else if (fileLength > Integer.MAX_VALUE) {
+                    throw new RuntimeException("The classes.dex file in " + file.getName() + " is too large to read in");
+                }
+                inputStream = new BufferedInputStream(zipFile.getInputStream(zipEntry));
 
-            inputStream.mark(8);
+                inputStream.mark(8);
+                for (int i=0; i<8; i++) {
+                    magic[i] = (byte)inputStream.read();
+                }
+                inputStream.reset();
+            } else {
+                fileLength = file.length();
+                if (fileLength < 40) {
+                    throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
+                }
+                if (fileLength < 40) {
+                    throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
+                } else if (fileLength > Integer.MAX_VALUE) {
+                    throw new RuntimeException(file.getName() + " is too large to read in");
+                }
+                inputStream = new FileInputStream(file);
+            }
+
+            byte[] dexMagic, odexMagic;
+
+            dexMagic = org.jf.dexlib.HeaderItem.MAGIC;
+            odexMagic = OdexHeaderItem.MAGIC;
+
+            boolean isDex = true;
+            this.isOdex = true;
             for (int i=0; i<8; i++) {
-                magic[i] = (byte)inputStream.read();
+                if (magic[i] != dexMagic[i]) {
+                    isDex = false;
+                }
+                if (magic[i] != odexMagic[i]) {
+                    isOdex = false;
+                }
             }
-            inputStream.reset();
-            
-        } else {
-            fileLength = file.length();
-            if (fileLength < 40) {
-                throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
+
+            if (isOdex) {
+                byte[] odexHeaderBytes = FileUtils.readStream(inputStream, 40);
+                Input odexHeaderIn = new ByteArrayInput(odexHeaderBytes);
+                OdexHeaderItem odexHeader = new OdexHeaderItem(odexHeaderIn);
+
+                in = new ByteArrayInput(FileUtils.readStream(inputStream, odexHeader.dexLength));
+            } else if (isDex) {
+                in = new ByteArrayInput(FileUtils.readStream(inputStream, (int)fileLength));
+            } else {
+                StringBuffer sb = new StringBuffer("bad magic value:");
+                for (int i=0; i<8; i++) {
+                    sb.append(" ");
+                    sb.append(Hex.u1(magic[i]));
+                }
+                throw new RuntimeException(sb.toString());
             }
-            if (fileLength < 40) {
-                throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
-            } else if (fileLength > Integer.MAX_VALUE) {
-                throw new RuntimeException(file.getName() + " is too large to read in");
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
             }
-            inputStream = new FileInputStream(file);
-        }
-
-        byte[] dexMagic, odexMagic;
-
-        dexMagic = org.jf.dexlib.HeaderItem.MAGIC;
-        odexMagic = OdexHeaderItem.MAGIC;
-
-        boolean isDex = true;
-        this.isOdex = true;
-        for (int i=0; i<8; i++) {
-            if (magic[i] != dexMagic[i]) {
-                isDex = false;
+            if (zipFile != null) {
+                zipFile.close();
             }
-            if (magic[i] != odexMagic[i]) {
-                isOdex = false;
-            }
-        }
-
-        Input in;
-
-        if (isOdex) {
-            byte[] odexHeaderBytes = FileUtils.readStream(inputStream, 40);
-            Input odexHeaderIn = new ByteArrayInput(odexHeaderBytes);
-            OdexHeaderItem odexHeader = new OdexHeaderItem(odexHeaderIn);
-
-            in = new ByteArrayInput(FileUtils.readStream(inputStream, odexHeader.dexLength));
-        } else if (isDex) {
-            in = new ByteArrayInput(FileUtils.readStream(inputStream, (int)fileLength));
-        } else {
-            StringBuffer sb = new StringBuffer("bad magic value:");
-            for (int i=0; i<8; i++) {
-                sb.append(" ");
-                sb.append(Hex.u1(magic[i]));
-            }
-            throw new RuntimeException(sb.toString());
         }
 
         ReadContext readContext = new ReadContext(this);
