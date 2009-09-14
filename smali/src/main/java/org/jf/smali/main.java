@@ -19,8 +19,11 @@ package org.jf.smali;
 import org.apache.commons.cli.*;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
+import org.jf.dexlib.Util.FileUtils;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.TokenRewriteStream;
+import org.antlr.runtime.Lexer;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 
@@ -75,8 +78,8 @@ public class main {
             return;
         }
 
-        boolean doDump = false;
         boolean sort = false;
+        boolean rewriteLabels = false;
 
         String outputDexFile = "out.dex";
         String dumpFileName = null;
@@ -98,17 +101,32 @@ public class main {
             return;
         }
 
+        if (commandLine.hasOption("r")) {
+            rewriteLabels = true;
+        }
+
         if (commandLine.hasOption("o")) {
-            outputDexFile = commandLine.getOptionValue("o");
+            if (rewriteLabels) {
+                System.err.println("The --output/-o option is not compatible with the --rewrite-labels/-r option. Ignoring");
+            } else {
+                outputDexFile = commandLine.getOptionValue("o");
+            }
         }
 
         if (commandLine.hasOption("d")) {
-            doDump = true;
-            dumpFileName = commandLine.getOptionValue("d", outputDexFile + ".dump");
+            if (rewriteLabels) {
+                System.err.println("The --dump/-d option is not compatible with the --rewrite-labels/-r option. Ignoring");
+            } else {
+                dumpFileName = commandLine.getOptionValue("d", outputDexFile + ".dump");
+            }
         }
 
         if (commandLine.hasOption("s")) {
-            sort = true;
+            if (rewriteLabels) {
+                System.err.println("The --sort/-s option is not compatible with the --rewrite-labels/-r option. Ignoring");
+            } else {
+                sort = true;
+            }
         }
 
 
@@ -128,6 +146,13 @@ public class main {
                     } else if (argFile.isFile()) {
                         filesToProcess.add(argFile);
                     }
+            }
+
+            if (rewriteLabels) {
+                if (doRewriteLabels(filesToProcess)) {
+                    System.exit(1);
+                }
+                System.exit(0);
             }
 
             DexFile dexFile = new DexFile();
@@ -187,7 +212,6 @@ public class main {
         }
     }
 
-
     private static void getSmaliFilesInDir(File dir, Set<File> smaliFiles) {
         for(File file: dir.listFiles()) {
             if (file.isDirectory()) {
@@ -196,6 +220,45 @@ public class main {
                 smaliFiles.add(file);
             }
         }
+    }
+
+    private static boolean doRewriteLabels(Set<File> files)
+        throws Exception {
+        boolean errorOccurred = false;
+
+        for (File file: files) {
+            ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
+            input.name = file.getAbsolutePath();
+
+            smaliLexer_old lexer = new smaliLexer_old(input);
+
+            if (lexer.getNumberOfLexerErrors() > 0) {
+                errorOccurred = true;
+                continue;
+            }
+
+            TokenRewriteStream tokens = new TokenRewriteStream(lexer);
+            labelConverter parser = new labelConverter(tokens);
+            parser.top();
+
+            if (parser.getNumberOfSyntaxErrors() > 0) {
+                errorOccurred = true;
+                continue;
+            }
+
+            FileWriter writer = null;
+            try
+            {
+                writer = new FileWriter(file);
+                writer.write(tokens.toString());
+            } finally {
+                if (writer != null) {
+                    writer.close();
+                }
+            }
+        }
+
+        return !errorOccurred;
     }
 
     private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile)
@@ -278,10 +341,15 @@ public class main {
                 .withDescription("sort the items in the dex file into a canonical order before writing")
                 .create("s");
 
+        Option rewriteLabelOption = OptionBuilder.withLongOpt("rewrite-labels")
+                .withDescription("rewrite the input smali files using the old label format to the new label format")
+                .create("r");
+
         options.addOption(versionOption);
         options.addOption(helpOption);
         options.addOption(dumpOption);
         options.addOption(outputOption);
         options.addOption(sortOption);
+        options.addOption(rewriteLabelOption);
     }
 }
