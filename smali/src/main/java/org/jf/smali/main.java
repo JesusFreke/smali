@@ -342,7 +342,7 @@ public class main {
                 .create("s");
 
         Option rewriteLabelOption = OptionBuilder.withLongOpt("rewrite-labels")
-                .withDescription("rewrite the input smali files using the old label format to the new label format")
+                .withDescription("rewrite the input smali files, converting any labels in the old (pre .97) format to the new format")
                 .create("r");
 
         options.addOption(versionOption);
