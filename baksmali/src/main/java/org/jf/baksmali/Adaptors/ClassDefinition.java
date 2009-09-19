@@ -73,6 +73,9 @@ public class ClassDefinition {
     private void buildAnnotationMaps() {
         AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
         if (annotationDirectory == null) {
+            methodAnnotationsMap = new SparseArray<AnnotationSetItem>(0);
+            fieldAnnotationsMap = new SparseArray<AnnotationSetItem>(0);
+            parameterAnnotationsMap = new SparseArray<AnnotationSetRefList>(0);
             return;
         }
 
