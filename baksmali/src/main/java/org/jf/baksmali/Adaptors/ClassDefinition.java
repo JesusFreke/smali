@@ -31,6 +31,7 @@ package org.jf.baksmali.Adaptors;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Util.AccessFlags;
+import org.jf.dexlib.Util.SparseArray;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 
@@ -41,9 +42,9 @@ public class ClassDefinition {
     private ClassDefItem classDefItem;
     private ClassDataItem classDataItem;
 
-    private HashMap<Integer, AnnotationSetItem> methodAnnotationsMap = new HashMap<Integer, AnnotationSetItem>();
-    private HashMap<Integer, AnnotationSetItem> fieldAnnotationsMap = new HashMap<Integer, AnnotationSetItem>();
-    private HashMap<Integer, AnnotationSetRefList> parameterAnnotationsMap = new HashMap<Integer, AnnotationSetRefList>();
+    private SparseArray<AnnotationSetItem> methodAnnotationsMap;
+    private SparseArray<AnnotationSetItem> fieldAnnotationsMap;
+    private SparseArray<AnnotationSetRefList> parameterAnnotationsMap;
 
     public ClassDefinition(StringTemplateGroup stg, ClassDefItem classDefItem) {
         this.stg = stg;
@@ -75,20 +76,24 @@ public class ClassDefinition {
             return;
         }
 
+        methodAnnotationsMap = new SparseArray<AnnotationSetItem>(annotationDirectory.getMethodAnnotationCount());
         annotationDirectory.iterateMethodAnnotations(new AnnotationDirectoryItem.MethodAnnotationIteratorDelegate() {
             public void processMethodAnnotations(MethodIdItem method, AnnotationSetItem methodAnnotations) {
                 methodAnnotationsMap.put(method.getIndex(), methodAnnotations);
             }
         });
 
+        fieldAnnotationsMap = new SparseArray<AnnotationSetItem>(annotationDirectory.getFieldAnnotationCount());
         annotationDirectory.iterateFieldAnnotations(new AnnotationDirectoryItem.FieldAnnotationIteratorDelegate() {
             public void processFieldAnnotations(FieldIdItem field, AnnotationSetItem fieldAnnotations) {
                 fieldAnnotationsMap.put(field.getIndex(), fieldAnnotations);
             }
         });
 
-        annotationDirectory.iteratParameterAnnotations(
-        new AnnotationDirectoryItem.ParameterAnnotationIteratorDelegate() {
+        parameterAnnotationsMap = new SparseArray<AnnotationSetRefList>(
+                annotationDirectory.getParameterAnnotationCount());
+        annotationDirectory.iterateParameterAnnotations(
+          new AnnotationDirectoryItem.ParameterAnnotationIteratorDelegate() {
             public void processParameterAnnotations(MethodIdItem method, AnnotationSetRefList parameterAnnotations) {
                 parameterAnnotationsMap.put(method.getIndex(), parameterAnnotations);
             }

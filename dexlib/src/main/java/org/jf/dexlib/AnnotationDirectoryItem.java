@@ -28,12 +28,9 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
-import org.jf.dexlib.Util.ArrayUtils;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -339,6 +336,13 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     }
 
     /**
+     * @return the number of field annotations in this <code>AnnotationDirectoryItem</code>
+     */
+    public int getFieldAnnotationCount() {
+        return fieldAnnotationFields.length;
+    }
+
+    /**
      * Iterates over the method annotations, calling delegate.processMethodAnnotations for each
      * @param delegate the delegate to call
      */
@@ -353,10 +357,17 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     }
 
     /**
+     * @return the number of method annotations in this <code>AnnotationDirectoryItem</code>
+     */
+    public int getMethodAnnotationCount() {
+        return methodAnnotationMethods.length;
+    }
+
+    /**
      * Iterates over the parameter annotations, calling delegate.processParameterAnnotations for each 
      * @param delegate the delegate to call
      */
-    public void iteratParameterAnnotations(ParameterAnnotationIteratorDelegate delegate) {
+    public void iterateParameterAnnotations(ParameterAnnotationIteratorDelegate delegate) {
         for (int i=0; i<parameterAnnotationMethods.length; i++) {
             delegate.processParameterAnnotations(parameterAnnotationMethods[i], parameterAnnotations[i]);
         }
@@ -364,6 +375,13 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
 
     public static interface ParameterAnnotationIteratorDelegate {
         void processParameterAnnotations(MethodIdItem method, AnnotationSetRefList parameterAnnotations);
+    }
+
+    /**
+     * @return the number of parameter annotations in this <code>AnnotationDirectoryItem</code>
+     */
+    public int getParameterAnnotationCount() {
+        return parameterAnnotationMethods.length;
     }
 
     /**
