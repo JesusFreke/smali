@@ -80,8 +80,11 @@ annotation(Visibility, AnnotationType, Elements) ::=
 
 
 
-field(AccessFlags, FieldName, FieldType, Annotations, InitialValue) ::=
+field(AccessFlags, FieldName, FieldType, Annotations, InitialValue, Comments) ::=
 <<
+<if(Comments)><Comments: {#<it>} ; separator="\n">
+
+<endif>
 .field <AccessFlags: {<it> }><FieldName>:<FieldType><if(InitialValue)> = <InitialValue><endif>
 <if(Annotations)>
     <Annotations; separator="\n\n">

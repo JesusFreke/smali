@@ -31,6 +31,7 @@ package org.jf.baksmali.Adaptors;
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.dexlib.EncodedValue.NullEncodedValue;
 import org.jf.dexlib.AnnotationSetItem;
 import org.jf.dexlib.AnnotationItem;
 import org.jf.dexlib.Util.AccessFlags;
@@ -42,13 +43,32 @@ import java.util.List;
 
 public class FieldDefinition {
     public static StringTemplate createTemplate(StringTemplateGroup stg, ClassDataItem.EncodedField encodedField,
-                                                EncodedValue initialValue, AnnotationSetItem annotationSet) {
+                                                EncodedValue initialValue, AnnotationSetItem annotationSet,
+                                                boolean setInStaticConstructor) {
         StringTemplate template = stg.getInstanceOf("field");
+
+        String fieldTypeDescriptor = encodedField.field.getFieldType().getTypeDescriptor();
 
         template.setAttribute("AccessFlags", getAccessFlags(encodedField));
         template.setAttribute("FieldName", encodedField.field.getFieldName().getStringValue());
         template.setAttribute("FieldType", encodedField.field.getFieldType().getTypeDescriptor());
         template.setAttribute("Annotations", getAnnotations(stg, annotationSet));
+
+        if (setInStaticConstructor &&
+            encodedField.isStatic() &&
+            (encodedField.accessFlags & AccessFlags.FINAL.getValue()) != 0 &&
+            initialValue != null &&
+            (
+                //it's a primitive type, or it's an array/reference type and the initial value isn't null
+                fieldTypeDescriptor.length() == 1 ||
+                initialValue != NullEncodedValue.NullValue
+            )) {
+            
+            template.setAttribute("Comments",
+                    new String[]{"the value of this static final field might be set in the static constructor"});
+        } else {
+            template.setAttribute("Comments", null);
+        }
         
         if (initialValue != null) {
             template.setAttribute("InitialValue", EncodedValueAdaptor.make(stg, initialValue));
@@ -59,7 +79,7 @@ public class FieldDefinition {
 
     public static StringTemplate createTemplate(StringTemplateGroup stg, ClassDataItem.EncodedField encodedField,
                                                 AnnotationSetItem annotationSet) {
-        return createTemplate(stg, encodedField, null, annotationSet);
+        return createTemplate(stg, encodedField, null, annotationSet, false);
     }
 
     private static List<String> getAccessFlags(ClassDataItem.EncodedField encodedField) {

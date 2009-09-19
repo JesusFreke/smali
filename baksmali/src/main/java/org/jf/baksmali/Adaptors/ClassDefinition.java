@@ -30,6 +30,10 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.*;
+import org.jf.dexlib.Code.InstructionIterator;
+import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.Format.Format;
+import org.jf.dexlib.Code.Format.Instruction21c;
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.dexlib.Util.SparseArray;
 import org.antlr.stringtemplate.StringTemplate;
@@ -46,11 +50,14 @@ public class ClassDefinition {
     private SparseArray<AnnotationSetItem> fieldAnnotationsMap;
     private SparseArray<AnnotationSetRefList> parameterAnnotationsMap;
 
+    private SparseArray<FieldIdItem> fieldsSetInStaticConstructor;
+
     public ClassDefinition(StringTemplateGroup stg, ClassDefItem classDefItem) {
         this.stg = stg;
         this.classDefItem = classDefItem;
         this.classDataItem = classDefItem.getClassData();
         buildAnnotationMaps();
+        findFieldsSetInStaticConstructor();
     }
 
     public StringTemplate makeTemplate() {
@@ -103,6 +110,52 @@ public class ClassDefinition {
         });
     }
 
+    private void findFieldsSetInStaticConstructor() {
+        fieldsSetInStaticConstructor = new SparseArray<FieldIdItem>();
+
+        if (classDataItem == null) {
+            return;
+        }
+
+        for (ClassDataItem.EncodedMethod directMethod: classDataItem.getDirectMethods()) {
+            if (directMethod.method.getMethodName().getStringValue().equals("<clinit>")) {
+                final byte[] encodedInstructions = directMethod.codeItem.getEncodedInstructions();
+
+                InstructionIterator.IterateInstructions(encodedInstructions,
+                        new InstructionIterator.ProcessRawInstructionDelegate() {
+                            public void ProcessNormalInstruction(Opcode opcode, int index) {
+                            }
+
+                            public void ProcessReferenceInstruction(Opcode opcode, int index) {
+                                switch (opcode) {
+                                    case SPUT:
+                                    case SPUT_BOOLEAN:
+                                    case SPUT_BYTE:
+                                    case SPUT_CHAR:
+                                    case SPUT_OBJECT:
+                                    case SPUT_SHORT:
+                                    case SPUT_WIDE:
+                                        Instruction21c ins = (Instruction21c)Format.Format21c.Factory.makeInstruction(
+                                                classDefItem.getDexFile(), opcode, encodedInstructions, index);
+                                        FieldIdItem fieldIdItem = (FieldIdItem)ins.getReferencedItem();
+                                        fieldsSetInStaticConstructor.put(fieldIdItem.getIndex(), fieldIdItem);
+                                }
+                            }
+
+                            public void ProcessPackedSwitchInstruction(int index, int targetCount, int instructionLength) {
+                            }
+
+                            public void ProcessSparseSwitchInstruction(int index, int targetCount, int instructionLength) {
+                            }
+
+                            public void ProcessFillArrayDataInstruction(int index, int elementWidth, int elementCount, int instructionLength) {
+                            }
+                        });
+
+            }
+        }
+    }
+
     private List<String> getAccessFlags() {
         List<String> accessFlags = new ArrayList<String>();
 
@@ -141,7 +194,7 @@ public class ClassDefinition {
                 interfaces.add(typeIdItem.getTypeDescriptor());
             }
         }
-        
+
         return interfaces;
     }
 
@@ -185,7 +238,11 @@ public class ClassDefinition {
                 }
                 AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
 
-                staticFields.add(FieldDefinition.createTemplate(stg, field, encodedValue, annotationSet));
+                boolean setInStaticConstructor =
+                        fieldsSetInStaticConstructor.get(field.field.getIndex()) != null;
+
+                staticFields.add(FieldDefinition.createTemplate(stg, field, encodedValue, annotationSet,
+                        setInStaticConstructor));
                 i++;
             }
         }
@@ -202,7 +259,7 @@ public class ClassDefinition {
             }
         }
 
-        return instanceFields;       
+        return instanceFields;
     }
 
     private List<StringTemplate> getDirectMethods() {
