@@ -43,8 +43,7 @@ public abstract class InstructionWithReference extends Instruction {
     protected InstructionWithReference(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
         super(opcode, buffer, bufferIndex);
 
-        int itemIndex = NumberUtils.decodeUnsignedShort(buffer[bufferIndex + 2],
-                buffer[bufferIndex + 3]);
+        int itemIndex = NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
         lookupReferencedItem(dexFile, opcode, itemIndex);
     }
 
