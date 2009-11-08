@@ -15,7 +15,7 @@
 
     const v0, 6
     new-array v0, v0, [I
-    fill-array-data v0, ArrayData:
+    fill-array-data v0, :ArrayData
 
     const v1, 0
     aget v2, v0, v1
@@ -49,7 +49,7 @@
 
     return-void
 
-ArrayData:
+:ArrayData
     .array-data 4
         1 2 3 4 5 6
     .end array-data
@@ -62,30 +62,30 @@ ArrayData:
 
     const v0, 12
 
-switch:
-    packed-switch v0, PackedSwitch:
+:switch
+    packed-switch v0, :PackedSwitch
 
-Label10:
+:Label10
     invoke-static {}, Lorg/junit/Assert;->fail()V
     return-void
 
-Label11:
+:Label11
     invoke-static {}, Lorg/junit/Assert;->fail()V
     return-void
 
-Label12:
+:Label12
     return-void
 
-Label13:
+:Label13
     invoke-static {}, Lorg/junit/Assert;->fail()V
     return-void
 
-PackedSwitch:
+:PackedSwitch
     .packed-switch 10
-        Label10:
-        Label11:
-        Label12:
-        Label13:
+        :Label10
+        :Label11
+        :Label12
+        :Label13
     .end packed-switch
 .end method
 
@@ -97,35 +97,35 @@ PackedSwitch:
 
     const v0, 13
 
-switch:
-    sparse-switch v0, SparseSwitch:
+:switch
+    sparse-switch v0, :SparseSwitch
 
-Label10:
+:Label10
     invoke-static {}, Lorg/junit/Assert;->fail()V
     return-void
 
-Label20:
+:Label20
     invoke-static {}, Lorg/junit/Assert;->fail()V
     return-void
 
-Label15:
+:Label15
     invoke-static {}, Lorg/junit/Assert;->fail()V
     return-void
 
-Label13:
+:Label13
     return-void
 
-Label99:
+:Label99
     invoke-static {}, Lorg/junit/Assert;->fail()V
     return-void
 
-SparseSwitch:
+:SparseSwitch
     .sparse-switch
-        10 -> Label10:
-        13 -> Label13:
-        15 -> Label15:
-        20 -> Label20:
-        99 -> Label99:
+        10 -> :Label10
+        13 -> :Label13
+        15 -> :Label15
+        20 -> :Label20
+        99 -> :Label99
     .end sparse-switch
 .end method
 

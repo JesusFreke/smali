@@ -15,17 +15,17 @@
 
     const/4 v0, 0
            
-    if-eqz v0, label1:
+    if-eqz v0, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const/4 v0, 1
 
-    if-eqz v0, label2:
+    if-eqz v0, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -39,17 +39,17 @@
 
     const/4 v0, 1
 
-    if-nez v0, label1:
+    if-nez v0, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const/4 v0, 0
 
-    if-nez v0, label2:
+    if-nez v0, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -62,17 +62,17 @@
 
     const/4 v0, -1
 
-    if-ltz v0, label1:
+    if-ltz v0, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const/4 v0, 0
 
-    if-ltz v0, label2:
+    if-ltz v0, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -85,17 +85,17 @@
 
     const/4 v0, 0
 
-    if-gez v0, label1:
+    if-gez v0, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const/4 v0, -1
 
-    if-gez v0, label2:
+    if-gez v0, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -108,17 +108,17 @@
 
     const/4 v0, 1
 
-    if-gtz v0, label1:
+    if-gtz v0, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const/4 v0, 0
 
-    if-gtz v0, label2:
+    if-gtz v0, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -132,17 +132,17 @@
 
     const/4 v0, 0
 
-    if-lez v0, label1:
+    if-lez v0, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const/4 v0, 1
 
-    if-lez v0, label2:
+    if-lez v0, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void

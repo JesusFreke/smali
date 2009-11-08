@@ -17,17 +17,17 @@
     const v0, 23
     const v1, 23
 
-    if-eq v0, v1, label1:
+    if-eq v0, v1, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const v1, 24
 
-    if-eq v0, v1, label2:
+    if-eq v0, v1, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -41,17 +41,17 @@
     const v0, 23
     const v1, 24
 
-    if-ne v0, v1, label1:
+    if-ne v0, v1, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const v1, 23
 
-    if-ne v0, v1, label2:
+    if-ne v0, v1, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -65,17 +65,17 @@
     const v0, 23
     const v1, 24
 
-    if-lt v0, v1, label1:
+    if-lt v0, v1, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const v1, 23
 
-    if-lt v0, v1, label2:
+    if-lt v0, v1, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -89,17 +89,17 @@
     const v0, 23
     const v1, 23
 
-    if-ge v0, v1, label1:
+    if-ge v0, v1, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const v1, 24
 
-    if-ge v0, v1, label2:
+    if-ge v0, v1, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -113,17 +113,17 @@
     const v0, 23
     const v1, 22
 
-    if-gt v0, v1, label1:
+    if-gt v0, v1, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const v1, 23
 
-    if-gt v0, v1, label2:
+    if-gt v0, v1, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void
@@ -137,17 +137,17 @@
     const v0, 23
     const v1, 23
 
-    if-le v0, v1, label1:
+    if-le v0, v1, :label1
 
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    label1:
+    :label1
     const v1, 22
 
-    if-le v0, v1, label2:
+    if-le v0, v1, :label2
     return-void
 
-    label2:
+    :label2
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
     return-void

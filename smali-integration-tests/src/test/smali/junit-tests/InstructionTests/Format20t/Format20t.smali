@@ -16,9 +16,9 @@
 
     const v0, 5
 
-    goto/16 label:
+    goto/16 :label
 
-    label2:
+    :label2
 
 
     const v1, 6
@@ -1069,9 +1069,9 @@
 
 
 
-    label:
+    :label
     const v0, 6
-    goto/16 label2:
+    goto/16 :label2
 
 
     invoke-static {}, Lorg/junit/Assert;->assertFalse()V

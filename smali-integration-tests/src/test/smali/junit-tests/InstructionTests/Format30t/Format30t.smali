@@ -17,9 +17,9 @@
 
     const v0, 5
 
-    goto/32 label:
+    goto/32 :label
 
-    label2:
+    :label2
 
     const v1, 6
     invoke-static {v0, v1}, LAssert;->assertEquals(II)V
@@ -70748,9 +70748,9 @@
     nop
 
 
-    label:
+    :label
     const v0, 6
-    goto/32 label2:
+    goto/32 :label2
 
 
     invoke-static {}, Lorg/junit/Assert;->assertFalse()V

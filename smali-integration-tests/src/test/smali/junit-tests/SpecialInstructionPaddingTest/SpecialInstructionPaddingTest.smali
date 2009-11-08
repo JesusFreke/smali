@@ -33,21 +33,21 @@
 
     const v0, 12
 
-    packed-switch v0, PackedSwitch:
+    packed-switch v0, :PackedSwitch
 
-Label10:
+:Label10
     const v1, 10
     return v1
 
-Label11:
+:Label11
     const v1, 11
     return v1
 
-Label12:
+:Label12
     const v1, 12
     return v1
 
-Label13:
+:Label13
     const v1, 13
     return v1
 
@@ -56,12 +56,12 @@ Label13:
     #data to force alignment
     nop
 
-PackedSwitch:
+:PackedSwitch
     .packed-switch 10
-        Label10:
-        Label11:
-        Label12:
-        Label13:
+        :Label10
+        :Label11
+        :Label12
+        :Label13
     .end packed-switch
 .end method
 
@@ -92,32 +92,32 @@ PackedSwitch:
 
     const v0, 12
 
-    packed-switch v0, PackedSwitch:
+    packed-switch v0, :PackedSwitch
 
-    packed-switch v0, PackedSwitch2:
+    packed-switch v0, :PackedSwitch2
 
-Label10:
+:Label10
     const v1, 10
     return v1
 
-Label11:
+:Label11
     const v1, 11
     return v1
 
-Label12:
+:Label12
     const v1, 12
     return v1
 
-Label13:
+:Label13
     const v1, 13
     return v1
 
-PackedSwitch:
+:PackedSwitch
     .packed-switch 10
-        Label10:
-        Label11:
-        Label12:
-        Label13:
+        :Label10
+        :Label11
+        :Label12
+        :Label13
     .end packed-switch
 
     #this tests out an issue that occured where the prior packed switch data starts at a byte offset
@@ -129,12 +129,12 @@ PackedSwitch:
     #is aligned, and won't output the extra nop to align it, thus causing a verification error.
     nop
 
-PackedSwitch2:
+:PackedSwitch2
     .packed-switch 10
-        Label10:
-        Label11:
-        Label12:
-        Label13:
+        :Label10
+        :Label11
+        :Label12
+        :Label13
     .end packed-switch
 
 

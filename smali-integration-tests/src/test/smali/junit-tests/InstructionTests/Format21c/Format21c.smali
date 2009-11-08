@@ -42,17 +42,17 @@
     .annotation runtime Lorg/junit/Test;
     .end annotation
 
-    tryStart:
+    :tryStart
     const-string v0, "test"
 
     check-cast v0, Ljava/io/PrintStream;
-    tryEnd:
-    .catch Ljava/lang/ClassCastException; {tryStart: .. tryEnd:} handler:
+    :tryEnd
+    .catch Ljava/lang/ClassCastException; {:tryStart .. :tryEnd} :handler
 
     #the check-cast didn't throw an exception as expected
     invoke-static {}, Lorg/junit/Assert;->fail()V
 
-    handler:
+    :handler
 
     return-void
 .end method
@@ -62,16 +62,16 @@
     .annotation runtime Lorg/junit/Test;
     .end annotation
 
-    tryStart:
+    :tryStart
     const-string v0, "test"
 
     check-cast v0, Ljava/lang/Object;
-    tryEnd:
-    .catch Ljava/lang/ClassCastException; {tryStart: .. tryEnd:} handler:
+    :tryEnd
+    .catch Ljava/lang/ClassCastException; {:tryStart .. :tryEnd} :handler
 
     return-void
 
-    handler:
+    :handler
 
     #the check-cast incorrectlly threw an exception as expected    
     invoke-static {}, Lorg/junit/Assert;->fail()V

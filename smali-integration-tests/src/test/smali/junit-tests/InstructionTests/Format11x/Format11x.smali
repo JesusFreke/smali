@@ -74,16 +74,16 @@
     .annotation runtime Lorg/junit/Test;
     .end annotation
 
-    startTry:
+    :startTry
     const-string v0, "This is an exception message"
     new-instance v1, Ljava/lang/Exception;
     invoke-direct {v1, v0}, Ljava/lang/Exception;-><init>(Ljava/lang/String;)V
     throw v1
-    endTry:
+    :endTry
 
-    .catch Ljava/lang/Exception; {startTry: .. endTry:} handler:
+    .catch Ljava/lang/Exception; {:startTry .. :endTry} :handler
 
-    handler:
+    :handler
     move-exception v0
     invoke-virtual {v0}, Ljava/lang/Exception;->getMessage()Ljava/lang/String;
     move-result-object v1
