@@ -35,8 +35,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-
 #include "utils/Log.h"
+
+#define VERSION "1.0"
+
+#define VER1_(x) #x
+#define VER_(x) VER1_(x)
+#define ANDROID_VERSION VER_(ANDROID_VER)
 
 typedef struct InlineSub {
     Method* method;
@@ -404,7 +409,8 @@ int main(int argc, char* const argv[])
     DexClassLookup* pClassLookup;
 
     if (argc != 3) {
-        fprintf(stderr, "usage: deodexerant <odex_file> <port>\n");
+        fprintf(stderr, "deodexerant %s (Android %s)\n", VERSION, ANDROID_VERSION);
+	fprintf(stderr, "usage: deodexerant <odex_file> <port>\n");
         return 1;
     }
 
