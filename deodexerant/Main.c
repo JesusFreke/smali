@@ -417,7 +417,7 @@ int main(int argc, char* const argv[])
 	return 1;
     }
 
-    int odexFd = open(inputFileName, O_RDWR, 0644);
+    int odexFd = open(inputFileName, O_RDONLY);
     if (odexFd < 0) {
         fprintf(stderr, "Unable to open '%s': %s\n", inputFileName, strerror(errno));
         return 1;
@@ -466,8 +466,8 @@ int main(int argc, char* const argv[])
      */
     bool success;
     void* mapAddr;
-    mapAddr = mmap(NULL, inputInfo.st_size, PROT_READ|PROT_WRITE,
-		MAP_SHARED, odexFd, 0);
+    mapAddr = mmap(NULL, inputInfo.st_size, PROT_READ,
+		MAP_PRIVATE, odexFd, 0);
     if (mapAddr == MAP_FAILED) {
 	fprintf(stderr, "unable to mmap DEX cache: %s\n", strerror(errno));
 	return 1;
