@@ -42,12 +42,14 @@ import java.io.*;
 
 public class baksmali {
     public static boolean noParameterRegisters = false;
+    public static boolean useLocalsDirective = false;
     public static DeodexUtil deodexUtil = null;
 
     public static void disassembleDexFile(DexFile dexFile, Deodexerant deodexerant, String outputDirectory,
-                                          boolean noParameterRegisters)
+                                          boolean noParameterRegisters, boolean useLocalsDirective)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
+        baksmali.useLocalsDirective = useLocalsDirective;
         if (deodexerant != null) {
             baksmali.deodexUtil = new DeodexUtil(deodexerant);
         }

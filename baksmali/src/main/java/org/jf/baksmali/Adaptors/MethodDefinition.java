@@ -49,18 +49,34 @@ public class MethodDefinition {
 
         CodeItem codeItem = encodedMethod.codeItem;
 
+        int temp = encodedMethod.method.getPrototype().getParameterRegisterCount();
+
         StringTemplate template = stg.getInstanceOf("method");
 
         template.setAttribute("AccessFlags", getAccessFlags(encodedMethod));
         template.setAttribute("MethodName", encodedMethod.method.getMethodName().getStringValue());
         template.setAttribute("Prototype", encodedMethod.method.getPrototype().getPrototypeString());
         template.setAttribute("HasCode", codeItem != null);
-        template.setAttribute("RegisterCount", codeItem==null?"0":Integer.toString(codeItem.getRegisterCount()));
+        template.setAttribute("RegistersDirective", baksmali.useLocalsDirective?".locals":".registers");
+        template.setAttribute("RegisterCount", codeItem==null?"0":Integer.toString(getRegisterCount(encodedMethod)));
         template.setAttribute("Parameters", getParameters(stg, codeItem, parameterAnnotations));
         template.setAttribute("Annotations", getAnnotations(stg, annotationSet));
         template.setAttribute("MethodItems", getMethodItems(encodedMethod.method.getDexFile(), stg, codeItem));
 
         return template;        
+    }
+
+    private static int getRegisterCount(ClassDataItem.EncodedMethod encodedMethod)
+    {
+        int totalRegisters = encodedMethod.codeItem.getRegisterCount();
+        if (baksmali.useLocalsDirective) {
+            int parameterRegisters = encodedMethod.method.getPrototype().getParameterRegisterCount();
+            if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) == 0) {
+                parameterRegisters++;
+            }
+            return totalRegisters - parameterRegisters;
+        }
+        return totalRegisters;
     }
 
     private static List<String> getAccessFlags(ClassDataItem.EncodedMethod encodedMethod) {

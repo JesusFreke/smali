@@ -94,11 +94,12 @@ field(AccessFlags, FieldName, FieldType, Annotations, InitialValue, Comments) ::
 >>
 
 
-method(AccessFlags, MethodName, Prototype, HasCode, RegisterCount, Parameters, Annotations, MethodItems) ::=
+method(AccessFlags, MethodName, Prototype, HasCode, RegistersDirective, RegisterCount, Parameters, Annotations,
+    MethodItems) ::=
 <<
 .method <AccessFlags: {<it> }><MethodName><Prototype>
 <if(HasCode)>
-    .registers <RegisterCount>
+    <RegistersDirective> <RegisterCount>
   <if(Parameters)>
     <Parameters; separator="\n">
   <endif>

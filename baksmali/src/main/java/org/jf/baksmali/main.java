@@ -72,6 +72,7 @@ public class main {
         boolean sort = false;
         boolean fixRegisters = false;
         boolean noParameterRegisters = false;
+        boolean useLocalsDirective = false;
 
 
         String outputDirectory = "out";
@@ -130,6 +131,10 @@ public class main {
             noParameterRegisters = true;
         }
 
+        if (commandLine.hasOption("l")) {
+            useLocalsDirective = true;
+        }
+
         if (commandLine.hasOption("x")) {
             String deodexerantAddress = commandLine.getOptionValue("x");
             String[] parts = deodexerantAddress.split(":");
@@ -180,7 +185,8 @@ public class main {
             }
 
             if (disassemble) {
-                baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, noParameterRegisters);
+                baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, noParameterRegisters,
+                        useLocalsDirective);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -275,6 +281,11 @@ public class main {
                 .withArgName("HOST:PORT")
                 .create("x");
 
+        Option useLocalsOption = OptionBuilder.withLongOpt("use-locals")
+                .withDescription("use the .locals directive with the number of non-parameter registers, instead of" +
+                        " the .register directive with the total number of register")
+                .create("l");
+
         OptionGroup dumpCommand = new OptionGroup();
 
         options.addOption(versionOption);
@@ -287,5 +298,6 @@ public class main {
         options.addOption(fixSignedRegisterOption);
         options.addOption(noParameterRegistersOption);
         options.addOption(deodexerantOption);
+        options.addOption(useLocalsOption);
     }
 }
