@@ -280,8 +280,8 @@ statements_and_directives
 			^(I_ANNOTATIONS annotation*);
 
 registers_directive
-	:	REGISTERS_DIRECTIVE integral_literal
-	-> 	integral_literal;
+	:	(REGISTERS_DIRECTIVE | LOCALS_DIRECTIVE) integral_literal
+	-> 	REGISTERS_DIRECTIVE? LOCALS_DIRECTIVE? integral_literal;
 
 catch_directive
 	:	CATCH_DIRECTIVE nonvoid_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label

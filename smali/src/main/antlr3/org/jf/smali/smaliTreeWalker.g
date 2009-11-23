@@ -489,7 +489,11 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			}
 			registers_directive
 			{
-				totalMethodRegisters = $registers_directive.registers;
+				if ($registers_directive.isLocalsDirective) {
+					totalMethodRegisters = $registers_directive.registers + methodParameterRegisters;
+				} else {
+					totalMethodRegisters = $registers_directive.registers;
+				}
 			}
 			labels
 			packed_switch_declarations
@@ -609,10 +613,15 @@ fully_qualified_field returns[FieldIdItem fieldIdItem]
 		$fieldIdItem = FieldIdItem.getInternedFieldIdItem(dexFile, classType, fieldType, fieldName);
 	};
 
-registers_directive returns[int registers]
+registers_directive returns[boolean isLocalsDirective, int registers]
 	:	{$registers = 0;}
-		^(I_REGISTERS (short_integral_literal {$registers = $short_integral_literal.value;} )? );
-	
+		^(I_REGISTERS
+			(	(	REGISTERS_DIRECTIVE {$isLocalsDirective = false;}
+				|	LOCALS_DIRECTIVE {$isLocalsDirective = true;}
+				)
+				short_integral_literal {$registers = $short_integral_literal.value;}
+			)?);
+
 labels
 	:	^(I_LABELS label_def*);
 	
