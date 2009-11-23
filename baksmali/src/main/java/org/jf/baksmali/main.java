@@ -282,7 +282,7 @@ public class main {
                 .create("x");
 
         Option useLocalsOption = OptionBuilder.withLongOpt("use-locals")
-                .withDescription("use the .locals directive with the number of non-parameter registers, instead of" +
+                .withDescription("output the .locals directive with the number of non-parameter registers, instead of" +
                         " the .register directive with the total number of register")
                 .create("l");
 
