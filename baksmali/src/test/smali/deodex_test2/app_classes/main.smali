@@ -15,12 +15,12 @@
     invoke-direct {v0}, Lsubclass1;-><init>()V
     aput-object v0, v1, v4
 
-    goto here2:
+    goto :here2
 
-    here:
+    :here
     const v2, 1
 
-    here2:
+    :here2
 
     #this is tricky, because it has to merge two array types, [Lsubclass1; and [Lsubclass2
     #which should result in [Lsuperclass;. However, this dex file won't have a reference
@@ -35,7 +35,7 @@
     invoke-direct {v0}, Lsubclass2;-><init>()V
     aput-object v0, v1, v4
 
-    if-eqz v2, here:
+    if-eqz v2, :here
 
     return-void
 .end method
