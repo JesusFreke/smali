@@ -28,31 +28,33 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.jf.dexlib.Code.Format.Instruction31t;
-import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.OffsetInstruction;
+import org.jf.baksmali.Adaptors.LabelMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public class Instruction31tMethodItem extends OffsetInstructionFormatMethodItem<Instruction31t> {
-    public Instruction31tMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
-                                    StringTemplateGroup stg, Instruction31t instruction) {
-        super(labelCache, codeItem, offset, stg, instruction);
+public abstract class OffsetInstructionFormatMethodItem<T extends Instruction & OffsetInstruction>
+        extends InstructionFormatMethodItem<T> {
+    protected LabelMethodItem label;
+
+    public OffsetInstructionFormatMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+                                             StringTemplateGroup stg, T instruction) {
+        super(codeItem, offset, stg, instruction);
+
+        label = new LabelMethodItem(offset + instruction.getOffset(), stg, getLabelPrefix());
+        label = labelCache.internLabel(label);
     }
+
+    protected abstract String getLabelPrefix();
 
     protected void setAttributes(StringTemplate template) {
-        super.setAttributes(template);
-        template.setAttribute("Register", formatRegister(instruction.getRegister()));
+        template.setAttribute("TargetLabel", label);
     }
 
-    protected String getLabelPrefix() {
-        if (instruction.opcode == Opcode.FILL_ARRAY_DATA) {
-            return "array_";
-        }
-        if (instruction.opcode == Opcode.PACKED_SWITCH) {
-            return "pswitch_data_";
-        }
-        return "sswitch_data_";
+    public LabelMethodItem getLabel() {
+        return label;
     }
 }

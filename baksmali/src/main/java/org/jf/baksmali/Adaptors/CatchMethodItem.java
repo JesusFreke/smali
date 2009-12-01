@@ -36,18 +36,42 @@ import org.antlr.stringtemplate.StringTemplate;
 public class CatchMethodItem extends MethodItem {
     private final StringTemplateGroup stg;
     private final TypeIdItem exceptionType;
-    private final int startAddress;
-    private final int endAddress;
-    private final int handlerAddress;
 
-    public CatchMethodItem(int offset, StringTemplateGroup stg, TypeIdItem exceptionType, int startAddress,
-                           int endAddress, int handlerAddress) {
+    private final LabelMethodItem tryStartLabel;
+    private final LabelMethodItem tryEndLabel;
+    private final LabelMethodItem handlerLabel;
+
+    public CatchMethodItem(MethodDefinition.LabelCache labelCache, int offset, StringTemplateGroup stg,
+                           TypeIdItem exceptionType, int startAddress, int endAddress, int handlerAddress) {
         super(offset);
         this.stg = stg;
         this.exceptionType = exceptionType;
-        this.startAddress = startAddress;
-        this.endAddress = endAddress;
-        this.handlerAddress = handlerAddress;
+
+        tryStartLabel = labelCache.internLabel(new LabelMethodItem(startAddress, stg, "try_start_"));
+        tryStartLabel.setUncommented();
+        //use the offset from the last covered instruction, but make the label
+        //name refer to the address of the next instruction
+        tryEndLabel = labelCache.internLabel(new EndTryLabelMethodItem(offset, stg, endAddress));
+        tryEndLabel.setUncommented();
+
+        if (exceptionType == null) {
+            handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, stg, "catchall_"));
+        } else {
+            handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, stg, "catch_"));
+        }
+        handlerLabel.setUncommented();
+    }
+
+    public LabelMethodItem getTryStartLabel() {
+        return tryStartLabel;
+    }
+
+    public LabelMethodItem getTryEndLabel() {
+        return tryEndLabel;
+    }
+
+    public LabelMethodItem getHandlerLabel() {
+        return handlerLabel;
     }
 
     public int getSortOrder() {
@@ -65,9 +89,9 @@ public class CatchMethodItem extends MethodItem {
         if (exceptionType != null) {
             template.setAttribute("ExceptionType", TypeReference.makeTemplate(stg, exceptionType));
         }
-        template.setAttribute("StartAddress", Integer.toHexString(startAddress));
-        template.setAttribute("EndAddress", Integer.toHexString(endAddress));
-        template.setAttribute("HandlerAddress", Integer.toHexString(handlerAddress));
+        template.setAttribute("StartLabel", tryStartLabel);
+        template.setAttribute("EndLabel", tryEndLabel);
+        template.setAttribute("HandlerLabel", handlerLabel);
         return template.toString();
     }
 }

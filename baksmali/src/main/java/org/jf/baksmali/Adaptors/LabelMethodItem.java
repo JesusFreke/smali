@@ -30,17 +30,18 @@ package org.jf.baksmali.Adaptors;
 
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.jf.baksmali.baksmali;
 
 public class LabelMethodItem extends MethodItem {
     private final StringTemplateGroup stg;
     private final String labelPrefix;
-    private boolean isCommentedOut = false;
+    private int labelIndex;
+    private boolean isCommentedOut = true;
 
-    public LabelMethodItem(int offset, StringTemplateGroup stg, String labelPrefix, boolean isCommentedOut) {
+    public LabelMethodItem(int offset, StringTemplateGroup stg, String labelPrefix) {
         super(offset);
         this.stg = stg;
         this.labelPrefix = labelPrefix;
-        this.isCommentedOut = isCommentedOut;
     }
 
     public int getSortOrder() {
@@ -51,8 +52,8 @@ public class LabelMethodItem extends MethodItem {
         return isCommentedOut;
     }
 
-    public void setCommentedOut(boolean isCommentedOut) {
-        this.isCommentedOut = isCommentedOut;
+    public void setUncommented() {
+        this.isCommentedOut = false;
     }
 
     public int compareTo(MethodItem methodItem) {
@@ -81,13 +82,28 @@ public class LabelMethodItem extends MethodItem {
     @Override
     public String toString() {
         StringTemplate template = stg.getInstanceOf("Label");
-        template.setAttribute("CommentedOut", this.isCommentedOut);
         template.setAttribute("Prefix", labelPrefix);
-        template.setAttribute("HexOffset", getLabelOffset());
+        if (baksmali.useIndexedLabels) {
+            template.setAttribute("Suffix", Integer.toHexString(labelIndex));
+        } else {
+            template.setAttribute("Suffix", getLabelOffset());
+        }
         return template.toString();
+    }
+
+    public String getLabelPrefix() {
+        return labelPrefix;
     }
 
     public String getLabelOffset() {
         return getHexOffset();
+    }
+
+    public int getLabelIndex() {
+        return labelIndex;
+    }
+
+    public void setLabelIndex(int labelIndex) {
+        this.labelIndex = labelIndex;
     }
 }

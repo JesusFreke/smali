@@ -32,34 +32,37 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
+import org.jf.baksmali.Adaptors.LabelMethodItem;
+import org.jf.baksmali.Adaptors.MethodDefinition;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSwitchDataPseudoInstruction> {
-    private int baseAddress;
+public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSwitchDataPseudoInstruction>
+        implements Iterable<LabelMethodItem> {
+    private List<LabelMethodItem> labels = new ArrayList<LabelMethodItem>();
 
-    public PackedSwitchMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                  PackedSwitchDataPseudoInstruction instruction, int baseAddress) {
+    public PackedSwitchMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+                                  StringTemplateGroup stg, PackedSwitchDataPseudoInstruction instruction,
+                                  int baseAddress) {
         super(codeItem, offset, stg, instruction);
-        this.baseAddress = baseAddress;
-    }
-
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("FirstKey", instruction.getFirstKey());
-        template.setAttribute("Targets", getTargets());
-    }
-
-    private List<String> getTargets() {
-        List<String> targets = new ArrayList<String>();
 
         Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.getTargets();
         while (iterator.hasNext()) {
             PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
-            targets.add(Integer.toHexString(target.target + baseAddress));
+            LabelMethodItem label = new LabelMethodItem(baseAddress + target.target, stg, "pswitch_");
+            label = labelCache.internLabel(label);
+            labels.add(label);
         }
+    }
 
-        return targets;
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("FirstKey", instruction.getFirstKey());
+        template.setAttribute("Targets", labels);
+    }
+
+    public Iterator<LabelMethodItem> iterator() {
+        return labels.iterator();
     }
 }

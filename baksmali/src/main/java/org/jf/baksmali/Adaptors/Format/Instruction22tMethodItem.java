@@ -32,16 +32,21 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.dexlib.Code.Format.Instruction22t;
 import org.jf.dexlib.CodeItem;
+import org.jf.baksmali.Adaptors.MethodDefinition;
 
-public class Instruction22tMethodItem extends InstructionFormatMethodItem<Instruction22t> {
-    public Instruction22tMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction22t instruction) {
-        super(codeItem, offset, stg, instruction);
+public class Instruction22tMethodItem extends OffsetInstructionFormatMethodItem<Instruction22t> {
+    public Instruction22tMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+                                    StringTemplateGroup stg, Instruction22t instruction) {
+        super(labelCache, codeItem, offset, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {
+        super.setAttributes(template);
         template.setAttribute("RegisterA", formatRegister(instruction.getRegisterA()));
         template.setAttribute("RegisterB", formatRegister(instruction.getRegisterB()));
-        template.setAttribute("Target", Integer.toHexString(getOffset() + instruction.getOffset()));
+    }
+
+    protected String getLabelPrefix() {
+        return "cond_";
     }
 }

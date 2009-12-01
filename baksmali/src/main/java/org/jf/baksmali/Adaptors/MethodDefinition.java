@@ -36,6 +36,7 @@ import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.InstructionIterator;
+import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
@@ -159,7 +160,14 @@ public class MethodDefinition {
         MethodItemList methodItemList = new MethodItemList(dexFile, stg, codeItem);
         methodItemList.generateMethodItemList();
 
-        methodItems.addAll(methodItemList.labels.values());
+        for (LabelMethodItem labelMethodItem: methodItemList.labels.getLabels()) {
+            if (labelMethodItem.isCommentedOut()) {
+                methodItems.add(new CommentedOutMethodItem(stg, labelMethodItem));
+            } else {
+                methodItems.add(labelMethodItem);
+            }
+        }
+
         methodItems.addAll(methodItemList.instructions);
         methodItems.addAll(methodItemList.blanks);
         methodItems.addAll(methodItemList.catches);
@@ -175,7 +183,8 @@ public class MethodDefinition {
         private final StringTemplateGroup stg;
         private final CodeItem codeItem;
 
-        public HashMap<LabelMethodItem, LabelMethodItem> labels = new HashMap<LabelMethodItem, LabelMethodItem>();
+        public LabelCache labels = new LabelCache();
+
         public List<MethodItem> instructions = new ArrayList<MethodItem>();
         public List<BlankMethodItem> blanks = new ArrayList<BlankMethodItem>();
         public List<CatchMethodItem> catches = new ArrayList<CatchMethodItem>();
@@ -264,7 +273,23 @@ public class MethodDefinition {
             addTries();
 
             addDebugInfo();
+
+            if (baksmali.useIndexedLabels) {
+                setLabelIndexes();
+            }
         }
+
+        private void addOffsetInstructionMethodItem(OffsetInstructionFormatMethodItem methodItem, boolean commentedOut,
+                                              String comment) {
+            if (commentedOut) {
+                instructions.add(new CommentedOutMethodItem(stg, methodItem));
+            } else {
+                instructions.add(methodItem);
+                LabelMethodItem label = methodItem.getLabel();
+                label.setUncommented();
+            }
+        }
+
 
         private void addInstructionMethodItem(InstructionFormatMethodItem methodItem, boolean commentedOut,
                                               String comment) {
@@ -275,26 +300,13 @@ public class MethodDefinition {
             }
         }
 
-        private void addLabelMethodItem(LabelMethodItem labelMethodItem) {
-            LabelMethodItem internedLabelMethodItem = labels.get(labelMethodItem);
-            if (internedLabelMethodItem != null) {
-                if (!labelMethodItem.isCommentedOut() && internedLabelMethodItem.isCommentedOut()) {
-                    internedLabelMethodItem.setCommentedOut(false);
-                }
-            } else {
-                labels.put(labelMethodItem, labelMethodItem);
-            }
-        }
-
         private void addMethodItemsForInstruction(int offset, Instruction instruction, boolean commentedOut,
                                                   String comment) {
             switch (instruction.getFormat()) {
                 case Format10t:
-                    addInstructionMethodItem(
-                            new Instruction10tMethodItem(codeItem, offset, stg,(Instruction10t)instruction),
+                    addOffsetInstructionMethodItem(
+                            new Instruction10tMethodItem(labels, codeItem, offset, stg,(Instruction10t)instruction),
                             commentedOut, comment);
-                    addLabelMethodItem(new LabelMethodItem(offset + ((Instruction10t)instruction).getOffset(), stg,
-                            "goto_", commentedOut));
                     return;
                 case Format10x:
                     addInstructionMethodItem(
@@ -317,11 +329,9 @@ public class MethodDefinition {
                             commentedOut, comment);
                     return;
                 case Format20t:
-                    addInstructionMethodItem(
-                            new Instruction20tMethodItem(codeItem, offset, stg, (Instruction20t)instruction),
+                    addOffsetInstructionMethodItem(
+                            new Instruction20tMethodItem(labels, codeItem, offset, stg, (Instruction20t)instruction),
                             commentedOut, comment);
-                    addLabelMethodItem(new LabelMethodItem(offset + ((Instruction20t)instruction).getOffset(), stg,
-                            "goto_", commentedOut));
                     return;
                 case Format21c:
                     addInstructionMethodItem(
@@ -339,11 +349,9 @@ public class MethodDefinition {
                             commentedOut, comment);
                     return;
                 case Format21t:
-                    addInstructionMethodItem(
-                            new Instruction21tMethodItem(codeItem, offset, stg, (Instruction21t)instruction),
+                    addOffsetInstructionMethodItem(
+                            new Instruction21tMethodItem(labels, codeItem, offset, stg, (Instruction21t)instruction),
                             commentedOut, comment);
-                    addLabelMethodItem(new LabelMethodItem(offset + ((Instruction21t)instruction).getOffset(), stg,
-                            "cond_", commentedOut));
                     return;
                 case Format22b:
                     addInstructionMethodItem(
@@ -371,11 +379,9 @@ public class MethodDefinition {
                             commentedOut, comment);
                     return;
                 case Format22t:
-                    addInstructionMethodItem(
-                            new Instruction22tMethodItem(codeItem, offset, stg, (Instruction22t)instruction),
+                    addOffsetInstructionMethodItem(
+                            new Instruction22tMethodItem(labels, codeItem, offset, stg, (Instruction22t)instruction),
                             commentedOut, comment);
-                    addLabelMethodItem(new LabelMethodItem(offset + ((Instruction22t)instruction).getOffset(), stg,
-                            "cond_", commentedOut));
                     return;
                 case Format22x:
                     addInstructionMethodItem(
@@ -388,11 +394,9 @@ public class MethodDefinition {
                             commentedOut, comment);
                     return;
                 case Format30t:
-                    addInstructionMethodItem(
-                            new Instruction30tMethodItem(codeItem, offset, stg, (Instruction30t)instruction),
+                    addOffsetInstructionMethodItem(
+                            new Instruction30tMethodItem(labels, codeItem, offset, stg, (Instruction30t)instruction),
                             commentedOut, comment);
-                    addLabelMethodItem(new LabelMethodItem(offset + ((Instruction30t)instruction).getOffset(), stg,
-                            "goto_", commentedOut));
                     return;
                 case Format31c:
                     addInstructionMethodItem(
@@ -405,19 +409,9 @@ public class MethodDefinition {
                             commentedOut, comment);
                     return;
                 case Format31t:
-                    addInstructionMethodItem(
-                            new Instruction31tMethodItem(codeItem, offset, stg, (Instruction31t)instruction),
+                    addOffsetInstructionMethodItem(
+                            new Instruction31tMethodItem(labels, codeItem, offset, stg, (Instruction31t)instruction),
                             commentedOut, comment);
-                    if (instruction.opcode == Opcode.FILL_ARRAY_DATA) {
-                        addLabelMethodItem(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), stg,
-                                "array_", commentedOut));
-                    } else if (instruction.opcode == Opcode.PACKED_SWITCH) {
-                        addLabelMethodItem(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), stg,
-                                "pswitch_data_", commentedOut));
-                    } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
-                        addLabelMethodItem(new LabelMethodItem(offset + ((Instruction31t)instruction).getOffset(), stg,
-                                "sswitch_data_", commentedOut));
-                    }
                     return;
                 case Format32x:
                     addInstructionMethodItem(
@@ -482,16 +476,14 @@ public class MethodDefinition {
                         PackedSwitchDataPseudoInstruction packedSwitchInstruction =
                                 (PackedSwitchDataPseudoInstruction)instruction;
 
-                        addInstructionMethodItem(
-                                new PackedSwitchMethodItem(codeItem, offset, stg, packedSwitchInstruction, baseAddress),
-                            commentedOut, comment);
+                        PackedSwitchMethodItem packedSwitch = new PackedSwitchMethodItem(labels, codeItem, offset, stg,
+                                packedSwitchInstruction, baseAddress);
+                        addInstructionMethodItem(packedSwitch, commentedOut, comment);
 
-                        Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator =
-                                packedSwitchInstruction.getTargets();
-                        while (iterator.hasNext()) {
-                            PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
-                            addLabelMethodItem(new LabelMethodItem(baseAddress + target.target, stg, "pswitch_",
-                                    commentedOut));
+                        if (!commentedOut) {
+                            for (LabelMethodItem label: packedSwitch) {
+                                label.setUncommented();
+                            }
                         }
                     }
                     return;
@@ -504,16 +496,14 @@ public class MethodDefinition {
                         SparseSwitchDataPseudoInstruction sparseSwitchInstruction =
                                 (SparseSwitchDataPseudoInstruction)instruction;
 
-                        addInstructionMethodItem(
-                                new SparseSwitchMethodItem(codeItem, offset, stg, sparseSwitchInstruction, baseAddress),
-                            commentedOut, comment);
+                        SparseSwitchMethodItem sparseSwitch = new SparseSwitchMethodItem(labels, codeItem, offset, stg,
+                                sparseSwitchInstruction, baseAddress);
+                        addInstructionMethodItem(sparseSwitch, commentedOut, comment);
 
-                        Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator =
-                                sparseSwitchInstruction.getTargets();
-                        while (iterator.hasNext()) {
-                            SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
-                            addLabelMethodItem(new LabelMethodItem(baseAddress + target.target, stg, "sswitch_",
-                                    commentedOut));
+                        if (!commentedOut) {
+                            for (LabelMethodItem label: sparseSwitch) {
+                                label.setUncommented();
+                            }
                         }
                     }
                     return;
@@ -575,35 +565,17 @@ public class MethodDefinition {
                 //add the catch all handler if it exists
                 int catchAllAddress = tryItem.encodedCatchHandler.catchAllHandlerAddress;
                 if (catchAllAddress != -1) {
-                    CatchMethodItem catchMethodItem = new CatchMethodItem(lastInstructionOffset, stg, null,
-                            startAddress, endAddress, catchAllAddress) {
-                        public String getTemplateName() {
-                            return "CatchAll";
-                        }
-                    };
+                    CatchMethodItem catchMethodItem = new CatchMethodItem(labels, lastInstructionOffset, stg, null,
+                            startAddress, endAddress, catchAllAddress);
                     catches.add(catchMethodItem);
-
-                    addLabelMethodItem(new LabelMethodItem(startAddress, stg, "try_start_", false));
-                    //use the offset from the last covered instruction, but make the label
-                    //name refer to the address of the next instruction
-                    addLabelMethodItem(new EndTryLabelMethodItem(lastInstructionOffset, stg, endAddress));
-                    addLabelMethodItem(new LabelMethodItem(catchAllAddress, stg, "handler_", false));
-
                 }
 
                 //add the rest of the handlers
-                //TODO: find adjacent handlers for the same type and combine them
                 for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
                     //use the offset from the last covered instruction
-                    CatchMethodItem catchMethodItem = new CatchMethodItem(lastInstructionOffset, stg,
+                    CatchMethodItem catchMethodItem = new CatchMethodItem(labels, lastInstructionOffset, stg,
                             handler.exceptionType, startAddress, endAddress, handler.handlerAddress);
                     catches.add(catchMethodItem);
-
-                    addLabelMethodItem(new LabelMethodItem(startAddress, stg, "try_start_", false));
-                    //use the offset from the last covered instruction, but make the label
-                    //name refer to the address of the next instruction
-                    addLabelMethodItem(new EndTryLabelMethodItem(lastInstructionOffset, stg, endAddress));
-                    addLabelMethodItem(new LabelMethodItem(handler.handlerAddress, stg, "handler_", false));
                 }
             }
         }
@@ -675,6 +647,47 @@ public class MethodDefinition {
                              });
                         }
                     });
+        }
+
+        private void setLabelIndexes() {
+            HashMap<String, Integer> nextLabelIndexByType = new HashMap<String, Integer>();
+            ArrayList<LabelMethodItem> sortedLabels = new ArrayList<LabelMethodItem>(labels.getLabels());
+
+            //sort the labels by their location in the method
+            Collections.sort(sortedLabels);
+
+            for (LabelMethodItem labelMethodItem: sortedLabels) {
+                Integer labelIndex = nextLabelIndexByType.get(labelMethodItem.getLabelPrefix());
+                if (labelIndex == null) {
+                    labelIndex = 0;
+                }
+                labelMethodItem.setLabelIndex(labelIndex);
+                nextLabelIndexByType.put(labelMethodItem.getLabelPrefix(), labelIndex + 1);
+            }
+        }
+    }
+
+    public static class LabelCache {
+        protected HashMap<LabelMethodItem, LabelMethodItem> labels = new HashMap<LabelMethodItem, LabelMethodItem>();
+
+        public LabelCache() {
+        }
+
+        public LabelMethodItem internLabel(LabelMethodItem labelMethodItem) {
+            LabelMethodItem internedLabelMethodItem = labels.get(labelMethodItem);
+            if (internedLabelMethodItem != null) {
+                if (!labelMethodItem.isCommentedOut()) {
+                    internedLabelMethodItem.setUncommented();
+                }
+                return internedLabelMethodItem;
+            }
+            labels.put(labelMethodItem, labelMethodItem);
+            return labelMethodItem;
+        }
+
+
+        public Collection<LabelMethodItem> getLabels() {
+            return labels.values();
         }
     }
 }

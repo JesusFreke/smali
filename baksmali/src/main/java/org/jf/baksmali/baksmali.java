@@ -43,13 +43,17 @@ import java.io.*;
 public class baksmali {
     public static boolean noParameterRegisters = false;
     public static boolean useLocalsDirective = false;
+    public static boolean useIndexedLabels = false;
     public static DeodexUtil deodexUtil = null;
 
     public static void disassembleDexFile(DexFile dexFile, Deodexerant deodexerant, String outputDirectory,
-                                          boolean noParameterRegisters, boolean useLocalsDirective)
+                                          boolean noParameterRegisters, boolean useLocalsDirective,
+                                          boolean useIndexedLabels)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
         baksmali.useLocalsDirective = useLocalsDirective;
+        baksmali.useIndexedLabels = useIndexedLabels;
+
         if (deodexerant != null) {
             baksmali.deodexUtil = new DeodexUtil(deodexerant);
         }

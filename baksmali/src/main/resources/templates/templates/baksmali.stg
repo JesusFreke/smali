@@ -123,18 +123,9 @@ Parameter(ParameterName, Annotations) ::=
 <endif>
 >>
 
-
-
-Format31tLabelMap ::= [
-    "fill-array-data":"array_",
-    "packed-switch":"pswitch_data_",
-    "sparse-switch":"sswitch_data_"
-]
-
-
-Format10t(Opcode, Target) ::=
+Format10t(Opcode, TargetLabel) ::=
 <<
-<Opcode> :goto_<Target>
+<Opcode> <TargetLabel>
 >>
 
 Format10x(Opcode) ::=
@@ -157,9 +148,9 @@ Format12x(Opcode, RegisterA, RegisterB) ::=
 <Opcode> <RegisterA>, <RegisterB>
 >>
 
-Format20t(Opcode, Target) ::=
+Format20t(Opcode, TargetLabel) ::=
 <<
-<Opcode> :goto_<Target>
+<Opcode> <TargetLabel>
 >>
 
 Format21c(Opcode, Register, Reference) ::=
@@ -177,9 +168,9 @@ Format21s(Opcode, Register, Literal) ::=
 <Opcode> <Register>, <Literal>
 >>
 
-Format21t(Opcode, Register, Target) ::=
+Format21t(Opcode, Register, TargetLabel) ::=
 <<
-<Opcode> <Register>, :cond_<Target>
+<Opcode> <Register>, <TargetLabel>
 >>
 
 Format22b(Opcode, RegisterA, RegisterB, Literal) ::=
@@ -207,9 +198,9 @@ Format22s(Opcode, RegisterA, RegisterB, Literal) ::=
 <Opcode> <RegisterA>, <RegisterB>, <Literal>
 >>
 
-Format22t(Opcode, RegisterA, RegisterB, Target) ::=
+Format22t(Opcode, RegisterA, RegisterB, TargetLabel) ::=
 <<
-<Opcode> <RegisterA>, <RegisterB>, :cond_<Target>
+<Opcode> <RegisterA>, <RegisterB>, <TargetLabel>
 >>
 
 Format22x(Opcode, RegisterA, RegisterB) ::=
@@ -222,9 +213,9 @@ Format23x(Opcode, RegisterA, RegisterB, RegisterC) ::=
 <Opcode> <RegisterA>, <RegisterB>, <RegisterC>
 >>
 
-Format30t(Opcode, Target) ::=
+Format30t(Opcode, TargetLabel) ::=
 <<
-<Opcode> :goto_<Target>
+<Opcode> <TargetLabel>
 >>
 
 Format31c(Opcode, Register, Reference) ::=
@@ -237,9 +228,9 @@ Format31i(Opcode, Register, Literal) ::=
 <Opcode> <Register>, <Literal>
 >>
 
-Format31t(Opcode, Register, Target) ::=
+Format31t(Opcode, Register, TargetLabel) ::=
 <<
-<Opcode> <Register>, :<Format31tLabelMap.(Opcode)><Target>
+<Opcode> <Register>, <TargetLabel>
 >>
 
 Format32x(Opcode, RegisterA, RegisterB) ::=
@@ -322,21 +313,21 @@ ArrayElement(Bytes) ::=
 PackedSwitchData(Opcode, FirstKey, Targets) ::=
 <<
 .packed-switch <FirstKey>
-    <Targets: {:pswitch_<it>}; separator="\n">
+    <Targets: {<it>}; separator="\n">
 .end packed-switch
 >>
 
 SparseSwitchData(Opcode, Targets) ::=
 <<
 .sparse-switch
-    <Targets:{<it.Value> -> :sswitch_<it.Target>}; separator="\n">
+    <Targets:{<it.Value> -> <it.Target>}; separator="\n">
 .end sparse-switch
 >>
 
 
-Label(Prefix, HexOffset, CommentedOut) ::=
+Label(Prefix, Suffix) ::=
 <<
-<if(CommentedOut)>#<endif>:<Prefix><HexOffset>
+:<Prefix><Suffix>
 >>
 
 Line(Line) ::=
@@ -379,16 +370,10 @@ Blank(Blank) ::=
 
 >>
 
-Catch(ExceptionType, StartAddress, EndAddress, HandlerAddress) ::=
+Catch(ExceptionType, StartLabel, EndLabel, HandlerLabel) ::=
 <<
-.catch <ExceptionType> {:try_start_<StartAddress> .. :try_end_<EndAddress>} :handler_<HandlerAddress>
+<if(ExceptionType)>.catch <ExceptionType><else>.catchall<endif> {<StartLabel> .. <EndLabel>} <HandlerLabel>
 >>
-
-CatchAll(StartAddress, EndAddress, HandlerAddress) ::=
-<<
-.catchall {:try_start_<StartAddress> .. :try_end_<EndAddress>} :handler_<HandlerAddress> 
->>
-
 
 
 StringReference(EscapedValue) ::=

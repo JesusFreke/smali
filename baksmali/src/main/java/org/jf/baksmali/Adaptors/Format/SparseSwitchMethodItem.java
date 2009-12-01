@@ -32,42 +32,60 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
+import org.jf.baksmali.Adaptors.LabelMethodItem;
+import org.jf.baksmali.Adaptors.MethodDefinition;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSwitchDataPseudoInstruction> {
-    private int baseAddress;
+public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSwitchDataPseudoInstruction>
+        implements Iterable<LabelMethodItem> {
+    private List<SparseSwitchTarget> targets = new ArrayList<SparseSwitchTarget>();
 
-    public SparseSwitchMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                  SparseSwitchDataPseudoInstruction instruction, int baseAddress) {
+    public SparseSwitchMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+                                  StringTemplateGroup stg, SparseSwitchDataPseudoInstruction instruction,
+                                  int baseAddress) {
         super(codeItem, offset, stg, instruction);
-        this.baseAddress = baseAddress;
-    }
-
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Targets", getTargets());
-    }
-
-    private static class SparseSwitchTarget {
-        public int Value;
-        public String Target;
-    }
-
-    private List<SparseSwitchTarget> getTargets() {
-        List<SparseSwitchTarget> targets = new ArrayList<SparseSwitchTarget>();
 
         Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.getTargets();
-
         while (iterator.hasNext()) {
             SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
             SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
             sparseSwitchTarget.Value = target.value;
-            sparseSwitchTarget.Target = Integer.toHexString(target.target + baseAddress);
+
+            LabelMethodItem label = new LabelMethodItem(baseAddress + target.target, stg, "sswitch_");
+            label = labelCache.internLabel(label);
+            sparseSwitchTarget.Target = label;
+
             targets.add(sparseSwitchTarget);
         }
+    }
 
-        return targets;
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("Targets", targets);
+    }
+
+    public Iterator<LabelMethodItem> iterator() {
+        return new Iterator<LabelMethodItem>() {
+            private Iterator<SparseSwitchTarget> iterator = targets.iterator();
+
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            public LabelMethodItem next() {
+                return iterator.next().Target;
+            }
+
+            public void remove() {
+                iterator.remove();
+            }
+        };
+    }
+
+    private static class SparseSwitchTarget {
+        public int Value;
+        public LabelMethodItem Target;
     }
 }

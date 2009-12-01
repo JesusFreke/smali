@@ -28,18 +28,18 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.dexlib.Code.Format.Instruction30t;
 import org.jf.dexlib.CodeItem;
+import org.jf.baksmali.Adaptors.MethodDefinition;
 
-public class Instruction30tMethodItem extends InstructionFormatMethodItem<Instruction30t> {
-    public Instruction30tMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
-                                    Instruction30t instruction) {
-        super(codeItem, offset, stg, instruction);
+public class Instruction30tMethodItem extends OffsetInstructionFormatMethodItem<Instruction30t> {
+    public Instruction30tMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+                                    StringTemplateGroup stg, Instruction30t instruction) {
+        super(labelCache, codeItem, offset, stg, instruction);
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Target", Integer.toHexString(getOffset() + instruction.getOffset()));
+    protected String getLabelPrefix() {
+        return "goto_";
     }
 }

@@ -73,6 +73,7 @@ public class main {
         boolean fixRegisters = false;
         boolean noParameterRegisters = false;
         boolean useLocalsDirective = false;
+        boolean useIndexedLabels = false;
 
 
         String outputDirectory = "out";
@@ -135,6 +136,10 @@ public class main {
             useLocalsDirective = true;
         }
 
+        if (commandLine.hasOption("i")) {
+            useIndexedLabels = true;
+        }
+
         if (commandLine.hasOption("x")) {
             String deodexerantAddress = commandLine.getOptionValue("x");
             String[] parts = deodexerantAddress.split(":");
@@ -186,7 +191,7 @@ public class main {
 
             if (disassemble) {
                 baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, noParameterRegisters,
-                        useLocalsDirective);
+                        useLocalsDirective, useIndexedLabels);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -282,9 +287,14 @@ public class main {
                 .create("x");
 
         Option useLocalsOption = OptionBuilder.withLongOpt("use-locals")
-                .withDescription("output the .locals directive with the number of non-parameter registers, instead of" +
-                        " the .register directive with the total number of register")
+                .withDescription("output the .locals directive with the number of non-parameter registers, rather" +
+                        " than the .register directive with the total number of register")
                 .create("l");
+
+        Option indexedLabelsOption = OptionBuilder.withLongOpt("indexed-labels")
+                .withDescription("create label names using a per-method/per-label-type auto-index as the suffix, " +
+                        " rather than the bytecode offset")
+                .create("i");
 
         OptionGroup dumpCommand = new OptionGroup();
 
@@ -299,5 +309,6 @@ public class main {
         options.addOption(noParameterRegistersOption);
         options.addOption(deodexerantOption);
         options.addOption(useLocalsOption);
+        options.addOption(indexedLabelsOption);
     }
 }
