@@ -54,6 +54,10 @@ public class Instruction31c extends InstructionWithReference implements SingleRe
         super(dexFile, opcode, buffer, bufferIndex);
     }
 
+    protected int getReferencedItemIndex() {
+	return NumberUtils.decodeInt(buffer, bufferIndex + 2);
+    }
+
     public Format getFormat() {
         return Format.Format31c;
     }
