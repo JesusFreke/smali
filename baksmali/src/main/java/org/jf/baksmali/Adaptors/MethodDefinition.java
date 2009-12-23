@@ -36,7 +36,6 @@ import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.InstructionIterator;
-import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
@@ -49,8 +48,6 @@ public class MethodDefinition {
                                               AnnotationSetRefList parameterAnnotations) {
 
         CodeItem codeItem = encodedMethod.codeItem;
-
-        int temp = encodedMethod.method.getPrototype().getParameterRegisterCount();
 
         StringTemplate template = stg.getInstanceOf("method");
 
