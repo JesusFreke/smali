@@ -40,7 +40,7 @@ public class Instruction22t extends Instruction implements OffsetInstruction, Tw
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
     private byte regB;
-    private int offset;
+    private short offset;
 
     public Instruction22t(Opcode opcode, byte regA, byte regB, short offC) {
         super(opcode);
@@ -72,17 +72,19 @@ public class Instruction22t extends Instruction implements OffsetInstruction, Tw
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        if (offset < -32768 || offset > 32767) {
-            throw new RuntimeException("The offset " + offset + " is out of range. It must be in [-32768, 32767]");
-        }
-
         out.writeByte(opcode.value);
         out.writeByte((regB << 4) | regA);
         out.writeShort(offset);
     }
 
     public void updateOffset(int offset) {
-        this.offset = offset;
+        if (offset < -32768 || offset > 32767) {
+            throw new RuntimeException("The offset " + offset + " is out of range. It must be in [-32768, 32767]");
+        }
+        if (offset == 0) {
+            throw new RuntimeException("The offset cannot be 0");
+        }
+        this.offset = (short)offset;
     }
 
     public Format getFormat() {

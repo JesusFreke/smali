@@ -38,7 +38,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 public class Instruction21t extends Instruction implements OffsetInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
-    private int offset;
+    private short offset;
 
     public Instruction21t(Opcode opcode, short regA, short offB) {
         super(opcode);
@@ -66,17 +66,19 @@ public class Instruction21t extends Instruction implements OffsetInstruction {
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        if (offset < -32768 || offset > 32767) {
-            throw new RuntimeException("The offset " + offset + " is out of range. It must be in [-32768, 32767]");
-        }
-
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeShort(offset);
     }
 
     public void updateOffset(int offset) {
-        this.offset = offset;
+        if (offset < Short.MIN_VALUE || offset > Short.MAX_VALUE) {
+            throw new RuntimeException("The offset " + offset + " is out of range. It must be in [-32768, 32767]");
+        }
+        if (offset == 0) {
+            throw new RuntimeException("The offset cannot be 0");
+        }
+        this.offset = (short)offset;
     }
 
     public Format getFormat() {
