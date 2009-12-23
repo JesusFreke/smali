@@ -62,8 +62,7 @@ public class Instruction31t extends Instruction implements OffsetInstruction, Si
     protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
-        //TODO: get offset from offsetTarget
-        out.writeInt(offset);
+        out.writeInt(offset + (((currentCodeOffset/2) + offset) % 2));
     }
 
     public void updateOffset(int offset) {
