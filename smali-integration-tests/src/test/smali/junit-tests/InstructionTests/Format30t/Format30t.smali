@@ -70753,6 +70753,6 @@
     goto/32 :label2
 
 
-    invoke-static {}, Lorg/junit/Assert;->assertFalse()V
+    invoke-static {}, Lorg/junit/Assert;->fail()V
     return-void
 .end method

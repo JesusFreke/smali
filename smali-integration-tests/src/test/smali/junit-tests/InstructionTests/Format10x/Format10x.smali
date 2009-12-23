@@ -27,6 +27,6 @@
     return-void
 
     #if we get here, the return-void didn't work
-    invoke-static {}, Lorg/junit/Assert;->assertFalse()V
+    invoke-static {}, Lorg/junit/Assert;->fail()V
 .end method
 
