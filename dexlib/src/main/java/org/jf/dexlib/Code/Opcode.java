@@ -33,7 +33,7 @@ import org.jf.dexlib.Code.Format.Format;
 import java.util.HashMap;
 
 public enum Opcode
-{        
+{
     NOP((byte)0x00, "nop", ReferenceType.none, Format.Format10x),
     MOVE((byte)0x01, "move", ReferenceType.none, Format.Format12x),
     MOVE_FROM16((byte)0x02, "move/from16", ReferenceType.none, Format.Format22x),

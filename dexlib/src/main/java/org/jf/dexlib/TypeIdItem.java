@@ -52,7 +52,7 @@ public class TypeIdItem extends Item<TypeIdItem> {
         super(dexFile);
         this.typeDescriptor = typeDescriptor;
     }
-    
+
     /**
      * Returns a <code>TypeIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>

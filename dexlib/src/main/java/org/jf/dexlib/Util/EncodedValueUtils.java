@@ -70,7 +70,7 @@ public class EncodedValueUtils {
 
 
 
-    
+
 
     public static byte getRequiredBytesForUnsignedIntegralValue(long value) {
         // Figure out how many bits are needed to represent the value.

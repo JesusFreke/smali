@@ -57,7 +57,7 @@ public class TypeListItem extends Item<TypeListItem> {
 
         this.typeList = typeList;
     }
-    
+
     /**
      * Returns a <code>TypeListItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
@@ -90,7 +90,7 @@ public class TypeListItem extends Item<TypeListItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
-        //yes, the code to write the item is duplicated. This eliminates the need to iterate over the list twice 
+        //yes, the code to write the item is duplicated. This eliminates the need to iterate over the list twice
 
         if (out.annotates()) {
             out.annotate(4, "size: 0x" + Integer.toHexString(typeList.length) + " (" + typeList.length +")");
@@ -104,7 +104,7 @@ public class TypeListItem extends Item<TypeListItem> {
             out.writeShort(typeIdItem.getIndex());
         }
     }
-    
+
     /** {@inheritDoc} */
     public ItemType getItemType() {
         return ItemType.TYPE_TYPE_LIST;

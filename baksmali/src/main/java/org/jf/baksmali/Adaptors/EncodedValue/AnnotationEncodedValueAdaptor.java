@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public abstract class AnnotationEncodedValueAdaptor {
-    
+
     public static StringTemplate makeTemplate(StringTemplateGroup stg, AnnotationEncodedSubValue encodedAnnotation) {
         StringTemplate template = stg.getInstanceOf("AnnotationEncodedValue");
         template.setAttribute("AnnotationType", TypeReference.makeTemplate(stg, encodedAnnotation.annotationType));

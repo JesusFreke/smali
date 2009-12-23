@@ -34,7 +34,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class EncodedArrayItem extends Item<EncodedArrayItem> {
     private int hashCode = 0;
-    
+
     private ArrayEncodedSubValue encodedArray;
 
     /**
@@ -81,7 +81,7 @@ public class EncodedArrayItem extends Item<EncodedArrayItem> {
     protected void writeItem(AnnotatedOutput out) {
         encodedArray.writeValue(out);
     }
-    
+
     /** {@inheritDoc} */
     public ItemType getItemType() {
         return ItemType.TYPE_ENCODED_ARRAY_ITEM;

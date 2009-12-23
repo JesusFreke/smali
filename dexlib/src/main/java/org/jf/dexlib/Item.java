@@ -61,14 +61,14 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @param in the <code>Input</code> object to read from
      * @param index the index within the containing section of the item being read in
      * @param readContext a <code>ReadContext</code> object to hold information that is
-     * only needed while reading in a file  
+     * only needed while reading in a file
      */
     protected void readFrom(Input in, int index, ReadContext readContext) {
         assert in.getCursor() % getItemType().ItemAlignment == 0;
 
         this.offset = in.getCursor();
         this.index = index;
-        this.readItem(in, readContext);    
+        this.readItem(in, readContext);
     }
 
     /**
@@ -120,7 +120,7 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * This method is for internal use only
      * @param in the <code>Input</code> object to read from
      * @param readContext a <code>ReadContext</code> object to hold information that is
-     * only needed while reading in a file 
+     * only needed while reading in a file
      */
     protected abstract void readItem(Input in, ReadContext readContext);
 
@@ -143,13 +143,13 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      *
      * The logic in this method can assume that the given Output object is valid and is
      * aligned as neccessary
-     * 
+     *
      * @param out The <code>AnnotatedOutput</code> object to write/annotate to
      */
     protected abstract void writeItem(AnnotatedOutput out);
 
     /**
-     * @return An ItemType enum that represents the item type of this item 
+     * @return An ItemType enum that represents the item type of this item
      */
     public abstract ItemType getItemType();
 

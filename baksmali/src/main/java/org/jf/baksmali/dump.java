@@ -40,7 +40,7 @@ public class dump {
 
         if (sort) {
             //sort all items, to guarantee a unique ordering
-            dexFile.setSortAllItems(true);         
+            dexFile.setSortAllItems(true);
         } else {
             //don't change the order
             dexFile.setInplace(true);

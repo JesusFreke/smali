@@ -58,7 +58,7 @@ public abstract class EncodedValueAdaptor {
                 return SimpleEncodedValueAdaptor.makeTemplate(stg, ((FloatEncodedValue)encodedValue).value);
             case VALUE_INT:
                 return SimpleEncodedValueAdaptor.makeTemplate(stg, ((IntEncodedValue)encodedValue).value);
-            case VALUE_LONG:                                                                                
+            case VALUE_LONG:
                 return SimpleEncodedValueAdaptor.makeTemplate(stg, ((LongEncodedValue)encodedValue).value);
             case VALUE_METHOD:
                 return EncodedIndexedItemAdaptor.makeTemplate(stg, MethodReference.makeTemplate(stg,

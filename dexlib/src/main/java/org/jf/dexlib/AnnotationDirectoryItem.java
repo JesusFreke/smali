@@ -54,7 +54,7 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
      * which handles it as a special case
      */
     private ClassDefItem parent = null;
-                                             
+
     /**
      * Creates a new uninitialized <code>AnnotationDirectoryItem</code>
      * @param dexFile The <code>DexFile</code> that this item belongs to

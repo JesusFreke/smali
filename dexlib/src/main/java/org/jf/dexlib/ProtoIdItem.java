@@ -36,7 +36,7 @@ public class ProtoIdItem extends Item<ProtoIdItem> {
 
     private StringIdItem shortyDescriptor;
     private TypeIdItem returnType;
-    private TypeListItem parameters;    
+    private TypeListItem parameters;
 
     /**
      * Creates a new uninitialized <code>ProtoIdItem</code>

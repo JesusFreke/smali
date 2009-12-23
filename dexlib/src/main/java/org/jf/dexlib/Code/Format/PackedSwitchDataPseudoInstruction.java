@@ -59,7 +59,7 @@ public class PackedSwitchDataPseudoInstruction extends Instruction {
         out.writeByte(0x01);
         out.writeShort(targets.length);
         out.writeInt(firstKey);
-        
+
         for (int target : targets) {
             out.writeInt(target);
         }

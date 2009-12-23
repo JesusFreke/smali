@@ -55,7 +55,7 @@ public class ByteArrayInput
         }
 
         this.data = data;
-        this.cursor = 0;      
+        this.cursor = 0;
     }
 
     /**
@@ -196,7 +196,7 @@ public class ByteArrayInput
     }
 
 
-        
+
 
     /** {@inheritDoc} */
     public int readUnsignedLeb128() {
@@ -339,11 +339,11 @@ public class ByteArrayInput
     /** {@inheritDoc} */
     public void alignTo(int alignment) {
         int end = AlignmentUtils.alignOffset(cursor, alignment);
-        
+
         if (end > data.length) {
             throwBounds();
         }
-        
+
         cursor = end;
     }
 

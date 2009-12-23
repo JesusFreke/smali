@@ -54,7 +54,7 @@ public class OffsettedSection<T extends Item> extends Section<T> {
 
         for (int i = 0; i < items.size(); i++) {
             assert items.get(i) == null;
-            
+
             T item = null;
             in.alignTo(ItemType.ItemAlignment);
             int currentOffset = in.getCursor();

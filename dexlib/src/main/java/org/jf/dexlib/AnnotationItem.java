@@ -34,7 +34,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class AnnotationItem extends Item<AnnotationItem> {
     private int hashCode = 0;
-    
+
     private AnnotationVisibility visibility;
     private AnnotationEncodedSubValue annotationValue;
 

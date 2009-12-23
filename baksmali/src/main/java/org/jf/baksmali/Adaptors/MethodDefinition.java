@@ -61,7 +61,7 @@ public class MethodDefinition {
         template.setAttribute("Annotations", getAnnotations(stg, annotationSet));
         template.setAttribute("MethodItems", getMethodItems(encodedMethod.method.getDexFile(), stg, codeItem));
 
-        return template;        
+        return template;
     }
 
     private static int getRegisterCount(ClassDataItem.EncodedMethod encodedMethod)
@@ -83,7 +83,7 @@ public class MethodDefinition {
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(encodedMethod.accessFlags)) {
             accessFlags.add(accessFlag.toString());
         }
-        
+
         return accessFlags;
     }
 
@@ -281,7 +281,7 @@ public class MethodDefinition {
                             }
                         });
             }
-            
+
             blanks.remove(blanks.size()-1);
 
             addTries();
@@ -334,7 +334,7 @@ public class MethodDefinition {
                     addInstructionMethodItem(
                             new Instruction11xMethodItem(codeItem, offset, stg, (Instruction11x)instruction),
                             commentedOut);
-                    return;                
+                    return;
                 case Format12x:
                     addInstructionMethodItem(
                             new Instruction12xMethodItem(codeItem, offset, stg, (Instruction12x)instruction),

@@ -48,7 +48,7 @@ public class CodeItem extends Item<CodeItem> {
     private EncodedCatchHandler[] encodedCatchHandlers;
 
     private ClassDataItem.EncodedMethod parent;
-    
+
     /**
      * Creates a new uninitialized <code>CodeItem</code>
      * @param dexFile The <code>DexFile</code> that this item belongs to
@@ -150,7 +150,7 @@ public class CodeItem extends Item<CodeItem> {
                 in.readInt());
         if (this.debugInfo != null) {
             this.debugInfo.setParent(this);
-        }                                          
+        }
         int instructionCount = in.readInt();
         this.encodedInstructions = in.readBytes(instructionCount * 2);
         this.referencedItems = InstructionReader.getReferencedItems(encodedInstructions, dexFile);
@@ -420,7 +420,7 @@ public class CodeItem extends Item<CodeItem> {
         public final int instructionCount;
 
         /**
-         * The associated exception handler 
+         * The associated exception handler
          */
         public final EncodedCatchHandler encodedCatchHandler;
 
@@ -428,7 +428,7 @@ public class CodeItem extends Item<CodeItem> {
          * Construct a new <code>TryItem</code> with the given values
          * @param startAddress the address (in 2-byte words) within the code where the try block starts
          * @param instructionCount the number of 2-byte words that the try block covers
-         * @param encodedCatchHandler the associated exception handler 
+         * @param encodedCatchHandler the associated exception handler
          */
         public TryItem(int startAddress, int instructionCount, EncodedCatchHandler encodedCatchHandler) {
             this.startAddress = startAddress;
@@ -441,7 +441,7 @@ public class CodeItem extends Item<CodeItem> {
          * @param in the Input object to read the <code>TryItem</code> from
          * @param encodedCatchHandlers a SparseArray of the EncodedCatchHandlers for this <code>CodeItem</code>. The
          * key should be the offset of the EncodedCatchHandler from the beginning of the encoded_catch_handler_list
-         * structure.  
+         * structure.
          */
         private TryItem(Input in, SparseArray<EncodedCatchHandler> encodedCatchHandlers) {
             startAddress = in.readInt();
@@ -648,7 +648,7 @@ public class CodeItem extends Item<CodeItem> {
         /**
          * Constructs a new <code>EncodedTypeAddrPair</code> with the given values
          * @param exceptionType the type of the <code>Exception</code> that this handler handles
-         * @param handlerAddress the address (in 2-byte words) in the code of the handler  
+         * @param handlerAddress the address (in 2-byte words) in the code of the handler
          */
         public EncodedTypeAddrPair(TypeIdItem exceptionType, int handlerAddress) {
             this.exceptionType = exceptionType;

@@ -29,7 +29,7 @@
 package org.jf.smali;
 
 public class literalTools
-{  
+{
     public static byte parseByte(String byteLiteral)
             throws NumberFormatException {
         if (byteLiteral == null) {
@@ -203,8 +203,8 @@ public class literalTools
         int result = 0;
         int shiftedResult;
         int digit;
-        int maxValue = Integer.MAX_VALUE / (radix / 2);        
-        
+        int maxValue = Integer.MAX_VALUE / (radix / 2);
+
         while (position < intChars.length) {
             digit = Character.digit(intChars[position], radix);
             if (digit < 0) {

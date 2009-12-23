@@ -149,7 +149,7 @@ public class DebugInfoBuilder
         if (!hasData) {
             return null;
         }
-        
+
         ByteArrayOutput out = new ByteArrayOutput();
         StringIdItem[] parameterNamesArray = new StringIdItem[parameterNames.size()];
         ArrayList<Item> referencedItems = new ArrayList<Item>();
@@ -179,7 +179,7 @@ public class DebugInfoBuilder
         return DebugInfoItem.getInternedDebugInfoItem(dexFile, lineStart, parameterNamesArray, out.getArray(),
                 referencedItemsArray);
     }
-    
+
     private interface Event
     {
         int getAddress();
@@ -189,7 +189,7 @@ public class DebugInfoBuilder
     private void emitEndSequence(Output out) {
         out.writeByte(0);
     }
-    
+
     private void emitAdvancePC(Output out, int address) {
         int addressDelta = address-currentAddress;
 
@@ -395,7 +395,7 @@ public class DebugInfoBuilder
         private final int address;
 
         public PrologueEvent(int address) {
-            this.address = address;            
+            this.address = address;
         }
 
         public int getAddress() {

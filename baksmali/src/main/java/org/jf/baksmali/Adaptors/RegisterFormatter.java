@@ -53,7 +53,7 @@ public class RegisterFormatter {
             int registerCount = codeItem.getRegisterCount();
 
             assert startRegister <= lastRegister;
-            
+
             if (startRegister >= registerCount - parameterRegisterCount) {
                 return new String[] {"p" + (startRegister - (registerCount - parameterRegisterCount)),
                                      "p" + (lastRegister - (registerCount - parameterRegisterCount))};

@@ -28,13 +28,13 @@
     invoke-virtual {v0}, Lrandomclass;->getSuperclass()Lsuperclass;
     move-result-object v1
 
-    
+
     #a branch to outside the dead code. The branch label should not
     #be commented out, because there is a non-dead instruction
     #that branches to it
     if-eqz v0, :here2
 
-    
+
     #a branch to inside the dead code. the branch label should be
     #commented out
     if-eqz v0, :here
@@ -61,14 +61,14 @@
     #but still commented out
     invoke-virtual {v2}, Lsuperclass;->somemethod()V
 
-    
+
     :here2
 
     #and we're back to the non-dead code
     invoke-virtual {v2}, Lsuperclass;->somemethod()V
 
     if-nez v0, :here3
-    
+
 
     return-void
 .end method

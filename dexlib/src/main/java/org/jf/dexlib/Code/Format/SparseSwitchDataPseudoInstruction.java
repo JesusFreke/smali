@@ -148,5 +148,4 @@ public class SparseSwitchDataPseudoInstruction extends Instruction {
             return new SparseSwitchDataPseudoInstruction(buffer, bufferIndex);
         }
     }
-    
 }

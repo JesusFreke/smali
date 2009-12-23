@@ -33,7 +33,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class FieldIdItem extends Item<FieldIdItem> {
     private int hashCode = 0;
-    
+
     private TypeIdItem classType;
     private TypeIdItem fieldType;
     private StringIdItem fieldName;
@@ -51,7 +51,7 @@ public class FieldIdItem extends Item<FieldIdItem> {
      * @param dexFile The <code>DexFile</code> that this item belongs to
      * @param classType the class that the field is a member of
      * @param fieldType the type of the field
-     * @param fieldName the name of the field 
+     * @param fieldName the name of the field
      */
     private FieldIdItem(DexFile dexFile, TypeIdItem classType, TypeIdItem fieldType, StringIdItem fieldName) {
         this(dexFile);
@@ -179,7 +179,7 @@ public class FieldIdItem extends Item<FieldIdItem> {
     }
 
     /**
-     * calculate and cache the hashcode 
+     * calculate and cache the hashcode
      */
     private void calcHashCode() {
         hashCode = classType.hashCode();
@@ -208,7 +208,7 @@ public class FieldIdItem extends Item<FieldIdItem> {
         //This assumes that the referenced items have been interned in both objects.
         //This is a valid assumption because all outside code must use the static
         //"getInterned..." style methods to make new items, and any item created
-        //internally is guaranteed to be interned 
+        //internally is guaranteed to be interned
         FieldIdItem other = (FieldIdItem)o;
         return (classType == other.classType &&
                 fieldType == other.fieldType &&

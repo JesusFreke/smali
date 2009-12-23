@@ -290,7 +290,7 @@ public class DexFile
         InputStream inputStream = null;
         Input in = null;
         ZipFile zipFile = null;
-        
+
         try {
             //do we have a zip file?
             if (magic[0] == 0x50 && magic[1] == 0x4B) {
@@ -381,7 +381,7 @@ public class DexFile
             if (section == null) {
                 continue;
             }
-            
+
             int sectionOffset = readContext.getSectionOffset(section.ItemType);
             if (sectionOffset > 0) {
                 int sectionSize = readContext.getSectionSize(section.ItemType);
@@ -469,10 +469,10 @@ public class DexFile
     /**
      * Disables adding new items to this dex file. The various getInterned*() type
      * methods on individual items will return null if there isn't an existing item
-     * that matches  
+     * that matches
      */
     public void disableInterning() {
-        this.disableInterning = true; 
+        this.disableInterning = true;
     }
 
     /**
@@ -611,7 +611,7 @@ public class DexFile
         }
 
         dataOffset = offset;
-        
+
         while (sectionsPosition < sections.length) {
             Section section = sections[sectionsPosition];
             if (this.sortAllItems && !this.inplace) {
@@ -621,7 +621,6 @@ public class DexFile
 
             sectionsPosition++;
         }
-
 
         offset = AlignmentUtils.alignOffset(offset, ItemType.TYPE_MAP_LIST.ItemAlignment);
         offset = MapItem.placeAt(offset, 0);
@@ -668,7 +667,7 @@ public class DexFile
         }
 
         out.alignTo(MapItem.getItemType().ItemAlignment);
-        
+
         out.annotate(0, " ");
         out.annotate(0, "-----------------------------");
         out.annotate(0, "map item");

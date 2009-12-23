@@ -57,7 +57,7 @@ public class baksmali {
         if (deodexerant != null) {
             baksmali.deodexUtil = new DeodexUtil(deodexerant);
         }
-        
+
         File outputDirectoryFile = new File(outputDirectory);
         if (!outputDirectoryFile.exists()) {
             if (!outputDirectoryFile.mkdirs()) {
@@ -76,7 +76,7 @@ public class baksmali {
         templates.registerRenderer(Float.class, new FloatRenderer());
         templates.registerRenderer(Character.class, new CharRenderer());
         templates.registerRenderer(StringIdItem.class, new StringIdItemRenderer());
-        
+
 
         for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
             /**

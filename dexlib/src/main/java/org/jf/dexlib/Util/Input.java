@@ -29,7 +29,7 @@
 package org.jf.dexlib.Util;
 
 /**
- * Interface for a source for binary input. This is similar to 
+ * Interface for a source for binary input. This is similar to
  * <code>java.util.DataInput</code>, but no <code>IOExceptions</code>
  * are declared, and multibyte input is defined to be little-endian.
  */
@@ -112,7 +112,7 @@ public interface Input {
      * LEB128, and returns the appropriate unsigned value, but negated
      * @return If the value was formatted as a ULEB128, it returns the actual unsigned
      * value. Otherwise, if the value was formatted as a signed LEB128, it negates the
-     * "correct" unsigned value and returns that 
+     * "correct" unsigned value and returns that
      */
     public int readUnsignedOrSignedLeb128();
 

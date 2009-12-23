@@ -62,7 +62,7 @@ public abstract class Instruction {
 
         if (buffer[bufferIndex] != opcode.value) {
             throw new RuntimeException("The given opcode doesn't match the opcode byte");
-        }       
+        }
     }
 
     public abstract Format getFormat();

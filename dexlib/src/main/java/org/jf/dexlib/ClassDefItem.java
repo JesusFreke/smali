@@ -107,7 +107,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
      * @param staticFieldInitializers The initial values for this class's static fields, or null if none. If it is not
      * null, it must contain the same number of items as the number of static fields in this class. The value in the
      * <code>StaticFieldInitializer</code> for any field that doesn't have an explicit initial value can either be null
-     * or be the type-appropriate null/0 value.   
+     * or be the type-appropriate null/0 value.
      * @return a <code>ClassDefItem</code> for the given values, and that has been interned into the given
      * <code>DexFile</code>
      */
@@ -136,7 +136,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
                 in.readInt());
         sourceFile = dexFile.StringIdsSection.getItemByIndex(in.readInt());
         annotations = (AnnotationDirectoryItem)readContext.getOffsettedItemByOffset(
-                ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM, in.readInt());        
+                ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM, in.readInt());
         classData = (ClassDataItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_CLASS_DATA_ITEM, in.readInt());
         staticFieldInitializers = (EncodedArrayItem)readContext.getOffsettedItemByOffset(
                 ItemType.TYPE_ENCODED_ARRAY_ITEM, in.readInt());
@@ -237,7 +237,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
 
     /**
      * This class places the items within a ClassDefItem section, such that superclasses and interfaces are
-     * placed before sub/implementing classes 
+     * placed before sub/implementing classes
      */
     private static class ClassDefPlacer {
         private final IndexedSection<ClassDefItem> section;

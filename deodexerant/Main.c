@@ -297,17 +297,17 @@ int dumpFields(char *classType, FILE *clientOut)
 	clazz = dvmFindArrayClass(classType, NULL);
     else
 	clazz = dvmFindSystemClassNoInit(classType);
-    
+
     if (clazz == NULL)
 	return 0;
-    
+
     int i;
     do
     {
 	InstField *pField = clazz->ifields;
 	for (i=0; i<clazz->ifieldCount; i++, pField++)
 	    fprintf(clientOut, "field: %d %s:%s\n", pField->byteOffset, pField->field.name, pField->field.signature);
-	
+
 	clazz = clazz->super;
     } while (clazz != NULL);
 
@@ -318,15 +318,15 @@ int dumpInlineMethods(FILE *clientOut)
 {
     const InlineOperation *inlineTable = dvmGetInlineOpsTable();
     int count = dvmGetInlineOpsTableLength();
-    
+
     int i;
     for (i=0; i<count; i++) {
 	const InlineOperation *inlineOp = &inlineTable[i];
-    
+
 	ClassObject *clazz = dvmFindSystemClassNoInit(inlineOp->classDescriptor);
 	if (clazz == NULL)
 	    return 0;
-	
+
 	char *methodType;
 	Method *method = dvmFindDirectMethodByDescriptor(clazz, inlineOp->methodName, inlineOp->methodSignature);
 	if (method == NULL)
@@ -339,13 +339,13 @@ int dumpInlineMethods(FILE *clientOut)
 	    else
 		methodType = "direct";
 	}
-			
+
 	if (method == NULL)
 	    return 0;
-	
+
 	fprintf(clientOut, "inline: %s %s->%s%s\n", methodType, method->clazz->descriptor, method->name, dexProtoGetMethodDescriptor(&method->prototype, &stringCache));
     }
-    
+
     return 1;
 }
 
@@ -356,14 +356,14 @@ int dumpVirtualMethods(char *classType, FILE *clientOut)
 	clazz = dvmFindArrayClass(classType, NULL);
     else
 	clazz = dvmFindSystemClassNoInit(classType);
-    
-    
+
+
     if (clazz == NULL)
     {
 	fprintf(clientOut, "err: could not find class %s\n", classType);
 	return 0;
     }
-    
+
     //interface classes don't have virtual methods, by definition. But it's possible
     //to call virtual methods defined on the Object class via an interface type
     if (dvmIsInterfaceClass(clazz))
@@ -389,10 +389,10 @@ int dumpVirtualMethods(char *classType, FILE *clientOut)
 ClassObject *lookupSuperclass(char *classType)
 {
     ClassObject *clazz = dvmFindSystemClassNoInit(classType);
-    
+
     if (clazz == NULL)
 	return NULL;
-  
+
     return clazz->super;
 }
 
@@ -428,7 +428,7 @@ int main(int argc, char* const argv[])
         fprintf(stderr, "Unable to open '%s': %s\n", inputFileName, strerror(errno));
         return 1;
     }
-    
+
     int port = atoi(argv[2]);
     int socketFd = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFd < 0)
@@ -436,7 +436,7 @@ int main(int argc, char* const argv[])
 	fprintf(stderr, "Unable to open socket\n");
 	return 1;
     }
-    
+
     struct sockaddr_in serverAddress, clientAddress;
     bzero((char *)&serverAddress, sizeof(serverAddress));
     serverAddress.sin_family = AF_INET;
@@ -446,14 +446,14 @@ int main(int argc, char* const argv[])
     {
 	fprintf(stderr, "Unable to bind socket\n");
 	return 1;
-    }    
+    }
 
     const char* bcp = getenv("BOOTCLASSPATH");
     if (bcp == NULL) {
         fprintf(stderr, "BOOTCLASSPATH not set\n");
         return 1;
     }
-    
+
 
     DexClassVerifyMode verifyMode = VERIFY_MODE_ALL;
     DexOptimizerMode dexOptMode = OPTIMIZE_MODE_VERIFIED;
@@ -498,12 +498,12 @@ int main(int argc, char* const argv[])
 	fprintf(stderr, "error while loading classes\n");
         return 1;
     }
-    
-    
-    
-    
+
+
+
+
     listen(socketFd, 1);
-    
+
     int clientSocketLength = sizeof(clientAddress);
     int clientFd = accept(socketFd, (struct sockaddr *) &clientAddress, &clientSocketLength);
     if (clientFd < 0)
@@ -511,14 +511,14 @@ int main(int argc, char* const argv[])
 	fprintf(stderr, "Unable to accept incomming connection\n");
 	return 1;
     }
-    
+
     FILE *clientIn = fdopen(clientFd, "r");
     if (clientIn == 0)
     {
 	fprintf(stderr, "Unable to fdopen socket to get input stream\n");
 	return 1;
     }
-    
+
     FILE *clientOut = fdopen(dup(clientFd), "w");
     if (clientOut == 0)
     {
@@ -536,7 +536,7 @@ int main(int argc, char* const argv[])
 	char *buf = malloc(len+1);
 	memcpy(buf, command, len);
 	buf[len] = 0;
-	
+
 	//printf("%s\n", buf);
 
 	char *cmd = strtok(buf, " ");
@@ -557,14 +557,14 @@ int main(int argc, char* const argv[])
 		    fflush(clientOut);
 		    break;
 		}
-		
+
 		if (!dumpFields(classType, clientOut))
 		{
 		    fprintf(clientOut, "err: error while dumping fields\n");
 		    fflush(clientOut);
 		    break;
 		}
-		
+
 		fprintf(clientOut, "done\n");
 		fflush(clientOut);
 		break;
@@ -577,7 +577,7 @@ int main(int argc, char* const argv[])
 		    fflush(clientOut);
 		    break;
 		}
-		
+
 		fprintf(clientOut, "done\n");
 		fflush(clientOut);
 		break;
@@ -591,13 +591,13 @@ int main(int argc, char* const argv[])
 		    fflush(clientOut);
 		    break;
 		}
-		
+
 		if (!dumpVirtualMethods(classType, clientOut)) {
 		    fprintf(clientOut, "err: error encountered while dumping virtual methods\n");
 		    fflush(clientOut);
 		    break;
 		}
-		
+
 		fprintf(clientOut, "done\n");
 		fflush(clientOut);
 		break;
@@ -611,7 +611,7 @@ int main(int argc, char* const argv[])
 		    fflush(clientOut);
 		    break;
 		}
-		
+
 		ClassObject *clazz = lookupSuperclass(classType);
 		if (clazz == NULL)
 		{
@@ -633,20 +633,20 @@ int main(int argc, char* const argv[])
 		    fflush(clientOut);
 		    break;
 		}
-		
+
 		ClassObject *clazz1;
 		if (classType1[0] == '[')
 		    clazz1 = dvmFindArrayClass(classType1, NULL);
 		else
 		    clazz1 = dvmFindSystemClassNoInit(classType1);
-		
+
 		if (clazz1 == NULL)
 		{
 		    fprintf(clientOut, "err: class %s could not be found for common superclass lookup. This can be caused if a library the odex depends on is not in the BOOTCLASSPATH environment variable\n", classType1);
 		    fflush(clientOut);
 		    break;
-		}		    
-		
+		}
+
 		char *classType2 = strtok(NULL, " ");
 		if (classType2 == NULL)
 		{
@@ -654,20 +654,20 @@ int main(int argc, char* const argv[])
 		    fflush(clientOut);
 		    break;
 		}
-		
+
 		ClassObject *clazz2;
 		if (classType2[0] == '[')
 		    clazz2 = dvmFindArrayClass(classType2, NULL);
 		else
 		    clazz2 = dvmFindSystemClassNoInit(classType2);
-		
+
 		if (clazz2 == NULL)
 		{
 		    fprintf(clientOut, "err: class %s could not be found for common superclass lookup\n", classType2);
 		    fflush(clientOut);
 		    break;
-		}		    
-		
+		}
+
 		ClassObject *clazz = findCommonSuperclass(clazz1, clazz2);
 		fprintf(clientOut, "class: %s\n", clazz->descriptor);
 		fflush(clientOut);
@@ -677,12 +677,12 @@ int main(int argc, char* const argv[])
 		fprintf(clientOut, "err: not a valid command\n");
 		fflush(clientOut);
 	}
-	
-	/*gettimeofday(&tv, NULL); 
-	
+
+	/*gettimeofday(&tv, NULL);
+
 	printf("end   %07d\n", tv.tv_usec);*/
 
-	
+
     }
 
     return 0;

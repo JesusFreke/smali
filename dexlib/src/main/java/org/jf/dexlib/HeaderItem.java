@@ -168,11 +168,11 @@ public class HeaderItem extends Item<HeaderItem> {
 
         out.annotate("link_off: 0");
         out.writeInt(0);
-        
+
         out.annotate("map_off: 0x" + Integer.toHexString(dexFile.MapItem.getOffset()));
         out.writeInt(dexFile.MapItem.getOffset());
 
-        out.annotate("string_ids_size: " + dexFile.StringIdsSection.getItems().size());        
+        out.annotate("string_ids_size: " + dexFile.StringIdsSection.getItems().size());
         out.writeInt(dexFile.StringIdsSection.getItems().size());
 
         out.annotate("string_ids_off: 0x" + Integer.toHexString(dexFile.StringIdsSection.getOffset()));
@@ -213,7 +213,7 @@ public class HeaderItem extends Item<HeaderItem> {
         out.writeInt(dexFile.getDataSize());
 
         out.annotate("data_off: 0x" + Integer.toHexString(dexFile.getDataOffset()));
-        out.writeInt(dexFile.getDataOffset());        
+        out.writeInt(dexFile.getDataOffset());
     }
 
     /** {@inheritDoc} */

@@ -63,13 +63,13 @@ public class FieldDefinition {
                 fieldTypeDescriptor.length() == 1 ||
                 initialValue != NullEncodedValue.NullValue
             )) {
-            
+
             template.setAttribute("Comments",
                     new String[]{"the value of this static final field might be set in the static constructor"});
         } else {
             template.setAttribute("Comments", null);
         }
-        
+
         if (initialValue != null) {
             template.setAttribute("InitialValue", EncodedValueAdaptor.make(stg, initialValue));
         }
@@ -96,7 +96,7 @@ public class FieldDefinition {
         if (annotationSet == null) {
             return null;
         }
-        
+
         List<StringTemplate> annotationAdaptors = new ArrayList<StringTemplate>();
 
         for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {

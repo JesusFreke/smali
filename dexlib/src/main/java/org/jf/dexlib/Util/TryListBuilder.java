@@ -149,7 +149,7 @@ public class TryListBuilder
         while (tryRange != lastTryRange) {
             CodeItem.EncodedTypeAddrPair[] encodedTypeAddrPairs =
                     new CodeItem.EncodedTypeAddrPair[tryRange.handlers.size()];
-            
+
             int index = 0;
             for (Handler handler: tryRange.handlers) {
                 CodeItem.EncodedTypeAddrPair encodedTypeAddrPair = new CodeItem.EncodedTypeAddrPair(
@@ -168,7 +168,7 @@ public class TryListBuilder
             } else {
                 encodedCatchHandler = internedEncodedCatchHandler;
             }
-            
+
             CodeItem.TryItem tryItem = new CodeItem.TryItem(
                     tryRange.startAddress,
                     tryRange.endAddress - tryRange.startAddress,
@@ -208,7 +208,7 @@ public class TryListBuilder
             if (tryRange.catchAllHandlerAddress == -1) {
                 tryRange.catchAllHandlerAddress = handlerAddress;
             }
-            
+
             previousEnd = tryRange.endAddress;
             tryRange = tryRange.next;
         } while (tryRange.previous != endRange);

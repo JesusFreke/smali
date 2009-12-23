@@ -45,7 +45,7 @@ public abstract class Section<T extends Item> {
     /**
      * A HashMap of the items in this section. This is used when interning items, to determine
      * if this section already has an item equivalent to the one that is being interned.
-     * Both the key and the value should be the same object 
+     * Both the key and the value should be the same object
      */
     protected HashMap<T,T> uniqueItems = null;
 
@@ -60,14 +60,14 @@ public abstract class Section<T extends Item> {
     public final ItemType ItemType;
 
     /**
-     * The <code>DexFile</code> that this section belongs to 
+     * The <code>DexFile</code> that this section belongs to
      */
     public final DexFile DexFile;
 
     /**
      * Create a new section
      * @param dexFile The <code>DexFile</code> that this section belongs to
-     * @param itemType The itemType that this section will hold 
+     * @param itemType The itemType that this section will hold
      */
     protected Section(DexFile dexFile, ItemType itemType) {
         this.DexFile = dexFile;
@@ -143,7 +143,7 @@ public abstract class Section<T extends Item> {
     /**
      * This method in the concrete item subclass should read in all the items from the given <code>Input</code>
      * object, using any pre-created items as applicable (i.e. items that were created prior to reading in the
-     * section, by other items requesting items from this section that they reference by index/offset) 
+     * section, by other items requesting items from this section that they reference by index/offset)
      * @param in the <code>Input</code>
      * @param readContext a <code>ReadContext</code> object to hold information that is
      * only needed while reading in a file
@@ -199,7 +199,7 @@ public abstract class Section<T extends Item> {
     }
 
     /**
-     * Builds the interned item map from the items that are in this section 
+     * Builds the interned item map from the items that are in this section
      */
     private void buildInternedItemMap() {
         uniqueItems = new HashMap<T,T>();

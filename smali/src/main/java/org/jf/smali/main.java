@@ -57,7 +57,7 @@ public class main {
         VERSION = version;
     }
 
-    
+
     /**
      * This class is uninstantiable.
      */
@@ -290,7 +290,7 @@ public class main {
         if (dexGen.getNumberOfSyntaxErrors() > 0) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -314,7 +314,7 @@ public class main {
         System.exit(0);
     }
 
-  
+
 
     private static void buildOptions() {
         Option versionOption = OptionBuilder.withLongOpt("version")

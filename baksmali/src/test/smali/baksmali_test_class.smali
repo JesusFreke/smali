@@ -97,7 +97,7 @@
     const-string v0, "testing\n123"
 
     goto switch:
-    
+
     sget v0, Lbaksmali/test/class;->staticField:I
 
     switch:
@@ -194,7 +194,7 @@
 
     .source "somefile.java"
     .line 101
-    
+
     nop
 
 

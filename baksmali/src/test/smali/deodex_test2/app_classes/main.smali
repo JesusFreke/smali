@@ -6,11 +6,11 @@
     .registers 6
 
     const v2, 0
-    
-    
+
+
     const v3, 1
     const v4, 0
-    new-array v1, v3, [Lsubclass1;    
+    new-array v1, v3, [Lsubclass1;
     new-instance v0, Lsubclass1;
     invoke-direct {v0}, Lsubclass1;-><init>()V
     aput-object v0, v1, v4

@@ -46,7 +46,7 @@ public class StringIdItem extends Item<StringIdItem> {
     /**
      * Creates a new <code>StringIdItem</code> for the given <code>StringDataItem</code>
      * @param dexFile The <code>DexFile</code> that this item belongs to
-     * @param stringDataItem The <code>StringDataItem</code> that this <code>StringIdItem</code> represents 
+     * @param stringDataItem The <code>StringDataItem</code> that this <code>StringIdItem</code> represents
      */
     protected StringIdItem(DexFile dexFile, StringDataItem stringDataItem) {
         super(dexFile);
@@ -75,7 +75,7 @@ public class StringIdItem extends Item<StringIdItem> {
         int stringDataOffset = in.readInt();
 
         stringDataItem = (StringDataItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_STRING_DATA_ITEM,
-                stringDataOffset);        
+                stringDataOffset);
     }
 
     /** {@inheritDoc} */

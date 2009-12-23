@@ -322,7 +322,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
      */
     public EncodedMethod[] getVirtualMethods() {
         return virtualMethods;
-    }                                      
+    }
 
     public static class EncodedField implements Comparable<EncodedField> {
         /**
@@ -443,14 +443,14 @@ public class ClassDataItem extends Item<ClassDataItem> {
             this.codeItem = codeItem;
             if (codeItem != null) {
                 codeItem.setParent(this);
-            }   
+            }
         }
 
         /**
          * This is used internally to construct a new <code>EncodedMethod</code> while reading in a <code>DexFile</code>
          * @param dexFile The <code>DexFile</code> that is being read in
          * @param readContext a <code>ReadContext</code> object to hold information that is only needed while reading
-         * in a file  
+         * in a file
          * @param in the Input object to read the <code>EncodedMethod</code> from
          * @param previousEncodedMethod The previous <code>EncodedMethod</code> in the list containing this
          * <code>EncodedMethod</code>.

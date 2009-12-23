@@ -123,7 +123,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                         }
                         if (typeIndex != -1) {
                             referencedItemsList.add(dexFile.TypeIdsSection.getItemByIndex(typeIndex));
-                        }                        
+                        }
                     }
 
                     @Override
@@ -574,13 +574,13 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
     }
 
     /**
-     * Set the <code>CodeItem</code> that this <code>DebugInfoItem</code> is associated with 
+     * Set the <code>CodeItem</code> that this <code>DebugInfoItem</code> is associated with
      * @param codeItem the <code>CodeItem</code> that this <code>DebugInfoItem</code> is associated with
      */
     protected void setParent(CodeItem codeItem) {
         this.parent = codeItem;
     }
-   
+
     /**
      * @return the initial value for the line number register for the debug info machine
      */
