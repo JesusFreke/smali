@@ -227,6 +227,23 @@ public class MethodDefinition {
 
                     offset += instruction.getSize()/2;
                 }
+
+                /*
+                 * Look for the last uncommented instruction. If it is an UnresolvedNullReference,
+                 * then set IsLastInstruction, so a goto will be added after it, to avoid validation
+                 * issues
+                 */
+                for (int i=this.instructions.size()-1; i>=0; i--) {
+                    MethodItem ins = this.instructions.get(i);
+                    if (ins instanceof UnresolvedNullReferenceMethodItem) {
+                        ((UnresolvedNullReferenceMethodItem)ins).setIsLastInstruction(true);
+                        break;
+                    }
+
+                    if (!(ins instanceof CommentedOutMethodItem)) {
+                        break;
+                    }
+                }
             } else {
                 final byte[] encodedInstructions = codeItem.getEncodedInstructions();
 
@@ -543,7 +560,7 @@ public class MethodDefinition {
                 if (index < 0) {
                     index = (index * -1) - 1;
                 }
-                //index should never by 0, so this should be safe
+                //index should never be 0, so this should be safe
                 if (index == instructions.size()) {
                     //if the end address is the same as the address of the last instruction, then
                     //this try item ends at the next to last instruction.

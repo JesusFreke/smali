@@ -34,6 +34,16 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
 public class UnresolvedNullReferenceMethodItem extends InstructionFormatMethodItem<UnresolvedNullReference> {
+    private boolean isLastInstruction;
+
+    public boolean getIsLastInstruction() {
+        return isLastInstruction;
+    }
+
+    public void setIsLastInstruction(boolean isLastInstruction) {
+        this.isLastInstruction = isLastInstruction;
+    }
+
     public UnresolvedNullReferenceMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
                                     UnresolvedNullReference instruction) {
         super(codeItem, offset, stg, instruction);
@@ -41,5 +51,15 @@ public class UnresolvedNullReferenceMethodItem extends InstructionFormatMethodIt
 
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("Register", formatRegister(instruction.ObjectRegisterNum));
+        switch (instruction.OriginalInstruction.opcode)
+        {
+            case INVOKE_VIRTUAL_RANGE_QUICK:
+            case INVOKE_SUPER_RANGE_QUICK:
+                template.setAttribute("UseInvokeRange", 1);
+                if (isLastInstruction) {
+                    template.setAttribute("AddGoto", 1);
+                }
+        }
+
     }
 }

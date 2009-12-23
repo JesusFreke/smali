@@ -288,14 +288,18 @@ CommentedOutMethodItem(MethodItem) ::=
 #<MethodItem>
 >>
 
-UnresolvedNullReference(Opcode, Register) ::=
+UnresolvedNullReference(Opcode, Register, UseInvokeRange, AddGoto) ::=
 <<
-#Couldn't resolve optimized instruction while deodexing, due to the object register
-#always being null. Replaced with generic method call
+<if(UseInvokeRange)>
+#Replaced unresolvable optimized invoke-*-range-quick instruction
+#with a generic method call that will throw a NullPointerException
 invoke-virtual/range {<Register> .. <Register>}, Ljava/lang/Object;->hashCode()I
-goto/32 0
+<if(AddGoto)>goto/32 0<endif>
+<else>
+#Replaced unresolvable optimized instruction with a throw
+throw <Register>
+<endif>
 >>
-
 
 
 ArrayData(Opcode, ElementWidth, Values) ::=

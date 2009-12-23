@@ -72,3 +72,39 @@
 
     return-void
 .end method
+
+.method public static UnresolvedInstructionTest1()Lsuperclass;
+    .registers 2
+    const v0, 0
+
+    #this is an unresolvable instruction, due to v0 always being null
+    #this instruction should be replaced with "throw v0", followed by
+    #a "goto/32 0", since it would otherwise be the last instruction
+    #in the method, which isn't allowed
+    invoke-virtual/range {v0 .. v0}, Lrandomclass;->getSuperclass()Lsuperclass;
+
+    #the following instructions should be commented out
+    move-result-object v1
+    return-object v1
+.end method
+
+.method public static UnresolvedInstructionTest2()Lsuperclass;
+    .registers 2
+    const v0, 0
+
+    if-eqz v0, :here
+
+    #this is an unresolvable instruction, due to v0 always being null
+    #this instruction should be replaced with "throw v0". There shouldn't
+    #be a "goto/32 0" afterwards, since it won't be the last instruction
+    #in the method.
+    invoke-virtual/range {v0 .. v0}, Lrandomclass;->getSuperclass()Lsuperclass;
+
+    #the following instructions should be commented out
+    move-result-object v1
+    return-object v1
+
+    #and now back to our normal programming
+    :here
+    return-object v0
+.end method
