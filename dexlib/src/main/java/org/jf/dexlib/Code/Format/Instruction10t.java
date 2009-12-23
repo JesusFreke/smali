@@ -32,26 +32,48 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction10t extends Instruction implements OffsetInstruction {
     public static final InstructionFactory Factory = new Factory();
+    private int offset;
 
-    public static void emit(Output out, Opcode opcode, byte offA) {
-        if (offA == 0) {
+    public Instruction10t(Opcode opcode, int offA) {
+        super(opcode);
+        this.offset = offA;
+
+        if (offset == 0) {
             throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(offA);
+        //allow out of range offsets here, so we have the option of replacing this instruction
+        //with goto/16 or goto/32 later
     }
 
     private Instruction10t(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
 
-        if (getOffset() == 0) {
-            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
+        assert buffer[bufferIndex] == opcode.value;
+
+        this.offset = buffer[bufferIndex + 1];
+        assert offset != 0;
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        if (offset == 0) {
+            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead");
         }
+
+        if (offset < -128 || offset > 127) {
+            throw new RuntimeException("The offset is out of range. It must be in [-128,-1] or [1, 127]");
+        }
+
+        out.writeByte(opcode.value);
+        out.writeByte(offset);
+    }
+
+    public void updateOffset(int offset) {
+        this.offset = offset;
     }
 
     public Format getFormat() {
@@ -59,7 +81,7 @@ public class Instruction10t extends Instruction implements OffsetInstruction {
     }
 
     public int getOffset() {
-        return buffer[bufferIndex + 1];
+        return offset;
     }
 
     private static class Factory implements InstructionFactory {

@@ -29,12 +29,12 @@
 package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 /**
  * This represents a "fixed" odexed instruction, where the object register is always null and so the correct type
- * can't be determined. How this is handled is "implementation dependent". baksmali just replaces it with a call to
- * object->hashCode(). Since the object register is always null, this will have the same effect as tring to access
- * whatever method/field that was trying to be accessed - namely, a NPE
+ * can't be determined. Typically, these are replaced by an equivalent instruction that would have the same
+ * effect (namely, an NPE)
  */
 public class UnresolvedNullReference extends Instruction {
     public final Instruction OriginalInstruction;
@@ -47,9 +47,13 @@ public class UnresolvedNullReference extends Instruction {
         this.ObjectRegisterNum = objectRegisterNumber;
     }
 
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        throw new RuntimeException("Cannot rewrite an instruction that couldn't be deodexed");
+    }
+
     @Override
-    public int getSize() {
-        return OriginalInstruction.getSize();
+    public int getSize(int offset) {
+        return OriginalInstruction.getSize(offset);
     }
 
     public Format getFormat() {

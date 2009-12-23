@@ -30,21 +30,27 @@ package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.MultiOffsetInstruction;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
 
 import java.util.Iterator;
 
-public class SparseSwitchDataPseudoInstruction extends Instruction {
+public class SparseSwitchDataPseudoInstruction extends Instruction implements MultiOffsetInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private int[] keys;
+    private int[] targets;
 
     @Override
-    public int getSize() {
-        return getTargetCount() * 8 + 4;
+    public int getSize(int offset) {
+        assert offset % 2 == 0;
+        return getTargetCount() * 8 + 4 + (offset % 4);
     }
 
-    public static void emit(Output out, int[] keys, int[] targets) {
+    public SparseSwitchDataPseudoInstruction(int[] keys, int[] targets) {
+        super(Opcode.NOP);
+
         if (keys.length != targets.length) {
             throw new RuntimeException("The number of keys and offsets don't match");
         }
@@ -58,8 +64,35 @@ public class SparseSwitchDataPseudoInstruction extends Instruction {
                     "The maximum number of switch elements is 65535");
         }
 
+        this.keys = keys;
+        this.targets = targets;
+    }
+
+    public SparseSwitchDataPseudoInstruction(byte[] buffer, int bufferIndex) {
+        super(Opcode.NOP);
+
+        byte opcodeByte = buffer[bufferIndex];
+        if (opcodeByte != 0x00) {
+            throw new RuntimeException("Invalid opcode byte for a SparseSwitchData pseudo-instruction");
+        }
+        byte subopcodeByte = buffer[bufferIndex+1];
+        if (subopcodeByte != 0x02) {
+            throw new RuntimeException("Invalid sub-opcode byte for a SparseSwitchData pseudo-instruction");
+        }
+
+        int targetCount = NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        keys = new int[targetCount];
+        targets = new int[targetCount];
+
+        for (int i=0; i<targetCount; i++) {
+            keys[i] = NumberUtils.decodeInt(buffer, bufferIndex + 4 + i*4);
+            targets[i] = NumberUtils.decodeInt(buffer, bufferIndex + 4 + targetCount*4 + i*4);
+        }
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
         //write out padding, if necessary
-        if (out.getCursor() % 4 != 0) {
+        if (currentCodeOffset % 4 != 0) {
             out.writeShort(0);
         }
 
@@ -74,10 +107,7 @@ public class SparseSwitchDataPseudoInstruction extends Instruction {
 
             for (int i = 1; i < keys.length; i++) {
                 key = keys[i];
-                if (key <= keys[i - 1]) {
-                    throw new RuntimeException("The targets in a sparse switch block must be sorted in ascending" +
-                            "order, by key");
-                }
+                assert key <= keys[i - 1];
                 out.writeInt(key);
             }
 
@@ -87,17 +117,13 @@ public class SparseSwitchDataPseudoInstruction extends Instruction {
         }
     }
 
-    public SparseSwitchDataPseudoInstruction(byte[] buffer, int bufferIndex) {
-        super(Opcode.NOP, buffer, bufferIndex);
+    protected void annotateInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.annotate(getSize(currentCodeOffset), "[0x" + Integer.toHexString(currentCodeOffset/2) + "] " +
+                "sparse-switch-data instruction");
+    }
 
-        byte opcodeByte = buffer[bufferIndex++];
-        if (opcodeByte != 0x00) {
-            throw new RuntimeException("Invalid opcode byte for a SparseSwitchData pseudo-instruction");
-        }
-        byte subopcodeByte = buffer[bufferIndex];
-        if (subopcodeByte != 0x02) {
-            throw new RuntimeException("Invalid sub-opcode byte for a SparseSwitchData pseudo-instruction");
-        }
+    public void updateTarget(int targetIndex, int targetOffset) {
+        targets[targetIndex] = targetOffset;
     }
 
     public Format getFormat() {
@@ -105,20 +131,26 @@ public class SparseSwitchDataPseudoInstruction extends Instruction {
     }
 
     public int getTargetCount() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        return targets.length;
+    }
+
+    public int[] getTargets() {
+        return targets;
+    }
+
+    public int[] getKeys() {
+        return keys;
     }
 
     public static class SparseSwitchTarget {
-        public int value;
+        public int key;
         public int target;
     }
 
-    public Iterator<SparseSwitchTarget> getTargets() {
+    public Iterator<SparseSwitchTarget> iterateKeysAndTargets() {
         return new Iterator<SparseSwitchTarget>() {
             final int targetCount = getTargetCount();
             int i = 0;
-            int valuePosition = bufferIndex + 4;
-            int targetPosition = bufferIndex + 4 + targetCount * 4;
 
             SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
 
@@ -127,10 +159,8 @@ public class SparseSwitchDataPseudoInstruction extends Instruction {
             }
 
             public SparseSwitchTarget next() {
-                sparseSwitchTarget.value = NumberUtils.decodeInt(buffer, valuePosition);
-                sparseSwitchTarget.target = NumberUtils.decodeInt(buffer, targetPosition);
-                valuePosition+=4;
-                targetPosition+=4;
+                sparseSwitchTarget.key = keys[i];
+                sparseSwitchTarget.target = targets[i];
                 i++;
                 return sparseSwitchTarget;
             }

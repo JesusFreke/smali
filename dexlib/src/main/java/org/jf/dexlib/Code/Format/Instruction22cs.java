@@ -31,14 +31,19 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
-import org.jf.dexlib.Util.Output;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
 
 public class Instruction22cs extends Instruction implements TwoRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private byte regB;
+    private short fieldOffset;
 
-    public static void emit(Output out, Opcode opcode, byte regA, byte regB, int fieldOffset) {
+    public Instruction22cs(Opcode opcode, byte regA, byte regB, int fieldOffset) {
+        super(opcode);
+
         if (regA >= 1 << 4 ||
                 regB >= 1 << 4) {
             throw new RuntimeException("The register number must be less than v16");
@@ -48,13 +53,22 @@ public class Instruction22cs extends Instruction implements TwoRegisterInstructi
             throw new RuntimeException("The field offset must be less than 65536");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte((regB << 4) | regA);
-        out.writeShort(fieldOffset);
+        this.regA = regA;
+        this.regB = regB;
+        this.fieldOffset = (short)fieldOffset;
     }
 
     private Instruction22cs(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
+
+        this.regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        this.regB = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte((regB << 4) | regA);
+        out.writeShort(fieldOffset);
     }
 
     public Format getFormat() {
@@ -62,15 +76,15 @@ public class Instruction22cs extends Instruction implements TwoRegisterInstructi
     }
 
     public int getRegisterA() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        return regA;
     }
 
     public int getRegisterB() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+        return regB;
     }
 
     public int getFieldOffset() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        return fieldOffset & 0xFFFF;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

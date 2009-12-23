@@ -34,23 +34,35 @@ import org.jf.dexlib.Code.LiteralInstruction;
 import org.jf.dexlib.Code.SingleRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction31i extends Instruction implements SingleRegisterInstruction, LiteralInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private int litB;
 
-    public static void emit(Output out, Opcode opcode, short regA, int litB) {
+    public Instruction31i(Opcode opcode, short regA, int litB) {
+        super(opcode);
+
         if (regA >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(regA);
-        out.writeInt(litB);
+        this.regA = (byte)regA;
+        this.litB = litB;
     }
 
     private Instruction31i(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
+
+        this.regA = (byte)NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        this.litB = NumberUtils.decodeInt(buffer, bufferIndex + 2);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte(regA);
+        out.writeInt(litB);
     }
 
     public Format getFormat() {
@@ -58,11 +70,11 @@ public class Instruction31i extends Instruction implements SingleRegisterInstruc
     }
 
     public int getRegisterA() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        return regA & 0xFF;
     }
 
     public long getLiteral() {
-        return NumberUtils.decodeInt(buffer, bufferIndex + 2);
+        return litB;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

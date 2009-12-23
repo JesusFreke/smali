@@ -58,7 +58,7 @@ smaliFile(AccessFlags, ClassType, SuperType, SourceFile, Interfaces, Annotations
 
 
 
-                 
+
 implement(interface) ::=
 <<
 .implements <interface>
@@ -324,7 +324,7 @@ PackedSwitchData(Opcode, FirstKey, Targets) ::=
 SparseSwitchData(Opcode, Targets) ::=
 <<
 .sparse-switch
-    <Targets:{<it.Value> -> <it.Target>}; separator="\n">
+    <Targets:{<it.Key> -> <it.Target>}; separator="\n">
 .end sparse-switch
 >>
 
@@ -366,7 +366,7 @@ RestartLocal(Register, Name, Type, Signature) ::=
 
 SetFile(FileName) ::=
 <<
-.source "<FileName>" 
+.source "<FileName>"
 >>
 
 Blank(Blank) ::=

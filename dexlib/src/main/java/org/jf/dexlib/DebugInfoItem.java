@@ -270,6 +270,17 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
     }
 
     /**
+     * Replaces the encoded debug info for this DebugInfoItem. It is expected that the new debug info is compatible
+     * with the existing information, i.e. lineStart, referencedItems, parameterNames
+     * @param encodedDebugInfo the new encoded debug info
+     */
+    protected void setEncodedDebugInfo(byte[] encodedDebugInfo) {
+        //TODO: I would rather replace this method with some way of saying "The (code) instruction at offset changed from A bytes to B bytes. Fixup the debug info accordingly"
+
+        this.encodedDebugInfo = encodedDebugInfo;
+    }
+
+    /**
      * Helper method that writes the item, without writing annotations
      * @param out the AnnotatedOutput object
      */

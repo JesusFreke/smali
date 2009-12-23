@@ -32,26 +32,40 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction22b extends Instruction implements TwoRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private byte regB;
+    private byte litC;
 
-    public static void emit(Output out, Opcode opcode, short regA, short regB, byte litC) {
+    public Instruction22b(Opcode opcode, short regA, short regB, byte litC) {
+        super(opcode);
+
         if (regA >= 1 << 8 ||
                 regB >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
+        this.regA = (byte)regA;
+        this.regB = (byte)regB;
+        this.litC = litC;
+    }
+
+    private Instruction22b(Opcode opcode, byte[] buffer, int bufferIndex) {
+        super(opcode);
+
+        this.regA = buffer[bufferIndex + 1];
+        this.regB = buffer[bufferIndex + 2];
+        this.litC = buffer[bufferIndex + 3];
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeByte(regB);
         out.writeByte(litC);
-    }
-
-    private Instruction22b(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
     }
 
     public Format getFormat() {
@@ -59,15 +73,15 @@ public class Instruction22b extends Instruction implements TwoRegisterInstructio
     }
 
     public int getRegisterA() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        return regA & 0xFF;
     }
 
     public int getRegisterB() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 2]);
+        return regB & 0xFF;
     }
 
     public byte getLiteral() {
-        return buffer[bufferIndex + 3];
+        return litC;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

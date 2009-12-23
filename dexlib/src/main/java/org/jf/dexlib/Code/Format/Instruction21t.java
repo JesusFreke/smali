@@ -33,12 +33,16 @@ import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction21t extends Instruction implements OffsetInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private int offset;
 
-    public static void emit(Output out, Opcode opcode, short regA, short offB) {
+    public Instruction21t(Opcode opcode, short regA, short offB) {
+        super(opcode);
+
         if (regA >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
@@ -47,29 +51,44 @@ public class Instruction21t extends Instruction implements OffsetInstruction {
             throw new RuntimeException("The offset cannot be 0.");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(regA);
-        out.writeShort(offB);
+        this.regA = (byte)regA;
+        this.offset = offB;
     }
 
     private Instruction21t(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
 
-        if (getOffset() == 0) {
-            throw new RuntimeException("The offset cannot be 0.");
+        assert buffer[bufferIndex] == opcode.value;
+
+        regA = buffer[bufferIndex + 1];
+        offset = NumberUtils.decodeShort(buffer, bufferIndex + 2);
+        assert offset != 0;
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        if (offset < -32768 || offset > 32767) {
+            throw new RuntimeException("The offset " + offset + " is out of range. It must be in [-32768, 32767]");
         }
+
+        out.writeByte(opcode.value);
+        out.writeByte(regA);
+        out.writeShort(offset);
+    }
+
+    public void updateOffset(int offset) {
+        this.offset = offset;
     }
 
     public Format getFormat() {
         return Format.Format21t;
     }
 
-    public short getRegister() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+    public int getRegister() {
+        return regA & 0xFF;
     }
 
     public int getOffset() {
-        return NumberUtils.decodeShort(buffer, bufferIndex + 2);
+        return offset;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

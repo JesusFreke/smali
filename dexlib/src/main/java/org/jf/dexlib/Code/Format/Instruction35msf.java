@@ -31,6 +31,7 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.InstructionWithReference;
 import org.jf.dexlib.MethodIdItem;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction35msf extends InstructionWithReference {
     private final Instruction35ms unfixedInstruction;
@@ -41,11 +42,26 @@ public class Instruction35msf extends InstructionWithReference {
         this.unfixedInstruction = unfixedInstruction;
     }
 
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        byte regA = getRegisterA();
+        byte regCount = getRegCount();
+        byte regD = getRegisterD();
+        byte regE = getRegisterE();
+        byte regF = getRegisterF();
+        byte regG = getRegisterG();
+
+        out.writeByte(opcode.value);
+        out.writeByte((regCount << 4) | regA);
+        out.writeShort(this.getReferencedItem().getIndex());
+        out.writeByte((regE << 4) | regD);
+        out.writeByte((regG << 4) | regF);
+    }
+
     public Format getFormat() {
         return Format.Format35msf;
     }
 
-    public int getRegisterA() {
+    public byte getRegisterA() {
         return unfixedInstruction.getRegisterA();
     }
 

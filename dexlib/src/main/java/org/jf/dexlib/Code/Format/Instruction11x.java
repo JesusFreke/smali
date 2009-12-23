@@ -33,22 +33,31 @@ import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.SingleRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction11x extends Instruction implements SingleRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
 
-    public static void emit(Output out, Opcode opcode, short regA) {
+    public Instruction11x(Opcode opcode, short regA) {
+        super(opcode);
+
         if (regA >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(regA);
+        this.regA = (byte)regA;
     }
 
     private Instruction11x(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
+
+        this.regA = (byte)NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+    }
+
+    public void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte(regA);
     }
 
     public Format getFormat() {
@@ -56,7 +65,7 @@ public class Instruction11x extends Instruction implements SingleRegisterInstruc
     }
 
     public int getRegisterA() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        return regA & 0xFF;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

@@ -29,6 +29,7 @@
 package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class DeadInstruction extends Instruction {
     public final Instruction OriginalInstruction;
@@ -38,9 +39,13 @@ public class DeadInstruction extends Instruction {
         this.OriginalInstruction = originalInstruction;
     }
 
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        //don't write anything
+    }
+
     @Override
-    public int getSize() {
-        return OriginalInstruction.getSize();
+    public int getSize(int offset) {
+        return OriginalInstruction.getSize(offset);
     }
 
     public Format getFormat() {

@@ -32,8 +32,6 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.Utf8Utils;
 
-import java.io.UnsupportedEncodingException;
-
 public class HeaderItem extends Item<HeaderItem> {
     /**
      * the file format magic number, represented as the

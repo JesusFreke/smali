@@ -32,20 +32,34 @@ import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.OffsetInstruction;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
 
 public class Instruction30t extends Instruction implements OffsetInstruction {
-    public static final Instruction.InstructionFactory Factory = new Factory();
+    public static final InstructionFactory Factory = new Factory();
+    private int offset;
 
-    public static void emit(Output out, Opcode opcode, int offA) {
-        out.writeByte(opcode.value);
-        out.writeByte(0);
-        out.writeInt(offA);
+    public Instruction30t(Opcode opcode, int offA) {
+        super(opcode);
+        this.offset = offA;
     }
 
     private Instruction30t(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
+
+        assert buffer[bufferIndex] == opcode.value;
+
+        this.offset = NumberUtils.decodeInt(buffer, bufferIndex+2);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte(0x00);
+        out.writeInt(offset);
+    }
+
+    public void updateOffset(int offset) {
+        this.offset = offset;
     }
 
     public Format getFormat() {
@@ -53,10 +67,10 @@ public class Instruction30t extends Instruction implements OffsetInstruction {
     }
 
     public int getOffset() {
-        return NumberUtils.decodeInt(buffer, bufferIndex + 2);
+        return offset;
     }
 
-    private static class Factory implements Instruction.InstructionFactory {
+    private static class Factory implements InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
             return new Instruction30t(opcode, buffer, bufferIndex);
         }

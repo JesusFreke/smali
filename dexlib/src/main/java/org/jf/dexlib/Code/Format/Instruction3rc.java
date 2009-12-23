@@ -37,12 +37,16 @@ import org.jf.dexlib.Item;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction3rc extends InstructionWithReference {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regCount;
+    private short startReg;
 
-    public static void emit(Output out, Opcode opcode, short regCount, int startReg, Item referencedItem) {
+    public Instruction3rc(Opcode opcode, short regCount, int startReg, Item referencedItem) {
+        super(opcode, referencedItem);
+
         if (regCount >= 1 << 8) {
             throw new RuntimeException("regCount must be less than 256");
         }
@@ -57,10 +61,8 @@ public class Instruction3rc extends InstructionWithReference {
             throw new RuntimeException("The beginning register of the range cannot be negative");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(regCount);
-        out.writeShort(0);
-        out.writeShort(startReg);
+        this.regCount = (byte)regCount;
+        this.startReg = (short)startReg;
 
         checkItem(opcode, referencedItem, regCount);
     }
@@ -68,7 +70,17 @@ public class Instruction3rc extends InstructionWithReference {
     private Instruction3rc(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
         super(dexFile, opcode, buffer, bufferIndex);
 
+        this.regCount = (byte)NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        this.startReg = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
+
         checkItem(opcode, getReferencedItem(), getRegCount());
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte(regCount);
+        out.writeShort(this.getReferencedItem().getIndex());
+        out.writeShort(startReg);
     }
 
     public Format getFormat() {
@@ -76,11 +88,11 @@ public class Instruction3rc extends InstructionWithReference {
     }
 
     public short getRegCount() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        return (short)(regCount & 0xFF);
     }
 
     public int getStartRegister() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
+        return startReg & 0xFFFF;
     }
 
     private static void checkItem(Opcode opcode, Item item, int regCount) {

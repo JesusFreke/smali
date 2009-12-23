@@ -37,13 +37,21 @@ import org.jf.dexlib.Item;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction35c extends InstructionWithReference {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regCount;
+    private byte regA;
+    private byte regD;
+    private byte regE;
+    private byte regF;
+    private byte regG;
 
-    public static void emit(Output out, Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
+    public Instruction35c(Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
                           byte regA, Item referencedItem) {
+        super(opcode, referencedItem);
+
         if (regCount > 5) {
             throw new RuntimeException("regCount cannot be greater than 5");
         }
@@ -56,11 +64,12 @@ public class Instruction35c extends InstructionWithReference {
             throw new RuntimeException("All register args must fit in 4 bits");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte((regCount << 4) | regA);
-        out.writeShort(0);
-        out.writeByte((regE << 4) | regD);
-        out.writeByte((regG << 4) | regF);
+        this.regCount = (byte)regCount;
+        this.regA = regA;
+        this.regD = regD;
+        this.regE = regE;
+        this.regF = regF;
+        this.regG = regG;
 
         checkItem(opcode, referencedItem, regCount);
     }
@@ -72,7 +81,22 @@ public class Instruction35c extends InstructionWithReference {
             throw new RuntimeException("regCount cannot be greater than 5");
         }
 
+        this.regCount = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+        this.regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        this.regD = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 4]);
+        this.regE = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 4]);
+        this.regF = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 5]);
+        this.regG = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 5]);
+
         checkItem(opcode, getReferencedItem(), getRegCount());
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte((regCount << 4) | regA);
+        out.writeShort(getReferencedItem().getIndex());
+        out.writeByte((regE << 4) | regD);
+        out.writeByte((regG << 4) | regF);
     }
 
     public Format getFormat() {
@@ -80,27 +104,27 @@ public class Instruction35c extends InstructionWithReference {
     }
 
     public byte getRegisterA() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        return regA;
     }
 
     public byte getRegCount() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+        return regCount;
     }
 
     public byte getRegisterD() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 4]);
+        return regD;
     }
 
     public byte getRegisterE() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 4]);
+        return regE;
     }
 
     public byte getRegisterF() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 5]);
+        return regF;
     }
 
     public byte getRegisterG() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 5]);
+        return regG;
     }
 
     private static void checkItem(Opcode opcode, Item item, int regCount) {

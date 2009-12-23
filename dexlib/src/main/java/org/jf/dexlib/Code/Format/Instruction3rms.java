@@ -30,14 +30,19 @@ package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Util.Output;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
 
 public class Instruction3rms extends Instruction {
  public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regCount;
+    private short startReg;
+    private short methodIndex;
 
-    public static void emit(Output out, Opcode opcode, short regCount, int startReg, int methodIndex) {
+    public Instruction3rms(Opcode opcode, short regCount, int startReg, int methodIndex) {
+        super(opcode);
+
         if (regCount >= 1 << 8) {
             throw new RuntimeException("regCount must be less than 256");
         }
@@ -56,14 +61,24 @@ public class Instruction3rms extends Instruction {
             throw new RuntimeException("The method index must be less than 65536");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(regCount);
-        out.writeShort(0);
-        out.writeShort(startReg);
+        this.regCount = (byte)regCount;
+        this.startReg = (short)startReg;
+        this.methodIndex = (short)methodIndex;
     }
 
     private Instruction3rms(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
+
+        this.regCount = (byte)NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        this.methodIndex = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        this.startReg = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte(regCount);
+        out.writeShort(methodIndex);
+        out.writeShort(startReg);
     }
 
     public Format getFormat() {
@@ -71,16 +86,16 @@ public class Instruction3rms extends Instruction {
     }
 
     public short getRegCount() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        return (short)(regCount & 0xFF);
     }
 
     public int getStartRegister() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
+        return startReg & 0xFFFF;
     }
 
     public int getMethodIndex() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
-    }    
+        return methodIndex & 0xFFFF;
+    }
 
     private static class Factory implements Instruction.InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {

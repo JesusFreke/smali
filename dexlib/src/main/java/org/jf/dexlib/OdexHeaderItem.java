@@ -30,8 +30,6 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.Input;
 
-import java.io.UnsupportedEncodingException;
-
 public class OdexHeaderItem {
 
     /**

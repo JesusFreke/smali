@@ -33,25 +33,37 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction32x extends Instruction implements TwoRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private short regA;
+    private short regB;
 
-    public static void emit(Output out, Opcode opcode, int regA, int regB) {
+    public Instruction32x(Opcode opcode, int regA, int regB) {
+        super(opcode);
+
         if (regA >= 1<<16 ||
             regB >= 1<<16) {
             throw new RuntimeException("The register number must be less than v65536");
         }
 
+        this.regA = (short)regA;
+        this.regB = (short)regB;
+    }
+
+    private Instruction32x(Opcode opcode, byte[] buffer, int bufferIndex) {
+        super(opcode);
+
+        this.regA = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        this.regB = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
         out.writeByte(opcode.value);
         out.writeByte(0);
         out.writeShort(regA);
         out.writeShort(regB);
-    }
-
-    private Instruction32x(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
     }
 
     public Format getFormat() {
@@ -59,11 +71,11 @@ public class Instruction32x extends Instruction implements TwoRegisterInstructio
     }
 
     public int getRegisterA() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        return regA & 0xFFFF;
     }
 
     public int getRegisterB() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
+        return regB & 0xFFFF;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

@@ -515,7 +515,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		CodeItem codeItem;
 
 		if (totalMethodRegisters == 0 &&
-		    $statements.encodedInstructions.length == 0 &&
+		    $statements.instructions.size() == 0 &&
 		    $method::labels.size()== 0 &&
 		    (tries == null || tries.size() == 0) &&
 		    (handlers == null || handlers.size() == 0) &&
@@ -542,8 +542,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 						methodParameterRegisters,
 						$statements.maxOutRegisters,
 						debugInfoItem,
-						$statements.encodedInstructions,
-						$statements.referencedItems,
+						$statements.instructions,
 						tries,
 						handlers);
 		}
@@ -793,23 +792,19 @@ source
 			$method::debugInfo.addSetFile($address.address, $string_literal.value);
 		};
 
-statements[int totalMethodRegisters, int methodParameterRegisters] returns[byte[\] encodedInstructions, List<Item> referencedItems, int maxOutRegisters]
+statements[int totalMethodRegisters, int methodParameterRegisters] returns[List<Instruction> instructions, int maxOutRegisters]
 	@init
 	{
-		ByteArrayOutput out = new ByteArrayOutput();
-		$referencedItems = new LinkedList<Item>();
+		$instructions = new LinkedList<Instruction>();		
 		$maxOutRegisters = 0;
 	}
-	:	^(I_STATEMENTS	(instruction[$totalMethodRegisters, $methodParameterRegisters, out, $referencedItems]
+	:	^(I_STATEMENTS	(instruction[$totalMethodRegisters, $methodParameterRegisters, $instructions]
 				{
-					$method::currentAddress = out.getCursor() / 2;
+					$method::currentAddress += $instructions.get($instructions.size() - 1).getSize($method::currentAddress*2) / 2;
 					if ($maxOutRegisters < $instruction.outRegisters) {
 						$maxOutRegisters = $instruction.outRegisters;
 					}
-				})*)
-	{
-		$encodedInstructions = out.toByteArray();
-	};
+				})*);
 			
 label_ref returns[int labelAddress]
 	:	label
@@ -876,7 +871,7 @@ register_range[int totalMethodRegisters, int methodParameterRegisters] returns[i
 		}
 	;
 
-instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, List<Item> referencedItems] returns[int outRegisters]
+instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
 	:	//e.g. goto endloop:
 		{$outRegisters = 0;}
 		^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
@@ -889,13 +884,13 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-128, 127].");
 			}
 			
-			Instruction10t.emit(out, opcode, (byte)addressOffset);
+			$instructions.add(new Instruction10t(opcode, (byte)addressOffset));
 		}
 	|	//e.g. return
 		^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
-			Instruction10x.emit(out, opcode);
+			$instructions.add(new Instruction10x(opcode));
 		}
 	|	//e.g. const/4 v0, 5
 		^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER short_integral_literal)
@@ -906,7 +901,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			short litB = $short_integral_literal.value;
 			literalTools.checkNibble(litB);
 			
-			Instruction11n.emit(out, opcode, regA, (byte)litB);
+			$instructions.add(new Instruction11n(opcode, regA, (byte)litB));
 		}				
 	|	//e.g. move-result-object v1
 		^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
@@ -914,7 +909,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			Instruction11x.emit(out, opcode, regA);
+			$instructions.add(new Instruction11x(opcode, regA));
 		}
 	|	//e.g. move v1 v2
 		^(I_STATEMENT_FORMAT12x INSTRUCTION_FORMAT12x registerA=REGISTER registerB=REGISTER)
@@ -923,7 +918,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			Instruction12x.emit(out, opcode, regA, regB);
+			$instructions.add(new Instruction12x(opcode, regA, regB));
 		}
 	|	//e.g. goto/16 endloop:
 		^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)
@@ -936,7 +931,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
-			Instruction20t.emit(out, opcode, (short)addressOffset);
+			$instructions.add(new Instruction20t(opcode, (short)addressOffset));
 		}
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
 		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
@@ -946,8 +941,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 
-			Instruction21c.emit(out, opcode, regA, fieldIdItem);
-			$referencedItems.add(fieldIdItem);
+			$instructions.add(new Instruction21c(opcode, regA, fieldIdItem));
 		}
 	|	//e.g. const-string v1 "Hello World!"
 		^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
@@ -957,8 +951,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			StringIdItem stringIdItem = StringIdItem.getInternedStringIdItem(dexFile, $string_literal.value);
 
-			Instruction21c.emit(out, opcode, regA, stringIdItem);
-			$referencedItems.add(stringIdItem);
+			instructions.add(new Instruction21c(opcode, regA, stringIdItem));
 		}
 	|	//e.g. const-class v2 org/jf/HelloWorld2/HelloWorld2
 		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
@@ -968,8 +961,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			TypeIdItem typeIdItem = $reference_type_descriptor.type;
 			
-			Instruction21c.emit(out, opcode, regA, typeIdItem);
-			$referencedItems.add(typeIdItem);
+			$instructions.add(new Instruction21c(opcode, regA, typeIdItem));
 		}
 	|	//e.g. const/high16 v1, 1234
 		^(I_STATEMENT_FORMAT21h INSTRUCTION_FORMAT21h REGISTER short_integral_literal)
@@ -979,7 +971,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			short litB = $short_integral_literal.value;
 			
-			Instruction21h.emit(out, opcode, regA, litB);
+			instructions.add(new Instruction21h(opcode, regA, litB));
 		}
 	|	//e.g. const/16 v1, 1234
 		^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER short_integral_literal)
@@ -989,7 +981,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			short litB = $short_integral_literal.value;
 			
-			Instruction21s.emit(out, opcode, regA, litB);
+			$instructions.add(new Instruction21s(opcode, regA, litB));
 		}
 	|	//e.g. if-eqz v0, endloop:
 		^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
@@ -1003,7 +995,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
-			Instruction21t.emit(out, opcode, regA, (short)addressOffset);
+			$instructions.add(new Instruction21t(opcode, regA, (short)addressOffset));
 		}
 	|	//e.g. add-int v0, v1, 123
 		^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER short_integral_literal)
@@ -1015,7 +1007,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			short litC = $short_integral_literal.value;
 			literalTools.checkByte(litC);
 			
-			Instruction22b.emit(out, opcode, regA, regB, (byte)litC);
+			$instructions.add(new Instruction22b(opcode, regA, regB, (byte)litC));
 		}
 	|	//e.g. iput-object v1 v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
@@ -1026,8 +1018,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 			
-			Instruction22c.emit(out, opcode, regA, regB);
-			$referencedItems.add(fieldIdItem);
+			$instructions.add(new Instruction22c(opcode, regA, regB, fieldIdItem));
 		}
 	|	//e.g. instance-of v0, v1, Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
@@ -1038,8 +1029,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 			
-			Instruction22c.emit(out, opcode, regA, regB);
-			$referencedItems.add(typeIdItem);			
+			$instructions.add(new Instruction22c(opcode, regA, regB, typeIdItem));
 		}
 	|	//e.g. add-int/lit16 v0, v1, 12345
 		^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER short_integral_literal)
@@ -1050,7 +1040,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			short litC = $short_integral_literal.value;
 			
-			Instruction22s.emit(out, opcode, regA, regB, litC);
+			$instructions.add(new Instruction22s(opcode, regA, regB, litC));
 		}
 	|	//e.g. if-eq v0, v1, endloop:
 		^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
@@ -1065,7 +1055,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 			
-			Instruction22t.emit(out, opcode, regA, regB, (short)addressOffset);
+			$instructions.add(new Instruction22t(opcode, regA, regB, (short)addressOffset));
 		}
 	|	//e.g. move/from16 v1, v1234
 		^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
@@ -1074,7 +1064,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			Instruction22x.emit(out, opcode, regA, regB);
+			$instructions.add(new Instruction22x(opcode, regA, regB));
 		}
 	|	//e.g. add-int v1, v2, v3
 		^(I_STATEMENT_FORMAT23x INSTRUCTION_FORMAT23x registerA=REGISTER registerB=REGISTER registerC=REGISTER)
@@ -1084,7 +1074,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			short regB = parseRegister_byte($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			short regC = parseRegister_byte($registerC.text, $totalMethodRegisters, $methodParameterRegisters);			
 			
-			Instruction23x.emit(out, opcode, regA, regB, regC);
+			$instructions.add(new Instruction23x(opcode, regA, regB, regC));
 		}
 	|	//e.g. goto/32 endloop:
 		^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
@@ -1093,7 +1083,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			int addressOffset = $offset_or_label.offsetValue;
 	
-			Instruction30t.emit(out, opcode, addressOffset);
+			$instructions.add(new Instruction30t(opcode, addressOffset));
 		}
 	|	//e.g. const-string/jumbo v1 "Hello World!"
 		^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
@@ -1103,8 +1093,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 					
 			StringIdItem stringIdItem = StringIdItem.getInternedStringIdItem(dexFile, $string_literal.value);
 			
-			Instruction31c.emit(out, opcode, regA);
-			$referencedItems.add(stringIdItem);
+			$instructions.add(new Instruction31c(opcode, regA, stringIdItem));
 		}
 	|	//e.g. const v0, 123456
 		^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
@@ -1114,7 +1103,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			int litB = $fixed_32bit_literal.value;
 			
-			Instruction31i.emit(out, opcode, regA, litB);
+			$instructions.add(new Instruction31i(opcode, regA, litB));
 		}
 	|	//e.g. fill-array-data v0, ArrayData:
 		^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER offset_or_label)
@@ -1128,7 +1117,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 				addressOffset++;
 			}
 			
-			Instruction31t.emit(out, opcode, regA, addressOffset);
+			$instructions.add(new Instruction31t(opcode, regA, addressOffset));
 		}
 	|	//e.g. move/16 v5678, v1234
 		^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
@@ -1137,7 +1126,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			int regA = parseRegister_short($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			Instruction32x.emit(out, opcode, regA, regB);
+			$instructions.add(new Instruction32x(opcode, regA, regB));
 		}
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
 		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
@@ -1151,8 +1140,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 			
-			Instruction35c.emit(out, opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem);
-			$referencedItems.add(methodIdItem);
+			$instructions.add(new Instruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem));
 		}
 	|	//e.g. filled-new-array {v0,v1}, I
 		^(I_STATEMENT_FORMAT35c_TYPE INSTRUCTION_FORMAT35c_TYPE register_list[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
@@ -1166,8 +1154,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 			
-			Instruction35c.emit(out, opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeIdItem);
-			$referencedItems.add(typeIdItem);			
+			$instructions.add(new Instruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeIdItem));
 		}
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
@@ -1188,8 +1175,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 
-			Instruction3rc.emit(out, opcode, (short)registerCount, startRegister, methodIdItem);
-			$referencedItems.add(methodIdItem);
+			$instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, methodIdItem));
 		}
 	|	//e.g. filled-new-array/range {v0..v6} I
 		^(I_STATEMENT_FORMAT3rc_TYPE INSTRUCTION_FORMAT3rc_TYPE register_range[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
@@ -1210,8 +1196,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 
-			Instruction3rc.emit(out, opcode, (short)registerCount, startRegister, typeIdItem);
-			$referencedItems.add(typeIdItem);
+			$instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, typeIdItem));
 		}	
 	|	//e.g. const-wide v0, 5000000000L
 		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
@@ -1221,12 +1206,15 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			
 			long litB = $fixed_64bit_literal.value;
 			
-			Instruction51l.emit(out, opcode, regA, litB);
+			$instructions.add(new Instruction51l(opcode, regA, litB));
 		}
 	|	//e.g. .array-data 4 1000000 .end array-data
 		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
 		{
-			out.alignTo(4);
+			if (($method::currentAddress \% 2) != 0) {
+				$instructions.add(new Instruction10x(Opcode.NOP));
+				$method::currentAddress++;
+			}
 			
 			int elementWidth = $short_integral_literal.value;
 			List<byte[]> byteValues = $array_elements.values;
@@ -1243,14 +1231,16 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 				index+=byteValue.length;
 			}			
 			
-			ArrayDataPseudoInstruction.emit(out, elementWidth, encodedValues);
+			$instructions.add(new ArrayDataPseudoInstruction(elementWidth, encodedValues));
 		}
 	|
 		
 		^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal)
 			{
-				out.alignTo(4);
-				$method::currentAddress = out.getCursor() / 2;
+				if (($method::currentAddress \% 2) != 0) {
+					$instructions.add(new Instruction10x(Opcode.NOP));
+					$method::currentAddress++;
+				}
 				Integer baseAddress = $method::packedSwitchDeclarations.get($method::currentAddress);
 				if (baseAddress == null) {
 					baseAddress = 0;
@@ -1262,13 +1252,15 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			int startKey = $fixed_32bit_literal.value;
 			int[] targets = $packed_switch_targets.targets;
 			
-			PackedSwitchDataPseudoInstruction.emit(out, startKey, targets);
+			$instructions.add(new PackedSwitchDataPseudoInstruction(startKey, targets));
 		}
 	|
 		^(I_STATEMENT_SPARSE_SWITCH sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount] 
 			{
-				out.alignTo(4);
-				$method::currentAddress = out.getCursor() / 2;
+				if (($method::currentAddress \% 2) != 0) {
+					$instructions.add(new Instruction10x(Opcode.NOP));
+					$method::currentAddress++;
+				}
 				Integer baseAddress = $method::sparseSwitchDeclarations.get($method::currentAddress);
 				if (baseAddress == null) {
 					baseAddress = 0;
@@ -1280,7 +1272,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, Output out, 
 			int[] keys = $sparse_switch_keys.keys;
 			int[] targets = $sparse_switch_targets.targets;
 			
-			SparseSwitchDataPseudoInstruction.emit(out, keys, targets);
+			$instructions.add(new SparseSwitchDataPseudoInstruction(keys, targets));
 		};
 		catch [Exception ex] {
 			reportError(new SemanticException(input, ex));

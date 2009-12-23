@@ -377,7 +377,26 @@ public class DexFile
         in.setCursor(mapOffset);
         MapItem.readFrom(in, 0, readContext);
 
-        for (Section section: sectionsByType) {
+        Section sections[] = new Section[] {
+                StringIdsSection,
+                TypeIdsSection,
+                ProtoIdsSection,
+                FieldIdsSection,
+                MethodIdsSection,
+                ClassDefsSection,
+                StringDataSection,
+                TypeListsSection,
+                AnnotationSetRefListsSection,
+                AnnotationSetsSection,
+                ClassDataSection,
+                CodeItemsSection,
+                AnnotationDirectoriesSection,
+                DebugInfoItemsSection,
+                AnnotationsSection,
+                EncodedArraysSection,
+        };
+
+        for (Section section: sections) {
             if (section == null) {
                 continue;
             }

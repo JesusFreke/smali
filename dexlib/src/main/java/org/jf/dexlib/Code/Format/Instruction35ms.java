@@ -30,16 +30,24 @@ package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Util.Output;
 import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
 
 
 public class Instruction35ms extends Instruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regCount;
+    private byte regA;
+    private byte regD;
+    private byte regE;
+    private byte regF;
+    private byte regG;
+    private short methodIndex;
 
-    public static void emit(Output out, Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
+    public Instruction35ms(Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
                           byte regA, int methodIndex) {
+        super(opcode);
         if (regCount > 5) {
             throw new RuntimeException("regCount cannot be greater than 5");
         }
@@ -56,6 +64,28 @@ public class Instruction35ms extends Instruction {
             throw new RuntimeException("The method index must be less than 65536");
         }
 
+        this.regCount = (byte)regCount;
+        this.regA = regA;
+        this.regD = regD;
+        this.regE = regE;
+        this.regF = regF;
+        this.regG = regG;
+        this.methodIndex = (short)methodIndex;
+    }
+
+    private Instruction35ms(Opcode opcode, byte[] buffer, int bufferIndex) {
+        super(opcode);
+
+        this.regCount = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+        this.regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        this.regD = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 4]);
+        this.regE = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 4]);
+        this.regF = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 5]);
+        this.regG = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 5]);
+        this.methodIndex = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
         out.writeByte(opcode.value);
         out.writeByte((regCount << 4) | regA);
         out.writeShort(methodIndex);
@@ -63,40 +93,36 @@ public class Instruction35ms extends Instruction {
         out.writeByte((regG << 4) | regF);
     }
 
-    private Instruction35ms(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
-    }
-
     public Format getFormat() {
         return Format.Format35ms;
     }
 
     public byte getRegisterA() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        return regA;
     }
 
     public byte getRegCount() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+        return regCount;
     }
 
     public byte getRegisterD() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 4]);
+        return regD;
     }
 
     public byte getRegisterE() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 4]);
+        return regE;
     }
 
     public byte getRegisterF() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 5]);
+        return regF;
     }
 
     public byte getRegisterG() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 5]);
+        return regG;
     }
 
     public int getMethodIndex() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        return methodIndex & 0xFFFF;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

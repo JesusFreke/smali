@@ -41,14 +41,14 @@ public abstract class InstructionWithReference extends Instruction {
     }
 
     protected InstructionWithReference(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
 
-        int itemIndex = getReferencedItemIndex();
+        int itemIndex = getReferencedItemIndex(buffer, bufferIndex); 
         lookupReferencedItem(dexFile, opcode, itemIndex);
     }
 
-    protected int getReferencedItemIndex() {
-	return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+    protected int getReferencedItemIndex(byte[] buffer, int bufferIndex) {
+        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
     }
 
     public Item getReferencedItem() {

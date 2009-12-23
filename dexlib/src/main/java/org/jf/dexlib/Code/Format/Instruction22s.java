@@ -33,24 +33,39 @@ import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction22s extends Instruction implements TwoRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private byte regB;
+    private short litC;
 
-    public static void emit(Output out, Opcode opcode, byte regA, byte regB, short litC) {
+    public Instruction22s(Opcode opcode, byte regA, byte regB, short litC) {
+        super(opcode);
+
         if (regA >= 1 << 4 ||
                 regB >= 1 << 4) {
             throw new RuntimeException("The register number must be less than v16");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte((regB << 4) | regA);
-        out.writeShort(litC);
+        this.regA = regA;
+        this.regB = regB;
+        this.litC = litC;
     }
 
     private Instruction22s(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
+
+        this.regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        this.regB = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+        this.litC = NumberUtils.decodeShort(buffer, bufferIndex + 2);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte((regB << 4) | regA);
+        out.writeShort(litC);
     }
 
     public Format getFormat() {
@@ -58,15 +73,15 @@ public class Instruction22s extends Instruction implements TwoRegisterInstructio
     }
 
     public int getRegisterA() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        return regA;
     }
 
     public int getRegisterB() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+        return regB;
     }
 
     public short getLiteral() {
-        return NumberUtils.decodeShort(buffer, bufferIndex + 2);
+        return litC;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

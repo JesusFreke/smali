@@ -103,50 +103,49 @@ public class InstructionIterator {
     }
 
     public static void IterateInstructions(DexFile dexFile, byte[] insns, ProcessInstructionDelegate delegate) {
-        int insnsPosition = 0;
+        int currentCodeOffset = 0;
 
-        while (insnsPosition < insns.length) {
-            Opcode opcode = Opcode.getOpcodeByValue(insns[insnsPosition]);
+        while (currentCodeOffset < insns.length) {
+            Opcode opcode = Opcode.getOpcodeByValue(insns[currentCodeOffset]);
 
             Instruction instruction = null;
 
             if (opcode == null) {
-                throw new RuntimeException("Unknown opcode: " + Hex.u1(insns[insnsPosition]));
+                throw new RuntimeException("Unknown opcode: " + Hex.u1(insns[currentCodeOffset]));
             }
 
             if (opcode == Opcode.NOP) {
-                byte secondByte = insns[insnsPosition+1];
+                byte secondByte = insns[currentCodeOffset+1];
                 switch (secondByte) {
                     case 0:
                     {
-                        instruction = new Instruction10x(Opcode.NOP, insns, insnsPosition);
+                        instruction = new Instruction10x(Opcode.NOP, insns, currentCodeOffset);
                         break;
                     }
                     case 1:
                     {
-                        insnsPosition += insnsPosition & 0x01;
-                        instruction = new PackedSwitchDataPseudoInstruction(insns, insnsPosition);
+                        instruction = new PackedSwitchDataPseudoInstruction(insns, currentCodeOffset);
                         break;
                     }
                     case 2:
                     {
-                        insnsPosition += insnsPosition & 0x01;
-                        instruction = new SparseSwitchDataPseudoInstruction(insns, insnsPosition);
+                        instruction = new SparseSwitchDataPseudoInstruction(insns, currentCodeOffset);
                         break;
                     }
                     case 3:
                     {
-                        insnsPosition += insnsPosition & 0x01;
-                        instruction = new ArrayDataPseudoInstruction(insns, insnsPosition);
+                        instruction = new ArrayDataPseudoInstruction(insns, currentCodeOffset);
                         break;
                     }
                 }
             } else {
-                instruction = opcode.format.Factory.makeInstruction(dexFile, opcode, insns, insnsPosition);
+                instruction = opcode.format.Factory.makeInstruction(dexFile, opcode, insns, currentCodeOffset);
             }
 
-            delegate.ProcessInstruction(insnsPosition, instruction);
-            insnsPosition += instruction.getSize();
+            assert instruction != null;
+
+            delegate.ProcessInstruction(currentCodeOffset, instruction);
+            currentCodeOffset += instruction.getSize(currentCodeOffset);
         }
     }
 

@@ -36,6 +36,7 @@ import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.InstructionIterator;
+import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
@@ -214,7 +215,7 @@ public class MethodDefinition {
                         sparseSwitchMap.put(offset + ins.getOffset(), offset);
                     }
 
-                    offset += instruction.getSize()/2;
+                    offset += instruction.getSize(offset*2)/2;
                 }
 
                 offset = 0;
@@ -222,7 +223,7 @@ public class MethodDefinition {
                     addMethodItemsForInstruction(offset, instruction, false);
                     blanks.add(new BlankMethodItem(stg, offset));
 
-                    offset += instruction.getSize()/2;
+                    offset += instruction.getSize(offset*2)/2;
                 }
 
                 /*
@@ -242,44 +243,27 @@ public class MethodDefinition {
                     }
                 }
             } else {
-                final byte[] encodedInstructions = codeItem.getEncodedInstructions();
+                int currentCodeOffset = 0;
+                for (Instruction instruction: codeItem.getInstructions()) {
+                    if (instruction.opcode == Opcode.PACKED_SWITCH) {
+                        OffsetInstruction offsetInstruction = (OffsetInstruction)instruction;
+                        packedSwitchMap.put(currentCodeOffset/2 + offsetInstruction.getOffset(), currentCodeOffset/2);
+                    } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
+                        OffsetInstruction offsetInstruction = (OffsetInstruction)instruction;
+                        sparseSwitchMap.put(currentCodeOffset/2 + offsetInstruction.getOffset(), currentCodeOffset/2);
+                    }
 
-                InstructionIterator.IterateInstructions(encodedInstructions,
-                        new InstructionIterator.ProcessRawInstructionDelegate() {
-                            public void ProcessNormalInstruction(Opcode opcode, int index) {
-                                if (opcode == Opcode.PACKED_SWITCH) {
-                                    Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
-                                            dexFile, opcode, encodedInstructions, index);
-                                    packedSwitchMap.put(index/2 + ins.getOffset(), index/2);
-                                } else if (opcode == Opcode.SPARSE_SWITCH) {
-                                    Instruction31t ins = (Instruction31t)opcode.format.Factory.makeInstruction(
-                                            dexFile, opcode, encodedInstructions, index);
-                                    sparseSwitchMap.put(index/2 + ins.getOffset(),  index/2);
-                                }
-                            }
+                    currentCodeOffset += instruction.getSize(currentCodeOffset);
+                }
 
-                            public void ProcessReferenceInstruction(Opcode opcode, int index) {
-                            }
+                currentCodeOffset = 0;
+                for (Instruction instruction: codeItem.getInstructions()) {
+                    int offset = currentCodeOffset/2;
+                    addMethodItemsForInstruction(offset, instruction, false);
+                    blanks.add(new BlankMethodItem(stg, offset));
+                    currentCodeOffset += instruction.getSize(currentCodeOffset);
+                }
 
-                            public void ProcessPackedSwitchInstruction(int index, int targetCount, int instructionLength) {
-                            }
-
-                            public void ProcessSparseSwitchInstruction(int index, int targetCount, int instructionLength) {
-                            }
-
-                            public void ProcessFillArrayDataInstruction(int index, int elementWidth, int elementCount,
-                                                                        int instructionLength) {
-                            }
-                        });
-
-                InstructionIterator.IterateInstructions(dexFile, encodedInstructions,
-                        new InstructionIterator.ProcessInstructionDelegate() {
-                            public void ProcessInstruction(int index, Instruction instruction) {
-                                int offset = index/2;
-                                addMethodItemsForInstruction(offset, instruction, false);
-                                blanks.add(new BlankMethodItem(stg, offset));
-                            }
-                        });
             }
 
             blanks.remove(blanks.size()-1);
@@ -575,7 +559,7 @@ public class MethodDefinition {
                 int lastInstructionOffset = instructions.get(index).getOffset();
 
                 //add the catch all handler if it exists
-                int catchAllAddress = tryItem.encodedCatchHandler.catchAllHandlerAddress;
+                int catchAllAddress = tryItem.encodedCatchHandler.getCatchAllHandlerAddress();
                 if (catchAllAddress != -1) {
                     CatchMethodItem catchMethodItem = new CatchMethodItem(labels, lastInstructionOffset, stg, null,
                             startAddress, endAddress, catchAllAddress);
@@ -586,7 +570,7 @@ public class MethodDefinition {
                 for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
                     //use the offset from the last covered instruction
                     CatchMethodItem catchMethodItem = new CatchMethodItem(labels, lastInstructionOffset, stg,
-                            handler.exceptionType, startAddress, endAddress, handler.handlerAddress);
+                            handler.exceptionType, startAddress, endAddress, handler.getHandlerAddress());
                     catches.add(catchMethodItem);
                 }
             }

@@ -32,6 +32,7 @@ import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.Code.InstructionWithReference;
 import org.jf.dexlib.FieldIdItem;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction22csf extends InstructionWithReference implements TwoRegisterInstruction {
     private final Instruction22cs unfixedInstruction;
@@ -40,6 +41,15 @@ public class Instruction22csf extends InstructionWithReference implements TwoReg
         //the opcode should be the "fixed" opcode. i.e. iget-object, etc. (NOT the "quick" version)
         super(opcode, field);
         this.unfixedInstruction = unfixedInstruction;
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        byte regA = (byte)getRegisterA();
+        byte regB = (byte)getRegisterB();
+
+        out.writeByte(opcode.value);
+        out.writeByte((regB << 4) | regA);
+        out.writeShort(this.getReferencedItem().getIndex());
     }
 
     public Format getFormat() {

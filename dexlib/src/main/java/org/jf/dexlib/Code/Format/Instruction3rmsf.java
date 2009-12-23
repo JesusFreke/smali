@@ -31,6 +31,7 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.InstructionWithReference;
 import org.jf.dexlib.MethodIdItem;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction3rmsf extends InstructionWithReference {
     private final Instruction3rms unfixedInstruction;
@@ -39,6 +40,16 @@ public class Instruction3rmsf extends InstructionWithReference {
         //the opcode should be the "fixed" opcode. i.e. iget-object, etc. (NOT the "quick" version)
         super(opcode, method);
         this.unfixedInstruction = unfixedInstruction;
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        short regCount = getRegCount();
+        int startReg = getStartRegister();
+
+        out.writeByte(opcode.value);
+        out.writeByte(regCount);
+        out.writeShort(this.getReferencedItem().getIndex());
+        out.writeShort(startReg);
     }
 
     public Format getFormat() {

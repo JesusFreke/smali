@@ -48,7 +48,7 @@ public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSw
                                   int baseAddress) {
         super(codeItem, offset, stg, instruction);
 
-        Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.getTargets();
+        Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.iterateKeysAndTargets();
         while (iterator.hasNext()) {
             PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
             LabelMethodItem label = new LabelMethodItem(baseAddress + target.target, stg, "pswitch_");

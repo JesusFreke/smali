@@ -180,6 +180,10 @@ public class DebugInfoBuilder
                 referencedItemsArray);
     }
 
+    public static byte calculateSpecialOpcode(int lineDelta, int addressDelta) {
+        return (byte)(FIRST_SPECIAL + (addressDelta * LINE_RANGE) + (lineDelta - LINE_BASE));
+    }
+
     private interface Event
     {
         int getAddress();
@@ -279,10 +283,6 @@ public class DebugInfoBuilder
 
             currentAddress = address;
             currentLine = line;
-        }
-
-        private byte calculateSpecialOpcode(int lineDelta, int addressDelta) {
-            return (byte)(FIRST_SPECIAL + (addressDelta * LINE_RANGE) + (lineDelta - LINE_BASE));
         }
     }
 

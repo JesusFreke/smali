@@ -43,7 +43,7 @@ public class Instruction31tMethodItem extends OffsetInstructionFormatMethodItem<
 
     protected void setAttributes(StringTemplate template) {
         super.setAttributes(template);
-        template.setAttribute("Register", formatRegister(instruction.getRegister()));
+        template.setAttribute("Register", formatRegister(instruction.getRegisterA()));
     }
 
     protected String getLabelPrefix() {

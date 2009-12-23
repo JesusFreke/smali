@@ -31,22 +31,25 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction10x extends Instruction {
     public static final InstructionFactory Factory = new Factory();
 
-    public static void emit(Output out, Opcode opcode) {
-        out.writeByte(opcode.value);
-        out.writeByte(0);
+    public Instruction10x(Opcode opcode) {
+        super(opcode);
     }
 
     public Instruction10x(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
 
-        if (buffer[bufferIndex + 1] != 0x00) {
-            throw new RuntimeException("The second byte of the instruction must be 0");
-        }
+        assert buffer[bufferIndex] == opcode.value;
+        assert buffer[bufferIndex + 1] == 0x00;
+    }
+
+    public void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte(0);
     }
 
     public Format getFormat() {

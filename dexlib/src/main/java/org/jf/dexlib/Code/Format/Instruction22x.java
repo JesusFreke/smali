@@ -33,12 +33,16 @@ import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction22x extends Instruction implements TwoRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private short regB;
 
-    public static void emit(Output out, Opcode opcode, short regA, int regB) {
+    public Instruction22x(Opcode opcode, short regA, int regB) {
+        super(opcode);
+
         if (regA >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v16");
         }
@@ -47,13 +51,21 @@ public class Instruction22x extends Instruction implements TwoRegisterInstructio
             throw new RuntimeException("The register number must be less than v65536");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(regA);
-        out.writeShort(regB);
+        this.regA = (byte)regA;
+        this.regB = (short)regB;
     }
 
     private Instruction22x(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
+
+        this.regA = buffer[bufferIndex + 1];
+        this.regB = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte(regA);
+        out.writeShort(regB);
     }
 
     public Format getFormat() {
@@ -61,11 +73,11 @@ public class Instruction22x extends Instruction implements TwoRegisterInstructio
     }
 
     public int getRegisterA() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        return regA & 0xFF;
     }
 
     public int getRegisterB() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        return regB & 0xFFFF;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

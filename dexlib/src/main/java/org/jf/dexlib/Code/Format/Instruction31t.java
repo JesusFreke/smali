@@ -31,37 +31,55 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.OffsetInstruction;
+import org.jf.dexlib.Code.SingleRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
-public class Instruction31t extends Instruction implements OffsetInstruction {
+public class Instruction31t extends Instruction implements OffsetInstruction, SingleRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private int offset;
 
-    public static void emit(Output out, Opcode opcode, short regA, int offB) {
+    public Instruction31t(Opcode opcode, short regA, int offB) {
+        super(opcode);
+
         if (regA >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(regA);
-        out.writeInt(offB);
+        this.regA = (byte)regA;
+        this.offset = offB;
     }
 
     private Instruction31t(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
+
+        this.regA = buffer[bufferIndex + 1];
+        this.offset = NumberUtils.decodeInt(buffer, bufferIndex + 2);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.writeByte(opcode.value);
+        out.writeByte(regA);
+        //TODO: get offset from offsetTarget
+        out.writeInt(offset);
+    }
+
+    public void updateOffset(int offset) {
+        this.offset = offset;
     }
 
     public Format getFormat() {
         return Format.Format31t;
     }
 
-    public short getRegister() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+    public int getRegisterA() {
+        return regA & 0xFF;
     }
 
     public int getOffset() {
-        return NumberUtils.decodeInt(buffer, bufferIndex + 2);
+        return offset;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

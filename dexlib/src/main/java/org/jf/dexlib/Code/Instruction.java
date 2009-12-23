@@ -29,43 +29,37 @@
 package org.jf.dexlib.Code;
 
 import org.jf.dexlib.*;
+import org.jf.dexlib.Util.ByteArrayInput;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Code.Format.Format;
 
 public abstract class Instruction {
     public final Opcode opcode;
-    protected final byte[] buffer;
-    protected final int bufferIndex;
 
-    public int getSize() {
+    public int getSize(int offset) {
         return opcode.format.size;
     }
 
     protected Instruction(Opcode opcode) {
         this.opcode = opcode;
-
-        this.bufferIndex = 0;
-        this.buffer = new byte[opcode.format.size];
-    }
-
-    protected Instruction(Opcode opcode, int bufferSize) {
-        this.opcode = opcode;
-
-        this.bufferIndex = 0;
-        this.buffer = new byte[bufferSize];
-    }
-
-    protected Instruction(Opcode opcode, byte[] buffer, int bufferIndex) {
-        this.opcode = opcode;
-
-        this.buffer = buffer;
-        this.bufferIndex = bufferIndex;
-
-        if (buffer[bufferIndex] != opcode.value) {
-            throw new RuntimeException("The given opcode doesn't match the opcode byte");
-        }
     }
 
     public abstract Format getFormat();
+
+    public int write(AnnotatedOutput out, int currentCodeOffset) {
+        if (out.annotates()) {
+            annotateInstruction(out, currentCodeOffset);
+        }
+        writeInstruction(out, currentCodeOffset);
+        return currentCodeOffset + getSize(currentCodeOffset);
+    }
+
+    protected void annotateInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.annotate(getSize(currentCodeOffset), "[0x" + Integer.toHexString(currentCodeOffset/2) + "] " +
+                opcode.name + " instruction");
+    }
+
+    protected abstract void writeInstruction(AnnotatedOutput out, int currentCodeOffset);
 
     public static interface InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex);

@@ -30,28 +30,60 @@ package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.MultiOffsetInstruction;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
 
 import java.util.Iterator;
 
-public class PackedSwitchDataPseudoInstruction extends Instruction {
+public class PackedSwitchDataPseudoInstruction extends Instruction implements MultiOffsetInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private int firstKey;
+    private int[] targets;
 
     @Override
-    public int getSize() {
-        return getTargetCount() * 4 + 8;
+    public int getSize(int offset) {
+        assert offset % 2 == 0;
+        return getTargetCount() * 4 + 8 + (offset % 4);
     }
 
-    public static void emit(Output out, int firstKey, int[] targets) {
+    public PackedSwitchDataPseudoInstruction(int firstKey, int[] targets) {
+        super(Opcode.NOP);
+
         if (targets.length > 0xFFFF) {
             throw new RuntimeException("The packed-switch data contains too many elements. " +
                     "The maximum number of switch elements is 65535");
         }
 
-        //write out padding, if necessary
-        if (out.getCursor() % 4 != 0) {
+        this.firstKey = firstKey;
+        this.targets = targets;
+    }
+
+    public PackedSwitchDataPseudoInstruction(byte[] buffer, int bufferIndex) {
+        super(Opcode.NOP);
+
+        byte opcodeByte = buffer[bufferIndex];
+        if (opcodeByte != 0x00) {
+            throw new RuntimeException("Invalid opcode byte for a PackedSwitchData pseudo-instruction");
+        }
+        byte subopcodeByte = buffer[bufferIndex+1];
+        if (subopcodeByte != 0x01) {
+            throw new RuntimeException("Invalid sub-opcode byte for a PackedSwitchData pseudo-instruction");
+        }
+
+        int targetCount = NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        this.firstKey = NumberUtils.decodeInt(buffer, bufferIndex + 4);
+        this.targets = new int[targetCount];
+
+        for (int i = 0; i<targetCount; i++) {
+            targets[i] = NumberUtils.decodeInt(buffer, bufferIndex + 8 + 4*i);
+        }
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+         //write out padding, if necessary
+        if (currentCodeOffset % 4 != 0) {
             out.writeShort(0);
         }
 
@@ -65,17 +97,13 @@ public class PackedSwitchDataPseudoInstruction extends Instruction {
         }
     }
 
-    public PackedSwitchDataPseudoInstruction(byte[] buffer, int bufferIndex) {
-        super(Opcode.NOP, buffer, bufferIndex);
+    protected void annotateInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.annotate(getSize(currentCodeOffset), "[0x" + Integer.toHexString(currentCodeOffset/2) + "] " +
+                "packed-switch-data instruction");
+    }
 
-        byte opcodeByte = buffer[bufferIndex++];
-        if (opcodeByte != 0x00) {
-            throw new RuntimeException("Invalid opcode byte for a PackedSwitchData pseudo-instruction");
-        }
-        byte subopcodeByte = buffer[bufferIndex];
-        if (subopcodeByte != 0x01) {
-            throw new RuntimeException("Invalid sub-opcode byte for a PackedSwitchData pseudo-instruction");
-        }
+    public void updateTarget(int targetIndex, int targetOffset) {
+        targets[targetIndex] = targetOffset;
     }
 
     public Format getFormat() {
@@ -83,11 +111,15 @@ public class PackedSwitchDataPseudoInstruction extends Instruction {
     }
 
     public int getTargetCount() {
-        return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        return targets.length;
     }
 
     public int getFirstKey() {
-        return NumberUtils.decodeInt(buffer, bufferIndex + 4);
+        return firstKey;
+    }
+
+    public int[] getTargets() {
+        return targets;
     }
 
     public static class PackedSwitchTarget {
@@ -95,11 +127,10 @@ public class PackedSwitchDataPseudoInstruction extends Instruction {
         public int target;
     }
 
-    public Iterator<PackedSwitchTarget> getTargets() {
+    public Iterator<PackedSwitchTarget> iterateKeysAndTargets() {
         return new Iterator<PackedSwitchTarget>() {
             final int targetCount = getTargetCount();
             int i = 0;
-            int position = bufferIndex + 8;
             int value = getFirstKey();
 
             PackedSwitchTarget packedSwitchTarget = new PackedSwitchTarget();
@@ -110,8 +141,7 @@ public class PackedSwitchDataPseudoInstruction extends Instruction {
 
             public PackedSwitchTarget next() {
                 packedSwitchTarget.value = value++;
-                packedSwitchTarget.target = NumberUtils.decodeInt(buffer, position);
-                position+=4;
+                packedSwitchTarget.target = targets[i];
                 i++;
                 return packedSwitchTarget;
             }

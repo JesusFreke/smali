@@ -31,16 +31,22 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.OffsetInstruction;
+import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
-public class Instruction22t extends Instruction implements OffsetInstruction {
+public class Instruction22t extends Instruction implements OffsetInstruction, TwoRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private byte regB;
+    private int offset;
 
-    public static void emit(Output out, Opcode opcode, byte regA, byte regB, short offC) {
-        if (regA >= 1 << 4 ||
-                regB >= 1 << 4) {
+    public Instruction22t(Opcode opcode, byte regA, byte regB, short offC) {
+        super(opcode);
+
+        if (regA >= 16 ||
+                regB >= 16) {
             throw new RuntimeException("The register number must be less than v16");
         }
 
@@ -48,33 +54,51 @@ public class Instruction22t extends Instruction implements OffsetInstruction {
             throw new RuntimeException("The offset cannot be 0.");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte((regB << 4) | regA);
-        out.writeShort(offC);
+        this.regA = regA;
+        this.regB = regB;
+        this.offset = offC;
     }
 
     private Instruction22t(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
 
-        if (getOffset() == 0) {
-            throw new RuntimeException("The offset cannot be 0.");
+        assert buffer[bufferIndex] == opcode.value;
+
+        regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+        regB = NumberUtils.decodeHighSignedNibble(buffer[bufferIndex + 1]);
+        offset = NumberUtils.decodeShort(buffer, bufferIndex + 2);
+
+        assert offset != 0;
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        if (offset < -32768 || offset > 32767) {
+            throw new RuntimeException("The offset " + offset + " is out of range. It must be in [-32768, 32767]");
         }
+
+        out.writeByte(opcode.value);
+        out.writeByte((regB << 4) | regA);
+        out.writeShort(offset);
+    }
+
+    public void updateOffset(int offset) {
+        this.offset = offset;
     }
 
     public Format getFormat() {
         return Format.Format22t;
     }
 
-    public byte getRegisterA() {
-        return NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
+    public int getRegisterA() {
+        return regA;
     }
 
-    public byte getRegisterB() {
-        return NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+    public int getRegisterB() {
+        return regB;
     }
 
     public int getOffset() {
-        return NumberUtils.decodeShort(buffer, bufferIndex + 2);
+        return offset;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

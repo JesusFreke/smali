@@ -142,30 +142,28 @@ public class DeodexUtil {
         final ArrayList<insn> insns = new ArrayList<insn>();
         final SparseArray<insn> insnsMap = new SparseArray<insn>();
 
-        byte[] encodedInstructions = codeItem.getEncodedInstructions().clone();
-
-        InstructionIterator.IterateInstructions(codeItem.getDexFile(), encodedInstructions,
-                new InstructionIterator.ProcessInstructionDelegate() {
-            public void ProcessInstruction(int index, Instruction instruction) {
-                insn i = new insn(codeItem, instruction, insnsMap, index/2);
-                insns.add(i);
-                insnsMap.append(index/2, i);
-            }
-        });
+        int currentCodeOffset = 0;
+        for (Instruction instruction: codeItem.getInstructions()) {
+            insn ins = new insn(codeItem, instruction, insnsMap, currentCodeOffset/2);
+            insns.add(ins);
+            insnsMap.append(currentCodeOffset/2, ins);
+            currentCodeOffset += instruction.getSize(currentCodeOffset);
+        }
 
         if (codeItem.getTries() != null) {
             for (CodeItem.TryItem tryItem: codeItem.getTries()) {
                 insn[] handlers;
 
-                if (tryItem.encodedCatchHandler.catchAllHandlerAddress != -1) {
+                if (tryItem.encodedCatchHandler.getCatchAllHandlerAddress() != -1) {
                     handlers = new insn[tryItem.encodedCatchHandler.handlers.length + 1];
-                    handlers[handlers.length - 1] = insnsMap.get(tryItem.encodedCatchHandler.catchAllHandlerAddress);
+                    handlers[handlers.length - 1] =
+                            insnsMap.get(tryItem.encodedCatchHandler.getCatchAllHandlerAddress());
                 } else {
                     handlers = new insn[tryItem.encodedCatchHandler.handlers.length];
                 }
 
                 for (int i=0; i<tryItem.encodedCatchHandler.handlers.length; i++) {
-                    handlers[i] = insnsMap.get(tryItem.encodedCatchHandler.handlers[i].handlerAddress);
+                    handlers[i] = insnsMap.get(tryItem.encodedCatchHandler.handlers[i].getHandlerAddress());
                 }
 
                 int insnoffset = tryItem.startAddress;
@@ -174,7 +172,7 @@ public class DeodexUtil {
 
                     i.exceptionHandlers = handlers;
 
-                    insnoffset += i.instruction.getSize()/2;
+                    insnoffset += i.instruction.getSize(insnoffset*2)/2;
                 }
             }
         }
@@ -216,7 +214,7 @@ public class DeodexUtil {
             System.err.println("warning: could not fully deodex the method " +
                     codeItem.getParent().method.getContainingClass().getTypeDescriptor() + "->" +
                     codeItem.getParent().method.getMethodName() +
-                    codeItem.getParent().method.getPrototype().getPrototypeString()); 
+                    codeItem.getParent().method.getPrototype().getPrototypeString());
         }
 
         List<Instruction> instructions = new ArrayList<Instruction>(insns.size());
@@ -226,7 +224,7 @@ public class DeodexUtil {
                     instructions.add(new DeadInstruction(i.fixedInstruction));
                 } else {
                     instructions.add(new DeadInstruction(i.instruction));
-                }   
+                }
             } else if (i.instruction.opcode.odexOnly) {
                 assert i.fixedInstruction != null;
                 instructions.add(i.fixedInstruction);
@@ -267,13 +265,13 @@ public class DeodexUtil {
                         inlineMethod.methodIdItem);
 
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
+                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.registerReferenceType =
                             inlineMethod.methodIdItem.getPrototype().getReturnType().getTypeDescriptor();
                 }
-                
+
                 return true;
             }
             case INVOKE_DIRECT_EMPTY:
@@ -406,7 +404,7 @@ public class DeodexUtil {
                     i.propogateDeadness();
                     return true;
                 }
-                
+
                 if (regType != RegisterType.Reference) {
                     return false;
                 }
@@ -449,7 +447,7 @@ public class DeodexUtil {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
-                
+
                 if (regType != RegisterType.Reference) {
                     return false;
                 }
@@ -489,7 +487,7 @@ public class DeodexUtil {
                 }
 
                 i.fixedInstruction = new Instruction22csf(opcode, (Instruction22cs)i.instruction, field);
-                
+
                 return true;
             }
             case IPUT_WIDE_QUICK:
@@ -511,7 +509,7 @@ public class DeodexUtil {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
-                
+
                 if (regType != RegisterType.Reference) {
                     return false;
                 }
@@ -553,7 +551,7 @@ public class DeodexUtil {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     return true;
                 }
-                
+
                 if (regType != RegisterType.Reference) {
                     return false;
                 }
@@ -615,7 +613,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction35msf(Opcode.INVOKE_VIRTUAL, (Instruction35ms)i.instruction,
                         method);
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
+                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.updateRegisterReferenceType(
@@ -662,7 +660,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction3rmsf(Opcode.INVOKE_VIRTUAL_RANGE, (Instruction3rms)i.instruction,
                         method);
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
+                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.updateRegisterReferenceType(
@@ -687,10 +685,10 @@ public class DeodexUtil {
                 //and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
-                    //we need to mark any following instructions as dead 
+                    //we need to mark any following instructions as dead
                     i.propogateDeadness();
                     return true;
-                }                
+                }
 
                 if (regType != RegisterType.Reference) {
                     return false;
@@ -710,7 +708,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction35msf(Opcode.INVOKE_SUPER, (Instruction35ms)i.instruction,
                         method);
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
+                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.updateRegisterReferenceType(
@@ -757,7 +755,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction3rmsf(Opcode.INVOKE_SUPER_RANGE, (Instruction3rms)i.instruction,
                         method);
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize()/2);
+                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.updateRegisterReferenceType(
@@ -779,7 +777,7 @@ public class DeodexUtil {
 
         private static RegisterType[][] mergeTable  =
                 {
-                       //Unknown        Null            Nonreference    Reference   Conflicted  
+                       //Unknown        Null            Nonreference    Reference   Conflicted
                         {Unknown,       Null,           NonReference,   Reference,  Conflicted}, //Unknown
                         {Null,          Null,           NonReference,   Reference,  Conflicted}, //Null
                         {NonReference,  NonReference,   NonReference,   Conflicted, Conflicted}, //NonReference
@@ -816,7 +814,7 @@ public class DeodexUtil {
         public final SparseArray<insn> insnsMap;
 
         /**
-         * Instructions that can execution could pass on to next 
+         * Instructions that can execution could pass on to next
          */
         public LinkedList<insn> successors = new LinkedList<insn>();
 
@@ -827,7 +825,7 @@ public class DeodexUtil {
 
         /**
          * If this instruction is in a try block, these are the first instructions for each
-         * exception handler 
+         * exception handler
          */
         public insn[] exceptionHandlers = null;
 
@@ -850,19 +848,19 @@ public class DeodexUtil {
         public RegisterType registerType;
         /**
          * if setsRegister is true, and the register type is a reference, this is the
-         * reference type of the register, or null if not known yet. 
+         * reference type of the register, or null if not known yet.
          */
         public String registerReferenceType;
 
         /**
-         * Stores a "fake" fixed instruction, which is included in the instruction list that deodexerizeCode produces  
+         * Stores a "fake" fixed instruction, which is included in the instruction list that deodexerizeCode produces
          */
         public Instruction fixedInstruction;
 
         /**
          * This is only used for odexed instructions, and should contain the register num of the object reference
          * that the instruction acts on. More specifically, it's only for odexed instructions that require the
-         * type of the object register in order to look up the correct information. 
+         * type of the object register in order to look up the correct information.
          */
         public int objectRegisterNum = -1;
 
@@ -969,32 +967,16 @@ public class DeodexUtil {
                     addSuccessor(getInstructionAtOffset(offset + ((OffsetInstruction)instruction).getOffset()));
                     break;
                 case PACKED_SWITCH:
+                case SPARSE_SWITCH:
                 {
                     insn packedSwitchDataInsn =
                             getInstructionAtOffset(offset + ((OffsetInstruction)instruction).getOffset());
-                    assert packedSwitchDataInsn.instruction instanceof PackedSwitchDataPseudoInstruction;
-                    PackedSwitchDataPseudoInstruction packedSwitchData =
-                            (PackedSwitchDataPseudoInstruction)packedSwitchDataInsn.instruction;
-                    Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator =
-                            packedSwitchData.getTargets();
-                    while (iterator.hasNext()) {
-                        PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
-                        addSuccessor(getInstructionAtOffset(offset + target.target));
-                    }
-                    break;
-                }
-                case SPARSE_SWITCH:
-                {
-                    insn sparseSwitchDataInsn =
-                            getInstructionAtOffset(offset + ((OffsetInstruction)instruction).getOffset());
-                    assert sparseSwitchDataInsn.instruction instanceof SparseSwitchDataPseudoInstruction;
-                    SparseSwitchDataPseudoInstruction sparseSwitchData =
-                            (SparseSwitchDataPseudoInstruction)sparseSwitchDataInsn.instruction;
-                    Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator =
-                            sparseSwitchData.getTargets();
-                    while (iterator.hasNext()) {
-                        SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
-                        addSuccessor(getInstructionAtOffset(offset + target.target));
+                    assert packedSwitchDataInsn.instruction instanceof MultiOffsetInstruction;
+                    MultiOffsetInstruction switchData =
+                            (MultiOffsetInstruction)(packedSwitchDataInsn.instruction);
+                    int[] packedSwitchTargets = switchData.getTargets();
+                    for (int i=0; i<packedSwitchTargets.length; i++) {
+                        addSuccessor(getInstructionAtOffset(offset + packedSwitchTargets[i]));
                     }
                     break;
                 }
@@ -1146,7 +1128,7 @@ public class DeodexUtil {
                     //the array size for that case, but support the case of multiple exception types as well
                     List<String> exceptionTypes = new ArrayList<String>(1);
                     for (CodeItem.TryItem tryItem: codeItem.getTries()) {
-                        if (tryItem.encodedCatchHandler.catchAllHandlerAddress == this.offset) {
+                        if (tryItem.encodedCatchHandler.getCatchAllHandlerAddress() == this.offset) {
                             //if this is a catch all handler, the only possible type is Ljava/lang/Throwable;
                             registerReferenceType = "Ljava/lang/Throwable;";
 
@@ -1160,7 +1142,7 @@ public class DeodexUtil {
                         }
 
                         for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
-                            if (handler.handlerAddress == this.offset) {
+                            if (handler.getHandlerAddress() == this.offset) {
                                 exceptionTypes.add(handler.exceptionType.getTypeDescriptor());
                             }
                         }
@@ -1241,7 +1223,7 @@ public class DeodexUtil {
 
             //if we got here, then we can assume that it's possible for execution to continue on to the next
             //instruction. Otherwise, we would have returned from within the switch statement
-            addSuccessor(getInstructionAtOffset(offset + instruction.getSize()/2));
+            addSuccessor(getInstructionAtOffset(offset + instruction.getSize(offset)/2));
         }
 
         private String findCommonSuperclass(String type1, String type2) {
@@ -1251,7 +1233,7 @@ public class DeodexUtil {
             if (type2 == null) {
                 return type1;
             }
-            
+
             if (type1.equals(type2)) {
                 return type1;
             }
@@ -1347,7 +1329,7 @@ public class DeodexUtil {
                     }
                 }
             }
-            
+
             if (exceptionHandlers != null && canThrow) {
                 for (insn handlerinsn: exceptionHandlers) {
                     handlerinsn.initializeRegistersFromParams();
@@ -1371,7 +1353,7 @@ public class DeodexUtil {
         public void propogateDeadness() {
             for (insn successor: successors) {
                 //the first instruction of the method (or the first instruction of any exception handlers covering
-                //the first instruction) can never be dead  
+                //the first instruction) can never be dead
                 if (successor.firstInstruction) {
                     continue;
                 }
@@ -1453,7 +1435,7 @@ public class DeodexUtil {
                                 if (registerNum == nextInsn.objectRegisterNum) {
                                     nextInsn.fixedInstruction = null;
                                 }
-                                
+
                                 somethingChanged = true;
                                 nextInsn.registerTypes[registerNum] = registerReferenceType;
                             }
@@ -1465,7 +1447,7 @@ public class DeodexUtil {
                                 if (registerNum == nextInsn.objectRegisterNum) {
                                     nextInsn.fixedInstruction = null;
                                 }
-                                
+
                                 somethingChanged = true;
                                 nextInsn.registerTypes[registerNum] = type;
                             }

@@ -32,27 +32,41 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.ThreeRegisterInstruction;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class Instruction23x extends Instruction implements ThreeRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private byte regA;
+    private byte regB;
+    private byte regC;
 
-    public static void emit(Output out, Opcode opcode, short regA, short regB, short regC) {
+    public Instruction23x(Opcode opcode, short regA, short regB, short regC) {
+        super(opcode);
+
         if (regA >= 1 << 8 ||
                 regB >= 1 << 8 ||
                 regC >= 1 << 8) {
             throw new RuntimeException("The register number must be less than v256");
         }
 
+        this.regA = (byte)regA;
+        this.regB = (byte)regB;
+        this.regC = (byte)regC;
+    }
+
+    private Instruction23x(Opcode opcode, byte[] buffer, int bufferIndex) {
+        super(opcode);
+
+        this.regA = buffer[bufferIndex + 1];
+        this.regB = buffer[bufferIndex + 2];
+        this.regC = buffer[bufferIndex + 3];
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeByte(regB);
         out.writeByte(regC);
-    }
-
-    private Instruction23x(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
     }
 
     public Format getFormat() {
@@ -60,15 +74,15 @@ public class Instruction23x extends Instruction implements ThreeRegisterInstruct
     }
 
     public int getRegisterA() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
+        return regA & 0xFF;
     }
 
     public int getRegisterB() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 2]);
+        return regB & 0xFF;
     }
 
     public int getRegisterC() {
-        return NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 3]);
+        return regC & 0xFF;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

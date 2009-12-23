@@ -31,25 +31,53 @@ package org.jf.dexlib.Code.Format;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
-
 import java.util.Iterator;
 
 public class ArrayDataPseudoInstruction extends Instruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
+    private int elementWidth;
+    private byte[] encodedValues;
 
     @Override
-    public int getSize() {
+    public int getSize(int offset) {
+        assert offset % 2 == 0;
         int size = getElementWidth() * getElementCount();
-        return size + (size & 0x01) + 8;
+        return size + (size & 0x01) + 8 + (offset % 4);
     }
 
-    public static void emit(Output out, int elementWidth, byte[] encodedValues) {
+    public ArrayDataPseudoInstruction(int elementWidth, byte[] encodedValues) {
+        super(Opcode.NOP);
+
         if (encodedValues.length % elementWidth != 0) {
             throw new RuntimeException("There are not a whole number of " + elementWidth + " byte elements");
         }
 
+        this.elementWidth = elementWidth;
+        this.encodedValues = encodedValues;
+    }
+
+    public ArrayDataPseudoInstruction(byte[] buffer, int bufferIndex) {
+        super(Opcode.NOP);
+
+        byte opcodeByte = buffer[bufferIndex];
+        if (opcodeByte != 0x00) {
+            throw new RuntimeException("Invalid opcode byte for an ArrayData pseudo-instruction");
+        }
+
+        byte subopcodeByte = buffer[bufferIndex+1];
+        if (subopcodeByte != 0x03) {
+            throw new RuntimeException("Invalid sub-opcode byte for an ArrayData pseudo-instruction");
+        }
+
+        this.elementWidth = NumberUtils.decodeUnsignedShort(buffer, bufferIndex+2);
+        int elementCount = NumberUtils.decodeInt(buffer, bufferIndex+4);
+        this.encodedValues = new byte[elementCount * elementWidth];
+        System.arraycopy(buffer, bufferIndex+8, encodedValues, 0, elementCount * elementWidth);
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
         //write out padding, if necessary
         if (out.getCursor() % 4 != 0) {
             out.writeShort(0);
@@ -68,18 +96,9 @@ public class ArrayDataPseudoInstruction extends Instruction {
         }
     }
 
-    public ArrayDataPseudoInstruction(byte[] buffer, int bufferIndex) {
-        super(Opcode.NOP, buffer, bufferIndex);
-
-        byte opcodeByte = buffer[bufferIndex++];
-        if (opcodeByte != 0x00) {
-            throw new RuntimeException("Invalid opcode byte for an ArrayData pseudo-instruction");
-        }
-
-        byte subopcodeByte = buffer[bufferIndex];
-        if (subopcodeByte != 0x03) {
-            throw new RuntimeException("Invalid sub-opcode byte for an ArrayData pseudo-instruction");
-        }
+    protected void annotateInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        out.annotate(getSize(currentCodeOffset), "[0x" + Integer.toHexString(currentCodeOffset/2) + "] " +
+                "fill-array-data instruction");
     }
 
     public Format getFormat() {
@@ -87,11 +106,11 @@ public class ArrayDataPseudoInstruction extends Instruction {
     }
 
     public int getElementWidth() {
-        return NumberUtils.decodeUnsignedShort(buffer[bufferIndex+2], buffer[bufferIndex+3]);
+        return elementWidth;
     }
 
     public int getElementCount() {
-        return NumberUtils.decodeInt(buffer, bufferIndex+4);
+        return encodedValues.length / elementWidth;
     }
 
     public static class ArrayElement {
@@ -108,8 +127,8 @@ public class ArrayDataPseudoInstruction extends Instruction {
         return new Iterator<ArrayElement>() {
             final int elementCount = getElementCount();
             int i=0;
-            int position = bufferIndex + 8;
-            final ArrayElement arrayElement = new ArrayElement(buffer, getElementWidth());
+            int position=0;
+            final ArrayElement arrayElement = new ArrayElement(encodedValues, getElementWidth());
 
             public boolean hasNext() {
                 return i<elementCount;

@@ -32,28 +32,50 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.Output;
 
 public class Instruction20t extends Instruction implements OffsetInstruction {
-    public static final Instruction.InstructionFactory Factory = new Factory();
+    public static final InstructionFactory Factory = new Factory();
+    private int offset;
 
-    public static void emit(Output out, Opcode opcode, short offA) {
-        if (offA == 0) {
+    public Instruction20t(Opcode opcode, int offA) {
+        super(opcode);
+        this.offset = offA;
+
+        if (offset == 0) {
             throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
         }
 
-        out.writeByte(opcode.value);
-        out.writeByte(0);
-        out.writeShort(offA);
+        //allow out of range offsets here, so we have the option of replacing this instruction
+        //with goto/16 or goto/32 later
     }
 
     private Instruction20t(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode, buffer, bufferIndex);
+        super(opcode);
 
-        if (getOffset() == 0) {
-            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
+        assert buffer[bufferIndex] == opcode.value;
+
+        this.offset = NumberUtils.decodeShort(buffer, bufferIndex+2);
+        assert offset != 0;
+    }
+
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+        if (offset == 0) {
+            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead");
         }
+
+        if (offset < -32768 || offset > 32767) {
+            throw new RuntimeException("The offset is out of range. It must be in [-32768,-1] or [1, 32768]");
+        }
+
+        out.writeByte(opcode.value);
+        out.writeByte(0x00);
+        out.writeShort(offset);
+    }
+
+    public void updateOffset(int offset) {
+        this.offset = offset;
     }
 
     public Format getFormat() {
@@ -61,10 +83,10 @@ public class Instruction20t extends Instruction implements OffsetInstruction {
     }
 
     public int getOffset() {
-        return NumberUtils.decodeShort(buffer, bufferIndex + 2);
+        return offset;
     }
 
-    private static class Factory implements Instruction.InstructionFactory {
+    private static class Factory implements InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
             return new Instruction20t(opcode, buffer, bufferIndex);
         }

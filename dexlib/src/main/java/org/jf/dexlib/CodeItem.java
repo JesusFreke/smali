@@ -29,21 +29,20 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.Code.*;
-import org.jf.dexlib.Util.AnnotatedOutput;
-import org.jf.dexlib.Util.Input;
-import org.jf.dexlib.Util.SparseArray;
-import org.jf.dexlib.Util.Leb128Utils;
+import org.jf.dexlib.Code.Format.Instruction20t;
+import org.jf.dexlib.Code.Format.Instruction30t;
+import org.jf.dexlib.Util.*;
+import org.jf.dexlib.Debug.DebugInstructionIterator;
 
 import java.util.List;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 public class CodeItem extends Item<CodeItem> {
     private int registerCount;
     private int inWords;
     private int outWords;
     private DebugInfoItem debugInfo;
-    private byte[] encodedInstructions;
-    private Item[] referencedItems;
+    private Instruction[] instructions;
     private TryItem[] tries;
     private EncodedCatchHandler[] encodedCatchHandlers;
 
@@ -64,8 +63,7 @@ public class CodeItem extends Item<CodeItem> {
      * @param inWords the number of 2-byte words that the parameters to the method containing this code take
      * @param outWords the maximum number of 2-byte words for the arguments of any method call in this code
      * @param debugInfo the debug information for this code/method
-     * @param encodedInstructions the instructions, encoded as a byte array
-     * @param referencedItems an array of the items referenced by instructions, in order of occurance in the code
+     * @param instructions the instructions for this code item
      * @param tries an array of the tries defined for this code/method
      * @param encodedCatchHandlers an array of the exception handlers defined for this code/method
      */
@@ -74,8 +72,7 @@ public class CodeItem extends Item<CodeItem> {
                     int inWords,
                     int outWords,
                     DebugInfoItem debugInfo,
-                    byte[] encodedInstructions,
-                    Item[] referencedItems,
+                    Instruction[] instructions,
                     TryItem[] tries,
                     EncodedCatchHandler[] encodedCatchHandlers) {
         super(dexFile);
@@ -87,8 +84,8 @@ public class CodeItem extends Item<CodeItem> {
         if (debugInfo != null) {
             debugInfo.setParent(this);
         }
-        this.encodedInstructions = encodedInstructions;
-        this.referencedItems = referencedItems;
+
+        this.instructions = instructions;
         this.tries = tries;
         this.encodedCatchHandlers = encodedCatchHandlers;
     }
@@ -100,9 +97,7 @@ public class CodeItem extends Item<CodeItem> {
      * @param inWords the number of 2-byte words that the parameters to the method containing this code take
      * @param outWords the maximum number of 2-byte words for the arguments of any method call in this code
      * @param debugInfo the debug information for this code/method
-     * @param encodedInstructions the instructions, encoded as a byte array
-     * @param referencedItems a list of the items referenced by instructions, in order of occurance in the code,
-     * or null if none
+     * @param instructions the instructions for this code item
      * @param tries a list of the tries defined for this code/method or null if none
      * @param encodedCatchHandlers a list of the exception handlers defined for this code/method or null if none
      * @return a new <code>CodeItem</code> with the given values.
@@ -112,18 +107,12 @@ public class CodeItem extends Item<CodeItem> {
                     int inWords,
                     int outWords,
                     DebugInfoItem debugInfo,
-                    byte[] encodedInstructions,
-                    List<Item> referencedItems,
+                    List<Instruction> instructions,
                     List<TryItem> tries,
                     List<EncodedCatchHandler> encodedCatchHandlers) {
-        Item[] referencedItemsArray = null;
         TryItem[] triesArray = null;
         EncodedCatchHandler[] encodedCatchHandlersArray = null;
-
-        if (referencedItems != null && referencedItems.size() > 0) {
-            referencedItemsArray = new Item[referencedItems.size()];
-            referencedItems.toArray(referencedItemsArray);
-        }
+        Instruction[] instructionsArray = null;
 
         if (tries != null && tries.size() > 0) {
             triesArray = new TryItem[tries.size()];
@@ -135,8 +124,13 @@ public class CodeItem extends Item<CodeItem> {
             encodedCatchHandlers.toArray(encodedCatchHandlersArray);
         }
 
-        CodeItem codeItem = new CodeItem(dexFile, registerCount, inWords, outWords, debugInfo, encodedInstructions,
-                referencedItemsArray, triesArray, encodedCatchHandlersArray);
+        if (instructions != null && instructions.size() > 0) {
+            instructionsArray = new Instruction[instructions.size()];
+            instructions.toArray(instructionsArray);
+        }
+
+        CodeItem codeItem = new CodeItem(dexFile, registerCount, inWords, outWords, debugInfo, instructionsArray,
+                triesArray, encodedCatchHandlersArray);
         return dexFile.CodeItemsSection.intern(codeItem);
     }
 
@@ -152,8 +146,20 @@ public class CodeItem extends Item<CodeItem> {
             this.debugInfo.setParent(this);
         }
         int instructionCount = in.readInt();
-        this.encodedInstructions = in.readBytes(instructionCount * 2);
-        this.referencedItems = InstructionReader.getReferencedItems(encodedInstructions, dexFile);
+
+        final ArrayList<Instruction> instructionList = new ArrayList<Instruction>();
+
+        byte[] encodedInstructions = in.readBytes(instructionCount * 2);
+        InstructionIterator.IterateInstructions(dexFile, encodedInstructions,
+                new InstructionIterator.ProcessInstructionDelegate() {
+                    public void ProcessInstruction(int index, Instruction instruction) {
+                        instructionList.add(instruction);
+                    }
+                });
+
+        this.instructions = new Instruction[instructionList.size()];
+        instructionList.toArray(instructions);
+
         if (triesCount > 0) {
             in.alignTo(4);
 
@@ -187,9 +193,10 @@ public class CodeItem extends Item<CodeItem> {
 
     /** {@inheritDoc} */
     protected int placeItem(int offset) {
-        offset += 16 + encodedInstructions.length;
+        offset += 16 + getInstructionsLength();
+
         if (tries != null && tries.length > 0) {
-            if (encodedInstructions.length % 4 != 0) {
+            if (offset % 4 != 0) {
                 offset+=2;
             }
 
@@ -205,6 +212,8 @@ public class CodeItem extends Item<CodeItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(final AnnotatedOutput out) {
+        int instructionsLength = getInstructionsLength()/2;
+
         if (out.annotates()) {
             out.annotate(0, parent.method.getMethodString());
             out.annotate(2, "registers_size: 0x" + Integer.toHexString(registerCount) + " (" + registerCount + ")");
@@ -217,37 +226,8 @@ public class CodeItem extends Item<CodeItem> {
             } else {
                 out.annotate(4, "debug_info_off: 0x" + debugInfo.getOffset());
             }
-            out.annotate(4, "insns_size: 0x" + Integer.toHexString(encodedInstructions.length / 2) + " (" +
-                    (encodedInstructions.length / 2) + ")");
-            InstructionIterator.IterateInstructions(encodedInstructions,
-                    new InstructionIterator.ProcessRawInstructionDelegate() {
-
-                        public void ProcessNormalInstruction(Opcode opcode, int index) {
-                            out.annotate(opcode.format.size, "[0x" + Integer.toHexString(index/2) + "] " + opcode.name +
-                                    " instruction");
-                        }
-
-                        public void ProcessReferenceInstruction(Opcode opcode, int index) {
-                            out.annotate(opcode.format.size, "[0x" + Integer.toHexString(index/2) + "] " + opcode.name +
-                                    " instruction");
-                        }
-
-                        public void ProcessPackedSwitchInstruction(int index, int targetCount, int instructionLength) {
-                            out.annotate(instructionLength, "[0x" + Integer.toHexString(index/2) + "] " +
-                                    "packed_switch instruction");
-                        }
-
-                        public void ProcessSparseSwitchInstruction(int index, int targetCount, int instructionLength) {
-                            out.annotate(instructionLength, "[0x" + Integer.toHexString(index/2) + "] " +
-                                    "sparse_switch instruction");
-                        }
-
-                        public void ProcessFillArrayDataInstruction(int index, int elementWidth, int elementCount,
-                                                                    int instructionLength) {
-                            out.annotate(instructionLength, "[0x" + Integer.toHexString(index/2) + "] " +
-                                    "fill_array_data instruction");
-                        }
-                    });
+            out.annotate(4, "insns_size: 0x" + Integer.toHexString(instructionsLength) + " (" +
+                    (instructionsLength) + ")");
         }
 
         out.writeShort(registerCount);
@@ -263,12 +243,22 @@ public class CodeItem extends Item<CodeItem> {
         } else {
             out.writeInt(debugInfo.getOffset());
         }
-        out.writeInt(encodedInstructions.length / 2);
-        InstructionWriter.writeInstructions(encodedInstructions, referencedItems, out);
+
+        int currentCodeOffset = 0;
+        for (Instruction instruction: instructions) {
+            currentCodeOffset += instruction.getSize(currentCodeOffset);
+        }
+
+        out.writeInt(instructionsLength);
+
+        currentCodeOffset = 0;
+        for (Instruction instruction: instructions) {
+            currentCodeOffset = instruction.write(out, currentCodeOffset);
+        }
 
         if (tries != null && tries.length > 0) {
             if (out.annotates()) {
-                if ((encodedInstructions.length % 4) != 0) {
+                if ((currentCodeOffset % 4) != 0) {
                     out.annotate("padding");
                     out.writeShort(0);
                 }
@@ -293,7 +283,7 @@ public class CodeItem extends Item<CodeItem> {
                     out.deindent();
                 }
             } else {
-                if ((encodedInstructions.length % 4) != 0) {
+                if ((currentCodeOffset % 4) != 0) {
                     out.writeShort(0);
                 }
 
@@ -343,10 +333,10 @@ public class CodeItem extends Item<CodeItem> {
     }
 
     /**
-     * @return a byte array containing the encoded instructions
+     * @return an array of the instructions in this code item
      */
-    public byte[] getEncodedInstructions() {
-        return encodedInstructions;
+    public Instruction[] getInstructions() {
+        return instructions;
     }
 
     /**
@@ -388,24 +378,268 @@ public class CodeItem extends Item<CodeItem> {
 
     /**
      * Used by OdexUtil to update this <code>CodeItem</code> with a deodexed version of the instructions
-     * @param newEncodedInstructions
+     * @param newInstructions the new instructions to use for this code item
      */
-    public void updateCode(byte[] newEncodedInstructions) {
-        final LinkedList<Item> referencedItemsList = new LinkedList<Item>();
+    public void updateCode(Instruction[] newInstructions) {
+        this.instructions = newInstructions;
+    }
 
+    private int getInstructionsLength() {
+        int offset = 0;
+        for (Instruction instruction: instructions) {
+            offset += instruction.getSize(offset);
+        }
+        return offset;
+    }
 
-        InstructionIterator.IterateInstructions(dexFile, newEncodedInstructions,
-                new InstructionIterator.ProcessInstructionDelegate() {
-                    public void ProcessInstruction(int index, Instruction instruction) {
-                        if (instruction.opcode.referenceType != ReferenceType.none) {
-                            referencedItemsList.add(((InstructionWithReference)instruction).getReferencedItem());
-                        }
+    /**
+     * Go through the instructions and perform any of the following fixes that are applicable
+     * - Replace const-string instruction with const-string/jumbo, when the string index is too big
+     * - Replace goto and goto/16 with a larger version of goto, when the target is too far away
+     * TODO: we should be able to replace if-* instructions with targets that are too far away with a negated if followed by a goto/32 to the original target
+     *
+     * The above fixes are applied iteratively, until no more fixes have been performed
+     */
+    public void fixInstructions() {
+        boolean didSomething = false;
+
+        int currentCodeOffset = 0;
+        for (int i=0; i<instructions.length; i++) {
+            Instruction instruction = instructions[i];
+
+            if (instruction.opcode == Opcode.GOTO) {
+                int offset = ((OffsetInstruction)instruction).getOffset();
+
+                if (((byte)offset) != offset) {
+                    //the offset doesn't fit within a byte, we need to upgrade to a goto/16 or goto/32
+
+                    if ((short)offset == offset) {
+                        //the offset fits in a short, so upgrade to a goto/16            h
+                        replaceInstructionAtOffset(currentCodeOffset, new Instruction20t(Opcode.GOTO_16, offset));
                     }
-                });
+                    else {
+                        //The offset won't fit into a short, we have to upgrade to a goto/32
+                        replaceInstructionAtOffset(currentCodeOffset, new Instruction30t(Opcode.GOTO_32, offset));
+                    }
+                }
+            } else if (instruction.opcode == Opcode.GOTO_16) {
+                int offset = ((OffsetInstruction)instruction).getOffset();
 
-        referencedItems = new Item[referencedItemsList.size()];
-        referencedItemsList.toArray(referencedItems);
-        encodedInstructions = newEncodedInstructions;
+                if (((short)offset) != offset) {
+                    //the offset doesn't fit within a short, we need to upgrade to a goto/32
+                    replaceInstructionAtOffset(currentCodeOffset, new Instruction30t(Opcode.GOTO_32, offset));
+                }
+            }
+
+            currentCodeOffset += instruction.getSize(currentCodeOffset);
+        }
+    }
+
+    private void replaceInstructionAtOffset(int offset, Instruction replacementInstruction) {
+        Instruction originalInstruction = null;
+
+        int[] originalInstructionOffsets = new int[instructions.length];
+        SparseIntArray originalSwitchOffsetByOriginalSwitchDataOffset = new SparseIntArray();
+
+        int currentCodeOffset = 0;
+        int instructionIndex = 0;
+        for (int i=0; i<instructions.length; i++) {
+            Instruction instruction = instructions[i];
+
+            if (currentCodeOffset == offset) {
+                originalInstruction = instruction;
+                instructionIndex = i;
+            }
+
+            if (instruction.opcode == Opcode.PACKED_SWITCH || instruction.opcode == Opcode.SPARSE_SWITCH) {
+                OffsetInstruction offsetInstruction = (OffsetInstruction)instruction;
+
+                int switchDataOffset = currentCodeOffset + offsetInstruction.getOffset() * 2;
+                if (originalSwitchOffsetByOriginalSwitchDataOffset.indexOfKey(switchDataOffset) < 0) {
+                    originalSwitchOffsetByOriginalSwitchDataOffset.put(switchDataOffset, currentCodeOffset);
+                }
+            }
+
+            originalInstructionOffsets[i] = currentCodeOffset;
+            currentCodeOffset += instruction.getSize(currentCodeOffset);
+        }
+
+        if (originalInstruction == null) {
+            throw new RuntimeException("There is no instruction at offset " + offset);
+        }
+
+        instructions[instructionIndex] = replacementInstruction;
+
+        //if we're replacing the instruction with one of the same size, we don't have to worry about fixing
+        //up any offsets
+        if (originalInstruction.getSize(offset) == replacementInstruction.getSize(offset)) {
+            return;
+        }
+
+        final SparseIntArray originalOffsetsByNewOffset = new SparseIntArray();
+        final SparseIntArray newOffsetsByOriginalOffset = new SparseIntArray();
+
+        currentCodeOffset = 0;
+        for (int i=0; i<instructions.length; i++) {
+            Instruction instruction = instructions[i];
+
+            int originalOffset = originalInstructionOffsets[i];
+            originalOffsetsByNewOffset.append(currentCodeOffset, originalOffset);
+            newOffsetsByOriginalOffset.append(originalOffset, currentCodeOffset);
+
+            currentCodeOffset += instruction.getSize(currentCodeOffset);
+        }
+
+        //update any "offset" instructions, or switch data instructions
+        currentCodeOffset = 0;
+        for (int i=0; i<instructions.length; i++) {
+            Instruction instruction = instructions[i];
+
+            if (instruction instanceof OffsetInstruction) {
+                OffsetInstruction offsetInstruction = (OffsetInstruction)instruction;
+
+                assert originalOffsetsByNewOffset.indexOfKey(currentCodeOffset) >= 0;
+                int originalOffset = originalOffsetsByNewOffset.get(currentCodeOffset);
+
+                int originalInstructionTarget = originalOffset + offsetInstruction.getOffset() * 2;
+
+                assert newOffsetsByOriginalOffset.indexOfKey(originalInstructionTarget) >= 0;
+                int newInstructionTarget = newOffsetsByOriginalOffset.get(originalInstructionTarget);
+                if (newInstructionTarget != originalInstructionTarget) {
+                    offsetInstruction.updateOffset(newInstructionTarget);
+                }
+            } else if (instruction instanceof MultiOffsetInstruction) {
+                MultiOffsetInstruction multiOffsetInstruction = (MultiOffsetInstruction)instruction;
+
+                assert originalOffsetsByNewOffset.indexOfKey(currentCodeOffset) >= 0;
+                int originalDataOffset = originalOffsetsByNewOffset.get(currentCodeOffset);
+
+                int originalSwitchOffset = originalSwitchOffsetByOriginalSwitchDataOffset.get(originalDataOffset);
+                if (originalSwitchOffset == 0) {
+                    //TODO: is it safe to skip an unreferenced switch data instruction? Or should it throw an exception?
+                    continue;
+                }
+
+                int[] targets = multiOffsetInstruction.getTargets();
+                for (int t=0; t<targets.length; t++) {
+                    int originalTargetOffset = originalSwitchOffset + targets[t];
+                    assert newOffsetsByOriginalOffset.indexOfKey(originalTargetOffset) >= 0;
+                    int newTargetOffset = newOffsetsByOriginalOffset.get(originalTargetOffset);
+                    if (newTargetOffset != originalTargetOffset) {
+                        multiOffsetInstruction.updateTarget(t, newTargetOffset);
+                    }
+                }
+            }
+            currentCodeOffset += instruction.getSize(currentCodeOffset);
+        }
+
+        final byte[] encodedDebugInfo = debugInfo.getEncodedDebugInfo();
+
+        ByteArrayInput debugInput = new ByteArrayInput(encodedDebugInfo);
+
+        DebugInstructionFixer debugInstructionFixer = new DebugInstructionFixer(encodedDebugInfo,
+                newOffsetsByOriginalOffset, originalOffsetsByNewOffset);
+        DebugInstructionIterator.IterateInstructions(debugInput, debugInstructionFixer);
+
+        debugInfo.setEncodedDebugInfo(debugInstructionFixer.result);
+
+
+        for (EncodedCatchHandler encodedCatchHandler: encodedCatchHandlers) {
+            if (encodedCatchHandler.catchAllHandlerAddress != -1) {
+                assert newOffsetsByOriginalOffset.indexOfKey(encodedCatchHandler.catchAllHandlerAddress) >= 0;
+                encodedCatchHandler.catchAllHandlerAddress =
+                        newOffsetsByOriginalOffset.get(encodedCatchHandler.catchAllHandlerAddress);
+            }
+
+            for (EncodedTypeAddrPair handler: encodedCatchHandler.handlers) {
+                handler.handlerAddress = newOffsetsByOriginalOffset.get(handler.handlerAddress);
+            }
+        }
+    }
+
+    private class DebugInstructionFixer extends DebugInstructionIterator.ProcessRawDebugInstructionDelegate {
+        private int address = 0;
+        private SparseIntArray newOffsetsByOriginalOffset;
+        private SparseIntArray originalOffsetByNewOffset;
+        private final byte[] originalEncodedDebugInfo;
+        public byte[] result = null;
+
+        public DebugInstructionFixer(byte[] originalEncodedDebugInfo, SparseIntArray newOffsetsbyOriginalOffset,
+                                     SparseIntArray originalOffsetsByNewOffset) {
+            this.newOffsetsByOriginalOffset = newOffsetsByOriginalOffset;
+            this.originalOffsetByNewOffset = originalOffsetByNewOffset;
+            this.originalEncodedDebugInfo = originalEncodedDebugInfo;
+        }
+
+
+        @Override
+        public void ProcessAdvancePC(int startOffset, int length, int addressDiff) {
+            if (result != null) {
+                return;
+            }
+
+            int newOffset = newOffsetsByOriginalOffset.get((address + addressDiff)*2, -1);
+            assert newOffset != -1;
+            newOffset = newOffset / 2;
+
+            if (newOffset != address) {
+                int newAddressDiff = addressDiff + newOffset - address;
+                assert newAddressDiff > 0;
+                int addressDiffSize = Leb128Utils.unsignedLeb128Size(newAddressDiff);
+
+                result = new byte[originalEncodedDebugInfo.length + addressDiffSize - (length - 1)];
+
+                System.arraycopy(originalEncodedDebugInfo, 0, result, 0, startOffset);
+
+                originalEncodedDebugInfo[startOffset] = 0x01; //DBG_ADVANCE_PC debug opcode
+                Leb128Utils.writeUnsignedLeb128(newAddressDiff, originalEncodedDebugInfo, startOffset+1);
+
+                System.arraycopy(originalEncodedDebugInfo, startOffset+length, originalEncodedDebugInfo,
+                        startOffset + addressDiffSize + 1,
+                        originalEncodedDebugInfo.length - (startOffset + addressDiffSize + 1));
+            }
+
+            address += addressDiff;
+        }
+
+        @Override
+        public void ProcessSpecialOpcode(int startOffset, int debugOpcode, int lineDelta,
+                                         int addressDelta) {
+            if (result != null) {
+                return;
+            }
+
+            address += addressDelta;
+            int newOffset = newOffsetsByOriginalOffset.get(address*2, -1);
+            assert newOffset != -1;
+            newOffset = newOffset / 2;
+
+            if (newOffset != address) {
+                int newAddressDelta = addressDelta + newOffset - address;
+                assert newAddressDelta > 0;
+
+                //if the new address delta won't fit in the special opcode, we need to insert
+                //an additional DBG_ADVANCE_PC opcode
+                if (lineDelta < 2 && newAddressDelta > 16 || lineDelta > 1 && newAddressDelta > 15) {
+                    int additionalAddressDelta = newOffset - address;
+                    int additionalAddressDeltaSize = Leb128Utils.signedLeb128Size(additionalAddressDelta);
+
+                    result = new byte[result.length + additionalAddressDeltaSize + 1];
+
+                    System.arraycopy(originalEncodedDebugInfo, 0, result, 0, startOffset);
+                    result[startOffset] = 0x01; //DBG_ADVANCE_PC
+                    Leb128Utils.writeUnsignedLeb128(additionalAddressDelta, result, startOffset+1);
+                    System.arraycopy(originalEncodedDebugInfo, startOffset, result,
+                            startOffset+additionalAddressDeltaSize+1,
+                            result.length - (startOffset+additionalAddressDeltaSize+1));
+                } else {
+                    result = new byte[result.length];
+                    System.arraycopy(originalEncodedDebugInfo, 0, result, 0, result.length);
+                    result[startOffset] = DebugInfoBuilder.calculateSpecialOpcode(lineDelta,
+                            newAddressDelta);
+                }
+            }
+        }
     }
 
     public static class TryItem {
@@ -481,7 +715,7 @@ public class CodeItem extends Item<CodeItem> {
          * The address within the code (in 2-byte words) for the catch all handler, or -1 if there is no catch all
          * handler
          */
-        public final int catchAllHandlerAddress;
+        private int catchAllHandlerAddress;
 
         //TODO: would it be possible to get away without having these? and generate/create these values while writing?
         private int baseOffset;
@@ -522,6 +756,14 @@ public class CodeItem extends Item<CodeItem> {
             } else {
                 catchAllHandlerAddress = -1;
             }
+        }
+
+        /**
+         * Returns the "Catch All" handler address for this <code>EncodedCatchHandler</code>
+         * @return
+         */
+        public int getCatchAllHandlerAddress() {
+            return catchAllHandlerAddress;
         }
 
         /**
@@ -643,7 +885,7 @@ public class CodeItem extends Item<CodeItem> {
         /**
          * The address (in 2-byte words) in the code of the handler
          */
-        public final int handlerAddress;
+        private int handlerAddress;
 
         /**
          * Constructs a new <code>EncodedTypeAddrPair</code> with the given values
@@ -689,6 +931,10 @@ public class CodeItem extends Item<CodeItem> {
                 out.writeUnsignedLeb128(exceptionType.getIndex());
                 out.writeUnsignedLeb128(handlerAddress);
             }
+        }
+
+        public int getHandlerAddress() {
+            return handlerAddress;
         }
 
         @Override

@@ -111,7 +111,7 @@ public class ByteArrayInput
         }
 
         cursor = end;
-        return (int)((data[readAt] & 0xff) +
+        return ((data[readAt] & 0xff) +
                 ((data[readAt + 1] & 0xff) << 8));
     }
 

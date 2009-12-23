@@ -48,11 +48,12 @@ public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSw
                                   int baseAddress) {
         super(codeItem, offset, stg, instruction);
 
-        Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.getTargets();
+
+        Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.iterateKeysAndTargets();
         while (iterator.hasNext()) {
             SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
             SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
-            sparseSwitchTarget.Value = target.value;
+            sparseSwitchTarget.Key = target.key;
 
             LabelMethodItem label = new LabelMethodItem(baseAddress + target.target, stg, "sswitch_");
             label = labelCache.internLabel(label);
@@ -85,7 +86,7 @@ public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSw
     }
 
     private static class SparseSwitchTarget {
-        public int Value;
+        public int Key;
         public LabelMethodItem Target;
     }
 }
