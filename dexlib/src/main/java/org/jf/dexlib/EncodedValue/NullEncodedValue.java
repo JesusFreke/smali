@@ -46,7 +46,7 @@ public class NullEncodedValue extends EncodedValue {
     public void writeValue(AnnotatedOutput out) {
         if (out.annotates()) {
             out.annotate("value_type=" + ValueType.VALUE_NULL.name() + ",value_arg=0");
-        }        
+        }
         out.writeByte(ValueType.VALUE_NULL.value);
     }
 

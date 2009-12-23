@@ -32,7 +32,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 
 public class BooleanEncodedValue extends EncodedValue {
     /**
-     * The dupliton values 
+     * The dupliton values
      */
     public static final BooleanEncodedValue TrueValue = new BooleanEncodedValue(true);
     public static final BooleanEncodedValue FalseValue = new BooleanEncodedValue(false);
@@ -51,7 +51,7 @@ public class BooleanEncodedValue extends EncodedValue {
      * Gets the <code>BooleanEncodedValue</code> for the given valueArg value. The high 3 bits of the first byte should
      * be passed as the valueArg parameter
      * @param valueArg The high 3 bits of the first byte of this encoded value
-     * @return the <code>BooleanEncodedValue</code> for the given valueArg value 
+     * @return the <code>BooleanEncodedValue</code> for the given valueArg value
      */
     protected static BooleanEncodedValue getBooleanEncodedValue(byte valueArg) {
         if (valueArg == 0) {
@@ -59,7 +59,7 @@ public class BooleanEncodedValue extends EncodedValue {
         } else if (valueArg == 1) {
             return TrueValue;
         }
-        throw new RuntimeException("valueArg must be either 0 or 1");        
+        throw new RuntimeException("valueArg must be either 0 or 1");
     }
 
     /**

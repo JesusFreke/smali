@@ -41,7 +41,7 @@ public class ByteEncodedValue extends EncodedValue {
      * @param in The <code>Input</code> object to read from
      */
     protected ByteEncodedValue(Input in) {
-        value = (byte)EncodedValueUtils.decodeSignedIntegralValue(in.readBytes(1)); 
+        value = (byte)EncodedValueUtils.decodeSignedIntegralValue(in.readBytes(1));
     }
 
     /**
@@ -59,7 +59,7 @@ public class ByteEncodedValue extends EncodedValue {
             out.annotate(1, "value: 0x" + Integer.toHexString(value) + " (" + value + ")");
         }
         out.writeByte(ValueType.VALUE_BYTE.value);
-        out.writeByte(value);        
+        out.writeByte(value);
     }
 
     /** {@inheritDoc} */

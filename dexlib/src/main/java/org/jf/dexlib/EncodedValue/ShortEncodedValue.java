@@ -43,7 +43,7 @@ public class ShortEncodedValue extends EncodedValue {
      * @param valueArg The high 3 bits of the first byte of this encoded value
      */
     protected ShortEncodedValue(Input in, byte valueArg) {
-        value = (short) EncodedValueUtils.decodeSignedIntegralValue(in.readBytes(valueArg+1)); 
+        value = (short) EncodedValueUtils.decodeSignedIntegralValue(in.readBytes(valueArg+1));
     }
 
     /**

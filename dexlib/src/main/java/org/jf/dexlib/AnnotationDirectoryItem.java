@@ -322,7 +322,7 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     }
 
     /**
-     * Iterates over the field annotations, calling delegate.processFieldAnnotations for each 
+     * Iterates over the field annotations, calling delegate.processFieldAnnotations for each
      * @param delegate the delegate to call
      */
     public void iterateFieldAnnotations(FieldAnnotationIteratorDelegate delegate) {
@@ -364,7 +364,7 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     }
 
     /**
-     * Iterates over the parameter annotations, calling delegate.processParameterAnnotations for each 
+     * Iterates over the parameter annotations, calling delegate.processParameterAnnotations for each
      * @param delegate the delegate to call
      */
     public void iterateParameterAnnotations(ParameterAnnotationIteratorDelegate delegate) {

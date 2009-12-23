@@ -43,7 +43,7 @@ public class IntEncodedValue extends EncodedValue {
      * @param valueArg The high 3 bits of the first byte of this encoded value
      */
     protected IntEncodedValue(Input in, byte valueArg) {
-        value = (int)EncodedValueUtils.decodeSignedIntegralValue(in.readBytes(valueArg+1)); 
+        value = (int)EncodedValueUtils.decodeSignedIntegralValue(in.readBytes(valueArg+1));
     }
 
     /**

@@ -47,7 +47,7 @@ public class AnnotationEncodedValue extends AnnotationEncodedSubValue {
 
     /**
      * Constructs a new <code>AnnotationEncodedValue</code> with the given values. names and values must be the same
-     * length, and must be sorted according to the name  
+     * length, and must be sorted according to the name
      * @param annotationType The type of the annotation
      * @param names An array of the names of the elements of the annotation
      * @param values An array of the values of the elements on the annotation

@@ -44,7 +44,7 @@ public class FloatEncodedValue extends EncodedValue {
      */
     protected FloatEncodedValue(Input in, byte valueArg) {
         long longValue = EncodedValueUtils.decodeRightZeroExtendedValue(in.readBytes(valueArg + 1));
-        value = Float.intBitsToFloat((int)((longValue >> 32) & 0xFFFFFFFFL)); 
+        value = Float.intBitsToFloat((int)((longValue >> 32) & 0xFFFFFFFFL));
     }
 
     /**

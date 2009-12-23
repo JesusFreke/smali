@@ -44,7 +44,7 @@ public class DoubleEncodedValue extends EncodedValue {
      */
     protected DoubleEncodedValue(Input in, byte valueArg) {
         long longValue = EncodedValueUtils.decodeRightZeroExtendedValue(in.readBytes(valueArg + 1));
-        value = Double.longBitsToDouble(longValue); 
+        value = Double.longBitsToDouble(longValue);
     }
 
     /**

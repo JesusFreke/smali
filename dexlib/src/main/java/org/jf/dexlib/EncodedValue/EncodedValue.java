@@ -100,9 +100,9 @@ public abstract class EncodedValue implements Comparable<EncodedValue> {
 
     /**
      * Compare the value of this <code>EncodedValue</code> against the value of the given <EncodedValue>, which
-     * is guaranteed to be of the same type as this <code>EncodedValue</code> 
+     * is guaranteed to be of the same type as this <code>EncodedValue</code>
      * @param o The <code>EncodedValue</code> to compare against
-     * @return A standard comparison integer value 
+     * @return A standard comparison integer value
      */
     protected abstract int compareValue(EncodedValue o);
 
