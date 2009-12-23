@@ -581,7 +581,9 @@ public class CodeItem extends Item<CodeItem> {
 
             assert debugInstructionFixer.result != null;
 
-            debugInfo.setEncodedDebugInfo(debugInstructionFixer.result);
+            if (debugInstructionFixer.result != null) {
+                debugInfo.setEncodedDebugInfo(debugInstructionFixer.result);
+            }
         }
 
         if (encodedCatchHandlers != null) {
