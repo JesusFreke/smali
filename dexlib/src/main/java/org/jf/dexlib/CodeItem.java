@@ -456,14 +456,15 @@ public class CodeItem extends Item<CodeItem> {
     }
 
     private void replaceInstructionAtOffset(int offset, Instruction replacementInstruction) {
-         Instruction originalInstruction = null;
+        Instruction originalInstruction = null;
 
-        int[] originalInstructionOffsets = new int[instructions.length];
+        int[] originalInstructionOffsets = new int[instructions.length+1];
         SparseIntArray originalSwitchOffsetByOriginalSwitchDataOffset = new SparseIntArray();
 
         int currentCodeOffset = 0;
         int instructionIndex = 0;
-        for (int i=0; i<instructions.length; i++) {
+        int i;
+        for (i=0; i<instructions.length; i++) {
             Instruction instruction = instructions[i];
 
             if (currentCodeOffset == offset) {
@@ -483,6 +484,9 @@ public class CodeItem extends Item<CodeItem> {
             originalInstructionOffsets[i] = currentCodeOffset;
             currentCodeOffset += instruction.getSize(currentCodeOffset);
         }
+        //add the offset just past the end of the last instruction, to help when fixing up try blocks that end
+        //at the end of the method
+        originalInstructionOffsets[i] = currentCodeOffset;
 
         if (originalInstruction == null) {
             throw new RuntimeException("There is no instruction at offset " + offset);
@@ -501,7 +505,7 @@ public class CodeItem extends Item<CodeItem> {
         final SparseIntArray newOffsetsByOriginalOffset = new SparseIntArray();
 
         currentCodeOffset = 0;
-        for (int i=0; i<instructions.length; i++) {
+        for (i=0; i<instructions.length; i++) {
             Instruction instruction = instructions[i];
 
             int originalOffset = originalInstructionOffsets[i];
@@ -511,9 +515,14 @@ public class CodeItem extends Item<CodeItem> {
             currentCodeOffset += instruction.getSize(currentCodeOffset);
         }
 
+        //add the offset just past the end of the last instruction, to help when fixing up try blocks that end
+        //at the end of the method
+        originalOffsetsByNewOffset.append(currentCodeOffset, originalInstructionOffsets[i]);
+        newOffsetsByOriginalOffset.append(originalInstructionOffsets[i], currentCodeOffset);
+
         //update any "offset" instructions, or switch data instructions
         currentCodeOffset = 0;
-        for (int i=0; i<instructions.length; i++) {
+        for (i=0; i<instructions.length; i++) {
             Instruction instruction = instructions[i];
 
             if (instruction instanceof OffsetInstruction) {
