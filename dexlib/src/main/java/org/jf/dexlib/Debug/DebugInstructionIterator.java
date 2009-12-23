@@ -140,7 +140,7 @@ public class DebugInstructionIterator {
                 }
                 default:
                 {
-                    byte base = (byte)((debugOpcode & 0xFF) - 0x0A);
+                    int base = ((debugOpcode & 0xFF) - 0x0A);
                     processDebugInstruction.ProcessSpecialOpcode(startOffset, debugOpcode, (base % 15) - 4, base / 15);
                 }
             }
