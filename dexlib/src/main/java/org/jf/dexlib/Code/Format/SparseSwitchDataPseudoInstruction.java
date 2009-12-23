@@ -107,7 +107,7 @@ public class SparseSwitchDataPseudoInstruction extends Instruction implements Mu
 
             for (int i = 1; i < keys.length; i++) {
                 key = keys[i];
-                assert key <= keys[i - 1];
+                assert key >= keys[i - 1];
                 out.writeInt(key);
             }
 
