@@ -65,7 +65,7 @@ public class Instruction22t extends Instruction implements OffsetInstruction, Tw
         assert buffer[bufferIndex] == opcode.value;
 
         regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
-        regB = NumberUtils.decodeHighSignedNibble(buffer[bufferIndex + 1]);
+        regB = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
         offset = NumberUtils.decodeShort(buffer, bufferIndex + 2);
 
         assert offset != 0;
