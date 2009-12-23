@@ -176,7 +176,7 @@ public class DebugInfoBuilder
 
         Item[] referencedItemsArray = new Item[referencedItems.size()];
         referencedItems.toArray(referencedItemsArray);
-        return DebugInfoItem.getInternedDebugInfoItem(dexFile, lineStart, parameterNamesArray, out.getArray(),
+        return DebugInfoItem.getInternedDebugInfoItem(dexFile, lineStart, parameterNamesArray, out.toByteArray(),
                 referencedItemsArray);
     }
 
