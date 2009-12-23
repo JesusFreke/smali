@@ -47,6 +47,7 @@
                 LFormat32x;,
                 LFormat35c;,
                 LFormat3rc;,
-                LFormat51l;
+                LFormat51l;,
+                LGotoTest;
             }
 .end annotation

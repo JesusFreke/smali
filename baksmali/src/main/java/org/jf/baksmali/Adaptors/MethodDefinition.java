@@ -526,8 +526,8 @@ public class MethodDefinition {
                 return;
             }
             for (CodeItem.TryItem tryItem: codeItem.getTries()) {
-                int startAddress = tryItem.startAddress;
-                int endAddress = tryItem.startAddress + tryItem.instructionCount;
+                int startAddress = tryItem.getStartAddress();
+                int endAddress = tryItem.getStartAddress() + tryItem.getInstructionCount();
 
                 /**
                  * The end address points to the address immediately after the end of the last

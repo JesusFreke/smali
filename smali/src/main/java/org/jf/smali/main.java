@@ -18,6 +18,10 @@ package org.jf.smali;
 
 import org.apache.commons.cli.*;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.Code.InstructionIterator;
+import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.Format.Format;
 import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
 import org.jf.dexlib.Util.FileUtils;
 import org.antlr.runtime.ANTLRInputStream;
@@ -80,6 +84,8 @@ public class main {
 
         boolean sort = false;
         boolean rewriteLabels = false;
+        boolean fixStringConst = true;
+        boolean fixGoto = true;
 
         String outputDexFile = "out.dex";
         String dumpFileName = null;
@@ -129,6 +135,14 @@ public class main {
             }
         }
 
+        if (commandLine.hasOption("c")) {
+            fixStringConst = false;
+        }
+
+        if (commandLine.hasOption("g")) {
+            fixGoto = false;
+        }
+
 
         try {
 
@@ -172,6 +186,10 @@ public class main {
 
             if (sort) {
                 dexFile.setSortAllItems(true);
+            }
+
+            if (fixStringConst || fixGoto) {
+                fixInstructions(dexFile, fixStringConst, fixGoto);
             }
 
             dexFile.place();
@@ -219,6 +237,16 @@ public class main {
             } else if (file.getName().endsWith(".smali")) {
                 smaliFiles.add(file);
             }
+        }
+    }
+
+    private static void fixInstructions(DexFile dexFile, boolean fixStringConst, boolean fixGoto) {
+        dexFile.place();
+
+        byte[] newInsns = null;
+
+        for (CodeItem codeItem: dexFile.CodeItemsSection.getItems()) {
+            codeItem.fixInstructions(fixStringConst, fixGoto);
         }
     }
 
@@ -345,11 +373,21 @@ public class main {
                 .withDescription("rewrite the input smali files, converting any labels in the old (pre .97) format to the new format")
                 .create("r");
 
+        Option noFixStringConstOption = OptionBuilder.withLongOpt("no-fix-string-const")
+                .withDescription("Don't replace string-const instructions with string-const/jumbo where appropriate")
+                .create("c");
+
+        Option noFixGotoOption = OptionBuilder.withLongOpt("no-fix-goto")
+                .withDescription("Don't replace goto type instructions with a larger version where appropriate")
+                .create("g");
+
         options.addOption(versionOption);
         options.addOption(helpOption);
         options.addOption(dumpOption);
         options.addOption(outputOption);
         options.addOption(sortOption);
         options.addOption(rewriteLabelOption);
+        options.addOption(noFixStringConstOption);
+        options.addOption(noFixGotoOption);
     }
 }

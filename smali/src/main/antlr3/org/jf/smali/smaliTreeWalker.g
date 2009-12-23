@@ -880,11 +880,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			
 			int addressOffset = $offset_or_label.offsetValue;
 
-			if (addressOffset < Byte.MIN_VALUE || addressOffset > Byte.MAX_VALUE) {
-				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-128, 127].");
-			}
-			
-			$instructions.add(new Instruction10t(opcode, (byte)addressOffset));
+			$instructions.add(new Instruction10t(opcode, addressOffset));
 		}
 	|	//e.g. return
 		^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
@@ -927,11 +923,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			
 			int addressOffset = $offset_or_label.offsetValue;
 
-			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
-				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
-			}
-			
-			$instructions.add(new Instruction20t(opcode, (short)addressOffset));
+			$instructions.add(new Instruction20t(opcode, addressOffset));
 		}
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
 		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)

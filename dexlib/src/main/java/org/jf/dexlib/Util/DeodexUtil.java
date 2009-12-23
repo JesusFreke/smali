@@ -166,8 +166,8 @@ public class DeodexUtil {
                     handlers[i] = insnsMap.get(tryItem.encodedCatchHandler.handlers[i].getHandlerAddress());
                 }
 
-                int insnoffset = tryItem.startAddress;
-                while (insnoffset < tryItem.startAddress + tryItem.instructionCount) {
+                int insnoffset = tryItem.getStartAddress();
+                while (insnoffset < tryItem.getStartAddress() + tryItem.getInstructionCount()) {
                     insn i = insnsMap.get(insnoffset);
 
                     i.exceptionHandlers = handlers;
