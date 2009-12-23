@@ -65549,8 +65549,13 @@
     const-string/jumbo v0, "65533"
     const-string/jumbo v0, "65534"
     const-string/jumbo v0, "65535"
+    const-string/jumbo v0, "65536"
+    const-string/jumbo v0, "65537"
+    const-string/jumbo v0, "65538"
+    const-string/jumbo v0, "65539"
+    const-string/jumbo v0, "65540"
 
-    const-string/jumbo v1, "65535"    
+    const-string/jumbo v1, "65535"
 
     invoke-static {v0, v1}, Lorg/junit/Assert;->assertEquals(Ljava/lang/Object;Ljava/lang/Object;)V
     return-void
