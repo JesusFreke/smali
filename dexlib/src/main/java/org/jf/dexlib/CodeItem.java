@@ -639,6 +639,16 @@ public class CodeItem extends Item<CodeItem> {
             }
 
             int newOffset = newOffsetsByOriginalOffset.get(address*2, -1);
+
+            //The address might not point to an actual instruction in some cases, for example, if an AdvancePC
+            //instruction was inserted just before a "special" instruction, to fix up the offsets for a previous
+            //instruction replacement.
+            //In this case, it should be safe to skip, because there will be another AdvancePC/SpecialOpcode that will
+            //bump up the address to point to a valid instruction before anything (line/local/etc.) is emitted
+            if (newOffset == -1) {
+                return;
+            }
+
             assert newOffset != -1;
             newOffset = newOffset / 2;
 
