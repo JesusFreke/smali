@@ -578,8 +578,6 @@ public class CodeItem extends Item<CodeItem> {
                 newOffsetsByOriginalOffset, originalOffsetsByNewOffset);
             DebugInstructionIterator.IterateInstructions(debugInput, debugInstructionFixer);
 
-            assert debugInstructionFixer.result != null;
-
             if (debugInstructionFixer.result != null) {
                 debugInfo.setEncodedDebugInfo(debugInstructionFixer.result);
             }
