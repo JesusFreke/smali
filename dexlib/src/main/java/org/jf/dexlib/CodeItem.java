@@ -500,7 +500,6 @@ public class CodeItem extends Item<CodeItem> {
             return;
         }
 
-        //TODO: replace these with a callable delegate
         final SparseIntArray originalOffsetsByNewOffset = new SparseIntArray();
         final SparseIntArray newOffsetsByOriginalOffset = new SparseIntArray();
 
