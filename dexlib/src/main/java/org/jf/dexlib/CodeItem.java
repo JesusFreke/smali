@@ -547,8 +547,8 @@ public class CodeItem extends Item<CodeItem> {
                 assert originalOffsetsByNewOffset.indexOfKey(currentCodeOffset) >= 0;
                 int originalDataOffset = originalOffsetsByNewOffset.get(currentCodeOffset);
 
-                int originalSwitchOffset = originalSwitchOffsetByOriginalSwitchDataOffset.get(originalDataOffset);
-                if (originalSwitchOffset == 0) {
+                int originalSwitchOffset = originalSwitchOffsetByOriginalSwitchDataOffset.get(originalDataOffset, -1);
+                if (originalSwitchOffset == -1) {
                     throw new RuntimeException("This method contains an unreferenced switch data block, and can't be automatically fixed.");
                 }
 
