@@ -549,8 +549,7 @@ public class CodeItem extends Item<CodeItem> {
 
                 int originalSwitchOffset = originalSwitchOffsetByOriginalSwitchDataOffset.get(originalDataOffset);
                 if (originalSwitchOffset == 0) {
-                    //TODO: is it safe to skip an unreferenced switch data instruction? Or should it throw an exception?
-                    continue;
+                    throw new RuntimeException("This method contains an unreferenced switch data block, and can't be automatically fixed.");
                 }
 
                 assert newOffsetsByOriginalOffset.indexOfKey(originalSwitchOffset) >= 0;
