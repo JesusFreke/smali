@@ -799,7 +799,6 @@ public class CodeItem extends Item<CodeItem> {
          */
         private int catchAllHandlerAddress;
 
-        //TODO: would it be possible to get away without having these? and generate/create these values while writing?
         private int baseOffset;
         private int offset;
 
