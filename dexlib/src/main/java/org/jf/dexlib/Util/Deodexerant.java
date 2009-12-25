@@ -360,6 +360,9 @@ public class Deodexerant {
         }
 
         TypeIdItem classTypeItem = resolveTypeOrSupertype(classType);
+        if (classTypeItem == null) {
+            return null;
+        }
         String fieldName = parts[0];
         String fieldType = parts[1];
 
@@ -388,8 +391,7 @@ public class Deodexerant {
                 superclassDescriptor = lookupSuperclass(superclassDescriptor);
                 classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
             }
-
-        } while (classType != null);
+        } while (classTypeItem != null);
         throw new RuntimeException("Could not find field in dex file");
     }
 
