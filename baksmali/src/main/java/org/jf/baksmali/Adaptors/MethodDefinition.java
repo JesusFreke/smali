@@ -91,7 +91,7 @@ public class MethodDefinition {
     private static List<StringTemplate> getParameters(StringTemplateGroup stg, CodeItem codeItem,
                                                                AnnotationSetRefList parameterAnnotations) {
         DebugInfoItem debugInfoItem = null;
-        if (codeItem != null) {
+        if (baksmali.outputDebugInfo && codeItem != null) {
             debugInfoItem = codeItem.getDebugInfo();
         }
 
@@ -169,7 +169,9 @@ public class MethodDefinition {
         methodItems.addAll(methodItemList.instructions);
         methodItems.addAll(methodItemList.blanks);
         methodItems.addAll(methodItemList.catches);
-        methodItems.addAll(methodItemList.debugItems);
+        if (baksmali.outputDebugInfo) {
+            methodItems.addAll(methodItemList.debugItems);
+        }
         Collections.sort(methodItems);
 
         return methodItems;

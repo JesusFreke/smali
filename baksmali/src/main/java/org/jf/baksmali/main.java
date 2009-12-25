@@ -74,6 +74,7 @@ public class main {
         boolean noParameterRegisters = false;
         boolean useLocalsDirective = false;
         boolean useIndexedLabels = false;
+        boolean outputDebugInfo = true;
 
 
         String outputDirectory = "out";
@@ -140,6 +141,10 @@ public class main {
             useIndexedLabels = true;
         }
 
+        if (commandLine.hasOption("b")) {
+            outputDebugInfo = false;
+        }
+
         if (commandLine.hasOption("x")) {
             String deodexerantAddress = commandLine.getOptionValue("x");
             String[] parts = deodexerantAddress.split(":");
@@ -191,7 +196,7 @@ public class main {
 
             if (disassemble) {
                 baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, noParameterRegisters,
-                        useLocalsDirective, useIndexedLabels);
+                        useLocalsDirective, useIndexedLabels, outputDebugInfo);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -296,7 +301,9 @@ public class main {
                         " rather than the bytecode offset")
                 .create("i");
 
-        OptionGroup dumpCommand = new OptionGroup();
+        Option noDebugInfoOption = OptionBuilder.withLongOpt("no-debug-info")
+                .withDescription("don't write out debug info (.local, .param, .line, etc.)")
+                .create("b");
 
         options.addOption(versionOption);
         options.addOption(helpOption);
@@ -310,5 +317,6 @@ public class main {
         options.addOption(deodexerantOption);
         options.addOption(useLocalsOption);
         options.addOption(indexedLabelsOption);
+        options.addOption(noDebugInfoOption);
     }
 }
