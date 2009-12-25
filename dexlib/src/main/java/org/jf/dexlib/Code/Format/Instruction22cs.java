@@ -63,6 +63,7 @@ public class Instruction22cs extends Instruction implements TwoRegisterInstructi
 
         this.regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
         this.regB = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
+        this.fieldOffset = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
