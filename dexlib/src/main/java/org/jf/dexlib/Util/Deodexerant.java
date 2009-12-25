@@ -90,24 +90,7 @@ public class Deodexerant {
             }
 
             String methodDescriptor = parts[1];
-
-            Matcher m = fullMethodPattern.matcher(methodDescriptor);
-            if (!m.matches()) {
-                throw new RuntimeException("Invalid method descriptor: " + methodDescriptor);
-            }
-
-            String classType = m.group(1);
-            String methodName = m.group(2);
-            String methodParams = m.group(3);
-            String methodRet = m.group(4);
-
-            MethodIdItem method = parseAndResolveMethod(classType, methodName, methodParams, methodRet);
-            if (method == null) {
-                inlineMethods[i] = null;
-                continue;
-            }
-
-            inlineMethods[i] = new InlineMethod(method, type);
+            inlineMethods[i] = new InlineMethod(methodDescriptor, type);
         }
     }
 
@@ -416,12 +399,43 @@ public class Deodexerant {
         Static
     }
 
-    public static class InlineMethod {
-        public final MethodIdItem methodIdItem;
-        public final InlineMethodType methodType;
-        public InlineMethod(MethodIdItem methodIdItem, InlineMethodType methodType) {
-            this.methodIdItem = methodIdItem;
+    public class InlineMethod {
+        public final String inlineMethodDescriptor;
+        private final InlineMethodType methodType;
+        private MethodIdItem methodIdItem = null;
+
+        public InlineMethod(String inlineMethodDescriptor, InlineMethodType methodType) {
+            this.inlineMethodDescriptor = inlineMethodDescriptor;
             this.methodType = methodType;
+        }
+
+        public MethodIdItem getMethodIdItem() {
+            if (methodIdItem == null) {
+                loadMethod();
+            }
+            return methodIdItem;
+        }
+
+        public InlineMethodType getMethodType() {
+            return methodType;
+        }
+
+        private void loadMethod() {
+            Matcher m = fullMethodPattern.matcher(inlineMethodDescriptor);
+            if (!m.matches()) {
+                throw new RuntimeException("Invalid method descriptor: " + inlineMethodDescriptor);
+            }
+
+            String classType = m.group(1);
+            String methodName = m.group(2);
+            String methodParams = m.group(3);
+            String methodRet = m.group(4);
+
+            MethodIdItem method = parseAndResolveMethod(classType, methodName, methodParams, methodRet);
+            if (method == null) {
+                throw new RuntimeException("Could not resolve method " + inlineMethodDescriptor);
+            }
+            this.methodIdItem = method;
         }
     }
 

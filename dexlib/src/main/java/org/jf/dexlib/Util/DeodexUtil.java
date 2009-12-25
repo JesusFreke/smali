@@ -246,10 +246,10 @@ public class DeodexUtil {
                     throw new RuntimeException("Could not find the inline method with index " + inlineMethodIndex);
                 }
                 assert inlineMethod != null;
-                assert inlineMethod.methodIdItem != null;
+                assert inlineMethod.getMethodIdItem() != null;
 
                 Opcode opcode = null;
-                switch (inlineMethod.methodType) {
+                switch (inlineMethod.getMethodType()) {
                     case Direct:
                         opcode = Opcode.INVOKE_DIRECT;
                         break;
@@ -262,14 +262,14 @@ public class DeodexUtil {
                 }
 
                 i.fixedInstruction = new Instruction35msf(opcode, (Instruction35ms)i.instruction,
-                        inlineMethod.methodIdItem);
+                        inlineMethod.getMethodIdItem());
 
 
                 insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.registerReferenceType =
-                            inlineMethod.methodIdItem.getPrototype().getReturnType().getTypeDescriptor();
+                            inlineMethod.getMethodIdItem().getPrototype().getReturnType().getTypeDescriptor();
                 }
 
                 return true;
