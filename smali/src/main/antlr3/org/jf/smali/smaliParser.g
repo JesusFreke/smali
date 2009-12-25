@@ -358,7 +358,7 @@ instruction returns [int size]
 		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x)
 	|	//e.g. const/4 v0, 5
 		INSTRUCTION_FORMAT11n REGISTER integral_literal {$size = Format.Format11n.size;}
-		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STARTMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER integral_literal)
+		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STATEMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER integral_literal)
 	|	//e.g. move-result-object v1
 		INSTRUCTION_FORMAT11x REGISTER {$size = Format.Format11x.size;}
 		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_FORMAT11x REGISTER)
