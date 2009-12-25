@@ -59,7 +59,7 @@ public class Deodexerant {
     public Deodexerant(DexFile dexFile, String host, int port) {
         this.dexFile = dexFile;
         this.host = host;
-        this.port = port;        
+        this.port = port;
     }
 
     private void loadInlineMethods() {
@@ -132,7 +132,7 @@ public class Deodexerant {
                 throw new RuntimeException("Could not find the type or a supertype of " + type + " in the dex file");
             }
 
-            typeItem = TypeIdItem.getInternedTypeIdItem(dexFile, type);            
+            typeItem = TypeIdItem.getInternedTypeIdItem(dexFile, type);
         }
         return typeItem;
     }
@@ -160,7 +160,7 @@ public class Deodexerant {
 
         return classData.lookupMethod(methodIndex);
     }
-   
+
     public String lookupSuperclass(String typeDescriptor) {
         connectIfNeeded();
 
@@ -197,7 +197,7 @@ public class Deodexerant {
     private String sendCommand(String cmd) {
         try {
             connectIfNeeded();
-            
+
             out.println(cmd);
             out.flush();
             String response = in.readLine();
@@ -235,7 +235,7 @@ public class Deodexerant {
                 responseLines.add(response);
                 response = in.readLine();
             }
-            
+
             return responseLines;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -250,7 +250,7 @@ public class Deodexerant {
 
             socket = new Socket(host, port);
 
-            out = new PrintWriter(socket.getOutputStream(), true);            
+            out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -260,7 +260,7 @@ public class Deodexerant {
     private MethodIdItem parseAndResolveMethod(String classType, String methodName, String methodParams,
                                                String methodRet) {
         TypeIdItem classTypeItem = resolveTypeOrSupertype(classType);
-        
+
         StringIdItem methodNameItem = StringIdItem.getInternedStringIdItem(dexFile, methodName);
         if (methodNameItem == null) {
             return null;
@@ -353,7 +353,7 @@ public class Deodexerant {
 
             String superclassDescriptor = lookupSuperclass(classTypeItem.getTypeDescriptor());
             if (superclassDescriptor == null) {
-                return null; 
+                return null;
             }
             classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
 
@@ -428,7 +428,7 @@ public class Deodexerant {
     private TypeIdItem getType(String typeDescriptor) {
         TypeIdItem type = TypeIdItem.getInternedTypeIdItem(dexFile, typeDescriptor);
         if (type == null) {
-            throw new RuntimeException("Could not find type \"" + typeDescriptor + "\" in dex file"); 
+            throw new RuntimeException("Could not find type \"" + typeDescriptor + "\" in dex file");
         }
         return type;
     }
@@ -465,7 +465,7 @@ public class Deodexerant {
                     resolvedMethods[index] = parseAndResolveMethod(ClassType, methodNames[index], methodParams[index],
                         methodRets[index]);
             }
-            return resolvedMethods[index]; 
+            return resolvedMethods[index];
         }
 
         public FieldIdItem lookupField(int fieldOffset) {
@@ -495,7 +495,7 @@ public class Deodexerant {
             methodParams = new String[responseLines.size()];
             methodRets = new String[responseLines.size()];
             resolvedMethods = new MethodIdItem[responseLines.size()];
-            
+
             int index = 0;
             for (String vtableEntry: responseLines) {
                 if (!vtableEntry.startsWith("vtable: ")) {
