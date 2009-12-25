@@ -185,7 +185,7 @@ public class DeodexUtil {
             prevInsn = i;
         }
 
-        insns.get(0).propogateRegisters();
+        insns.get(0).propagateRegisters();
 
         return insns;
     }
@@ -1339,7 +1339,7 @@ public class DeodexUtil {
 
         public void updateRegisterReferenceType(String type) {
             this.registerReferenceType = type;
-            this.propogateRegisters();
+            this.propagateRegisters();
         }
 
         /**
@@ -1374,7 +1374,7 @@ public class DeodexUtil {
             }
         }
 
-        public void propogateRegisters() {
+        public void propagateRegisters() {
             visited = true;
 
             //if this is the first instruction, we're in a try block, then if the first instruction throws an
@@ -1382,7 +1382,7 @@ public class DeodexUtil {
             //i.e. if the first instruction in the exception handler is also covered by a try block..
             if (this.firstInstruction && canThrow && exceptionHandlers != null) {
                 for (insn handler: exceptionHandlers) {
-                    handler.propogateRegisters();
+                    handler.propagateRegisters();
                 }
             }
 
@@ -1463,7 +1463,7 @@ public class DeodexUtil {
                 }
 
                 if (somethingChanged || !nextInsn.visited) {
-                    nextInsn.propogateRegisters();
+                    nextInsn.propagateRegisters();
                 }
             }
         }
