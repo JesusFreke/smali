@@ -100,7 +100,7 @@ public class Instruction35s extends InstructionWithReference {
     }
 
     public Format getFormat() {
-        return Format.Format35c;
+        return Format.Format35s;
     }
 
     public byte getRegisterA() {
