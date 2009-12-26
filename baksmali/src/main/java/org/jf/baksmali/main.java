@@ -73,7 +73,7 @@ public class main {
         boolean fixRegisters = false;
         boolean noParameterRegisters = false;
         boolean useLocalsDirective = false;
-        boolean useIndexedLabels = false;
+        boolean useSequentialLabels = false;
         boolean outputDebugInfo = true;
 
 
@@ -138,7 +138,7 @@ public class main {
         }
 
         if (commandLine.hasOption("i")) {
-            useIndexedLabels = true;
+            useSequentialLabels = true;
         }
 
         if (commandLine.hasOption("b")) {
@@ -196,7 +196,7 @@ public class main {
 
             if (disassemble) {
                 baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, noParameterRegisters,
-                        useLocalsDirective, useIndexedLabels, outputDebugInfo);
+                        useLocalsDirective, useSequentialLabels, outputDebugInfo);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -296,10 +296,10 @@ public class main {
                         " than the .register directive with the total number of register")
                 .create("l");
 
-        Option indexedLabelsOption = OptionBuilder.withLongOpt("indexed-labels")
-                .withDescription("create label names using a per-method/per-label-type auto-index as the suffix, " +
-                        " rather than the bytecode offset")
-                .create("i");
+        Option sequentialLabelsOption = OptionBuilder.withLongOpt("sequential-labels")
+                .withDescription("create label names using a sequential numbering scheme per label type, rather than " +
+                        "using the bytecode offset")
+                .create("q");
 
         Option noDebugInfoOption = OptionBuilder.withLongOpt("no-debug-info")
                 .withDescription("don't write out debug info (.local, .param, .line, etc.)")
@@ -316,7 +316,7 @@ public class main {
         options.addOption(noParameterRegistersOption);
         options.addOption(deodexerantOption);
         options.addOption(useLocalsOption);
-        options.addOption(indexedLabelsOption);
+        options.addOption(sequentialLabelsOption);
         options.addOption(noDebugInfoOption);
     }
 }

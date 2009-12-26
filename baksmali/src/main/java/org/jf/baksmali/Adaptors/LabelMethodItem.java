@@ -35,7 +35,7 @@ import org.jf.baksmali.baksmali;
 public class LabelMethodItem extends MethodItem {
     private final StringTemplateGroup stg;
     private final String labelPrefix;
-    private int labelIndex;
+    private int labelSequence;
     private boolean isCommentedOut = true;
 
     public LabelMethodItem(int offset, StringTemplateGroup stg, String labelPrefix) {
@@ -83,8 +83,8 @@ public class LabelMethodItem extends MethodItem {
     public String toString() {
         StringTemplate template = stg.getInstanceOf("Label");
         template.setAttribute("Prefix", labelPrefix);
-        if (baksmali.useIndexedLabels) {
-            template.setAttribute("Suffix", Integer.toHexString(labelIndex));
+        if (baksmali.useSequentialLabels) {
+            template.setAttribute("Suffix", Integer.toHexString(labelSequence));
         } else {
             template.setAttribute("Suffix", getLabelOffset());
         }
@@ -99,11 +99,11 @@ public class LabelMethodItem extends MethodItem {
         return getHexOffset();
     }
 
-    public int getLabelIndex() {
-        return labelIndex;
+    public int getLabelSequence() {
+        return labelSequence;
     }
 
-    public void setLabelIndex(int labelIndex) {
-        this.labelIndex = labelIndex;
+    public void setLabelSequence(int labelSequence) {
+        this.labelSequence = labelSequence;
     }
 }

@@ -35,7 +35,6 @@ import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Code.InstructionIterator;
 import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
@@ -274,8 +273,8 @@ public class MethodDefinition {
 
             addDebugInfo();
 
-            if (baksmali.useIndexedLabels) {
-                setLabelIndexes();
+            if (baksmali.useSequentialLabels) {
+                setLabelSequentialNumbers();
             }
         }
 
@@ -647,20 +646,20 @@ public class MethodDefinition {
                     });
         }
 
-        private void setLabelIndexes() {
-            HashMap<String, Integer> nextLabelIndexByType = new HashMap<String, Integer>();
+        private void setLabelSequentialNumbers() {
+            HashMap<String, Integer> nextLabelSequenceByType = new HashMap<String, Integer>();
             ArrayList<LabelMethodItem> sortedLabels = new ArrayList<LabelMethodItem>(labels.getLabels());
 
             //sort the labels by their location in the method
             Collections.sort(sortedLabels);
 
             for (LabelMethodItem labelMethodItem: sortedLabels) {
-                Integer labelIndex = nextLabelIndexByType.get(labelMethodItem.getLabelPrefix());
-                if (labelIndex == null) {
-                    labelIndex = 0;
+                Integer labelSequence = nextLabelSequenceByType.get(labelMethodItem.getLabelPrefix());
+                if (labelSequence == null) {
+                    labelSequence = 0;
                 }
-                labelMethodItem.setLabelIndex(labelIndex);
-                nextLabelIndexByType.put(labelMethodItem.getLabelPrefix(), labelIndex + 1);
+                labelMethodItem.setLabelSequence(labelSequence);
+                nextLabelSequenceByType.put(labelMethodItem.getLabelPrefix(), labelSequence + 1);
             }
         }
     }
