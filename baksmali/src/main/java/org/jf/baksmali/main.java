@@ -192,6 +192,11 @@ public class main {
                 if (write) {
                     System.err.println("-w cannot be used with an odex file. Ignoring -w");
                 }
+                if (deodexerant == null) {
+                    System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
+                    System.err.println("won't be able to re-assemble the results unless you use deodexerant, and");
+                    System.err.println("the -x option for baksmali");
+                }
             }
 
             if (disassemble) {
