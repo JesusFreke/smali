@@ -7,7 +7,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
-        <aversion>1.1</aversion>
+        <aversion>1.1.1</aversion>
     </properties>
     <build>
         <plugins>
