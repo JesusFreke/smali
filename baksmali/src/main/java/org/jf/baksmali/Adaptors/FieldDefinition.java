@@ -71,7 +71,7 @@ public class FieldDefinition {
         }
 
         if (initialValue != null) {
-            template.setAttribute("InitialValue", EncodedValueAdaptor.make(stg, initialValue));
+            template.setAttribute("InitialValue", EncodedValueAdaptor.create(stg, initialValue));
         }
 
         return template;
@@ -100,7 +100,7 @@ public class FieldDefinition {
         List<StringTemplate> annotationAdaptors = new ArrayList<StringTemplate>();
 
         for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
-            annotationAdaptors.add(AnnotationAdaptor.makeTemplate(stg, annotationItem));
+            annotationAdaptors.add(AnnotationAdaptor.createTemplate(stg, annotationItem));
         }
         return annotationAdaptors;
     }

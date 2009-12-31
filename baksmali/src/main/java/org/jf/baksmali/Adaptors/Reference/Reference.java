@@ -33,16 +33,16 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
 public abstract class Reference {
-    public static StringTemplate makeReference(StringTemplateGroup stg, Item item) {
+    public static StringTemplate createReference(StringTemplateGroup stg, Item item) {
         switch (item.getItemType()) {
             case TYPE_METHOD_ID_ITEM:
-                return MethodReference.makeTemplate(stg, (MethodIdItem)item);
+                return MethodReference.createTemplate(stg, (MethodIdItem)item);
             case TYPE_FIELD_ID_ITEM:
-                return FieldReference.makeTemplate(stg, (FieldIdItem)item);
+                return FieldReference.createTemplate(stg, (FieldIdItem)item);
             case TYPE_STRING_ID_ITEM:
-                return StringReference.makeTemplate(stg, (StringIdItem)item);
+                return StringReference.createTemplate(stg, (StringIdItem)item);
             case TYPE_TYPE_ID_ITEM:
-                return TypeReference.makeTemplate(stg, (TypeIdItem)item);
+                return TypeReference.createTemplate(stg, (TypeIdItem)item);
         }
         return null;
     }

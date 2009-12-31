@@ -32,7 +32,7 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
 public class SimpleEncodedValueAdaptor {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, Object value) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, Object value) {
         StringTemplate template = stg.getInstanceOf("SimpleEncodedValue");
         template.setAttribute("Value", value);
         return template;

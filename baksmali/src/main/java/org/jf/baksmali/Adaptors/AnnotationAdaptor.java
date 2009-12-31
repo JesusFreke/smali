@@ -37,7 +37,7 @@ import org.antlr.stringtemplate.StringTemplate;
 import java.util.List;
 
 public class AnnotationAdaptor {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, AnnotationItem annotationItem) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, AnnotationItem annotationItem) {
         StringTemplate template = stg.getInstanceOf("annotation");
 
         template.setAttribute("Visibility", annotationItem.getVisibility().name().toLowerCase());

@@ -28,7 +28,6 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Format.Instruction3rc;
 import org.jf.dexlib.Code.Format.Instruction3rmsf;
 import org.jf.dexlib.CodeItem;
 import org.jf.baksmali.Adaptors.Reference.Reference;
@@ -43,7 +42,7 @@ public class Instruction3rmsfMethodItem extends InstructionFormatMethodItem<Inst
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
+        template.setAttribute("Reference", Reference.createReference(template.getGroup(),
                 instruction.getReferencedItem()));
 
         String[] registers = RegisterFormatter.formatFormat3rcRegisters(codeItem, instruction.getStartRegister(),

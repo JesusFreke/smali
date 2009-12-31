@@ -33,7 +33,7 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 
 public class MethodReference {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, MethodIdItem item) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, MethodIdItem item) {
         StringTemplate template = stg.getInstanceOf("MethodReference");
         template.setAttribute("ContainingClass", item.getContainingClass().getTypeDescriptor());
         template.setAttribute("MethodName", item.getMethodName().getStringValue());

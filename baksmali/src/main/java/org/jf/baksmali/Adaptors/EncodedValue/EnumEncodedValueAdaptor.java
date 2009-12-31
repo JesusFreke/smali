@@ -33,7 +33,7 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 
 public class EnumEncodedValueAdaptor {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, StringTemplate fieldReference) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, StringTemplate fieldReference) {
         StringTemplate template = stg.getInstanceOf("EnumEncodedValue");
         template.setAttribute("Value", fieldReference);
         return template;

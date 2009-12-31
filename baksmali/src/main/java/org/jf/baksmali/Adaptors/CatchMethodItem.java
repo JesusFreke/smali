@@ -87,7 +87,7 @@ public class CatchMethodItem extends MethodItem {
     public String toString() {
         StringTemplate template = stg.getInstanceOf(getTemplateName());
         if (exceptionType != null) {
-            template.setAttribute("ExceptionType", TypeReference.makeTemplate(stg, exceptionType));
+            template.setAttribute("ExceptionType", TypeReference.createTemplate(stg, exceptionType));
         }
         template.setAttribute("StartLabel", tryStartLabel);
         template.setAttribute("EndLabel", tryEndLabel);

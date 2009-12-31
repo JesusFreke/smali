@@ -43,7 +43,7 @@ import org.antlr.stringtemplate.StringTemplate;
 import java.util.*;
 
 public class MethodDefinition {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, ClassDataItem.EncodedMethod encodedMethod,
+    public static StringTemplate createTemplate(StringTemplateGroup stg, ClassDataItem.EncodedMethod encodedMethod,
                                               AnnotationSetItem annotationSet,
                                               AnnotationSetRefList parameterAnnotations) {
 
@@ -132,7 +132,7 @@ public class MethodDefinition {
                 parameterName = parameterNames.get(i);
             }
 
-            parameters.add(ParameterAdaptor.makeTemplate(stg, parameterName, annotationSet));
+            parameters.add(ParameterAdaptor.createTemplate(stg, parameterName, annotationSet));
         }
 
         return parameters;
@@ -146,7 +146,7 @@ public class MethodDefinition {
         List<StringTemplate> annotationAdaptors = new ArrayList<StringTemplate>();
 
         for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
-            annotationAdaptors.add(AnnotationAdaptor.makeTemplate(stg, annotationItem));
+            annotationAdaptors.add(AnnotationAdaptor.createTemplate(stg, annotationItem));
         }
         return annotationAdaptors;
     }

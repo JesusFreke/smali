@@ -42,7 +42,7 @@ public class Instruction3rcMethodItem extends InstructionFormatMethodItem<Instru
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
+        template.setAttribute("Reference", Reference.createReference(template.getGroup(),
                 instruction.getReferencedItem()));
 
         String[] registers = RegisterFormatter.formatFormat3rcRegisters(codeItem, instruction.getStartRegister(),

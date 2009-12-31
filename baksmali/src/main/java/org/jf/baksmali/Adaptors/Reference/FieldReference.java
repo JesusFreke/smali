@@ -33,7 +33,7 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
 public class FieldReference {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, FieldIdItem item) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, FieldIdItem item) {
         StringTemplate template = stg.getInstanceOf("FieldReference");
         template.setAttribute("ContainingClass", item.getContainingClass().getTypeDescriptor());
         template.setAttribute("FieldName", item.getFieldName().getStringValue());

@@ -41,7 +41,7 @@ public class Instruction22cMethodItem extends InstructionFormatMethodItem<Instru
     }
 
     protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Reference", Reference.makeReference(template.getGroup(),
+        template.setAttribute("Reference", Reference.createReference(template.getGroup(),
                 instruction.getReferencedItem()));
         template.setAttribute("RegisterA", formatRegister(instruction.getRegisterA()));
         template.setAttribute("RegisterB", formatRegister(instruction.getRegisterB()));

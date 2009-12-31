@@ -33,7 +33,7 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
 public class TypeReference {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, TypeIdItem item) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, TypeIdItem item) {
         StringTemplate template = stg.getInstanceOf("TypeReference");
         template.setAttribute("TypeDescriptor", item.getTypeDescriptor());
         return template;

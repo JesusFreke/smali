@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class ArrayEncodedValueAdaptor {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, ArrayEncodedValue encodedArray) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, ArrayEncodedValue encodedArray) {
         StringTemplate template = stg.getInstanceOf("ArrayEncodedValue");
         template.setAttribute("Value", getValue(stg, encodedArray));
         return template;
@@ -47,7 +47,7 @@ public class ArrayEncodedValueAdaptor {
         List<StringTemplate> encodedValues = new ArrayList<StringTemplate>();
 
         for (EncodedValue encodedValue: encodedArray.values) {
-            encodedValues.add(EncodedValueAdaptor.make(stg, encodedValue));
+            encodedValues.add(EncodedValueAdaptor.create(stg, encodedValue));
         }
         return encodedValues;
     }

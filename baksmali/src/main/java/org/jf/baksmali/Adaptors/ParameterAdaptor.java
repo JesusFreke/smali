@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class ParameterAdaptor {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, String parameterName,
+    public static StringTemplate createTemplate(StringTemplateGroup stg, String parameterName,
                                                 AnnotationSetItem parameterAnnotations) {
         StringTemplate template = stg.getInstanceOf("Parameter");
 
@@ -54,7 +54,7 @@ public class ParameterAdaptor {
 
         List<StringTemplate> annotations = new ArrayList<StringTemplate>();
         for (AnnotationItem annotationItem: parameterAnnotations.getAnnotations()) {
-            annotations.add(AnnotationAdaptor.makeTemplate(stg, annotationItem));
+            annotations.add(AnnotationAdaptor.createTemplate(stg, annotationItem));
         }
         return annotations;
     }

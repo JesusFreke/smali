@@ -40,16 +40,16 @@ import java.util.ArrayList;
 
 public abstract class AnnotationEncodedValueAdaptor {
 
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, AnnotationEncodedSubValue encodedAnnotation) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, AnnotationEncodedSubValue encodedAnnotation) {
         StringTemplate template = stg.getInstanceOf("AnnotationEncodedValue");
-        template.setAttribute("AnnotationType", TypeReference.makeTemplate(stg, encodedAnnotation.annotationType));
+        template.setAttribute("AnnotationType", TypeReference.createTemplate(stg, encodedAnnotation.annotationType));
         template.setAttribute("Elements", getElements(stg, encodedAnnotation));
         return template;
     }
 
     public static void setAttributesForAnnotation(StringTemplate template,
                                                   AnnotationEncodedSubValue encodedAnnotation) {
-        template.setAttribute("AnnotationType", TypeReference.makeTemplate(template.getGroup(),
+        template.setAttribute("AnnotationType", TypeReference.createTemplate(template.getGroup(),
                 encodedAnnotation.annotationType));
         template.setAttribute("Elements", getElements(template.getGroup(), encodedAnnotation));
     }
@@ -70,7 +70,7 @@ public abstract class AnnotationEncodedValueAdaptor {
         public static String toString(StringTemplateGroup stg, StringIdItem name, EncodedValue value) {
             StringTemplate template = stg.getInstanceOf("AnnotationElement");
             template.setAttribute("Name", name);
-            template.setAttribute("Value", EncodedValueAdaptor.make(stg, value));
+            template.setAttribute("Value", EncodedValueAdaptor.create(stg, value));
             return template.toString();
         }
     }

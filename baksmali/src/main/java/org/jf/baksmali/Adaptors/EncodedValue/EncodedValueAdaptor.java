@@ -34,44 +34,44 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 
 public abstract class EncodedValueAdaptor {
-    public static StringTemplate make(StringTemplateGroup stg, EncodedValue encodedValue) {
+    public static StringTemplate create(StringTemplateGroup stg, EncodedValue encodedValue) {
         switch (encodedValue.getValueType()) {
             case VALUE_ANNOTATION:
-                return AnnotationEncodedValueAdaptor.makeTemplate(stg, (AnnotationEncodedValue)encodedValue);
+                return AnnotationEncodedValueAdaptor.createTemplate(stg, (AnnotationEncodedValue)encodedValue);
             case VALUE_ARRAY:
-                return ArrayEncodedValueAdaptor.makeTemplate(stg, (ArrayEncodedValue)encodedValue);
+                return ArrayEncodedValueAdaptor.createTemplate(stg, (ArrayEncodedValue)encodedValue);
             case VALUE_BOOLEAN:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, ((BooleanEncodedValue)encodedValue).value);
+                return SimpleEncodedValueAdaptor.createTemplate(stg, ((BooleanEncodedValue)encodedValue).value);
             case VALUE_BYTE:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, ((ByteEncodedValue)encodedValue).value);
+                return SimpleEncodedValueAdaptor.createTemplate(stg, ((ByteEncodedValue)encodedValue).value);
             case VALUE_CHAR:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, ((CharEncodedValue)encodedValue).value);
+                return SimpleEncodedValueAdaptor.createTemplate(stg, ((CharEncodedValue)encodedValue).value);
             case VALUE_DOUBLE:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, ((DoubleEncodedValue)encodedValue).value);
+                return SimpleEncodedValueAdaptor.createTemplate(stg, ((DoubleEncodedValue)encodedValue).value);
             case VALUE_ENUM:
-                return EnumEncodedValueAdaptor.makeTemplate(stg,
-                        FieldReference.makeTemplate(stg, ((EnumEncodedValue)encodedValue).value));
+                return EnumEncodedValueAdaptor.createTemplate(stg,
+                        FieldReference.createTemplate(stg, ((EnumEncodedValue)encodedValue).value));
             case VALUE_FIELD:
-                return EncodedIndexedItemAdaptor.makeTemplate(stg, FieldReference.makeTemplate(stg,
+                return EncodedIndexedItemAdaptor.createTemplate(stg, FieldReference.createTemplate(stg,
                         ((FieldEncodedValue)encodedValue).value));
             case VALUE_FLOAT:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, ((FloatEncodedValue)encodedValue).value);
+                return SimpleEncodedValueAdaptor.createTemplate(stg, ((FloatEncodedValue)encodedValue).value);
             case VALUE_INT:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, ((IntEncodedValue)encodedValue).value);
+                return SimpleEncodedValueAdaptor.createTemplate(stg, ((IntEncodedValue)encodedValue).value);
             case VALUE_LONG:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, ((LongEncodedValue)encodedValue).value);
+                return SimpleEncodedValueAdaptor.createTemplate(stg, ((LongEncodedValue)encodedValue).value);
             case VALUE_METHOD:
-                return EncodedIndexedItemAdaptor.makeTemplate(stg, MethodReference.makeTemplate(stg,
+                return EncodedIndexedItemAdaptor.createTemplate(stg, MethodReference.createTemplate(stg,
                         ((MethodEncodedValue)encodedValue).value));
             case VALUE_NULL:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, "null");
+                return SimpleEncodedValueAdaptor.createTemplate(stg, "null");
             case VALUE_SHORT:
-                return SimpleEncodedValueAdaptor.makeTemplate(stg, ((ShortEncodedValue)encodedValue).value);
+                return SimpleEncodedValueAdaptor.createTemplate(stg, ((ShortEncodedValue)encodedValue).value);
             case VALUE_STRING:
-                return EncodedIndexedItemAdaptor.makeTemplate(stg, StringReference.makeTemplate(stg,
+                return EncodedIndexedItemAdaptor.createTemplate(stg, StringReference.createTemplate(stg,
                         ((StringEncodedValue)encodedValue).value));
             case VALUE_TYPE:
-                return EncodedIndexedItemAdaptor.makeTemplate(stg, TypeReference.makeTemplate(stg,
+                return EncodedIndexedItemAdaptor.createTemplate(stg, TypeReference.createTemplate(stg,
                         ((TypeEncodedValue)encodedValue).value));
         }
         return null;

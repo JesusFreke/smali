@@ -34,7 +34,7 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
 public class StringReference {
-    public static StringTemplate makeTemplate(StringTemplateGroup stg, StringIdItem item) {
+    public static StringTemplate createTemplate(StringTemplateGroup stg, StringIdItem item) {
         StringTemplate template = stg.getInstanceOf("StringReference");
         template.setAttribute("EscapedValue", Utf8Utils.escapeString(item.getStringValue()));
         return template;

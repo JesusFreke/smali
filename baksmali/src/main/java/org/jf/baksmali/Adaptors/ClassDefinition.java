@@ -30,10 +30,7 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.*;
-import org.jf.dexlib.Code.InstructionIterator;
-import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.Instruction;
-import org.jf.dexlib.Code.Format.Format;
 import org.jf.dexlib.Code.Format.Instruction21c;
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.dexlib.Util.SparseArray;
@@ -61,7 +58,7 @@ public class ClassDefinition {
         findFieldsSetInStaticConstructor();
     }
 
-    public StringTemplate makeTemplate() {
+    public StringTemplate createTemplate() {
         StringTemplate template = stg.getInstanceOf("smaliFile");
 
         template.setAttribute("AccessFlags", getAccessFlags());
@@ -195,7 +192,7 @@ public class ClassDefinition {
         List<StringTemplate> annotations = new ArrayList<StringTemplate>();
 
         for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
-            annotations.add(AnnotationAdaptor.makeTemplate(stg, annotationItem));
+            annotations.add(AnnotationAdaptor.createTemplate(stg, annotationItem));
         }
         return annotations;
     }
@@ -252,7 +249,7 @@ public class ClassDefinition {
             for (ClassDataItem.EncodedMethod method: classDataItem.getDirectMethods()) {
                 AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
                 AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
-                directMethods.add(MethodDefinition.makeTemplate(stg, method, annotationSet, parameterAnnotationList));
+                directMethods.add(MethodDefinition.createTemplate(stg, method, annotationSet, parameterAnnotationList));
             }
         }
 
@@ -266,7 +263,7 @@ public class ClassDefinition {
             for (ClassDataItem.EncodedMethod method: classDataItem.getVirtualMethods()) {
                 AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
                 AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
-                virtualMethods.add(MethodDefinition.makeTemplate(stg, method, annotationSet, parameterAnnotationList));
+                virtualMethods.add(MethodDefinition.createTemplate(stg, method, annotationSet, parameterAnnotationList));
             }
         }
 
