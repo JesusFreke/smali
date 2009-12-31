@@ -83,7 +83,6 @@ public class main {
         }
 
         boolean sort = false;
-        boolean rewriteLabels = false;
         boolean fixStringConst = true;
         boolean fixGoto = true;
 
@@ -107,32 +106,16 @@ public class main {
             return;
         }
 
-        if (commandLine.hasOption("r")) {
-            rewriteLabels = true;
-        }
-
         if (commandLine.hasOption("o")) {
-            if (rewriteLabels) {
-                System.err.println("The --output/-o option is not compatible with the --rewrite-labels/-r option. Ignoring");
-            } else {
-                outputDexFile = commandLine.getOptionValue("o");
-            }
+            outputDexFile = commandLine.getOptionValue("o");
         }
 
         if (commandLine.hasOption("d")) {
-            if (rewriteLabels) {
-                System.err.println("The --dump/-d option is not compatible with the --rewrite-labels/-r option. Ignoring");
-            } else {
-                dumpFileName = commandLine.getOptionValue("d", outputDexFile + ".dump");
-            }
+            dumpFileName = commandLine.getOptionValue("d", outputDexFile + ".dump");
         }
 
         if (commandLine.hasOption("s")) {
-            if (rewriteLabels) {
-                System.err.println("The --sort/-s option is not compatible with the --rewrite-labels/-r option. Ignoring");
-            } else {
-                sort = true;
-            }
+            sort = true;
         }
 
         if (commandLine.hasOption("c")) {
@@ -160,13 +143,6 @@ public class main {
                     } else if (argFile.isFile()) {
                         filesToProcess.add(argFile);
                     }
-            }
-
-            if (rewriteLabels) {
-                if (doRewriteLabels(filesToProcess)) {
-                    System.exit(1);
-                }
-                System.exit(0);
             }
 
             DexFile dexFile = new DexFile();
@@ -250,45 +226,6 @@ public class main {
         }
     }
 
-    private static boolean doRewriteLabels(Set<File> files)
-        throws Exception {
-        boolean errorOccurred = false;
-
-        for (File file: files) {
-            ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
-            input.name = file.getAbsolutePath();
-
-            smaliLexer_old lexer = new smaliLexer_old(input);
-
-            if (lexer.getNumberOfLexerErrors() > 0) {
-                errorOccurred = true;
-                continue;
-            }
-
-            TokenRewriteStream tokens = new TokenRewriteStream(lexer);
-            labelConverter parser = new labelConverter(tokens);
-            parser.top();
-
-            if (parser.getNumberOfSyntaxErrors() > 0) {
-                errorOccurred = true;
-                continue;
-            }
-
-            FileWriter writer = null;
-            try
-            {
-                writer = new FileWriter(file);
-                writer.write(tokens.toString());
-            } finally {
-                if (writer != null) {
-                    writer.close();
-                }
-            }
-        }
-
-        return !errorOccurred;
-    }
-
     private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile)
             throws Exception {
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(smaliFile));
@@ -369,10 +306,6 @@ public class main {
                 .withDescription("sort the items in the dex file into a canonical order before writing")
                 .create("s");
 
-        Option rewriteLabelOption = OptionBuilder.withLongOpt("rewrite-labels")
-                .withDescription("rewrite the input smali files, converting any labels in the old (pre .97) format to the new format")
-                .create("r");
-
         Option noFixStringConstOption = OptionBuilder.withLongOpt("no-fix-string-const")
                 .withDescription("Don't replace string-const instructions with string-const/jumbo where appropriate")
                 .create("c");
@@ -386,7 +319,6 @@ public class main {
         options.addOption(dumpOption);
         options.addOption(outputOption);
         options.addOption(sortOption);
-        options.addOption(rewriteLabelOption);
         options.addOption(noFixStringConstOption);
         options.addOption(noFixGotoOption);
     }

@@ -50,28 +50,6 @@
                             </includes>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>smaliLexer_old</id>
-                        <goals>
-                            <goal>antlr</goal>
-                        </goals>
-                        <configuration>
-                            <includes>
-                                <include>org/jf/smali/smaliLexer_old.g</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>labelConverter</id>
-                        <goals>
-                            <goal>antlr</goal>
-                        </goals>
-                        <configuration>
-                            <includes>
-                                <include>org/jf/smali/labelConverter.g</include>
-                            </includes>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
