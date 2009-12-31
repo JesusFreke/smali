@@ -254,7 +254,7 @@ public enum Opcode
     USHR_INT_LIT8((byte)0xe2, "ushr-int/lit8", ReferenceType.none, Format.Format22b),
 
 
-    INVOKE_EXECUTE_INLINE((byte)0xee, "execute_inline", ReferenceType.none,  Format.Format35ms, true),
+    INVOKE_EXECUTE_INLINE((byte)0xee, "execute-inline", ReferenceType.none,  Format.Format35ms, true),
     INVOKE_DIRECT_EMPTY((byte)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35s, true),
     IGET_QUICK((byte)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, true),
     IGET_WIDE_QUICK((byte)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, true),
@@ -299,7 +299,7 @@ public enum Opcode
     Opcode(byte opcodeValue, String opcodeName, ReferenceType referenceType, Format format) {
         this(opcodeValue, opcodeName, referenceType, format, false);
     }
-    
+
     Opcode(byte opcodeValue, String opcodeName, ReferenceType referenceType, Format format, boolean odexOnly) {
         this.value = opcodeValue;
         this.name = opcodeName;
