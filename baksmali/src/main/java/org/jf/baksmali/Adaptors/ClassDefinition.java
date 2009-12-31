@@ -201,6 +201,8 @@ public class ClassDefinition {
         List<StringTemplate> staticFields = new ArrayList<StringTemplate>();
 
         if (classDataItem != null) {
+            //if classDataItem is not null, then classDefItem won't be null either
+            assert(classDefItem != null);
             EncodedArrayItem encodedStaticInitializers = classDefItem.getStaticFieldInitializers();
 
             EncodedValue[] staticInitializers;
