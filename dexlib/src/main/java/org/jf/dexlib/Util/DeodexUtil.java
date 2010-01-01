@@ -126,9 +126,9 @@ public class DeodexUtil {
         instructionThrowTable.set(Opcode.IPUT_WIDE_QUICK.value & 0xFF);
         instructionThrowTable.set(Opcode.IPUT_OBJECT_QUICK.value & 0xFF);
         instructionThrowTable.set(Opcode.INVOKE_VIRTUAL_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_VIRTUAL_RANGE_QUICK.value & 0xFF);
+        instructionThrowTable.set(Opcode.INVOKE_VIRTUAL_QUICK_RANGE.value & 0xFF);
         instructionThrowTable.set(Opcode.INVOKE_SUPER_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_SUPER_RANGE_QUICK.value & 0xFF);
+        instructionThrowTable.set(Opcode.INVOKE_SUPER_QUICK_RANGE.value & 0xFF);
         instructionThrowTable.set(Opcode.INVOKE_DIRECT_EMPTY.value & 0xFF);
     }
 
@@ -621,7 +621,7 @@ public class DeodexUtil {
                 }
                 return true;
             }
-            case INVOKE_VIRTUAL_RANGE_QUICK:
+            case INVOKE_VIRTUAL_QUICK_RANGE:
             {
                 Instruction3rms ins = ((Instruction3rms)i.instruction);
                 int registerNum = ins.getStartRegister();
@@ -716,7 +716,7 @@ public class DeodexUtil {
                 }
                 return true;
             }
-            case INVOKE_SUPER_RANGE_QUICK:
+            case INVOKE_SUPER_QUICK_RANGE:
             {
                 Instruction3rms ins = ((Instruction3rms)i.instruction);
                 int registerNum = ins.getStartRegister();
@@ -909,8 +909,8 @@ public class DeodexUtil {
                     case INVOKE_SUPER_QUICK:
                         objectRegisterNum = ((Instruction35ms)instruction).getRegisterD();
                         break;
-                    case INVOKE_VIRTUAL_RANGE_QUICK:
-                    case INVOKE_SUPER_RANGE_QUICK:
+                    case INVOKE_VIRTUAL_QUICK_RANGE:
+                    case INVOKE_SUPER_QUICK_RANGE:
                         objectRegisterNum = ((Instruction3rms)instruction).getStartRegister();
                         break;
                     default:

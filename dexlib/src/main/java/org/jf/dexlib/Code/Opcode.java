@@ -263,10 +263,9 @@ public enum Opcode
     IPUT_WIDE_QUICK((byte)0xf6, "iput-wide-quick", ReferenceType.none,  Format.Format22cs, true),
     IPUT_OBJECT_QUICK((byte)0xf7, "iput-object-quick", ReferenceType.none,  Format.Format22cs, true),
     INVOKE_VIRTUAL_QUICK((byte)0xf8, "invoke-virtual-quick", ReferenceType.none,  Format.Format35ms, true),
-    INVOKE_VIRTUAL_RANGE_QUICK((byte)0xf9, "invoke-virtual-range-quick", ReferenceType.none,  Format.Format3rms, true),
+    INVOKE_VIRTUAL_QUICK_RANGE((byte)0xf9, "invoke-virtual-quick/range", ReferenceType.none,  Format.Format3rms, true),
     INVOKE_SUPER_QUICK((byte)0xfa, "invoke-super-quick", ReferenceType.none,  Format.Format35ms, true),
-    INVOKE_SUPER_RANGE_QUICK((byte)0xfb, "invoke-super-range-quick", ReferenceType.none,  Format.Format3rms, true);
-
+    INVOKE_SUPER_QUICK_RANGE((byte)0xfb, "invoke-super-quick/range", ReferenceType.none,  Format.Format3rms, true);
 
 
     private static Opcode[] opcodesByValue;

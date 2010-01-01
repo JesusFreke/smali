@@ -459,6 +459,11 @@ instruction returns [int size]
 	|	//e.g. filled-new-array/range {v0..v6} I
 		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACE register_range CLOSE_BRACE nonvoid_type_descriptor {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
+	|	//e.g. invoke-virtual-quick/range {v0 .. v10}, vtable@0x14
+		INSTRUCTION_FORMAT3rms_METHOD OPEN_BRACE register_range CLOSE_BRACE VTABLE_OFFSET
+		{
+			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT3rms_METHOD.text);
+		}
 	|	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER fixed_literal {$size = Format.Format51l.size;}
 		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)

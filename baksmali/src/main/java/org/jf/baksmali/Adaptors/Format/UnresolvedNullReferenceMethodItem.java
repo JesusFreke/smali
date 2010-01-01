@@ -53,8 +53,8 @@ public class UnresolvedNullReferenceMethodItem extends InstructionFormatMethodIt
         template.setAttribute("Register", formatRegister(instruction.ObjectRegisterNum));
         switch (instruction.OriginalInstruction.opcode)
         {
-            case INVOKE_VIRTUAL_RANGE_QUICK:
-            case INVOKE_SUPER_RANGE_QUICK:
+            case INVOKE_VIRTUAL_QUICK_RANGE:
+            case INVOKE_SUPER_QUICK_RANGE:
                 template.setAttribute("UseInvokeRange", 1);
                 if (isLastInstruction) {
                     template.setAttribute("AddGoto", 1);
