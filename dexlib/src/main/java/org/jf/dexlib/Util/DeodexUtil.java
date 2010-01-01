@@ -119,7 +119,8 @@ public class DeodexUtil {
         instructionThrowTable.set(Opcode.DIV_INT_LIT8.value & 0xFF);
         instructionThrowTable.set(Opcode.REM_INT_LIT8.value & 0xFF);
         instructionThrowTable.set(Opcode.THROW.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_EXECUTE_INLINE.value & 0xFF);                
+        instructionThrowTable.set(Opcode.INVOKE_EXECUTE_INLINE.value & 0xFF);
+        instructionThrowTable.set(Opcode.EXECUTE_INLINE_RANGE.value & 0xFF);
         instructionThrowTable.set(Opcode.IGET_QUICK.value & 0xFF);
         instructionThrowTable.set(Opcode.IGET_WIDE_QUICK.value & 0xFF);
         instructionThrowTable.set(Opcode.IGET_OBJECT_QUICK.value & 0xFF);
@@ -265,6 +266,42 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction35msf(opcode, (Instruction35ms)i.instruction,
                         inlineMethod.getMethodIdItem());
 
+
+                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
+                assert nextInstruction != null;
+                if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
+                    nextInstruction.registerReferenceType =
+                            inlineMethod.getMethodIdItem().getPrototype().getReturnType().getTypeDescriptor();
+                }
+
+                return true;
+            }
+            case EXECUTE_INLINE_RANGE:
+            {
+                int inlineMethodIndex = ((Instruction3rms)i.instruction).getMethodIndex();
+                Deodexerant.InlineMethod inlineMethod =
+                        deodexerant.lookupInlineMethod(inlineMethodIndex);
+                if (inlineMethod == null) {
+                    throw new RuntimeException("Could not find the inline method with index " + inlineMethodIndex);
+                }
+                assert inlineMethod != null;
+                assert inlineMethod.getMethodIdItem() != null;
+
+                Opcode opcode = null;
+                switch (inlineMethod.getMethodType()) {
+                    case Direct:
+                        opcode = Opcode.INVOKE_DIRECT_RANGE;
+                        break;
+                    case Static:
+                        opcode = Opcode.INVOKE_STATIC_RANGE;
+                        break;
+                    case Virtual:
+                        opcode = Opcode.INVOKE_VIRTUAL_RANGE;
+                        break;
+                }
+
+                i.fixedInstruction = new Instruction3rmsf(opcode, (Instruction3rms)i.instruction,
+                        inlineMethod.getMethodIdItem());
 
                 insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
                 assert nextInstruction != null;
@@ -897,6 +934,8 @@ public class DeodexUtil {
             this.insnsMap = insnsMap;
 
             if (instruction.opcode.odexOnly) {
+                //we don't need INVOKE_EXECUTE_INLINE or EXECUTE_INLINE_RANGE here, because we don't need to know
+                //the type of the object register in order to resolve which method is being called
                 switch (instruction.opcode) {
                     case IGET_QUICK:
                     case IGET_WIDE_QUICK:

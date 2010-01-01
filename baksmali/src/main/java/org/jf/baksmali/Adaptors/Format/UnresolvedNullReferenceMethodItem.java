@@ -53,6 +53,7 @@ public class UnresolvedNullReferenceMethodItem extends InstructionFormatMethodIt
         template.setAttribute("Register", formatRegister(instruction.ObjectRegisterNum));
         switch (instruction.OriginalInstruction.opcode)
         {
+            case EXECUTE_INLINE_RANGE:
             case INVOKE_VIRTUAL_QUICK_RANGE:
             case INVOKE_SUPER_QUICK_RANGE:
                 template.setAttribute("UseInvokeRange", 1);
