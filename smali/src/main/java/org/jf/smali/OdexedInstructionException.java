@@ -40,7 +40,7 @@ public class OdexedInstructionException extends RecognitionException {
     }
 
     public String getMessage() {
-        return odexedInstruction + " is an odexed instruction. You cannot recompile a disassembled odex file " +
+        return odexedInstruction + " is an odexed instruction. You cannot reassemble a disassembled odex file " +
                 "unless it has been deodexed.";
     }
 }
