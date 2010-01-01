@@ -395,6 +395,11 @@ instruction returns [int size]
 	|	//e.g. instance-of v0, v1, Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor {$size = Format.Format22c.size;}
 		-> ^(I_STATEMENT_FORMAT22c_TYPE[$start, "I_STATEMENT_FORMAT22c_TYPE"] INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
+	|	//e.g. iget-quick v0, v1, field@0xc
+		INSTRUCTION_FORMAT22cs_FIELD REGISTER REGISTER FIELD_OFFSET
+		{
+			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT22cs_FIELD.text);
+		}
 	|	//e.g. add-int/lit16 v0, v1, 12345
 		INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal {$size = Format.Format22s.size;}
 		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal)

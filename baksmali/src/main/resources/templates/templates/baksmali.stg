@@ -185,7 +185,7 @@ Format22c(Opcode, RegisterA, RegisterB, Reference) ::=
 
 Format22cs(Opcode, RegisterA, RegisterB, FieldOffset) ::=
 <<
-<Opcode> <RegisterA>, <RegisterB>, Field@<FieldOffset>
+<Opcode> <RegisterA>, <RegisterB>, field@<FieldOffset>
 >>
 
 Format22csf(Opcode, RegisterA, RegisterB, Reference) ::=
