@@ -266,7 +266,6 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction35msf(opcode, (Instruction35ms)i.instruction,
                         inlineMethod.getMethodIdItem());
 
-
                 insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
