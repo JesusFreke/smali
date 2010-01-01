@@ -254,7 +254,7 @@ public enum Opcode
     USHR_INT_LIT8((byte)0xe2, "ushr-int/lit8", ReferenceType.none, Format.Format22b),
 
 
-    INVOKE_EXECUTE_INLINE((byte)0xee, "execute-inline", ReferenceType.none,  Format.Format35ms, true),
+    EXECUTE_INLINE((byte)0xee, "execute-inline", ReferenceType.none,  Format.Format35ms, true),
     EXECUTE_INLINE_RANGE((byte)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rms,  true),
     INVOKE_DIRECT_EMPTY((byte)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35s, true),
     IGET_QUICK((byte)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, true),
