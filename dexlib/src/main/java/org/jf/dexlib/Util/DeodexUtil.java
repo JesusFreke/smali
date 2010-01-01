@@ -119,6 +119,7 @@ public class DeodexUtil {
         instructionThrowTable.set(Opcode.DIV_INT_LIT8.value & 0xFF);
         instructionThrowTable.set(Opcode.REM_INT_LIT8.value & 0xFF);
         instructionThrowTable.set(Opcode.THROW.value & 0xFF);
+        instructionThrowTable.set(Opcode.INVOKE_EXECUTE_INLINE.value & 0xFF);                
         instructionThrowTable.set(Opcode.IGET_QUICK.value & 0xFF);
         instructionThrowTable.set(Opcode.IGET_WIDE_QUICK.value & 0xFF);
         instructionThrowTable.set(Opcode.IGET_OBJECT_QUICK.value & 0xFF);
