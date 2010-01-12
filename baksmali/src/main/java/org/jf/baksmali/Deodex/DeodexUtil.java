@@ -819,11 +819,6 @@ public class DeodexUtil {
         public boolean visited = false;
 
         /**
-         * If this is an odex instruction, and has been fixed.
-         */
-        public boolean fixed = false;
-
-        /**
          * If this code is dead. Note that not all dead code is marked. Only the dead code that comes after an odexed
          * instruction can't be resolved because its object register is always null.
          */
