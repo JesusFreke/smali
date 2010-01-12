@@ -82,7 +82,7 @@ public class ProtoIdItem extends Item<ProtoIdItem> {
     protected void readItem(Input in, ReadContext readContext) {
         shortyDescriptor = dexFile.StringIdsSection.getItemByIndex(in.readInt());
         returnType = dexFile.TypeIdsSection.getItemByIndex(in.readInt());
-        parameters = (TypeListItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_TYPE_LIST, in.readInt());
+        parameters = (TypeListItem)readContext.getOptionalOffsettedItemByOffset(ItemType.TYPE_TYPE_LIST, in.readInt());
     }
 
     /** {@inheritDoc} */

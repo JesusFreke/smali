@@ -36,7 +36,7 @@ public class CommentedOutMethodItem extends MethodItem {
     private final MethodItem commentedOutMethodItem;
 
     public CommentedOutMethodItem(StringTemplateGroup stg, MethodItem commentedOutMethodItem) {
-        super(commentedOutMethodItem.getOffset());
+        super(commentedOutMethodItem.getCodeAddress());
         this.stg = stg;
         this.commentedOutMethodItem = commentedOutMethodItem;
     }

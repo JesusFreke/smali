@@ -144,12 +144,12 @@ public class DeodexUtil {
         final ArrayList<insn> insns = new ArrayList<insn>();
         final SparseArray<insn> insnsMap = new SparseArray<insn>();
 
-        int currentCodeOffset = 0;
+        int currentCodeAddress = 0;
         for (Instruction instruction: codeItem.getInstructions()) {
-            insn ins = new insn(codeItem, instruction, insnsMap, currentCodeOffset/2);
+            insn ins = new insn(codeItem, instruction, insnsMap, currentCodeAddress);
             insns.add(ins);
-            insnsMap.append(currentCodeOffset/2, ins);
-            currentCodeOffset += instruction.getSize(currentCodeOffset);
+            insnsMap.append(currentCodeAddress, ins);
+            currentCodeAddress += instruction.getSize(currentCodeAddress);
         }
 
         if (codeItem.getTries() != null) {
@@ -168,13 +168,13 @@ public class DeodexUtil {
                     handlers[i] = insnsMap.get(tryItem.encodedCatchHandler.handlers[i].getHandlerAddress());
                 }
 
-                int insnoffset = tryItem.getStartAddress();
-                while (insnoffset < tryItem.getStartAddress() + tryItem.getInstructionCount()) {
-                    insn i = insnsMap.get(insnoffset);
+                int currentInsnAddress = tryItem.getStartCodeAddress();
+                while (currentInsnAddress < tryItem.getStartCodeAddress() + tryItem.getTryLength()) {
+                    insn i = insnsMap.get(currentInsnAddress);
 
                     i.exceptionHandlers = handlers;
 
-                    insnoffset += i.instruction.getSize(insnoffset*2)/2;
+                    currentInsnAddress += i.instruction.getSize(currentInsnAddress);
                 }
             }
         }
@@ -266,7 +266,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction35msf(opcode, (Instruction35ms)i.instruction,
                         inlineMethod.getMethodIdItem());
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
+                insn nextInstruction = i.getInstructionAtAddress(i.address + i.instruction.getSize(i.address));
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.registerReferenceType =
@@ -302,7 +302,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction3rmsf(opcode, (Instruction3rms)i.instruction,
                         inlineMethod.getMethodIdItem());
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
+                insn nextInstruction = i.getInstructionAtAddress(i.address + i.instruction.getSize(i.address));
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.registerReferenceType =
@@ -650,7 +650,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction35msf(Opcode.INVOKE_VIRTUAL, (Instruction35ms)i.instruction,
                         method);
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
+                insn nextInstruction = i.getInstructionAtAddress(i.address + i.instruction.getSize(i.address));
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.updateRegisterReferenceType(
@@ -697,7 +697,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction3rmsf(Opcode.INVOKE_VIRTUAL_RANGE, (Instruction3rms)i.instruction,
                         method);
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
+                insn nextInstruction = i.getInstructionAtAddress(i.address + i.instruction.getSize(i.address));
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.updateRegisterReferenceType(
@@ -745,7 +745,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction35msf(Opcode.INVOKE_SUPER, (Instruction35ms)i.instruction,
                         method);
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
+                insn nextInstruction = i.getInstructionAtAddress(i.address + i.instruction.getSize(i.address));
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.updateRegisterReferenceType(
@@ -792,7 +792,7 @@ public class DeodexUtil {
                 i.fixedInstruction = new Instruction3rmsf(Opcode.INVOKE_SUPER_RANGE, (Instruction3rms)i.instruction,
                         method);
 
-                insn nextInstruction = i.getInstructionAtOffset(i.offset + i.instruction.getSize(i.offset*2)/2);
+                insn nextInstruction = i.getInstructionAtAddress(i.address + i.instruction.getSize(i.address));
                 assert nextInstruction != null;
                 if (nextInstruction.instruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     nextInstruction.updateRegisterReferenceType(
@@ -837,21 +837,21 @@ public class DeodexUtil {
          */
         public final Instruction instruction;
         /**
-         * The offset in the instruction stream, in 2-byte instruction blocks
+         * The code address of the instruction, in 2-byte instruction blocks
          */
-        public final int offset;
+        public final int address;
         /**
          * True if this instruction can throw an exception
          */
         public final boolean canThrow;
 
         /**
-         * maps an instruction stream offset to an insn
+         * maps a code address to an insn
          */
         public final SparseArray<insn> insnsMap;
 
         /**
-         * Instructions that can execution could pass on to next
+         * Instructions that execution could pass on to next
          */
         public LinkedList<insn> successors = new LinkedList<insn>();
 
@@ -925,10 +925,10 @@ public class DeodexUtil {
         public final RegisterType[] registerMap;
         public final String[] registerTypes;
 
-        public insn(CodeItem codeItem, Instruction instruction, SparseArray<insn> insnsMap, int offset) {
+        public insn(CodeItem codeItem, Instruction instruction, SparseArray<insn> insnsMap, int address) {
             this.codeItem = codeItem;
             this.instruction = instruction;
-            this.offset = offset;
+            this.address = address;
             this.canThrow = DeodexUtil.instructionThrowTable.get(instruction.opcode.value & 0xFF);
             this.insnsMap = insnsMap;
 
@@ -965,8 +965,8 @@ public class DeodexUtil {
             }
         }
 
-        private insn getInstructionAtOffset(int offset) {
-            insn i = insnsMap.get(offset);
+        private insn getInstructionAtAddress(int address) {
+            insn i = insnsMap.get(address);
             assert i != null;
             return i;
         }
@@ -989,7 +989,7 @@ public class DeodexUtil {
                 case GOTO:
                 case GOTO_16:
                 case GOTO_32:
-                    addSuccessor(getInstructionAtOffset(offset + ((OffsetInstruction)instruction).getOffset()));
+                    addSuccessor(getInstructionAtAddress(address + ((OffsetInstruction)instruction).getTargetAddressOffset()));
                     return;
                 case IF_EQ:
                 case IF_GE:
@@ -1003,19 +1003,19 @@ public class DeodexUtil {
                 case IF_LEZ:
                 case IF_LTZ:
                 case IF_NEZ:
-                    addSuccessor(getInstructionAtOffset(offset + ((OffsetInstruction)instruction).getOffset()));
+                    addSuccessor(getInstructionAtAddress(address + ((OffsetInstruction)instruction).getTargetAddressOffset()));
                     break;
                 case PACKED_SWITCH:
                 case SPARSE_SWITCH:
                 {
                     insn packedSwitchDataInsn =
-                            getInstructionAtOffset(offset + ((OffsetInstruction)instruction).getOffset());
+                            getInstructionAtAddress(address + ((OffsetInstruction)instruction).getTargetAddressOffset());
                     assert packedSwitchDataInsn.instruction instanceof MultiOffsetInstruction;
                     MultiOffsetInstruction switchData =
                             (MultiOffsetInstruction)(packedSwitchDataInsn.instruction);
                     int[] packedSwitchTargets = switchData.getTargets();
                     for (int i=0; i<packedSwitchTargets.length; i++) {
-                        addSuccessor(getInstructionAtOffset(offset + packedSwitchTargets[i]));
+                        addSuccessor(getInstructionAtAddress(address + packedSwitchTargets[i]));
                     }
                     break;
                 }
@@ -1167,7 +1167,7 @@ public class DeodexUtil {
                     //the array size for that case, but support the case of multiple exception types as well
                     List<String> exceptionTypes = new ArrayList<String>(1);
                     for (CodeItem.TryItem tryItem: codeItem.getTries()) {
-                        if (tryItem.encodedCatchHandler.getCatchAllHandlerAddress() == this.offset) {
+                        if (tryItem.encodedCatchHandler.getCatchAllHandlerAddress() == this.address) {
                             //if this is a catch all handler, the only possible type is Ljava/lang/Throwable;
                             registerReferenceType = "Ljava/lang/Throwable;";
 
@@ -1181,7 +1181,7 @@ public class DeodexUtil {
                         }
 
                         for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
-                            if (handler.getHandlerAddress() == this.offset) {
+                            if (handler.getHandlerAddress() == this.address) {
                                 exceptionTypes.add(handler.exceptionType.getTypeDescriptor());
                             }
                         }
@@ -1262,7 +1262,7 @@ public class DeodexUtil {
 
             //if we got here, then we can assume that it's possible for execution to continue on to the next
             //instruction. Otherwise, we would have returned from within the switch statement
-            addSuccessor(getInstructionAtOffset(offset + instruction.getSize(offset)/2));
+            addSuccessor(getInstructionAtAddress(address + instruction.getSize(address)));
         }
 
         private String findCommonSuperclass(String type1, String type2) {

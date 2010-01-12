@@ -122,24 +122,40 @@ public class ClassDataItem extends Item<ClassDataItem> {
 
         EncodedField previousEncodedField = null;
         for (int i=0; i<staticFields.length; i++) {
-            staticFields[i] = previousEncodedField = new EncodedField(dexFile, in, previousEncodedField);
+            try {
+                staticFields[i] = previousEncodedField = new EncodedField(dexFile, in, previousEncodedField);
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex, "Error while reading static field at index " + i);
+            }
         }
 
         previousEncodedField = null;
         for (int i=0; i<instanceFields.length; i++) {
-            instanceFields[i] = previousEncodedField = new EncodedField(dexFile, in, previousEncodedField);
+            try {
+                instanceFields[i] = previousEncodedField = new EncodedField(dexFile, in, previousEncodedField);
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex, "Error while reading instance field at index " + i);
+            }
         }
 
         EncodedMethod previousEncodedMethod = null;
         for (int i=0; i<directMethods.length; i++) {
-            directMethods[i] = previousEncodedMethod = new EncodedMethod(dexFile, readContext, in,
-                    previousEncodedMethod);
+            try {
+                directMethods[i] = previousEncodedMethod = new EncodedMethod(dexFile, readContext, in,
+                        previousEncodedMethod);
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex, "Error while reading direct method at index " + i);
+            }
         }
 
         previousEncodedMethod = null;
         for (int i=0; i<virtualMethods.length; i++) {
-            virtualMethods[i] = previousEncodedMethod = new EncodedMethod(dexFile, readContext, in,
-                    previousEncodedMethod);
+            try {
+                virtualMethods[i] = previousEncodedMethod = new EncodedMethod(dexFile, readContext, in,
+                        previousEncodedMethod);
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex, "Error while reading virtual method at index " + i);
+            }
         }
     }
 
@@ -271,7 +287,10 @@ public class ClassDataItem extends Item<ClassDataItem> {
 
     /** {@inheritDoc} */
     public String getConciseIdentity() {
-        return "class_data_item @0x" + Integer.toHexString(getOffset());
+        if (parent == null) {
+            return "class_data_item @0x" + Integer.toHexString(getOffset());
+        }
+        return "class_data_item @0x" + Integer.toHexString(getOffset()) + " (" + parent.getClassType() +")";
     }
 
     /** {@inheritDoc} */
@@ -459,7 +478,8 @@ public class ClassDataItem extends Item<ClassDataItem> {
             int previousIndex = previousEncodedMethod==null?0:previousEncodedMethod.method.getIndex();
             method = dexFile.MethodIdsSection.getItemByIndex(in.readUnsignedLeb128() + previousIndex);
             accessFlags = in.readUnsignedLeb128();
-            codeItem = (CodeItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_CODE_ITEM, in.readUnsignedLeb128());
+            codeItem = (CodeItem)readContext.getOptionalOffsettedItemByOffset(ItemType.TYPE_CODE_ITEM,
+                    in.readUnsignedLeb128());
             if (codeItem != null) {
                 codeItem.setParent(this);
             }
@@ -480,7 +500,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
                 out.annotate("access_flags: " + AccessFlags.formatAccessFlagsForMethod(accessFlags));
                 out.writeUnsignedLeb128(accessFlags);
                 if (codeItem != null) {
-                    out.annotate("code_off: 0x" + codeItem.getOffset());
+                    out.annotate("code_off: 0x" + Integer.toHexString(codeItem.getOffset()));
                     out.writeUnsignedLeb128(codeItem.getOffset());
                 } else {
                     out.annotate("code_off: 0x0");

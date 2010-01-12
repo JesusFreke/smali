@@ -40,10 +40,10 @@ public class LocalDebugMethodItem extends DebugMethodItem {
     private final String type;
     private final String signature;
 
-    public LocalDebugMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg, String templateName,
+    public LocalDebugMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg, String templateName,
                                 int sortOrder, int register, StringIdItem name, TypeIdItem type,
                                 StringIdItem signature) {
-        super(offset, stg, templateName, sortOrder);
+        super(codeAddress, stg, templateName, sortOrder);
         this.register = RegisterFormatter.formatRegister(codeItem, register);
         this.name = name==null?null:name.getStringValue();
         this.type = type==null?null:type.getTypeDescriptor();

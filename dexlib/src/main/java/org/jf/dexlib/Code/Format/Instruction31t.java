@@ -39,7 +39,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 public class Instruction31t extends Instruction implements OffsetInstruction, SingleRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
-    private int offset;
+    private int targetAddressOffset;
 
     public Instruction31t(Opcode opcode, short regA, int offB) {
         super(opcode);
@@ -49,24 +49,25 @@ public class Instruction31t extends Instruction implements OffsetInstruction, Si
         }
 
         this.regA = (byte)regA;
-        this.offset = offB;
+        this.targetAddressOffset = offB;
     }
 
     private Instruction31t(Opcode opcode, byte[] buffer, int bufferIndex) {
         super(opcode);
 
         this.regA = buffer[bufferIndex + 1];
-        this.offset = NumberUtils.decodeInt(buffer, bufferIndex + 2);
+        this.targetAddressOffset = NumberUtils.decodeInt(buffer, bufferIndex + 2);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
-        out.writeInt(offset + (((currentCodeOffset/2) + offset) % 2));
+        //align the address offset so that the absolute address is aligned on a 4-byte boundary (2 code block boundary)
+        out.writeInt(targetAddressOffset + ((currentCodeAddress + targetAddressOffset) % 2));
     }
 
-    public void updateOffset(int offset) {
-        this.offset = offset;
+    public void updateTargetAddressOffset(int targetAddressOffset) {
+        this.targetAddressOffset = targetAddressOffset;
     }
 
     public Format getFormat() {
@@ -77,8 +78,8 @@ public class Instruction31t extends Instruction implements OffsetInstruction, Si
         return regA & 0xFF;
     }
 
-    public int getOffset() {
-        return offset;
+    public int getTargetAddressOffset() {
+        return targetAddressOffset;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

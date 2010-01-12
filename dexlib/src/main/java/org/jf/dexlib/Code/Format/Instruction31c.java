@@ -57,7 +57,7 @@ public class Instruction31c extends InstructionWithReference implements SingleRe
         this.regA = buffer[bufferIndex + 1];
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeInt(getReferencedItem().getIndex());

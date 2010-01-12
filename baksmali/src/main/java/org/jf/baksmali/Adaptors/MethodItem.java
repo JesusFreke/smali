@@ -29,26 +29,21 @@
 package org.jf.baksmali.Adaptors;
 
 public abstract class MethodItem implements Comparable<MethodItem> {
-    private int offset;
+    private int codeAddress;
 
-    protected MethodItem(int offset) {
-        this.offset = offset;
+    protected MethodItem(int codeAddress) {
+        this.codeAddress = codeAddress;
     }
 
-    public int getOffset() {
-        return offset;
+    public int getCodeAddress() {
+        return codeAddress;
     }
 
-    public String getHexOffset() {
-        return Integer.toHexString(offset);
-    }
-
-    //return an arbitrary integer that determines how this item will be sorted with
-    //others at the same offset
+    //return an arbitrary integer that determines how this item will be sorted with others at the same address
     public abstract int getSortOrder();
 
     public int compareTo(MethodItem methodItem) {
-        int result = ((Integer)offset).compareTo(methodItem.offset);
+        int result = ((Integer) codeAddress).compareTo(methodItem.codeAddress);
 
         if (result == 0){
             return ((Integer)getSortOrder()).compareTo(methodItem.getSortOrder());

@@ -37,17 +37,17 @@ import org.jf.dexlib.Util.NumberUtils;
 
 public class Instruction20t extends Instruction implements OffsetInstruction {
     public static final InstructionFactory Factory = new Factory();
-    private int offset;
+    private int targetAddressOffset;
 
     public Instruction20t(Opcode opcode, int offA) {
         super(opcode);
-        this.offset = offA;
+        this.targetAddressOffset = offA;
 
-        if (offset == 0) {
-            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead.");
+        if (targetAddressOffset == 0) {
+            throw new RuntimeException("The address offset cannot be 0. Use goto/32 instead.");
         }
 
-        //allow out of range offsets here, so we have the option of replacing this instruction
+        //allow out of range address offsets here, so we have the option of replacing this instruction
         //with goto/16 or goto/32 later
     }
 
@@ -56,34 +56,34 @@ public class Instruction20t extends Instruction implements OffsetInstruction {
 
         assert buffer[bufferIndex] == opcode.value;
 
-        this.offset = NumberUtils.decodeShort(buffer, bufferIndex+2);
-        assert offset != 0;
+        this.targetAddressOffset = NumberUtils.decodeShort(buffer, bufferIndex+2);
+        assert targetAddressOffset != 0;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        if (offset == 0) {
-            throw new RuntimeException("The offset cannot be 0. Use goto/32 instead");
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        if (targetAddressOffset == 0) {
+            throw new RuntimeException("The address offset cannot be 0. Use goto/32 instead");
         }
 
-        if (offset < -32768 || offset > 32767) {
-            throw new RuntimeException("The offset is out of range. It must be in [-32768,-1] or [1, 32768]");
+        if (targetAddressOffset < -32768 || targetAddressOffset > 32767) {
+            throw new RuntimeException("The address offset is out of range. It must be in [-32768,-1] or [1, 32768]");
         }
 
         out.writeByte(opcode.value);
         out.writeByte(0x00);
-        out.writeShort(offset);
+        out.writeShort(targetAddressOffset);
     }
 
-    public void updateOffset(int offset) {
-        this.offset = offset;
+    public void updateTargetAddressOffset(int targetAddressOffset) {
+        this.targetAddressOffset = targetAddressOffset;
     }
 
     public Format getFormat() {
         return Format.Format20t;
     }
 
-    public int getOffset() {
-        return offset;
+    public int getTargetAddressOffset() {
+        return targetAddressOffset;
     }
 
     private static class Factory implements InstructionFactory {

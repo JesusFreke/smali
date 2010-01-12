@@ -59,7 +59,7 @@ public class Instruction32x extends Instruction implements TwoRegisterInstructio
         this.regB = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(0);
         out.writeShort(regA);

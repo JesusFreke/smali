@@ -47,13 +47,13 @@ public class UnresolvedNullReference extends Instruction {
         this.ObjectRegisterNum = objectRegisterNumber;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         throw new RuntimeException("Cannot rewrite an instruction that couldn't be deodexed");
     }
 
     @Override
-    public int getSize(int offset) {
-        return OriginalInstruction.getSize(offset);
+    public int getSize(int codeAddress) {
+        return OriginalInstruction.getSize(codeAddress);
     }
 
     public Format getFormat() {

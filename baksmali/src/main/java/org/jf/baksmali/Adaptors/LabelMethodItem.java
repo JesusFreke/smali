@@ -38,8 +38,8 @@ public class LabelMethodItem extends MethodItem {
     private int labelSequence;
     private boolean isCommentedOut = true;
 
-    public LabelMethodItem(int offset, StringTemplateGroup stg, String labelPrefix) {
-        super(offset);
+    public LabelMethodItem(int codeAddress, StringTemplateGroup stg, String labelPrefix) {
+        super(codeAddress);
         this.stg = stg;
         this.labelPrefix = labelPrefix;
     }
@@ -69,7 +69,7 @@ public class LabelMethodItem extends MethodItem {
 
     public int hashCode() {
         //force it to call equals when two labels are at the same address
-        return getOffset();
+        return getCodeAddress();
     }
 
     public boolean equals(Object o) {
@@ -86,7 +86,7 @@ public class LabelMethodItem extends MethodItem {
         if (baksmali.useSequentialLabels) {
             template.setAttribute("Suffix", Integer.toHexString(labelSequence));
         } else {
-            template.setAttribute("Suffix", getLabelOffset());
+            template.setAttribute("Suffix", getLabelAddress());
         }
         return template.toString();
     }
@@ -95,8 +95,8 @@ public class LabelMethodItem extends MethodItem {
         return labelPrefix;
     }
 
-    public String getLabelOffset() {
-        return getHexOffset();
+    public String getLabelAddress() {
+        return Integer.toHexString(this.getCodeAddress());
     }
 
     public int getLabelSequence() {

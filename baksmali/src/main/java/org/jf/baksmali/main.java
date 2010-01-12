@@ -303,7 +303,7 @@ public class main {
 
         Option sequentialLabelsOption = OptionBuilder.withLongOpt("sequential-labels")
                 .withDescription("create label names using a sequential numbering scheme per label type, rather than " +
-                        "using the bytecode offset")
+                        "using the bytecode address")
                 .create("q");
 
         Option noDebugInfoOption = OptionBuilder.withLongOpt("no-debug-info")

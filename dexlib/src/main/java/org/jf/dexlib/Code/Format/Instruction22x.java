@@ -62,7 +62,7 @@ public class Instruction22x extends Instruction implements TwoRegisterInstructio
         this.regB = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeShort(regB);

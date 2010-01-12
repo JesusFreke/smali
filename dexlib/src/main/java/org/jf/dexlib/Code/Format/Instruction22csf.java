@@ -43,7 +43,7 @@ public class Instruction22csf extends InstructionWithReference implements TwoReg
         this.unfixedInstruction = unfixedInstruction;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         byte regA = (byte)getRegisterA();
         byte regB = (byte)getRegisterB();
 

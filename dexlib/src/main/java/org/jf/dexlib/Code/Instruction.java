@@ -29,15 +29,19 @@
 package org.jf.dexlib.Code;
 
 import org.jf.dexlib.*;
-import org.jf.dexlib.Util.ByteArrayInput;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Code.Format.Format;
 
 public abstract class Instruction {
     public final Opcode opcode;
 
-    public int getSize(int offset) {
-        return opcode.format.size;
+    /**
+     * Returns the size of this instruction in code blocks, assuming the instruction is located at the given address
+     * @param codeAddress the code address where the instruction is located
+     * @return The size of this instruction in code blocks
+     **/
+    public int getSize(int codeAddress) {
+        return opcode.format.size/2;
     }
 
     protected Instruction(Opcode opcode) {
@@ -46,20 +50,20 @@ public abstract class Instruction {
 
     public abstract Format getFormat();
 
-    public int write(AnnotatedOutput out, int currentCodeOffset) {
+    public int write(AnnotatedOutput out, int currentCodeAddress) {
         if (out.annotates()) {
-            annotateInstruction(out, currentCodeOffset);
+            annotateInstruction(out, currentCodeAddress);
         }
-        writeInstruction(out, currentCodeOffset);
-        return currentCodeOffset + getSize(currentCodeOffset);
+        writeInstruction(out, currentCodeAddress);
+        return currentCodeAddress + getSize(currentCodeAddress);
     }
 
-    protected void annotateInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        out.annotate(getSize(currentCodeOffset), "[0x" + Integer.toHexString(currentCodeOffset/2) + "] " +
+    protected void annotateInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        out.annotate(getSize(currentCodeAddress)*2, "[0x" + Integer.toHexString(currentCodeAddress) + "] " +
                 opcode.name + " instruction");
     }
 
-    protected abstract void writeInstruction(AnnotatedOutput out, int currentCodeOffset);
+    protected abstract void writeInstruction(AnnotatedOutput out, int currentCodeAddress);
 
     public static interface InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex);

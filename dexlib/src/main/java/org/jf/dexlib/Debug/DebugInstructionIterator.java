@@ -44,29 +44,31 @@ public class DebugInstructionIterator {
      * for each instruction that is encountered
      */
     public static void IterateInstructions(Input in, ProcessRawDebugInstructionDelegate processDebugInstruction) {
-        int startOffset;
+        int startDebugOffset;
 
         while(true)
         {
-            startOffset = in.getCursor();
+            startDebugOffset = in.getCursor();
             byte debugOpcode = in.readByte();
 
             switch (debugOpcode) {
                 case 0x00:
                 {
-                    processDebugInstruction.ProcessEndSequence(startOffset);
+                    processDebugInstruction.ProcessEndSequence(startDebugOffset);
                     return;
                 }
                 case 0x01:
                 {
-                    int addressDiff = in.readUnsignedLeb128();
-                    processDebugInstruction.ProcessAdvancePC(startOffset, in.getCursor() - startOffset, addressDiff);
+                    int codeAddressDiff = in.readUnsignedLeb128();
+                    processDebugInstruction.ProcessAdvancePC(startDebugOffset, in.getCursor() - startDebugOffset,
+                            codeAddressDiff);
                     break;
                 }
                 case 0x02:
                 {
                     int lineDiff = in.readSignedLeb128();
-                    processDebugInstruction.ProcessAdvanceLine(startOffset, in.getCursor() - startOffset, lineDiff);
+                    processDebugInstruction.ProcessAdvanceLine(startDebugOffset, in.getCursor() - startDebugOffset,
+                            lineDiff);
                     break;
                 }
                 case 0x03:
@@ -79,8 +81,8 @@ public class DebugInstructionIterator {
                     }
                     int nameIndex = in.readUnsignedLeb128() - 1;
                     int typeIndex = in.readUnsignedLeb128() - 1;
-                    processDebugInstruction.ProcessStartLocal(startOffset, in.getCursor() - startOffset, registerNum,
-                            nameIndex, typeIndex, isSignedRegister);
+                    processDebugInstruction.ProcessStartLocal(startDebugOffset, in.getCursor() - startDebugOffset,
+                            registerNum, nameIndex, typeIndex, isSignedRegister);
                     break;
                 }
                 case 0x04:
@@ -94,8 +96,9 @@ public class DebugInstructionIterator {
                     int nameIndex = in.readUnsignedLeb128() - 1;
                     int typeIndex = in.readUnsignedLeb128() - 1;
                     int signatureIndex = in.readUnsignedLeb128() - 1;
-                    processDebugInstruction.ProcessStartLocalExtended(startOffset, in.getCursor() - startOffset,
-                            registerNum, nameIndex, typeIndex, signatureIndex, isSignedRegister);
+                    processDebugInstruction.ProcessStartLocalExtended(startDebugOffset,
+                            in.getCursor() - startDebugOffset, registerNum, nameIndex, typeIndex, signatureIndex,
+                            isSignedRegister);
                     break;
                 }
                 case 0x05:
@@ -106,8 +109,8 @@ public class DebugInstructionIterator {
                         isSignedRegister = true;
                         registerNum = ~registerNum;
                     }
-                    processDebugInstruction.ProcessEndLocal(startOffset, in.getCursor() - startOffset, registerNum,
-                            isSignedRegister);
+                    processDebugInstruction.ProcessEndLocal(startDebugOffset, in.getCursor() - startDebugOffset,
+                            registerNum, isSignedRegister);
                     break;
                 }
                 case 0x06:
@@ -118,30 +121,31 @@ public class DebugInstructionIterator {
                         isSignedRegister = true;
                         registerNum = ~registerNum;
                     }
-                    processDebugInstruction.ProcessRestartLocal(startOffset, in.getCursor() - startOffset, registerNum,
-                            isSignedRegister);
+                    processDebugInstruction.ProcessRestartLocal(startDebugOffset, in.getCursor() - startDebugOffset,
+                            registerNum, isSignedRegister);
                     break;
                 }
                 case 0x07:
                 {
-                    processDebugInstruction.ProcessSetPrologueEnd(startOffset);
+                    processDebugInstruction.ProcessSetPrologueEnd(startDebugOffset);
                     break;
                 }
                 case 0x08:
                 {
-                    processDebugInstruction.ProcessSetEpilogueBegin(startOffset);
+                    processDebugInstruction.ProcessSetEpilogueBegin(startDebugOffset);
                     break;
                 }
                 case 0x09:
                 {
                     int nameIndex = in.readUnsignedLeb128();
-                    processDebugInstruction.ProcessSetFile(startOffset, in.getCursor() - startOffset, nameIndex);
+                    processDebugInstruction.ProcessSetFile(startDebugOffset, in.getCursor() - startDebugOffset,
+                            nameIndex);
                     break;
                 }
                 default:
                 {
                     int base = ((debugOpcode & 0xFF) - 0x0A);
-                    processDebugInstruction.ProcessSpecialOpcode(startOffset, debugOpcode, (base % 15) - 4, base / 15);
+                    processDebugInstruction.ProcessSpecialOpcode(startDebugOffset, debugOpcode, (base % 15) - 4, base / 15);
                 }
             }
         }
@@ -157,8 +161,8 @@ public class DebugInstructionIterator {
      */
     public static void DecodeInstructions(DebugInfoItem debugInfoItem, int registerCount,
                                            ProcessDecodedDebugInstructionDelegate processDecodedDebugInstruction) {
-        int startOffset;
-        int address = 0;
+        int startDebugOffset;
+        int currentCodeAddress = 0;
         int line = debugInfoItem.getLineStart();
         Input in = new ByteArrayInput(debugInfoItem.getEncodedDebugInfo());
         DexFile dexFile = debugInfoItem.getDexFile();
@@ -167,96 +171,97 @@ public class DebugInstructionIterator {
 
         while(true)
         {
-            startOffset = in.getCursor();
+            startDebugOffset = in.getCursor();
             byte debugOpcode = in.readByte();
 
-            switch (debugOpcode) {
-                case 0x00:
+            switch (DebugOpcode.getDebugOpcodeByValue(debugOpcode)) {
+                case DBG_END_SEQUENCE:
                 {
                     return;
                 }
-                case 0x01:
+                case DBG_ADVANCE_PC:
                 {
-                    int addressDiff = in.readUnsignedLeb128();
-                    address += addressDiff;
+                    int codeAddressDiff = in.readUnsignedLeb128();
+                    currentCodeAddress += codeAddressDiff;
                     break;
                 }
-                case 0x02:
+                case DBG_ADVANCE_LINE:
                 {
                     int lineDiff = in.readSignedLeb128();
                     line += lineDiff;
                     break;
                 }
-                case 0x03:
+                case DBG_START_LOCAL:
                 {
                     int registerNum = in.readUnsignedLeb128();
-                    StringIdItem name = dexFile.StringIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
-                    TypeIdItem type = dexFile.TypeIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
+                    StringIdItem name = dexFile.StringIdsSection.getOptionalItemByIndex(in.readUnsignedLeb128() - 1);
+                    TypeIdItem type = dexFile.TypeIdsSection.getOptionalItemByIndex(in.readUnsignedLeb128() - 1);
                     locals[registerNum] = new Local(registerNum, name, type, null);
-                    processDecodedDebugInstruction.ProcessStartLocal(address, in.getCursor() - startOffset, registerNum,
-                            name, type);
+                    processDecodedDebugInstruction.ProcessStartLocal(currentCodeAddress,
+                            in.getCursor() - startDebugOffset, registerNum, name, type);
                     break;
                 }
-                case 0x04:
+                case DBG_START_LOCAL_EXTENDED:
                 {
                     int registerNum = in.readUnsignedLeb128();
-                    StringIdItem name = dexFile.StringIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
-                    TypeIdItem type = dexFile.TypeIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
-                    StringIdItem signature = dexFile.StringIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
+                    StringIdItem name = dexFile.StringIdsSection.getOptionalItemByIndex(in.readUnsignedLeb128() - 1);
+                    TypeIdItem type = dexFile.TypeIdsSection.getOptionalItemByIndex(in.readUnsignedLeb128() - 1);
+                    StringIdItem signature =
+                            dexFile.StringIdsSection.getOptionalItemByIndex(in.readUnsignedLeb128() - 1);
                     locals[registerNum] = new Local(registerNum, name, type, signature);
-                    processDecodedDebugInstruction.ProcessStartLocalExtended(address, in.getCursor() - startOffset,
-                            registerNum, name, type, signature);
+                    processDecodedDebugInstruction.ProcessStartLocalExtended(currentCodeAddress,
+                            in.getCursor() - startDebugOffset, registerNum, name, type, signature);
                     break;
                 }
-                case 0x05:
+                case DBG_END_LOCAL:
                 {
                     int registerNum = in.readUnsignedLeb128();
                     Local local = locals[registerNum];
                     if (local == null) {
-                        processDecodedDebugInstruction.ProcessEndLocal(address, in.getCursor() - startOffset, registerNum,
+                        processDecodedDebugInstruction.ProcessEndLocal(currentCodeAddress, in.getCursor() - startDebugOffset, registerNum,
                                 null, null, null);
                     } else {
-                        processDecodedDebugInstruction.ProcessEndLocal(address, in.getCursor() - startOffset, registerNum,
+                        processDecodedDebugInstruction.ProcessEndLocal(currentCodeAddress, in.getCursor() - startDebugOffset, registerNum,
                                 local.name, local.type, local.signature);
                     }
                     break;
                 }
-                case 0x06:
+                case DBG_RESTART_LOCAL:
                 {
                     int registerNum = in.readUnsignedLeb128();
                     Local local = locals[registerNum];
                     if (local == null) {
-                        processDecodedDebugInstruction.ProcessRestartLocal(address, in.getCursor() - startOffset,
+                        processDecodedDebugInstruction.ProcessRestartLocal(currentCodeAddress, in.getCursor() - startDebugOffset,
                                 registerNum, null, null, null);
                     } else {
-                        processDecodedDebugInstruction.ProcessRestartLocal(address, in.getCursor() - startOffset,
+                        processDecodedDebugInstruction.ProcessRestartLocal(currentCodeAddress, in.getCursor() - startDebugOffset,
                                 registerNum, local.name, local.type, local.signature);
                     }
 
                     break;
                 }
-                case 0x07:
+                case DBG_SET_PROLOGUE_END:
                 {
-                    processDecodedDebugInstruction.ProcessSetPrologueEnd(address);
+                    processDecodedDebugInstruction.ProcessSetPrologueEnd(currentCodeAddress);
                     break;
                 }
-                case 0x08:
+                case DBG_SET_EPILOGUE_BEGIN:
                 {
-                    processDecodedDebugInstruction.ProcessSetEpilogueBegin(address);
+                    processDecodedDebugInstruction.ProcessSetEpilogueBegin(currentCodeAddress);
                     break;
                 }
-                case 0x09:
+                case DBG_SET_FILE:
                 {
-                    StringIdItem name = dexFile.StringIdsSection.getItemByIndex(in.readUnsignedLeb128() - 1);
-                    processDecodedDebugInstruction.ProcessSetFile(address, in.getCursor() - startOffset, name);
+                    StringIdItem name = dexFile.StringIdsSection.getOptionalItemByIndex(in.readUnsignedLeb128() - 1);
+                    processDecodedDebugInstruction.ProcessSetFile(currentCodeAddress, in.getCursor() - startDebugOffset, name);
                     break;
                 }
-                default:
+                case DBG_SPECIAL_OPCODE:
                 {
                     int base = ((debugOpcode & 0xFF) - 0x0A);
-                    address += base / 15;
+                    currentCodeAddress += base / 15;
                     line += (base % 15) - 4;
-                    processDecodedDebugInstruction.ProcessLineEmit(address, line);
+                    processDecodedDebugInstruction.ProcessLineEmit(currentCodeAddress, line);
                 }
             }
         }
@@ -265,50 +270,50 @@ public class DebugInstructionIterator {
     public static class ProcessRawDebugInstructionDelegate
     {
         //TODO: add javadocs
-        public void ProcessEndSequence(int startOffset) {
-            ProcessStaticOpcode(DebugOpcode.DBG_END_SEQUENCE, startOffset, 1);
+        public void ProcessEndSequence(int startDebugOffset) {
+            ProcessStaticOpcode(DebugOpcode.DBG_END_SEQUENCE, startDebugOffset, 1);
         }
 
-        public void ProcessAdvancePC(int startOffset, int length, int addressDiff) {
-            ProcessStaticOpcode(DebugOpcode.DBG_ADVANCE_PC, startOffset, length);
+        public void ProcessAdvancePC(int startDebugOffset, int length, int codeAddressDiff) {
+            ProcessStaticOpcode(DebugOpcode.DBG_ADVANCE_PC, startDebugOffset, length);
         }
 
-        public void ProcessAdvanceLine(int startOffset, int length, int lineDiff) {
-            ProcessStaticOpcode(DebugOpcode.DBG_ADVANCE_LINE, startOffset, length);
+        public void ProcessAdvanceLine(int startDebugOffset, int length, int lineDiff) {
+            ProcessStaticOpcode(DebugOpcode.DBG_ADVANCE_LINE, startDebugOffset, length);
         }
 
-        public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex, int typeIndex,
+        public void ProcessStartLocal(int startDebugOffset, int length, int registerNum, int nameIndex, int typeIndex,
                                       boolean registerIsSigned) {
         }
 
-        public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
+        public void ProcessStartLocalExtended(int startDebugOffset, int length, int registerNum, int nameIndex,
                                               int typeIndex,int signatureIndex, boolean registerIsSigned) {
         }
 
-        public void ProcessEndLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
-            ProcessStaticOpcode(DebugOpcode.DBG_END_LOCAL, startOffset, length);
+        public void ProcessEndLocal(int startDebugOffset, int length, int registerNum, boolean registerIsSigned) {
+            ProcessStaticOpcode(DebugOpcode.DBG_END_LOCAL, startDebugOffset, length);
         }
 
-        public void ProcessRestartLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
-            ProcessStaticOpcode(DebugOpcode.DBG_RESTART_LOCAL, startOffset, length);
+        public void ProcessRestartLocal(int startDebugOffset, int length, int registerNum, boolean registerIsSigned) {
+            ProcessStaticOpcode(DebugOpcode.DBG_RESTART_LOCAL, startDebugOffset, length);
         }
 
-        public void ProcessSetPrologueEnd(int startOffset) {
-            ProcessStaticOpcode(DebugOpcode.DBG_SET_PROLOGUE_END, startOffset, 1);
+        public void ProcessSetPrologueEnd(int startDebugOffset) {
+            ProcessStaticOpcode(DebugOpcode.DBG_SET_PROLOGUE_END, startDebugOffset, 1);
         }
 
-        public void ProcessSetEpilogueBegin(int startOffset) {
-            ProcessStaticOpcode(DebugOpcode.DBG_SET_EPILOGUE_BEGIN, startOffset, 1);
+        public void ProcessSetEpilogueBegin(int startDebugOffset) {
+            ProcessStaticOpcode(DebugOpcode.DBG_SET_EPILOGUE_BEGIN, startDebugOffset, 1);
         }
 
-        public void ProcessSetFile(int startOffset, int length, int nameIndex) {
+        public void ProcessSetFile(int startDebugOffset, int length, int nameIndex) {
         }
 
-        public void ProcessSpecialOpcode(int startOffset, int debugOpcode, int lineDiff, int addressDiff) {
-            ProcessStaticOpcode(DebugOpcode.DBG_SPECIAL_OPCODE, startOffset, 1);
+        public void ProcessSpecialOpcode(int startDebugOffset, int debugOpcode, int lineDiff, int codeAddressDiff) {
+            ProcessStaticOpcode(DebugOpcode.DBG_SPECIAL_OPCODE, startDebugOffset, 1);
         }
 
-        public void ProcessStaticOpcode(DebugOpcode debugOpcode, int startOffset, int length) {
+        public void ProcessStaticOpcode(DebugOpcode debugOpcode, int startDebugOffset, int length) {
         }
     }
 

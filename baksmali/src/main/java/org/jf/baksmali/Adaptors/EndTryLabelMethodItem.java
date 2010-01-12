@@ -31,11 +31,11 @@ package org.jf.baksmali.Adaptors;
 import org.antlr.stringtemplate.StringTemplateGroup;
 
 public class EndTryLabelMethodItem extends LabelMethodItem {
-    private int labelOffset;
+    private int endTryAddress;
 
-    public EndTryLabelMethodItem(int offset, StringTemplateGroup stg, int labelOffset) {
-        super(offset, stg, "try_end_");
-        this.labelOffset = labelOffset;
+    public EndTryLabelMethodItem(int codeAddress, StringTemplateGroup stg, int endTryAddress) {
+        super(codeAddress, stg, "try_end_");
+        this.endTryAddress = endTryAddress;
     }
 
     public int getSortOrder() {
@@ -43,7 +43,7 @@ public class EndTryLabelMethodItem extends LabelMethodItem {
         return 101;
     }
 
-    public String getLabelOffset() {
-        return Integer.toHexString(labelOffset);
+    public String getLabelAddress() {
+        return Integer.toHexString(endTryAddress);
     }
 }

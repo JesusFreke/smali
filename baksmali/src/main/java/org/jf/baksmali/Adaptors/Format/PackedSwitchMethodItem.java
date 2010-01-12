@@ -43,15 +43,15 @@ public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSw
         implements Iterable<LabelMethodItem> {
     private List<LabelMethodItem> labels = new ArrayList<LabelMethodItem>();
 
-    public PackedSwitchMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+    public PackedSwitchMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int codeAddress,
                                   StringTemplateGroup stg, PackedSwitchDataPseudoInstruction instruction,
-                                  int baseAddress) {
-        super(codeItem, offset, stg, instruction);
+                                  int baseCodeAddress) {
+        super(codeItem, codeAddress, stg, instruction);
 
         Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.iterateKeysAndTargets();
         while (iterator.hasNext()) {
             PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
-            LabelMethodItem label = new LabelMethodItem(baseAddress + target.target, stg, "pswitch_");
+            LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, stg, "pswitch_");
             label = labelCache.internLabel(label);
             labels.add(label);
         }

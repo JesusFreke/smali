@@ -800,7 +800,7 @@ statements[int totalMethodRegisters, int methodParameterRegisters] returns[List<
 	}
 	:	^(I_STATEMENTS	(instruction[$totalMethodRegisters, $methodParameterRegisters, $instructions]
 				{
-					$method::currentAddress += $instructions.get($instructions.size() - 1).getSize($method::currentAddress*2) / 2;
+					$method::currentAddress += $instructions.get($instructions.size() - 1).getSize($method::currentAddress);
 					if ($maxOutRegisters < $instruction.outRegisters) {
 						$maxOutRegisters = $instruction.outRegisters;
 					}

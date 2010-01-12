@@ -86,7 +86,7 @@ public class Instruction35ms extends Instruction implements FiveRegisterInstruct
         this.methodIndex = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((regCount << 4) | regA);
         out.writeShort(methodIndex);

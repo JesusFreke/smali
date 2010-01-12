@@ -34,9 +34,9 @@ import org.jf.dexlib.CodeItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
 
 public class Instruction10tMethodItem extends OffsetInstructionFormatMethodItem<Instruction10t> {
-    public Instruction10tMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+    public Instruction10tMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int codeAddress,
                                     StringTemplateGroup stg, Instruction10t instruction) {
-        super(labelCache, codeItem, offset, stg, instruction);
+        super(labelCache, codeItem, codeAddress, stg, instruction);
     }
 
     protected String getLabelPrefix() {

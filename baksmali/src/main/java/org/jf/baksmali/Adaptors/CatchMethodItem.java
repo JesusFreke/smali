@@ -41,17 +41,17 @@ public class CatchMethodItem extends MethodItem {
     private final LabelMethodItem tryEndLabel;
     private final LabelMethodItem handlerLabel;
 
-    public CatchMethodItem(MethodDefinition.LabelCache labelCache, int offset, StringTemplateGroup stg,
+    public CatchMethodItem(MethodDefinition.LabelCache labelCache, int codeAddress, StringTemplateGroup stg,
                            TypeIdItem exceptionType, int startAddress, int endAddress, int handlerAddress) {
-        super(offset);
+        super(codeAddress);
         this.stg = stg;
         this.exceptionType = exceptionType;
 
         tryStartLabel = labelCache.internLabel(new LabelMethodItem(startAddress, stg, "try_start_"));
         tryStartLabel.setUncommented();
-        //use the offset from the last covered instruction, but make the label
+        //use the address from the last covered instruction, but make the label
         //name refer to the address of the next instruction
-        tryEndLabel = labelCache.internLabel(new EndTryLabelMethodItem(offset, stg, endAddress));
+        tryEndLabel = labelCache.internLabel(new EndTryLabelMethodItem(codeAddress, stg, endAddress));
         tryEndLabel.setUncommented();
 
         if (exceptionType == null) {

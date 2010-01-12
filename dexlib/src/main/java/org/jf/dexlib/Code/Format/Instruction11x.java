@@ -55,7 +55,7 @@ public class Instruction11x extends Instruction implements SingleRegisterInstruc
         this.regA = (byte)NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
     }
 
-    public void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    public void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
     }

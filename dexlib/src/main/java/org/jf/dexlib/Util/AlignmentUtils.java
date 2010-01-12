@@ -34,4 +34,8 @@ public abstract class AlignmentUtils {
         assert (alignment >= 0) && ((mask & alignment) == 0);
         return (offset + mask) & ~mask;
     }
+
+    public static boolean isAligned(int offset, int alignment) {
+        return (offset % alignment) == 0;
+    }
 }

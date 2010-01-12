@@ -36,8 +36,8 @@ public class DebugMethodItem extends MethodItem {
     private final String templateName;
     private final int sortOrder;
 
-    public DebugMethodItem(int offset, StringTemplateGroup stg, String templateName, int sortOrder) {
-        super(offset);
+    public DebugMethodItem(int codeAddress, StringTemplateGroup stg, String templateName, int sortOrder) {
+        super(codeAddress);
         this.stg = stg;
         this.templateName = templateName;
         this.sortOrder = sortOrder;

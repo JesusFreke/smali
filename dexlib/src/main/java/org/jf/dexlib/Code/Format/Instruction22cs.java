@@ -66,7 +66,7 @@ public class Instruction22cs extends Instruction implements TwoRegisterInstructi
         this.fieldOffset = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((regB << 4) | regA);
         out.writeShort(fieldOffset);

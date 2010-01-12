@@ -92,7 +92,7 @@ public class Instruction35s extends InstructionWithReference implements FiveRegi
         this.regG = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 5]);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((regCount << 4) | regA);
         out.writeShort(getReferencedItem().getIndex());

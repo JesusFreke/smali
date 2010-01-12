@@ -34,9 +34,9 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
 public class Instruction22csMethodItem extends InstructionFormatMethodItem<Instruction22cs> {
-    public Instruction22csMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+    public Instruction22csMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg,
                                     Instruction22cs instruction) {
-        super(codeItem, offset, stg, instruction);
+        super(codeItem, codeAddress, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {

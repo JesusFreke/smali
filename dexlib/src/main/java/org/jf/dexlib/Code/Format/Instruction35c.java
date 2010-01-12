@@ -92,7 +92,7 @@ public class Instruction35c extends InstructionWithReference implements FiveRegi
         checkItem(opcode, getReferencedItem(), getRegCount());
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((regCount << 4) | regA);
         out.writeShort(getReferencedItem().getIndex());

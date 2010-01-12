@@ -35,9 +35,9 @@ import org.jf.dexlib.CodeItem;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
 
 public class Instruction3rmsMethodItem extends InstructionFormatMethodItem<Instruction3rms> {
-    public Instruction3rmsMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+    public Instruction3rmsMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg,
                                      Instruction3rms instruction) {
-        super(codeItem, offset, stg, instruction);
+        super(codeItem, codeAddress, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {

@@ -76,6 +76,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
                          AnnotationDirectoryItem annotations, ClassDataItem classData,
                          EncodedArrayItem staticFieldInitializers) {
         super(dexFile);
+        assert classType != null;
         this.classType = classType;
         this.accessFlags = accessFlags;
         this.superType = superType;
@@ -131,14 +132,14 @@ public class ClassDefItem extends Item<ClassDefItem> {
     protected void readItem(Input in, ReadContext readContext) {
         classType = dexFile.TypeIdsSection.getItemByIndex(in.readInt());
         accessFlags = in.readInt();
-        superType = dexFile.TypeIdsSection.getItemByIndex(in.readInt());
-        implementedInterfaces = (TypeListItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_TYPE_LIST,
+        superType = dexFile.TypeIdsSection.getOptionalItemByIndex(in.readInt());
+        implementedInterfaces = (TypeListItem)readContext.getOptionalOffsettedItemByOffset(ItemType.TYPE_TYPE_LIST,
                 in.readInt());
-        sourceFile = dexFile.StringIdsSection.getItemByIndex(in.readInt());
-        annotations = (AnnotationDirectoryItem)readContext.getOffsettedItemByOffset(
+        sourceFile = dexFile.StringIdsSection.getOptionalItemByIndex(in.readInt());
+        annotations = (AnnotationDirectoryItem)readContext.getOptionalOffsettedItemByOffset(
                 ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM, in.readInt());
-        classData = (ClassDataItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_CLASS_DATA_ITEM, in.readInt());
-        staticFieldInitializers = (EncodedArrayItem)readContext.getOffsettedItemByOffset(
+        classData = (ClassDataItem)readContext.getOptionalOffsettedItemByOffset(ItemType.TYPE_CLASS_DATA_ITEM, in.readInt());
+        staticFieldInitializers = (EncodedArrayItem)readContext.getOptionalOffsettedItemByOffset(
                 ItemType.TYPE_ENCODED_ARRAY_ITEM, in.readInt());
 
         if (classData != null) {

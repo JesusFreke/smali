@@ -43,16 +43,15 @@ public class SparseSwitchDataPseudoInstruction extends Instruction implements Mu
     private int[] targets;
 
     @Override
-    public int getSize(int offset) {
-        assert offset % 2 == 0;
-        return getTargetCount() * 8 + 4 + (offset % 4);
+    public int getSize(int codeAddress) {
+        return getTargetCount() * 4 + 2 + (codeAddress % 2);
     }
 
     public SparseSwitchDataPseudoInstruction(int[] keys, int[] targets) {
         super(Opcode.NOP);
 
         if (keys.length != targets.length) {
-            throw new RuntimeException("The number of keys and offsets don't match");
+            throw new RuntimeException("The number of keys and targets don't match");
         }
 
         if (targets.length == 0) {
@@ -90,11 +89,8 @@ public class SparseSwitchDataPseudoInstruction extends Instruction implements Mu
         }
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        //write out padding, if necessary
-        if (currentCodeOffset % 4 != 0) {
-            out.writeShort(0);
-        }
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        out.alignTo(4);
 
         out.writeByte(0x00);
         out.writeByte(0x02);
@@ -117,13 +113,13 @@ public class SparseSwitchDataPseudoInstruction extends Instruction implements Mu
         }
     }
 
-    protected void annotateInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        out.annotate(getSize(currentCodeOffset), "[0x" + Integer.toHexString(currentCodeOffset/2) + "] " +
+    protected void annotateInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        out.annotate(getSize(currentCodeAddress)*2, "[0x" + Integer.toHexString(currentCodeAddress) + "] " +
                 "sparse-switch-data instruction");
     }
 
-    public void updateTarget(int targetIndex, int targetOffset) {
-        targets[targetIndex] = targetOffset;
+    public void updateTarget(int targetIndex, int targetAddressOffset) {
+        targets[targetIndex] = targetAddressOffset;
     }
 
     public Format getFormat() {
@@ -144,7 +140,7 @@ public class SparseSwitchDataPseudoInstruction extends Instruction implements Mu
 
     public static class SparseSwitchTarget {
         public int key;
-        public int target;
+        public int targetAddressOffset;
     }
 
     public Iterator<SparseSwitchTarget> iterateKeysAndTargets() {
@@ -160,7 +156,7 @@ public class SparseSwitchDataPseudoInstruction extends Instruction implements Mu
 
             public SparseSwitchTarget next() {
                 sparseSwitchTarget.key = keys[i];
-                sparseSwitchTarget.target = targets[i];
+                sparseSwitchTarget.targetAddressOffset = targets[i];
                 i++;
                 return sparseSwitchTarget;
             }
@@ -173,7 +169,7 @@ public class SparseSwitchDataPseudoInstruction extends Instruction implements Mu
     private static class Factory implements Instruction.InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
             if (opcode != Opcode.NOP) {
-                throw new RuntimeException("The opcode for a SparseSwitchDataPseudoInstruction must by NOP");
+                throw new RuntimeException("The opcode for a SparseSwitchDataPseudoInstruction must be NOP");
             }
             return new SparseSwitchDataPseudoInstruction(buffer, bufferIndex);
         }

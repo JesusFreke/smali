@@ -34,9 +34,9 @@ import org.jf.dexlib.Code.Format.Instruction22s;
 import org.jf.dexlib.CodeItem;
 
 public class Instruction22sMethodItem extends InstructionFormatMethodItem<Instruction22s> {
-    public Instruction22sMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+    public Instruction22sMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg,
                                     Instruction22s instruction) {
-        super(codeItem, offset, stg, instruction);
+        super(codeItem, codeAddress, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {

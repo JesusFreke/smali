@@ -37,11 +37,11 @@ import org.jf.dexlib.Util.NumberUtils;
 
 public class Instruction30t extends Instruction implements OffsetInstruction {
     public static final InstructionFactory Factory = new Factory();
-    private int offset;
+    private int targetAddressOffset;
 
     public Instruction30t(Opcode opcode, int offA) {
         super(opcode);
-        this.offset = offA;
+        this.targetAddressOffset = offA;
     }
 
     private Instruction30t(Opcode opcode, byte[] buffer, int bufferIndex) {
@@ -49,25 +49,25 @@ public class Instruction30t extends Instruction implements OffsetInstruction {
 
         assert buffer[bufferIndex] == opcode.value;
 
-        this.offset = NumberUtils.decodeInt(buffer, bufferIndex+2);
+        this.targetAddressOffset = NumberUtils.decodeInt(buffer, bufferIndex+2);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(0x00);
-        out.writeInt(offset);
+        out.writeInt(targetAddressOffset);
     }
 
-    public void updateOffset(int offset) {
-        this.offset = offset;
+    public void updateTargetAddressOffset(int targetAddressOffset) {
+        this.targetAddressOffset = targetAddressOffset;
     }
 
     public Format getFormat() {
         return Format.Format30t;
     }
 
-    public int getOffset() {
-        return offset;
+    public int getTargetAddressOffset() {
+        return targetAddressOffset;
     }
 
     private static class Factory implements InstructionFactory {

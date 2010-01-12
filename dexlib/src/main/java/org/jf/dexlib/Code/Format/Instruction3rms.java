@@ -75,7 +75,7 @@ public class Instruction3rms extends Instruction implements RegisterRangeInstruc
         this.startReg = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regCount);
         out.writeShort(methodIndex);

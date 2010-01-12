@@ -44,9 +44,9 @@ public class UnresolvedNullReferenceMethodItem extends InstructionFormatMethodIt
         this.isLastInstruction = isLastInstruction;
     }
 
-    public UnresolvedNullReferenceMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg,
+    public UnresolvedNullReferenceMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg,
                                     UnresolvedNullReference instruction) {
-        super(codeItem, offset, stg, instruction);
+        super(codeItem, codeAddress, stg, instruction);
     }
 
     protected void setAttributes(StringTemplate template) {

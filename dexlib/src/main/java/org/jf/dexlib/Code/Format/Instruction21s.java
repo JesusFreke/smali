@@ -59,7 +59,7 @@ public class Instruction21s extends Instruction implements SingleRegisterInstruc
         this.litB = NumberUtils.decodeShort(buffer, bufferIndex + 2);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeShort(litB);

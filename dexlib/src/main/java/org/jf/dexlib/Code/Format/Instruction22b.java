@@ -62,7 +62,7 @@ public class Instruction22b extends Instruction implements TwoRegisterInstructio
         this.litC = buffer[bufferIndex + 3];
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeByte(regB);

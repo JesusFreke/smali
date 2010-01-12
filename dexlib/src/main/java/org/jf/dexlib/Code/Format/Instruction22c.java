@@ -61,7 +61,7 @@ public class Instruction22c extends InstructionWithReference implements TwoRegis
         this.regB = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((regB << 4) | regA);
         out.writeShort(getReferencedItem().getIndex());

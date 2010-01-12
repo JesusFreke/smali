@@ -103,12 +103,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
         parameterNames = new StringIdItem[in.readUnsignedLeb128()];
         IndexedSection<StringIdItem> stringIdSection = dexFile.StringIdsSection;
         for (int i=0; i<parameterNames.length; i++) {
-            int index = in.readUnsignedLeb128() - 1;
-            if (index < 0) {
-                parameterNames[i] = null;
-            } else {
-                parameterNames[i] = stringIdSection.getItemByIndex(index);
-            }
+            parameterNames[i] = stringIdSection.getOptionalItemByIndex(in.readUnsignedLeb128() - 1);
         }
 
         int start = in.getCursor();
@@ -116,7 +111,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
         DebugInstructionIterator.IterateInstructions(in,
                 new DebugInstructionIterator.ProcessRawDebugInstructionDelegate() {
                     @Override
-                    public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
+                    public void ProcessStartLocal(int startDebugOffset, int length, int registerNum, int nameIndex,
                                                   int typeIndex, boolean registerIsSigned) {
                         if (nameIndex != -1) {
                             referencedItemsList.add(dexFile.StringIdsSection.getItemByIndex(nameIndex));
@@ -127,8 +122,8 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessStartLocalExtended(int startOffset, int length, int registerNume, int nameIndex,
-                                                          int typeIndex, int signatureIndex,
+                    public void ProcessStartLocalExtended(int startDebugOffset, int length, int registerNume,
+                                                          int nameIndex, int typeIndex, int signatureIndex,
                                                           boolean registerIsSigned) {
                         if (nameIndex != -1) {
                             referencedItemsList.add(dexFile.StringIdsSection.getItemByIndex(nameIndex));
@@ -142,7 +137,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessSetFile(int startOffset, int length, int nameIndex) {
+                    public void ProcessSetFile(int startDebugOffset, int length, int nameIndex) {
                         if (nameIndex != -1) {
                             referencedItemsList.add(dexFile.StringIdsSection.getItemByIndex(nameIndex));
                         }
@@ -187,12 +182,12 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     private int referencedItemsPosition = 0;
 
                     @Override
-                    public void ProcessStaticOpcode(DebugOpcode opcode, int startOffset, int length) {
+                    public void ProcessStaticOpcode(DebugOpcode opcode, int startDebugOffset, int length) {
                         this.length+=length;
                     }
 
                     @Override
-                    public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
+                    public void ProcessStartLocal(int startDebugOffset, int length, int registerNum, int nameIndex,
                                                   int typeIndex, boolean registerIsSigned) {
                         this.length++;
                         if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
@@ -216,7 +211,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
+                    public void ProcessStartLocalExtended(int startDebugOffset, int length, int registerNum, int nameIndex,
                                                           int typeIndex, int signatureIndex,
                                                           boolean registerIsSigned) {
                         this.length++;
@@ -246,7 +241,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessSetFile(int startOffset, int length, int nameIndex) {
+                    public void ProcessSetFile(int startDebugOffset, int length, int nameIndex) {
                         this.length++;
                         if (nameIndex != -1) {
                             this.length+=
@@ -261,7 +256,6 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(final AnnotatedOutput out) {
-
         if (out.annotates()) {
             writeItemWithAnnotations(out);
         } else {
@@ -275,7 +269,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
      * @param encodedDebugInfo the new encoded debug info
      */
     protected void setEncodedDebugInfo(byte[] encodedDebugInfo) {
-        //TODO: I would rather replace this method with some way of saying "The (code) instruction at offset changed from A bytes to B bytes. Fixup the debug info accordingly"
+        //TODO: I would rather replace this method with some way of saying "The (code) instruction at address changed from A bytes to B bytes. Fixup the debug info accordingly"
 
         this.encodedDebugInfo = encodedDebugInfo;
     }
@@ -302,12 +296,12 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     private int referencedItemsPosition = 0;
 
                     @Override
-                    public void ProcessStaticOpcode(DebugOpcode opcode, int startOffset, int length) {
-                        out.write(encodedDebugInfo, startOffset, length);
+                    public void ProcessStaticOpcode(DebugOpcode opcode, int startDebugOffset, int length) {
+                        out.write(encodedDebugInfo, startDebugOffset, length);
                     }
 
                     @Override
-                    public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
+                    public void ProcessStartLocal(int startDebugOffset, int length, int registerNum, int nameIndex,
                                                   int typeIndex, boolean registerIsSigned) {
                         out.writeByte(DebugOpcode.DBG_START_LOCAL.value);
                         if (dexFile.getPreserveSignedRegisters() && registerIsSigned) {
@@ -328,7 +322,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
+                    public void ProcessStartLocalExtended(int startDebugOffset, int length, int registerNum, int nameIndex,
                                                           int typeIndex, int signatureIndex,
                                                           boolean registerIsSigned) {
                         out.writeByte(DebugOpcode.DBG_START_LOCAL_EXTENDED.value);
@@ -355,7 +349,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessSetFile(int startOffset, int length, int nameIndex) {
+                    public void ProcessSetFile(int startDebugOffset, int length, int nameIndex) {
                         out.writeByte(DebugOpcode.DBG_SET_FILE.value);
                         if (nameIndex != -1) {
                             out.writeUnsignedLeb128(referencedItems[referencedItemsPosition++].getIndex() + 1);
@@ -395,13 +389,13 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     private int referencedItemsPosition = 0;
 
                     @Override
-                    public void ProcessEndSequence(int startOffset) {
+                    public void ProcessEndSequence(int startDebugOffset) {
                         out.annotate("DBG_END_SEQUENCE");
                         out.writeByte(DebugOpcode.DBG_END_SEQUENCE.value);
                     }
 
                     @Override
-                    public void ProcessAdvancePC(int startOffset, int length, int addressDiff) {
+                    public void ProcessAdvancePC(int startDebugOffset, int length, int addressDiff) {
                         out.annotate("DBG_ADVANCE_PC");
                         out.writeByte(DebugOpcode.DBG_ADVANCE_PC.value);
                         out.indent();
@@ -411,7 +405,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessAdvanceLine(int startOffset, int length, int lineDiff) {
+                    public void ProcessAdvanceLine(int startDebugOffset, int length, int lineDiff) {
                         out.annotate("DBG_ADVANCE_LINE");
                         out.writeByte(DebugOpcode.DBG_ADVANCE_LINE.value);
                         out.indent();
@@ -421,7 +415,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessStartLocal(int startOffset, int length, int registerNum, int nameIndex,
+                    public void ProcessStartLocal(int startDebugOffset, int length, int registerNum, int nameIndex,
                                                   int typeIndex, boolean registerIsSigned) {
                         out.annotate("DBG_START_LOCAL");
                         out.writeByte(DebugOpcode.DBG_START_LOCAL.value);
@@ -454,8 +448,8 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessStartLocalExtended(int startOffset, int length, int registerNum, int nameIndex,
-                                                          int typeIndex, int signatureIndex,
+                    public void ProcessStartLocalExtended(int startDebugOffset, int length, int registerNum,
+                                                          int nameIndex, int typeIndex, int signatureIndex,
                                                           boolean registerIsSigned) {
                         out.annotate("DBG_START_LOCAL_EXTENDED");
                         out.writeByte(DebugOpcode.DBG_START_LOCAL_EXTENDED.value);
@@ -497,7 +491,8 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessEndLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
+                    public void ProcessEndLocal(int startDebugOffset, int length, int registerNum,
+                                                boolean registerIsSigned) {
                         out.annotate("DBG_END_LOCAL");
                         out.writeByte(DebugOpcode.DBG_END_LOCAL.value);
                         out.annotate("register_num: 0x" + Integer.toHexString(registerNum) + " (" + registerNum + ")");
@@ -509,7 +504,8 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessRestartLocal(int startOffset, int length, int registerNum, boolean registerIsSigned) {
+                    public void ProcessRestartLocal(int startDebugOffset, int length, int registerNum,
+                                                    boolean registerIsSigned) {
                         out.annotate("DBG_RESTART_LOCAL");
                         out.writeByte(DebugOpcode.DBG_RESTART_LOCAL.value);
                         out.annotate("register_num: 0x" + Integer.toHexString(registerNum) + " (" + registerNum + ")");
@@ -521,19 +517,19 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessSetPrologueEnd(int startOffset) {
+                    public void ProcessSetPrologueEnd(int startDebugOffset) {
                         out.annotate("DBG_SET_PROLOGUE_END");
                         out.writeByte(DebugOpcode.DBG_SET_PROLOGUE_END.value);
                     }
 
                     @Override
-                    public void ProcessSetEpilogueBegin(int startOffset) {
+                    public void ProcessSetEpilogueBegin(int startDebugOffset) {
                         out.annotate("DBG_SET_EPILOGUE_BEGIN");
                         out.writeByte(DebugOpcode.DBG_SET_EPILOGUE_BEGIN.value);
                     }
 
                     @Override
-                    public void ProcessSetFile(int startOffset, int length, int nameIndex) {
+                    public void ProcessSetFile(int startDebugOffset, int length, int nameIndex) {
                         out.annotate("DBG_SET_FILE");
                         out.writeByte(DebugOpcode.DBG_SET_FILE.value);
                         if (nameIndex != -1) {
@@ -548,7 +544,8 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
                     }
 
                     @Override
-                    public void ProcessSpecialOpcode(int startOffset, int debugOpcode, int lineDiff, int addressDiff) {
+                    public void ProcessSpecialOpcode(int startDebugOffset, int debugOpcode, int lineDiff,
+                                                     int addressDiff) {
                         out.annotate("DBG_SPECIAL_OPCODE: line_diff=0x" + Integer.toHexString(lineDiff) + "(" +
                                 lineDiff +"),addressDiff=0x" + Integer.toHexString(addressDiff) + "(" + addressDiff +
                                 ")");

@@ -68,7 +68,7 @@ public class Instruction21c extends InstructionWithReference implements SingleRe
         this.regA = buffer[bufferIndex + 1];
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         if(opcode == Opcode.CONST_STRING && getReferencedItem().getIndex() > 0xFFFF) {
             throw new RuntimeException("String offset is too large for const-string. Use string-const/jumbo instead.");
         }

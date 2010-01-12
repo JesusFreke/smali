@@ -28,6 +28,7 @@
 
 package org.jf.dexlib;
 
+import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.dexlib.Util.Input;
 
 public class IndexedSection<T extends Item> extends Section<T> {
@@ -51,17 +52,30 @@ public class IndexedSection<T extends Item> extends Section<T> {
     }
 
     /**
-     * Gets the item at the specified index in this section
+     * Gets the item at the specified index in this section, or null if the index is -1
      * @param index the index of the item to get
-     * @return the item at the specified index in this section
-     * @throws IndexOutOfBoundsException if index is outside the bounds of this section
+     * @return the item at the specified index in this section, or null if the index is -1
      */
-    public T getItemByIndex(int index) {
+    public T getOptionalItemByIndex(int index) {
         if (index == -1) {
             return null;
         }
 
-        //if index is out of bounds, just let it throw an exception
-        return items.get(index);
+        return getItemByIndex(index);
+    }
+
+    /**
+     * Gets the item at the specified index in this section
+     * @param index the index of the item to get
+     * @return the item at the specified index in this section
+     */
+    public T getItemByIndex(int index) {
+        try {
+            //if index is out of bounds, just let it throw an exception
+            return items.get(index);
+        } catch (Exception ex) {
+            throw ExceptionWithContext.withContext(ex, "Error occured while retrieving the " + this.ItemType.TypeName +
+                    " item at index " + index);
+        }
     }
 }

@@ -28,6 +28,7 @@
 
 package org.jf.dexlib;
 
+import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
@@ -166,8 +167,8 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
 
     /** {@inheritDoc} */
     protected void readItem(Input in, ReadContext readContext) {
-        classAnnotations = (AnnotationSetItem)readContext.getOffsettedItemByOffset(ItemType.TYPE_ANNOTATION_SET_ITEM,
-                in.readInt());
+        classAnnotations = (AnnotationSetItem)readContext.getOptionalOffsettedItemByOffset(
+                ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
         fieldAnnotationFields = new FieldIdItem[in.readInt()];
         fieldAnnotations = new AnnotationSetItem[fieldAnnotationFields.length];
 
@@ -178,21 +179,36 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         parameterAnnotations = new AnnotationSetRefList[parameterAnnotationMethods.length];
 
         for (int i=0; i<fieldAnnotations.length; i++) {
-            fieldAnnotationFields[i] = dexFile.FieldIdsSection.getItemByIndex(in.readInt());
-            fieldAnnotations[i] = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
-                    ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
+            try {
+                fieldAnnotationFields[i] = dexFile.FieldIdsSection.getItemByIndex(in.readInt());
+                fieldAnnotations[i] = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
+                        ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex,
+                        "Error occured while reading FieldAnnotation at index " + i);
+            }
         }
 
         for (int i=0; i<methodAnnotations.length; i++) {
-            methodAnnotationMethods[i] = dexFile.MethodIdsSection.getItemByIndex(in.readInt());
-            methodAnnotations[i] = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
-                    ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
+            try {
+                methodAnnotationMethods[i] = dexFile.MethodIdsSection.getItemByIndex(in.readInt());
+                methodAnnotations[i] = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
+                        ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex,
+                        "Error occured while reading MethodAnnotation at index " + i);
+            }
         }
 
         for (int i=0; i<parameterAnnotations.length; i++) {
-            parameterAnnotationMethods[i] = dexFile.MethodIdsSection.getItemByIndex(in.readInt());
-            parameterAnnotations[i] = (AnnotationSetRefList)readContext.getOffsettedItemByOffset(
-                    ItemType.TYPE_ANNOTATION_SET_REF_LIST, in.readInt());
+            try {
+                parameterAnnotationMethods[i] = dexFile.MethodIdsSection.getItemByIndex(in.readInt());
+                parameterAnnotations[i] = (AnnotationSetRefList)readContext.getOffsettedItemByOffset(
+                        ItemType.TYPE_ANNOTATION_SET_REF_LIST, in.readInt());
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex,
+                        "Error occured while reading ParameterAnnotation at index " + i);
+            }
         }
     }
 
@@ -289,13 +305,17 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         }
     }
 
-    /** {@inheritDoc} */public ItemType getItemType() {
+    /** {@inheritDoc} */
+    public ItemType getItemType() {
         return ItemType.TYPE_ANNOTATIONS_DIRECTORY_ITEM;
     }
 
     /** {@inheritDoc} */
     public String getConciseIdentity() {
-        return "annotation_directory_item @0x" + Integer.toHexString(getOffset());
+        if (parent == null) {
+            return "annotation_directory_item @0x" + Integer.toHexString(getOffset());
+        }
+        return "annotation_directory_item @0x" + Integer.toHexString(getOffset()) + " (" + parent.getClassType() + ")";
     }
 
     /** {@inheritDoc} */
@@ -327,7 +347,13 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
      */
     public void iterateFieldAnnotations(FieldAnnotationIteratorDelegate delegate) {
         for (int i=0; i<fieldAnnotationFields.length; i++) {
-            delegate.processFieldAnnotations(fieldAnnotationFields[i], fieldAnnotations[i]);
+            try {
+                delegate.processFieldAnnotations(fieldAnnotationFields[i], fieldAnnotations[i]);
+            } catch (Exception ex) {
+                throw addExceptionContext(ExceptionWithContext.withContext(ex,
+                        "Error occured while processing field annotations for field: " +
+                                fieldAnnotationFields[i].getFieldString()));
+            }
         }
     }
 
@@ -348,7 +374,13 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
      */
     public void iterateMethodAnnotations(MethodAnnotationIteratorDelegate delegate) {
         for (int i=0; i<methodAnnotationMethods.length; i++) {
-            delegate.processMethodAnnotations(methodAnnotationMethods[i], methodAnnotations[i]);
+            try {
+                delegate.processMethodAnnotations(methodAnnotationMethods[i], methodAnnotations[i]);
+            } catch (Exception ex) {
+                throw addExceptionContext(ExceptionWithContext.withContext(ex,
+                        "Error occured while processing method annotations for method: " +
+                                methodAnnotationMethods[i].getMethodString()));
+            }
         }
     }
 
@@ -369,7 +401,13 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
      */
     public void iterateParameterAnnotations(ParameterAnnotationIteratorDelegate delegate) {
         for (int i=0; i<parameterAnnotationMethods.length; i++) {
-            delegate.processParameterAnnotations(parameterAnnotationMethods[i], parameterAnnotations[i]);
+            try {
+                delegate.processParameterAnnotations(parameterAnnotationMethods[i], parameterAnnotations[i]);
+            } catch (Exception ex) {
+                throw addExceptionContext(ExceptionWithContext.withContext(ex,
+                        "Error occured while processing parameter annotations for method: " +
+                                parameterAnnotationMethods[i].getMethodString()));
+            }
         }
     }
 

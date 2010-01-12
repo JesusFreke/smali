@@ -28,9 +28,10 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Util.AnnotatedOutput;
-import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AlignmentUtils;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.ExceptionWithContext;
+import org.jf.dexlib.Util.Input;
 
 public abstract class Item<T extends Item> implements Comparable<T> {
     /**
@@ -53,6 +54,8 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @param dexFile the <code>DexFile</code> that this item is associated with
      */
     protected Item(DexFile dexFile) {
+        assert dexFile != null;
+
         this.dexFile = dexFile;
     }
 
@@ -64,11 +67,16 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * only needed while reading in a file
      */
     protected void readFrom(Input in, int index, ReadContext readContext) {
-        assert in.getCursor() % getItemType().ItemAlignment == 0;
+        try {
+            assert AlignmentUtils.isAligned(in.getCursor(), getItemType().ItemAlignment);
 
-        this.offset = in.getCursor();
-        this.index = index;
-        this.readItem(in, readContext);
+            this.offset = in.getCursor();
+            this.index = index;
+
+            this.readItem(in, readContext);
+        } catch (Exception ex) {
+            throw addExceptionContext(ex);
+        }
     }
 
     /**
@@ -78,12 +86,16 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @return The offset of the byte following this item
      */
     protected int placeAt(int offset, int index) {
-        assert offset % getItemType().ItemAlignment == 0;
-        assert !dexFile.getInplace() || (offset == this.offset && this.index == index);
+        try {
+            assert AlignmentUtils.isAligned(offset, getItemType().ItemAlignment);
+            assert !dexFile.getInplace() || (offset == this.offset && this.index == index);
 
-        this.offset = offset;
-        this.index = index;
-        return this.placeItem(offset);
+            this.offset = offset;
+            this.index = index;
+            return this.placeItem(offset);
+        } catch (Exception ex) {
+            throw addExceptionContext(ex);
+        }
     }
 
     /**
@@ -91,16 +103,21 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @param out The output stream to write and annotate to
      */
     protected void writeTo(AnnotatedOutput out) {
-        assert out.getCursor() % getItemType().ItemAlignment == 0;
-        assert out.getCursor() == offset;
+        try {
+            assert AlignmentUtils.isAligned(offset, getItemType().ItemAlignment);
+            //ensure that it is being written to the same offset where it was previously placed
+            assert out.getCursor() == offset;
 
-        if (out.annotates()) {
-            out.annotate(0, "[" + index + "] " + this.getItemType().TypeName);
+            if (out.annotates()) {
+                out.annotate(0, "[" + index + "] " + this.getItemType().TypeName);
+            }
+
+            out.indent();
+            writeItem(out);
+            out.deindent();
+        } catch (Exception ex) {
+            throw addExceptionContext(ex);
         }
-
-        out.indent();
-        writeItem(out);
-        out.deindent();
     }
 
     /**
@@ -147,6 +164,17 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @param out The <code>AnnotatedOutput</code> object to write/annotate to
      */
     protected abstract void writeItem(AnnotatedOutput out);
+
+    /**
+     * This method is called to add item specific context information to an exception, to identify the "current item"
+     * when the exception occured. It adds the value returned by <code>getConciseIdentity</code> as context for the
+     * exception
+     * @param ex The exception that occured
+     * @return A RuntimeException with additional details about the item added
+     */
+    protected final RuntimeException addExceptionContext(Exception ex) {
+        return ExceptionWithContext.withContext(ex, getConciseIdentity());
+    }
 
     /**
      * @return An ItemType enum that represents the item type of this item

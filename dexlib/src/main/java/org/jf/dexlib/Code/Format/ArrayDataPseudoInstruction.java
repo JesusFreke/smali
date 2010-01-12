@@ -41,10 +41,8 @@ public class ArrayDataPseudoInstruction extends Instruction {
     private byte[] encodedValues;
 
     @Override
-    public int getSize(int offset) {
-        assert offset % 2 == 0;
-        int size = getElementWidth() * getElementCount();
-        return size + (size & 0x01) + 8 + (offset % 4);
+    public int getSize(int codeAddress) {
+        return ((encodedValues.length + 1)/2) + 4 + (codeAddress % 2);
     }
 
     public ArrayDataPseudoInstruction(int elementWidth, byte[] encodedValues) {
@@ -77,11 +75,8 @@ public class ArrayDataPseudoInstruction extends Instruction {
         System.arraycopy(buffer, bufferIndex+8, encodedValues, 0, elementCount * elementWidth);
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        //write out padding, if necessary
-        if (out.getCursor() % 4 != 0) {
-            out.writeShort(0);
-        }
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        out.alignTo(4);
 
         int elementCount = encodedValues.length / elementWidth;
 
@@ -90,14 +85,13 @@ public class ArrayDataPseudoInstruction extends Instruction {
         out.writeShort(elementWidth);
         out.writeInt(elementCount);
         out.write(encodedValues);
-        if ((encodedValues.length % 2) != 0) {
-            //must write out an even number of bytes
-            out.writeByte(0);
-        }
+
+        //make sure we're written out an even number of bytes
+        out.alignTo(2);
     }
 
-    protected void annotateInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        out.annotate(getSize(currentCodeOffset), "[0x" + Integer.toHexString(currentCodeOffset/2) + "] " +
+    protected void annotateInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        out.annotate(getSize(currentCodeAddress)*2, "[0x" + Integer.toHexString(currentCodeAddress) + "] " +
                 "fill-array-data instruction");
     }
 
@@ -149,7 +143,7 @@ public class ArrayDataPseudoInstruction extends Instruction {
     private static class Factory implements Instruction.InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
             if (opcode != Opcode.NOP) {
-                throw new RuntimeException("The opcode for an ArrayDataPseudoInstruction must by NOP");
+                throw new RuntimeException("The opcode for an ArrayDataPseudoInstruction must be NOP");
             }
             return new ArrayDataPseudoInstruction(buffer, bufferIndex);
         }

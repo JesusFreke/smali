@@ -29,6 +29,6 @@
 package org.jf.dexlib.Code;
 
 public interface OffsetInstruction {
-    public int getOffset();
-    public void updateOffset(int offset);
+    public int getTargetAddressOffset();
+    public void updateTargetAddressOffset(int targetAddressOffset);
 }

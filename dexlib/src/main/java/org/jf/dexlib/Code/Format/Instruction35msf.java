@@ -43,7 +43,7 @@ public class Instruction35msf extends InstructionWithReference implements FiveRe
         this.unfixedInstruction = unfixedInstruction;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         byte regA = getRegisterA();
         byte regCount = getRegCount();
         byte regD = getRegisterD();

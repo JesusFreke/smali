@@ -30,5 +30,5 @@ package org.jf.dexlib.Code;
 
 public interface MultiOffsetInstruction {
     public int[] getTargets();
-    public void updateTarget(int targetIndex, int targetOffset);
+    public void updateTarget(int targetIndex, int targetAddressOffset);
 }

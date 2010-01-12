@@ -43,9 +43,8 @@ public class PackedSwitchDataPseudoInstruction extends Instruction implements Mu
     private int[] targets;
 
     @Override
-    public int getSize(int offset) {
-        assert offset % 2 == 0;
-        return getTargetCount() * 4 + 8 + (offset % 4);
+    public int getSize(int codeAddress) {
+        return getTargetCount() * 2 + 4 + (codeAddress % 2);
     }
 
     public PackedSwitchDataPseudoInstruction(int firstKey, int[] targets) {
@@ -81,11 +80,8 @@ public class PackedSwitchDataPseudoInstruction extends Instruction implements Mu
         }
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
-         //write out padding, if necessary
-        if (currentCodeOffset % 4 != 0) {
-            out.writeShort(0);
-        }
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        out.alignTo(4);
 
         out.writeByte(0x00);
         out.writeByte(0x01);
@@ -97,13 +93,13 @@ public class PackedSwitchDataPseudoInstruction extends Instruction implements Mu
         }
     }
 
-    protected void annotateInstruction(AnnotatedOutput out, int currentCodeOffset) {
-        out.annotate(getSize(currentCodeOffset), "[0x" + Integer.toHexString(currentCodeOffset/2) + "] " +
+    protected void annotateInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        out.annotate(getSize(currentCodeAddress)*2, "[0x" + Integer.toHexString(currentCodeAddress) + "] " +
                 "packed-switch-data instruction");
     }
 
-    public void updateTarget(int targetIndex, int targetOffset) {
-        targets[targetIndex] = targetOffset;
+    public void updateTarget(int targetIndex, int targetAddressOffset) {
+        targets[targetIndex] = targetAddressOffset;
     }
 
     public Format getFormat() {
@@ -124,7 +120,7 @@ public class PackedSwitchDataPseudoInstruction extends Instruction implements Mu
 
     public static class PackedSwitchTarget {
         public int value;
-        public int target;
+        public int targetAddressOffset;
     }
 
     public Iterator<PackedSwitchTarget> iterateKeysAndTargets() {
@@ -141,7 +137,7 @@ public class PackedSwitchDataPseudoInstruction extends Instruction implements Mu
 
             public PackedSwitchTarget next() {
                 packedSwitchTarget.value = value++;
-                packedSwitchTarget.target = targets[i];
+                packedSwitchTarget.targetAddressOffset = targets[i];
                 i++;
                 return packedSwitchTarget;
             }
@@ -151,14 +147,10 @@ public class PackedSwitchDataPseudoInstruction extends Instruction implements Mu
         };
     }
 
-    public static interface PackedSwitchTargetIteratorDelegate {
-        void ProcessPackedSwitchTarget(int value, int target);
-    }
-
     private static class Factory implements Instruction.InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
             if (opcode != Opcode.NOP) {
-                throw new RuntimeException("The opcode for a PackedSwitchDataPseudoInstruction must by NOP");
+                throw new RuntimeException("The opcode for a PackedSwitchDataPseudoInstruction must be NOP");
             }
             return new PackedSwitchDataPseudoInstruction(buffer, bufferIndex);
         }

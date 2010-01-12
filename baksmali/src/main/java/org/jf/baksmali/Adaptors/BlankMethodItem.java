@@ -35,8 +35,8 @@ import org.antlr.stringtemplate.StringTemplate;
 public class BlankMethodItem extends MethodItem {
     private static StringTemplate template;
 
-    public BlankMethodItem(StringTemplateGroup stg, int offset) {
-        super(offset);
+    public BlankMethodItem(StringTemplateGroup stg, int codeAddress) {
+        super(codeAddress);
         if (template == null) {
             template = stg.getInstanceOf("Blank");
         }

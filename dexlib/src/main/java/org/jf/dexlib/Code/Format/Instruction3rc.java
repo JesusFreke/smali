@@ -78,7 +78,7 @@ public class Instruction3rc extends InstructionWithReference implements Register
         checkItem(opcode, getReferencedItem(), getRegCount());
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regCount);
         out.writeShort(this.getReferencedItem().getIndex());

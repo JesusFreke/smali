@@ -41,7 +41,7 @@ public class Instruction35sf extends InstructionWithReference implements FiveReg
         this.unfixedInstruction = unfixedInstruction;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         byte regA = getRegisterA();
         byte regCount = getRegCount();
         byte regD = getRegisterD();

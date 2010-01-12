@@ -58,7 +58,7 @@ public class Instruction12x extends Instruction implements TwoRegisterInstructio
         this.regB = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
     }
 
-    public void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    public void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((regB << 4) | regA);
     }

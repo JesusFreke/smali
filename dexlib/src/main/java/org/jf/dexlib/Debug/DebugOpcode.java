@@ -52,7 +52,7 @@ public enum DebugOpcode {
     }
 
     public static DebugOpcode getDebugOpcodeByValue(byte debugOpcodeValue) {
-        debugOpcodeValue = (byte)Math.min(debugOpcodeValue, 0x0A);
+        debugOpcodeValue = (byte)Math.min(debugOpcodeValue & 0xFF, 0x0A);
         return opcodesByValue[debugOpcodeValue];
     }
 

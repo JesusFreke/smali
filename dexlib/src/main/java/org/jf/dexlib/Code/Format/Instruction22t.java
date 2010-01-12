@@ -40,7 +40,7 @@ public class Instruction22t extends Instruction implements OffsetInstruction, Tw
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
     private byte regB;
-    private short offset;
+    private short targetAddressOffset;
 
     public Instruction22t(Opcode opcode, byte regA, byte regB, short offC) {
         super(opcode);
@@ -51,12 +51,12 @@ public class Instruction22t extends Instruction implements OffsetInstruction, Tw
         }
 
         if (offC == 0) {
-            throw new RuntimeException("The offset cannot be 0.");
+            throw new RuntimeException("The address offset cannot be 0.");
         }
 
         this.regA = regA;
         this.regB = regB;
-        this.offset = offC;
+        this.targetAddressOffset = offC;
     }
 
     private Instruction22t(Opcode opcode, byte[] buffer, int bufferIndex) {
@@ -66,25 +66,26 @@ public class Instruction22t extends Instruction implements OffsetInstruction, Tw
 
         regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
         regB = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
-        offset = NumberUtils.decodeShort(buffer, bufferIndex + 2);
+        targetAddressOffset = NumberUtils.decodeShort(buffer, bufferIndex + 2);
 
-        assert offset != 0;
+        assert targetAddressOffset != 0;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((regB << 4) | regA);
-        out.writeShort(offset);
+        out.writeShort(targetAddressOffset);
     }
 
-    public void updateOffset(int offset) {
-        if (offset < -32768 || offset > 32767) {
-            throw new RuntimeException("The offset " + offset + " is out of range. It must be in [-32768, 32767]");
+    public void updateTargetAddressOffset(int targetAddressOffset) {
+        if (targetAddressOffset < -32768 || targetAddressOffset > 32767) {
+            throw new RuntimeException("The address offset " + targetAddressOffset +
+                    " is out of range. It must be in [-32768, 32767]");
         }
-        if (offset == 0) {
-            throw new RuntimeException("The offset cannot be 0");
+        if (targetAddressOffset == 0) {
+            throw new RuntimeException("The address offset cannot be 0");
         }
-        this.offset = (short)offset;
+        this.targetAddressOffset = (short)targetAddressOffset;
     }
 
     public Format getFormat() {
@@ -99,8 +100,8 @@ public class Instruction22t extends Instruction implements OffsetInstruction, Tw
         return regB;
     }
 
-    public int getOffset() {
-        return offset;
+    public int getTargetAddressOffset() {
+        return targetAddressOffset;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

@@ -62,7 +62,7 @@ public class Instruction23x extends Instruction implements ThreeRegisterInstruct
         this.regC = buffer[bufferIndex + 3];
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeByte(regB);

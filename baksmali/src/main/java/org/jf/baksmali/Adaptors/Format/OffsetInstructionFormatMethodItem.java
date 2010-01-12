@@ -40,11 +40,11 @@ public abstract class OffsetInstructionFormatMethodItem<T extends Instruction & 
         extends InstructionFormatMethodItem<T> {
     protected LabelMethodItem label;
 
-    public OffsetInstructionFormatMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+    public OffsetInstructionFormatMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int codeAddress,
                                              StringTemplateGroup stg, T instruction) {
-        super(codeItem, offset, stg, instruction);
+        super(codeItem, codeAddress, stg, instruction);
 
-        label = new LabelMethodItem(offset + instruction.getOffset(), stg, getLabelPrefix());
+        label = new LabelMethodItem(codeAddress + instruction.getTargetAddressOffset(), stg, getLabelPrefix());
         label = labelCache.internLabel(label);
     }
 

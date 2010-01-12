@@ -43,7 +43,7 @@ public class Instruction3rmsf extends InstructionWithReference implements Regist
         this.unfixedInstruction = unfixedInstruction;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         short regCount = getRegCount();
         int startReg = getStartRegister();
 

@@ -74,7 +74,7 @@ class ReadContext {
             null, //map_list
             null //header_item
     };
-    
+
 
     /**
      * The section sizes that are passed in while reading HeaderItem/MapItem, via the
@@ -110,7 +110,7 @@ class ReadContext {
      * @param itemType The type of item to get
      * @return a SparseArray containing the items of the given type
      * that have been pre-created while reading in other sections, or
-     * null if the ItemType isn't an offsetted item 
+     * null if the ItemType isn't an offsetted item
      */
     public SparseArray getItemsByType(ItemType itemType) {
         return itemsByType[itemType.SectionIndex];
@@ -121,9 +121,14 @@ class ReadContext {
      * given offset. Multiple calls to this method with the same itemType
      * and offset will return the same item.
      *
+     * This method expects that offset will be a valid offset, not
+     * zero or negative. Use getOptionalOffsetedItemByOffset to handle
+     * the case of an optional item, where an offset of 0 is used to
+     * indicate the item isn't present
+     *
      * It should not be assumed that the item that is returned will be
      * initialized. It is only guaranteed that the item will be read in
-     * and initiliazed after the entire dex file has been read in.
+     * and initialiazed once the entire dex file has been read in.
      *
      * Note that it *is* guaranteed that this exact item will be added to
      * its corresponding section and read in. In other words, when the
@@ -132,14 +137,14 @@ class ReadContext {
      * new items for offsets that haven't been pre-created yet.
      *
      * @param itemType The type of item to get
-     * @param offset The offset of the StringDataItem
-     * @return a StringDataItem for the given offset
+     * @param offset The offset of the item
+     * @return an item of the requested type for the given offset
      */
     public Item getOffsettedItemByOffset(ItemType itemType, int offset) {
         assert !itemType.isIndexedItem();
 
-        if (offset == 0) {
-            return null;
+        if (offset <= 0) {
+            throw new RuntimeException("Invalid offset " + offset + " for item type " + itemType.TypeName);
         }
 
         SparseArray<Item> sa = itemsByType[itemType.SectionIndex];
@@ -152,7 +157,27 @@ class ReadContext {
     }
 
     /**
-     * Adds the size and offset information for the given offset 
+     * This method is similar to getOffsettedItemByOffset, except that it allows
+     * the offset to be 0, in which case it will simply return null. This method
+     * should be used for an optional item, where an item offset of 0 indicates
+     * that the item isn't present
+     * @param itemType The type of item to get
+     * @param offset the offset of the item
+     * @return an item of the requested type for the given offset, or null if
+     * offset is 0
+     */
+    public Item getOptionalOffsettedItemByOffset(ItemType itemType, int offset) {
+        assert !itemType.isIndexedItem();
+
+        if (offset == 0) {
+            return null;
+        }
+
+        return getOffsettedItemByOffset(itemType, offset);
+    }
+
+    /**
+     * Adds the size and offset information for the given offset
      * @param itemType the item type of the section
      * @param sectionSize the size of the section
      * @param sectionOffset the offset of the section
@@ -168,7 +193,7 @@ class ReadContext {
             if (storedSectionSize  != sectionSize) {
                 throw new RuntimeException("The section size in the header and map for item type "
                         + itemType + " do not match");
-            }            
+            }
         }
 
         int storedSectionOffset = sectionOffsets[itemType.SectionIndex];

@@ -28,6 +28,8 @@
 
 package org.jf.dexlib;
 
+import org.jf.dexlib.Util.ExceptionWithContext;
+
 public enum AnnotationVisibility {
     BUILD((byte)0),
     RUNTIME((byte)1),
@@ -47,7 +49,7 @@ public enum AnnotationVisibility {
             case (byte)2:
                 return SYSTEM;
             default:
-                throw new RuntimeException("Invalid annotation visibility value " + value);
+                throw new RuntimeException("Invalid annotation visibility value: " + value);
         }
     }
 }

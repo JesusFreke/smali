@@ -76,7 +76,7 @@ public class AnnotationSetRefList extends Item<AnnotationSetRefList> {
         annotationSets = new AnnotationSetItem[in.readInt()];
 
         for (int i=0; i<annotationSets.length; i++) {
-            annotationSets[i] = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
+            annotationSets[i] = (AnnotationSetItem)readContext.getOptionalOffsettedItemByOffset(
                     ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
         }
     }

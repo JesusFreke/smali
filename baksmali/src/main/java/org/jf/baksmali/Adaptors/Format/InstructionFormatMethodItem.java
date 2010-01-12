@@ -41,8 +41,8 @@ public abstract class InstructionFormatMethodItem<T extends Instruction> extends
     protected final T instruction;
 
 
-    public InstructionFormatMethodItem(CodeItem codeItem, int offset, StringTemplateGroup stg, T instruction) {
-        super(offset);
+    public InstructionFormatMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg, T instruction) {
+        super(codeAddress);
         this.codeItem = codeItem;
         this.stg = stg;
         this.instruction = instruction;

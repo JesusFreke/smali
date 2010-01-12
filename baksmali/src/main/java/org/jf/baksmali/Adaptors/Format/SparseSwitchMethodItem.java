@@ -43,10 +43,10 @@ public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSw
         implements Iterable<LabelMethodItem> {
     private List<SparseSwitchTarget> targets = new ArrayList<SparseSwitchTarget>();
 
-    public SparseSwitchMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int offset,
+    public SparseSwitchMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int targetAddressOffset,
                                   StringTemplateGroup stg, SparseSwitchDataPseudoInstruction instruction,
                                   int baseAddress) {
-        super(codeItem, offset, stg, instruction);
+        super(codeItem, targetAddressOffset, stg, instruction);
 
 
         Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.iterateKeysAndTargets();
@@ -55,7 +55,7 @@ public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSw
             SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
             sparseSwitchTarget.Key = target.key;
 
-            LabelMethodItem label = new LabelMethodItem(baseAddress + target.target, stg, "sswitch_");
+            LabelMethodItem label = new LabelMethodItem(baseAddress + target.targetAddressOffset, stg, "sswitch_");
             label = labelCache.internLabel(label);
             sparseSwitchTarget.Target = label;
 

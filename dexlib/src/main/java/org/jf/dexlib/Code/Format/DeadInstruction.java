@@ -39,13 +39,13 @@ public class DeadInstruction extends Instruction {
         this.OriginalInstruction = originalInstruction;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         //don't write anything
     }
 
     @Override
-    public int getSize(int offset) {
-        return OriginalInstruction.getSize(offset);
+    public int getSize(int codeAddress) {
+        return OriginalInstruction.getSize(codeAddress);
     }
 
     public Format getFormat() {

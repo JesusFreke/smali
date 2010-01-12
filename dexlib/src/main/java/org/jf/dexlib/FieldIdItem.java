@@ -113,12 +113,7 @@ public class FieldIdItem extends Item<FieldIdItem> {
 
     /** {@inheritDoc} */
     public String getConciseIdentity() {
-        String parentClass = classType.getTypeDescriptor();
-        //strip off the leading L and trailing ;
-        parentClass = parentClass.substring(1, parentClass.length() - 1);
-
-        return parentClass + "/" + fieldName.getStringValue() +
-                ":" + fieldType.getTypeDescriptor();
+        return getFieldString();
     }
 
     /** {@inheritDoc} */

@@ -36,7 +36,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 public class Instruction21t extends Instruction implements OffsetInstruction, SingleRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
-    private short offset;
+    private short targetAddressOffset;
 
     public Instruction21t(Opcode opcode, short regA, short offB) {
         super(opcode);
@@ -46,11 +46,11 @@ public class Instruction21t extends Instruction implements OffsetInstruction, Si
         }
 
         if (offB == 0) {
-            throw new RuntimeException("The offset cannot be 0.");
+            throw new RuntimeException("The address offset cannot be 0.");
         }
 
         this.regA = (byte)regA;
-        this.offset = offB;
+        this.targetAddressOffset = offB;
     }
 
     private Instruction21t(Opcode opcode, byte[] buffer, int bufferIndex) {
@@ -59,24 +59,25 @@ public class Instruction21t extends Instruction implements OffsetInstruction, Si
         assert buffer[bufferIndex] == opcode.value;
 
         regA = buffer[bufferIndex + 1];
-        offset = NumberUtils.decodeShort(buffer, bufferIndex + 2);
-        assert offset != 0;
+        targetAddressOffset = NumberUtils.decodeShort(buffer, bufferIndex + 2);
+        assert targetAddressOffset != 0;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regA);
-        out.writeShort(offset);
+        out.writeShort(targetAddressOffset);
     }
 
-    public void updateOffset(int offset) {
-        if (offset < Short.MIN_VALUE || offset > Short.MAX_VALUE) {
-            throw new RuntimeException("The offset " + offset + " is out of range. It must be in [-32768, 32767]");
+    public void updateTargetAddressOffset(int targetAddressOffset) {
+        if (targetAddressOffset < Short.MIN_VALUE || targetAddressOffset > Short.MAX_VALUE) {
+            throw new RuntimeException("The address offset " + targetAddressOffset +
+                    " is out of range. It must be in [-32768, 32767]");
         }
-        if (offset == 0) {
-            throw new RuntimeException("The offset cannot be 0");
+        if (targetAddressOffset == 0) {
+            throw new RuntimeException("The address offset cannot be 0");
         }
-        this.offset = (short)offset;
+        this.targetAddressOffset = (short) targetAddressOffset;
     }
 
     public Format getFormat() {
@@ -87,8 +88,8 @@ public class Instruction21t extends Instruction implements OffsetInstruction, Si
         return regA & 0xFF;
     }
 
-    public int getOffset() {
-        return offset;
+    public int getTargetAddressOffset() {
+        return targetAddressOffset;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

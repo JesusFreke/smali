@@ -64,7 +64,7 @@ public class Instruction11n extends Instruction implements SingleRegisterInstruc
         this.litB = NumberUtils.decodeHighSignedNibble(buffer[bufferIndex + 1]);
     }
 
-    public void writeInstruction(AnnotatedOutput out, int currentCodeOffset) {
+    public void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((litB << 4) | regA);
     }
