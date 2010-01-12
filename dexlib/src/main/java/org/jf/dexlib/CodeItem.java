@@ -866,8 +866,8 @@ public class CodeItem extends Item<CodeItem> {
         }
 
         /**
-         * Returns the "Catch All" handler address for this <code>EncodedCatchHandler</code>
-         * @return
+         * @return the "Catch All" handler address for this <code>EncodedCatchHandler</code>, or -1 if there
+         * is no "Catch All" handler 
          */
         public int getCatchAllHandlerAddress() {
             return catchAllHandlerAddress;
