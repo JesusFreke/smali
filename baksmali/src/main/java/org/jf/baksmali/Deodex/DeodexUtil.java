@@ -39,103 +39,6 @@ import java.util.*;
 public class DeodexUtil {
     private final Deodexerant deodexerant;
 
-    //a table that reflects which instructions can throw an exception
-    public static final BitSet instructionThrowTable = new BitSet(256);
-
-    {
-        //mark the instructions that can throw an exception
-        instructionThrowTable.set(Opcode.CONST_STRING.value & 0xFF);
-        instructionThrowTable.set(Opcode.CONST_STRING_JUMBO.value & 0xFF);
-        instructionThrowTable.set(Opcode.CONST_CLASS.value & 0xFF);
-        instructionThrowTable.set(Opcode.MONITOR_ENTER.value & 0xFF);
-        instructionThrowTable.set(Opcode.MONITOR_EXIT.value & 0xFF);
-        instructionThrowTable.set(Opcode.CHECK_CAST.value & 0xFF);
-        instructionThrowTable.set(Opcode.INSTANCE_OF.value & 0xFF);
-        instructionThrowTable.set(Opcode.ARRAY_LENGTH.value & 0xFF);
-        instructionThrowTable.set(Opcode.NEW_INSTANCE.value & 0xFF);
-        instructionThrowTable.set(Opcode.NEW_ARRAY.value & 0xFF);
-        instructionThrowTable.set(Opcode.FILLED_NEW_ARRAY.value & 0xFF);
-        instructionThrowTable.set(Opcode.FILLED_NEW_ARRAY_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.AGET.value & 0xFF);
-        instructionThrowTable.set(Opcode.AGET_BOOLEAN.value & 0xFF);
-        instructionThrowTable.set(Opcode.AGET_BYTE.value & 0xFF);
-        instructionThrowTable.set(Opcode.AGET_CHAR.value & 0xFF);
-        instructionThrowTable.set(Opcode.AGET_SHORT.value & 0xFF);
-        instructionThrowTable.set(Opcode.AGET_WIDE.value & 0xFF);
-        instructionThrowTable.set(Opcode.AGET_OBJECT.value & 0xFF);
-        instructionThrowTable.set(Opcode.APUT.value & 0xFF);
-        instructionThrowTable.set(Opcode.APUT_BOOLEAN.value & 0xFF);
-        instructionThrowTable.set(Opcode.APUT_BYTE.value & 0xFF);
-        instructionThrowTable.set(Opcode.APUT_CHAR.value & 0xFF);
-        instructionThrowTable.set(Opcode.APUT_SHORT.value & 0xFF);
-        instructionThrowTable.set(Opcode.APUT_WIDE.value & 0xFF);
-        instructionThrowTable.set(Opcode.APUT_OBJECT.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_BOOLEAN.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_BYTE.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_CHAR.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_SHORT.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_WIDE.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_OBJECT.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_BOOLEAN.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_BYTE.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_CHAR.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_SHORT.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_WIDE.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_OBJECT.value & 0xFF);
-        instructionThrowTable.set(Opcode.SGET.value & 0xFF);
-        instructionThrowTable.set(Opcode.SGET_BOOLEAN.value & 0xFF);
-        instructionThrowTable.set(Opcode.SGET_BYTE.value & 0xFF);
-        instructionThrowTable.set(Opcode.SGET_CHAR.value & 0xFF);
-        instructionThrowTable.set(Opcode.SGET_SHORT.value & 0xFF);
-        instructionThrowTable.set(Opcode.SGET_WIDE.value & 0xFF);
-        instructionThrowTable.set(Opcode.SGET_OBJECT.value & 0xFF);
-        instructionThrowTable.set(Opcode.SPUT.value & 0xFF);
-        instructionThrowTable.set(Opcode.SPUT_BOOLEAN.value & 0xFF);
-        instructionThrowTable.set(Opcode.SPUT_BYTE.value & 0xFF);
-        instructionThrowTable.set(Opcode.SPUT_CHAR.value & 0xFF);
-        instructionThrowTable.set(Opcode.SPUT_SHORT.value & 0xFF);
-        instructionThrowTable.set(Opcode.SPUT_WIDE.value & 0xFF);
-        instructionThrowTable.set(Opcode.SPUT_OBJECT.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_VIRTUAL.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_VIRTUAL_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_SUPER.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_SUPER_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_DIRECT.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_DIRECT_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_STATIC.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_STATIC_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_INTERFACE.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_INTERFACE_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.DIV_INT.value & 0xFF);
-        instructionThrowTable.set(Opcode.REM_INT.value & 0xFF);
-        instructionThrowTable.set(Opcode.DIV_LONG.value & 0xFF);
-        instructionThrowTable.set(Opcode.REM_LONG.value & 0xFF);
-        instructionThrowTable.set(Opcode.DIV_INT_2ADDR.value & 0xFF);
-        instructionThrowTable.set(Opcode.REM_INT_2ADDR.value & 0xFF);
-        instructionThrowTable.set(Opcode.DIV_LONG_2ADDR.value & 0xFF);
-        instructionThrowTable.set(Opcode.REM_LONG_2ADDR.value & 0xFF);
-        instructionThrowTable.set(Opcode.DIV_INT_LIT16.value & 0xFF);
-        instructionThrowTable.set(Opcode.REM_INT_LIT16.value & 0xFF);
-        instructionThrowTable.set(Opcode.DIV_INT_LIT8.value & 0xFF);
-        instructionThrowTable.set(Opcode.REM_INT_LIT8.value & 0xFF);
-        instructionThrowTable.set(Opcode.THROW.value & 0xFF);
-        instructionThrowTable.set(Opcode.EXECUTE_INLINE.value & 0xFF);
-        instructionThrowTable.set(Opcode.EXECUTE_INLINE_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_WIDE_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.IGET_OBJECT_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_WIDE_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.IPUT_OBJECT_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_VIRTUAL_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_VIRTUAL_QUICK_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_SUPER_QUICK.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_SUPER_QUICK_RANGE.value & 0xFF);
-        instructionThrowTable.set(Opcode.INVOKE_DIRECT_EMPTY.value & 0xFF);
-    }
-
     public DeodexUtil(Deodexerant deodexerant) {
         this.deodexerant = deodexerant;
         deodexerant.dexFile.disableInterning();
@@ -203,7 +106,7 @@ public class DeodexUtil {
             didSomething = false;
             somethingLeftToDo = false;
             for (insn i: insns) {
-                if (i.instruction.opcode.odexOnly && i.fixedInstruction == null) {
+                if (i.instruction.opcode.odexOnly() && i.fixedInstruction == null) {
                     if (deodexInstruction(i)) {
                         didSomething = true;
                     } else {
@@ -227,7 +130,7 @@ public class DeodexUtil {
                 } else {
                     instructions.add(new DeadInstruction(i.instruction));
                 }
-            } else if (i.instruction.opcode.odexOnly) {
+            } else if (i.instruction.opcode.odexOnly()) {
                 assert i.fixedInstruction != null;
                 instructions.add(i.fixedInstruction);
             } else {
@@ -840,10 +743,6 @@ public class DeodexUtil {
          * The code address of the instruction, in 2-byte instruction blocks
          */
         public final int address;
-        /**
-         * True if this instruction can throw an exception
-         */
-        public final boolean canThrow;
 
         /**
          * maps a code address to an insn
@@ -935,10 +834,9 @@ public class DeodexUtil {
             this.codeItem = codeItem;
             this.instruction = instruction;
             this.address = address;
-            this.canThrow = DeodexUtil.instructionThrowTable.get(instruction.opcode.value & 0xFF);
             this.insnsMap = insnsMap;
 
-            if (instruction.opcode.odexOnly) {
+            if (instruction.opcode.odexOnly()) {
                 //we don't need INVOKE_EXECUTE_INLINE or EXECUTE_INLINE_RANGE here, because we don't need to know
                 //the type of the object register in order to resolve which method is being called
                 switch (instruction.opcode) {
@@ -1304,7 +1202,7 @@ public class DeodexUtil {
 
             //if the next instruction can throw an exception, and is covered by exception handlers,
             //then the execution can in effect go directly from this instruction into the handler
-            if (i.canThrow && i.exceptionHandlers != null) {
+            if (i.instruction.opcode.canThrow() && i.exceptionHandlers != null) {
                 for (insn handler: i.exceptionHandlers) {
                     addSuccessor(handler);
                 }
@@ -1375,7 +1273,7 @@ public class DeodexUtil {
                 }
             }
 
-            if (exceptionHandlers != null && canThrow) {
+            if (exceptionHandlers != null && instruction.opcode.canThrow()) {
                 for (insn handlerinsn: exceptionHandlers) {
                     handlerinsn.initializeRegistersFromParams();
                 }
@@ -1425,7 +1323,7 @@ public class DeodexUtil {
             //if this is the first instruction, we're in a try block, then if the first instruction throws an
             //exception, execution could go directly into one of the handlers. We need to handle this recursively,
             //i.e. if the first instruction in the exception handler is also covered by a try block..
-            if (this.firstInstruction && canThrow && exceptionHandlers != null) {
+            if (this.firstInstruction && instruction.opcode.canThrow() && exceptionHandlers != null) {
                 for (insn handler: exceptionHandlers) {
                     handler.propagateRegisters();
                 }
