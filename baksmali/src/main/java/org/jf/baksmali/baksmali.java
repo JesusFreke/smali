@@ -31,12 +31,11 @@ package org.jf.baksmali;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.baksmali.Deodex.*;
 import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.StringIdItem;
-import org.jf.dexlib.Util.Deodexerant;
-import org.jf.dexlib.Util.DeodexUtil;
 
 import java.io.*;
 

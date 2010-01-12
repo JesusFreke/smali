@@ -26,11 +26,13 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib.Util;
+package org.jf.baksmali.Deodex;
 
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.*;
 import org.jf.dexlib.Code.Format.*;
+import org.jf.dexlib.Util.AccessFlags;
+import org.jf.dexlib.Util.SparseArray;
 
 import java.util.*;
 

@@ -17,8 +17,8 @@
 package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
+import org.jf.baksmali.Deodex.Deodexerant;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.Util.Deodexerant;
 
 import java.io.File;
 import java.io.InputStream;

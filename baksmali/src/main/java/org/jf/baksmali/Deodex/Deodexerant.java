@@ -26,9 +26,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib.Util;
+package org.jf.baksmali.Deodex;
 
 import org.jf.dexlib.*;
+import org.jf.dexlib.Util.SparseArray;
 
 import java.net.Socket;
 import java.io.PrintWriter;
