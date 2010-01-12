@@ -28,14 +28,12 @@
 
 package org.jf.dexlib.Code.Format;
 
-import org.jf.dexlib.Code.Instruction;
-import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Code.OffsetInstruction;
+import org.jf.dexlib.Code.*;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
-public class Instruction21t extends Instruction implements OffsetInstruction {
+public class Instruction21t extends Instruction implements OffsetInstruction, SingleRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
     private short offset;
@@ -85,7 +83,7 @@ public class Instruction21t extends Instruction implements OffsetInstruction {
         return Format.Format21t;
     }
 
-    public int getRegister() {
+    public int getRegisterA() {
         return regA & 0xFF;
     }
 

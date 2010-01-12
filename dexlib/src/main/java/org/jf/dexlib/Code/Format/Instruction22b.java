@@ -29,12 +29,13 @@
 package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.LiteralInstruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
-public class Instruction22b extends Instruction implements TwoRegisterInstruction {
+public class Instruction22b extends Instruction implements TwoRegisterInstruction, LiteralInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
     private byte regB;
@@ -80,7 +81,7 @@ public class Instruction22b extends Instruction implements TwoRegisterInstructio
         return regB & 0xFF;
     }
 
-    public byte getLiteral() {
+    public long getLiteral() {
         return litC;
     }
 
