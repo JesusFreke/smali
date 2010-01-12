@@ -1157,7 +1157,7 @@ public class DeodexUtil {
                         throw new RuntimeException("This move-result-object instruction does not have an invoke" +
                         " instruction immediately prior to it");
                     }
-                    registerNum = ((Instruction11x)instruction).getRegisterA();
+                    registerNum = ((SingleRegisterInstruction)instruction).getRegisterA();
                     registerType = RegisterType.Reference;
                     registerReferenceType = getReturnType(previousInsn.instruction);
                     break;
@@ -1165,7 +1165,7 @@ public class DeodexUtil {
                 case MOVE_EXCEPTION:
                 {
                     setsRegister = true;
-                    registerNum = ((Instruction11x)instruction).getRegisterA();
+                    registerNum = ((SingleRegisterInstruction)instruction).getRegisterA();
                     registerType = RegisterType.Reference;
                     //typically, there will only be a single exception type for a particular handler block, so optimize
                     //the array size for that case, but support the case of multiple exception types as well
@@ -1175,7 +1175,7 @@ public class DeodexUtil {
                             //if this is a catch all handler, the only possible type is Ljava/lang/Throwable;
                             registerReferenceType = "Ljava/lang/Throwable;";
 
-                            //it's possible that Ljava/lang/Throwable; hasn't be interned into the dex file. since
+                            //it's possible that Ljava/lang/Throwable; hasn't been interned into the dex file. Since
                             //we've turned off interning for the current dex file, we will just get a null back.
                             //This "shouldn't" be a problem, because if the type hasn't been interned, it's safe to
                             //say that there were no method/field accesses for that type, so we won't need to know
