@@ -432,8 +432,8 @@ public class DeodexUtil {
                 //what field is being accessed. What will really happen is that when it tries to access the field, it
                 //will obviously throw a NPE. We can get this same effect by replacing this opcode with a call to
                 //a method on java.lang.Object.
-                //We actually just create an Instruction2csn, which doesn't have any method/field info associated with
-                //it, and let the caller choose which "default" method to call in this case
+                //We actually just create an UnresolvedNullReference, which doesn't have any method/field info
+                //associated with it, and let the caller choose which "default" method to call in this case
                 if (regType == RegisterType.Null) {
                     i.fixedInstruction = new UnresolvedNullReference(i.instruction, registerNum);
                     i.propogateDeadness();
@@ -518,7 +518,7 @@ public class DeodexUtil {
                         opcode = Opcode.IPUT;
                         break;
                     default:
-                        throw new RuntimeException("Unexpected field type for iget-quick opcode: " + fieldType);
+                        throw new RuntimeException("Unexpected field type for iput-quick opcode: " + fieldType);
                 }
 
                 i.fixedInstruction = new Instruction22csf(opcode, (Instruction22cs)i.instruction, field);
@@ -868,19 +868,23 @@ public class DeodexUtil {
          * true if this instruction stores a value in a register
          */
         public boolean setsRegister = false;
+
         /**
          * true if this instruction sets a wide register. In this case, registerNum is the first of the
          * 2 registers
          */
         public boolean setsWideRegister = false;
+
         /**
          * If setsRegister is true, this is the instruction that is modified
          */
         public int registerNum;
+
         /**
          * If setsRegister is true, this is the register type of register that is modified
          */
         public RegisterType registerType;
+
         /**
          * if setsRegister is true, and the register type is a reference, this is the
          * reference type of the register, or null if not known yet.
@@ -905,10 +909,12 @@ public class DeodexUtil {
          * in any of the exception handlers. Or if they are covered by try blocks... you get the idea
          */
         public boolean firstInstruction = false;
+
         /**
          * If this instruction has been visited in the course of determining the type of a register
          */
         public boolean visited = false;
+
         /**
          * If this is an odex instruction, and has been fixed.
          */
