@@ -39,21 +39,24 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class PackedSwitchMethodItem extends InstructionFormatMethodItem<PackedSwitchDataPseudoInstruction>
+public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDataPseudoInstruction>
         implements Iterable<LabelMethodItem> {
-    private List<LabelMethodItem> labels = new ArrayList<LabelMethodItem>();
+    private List<LabelMethodItem> labels;
 
-    public PackedSwitchMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int codeAddress,
-                                  StringTemplateGroup stg, PackedSwitchDataPseudoInstruction instruction,
-                                  int baseCodeAddress) {
+    public PackedSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress,
+                                  StringTemplateGroup stg, PackedSwitchDataPseudoInstruction instruction) {
         super(codeItem, codeAddress, stg, instruction);
 
+        int baseCodeAddress = methodDefinition.getPackedSwitchBaseAddress(codeAddress);
+
+        labels = new ArrayList<LabelMethodItem>();
         Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.iterateKeysAndTargets();
         while (iterator.hasNext()) {
             PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
             LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, stg, "pswitch_");
-            label = labelCache.internLabel(label);
+            label = methodDefinition.getLabelCache().internLabel(label);
             labels.add(label);
+            label.setUncommented();
         }
     }
 

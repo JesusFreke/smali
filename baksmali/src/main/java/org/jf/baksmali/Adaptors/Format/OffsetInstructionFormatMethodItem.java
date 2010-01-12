@@ -28,6 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
+import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.OffsetInstruction;
@@ -36,8 +37,8 @@ import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
 
-public abstract class OffsetInstructionFormatMethodItem<T extends Instruction & OffsetInstruction>
-        extends InstructionFormatMethodItem<T> {
+public class OffsetInstructionFormatMethodItem<T extends Instruction & OffsetInstruction>
+        extends InstructionMethodItem<T> {
     protected LabelMethodItem label;
 
     public OffsetInstructionFormatMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int codeAddress,
@@ -46,15 +47,39 @@ public abstract class OffsetInstructionFormatMethodItem<T extends Instruction & 
 
         label = new LabelMethodItem(codeAddress + instruction.getTargetAddressOffset(), stg, getLabelPrefix());
         label = labelCache.internLabel(label);
+        label.setUncommented();
     }
-
-    protected abstract String getLabelPrefix();
 
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("TargetLabel", label);
+        super.setAttributes(template);
     }
 
     public LabelMethodItem getLabel() {
         return label;
+    }
+
+    private String getLabelPrefix() {
+        switch (instruction.getFormat()) {
+            case Format10t:
+            case Format20t:
+            case Format30t:
+                return "goto_";
+            case Format21t:
+            case Format22t:
+                return "cond_";
+            case Format31t:
+                if (instruction.opcode == Opcode.FILL_ARRAY_DATA) {
+                    return "array_";
+                }
+                if (instruction.opcode == Opcode.PACKED_SWITCH) {
+                    return "pswitch_data_";
+                }
+                assert instruction.opcode == Opcode.SPARSE_SWITCH;
+                return "sswitch_data_";
+        }
+
+        assert false;
+        return null;
     }
 }

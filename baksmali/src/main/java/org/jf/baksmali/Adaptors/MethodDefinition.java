@@ -32,20 +32,63 @@ import org.jf.baksmali.Adaptors.Format.*;
 import org.jf.baksmali.baksmali;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
-import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.jf.dexlib.Util.SparseIntArray;
 
 import java.util.*;
 
 public class MethodDefinition {
-    public static StringTemplate createTemplate(StringTemplateGroup stg, ClassDataItem.EncodedMethod encodedMethod,
-                                              AnnotationSetItem annotationSet,
-                                              AnnotationSetRefList parameterAnnotations) {
+    private final StringTemplateGroup stg;
+    private final ClassDataItem.EncodedMethod encodedMethod;
+
+    private final LabelCache labelCache = new LabelCache();
+
+    private final SparseIntArray packedSwitchMap;
+    private final SparseIntArray sparseSwitchMap;
+    private final SparseIntArray instructionMap;
+
+    public MethodDefinition(StringTemplateGroup stg, ClassDataItem.EncodedMethod encodedMethod) {
+        this.stg = stg;
+        this.encodedMethod = encodedMethod;
+
+        //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
+
+        if (encodedMethod.codeItem != null) {
+            Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+
+            packedSwitchMap = new SparseIntArray(1);
+            sparseSwitchMap = new SparseIntArray(1);
+            instructionMap = new SparseIntArray(instructions.length);
+
+            int currentCodeAddress = 0;
+            for (int i=0; i<instructions.length; i++) {
+                Instruction instruction = instructions[i];
+                if (instruction.opcode == Opcode.PACKED_SWITCH) {
+                    packedSwitchMap.append(
+                            currentCodeAddress + ((OffsetInstruction)instruction).getTargetAddressOffset(),
+                            currentCodeAddress);
+                } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
+                    sparseSwitchMap.append(
+                            currentCodeAddress + ((OffsetInstruction)instruction).getTargetAddressOffset(),
+                            currentCodeAddress);
+                }
+                instructionMap.append(currentCodeAddress, i);
+                currentCodeAddress += instruction.getSize(currentCodeAddress);
+            }
+        } else {
+            packedSwitchMap = null;
+            sparseSwitchMap = null;
+            instructionMap = null;
+        }
+    }
+
+    public StringTemplate createTemplate(AnnotationSetItem annotationSet,
+                                                AnnotationSetRefList parameterAnnotations) {
 
         CodeItem codeItem = encodedMethod.codeItem;
 
@@ -59,7 +102,7 @@ public class MethodDefinition {
         template.setAttribute("RegisterCount", codeItem==null?"0":Integer.toString(getRegisterCount(encodedMethod)));
         template.setAttribute("Parameters", getParameters(stg, codeItem, parameterAnnotations));
         template.setAttribute("Annotations", getAnnotations(stg, annotationSet));
-        template.setAttribute("MethodItems", getMethodItems(encodedMethod.method.getDexFile(), stg, codeItem));
+        template.setAttribute("MethodItems", getMethodItems());
 
         return template;
     }
@@ -138,6 +181,32 @@ public class MethodDefinition {
         return parameters;
     }
 
+    public LabelCache getLabelCache() {
+        return labelCache;
+    }
+
+    public int getPackedSwitchBaseAddress(int packedSwitchDataAddress) {
+        int packedSwitchBaseAddress = this.packedSwitchMap.get(packedSwitchDataAddress, -1);
+
+        if (packedSwitchBaseAddress == -1) {
+            throw new RuntimeException("Could not find the packed switch statement corresponding to the packed " +
+                    "switch data at address " + packedSwitchDataAddress);
+        }
+
+        return packedSwitchBaseAddress;
+    }
+
+    public int getSparseSwitchBaseAddress(int sparseSwitchDataAddress) {
+        int sparseSwitchBaseAddress = this.sparseSwitchMap.get(sparseSwitchDataAddress, -1);
+
+        if (sparseSwitchBaseAddress == -1) {
+            throw new RuntimeException("Could not find the sparse switch statement corresponding to the sparse " +
+                    "switch data at address " + sparseSwitchDataAddress);
+        }
+
+        return sparseSwitchBaseAddress;
+    }
+
     private static List<StringTemplate> getAnnotations(StringTemplateGroup stg, AnnotationSetItem annotationSet) {
         if (annotationSet == null) {
             return null;
@@ -151,13 +220,38 @@ public class MethodDefinition {
         return annotationAdaptors;
     }
 
-    private static List<MethodItem> getMethodItems(DexFile dexFile, StringTemplateGroup stg, CodeItem codeItem) {
+    private List<MethodItem> getMethodItems() {
         List<MethodItem> methodItems = new ArrayList<MethodItem>();
 
-        MethodItemList methodItemList = new MethodItemList(dexFile, stg, codeItem);
-        methodItemList.generateMethodItemList();
+        if (encodedMethod.codeItem == null) {
+            return methodItems;
+        }
 
-        for (LabelMethodItem labelMethodItem: methodItemList.labels.getLabels()) {
+        Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+
+        int currentCodeAddress = 0;
+        for (int i=0; i<instructions.length; i++) {
+            Instruction instruction = instructions[i];
+
+            methodItems.add(InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
+                    encodedMethod.codeItem, currentCodeAddress, stg, instruction));
+
+            if (i != instructions.length - 1) {
+                methodItems.add(new BlankMethodItem(stg, currentCodeAddress));
+            }
+
+            currentCodeAddress += instruction.getSize(currentCodeAddress);
+        }
+
+        addTries(methodItems);
+        addDebugInfo(methodItems);
+
+        if (baksmali.useSequentialLabels) {
+            setLabelSequentialNumbers();
+        }
+
+
+        for (LabelMethodItem labelMethodItem: labelCache.getLabels()) {
             if (labelMethodItem.isCommentedOut()) {
                 methodItems.add(new CommentedOutMethodItem(stg, labelMethodItem));
             } else {
@@ -165,501 +259,162 @@ public class MethodDefinition {
             }
         }
 
-        methodItems.addAll(methodItemList.instructions);
-        methodItems.addAll(methodItemList.blanks);
-        methodItems.addAll(methodItemList.catches);
-        if (baksmali.outputDebugInfo) {
-            methodItems.addAll(methodItemList.debugItems);
-        }
         Collections.sort(methodItems);
 
         return methodItems;
     }
 
-
-    private static class MethodItemList {
-        private final DexFile dexFile;
-        private final StringTemplateGroup stg;
-        private final CodeItem codeItem;
-
-        public LabelCache labels = new LabelCache();
-
-        public List<MethodItem> instructions = new ArrayList<MethodItem>();
-        public List<BlankMethodItem> blanks = new ArrayList<BlankMethodItem>();
-        public List<CatchMethodItem> catches = new ArrayList<CatchMethodItem>();
-        public List<MethodItem> debugItems = new ArrayList<MethodItem>();
-
-        private HashMap<Integer, Integer> packedSwitchMap = new HashMap<Integer, Integer>();
-        private HashMap<Integer, Integer> sparseSwitchMap = new HashMap<Integer, Integer>();
-
-        public MethodItemList(DexFile dexFile, StringTemplateGroup stg, CodeItem codeItem) {
-            this.dexFile = dexFile;
-            this.stg = stg;
-            this.codeItem = codeItem;
+    private void addTries(List<MethodItem> methodItems) {
+        if (encodedMethod.codeItem == null || encodedMethod.codeItem.getTries() == null) {
+            return;
         }
 
-        public void generateMethodItemList() {
-            if (codeItem == null) {
-                return;
-            }
+        Instruction[] instructions = encodedMethod.codeItem.getInstructions();
 
-            if (baksmali.deodexUtil != null && dexFile.isOdex()) {
-                List<Instruction> instructions = baksmali.deodexUtil.deodexerizeCode(codeItem);
+        for (CodeItem.TryItem tryItem: encodedMethod.codeItem.getTries()) {
+            int startAddress = tryItem.getStartCodeAddress();
+            int endAddress = tryItem.getStartCodeAddress() + tryItem.getTryLength();
 
-                int currentCodeAddress = 0;
-                for (Instruction instruction: instructions) {
-                    if (instruction.opcode == Opcode.PACKED_SWITCH) {
-                        Instruction31t ins = (Instruction31t)instruction;
-                        packedSwitchMap.put(currentCodeAddress + ins.getTargetAddressOffset(), currentCodeAddress);
-                    } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
-                        Instruction31t ins = (Instruction31t)instruction;
-                        sparseSwitchMap.put(currentCodeAddress + ins.getTargetAddressOffset(), currentCodeAddress);
-                    }
+            /**
+             * The end address points to the address immediately after the end of the last
+             * instruction that the try block covers. We want the .catch directive and end_try
+             * label to be associated with the last covered instruction, so we need to get
+             * the address for that instruction
+             */
 
-                    currentCodeAddress += instruction.getSize(currentCodeAddress);
-                }
+            int index = instructionMap.get(endAddress, -1);
+            int lastInstructionAddress;
 
-                currentCodeAddress = 0;
-                for (Instruction instruction: instructions) {
-                    addMethodItemsForInstruction(currentCodeAddress, instruction, false);
-                    blanks.add(new BlankMethodItem(stg, currentCodeAddress));
+            /**
+             * If we couldn't find the index, then the try block probably extends to the last instruction in the
+             * method, and so endAddress would be the address immediately after the end of the last instruction.
+             * Check to make sure this is the case, if not, throw an exception.
+             */
+            if (index == -1) {
+                Instruction lastInstruction = instructions[instructions.length - 1];
+                lastInstructionAddress = instructionMap.keyAt(instructionMap.size() - 1);
 
-                    currentCodeAddress += instruction.getSize(currentCodeAddress);
-                }
-
-                /*
-                 * Look for the last uncommented instruction. If it is an UnresolvedNullReference,
-                 * then set IsLastInstruction, so a goto will be added after it, to avoid validation
-                 * issues
-                 */
-                for (int i=this.instructions.size()-1; i>=0; i--) {
-                    MethodItem ins = this.instructions.get(i);
-                    if (ins instanceof UnresolvedNullReferenceMethodItem) {
-                        ((UnresolvedNullReferenceMethodItem)ins).setIsLastInstruction(true);
-                        break;
-                    }
-
-                    if (!(ins instanceof CommentedOutMethodItem)) {
-                        break;
-                    }
+                if (endAddress != lastInstructionAddress + lastInstruction.getSize(lastInstructionAddress)) {
+                    throw new RuntimeException("Invalid code offset " + endAddress + " for the try block end address");
                 }
             } else {
-                int currentCodeAddress = 0;
-                for (Instruction instruction: codeItem.getInstructions()) {
-                    if (instruction.opcode == Opcode.PACKED_SWITCH) {
-                        OffsetInstruction offsetInstruction = (OffsetInstruction)instruction;
-                        packedSwitchMap.put(currentCodeAddress + offsetInstruction.getTargetAddressOffset(), currentCodeAddress);
-                    } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
-                        OffsetInstruction offsetInstruction = (OffsetInstruction)instruction;
-                        sparseSwitchMap.put(currentCodeAddress + offsetInstruction.getTargetAddressOffset(), currentCodeAddress);
+                if (index == 0) {
+                    throw new RuntimeException("Unexpected instruction index");
+                }
+                Instruction lastInstruction = instructions[index - 1];
+
+                if (lastInstruction.getFormat().variableSizeFormat) {
+                    throw new RuntimeException("This try block unexpectedly ends on a switch/array data block.");
+                }
+
+                //getSize for non-variable size formats should return the same size regardless of code address, so just
+                //use a dummy address of "0"
+                lastInstructionAddress = endAddress - lastInstruction.getSize(0);
+            }
+
+            //add the catch all handler if it exists
+            int catchAllAddress = tryItem.encodedCatchHandler.getCatchAllHandlerAddress();
+            if (catchAllAddress != -1) {
+                CatchMethodItem catchAllMethodItem = new CatchMethodItem(labelCache, lastInstructionAddress, stg, null,
+                        startAddress, endAddress, catchAllAddress);
+                methodItems.add(catchAllMethodItem);
+            }
+
+            //add the rest of the handlers
+            for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
+                //use the address from the last covered instruction
+                CatchMethodItem catchMethodItem = new CatchMethodItem(labelCache, lastInstructionAddress, stg,
+                        handler.exceptionType, startAddress, endAddress, handler.getHandlerAddress());
+                methodItems.add(catchMethodItem);
+            }
+        }
+    }
+
+    private void addDebugInfo(final List<MethodItem> methodItems) {
+        if (encodedMethod.codeItem == null || encodedMethod.codeItem.getDebugInfo() == null) {
+            return;
+        }
+
+        final CodeItem codeItem = encodedMethod.codeItem;
+        DebugInfoItem debugInfoItem = codeItem.getDebugInfo();
+
+        DebugInstructionIterator.DecodeInstructions(debugInfoItem, codeItem.getRegisterCount(),
+                new DebugInstructionIterator.ProcessDecodedDebugInstructionDelegate() {
+                    @Override
+                    public void ProcessStartLocal(int codeAddress, int length, int registerNum, StringIdItem name,
+                                                  TypeIdItem type) {
+                        methodItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "StartLocal",
+                                -1, registerNum, name, type, null));
                     }
 
-                    currentCodeAddress += instruction.getSize(currentCodeAddress);
-                }
-
-                currentCodeAddress = 0;
-                for (Instruction instruction: codeItem.getInstructions()) {
-                    addMethodItemsForInstruction(currentCodeAddress, instruction, false);
-                    blanks.add(new BlankMethodItem(stg, currentCodeAddress));
-                    currentCodeAddress += instruction.getSize(currentCodeAddress);
-                }
-
-            }
-
-            blanks.remove(blanks.size()-1);
-
-            addTries();
-
-            addDebugInfo();
-
-            if (baksmali.useSequentialLabels) {
-                setLabelSequentialNumbers();
-            }
-        }
-
-        private void addOffsetInstructionMethodItem(OffsetInstructionFormatMethodItem methodItem,
-                                                    boolean commentedOut) {
-            if (commentedOut) {
-                instructions.add(new CommentedOutMethodItem(stg, methodItem));
-            } else {
-                instructions.add(methodItem);
-                LabelMethodItem label = methodItem.getLabel();
-                label.setUncommented();
-            }
-        }
-
-
-        private void addInstructionMethodItem(InstructionFormatMethodItem methodItem, boolean commentedOut) {
-            if (commentedOut) {
-                instructions.add(new CommentedOutMethodItem(stg, methodItem));
-            } else {
-                instructions.add(methodItem);
-            }
-        }
-
-        private void addMethodItemsForInstruction(int codeAddress, Instruction instruction, boolean commentedOut) {
-            switch (instruction.getFormat()) {
-                case Format10t:
-                    addOffsetInstructionMethodItem(
-                            new Instruction10tMethodItem(labels, codeItem, codeAddress, stg,(Instruction10t)instruction),
-                            commentedOut);
-                    return;
-                case Format10x:
-                    addInstructionMethodItem(
-                            new Instruction10xMethodItem(codeItem, codeAddress, stg, (Instruction10x)instruction),
-                            commentedOut);
-                    return;
-                case Format11n:
-                    addInstructionMethodItem(
-                            new Instruction11nMethodItem(codeItem, codeAddress, stg, (Instruction11n)instruction),
-                            commentedOut);
-                    return;
-                case Format11x:
-                    addInstructionMethodItem(
-                            new Instruction11xMethodItem(codeItem, codeAddress, stg, (Instruction11x)instruction),
-                            commentedOut);
-                    return;
-                case Format12x:
-                    addInstructionMethodItem(
-                            new Instruction12xMethodItem(codeItem, codeAddress, stg, (Instruction12x)instruction),
-                            commentedOut);
-                    return;
-                case Format20t:
-                    addOffsetInstructionMethodItem(
-                            new Instruction20tMethodItem(labels, codeItem, codeAddress, stg, (Instruction20t)instruction),
-                            commentedOut);
-                    return;
-                case Format21c:
-                    addInstructionMethodItem(
-                            new Instruction21cMethodItem(codeItem, codeAddress, stg, (Instruction21c)instruction),
-                            commentedOut);
-                    return;
-                case Format21h:
-                    addInstructionMethodItem(
-                            new Instruction21hMethodItem(codeItem, codeAddress, stg, (Instruction21h)instruction),
-                            commentedOut);
-                    return;
-                case Format21s:
-                    addInstructionMethodItem(
-                            new Instruction21sMethodItem(codeItem, codeAddress, stg, (Instruction21s)instruction),
-                            commentedOut);
-                    return;
-                case Format21t:
-                    addOffsetInstructionMethodItem(
-                            new Instruction21tMethodItem(labels, codeItem, codeAddress, stg, (Instruction21t)instruction),
-                            commentedOut);
-                    return;
-                case Format22b:
-                    addInstructionMethodItem(
-                            new Instruction22bMethodItem(codeItem, codeAddress, stg, (Instruction22b)instruction),
-                            commentedOut);
-                    return;
-                case Format22c:
-                    addInstructionMethodItem(
-                            new Instruction22cMethodItem(codeItem, codeAddress, stg, (Instruction22c)instruction),
-                            commentedOut);
-                    return;
-                case Format22cs:
-                    addInstructionMethodItem(
-                            new Instruction22csMethodItem(codeItem, codeAddress, stg, (Instruction22cs)instruction),
-                            commentedOut);
-                    return;
-                case Format22csf:
-                    addInstructionMethodItem(
-                            new Instruction22csfMethodItem(codeItem, codeAddress, stg, (Instruction22csf)instruction),
-                            commentedOut);
-                    return;
-                case Format22s:
-                    addInstructionMethodItem(
-                            new Instruction22sMethodItem(codeItem, codeAddress, stg, (Instruction22s)instruction),
-                            commentedOut);
-                    return;
-                case Format22t:
-                    addOffsetInstructionMethodItem(
-                            new Instruction22tMethodItem(labels, codeItem, codeAddress, stg, (Instruction22t)instruction),
-                            commentedOut);
-                    return;
-                case Format22x:
-                    addInstructionMethodItem(
-                            new Instruction22xMethodItem(codeItem, codeAddress, stg, (Instruction22x)instruction),
-                            commentedOut);
-                    return;
-                case Format23x:
-                    addInstructionMethodItem(
-                            new Instruction23xMethodItem(codeItem, codeAddress, stg, (Instruction23x)instruction),
-                            commentedOut);
-                    return;
-                case Format30t:
-                    addOffsetInstructionMethodItem(
-                            new Instruction30tMethodItem(labels, codeItem, codeAddress, stg, (Instruction30t)instruction),
-                            commentedOut);
-                    return;
-                case Format31c:
-                    addInstructionMethodItem(
-                            new Instruction31cMethodItem(codeItem, codeAddress, stg, (Instruction31c)instruction),
-                            commentedOut);
-                    return;
-                case Format31i:
-                    addInstructionMethodItem(
-                            new Instruction31iMethodItem(codeItem, codeAddress, stg, (Instruction31i)instruction),
-                            commentedOut);
-                    return;
-                case Format31t:
-                    addOffsetInstructionMethodItem(
-                            new Instruction31tMethodItem(labels, codeItem, codeAddress, stg, (Instruction31t)instruction),
-                            commentedOut);
-                    return;
-                case Format32x:
-                    addInstructionMethodItem(
-                            new Instruction32xMethodItem(codeItem, codeAddress, stg, (Instruction32x)instruction),
-                            commentedOut);
-                    return;
-                case Format35c:
-                    addInstructionMethodItem(
-                            new Instruction35cMethodItem(codeItem, codeAddress, stg, (Instruction35c)instruction),
-                            commentedOut);
-                    return;
-                case Format35s:
-                    addInstructionMethodItem(
-                            new Instruction35sMethodItem(codeItem, codeAddress, stg, (Instruction35s)instruction),
-                            commentedOut);
-                    return;
-                case Format35sf:
-                    addInstructionMethodItem(
-                            new Instruction35sfMethodItem(codeItem, codeAddress, stg, (Instruction35sf)instruction),
-                            commentedOut);
-                    return;
-                case Format35ms:
-                    addInstructionMethodItem(
-                            new Instruction35msMethodItem(codeItem, codeAddress, stg, (Instruction35ms)instruction),
-                            commentedOut);
-                    return;
-                case Format35msf:
-                    addInstructionMethodItem(
-                            new Instruction35msfMethodItem(codeItem, codeAddress, stg, (Instruction35msf)instruction),
-                            commentedOut);
-                    return;
-                case Format3rc:
-                    addInstructionMethodItem(
-                            new Instruction3rcMethodItem(codeItem, codeAddress, stg, (Instruction3rc)instruction),
-                            commentedOut);
-                    return;
-                case Format3rms:
-                    addInstructionMethodItem(
-                            new Instruction3rmsMethodItem(codeItem, codeAddress, stg, (Instruction3rms)instruction),
-                            commentedOut);
-                    return;
-                case Format3rmsf:
-                    addInstructionMethodItem(
-                            new Instruction3rmsfMethodItem(codeItem, codeAddress, stg, (Instruction3rmsf)instruction),
-                            commentedOut);
-                    return;
-                case Format51l:
-                    addInstructionMethodItem(
-                            new Instruction51lMethodItem(codeItem, codeAddress, stg, (Instruction51l)instruction),
-                            commentedOut);
-                    return;
-                case ArrayData:
-                    addInstructionMethodItem(
-                            new ArrayDataMethodItem(codeItem, codeAddress, stg, (ArrayDataPseudoInstruction)instruction),
-                            commentedOut);
-                    return;
-                case PackedSwitchData:
-                {
-                    final Integer baseAddress = packedSwitchMap.get(codeAddress);
-
-                    if (baseAddress != null) {
-                        PackedSwitchDataPseudoInstruction packedSwitchInstruction =
-                                (PackedSwitchDataPseudoInstruction)instruction;
-
-                        PackedSwitchMethodItem packedSwitch = new PackedSwitchMethodItem(labels, codeItem, codeAddress, stg,
-                                packedSwitchInstruction, baseAddress);
-                        addInstructionMethodItem(packedSwitch, commentedOut);
-
-                        if (!commentedOut) {
-                            for (LabelMethodItem label: packedSwitch) {
-                                label.setUncommented();
-                            }
-                        }
+                    @Override
+                    public void ProcessStartLocalExtended(int codeAddress, int length, int registerNum,
+                                                          StringIdItem name, TypeIdItem type,
+                                                          StringIdItem signature) {
+                        methodItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "StartLocal",
+                                -1, registerNum, name, type, signature));
                     }
-                    return;
-                }
-                case SparseSwitchData:
-                {
-                    final Integer baseAddress = sparseSwitchMap.get(codeAddress);
 
-                    if (baseAddress != null) {
-                        SparseSwitchDataPseudoInstruction sparseSwitchInstruction =
-                                (SparseSwitchDataPseudoInstruction)instruction;
-
-                        SparseSwitchMethodItem sparseSwitch = new SparseSwitchMethodItem(labels, codeItem, codeAddress, stg,
-                                sparseSwitchInstruction, baseAddress);
-                        addInstructionMethodItem(sparseSwitch, commentedOut);
-
-                        if (!commentedOut) {
-                            for (LabelMethodItem label: sparseSwitch) {
-                                label.setUncommented();
-                            }
-                        }
+                    @Override
+                    public void ProcessEndLocal(int codeAddress, int length, int registerNum, StringIdItem name,
+                                                TypeIdItem type, StringIdItem signature) {
+                        methodItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "EndLocal", -1,
+                                registerNum, name, type, signature));
                     }
-                    return;
-                }
-                case UnresolvedNullReference:
-                {
-                    addInstructionMethodItem(new UnresolvedNullReferenceMethodItem(codeItem, codeAddress, stg,
-                            (UnresolvedNullReference)instruction), commentedOut);
-                    addMethodItemsForInstruction(codeAddress, ((UnresolvedNullReference)instruction).OriginalInstruction,
-                            true);
-                    return;
-                }
-                case DeadInstruction:
-                {
-                    //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
-                    addMethodItemsForInstruction(codeAddress, ((DeadInstruction)instruction).OriginalInstruction, true);
-                    return;
-                }
-            }
-        }
 
-        private void addTries() {
-            if (codeItem.getTries() == null) {
-                return;
-            }
-            for (CodeItem.TryItem tryItem: codeItem.getTries()) {
-                int startAddress = tryItem.getStartCodeAddress();
-                int endAddress = tryItem.getStartCodeAddress() + tryItem.getTryLength();
-
-                /**
-                 * The end address points to the address immediately after the end of the last
-                 * instruction that the try block covers. We want the .catch directive and end_try
-                 * label to be associated with the last covered instruction, so we need to get
-                 * the address for that instruction
-                 */
-                int index = Collections.binarySearch(instructions, new BlankMethodItem(stg, endAddress));
-                if (index < 0) {
-                    index = (index * -1) - 1;
-                }
-                //index should never be 0, so this should be safe
-                if (index == instructions.size()) {
-                    //if the end address is the same as the address of the last instruction, then
-                    //this try item ends at the next to last instruction.
-                    //otherwise, if the end address is past the address of the last instruction,
-                    //thin this try item ends at the last instruction
-                    if (instructions.get(instructions.size() - 1).getCodeAddress() == endAddress) {
-                        //get the address for the next to last instruction
-                        index -= 2;
-                    } else {
-                        //get the address for the last instruction
-                        index--;
-                    }
-                } else {
-                    index -= 2;
-                }
-
-                int lastInstructionAddress = instructions.get(index).getCodeAddress();
-
-                //add the catch all handler if it exists
-                int catchAllAddress = tryItem.encodedCatchHandler.getCatchAllHandlerAddress();
-                if (catchAllAddress != -1) {
-                    CatchMethodItem catchMethodItem = new CatchMethodItem(labels, lastInstructionAddress, stg, null,
-                            startAddress, endAddress, catchAllAddress);
-                    catches.add(catchMethodItem);
-                }
-
-                //add the rest of the handlers
-                for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
-                    //use the address from the last covered instruction
-                    CatchMethodItem catchMethodItem = new CatchMethodItem(labels, lastInstructionAddress, stg,
-                            handler.exceptionType, startAddress, endAddress, handler.getHandlerAddress());
-                    catches.add(catchMethodItem);
-                }
-            }
-        }
-
-        private void addDebugInfo() {
-            DebugInfoItem debugInfoItem = codeItem.getDebugInfo();
-            if (debugInfoItem == null) {
-                return;
-            }
-
-            DebugInstructionIterator.DecodeInstructions(debugInfoItem, codeItem.getRegisterCount(),
-                    new DebugInstructionIterator.ProcessDecodedDebugInstructionDelegate() {
-                        @Override
-                        public void ProcessStartLocal(int codeAddress, int length, int registerNum, StringIdItem name,
-                                                      TypeIdItem type) {
-                            debugItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "StartLocal", -1,
-                                    registerNum, name, type, null));
-                        }
-
-                        @Override
-                        public void ProcessStartLocalExtended(int codeAddress, int length, int registerNum,
-                                                              StringIdItem name, TypeIdItem type,
-                                                              StringIdItem signature) {
-                            debugItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "StartLocal", -1,
-                                    registerNum, name, type, signature));
-                        }
-
-                        @Override
-                        public void ProcessEndLocal(int codeAddress, int length, int registerNum, StringIdItem name,
+                    @Override
+                    public void ProcessRestartLocal(int codeAddress, int length, int registerNum, StringIdItem name,
                                                     TypeIdItem type, StringIdItem signature) {
-                            debugItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "EndLocal", -1,
-                                    registerNum, name, type, signature));
-                        }
+                        methodItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "RestartLocal", -1,
+                                registerNum, name, type, signature));
+                    }
 
-                        @Override
-                        public void ProcessRestartLocal(int codeAddress, int length, int registerNum, StringIdItem name,
-                                                        TypeIdItem type, StringIdItem signature) {
-                            debugItems.add(new LocalDebugMethodItem(codeItem, codeAddress, stg, "RestartLocal", -1,
-                                    registerNum, name, type, signature));
-                        }
+                    @Override
+                    public void ProcessSetPrologueEnd(int codeAddress) {
+                        methodItems.add(new DebugMethodItem(codeAddress, stg, "EndPrologue", -4));
+                    }
 
-                        @Override
-                        public void ProcessSetPrologueEnd(int codeAddress) {
-                            debugItems.add(new DebugMethodItem(codeAddress, stg, "EndPrologue", -4));
-                        }
+                    @Override
+                    public void ProcessSetEpilogueBegin(int codeAddress) {
+                        methodItems.add(new DebugMethodItem(codeAddress, stg, "StartEpilogue", -4));
+                    }
 
-                        @Override
-                        public void ProcessSetEpilogueBegin(int codeAddress) {
-                            debugItems.add(new DebugMethodItem(codeAddress, stg, "StartEpilogue", -4));
-                        }
+                    @Override
+                    public void ProcessSetFile(int codeAddress, int length, final StringIdItem name) {
+                        methodItems.add(new DebugMethodItem(codeAddress, stg, "SetFile", -3) {
+                            @Override
+                            protected void setAttributes(StringTemplate template) {
+                                template.setAttribute("FileName", name.getStringValue());
+                            }
+                        });
+                    }
 
-                        @Override
-                        public void ProcessSetFile(int codeAddress, int length, final StringIdItem name) {
-                            debugItems.add(new DebugMethodItem(codeAddress, stg, "SetFile", -3) {
-                                @Override
-                                protected void setAttributes(StringTemplate template) {
-                                    template.setAttribute("FileName", name.getStringValue());
-                                }
-                            });
-                        }
+                    @Override
+                    public void ProcessLineEmit(int codeAddress, final int line) {
+                         methodItems.add(new DebugMethodItem(codeAddress, stg, "Line", -2) {
+                             @Override
+                             protected void setAttributes(StringTemplate template) {
+                                 template.setAttribute("Line", line);
+                             }
+                         });
+                    }
+                });
+    }
 
-                        @Override
-                        public void ProcessLineEmit(int codeAddress, final int line) {
-                             debugItems.add(new DebugMethodItem(codeAddress, stg, "Line", -2) {
-                                 @Override
-                                 protected void setAttributes(StringTemplate template) {
-                                     template.setAttribute("Line", line);
-                                 }
-                             });
-                        }
-                    });
-        }
+    private void setLabelSequentialNumbers() {
+        HashMap<String, Integer> nextLabelSequenceByType = new HashMap<String, Integer>();
+        ArrayList<LabelMethodItem> sortedLabels = new ArrayList<LabelMethodItem>(labelCache.getLabels());
 
-        private void setLabelSequentialNumbers() {
-            HashMap<String, Integer> nextLabelSequenceByType = new HashMap<String, Integer>();
-            ArrayList<LabelMethodItem> sortedLabels = new ArrayList<LabelMethodItem>(labels.getLabels());
+        //sort the labels by their location in the method
+        Collections.sort(sortedLabels);
 
-            //sort the labels by their location in the method
-            Collections.sort(sortedLabels);
-
-            for (LabelMethodItem labelMethodItem: sortedLabels) {
-                Integer labelSequence = nextLabelSequenceByType.get(labelMethodItem.getLabelPrefix());
-                if (labelSequence == null) {
-                    labelSequence = 0;
-                }
-                labelMethodItem.setLabelSequence(labelSequence);
-                nextLabelSequenceByType.put(labelMethodItem.getLabelPrefix(), labelSequence + 1);
+        for (LabelMethodItem labelMethodItem: sortedLabels) {
+            Integer labelSequence = nextLabelSequenceByType.get(labelMethodItem.getLabelPrefix());
+            if (labelSequence == null) {
+                labelSequence = 0;
             }
+            labelMethodItem.setLabelSequence(labelSequence);
+            nextLabelSequenceByType.put(labelMethodItem.getLabelPrefix(), labelSequence + 1);
         }
     }
 

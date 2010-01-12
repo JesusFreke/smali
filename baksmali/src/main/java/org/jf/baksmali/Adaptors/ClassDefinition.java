@@ -245,30 +245,33 @@ public class ClassDefinition {
     }
 
     private List<StringTemplate> getDirectMethods() {
-        List<StringTemplate> directMethods = new ArrayList<StringTemplate>();
-
-        if (classDataItem != null) {
-            for (ClassDataItem.EncodedMethod method: classDataItem.getDirectMethods()) {
-                AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
-                AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
-                directMethods.add(MethodDefinition.createTemplate(stg, method, annotationSet, parameterAnnotationList));
-            }
+        if (classDataItem == null) {
+            return null;
         }
 
-        return directMethods;
+        return getTemplatesForMethods(classDataItem.getDirectMethods());
     }
 
     private List<StringTemplate> getVirtualMethods() {
-        List<StringTemplate> virtualMethods = new ArrayList<StringTemplate>();
-
-        if (classDataItem != null) {
-            for (ClassDataItem.EncodedMethod method: classDataItem.getVirtualMethods()) {
-                AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
-                AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
-                virtualMethods.add(MethodDefinition.createTemplate(stg, method, annotationSet, parameterAnnotationList));
-            }
+        if (classDataItem == null) {
+            return null;
         }
 
-        return virtualMethods;
+        return getTemplatesForMethods(classDataItem.getVirtualMethods());
+    }
+
+    private List<StringTemplate> getTemplatesForMethods(ClassDataItem.EncodedMethod[] methods) {
+        List<StringTemplate> methodTemplates = new ArrayList<StringTemplate>();
+
+        for (ClassDataItem.EncodedMethod method: methods) {
+            AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
+            AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
+
+            MethodDefinition methodDefinition = new MethodDefinition(stg, method);
+
+            methodTemplates.add(methodDefinition.createTemplate(annotationSet, parameterAnnotationList));
+        }
+
+        return methodTemplates;
     }
 }

@@ -35,7 +35,7 @@ import org.jf.dexlib.CodeItem;
 
 import java.util.Iterator;
 
-public class ArrayDataMethodItem extends InstructionFormatMethodItem<ArrayDataPseudoInstruction> {
+public class ArrayDataMethodItem extends InstructionMethodItem<ArrayDataPseudoInstruction> {
     public ArrayDataMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg,
                                ArrayDataPseudoInstruction instruction) {
         super(codeItem, codeAddress, stg, instruction);

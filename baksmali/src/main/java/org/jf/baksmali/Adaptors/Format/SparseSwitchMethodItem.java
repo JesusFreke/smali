@@ -30,34 +30,36 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
 import org.jf.baksmali.Adaptors.LabelMethodItem;
-import org.jf.baksmali.Adaptors.MethodDefinition;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class SparseSwitchMethodItem extends InstructionFormatMethodItem<SparseSwitchDataPseudoInstruction>
+public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDataPseudoInstruction>
         implements Iterable<LabelMethodItem> {
-    private List<SparseSwitchTarget> targets = new ArrayList<SparseSwitchTarget>();
+    private List<SparseSwitchTarget> targets = null;
 
-    public SparseSwitchMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int targetAddressOffset,
-                                  StringTemplateGroup stg, SparseSwitchDataPseudoInstruction instruction,
-                                  int baseAddress) {
-        super(codeItem, targetAddressOffset, stg, instruction);
+    public SparseSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress,
+                                  StringTemplateGroup stg, SparseSwitchDataPseudoInstruction instruction) {
+        super(codeItem, codeAddress, stg, instruction);
 
+        int baseCodeAddress = methodDefinition.getSparseSwitchBaseAddress(codeAddress);
 
+        targets = new ArrayList<SparseSwitchTarget>();
         Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.iterateKeysAndTargets();
         while (iterator.hasNext()) {
             SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
             SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
             sparseSwitchTarget.Key = target.key;
 
-            LabelMethodItem label = new LabelMethodItem(baseAddress + target.targetAddressOffset, stg, "sswitch_");
-            label = labelCache.internLabel(label);
+            LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, stg, "sswitch_");
+            label = methodDefinition.getLabelCache().internLabel(label);
             sparseSwitchTarget.Target = label;
+            label.setUncommented();
 
             targets.add(sparseSwitchTarget);
         }

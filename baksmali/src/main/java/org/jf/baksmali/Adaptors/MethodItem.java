@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 public abstract class MethodItem implements Comparable<MethodItem> {
-    private int codeAddress;
+    protected final int codeAddress;
 
     protected MethodItem(int codeAddress) {
         this.codeAddress = codeAddress;

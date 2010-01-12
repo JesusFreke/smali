@@ -133,14 +133,14 @@ Format10x(Opcode) ::=
 <Opcode>
 >>
 
-Format11n(Opcode, Register, Literal) ::=
+Format11n(Opcode, RegisterA, Literal) ::=
 <<
-<Opcode> <Register>, <Literal>
+<Opcode> <RegisterA>, <Literal>
 >>
 
-Format11x(Opcode, Register) ::=
+Format11x(Opcode, RegisterA) ::=
 <<
-<Opcode> <Register>
+<Opcode> <RegisterA>
 >>
 
 Format12x(Opcode, RegisterA, RegisterB) ::=
@@ -153,24 +153,24 @@ Format20t(Opcode, TargetLabel) ::=
 <Opcode> <TargetLabel>
 >>
 
-Format21c(Opcode, Register, Reference) ::=
+Format21c(Opcode, RegisterA, Reference) ::=
 <<
-<Opcode> <Register>, <Reference>
+<Opcode> <RegisterA>, <Reference>
 >>
 
-Format21h(Opcode, Register, Literal) ::=
+Format21h(Opcode, RegisterA, Literal) ::=
 <<
-<Opcode> <Register>, <Literal>
+<Opcode> <RegisterA>, <Literal>
 >>
 
-Format21s(Opcode, Register, Literal) ::=
+Format21s(Opcode, RegisterA, Literal) ::=
 <<
-<Opcode> <Register>, <Literal>
+<Opcode> <RegisterA>, <Literal>
 >>
 
-Format21t(Opcode, Register, TargetLabel) ::=
+Format21t(Opcode, RegisterA, TargetLabel) ::=
 <<
-<Opcode> <Register>, <TargetLabel>
+<Opcode> <RegisterA>, <TargetLabel>
 >>
 
 Format22b(Opcode, RegisterA, RegisterB, Literal) ::=
@@ -218,19 +218,19 @@ Format30t(Opcode, TargetLabel) ::=
 <Opcode> <TargetLabel>
 >>
 
-Format31c(Opcode, Register, Reference) ::=
+Format31c(Opcode, RegisterA, Reference) ::=
 <<
-<Opcode> <Register>, <Reference>
+<Opcode> <RegisterA>, <Reference>
 >>
 
-Format31i(Opcode, Register, Literal) ::=
+Format31i(Opcode, RegisterA, Literal) ::=
 <<
-<Opcode> <Register>, <Literal>
+<Opcode> <RegisterA>, <Literal>
 >>
 
-Format31t(Opcode, Register, TargetLabel) ::=
+Format31t(Opcode, RegisterA, TargetLabel) ::=
 <<
-<Opcode> <Register>, <TargetLabel>
+<Opcode> <RegisterA>, <TargetLabel>
 >>
 
 Format32x(Opcode, RegisterA, RegisterB) ::=
@@ -278,9 +278,9 @@ Format3rmsf(Opcode, StartRegister, LastRegister, Reference) ::=
 <Opcode> {<StartRegister> .. <LastRegister>}, <Reference>
 >>
 
-Format51l(Opcode, Register, Literal) ::=
+Format51l(Opcode, RegisterA, Literal) ::=
 <<
-<Opcode> <Register>, <Literal>
+<Opcode> <RegisterA>, <Literal>
 >>
 
 CommentedOutMethodItem(MethodItem) ::=
