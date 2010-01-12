@@ -108,3 +108,26 @@
     :here
     return-object v0
 .end method
+
+.method public static FirstInstructionTest(Lrandomclass;)V
+    .registers 1
+
+    :try_start
+        invoke-virtual/range {p0}, Lrandomclass;->getSuperclass()Lsuperclass;
+        return-void
+    :try_end
+    .catch Ljava/lang/Exception; {:try_start .. :try_end} :handler
+    :handler
+        :inner_try_start
+            #this tests that the parameter register types are correctly propagated to the exception handlers, in the
+            #case that the first instruction of the method can throw an exception and is in a try black
+            invoke-virtual/range {p0}, Lrandomclass;->getSuperclass()Lsuperclass;
+            return-void
+        :inner_try_end
+        .catch Ljava/lang/Exception; {:inner_try_start .. :inner_try_end} :inner_handler
+        :inner_handler
+            #this additionally tests that the register types are propagated recursively, in the case that the first
+            #instruction in the exception handler can also throw an exception, and is covered by a try block
+            invoke-virtual/range {p0}, Lrandomclass;->getSuperclass()Lsuperclass;
+            return-void
+.end method
