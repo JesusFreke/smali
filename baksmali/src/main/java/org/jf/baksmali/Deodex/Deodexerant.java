@@ -42,6 +42,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * This class handles communication with the deodexerant helper binary,
+ * as well as caching the results of any deodexerant lookups
+ */
 public class Deodexerant {
     private final String host;
     private final int port;
