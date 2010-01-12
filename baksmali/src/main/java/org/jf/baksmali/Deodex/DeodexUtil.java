@@ -735,10 +735,12 @@ public class DeodexUtil {
          * The CodeItem that this instruction is a part of
          */
         public final CodeItem codeItem;
+
         /**
          * The actual instruction
          */
         public final Instruction instruction;
+
         /**
          * The code address of the instruction, in 2-byte instruction blocks
          */
