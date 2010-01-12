@@ -214,9 +214,7 @@ public class DeodexUtil {
         } while (didSomething);
         if (somethingLeftToDo) {
             System.err.println("warning: could not fully deodex the method " +
-                    codeItem.getParent().method.getContainingClass().getTypeDescriptor() + "->" +
-                    codeItem.getParent().method.getMethodName() +
-                    codeItem.getParent().method.getPrototype().getPrototypeString());
+                    codeItem.getParent().method.getMethodString());
         }
 
         List<Instruction> instructions = new ArrayList<Instruction>(insns.size());
