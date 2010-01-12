@@ -28,6 +28,7 @@
 
 package org.jf.dexlib.Code.Format;
 
+import org.jf.dexlib.Code.FiveRegisterInstruction;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Util.NumberUtils;
@@ -35,7 +36,7 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
 
 
-public class Instruction35ms extends Instruction {
+public class Instruction35ms extends Instruction implements FiveRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regCount;
     private byte regA;
@@ -97,12 +98,12 @@ public class Instruction35ms extends Instruction {
         return Format.Format35ms;
     }
 
-    public byte getRegisterA() {
-        return regA;
-    }
-
     public byte getRegCount() {
         return regCount;
+    }
+
+    public byte getRegisterA() {
+        return regA;
     }
 
     public byte getRegisterD() {

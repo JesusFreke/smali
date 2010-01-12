@@ -32,6 +32,8 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.InstructionWithReference;
 import org.jf.dexlib.Code.Opcode;
 import static org.jf.dexlib.Code.Opcode.*;
+
+import org.jf.dexlib.Code.RegisterRangeInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Item;
 import org.jf.dexlib.MethodIdItem;
@@ -39,7 +41,7 @@ import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
-public class Instruction3rc extends InstructionWithReference {
+public class Instruction3rc extends InstructionWithReference implements RegisterRangeInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regCount;
     private short startReg;

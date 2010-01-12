@@ -28,12 +28,13 @@
 
 package org.jf.dexlib.Code.Format;
 
+import org.jf.dexlib.Code.FiveRegisterInstruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.InstructionWithReference;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
-public class Instruction35msf extends InstructionWithReference {
+public class Instruction35msf extends InstructionWithReference implements FiveRegisterInstruction {
     private final Instruction35ms unfixedInstruction;
 
     public Instruction35msf(Opcode opcode, Instruction35ms unfixedInstruction, MethodIdItem method) {
@@ -61,12 +62,12 @@ public class Instruction35msf extends InstructionWithReference {
         return Format.Format35msf;
     }
 
-    public byte getRegisterA() {
-        return unfixedInstruction.getRegisterA();
-    }
-
     public byte getRegCount() {
         return unfixedInstruction.getRegCount();
+    }
+
+    public byte getRegisterA() {
+        return unfixedInstruction.getRegisterA();
     }
 
     public byte getRegisterD() {

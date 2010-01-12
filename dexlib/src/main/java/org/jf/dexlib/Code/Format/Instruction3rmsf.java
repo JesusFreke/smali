@@ -30,10 +30,11 @@ package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.InstructionWithReference;
+import org.jf.dexlib.Code.RegisterRangeInstruction;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
-public class Instruction3rmsf extends InstructionWithReference {
+public class Instruction3rmsf extends InstructionWithReference implements RegisterRangeInstruction {
     private final Instruction3rms unfixedInstruction;
 
     public Instruction3rmsf(Opcode opcode, Instruction3rms unfixedInstruction, MethodIdItem method) {
