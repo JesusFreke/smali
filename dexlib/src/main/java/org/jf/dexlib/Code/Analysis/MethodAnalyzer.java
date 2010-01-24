@@ -466,6 +466,8 @@ public class MethodAnalyzer {
                 return handleFilledNewArrayRange(analyzedInstruction);
             case FILL_ARRAY_DATA:
                 return handleFillArrayData(analyzedInstruction);
+            case THROW:
+                return handleThrow(analyzedInstruction);
         }
         assert false;
         return false;
@@ -1126,6 +1128,35 @@ public class MethodAnalyzer {
                     "correct element width for array type %s. Expecting element width %d, got element width %d.",
                     arrayDataOffset, arrayClassDef.getClassType(), elementWidth,
                     arrayDataPseudoInstruction.getElementWidth()));
+        }
+
+        return true;
+    }
+
+    private boolean handleThrow(AnalyzedInstruction analyzedInstruction) {
+        int register = ((SingleRegisterInstruction)analyzedInstruction.instruction).getRegisterA();
+
+        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
+        assert registerType != null;
+
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        if (registerType.category == RegisterType.Category.Null) {
+            return true;
+        }
+
+        if (registerType.category != RegisterType.Category.Reference) {
+            throw new ValidationException(String.format("Cannot use throw with non-reference type %s in register v%d",
+                    registerType.toString(), register));
+        }
+
+        assert registerType.type != null;
+
+        if (!registerType.type.extendsClass(ClassPath.getClassDef("Ljava/lang/Throwable;"))) {
+            throw new ValidationException(String.format("Cannot use throw with non-throwable type %s in register v%d",
+                    registerType.type.getClassType(), register));
         }
 
         return true;
