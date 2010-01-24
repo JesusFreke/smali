@@ -458,6 +458,8 @@ public class MethodAnalyzer {
                 return handleNewInstance(analyzedInstruction);
             case NEW_ARRAY:
                 return handleNewArray(analyzedInstruction);
+            case FILLED_NEW_ARRAY:
+                return handleFilledNewArray(analyzedInstruction);
         }
         assert false;
         return false;
@@ -940,6 +942,59 @@ public class MethodAnalyzer {
         if (arrayType.type.getClassType().charAt(0) != '[') {
             throw new ValidationException("Cannot use non-array type \"" + arrayType.type.getClassType() +
                     "\" with new-array. Use new-instance instead.");
+        }
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, arrayType);
+        return true;
+    }
+
+    private boolean handleFilledNewArray(AnalyzedInstruction analyzedInstruction) {
+        RegisterType arrayType;
+        RegisterType arrayImmediateElementType;
+        {
+            InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
+
+            Item item = instruction.getReferencedItem();
+            assert  item.getItemType() == ItemType.TYPE_TYPE_ID_ITEM;
+
+            ClassPath.ClassDef classDef = ClassPath.getClassDef((TypeIdItem)item);
+
+            if (classDef.getClassType().charAt(0) != '[') {
+                throw new ValidationException("Cannot use non-array type \"" + classDef.getClassType() +
+                    "\" with new-array. Use new-instance instead.");
+            }
+
+            ClassPath.ArrayClassDef arrayClassDef = (ClassPath.ArrayClassDef)classDef;
+            arrayType = RegisterType.getRegisterType(RegisterType.Category.Reference, classDef);
+            arrayImmediateElementType = RegisterType.getRegisterTypeForType(
+                    arrayClassDef.getImmediateElementClass().getClassType());
+            String baseElementType = arrayClassDef.getBaseElementClass().getClassType();
+            if (baseElementType.charAt(0) == 'J' || baseElementType.charAt(0) == 'D') {
+                throw new ValidationException("Cannot use filled-new-array to create an array of wide values " +
+                        "(long or double)");
+            }
+        }
+
+        FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
+        int registerCount = instruction.getRegCount();
+
+        byte[] registers = new byte[]{instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),
+            instruction.getRegisterG(), instruction.getRegisterA()};
+
+        for (int i=0; i<registerCount; i++) {
+            int register = registers[i];
+            RegisterType elementType = analyzedInstruction.getPreInstructionRegisterType(register);
+            assert elementType != null;
+
+            if (elementType.category == RegisterType.Category.Unknown) {
+                return false;
+            }
+
+            if (!elementType.canBeAssignedTo(arrayImmediateElementType)) {
+                throw new ValidationException("Register v" + Integer.toString(register) + " is of type " +
+                        elementType.toString() + " and is incompatible with the array type " +
+                        arrayType.type.getClassType());
+            }
         }
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, arrayType);

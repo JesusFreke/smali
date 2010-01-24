@@ -238,8 +238,29 @@ public class ClassPath {
             arrayDimensions = i;
         }
 
-        public ClassDef getElementClass() {
+        /**
+         * Returns the "base" element class of the array.
+         *
+         * For example, for a multi-dimensional array of strings ([[Ljava/lang/String;), this method would return
+         * Ljava/lang/String;
+         * @return
+         */
+        public ClassDef getBaseElementClass() {
             return elementClass;
+        }
+
+        /**
+         * Returns the "immediate" element class of the array.
+         *
+         * For example, for a multi-dimensional array of stings with 2 dimensions ([[Ljava/lang/String;), this method
+         * would return [Ljava/lang/String;
+         * @return
+         */
+        public ClassDef getImmediateElementClass() {
+            if (arrayDimensions == 1) {
+                return elementClass;
+            }
+            return getArrayClassDefByElementClassAndDimension(elementClass, arrayDimensions - 1);
         }
 
         public int getArrayDimensions() {
