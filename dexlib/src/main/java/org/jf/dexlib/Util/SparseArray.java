@@ -180,7 +180,7 @@ public class SparseArray<E> {
     /**
      * Given an index in the range <code>0...size()-1</code>, returns
      * the key from the <code>index</code>th key-value mapping that this
-     * SparseArray stores.  
+     * SparseArray stores.
      */
     public int keyAt(int index) {
         if (mGarbage) {
@@ -189,11 +189,11 @@ public class SparseArray<E> {
 
         return mKeys[index];
     }
-    
+
     /**
      * Given an index in the range <code>0...size()-1</code>, returns
      * the value from the <code>index</code>th key-value mapping that this
-     * SparseArray stores.  
+     * SparseArray stores.
      */
     public E valueAt(int index) {
         if (mGarbage) {
@@ -206,7 +206,7 @@ public class SparseArray<E> {
     /**
      * Given an index in the range <code>0...size()-1</code>, sets a new
      * value for the <code>index</code>th key-value mapping that this
-     * SparseArray stores.  
+     * SparseArray stores.
      */
     public void setValueAt(int index, E value) {
         if (mGarbage) {
@@ -215,7 +215,7 @@ public class SparseArray<E> {
 
         mValues[index] = value;
     }
-    
+
     /**
      * Returns the index for which {@link #keyAt} would return the
      * specified key, or a negative number if the specified
@@ -300,7 +300,7 @@ public class SparseArray<E> {
 
     /**
      * Increases the size of the underlying storage if needed, to ensure that it can
-     * hold the specified number of items without having to allocate additional memory 
+     * hold the specified number of items without having to allocate additional memory
      * @param capacity the number of items
      */
     public void ensureCapacity(int capacity) {
@@ -319,7 +319,7 @@ public class SparseArray<E> {
             mValues = nvalues;
         }
     }
-    
+
     private static int binarySearch(int[] a, int start, int len, int key) {
         int high = start + len, low = start - 1, guess;
 
