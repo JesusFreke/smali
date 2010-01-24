@@ -2,6 +2,8 @@ package org.jf.dexlib.Code.Analysis;
 
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.*;
+import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.Format;
 import org.jf.dexlib.Util.*;
 
 import java.util.*;
@@ -462,6 +464,8 @@ public class MethodAnalyzer {
                 return handleFilledNewArray(analyzedInstruction);
             case FILLED_NEW_ARRAY_RANGE:
                 return handleFilledNewArrayRange(analyzedInstruction);
+            case FILL_ARRAY_DATA:
+                return handleFillArrayData(analyzedInstruction);
         }
         assert false;
         return false;
@@ -1033,7 +1037,7 @@ public class MethodAnalyzer {
         //unsigned 16 bit values, so we don't have to worry about overflowing an int when adding them together
         if (instruction.getStartRegister() + instruction.getRegCount() >= 1<<16) {
             throw new ValidationException(String.format("Invalid register range {v%d .. v%d}. The ending register " +
-                    " is larger than the largest allowed register of v65535.",
+                    "is larger than the largest allowed register of v65535.",
                     instruction.getStartRegister(),
                     instruction.getStartRegister() + instruction.getRegCount() - 1));
         }
@@ -1056,6 +1060,75 @@ public class MethodAnalyzer {
                         return true;
                     }
                 });
+    }
+
+    private boolean handleFillArrayData(AnalyzedInstruction analyzedInstruction) {
+        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
+
+        int register = instruction.getRegisterA();
+        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
+        assert registerType != null;
+
+        if (registerType.category == RegisterType.Category.Unknown ||
+            registerType.category == RegisterType.Category.Null) {
+            return false;
+        }
+
+        if (registerType.category != RegisterType.Category.Reference) {
+            throw new ValidationException(String.format("Cannot use fill-array-data with non-array register v%d of " +
+                    "type %s", register, registerType.toString()));
+        }
+
+        assert registerType.type instanceof ClassPath.ArrayClassDef;
+        ClassPath.ArrayClassDef arrayClassDef = (ClassPath.ArrayClassDef)registerType.type;
+
+        if (arrayClassDef.getArrayDimensions() != 1) {
+            throw new ValidationException(String.format("Cannot use fill-array-data with array type %s. It can only " +
+                    "be used with a one-dimensional array of primitives.", arrayClassDef.getClassType()));
+        }
+
+        int elementWidth;
+        switch (arrayClassDef.getBaseElementClass().getClassType().charAt(0)) {
+            case 'Z':
+            case 'B':
+                elementWidth = 1;
+                break;
+            case 'C':
+            case 'S':
+                elementWidth = 2;
+                break;
+            case 'I':
+            case 'F':
+                elementWidth = 4;
+                break;
+            case 'J':
+            case 'D':
+                elementWidth = 8;
+                break;
+            default:
+                throw new ValidationException(String.format("Cannot use fill-array-data with array type %s. It can " +
+                        "only be used with a one-dimensional array of primitives.", arrayClassDef.getClassType()));
+        }
+
+
+        int arrayDataOffset = ((OffsetInstruction)analyzedInstruction.instruction).getTargetAddressOffset();
+        AnalyzedInstruction arrayDataInstruction = this.instructions.get(arrayDataOffset);
+        if (arrayDataInstruction == null || arrayDataInstruction.instruction.getFormat() != Format.ArrayData) {
+            throw new ValidationException(String.format("Could not find an array data structure at code address 0x%x",
+                    arrayDataOffset));
+        }
+
+        ArrayDataPseudoInstruction arrayDataPseudoInstruction =
+                (ArrayDataPseudoInstruction)arrayDataInstruction.instruction;
+
+        if (elementWidth != arrayDataPseudoInstruction.getElementWidth()) {
+            throw new ValidationException(String.format("The array data at code address 0x%x does not have the " +
+                    "correct element width for array type %s. Expecting element width %d, got element width %d.",
+                    arrayDataOffset, arrayClassDef.getClassType(), elementWidth,
+                    arrayDataPseudoInstruction.getElementWidth()));
+        }
+
+        return true;
     }
 
     private static void checkRegister(RegisterType registerType, EnumSet validCategories) {
