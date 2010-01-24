@@ -495,6 +495,11 @@ public class MethodAnalyzer {
             case IF_EQZ:
             case IF_NEZ:
                 return handleIfEqzNez(analyzedInstruction);
+            case IF_LTZ:
+            case IF_GEZ:
+            case IF_GTZ:
+            case IF_LEZ:
+                return handleIfz(analyzedInstruction);
         }
         assert false;
         return false;
@@ -1326,6 +1331,20 @@ public class MethodAnalyzer {
             throw new ValidationException(String.format("%s cannot be used with register type %s. Expecting 32-bit " +
                     "primitive type or reference type.", analyzedInstruction.instruction.opcode));
         }
+
+        return true;
+    }
+
+    private boolean handleIfz(AnalyzedInstruction analyzedInstruction) {
+        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
+        assert registerType != null;
+
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(registerType, Primitive32BitCategories);
 
         return true;
     }
