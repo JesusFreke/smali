@@ -460,6 +460,8 @@ public class MethodAnalyzer {
                 return handleNewArray(analyzedInstruction);
             case FILLED_NEW_ARRAY:
                 return handleFilledNewArray(analyzedInstruction);
+            case FILLED_NEW_ARRAY_RANGE:
+                return handleFilledNewArrayRange(analyzedInstruction);
         }
         assert false;
         return false;
@@ -948,41 +950,40 @@ public class MethodAnalyzer {
         return true;
     }
 
-    private boolean handleFilledNewArray(AnalyzedInstruction analyzedInstruction) {
+    private static interface RegisterIterator {
+        int getRegister();
+        boolean moveNext();
+    }
+
+    private boolean handleFilledNewArrayCommon(AnalyzedInstruction analyzedInstruction,
+                                               RegisterIterator registerIterator) {
+        InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
+
         RegisterType arrayType;
         RegisterType arrayImmediateElementType;
-        {
-            InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
 
-            Item item = instruction.getReferencedItem();
-            assert  item.getItemType() == ItemType.TYPE_TYPE_ID_ITEM;
+        Item item = instruction.getReferencedItem();
+        assert  item.getItemType() == ItemType.TYPE_TYPE_ID_ITEM;
 
-            ClassPath.ClassDef classDef = ClassPath.getClassDef((TypeIdItem)item);
+        ClassPath.ClassDef classDef = ClassPath.getClassDef((TypeIdItem)item);
 
-            if (classDef.getClassType().charAt(0) != '[') {
-                throw new ValidationException("Cannot use non-array type \"" + classDef.getClassType() +
-                    "\" with new-array. Use new-instance instead.");
-            }
-
-            ClassPath.ArrayClassDef arrayClassDef = (ClassPath.ArrayClassDef)classDef;
-            arrayType = RegisterType.getRegisterType(RegisterType.Category.Reference, classDef);
-            arrayImmediateElementType = RegisterType.getRegisterTypeForType(
-                    arrayClassDef.getImmediateElementClass().getClassType());
-            String baseElementType = arrayClassDef.getBaseElementClass().getClassType();
-            if (baseElementType.charAt(0) == 'J' || baseElementType.charAt(0) == 'D') {
-                throw new ValidationException("Cannot use filled-new-array to create an array of wide values " +
-                        "(long or double)");
-            }
+        if (classDef.getClassType().charAt(0) != '[') {
+            throw new ValidationException("Cannot use non-array type \"" + classDef.getClassType() +
+                "\" with new-array. Use new-instance instead.");
         }
 
-        FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
-        int registerCount = instruction.getRegCount();
+        ClassPath.ArrayClassDef arrayClassDef = (ClassPath.ArrayClassDef)classDef;
+        arrayType = RegisterType.getRegisterType(RegisterType.Category.Reference, classDef);
+        arrayImmediateElementType = RegisterType.getRegisterTypeForType(
+                arrayClassDef.getImmediateElementClass().getClassType());
+        String baseElementType = arrayClassDef.getBaseElementClass().getClassType();
+        if (baseElementType.charAt(0) == 'J' || baseElementType.charAt(0) == 'D') {
+            throw new ValidationException("Cannot use filled-new-array to create an array of wide values " +
+                    "(long or double)");
+        }
 
-        byte[] registers = new byte[]{instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),
-            instruction.getRegisterG(), instruction.getRegisterA()};
-
-        for (int i=0; i<registerCount; i++) {
-            int register = registers[i];
+        do {
+            int register = registerIterator.getRegister();
             RegisterType elementType = analyzedInstruction.getPreInstructionRegisterType(register);
             assert elementType != null;
 
@@ -995,10 +996,66 @@ public class MethodAnalyzer {
                         elementType.toString() + " and is incompatible with the array type " +
                         arrayType.type.getClassType());
             }
-        }
+        } while (registerIterator.moveNext());
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, arrayType);
         return true;
+    }
+
+    private boolean handleFilledNewArray(AnalyzedInstruction analyzedInstruction) {
+        FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
+        final int registerCount = instruction.getRegCount();
+        final int[] registers = new int[]{instruction.getRegisterD(), instruction.getRegisterE(),
+                                          instruction.getRegisterF(), instruction.getRegisterG(),
+                                          instruction.getRegisterA()};
+
+        return handleFilledNewArrayCommon(analyzedInstruction,
+                new RegisterIterator() {
+                    private int currentRegister = 0;
+                    public int getRegister() {
+                        return registers[currentRegister];
+                    }
+
+                    public boolean moveNext() {
+                        currentRegister++;
+                        if (currentRegister >= registerCount) {
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+    }
+
+    private boolean handleFilledNewArrayRange(AnalyzedInstruction analyzedInstruction) {
+        final RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
+
+        //instruction.getStartRegister() and instruction.getRegCount() both return an int value, but are actually
+        //unsigned 16 bit values, so we don't have to worry about overflowing an int when adding them together
+        if (instruction.getStartRegister() + instruction.getRegCount() >= 1<<16) {
+            throw new ValidationException(String.format("Invalid register range {v%d .. v%d}. The ending register " +
+                    " is larger than the largest allowed register of v65535.",
+                    instruction.getStartRegister(),
+                    instruction.getStartRegister() + instruction.getRegCount() - 1));
+        }
+
+        return handleFilledNewArrayCommon(analyzedInstruction,
+                new RegisterIterator() {
+                    private int currentRegister = 0;
+                    private final int startRegister = instruction.getStartRegister();
+                    private final int registerCount = instruction.getRegCount();
+
+                    public int getRegister() {
+                        return startRegister + currentRegister;
+                    }
+
+                    public boolean moveNext() {
+                        currentRegister++;
+                        if (currentRegister >= registerCount) {
+                            return false;
+                        }
+                        return true;
+                    }
+                });
     }
 
     private static void checkRegister(RegisterType registerType, EnumSet validCategories) {
