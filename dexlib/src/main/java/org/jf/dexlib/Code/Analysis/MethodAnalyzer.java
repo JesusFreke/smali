@@ -484,6 +484,9 @@ public class MethodAnalyzer {
             case CMPG_DOUBLE:
             case CMP_LONG:
                 return handleWideCmp(analyzedInstruction);
+            case IF_EQ:
+            case IF_NE:
+                return handleIfEqNe(analyzedInstruction);
         }
         assert false;
         return false;
@@ -1245,6 +1248,37 @@ public class MethodAnalyzer {
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.Byte, null));
+        return true;
+    }
+
+    private boolean handleIfEqNe(AnalyzedInstruction analyzedInstruction) {
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType registerType1 = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
+        assert registerType1 != null;
+        if (registerType1.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        RegisterType registerType2 = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert registerType2 != null;
+        if (registerType2.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        if (!(
+                (ReferenceCategories.contains(registerType1.category) &&
+                ReferenceCategories.contains(registerType2.category))
+                    ||
+                (Primitive32BitCategories.contains(registerType1.category) &&
+                Primitive32BitCategories.contains(registerType2.category))
+              )) {
+
+            throw new ValidationException(String.format("%s cannot be used on registers of dissimilar types %s and " +
+                    "%s. They must both be a reference type or a primitive 32 bit type.",
+                    analyzedInstruction.instruction.opcode.name, registerType1.toString(), registerType2.toString()));
+        }
+
         return true;
     }
 
