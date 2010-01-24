@@ -477,6 +477,13 @@ public class MethodAnalyzer {
                 return handleSwitch(analyzedInstruction, Format.PackedSwitchData);
             case SPARSE_SWITCH:
                 return handleSwitch(analyzedInstruction, Format.SparseSwitchData);
+            case CMPL_FLOAT:
+            case CMPG_FLOAT:
+                return handleFloatCmp(analyzedInstruction);
+            case CMPL_DOUBLE:
+            case CMPG_DOUBLE:
+            case CMP_LONG:
+                return handleWideCmp(analyzedInstruction);
         }
         assert false;
         return false;
@@ -1194,6 +1201,50 @@ public class MethodAnalyzer {
                     expectedSwitchDataFormat.name(), switchDataCodeAddress));
         }
 
+        return true;
+    }
+
+    private boolean handleFloatCmp(AnalyzedInstruction analyzedInstruction) {
+        ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert registerType != null;
+
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(registerType, Primitive32BitCategories);
+
+        registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
+        assert registerType != null;
+
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(registerType, Primitive32BitCategories);
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                RegisterType.getRegisterType(RegisterType.Category.Byte, null));
+        return true;
+    }
+
+    private boolean handleWideCmp(AnalyzedInstruction analyzedInstruction) {
+        ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType registerType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterB());
+        assert registerType != null;
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        registerType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterC());
+        assert registerType != null;
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                RegisterType.getRegisterType(RegisterType.Category.Byte, null));
         return true;
     }
 
