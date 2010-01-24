@@ -1122,11 +1122,12 @@ public class MethodAnalyzer {
         }
 
 
-        int arrayDataOffset = ((OffsetInstruction)analyzedInstruction.instruction).getTargetAddressOffset();
-        AnalyzedInstruction arrayDataInstruction = this.instructions.get(arrayDataOffset);
+        int arrayDataAddressOffset = ((OffsetInstruction)analyzedInstruction.instruction).getTargetAddressOffset();
+        int arrayDataCodeAddress = getInstructionAddress(analyzedInstruction) + arrayDataAddressOffset;
+        AnalyzedInstruction arrayDataInstruction = this.instructions.get(arrayDataCodeAddress);
         if (arrayDataInstruction == null || arrayDataInstruction.instruction.getFormat() != Format.ArrayData) {
             throw new ValidationException(String.format("Could not find an array data structure at code address 0x%x",
-                    arrayDataOffset));
+                    arrayDataCodeAddress));
         }
 
         ArrayDataPseudoInstruction arrayDataPseudoInstruction =
@@ -1135,7 +1136,7 @@ public class MethodAnalyzer {
         if (elementWidth != arrayDataPseudoInstruction.getElementWidth()) {
             throw new ValidationException(String.format("The array data at code address 0x%x does not have the " +
                     "correct element width for array type %s. Expecting element width %d, got element width %d.",
-                    arrayDataOffset, arrayClassDef.getClassType(), elementWidth,
+                    arrayDataCodeAddress, arrayClassDef.getClassType(), elementWidth,
                     arrayDataPseudoInstruction.getElementWidth()));
         }
 
