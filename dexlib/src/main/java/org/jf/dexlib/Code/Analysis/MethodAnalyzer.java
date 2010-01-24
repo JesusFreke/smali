@@ -468,6 +468,11 @@ public class MethodAnalyzer {
                 return handleFillArrayData(analyzedInstruction);
             case THROW:
                 return handleThrow(analyzedInstruction);
+            case GOTO:
+            case GOTO_16:
+            case GOTO_32:
+                //nothing to do
+                return true;
         }
         assert false;
         return false;
