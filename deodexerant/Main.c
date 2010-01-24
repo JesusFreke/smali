@@ -663,7 +663,7 @@ int main(int argc, char* const argv[])
 
                 if (clazz2 == NULL)
                 {
-                    fprintf(clientOut, "err: class %s could not be found for common superclass lookup\n", classType2);
+                    fprintf(clientOut, "err: class %s could not be found for common superclass lookup. This can be caused if a library the odex depends on is not in the BOOTCLASSPATH environment variable\n", classType2);
                     fflush(clientOut);
                     break;
                 }
