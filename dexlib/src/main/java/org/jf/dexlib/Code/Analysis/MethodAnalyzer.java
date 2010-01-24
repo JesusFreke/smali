@@ -473,6 +473,10 @@ public class MethodAnalyzer {
             case GOTO_32:
                 //nothing to do
                 return true;
+            case PACKED_SWITCH:
+                return handleSwitch(analyzedInstruction, Format.PackedSwitchData);
+            case SPARSE_SWITCH:
+                return handleSwitch(analyzedInstruction, Format.SparseSwitchData);
         }
         assert false;
         return false;
@@ -1162,6 +1166,31 @@ public class MethodAnalyzer {
         if (!registerType.type.extendsClass(ClassPath.getClassDef("Ljava/lang/Throwable;"))) {
             throw new ValidationException(String.format("Cannot use throw with non-throwable type %s in register v%d",
                     registerType.type.getClassType(), register));
+        }
+
+        return true;
+    }
+
+    private boolean handleSwitch(AnalyzedInstruction analyzedInstruction, Format expectedSwitchDataFormat) {
+        int register = ((SingleRegisterInstruction)analyzedInstruction.instruction).getRegisterA();
+        int switchCodeAddressOffset = ((OffsetInstruction)analyzedInstruction.instruction).getTargetAddressOffset();
+
+        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
+        assert registerType != null;
+
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        checkRegister(registerType, Primitive32BitCategories);
+
+        int switchDataCodeAddress = this.getInstructionAddress(analyzedInstruction) + switchCodeAddressOffset;
+        AnalyzedInstruction switchDataAnalyzedInstruction = instructions.get(switchDataCodeAddress);
+
+        if (switchDataAnalyzedInstruction == null ||
+            switchDataAnalyzedInstruction.instruction.getFormat() != expectedSwitchDataFormat) {
+            throw new ValidationException(String.format("There is no %s structure at code address 0x%x",
+                    expectedSwitchDataFormat.name(), switchDataCodeAddress));
         }
 
         return true;
