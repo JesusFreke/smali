@@ -1,6 +1,8 @@
 package org.jf.dexlib.Code.Analysis;
 
-public class ValidationException extends RuntimeException {
+import org.jf.dexlib.Util.ExceptionWithContext;
+
+public class ValidationException extends ExceptionWithContext {
     public ValidationException(String errorMessage) {
         super(errorMessage);
     }
