@@ -487,6 +487,11 @@ public class MethodAnalyzer {
             case IF_EQ:
             case IF_NE:
                 return handleIfEqNe(analyzedInstruction);
+            case IF_LT:
+            case IF_GE:
+            case IF_GT:
+            case IF_LE:
+                return handleIf(analyzedInstruction);
         }
         assert false;
         return false;
@@ -1278,6 +1283,28 @@ public class MethodAnalyzer {
                     "%s. They must both be a reference type or a primitive 32 bit type.",
                     analyzedInstruction.instruction.opcode.name, registerType1.toString(), registerType2.toString()));
         }
+
+        return true;
+    }
+
+    private boolean handleIf(AnalyzedInstruction analyzedInstruction) {
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
+        assert registerType != null;
+
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(registerType, Primitive32BitCategories);
+
+        registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert registerType != null;
+
+        if (registerType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(registerType, Primitive32BitCategories);
 
         return true;
     }
