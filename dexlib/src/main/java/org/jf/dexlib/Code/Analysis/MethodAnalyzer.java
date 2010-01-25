@@ -510,6 +510,8 @@ public class MethodAnalyzer {
                 return handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Char);
             case AGET_SHORT:
                 return handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Short);
+            case AGET_WIDE:
+                return handleAgetWide(analyzedInstruction);
         }
 
         assert false;
@@ -1408,6 +1410,61 @@ public class MethodAnalyzer {
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(instructionCategory, null));
+
+        return true;
+    }
+
+    private boolean handleAgetWide(AnalyzedInstruction analyzedInstruction) {
+        ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
+        assert indexRegisterType != null;
+        if (indexRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(indexRegisterType, Primitive32BitCategories);
+
+        RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert arrayRegisterType != null;
+        if (indexRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        if (arrayRegisterType.category != RegisterType.Category.Null) {
+            if (arrayRegisterType.category != RegisterType.Category.Reference) {
+                throw new ValidationException(String.format("Cannot use aget-wide with non-array type %s",
+                        arrayRegisterType.category.toString()));
+            }
+
+            assert arrayRegisterType.type != null;
+            if (arrayRegisterType.type.getClassType().charAt(0) != '[') {
+                throw new ValidationException(String.format("Cannot use aget-wide with non-array type %s",
+                        arrayRegisterType.type.getClassType()));
+            }
+
+            assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
+            ClassPath.ArrayClassDef arrayClassDef = (ClassPath.ArrayClassDef)arrayRegisterType.type;
+
+            if (arrayClassDef.getArrayDimensions() != 1) {
+                throw new ValidationException(String.format("Cannot use aget-wide with multi-dimensional array type %s",
+                        arrayRegisterType.type.getClassType()));
+            }
+
+            char arrayBaseType = arrayClassDef.getBaseElementClass().getClassType().charAt(0);
+            if (arrayBaseType == 'J') {
+                setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                        RegisterType.getRegisterType(RegisterType.Category.LongLo, null));
+            } else if (arrayBaseType == 'D') {
+                setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                        RegisterType.getRegisterType(RegisterType.Category.DoubleLo, null));
+            } else {
+                throw new ValidationException(String.format("Cannot use aget-wide with array type %s. Incorrect " +
+                        "array type for the instruction.", arrayRegisterType.type.getClassType()));
+            }
+        } else {
+            setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                        RegisterType.getRegisterType(RegisterType.Category.LongLo, null));
+        }
 
         return true;
     }
