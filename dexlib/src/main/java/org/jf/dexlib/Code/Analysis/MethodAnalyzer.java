@@ -526,6 +526,8 @@ public class MethodAnalyzer {
                 return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Short);
             case APUT_WIDE:
                 return handleAputWide(analyzedInstruction);
+            case APUT_OBJECT:
+                return handleAputObject(analyzedInstruction);
         }
 
         assert false;
@@ -1637,6 +1639,56 @@ public class MethodAnalyzer {
             char arrayBaseType = arrayClassDef.getBaseElementClass().getClassType().charAt(0);
             if (arrayBaseType != 'J' && arrayBaseType != 'D') {
                 throw new ValidationException(String.format("Cannot use aput-wide with array type %s. Incorrect " +
+                        "array type for the instruction.", arrayRegisterType.type.getClassType()));
+            }
+        }
+
+        return true;
+    }
+
+    private boolean handleAputObject(AnalyzedInstruction analyzedInstruction) {
+        ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
+        assert indexRegisterType != null;
+        if (indexRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(indexRegisterType, Primitive32BitCategories);
+
+        RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
+        assert sourceRegisterType != null;
+        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert arrayRegisterType != null;
+        if (indexRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        if (arrayRegisterType.category != RegisterType.Category.Null) {
+            //don't check the source type against the array type, just make sure it is an array of reference types
+
+            if (arrayRegisterType.category != RegisterType.Category.Reference) {
+                throw new ValidationException(String.format("Cannot use aget-object with non-array type %s",
+                        arrayRegisterType.category.toString()));
+            }
+
+            assert arrayRegisterType.type != null;
+            if (arrayRegisterType.type.getClassType().charAt(0) != '[') {
+                throw new ValidationException(String.format("Cannot use aget-object with non-array type %s",
+                        arrayRegisterType.type.getClassType()));
+            }
+
+            assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
+            ClassPath.ArrayClassDef arrayClassDef = (ClassPath.ArrayClassDef)arrayRegisterType.type;
+
+            ClassPath.ClassDef elementClassDef = arrayClassDef.getImmediateElementClass();
+            char elementTypePrefix = elementClassDef.getClassType().charAt(0);
+            if (elementTypePrefix != 'L' && elementTypePrefix != '[') {
+                throw new ValidationException(String.format("Cannot use aget-object with array type %s. Incorrect " +
                         "array type for the instruction.", arrayRegisterType.type.getClassType()));
             }
         }
