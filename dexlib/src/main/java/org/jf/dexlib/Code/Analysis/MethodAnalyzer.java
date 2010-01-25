@@ -512,6 +512,8 @@ public class MethodAnalyzer {
                 return handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Short);
             case AGET_WIDE:
                 return handleAgetWide(analyzedInstruction);
+            case AGET_OBJECT:
+                return handleAgetObject(analyzedInstruction);
         }
 
         assert false;
@@ -1464,6 +1466,54 @@ public class MethodAnalyzer {
         } else {
             setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                         RegisterType.getRegisterType(RegisterType.Category.LongLo, null));
+        }
+
+        return true;
+    }
+
+    private boolean handleAgetObject(AnalyzedInstruction analyzedInstruction) {
+        ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
+        assert indexRegisterType != null;
+        if (indexRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(indexRegisterType, Primitive32BitCategories);
+
+        RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert arrayRegisterType != null;
+        if (indexRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        if (arrayRegisterType.category != RegisterType.Category.Null) {
+            if (arrayRegisterType.category != RegisterType.Category.Reference) {
+                throw new ValidationException(String.format("Cannot use aget-object with non-array type %s",
+                        arrayRegisterType.category.toString()));
+            }
+
+            assert arrayRegisterType.type != null;
+            if (arrayRegisterType.type.getClassType().charAt(0) != '[') {
+                throw new ValidationException(String.format("Cannot use aget-object with non-array type %s",
+                        arrayRegisterType.type.getClassType()));
+            }
+
+            assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
+            ClassPath.ArrayClassDef arrayClassDef = (ClassPath.ArrayClassDef)arrayRegisterType.type;
+
+            ClassPath.ClassDef elementClassDef = arrayClassDef.getImmediateElementClass();
+            char elementTypePrefix = elementClassDef.getClassType().charAt(0);
+            if (elementTypePrefix != 'L' && elementTypePrefix != '[') {
+                throw new ValidationException(String.format("Cannot use aget-object with array type %s. Incorrect " +
+                        "array type for the instruction.", arrayRegisterType.type.getClassType()));
+            }
+
+            setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                    RegisterType.getRegisterType(RegisterType.Category.Reference, elementClassDef));
+        } else {
+            setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                    RegisterType.getRegisterType(RegisterType.Category.Null, null));
         }
 
         return true;
