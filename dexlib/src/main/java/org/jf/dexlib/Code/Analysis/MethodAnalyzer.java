@@ -514,6 +514,16 @@ public class MethodAnalyzer {
                 return handleAgetWide(analyzedInstruction);
             case AGET_OBJECT:
                 return handleAgetObject(analyzedInstruction);
+            case APUT:
+                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Integer);
+            case APUT_BOOLEAN:
+                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Boolean);
+            case APUT_BYTE:
+                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Byte);
+            case APUT_CHAR:
+                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Char);
+            case APUT_SHORT:
+                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Short);
         }
 
         assert false;
@@ -1514,6 +1524,68 @@ public class MethodAnalyzer {
         } else {
             setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                     RegisterType.getRegisterType(RegisterType.Category.Null, null));
+        }
+
+        return true;
+    }
+
+    private boolean handle32BitPrimitiveAput(AnalyzedInstruction analyzedInstruction,
+                                             RegisterType.Category instructionCategory) {
+        ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
+        assert indexRegisterType != null;
+        if (indexRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(indexRegisterType, Primitive32BitCategories);
+
+
+        RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
+        assert sourceRegisterType != null;
+        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        RegisterType instructionRegisterType = RegisterType.getRegisterType(instructionCategory, null);
+        if (!sourceRegisterType.canBeAssignedTo(instructionRegisterType)) {
+            throw new ValidationException(String.format("Cannot use %s with source register type %s.",
+                    analyzedInstruction.instruction.opcode.name, sourceRegisterType.toString()));
+        }
+
+
+        RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert arrayRegisterType != null;
+        if (indexRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        if (arrayRegisterType.category != RegisterType.Category.Null) {
+            if (arrayRegisterType.category != RegisterType.Category.Reference) {
+                throw new ValidationException(String.format("Cannot use %s with non-array type %s",
+                        analyzedInstruction.instruction.opcode.name, arrayRegisterType.category.toString()));
+            }
+
+            assert arrayRegisterType.type != null;
+            if (arrayRegisterType.type.getClassType().charAt(0) != '[') {
+                throw new ValidationException(String.format("Cannot use %s with non-array type %s",
+                        analyzedInstruction.instruction.opcode.name, arrayRegisterType.type.getClassType()));
+            }
+
+            assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
+            ClassPath.ArrayClassDef arrayClassDef = (ClassPath.ArrayClassDef)arrayRegisterType.type;
+
+            if (arrayClassDef.getArrayDimensions() != 1) {
+                throw new ValidationException(String.format("Cannot use %s with multi-dimensional array type %s",
+                        analyzedInstruction.instruction.opcode.name, arrayRegisterType.type.getClassType()));
+            }
+
+            RegisterType arrayBaseType =
+                    RegisterType.getRegisterTypeForType(arrayClassDef.getBaseElementClass().getClassType());
+            if (checkArrayFieldAssignment(arrayBaseType.category, instructionCategory)) {
+                throw new ValidationException(String.format("Cannot use %s with array type %s. Incorrect array type " +
+                        "for the instruction.", analyzedInstruction.instruction.opcode.name,
+                        arrayRegisterType.type.getClassType()));
+            }
         }
 
         return true;
