@@ -528,6 +528,16 @@ public class MethodAnalyzer {
                 return handleAputWide(analyzedInstruction);
             case APUT_OBJECT:
                 return handleAputObject(analyzedInstruction);
+            case IGET:
+                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Integer);
+            case IGET_BOOLEAN:
+                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Boolean);
+            case IGET_BYTE:
+                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Byte);
+            case IGET_CHAR:
+                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Char);
+            case IGET_SHORT:
+                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Short);
         }
 
         assert false;
@@ -1692,6 +1702,43 @@ public class MethodAnalyzer {
                         "array type for the instruction.", arrayRegisterType.type.getClassType()));
             }
         }
+
+        return true;
+    }
+
+    private boolean handle32BitPrimitiveIget(AnalyzedInstruction analyzedInstruction,
+                                             RegisterType.Category instructionCategory) {
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert objectRegisterType != null;
+        if (objectRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(objectRegisterType, ReferenceCategories);
+
+        //TODO: check access
+        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
+        Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
+        assert referencedItem instanceof FieldIdItem;
+        FieldIdItem field = (FieldIdItem)referencedItem;
+
+        if (objectRegisterType.category != RegisterType.Category.Null &&
+            !objectRegisterType.type.extendsClass(ClassPath.getClassDef(field.getContainingClass()))) {
+            throw new ValidationException(String.format("Cannot access field %s through type %s",
+                    field.getFieldString(), objectRegisterType.type.getClassType()));
+        }
+
+        RegisterType fieldType = RegisterType.getRegisterTypeForTypeIdItem(field.getFieldType());
+
+        if (!checkArrayFieldAssignment(fieldType.category, instructionCategory)) {
+                throw new ValidationException(String.format("Cannot use %s with field %s. Incorrect field type " +
+                        "for the instruction.", analyzedInstruction.instruction.opcode.name,
+                        field.getFieldString()));
+        }
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                RegisterType.getRegisterType(instructionCategory, null));
 
         return true;
     }
