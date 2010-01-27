@@ -552,6 +552,8 @@ public class MethodAnalyzer {
                 return handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Char);
             case IPUT_SHORT:
                 return handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Short);
+            case IPUT_WIDE:
+                return handleIputWide(analyzedInstruction);
         }
 
         assert false;
@@ -1881,6 +1883,45 @@ public class MethodAnalyzer {
                 throw new ValidationException(String.format("Cannot use %s with field %s. Incorrect field type " +
                         "for the instruction.", analyzedInstruction.instruction.opcode.name,
                         field.getFieldString()));
+        }
+
+        return true;
+    }
+
+    private boolean handleIputWide(AnalyzedInstruction analyzedInstruction) {
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
+        assert objectRegisterType != null;
+        if (objectRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+        checkRegister(objectRegisterType, ReferenceCategories);
+
+        RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
+        assert sourceRegisterType != null;
+        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        //TODO: check access
+        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
+        Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
+        assert referencedItem instanceof FieldIdItem;
+        FieldIdItem field = (FieldIdItem)referencedItem;
+
+        if (objectRegisterType.category != RegisterType.Category.Null &&
+                !objectRegisterType.type.extendsClass(ClassPath.getClassDef(field.getContainingClass()))) {
+            throw new ValidationException(String.format("Cannot access field %s through type %s",
+                    field.getFieldString(), objectRegisterType.type.getClassType()));
+        }
+
+        RegisterType fieldType = RegisterType.getRegisterTypeForTypeIdItem(field.getFieldType());
+
+        if (!WideLowCategories.contains(fieldType.category)) {
+            throw new ValidationException(String.format("Cannot use %s with field %s. Incorrect field type " +
+                    "for the instruction.", analyzedInstruction.instruction.opcode.name,
+                    field.getFieldString()));
         }
 
         return true;
