@@ -1717,6 +1717,7 @@ public class MethodAnalyzer {
         if (sourceRegisterType.category == RegisterType.Category.Unknown) {
             return false;
         }
+        //TODO: ensure sourceRegisterType is a Reference type?
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
@@ -1972,7 +1973,7 @@ public class MethodAnalyzer {
         if (sourceRegisterType.category == RegisterType.Category.Unknown) {
             return false;
         }
-        checkRegister(objectRegisterType, ReferenceCategories);
+        checkRegister(sourceRegisterType, ReferenceCategories);
 
         //TODO: check access
         //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
