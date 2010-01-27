@@ -568,6 +568,8 @@ public class MethodAnalyzer {
                 return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Short);
             case SGET_WIDE:
                 return handleSgetWide(analyzedInstruction);
+            case SGET_OBJECT:
+                return handleSgetObject(analyzedInstruction);
         }
 
         assert false;
@@ -2028,6 +2030,25 @@ public class MethodAnalyzer {
         }
 
         setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
+
+        return true;
+    }
+
+    private boolean handleSgetObject(AnalyzedInstruction analyzedInstruction) {
+        //TODO: check access
+        Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
+        assert referencedItem instanceof FieldIdItem;
+        FieldIdItem field = (FieldIdItem)referencedItem;
+
+        RegisterType fieldType = RegisterType.getRegisterTypeForTypeIdItem(field.getFieldType());
+
+        if (fieldType.category != RegisterType.Category.Reference) {
+                throw new ValidationException(String.format("Cannot use %s with field %s. Incorrect field type " +
+                        "for the instruction.", analyzedInstruction.instruction.opcode.name,
+                        field.getFieldString()));
+        }
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
 
         return true;
     }
