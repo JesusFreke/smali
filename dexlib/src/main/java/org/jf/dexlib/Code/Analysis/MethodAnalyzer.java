@@ -570,6 +570,16 @@ public class MethodAnalyzer {
                 return handleSgetWide(analyzedInstruction);
             case SGET_OBJECT:
                 return handleSgetObject(analyzedInstruction);
+            case SPUT:
+                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Integer);
+            case SPUT_BOOLEAN:
+                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Boolean);
+            case SPUT_BYTE:
+                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Byte);
+            case SPUT_CHAR:
+                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Char);
+            case SPUT_SHORT:
+                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Short);
         }
 
         assert false;
@@ -2049,6 +2059,46 @@ public class MethodAnalyzer {
         }
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
+
+        return true;
+    }
+
+    private boolean handle32BitPrimitiveSput(AnalyzedInstruction analyzedInstruction,
+                                             RegisterType.Category instructionCategory) {
+        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
+        assert sourceRegisterType != null;
+        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
+            return false;
+        }
+
+        //per CodeVerify.c in dalvik:
+        //java generates synthetic functions that write byte values into boolean fields
+        if (sourceRegisterType.category == RegisterType.Category.Byte &&
+            instructionCategory == RegisterType.Category.Boolean) {
+
+            sourceRegisterType = RegisterType.getRegisterType(RegisterType.Category.Boolean, null);
+        }
+
+        RegisterType instructionRegisterType = RegisterType.getRegisterType(instructionCategory, null);
+        if (!sourceRegisterType.canBeAssignedTo(instructionRegisterType)) {
+            throw new ValidationException(String.format("Cannot use %s with source register type %s.",
+                    analyzedInstruction.instruction.opcode.name, sourceRegisterType.toString()));
+        }
+
+        //TODO: check access
+        Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
+        assert referencedItem instanceof FieldIdItem;
+        FieldIdItem field = (FieldIdItem)referencedItem;
+
+        RegisterType fieldType = RegisterType.getRegisterTypeForTypeIdItem(field.getFieldType());
+
+        if (!checkArrayFieldAssignment(fieldType.category, instructionCategory)) {
+                throw new ValidationException(String.format("Cannot use %s with field %s. Incorrect field type " +
+                        "for the instruction.", analyzedInstruction.instruction.opcode.name,
+                        field.getFieldString()));
+        }
 
         return true;
     }
