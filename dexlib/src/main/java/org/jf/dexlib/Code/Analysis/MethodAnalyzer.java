@@ -1989,10 +1989,7 @@ public class MethodAnalyzer {
 
     private boolean handle32BitPrimitiveSget(AnalyzedInstruction analyzedInstruction,
                                              RegisterType.Category instructionCategory) {
-        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
-
         //TODO: check access
-        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
         FieldIdItem field = (FieldIdItem)referencedItem;
