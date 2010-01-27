@@ -556,6 +556,16 @@ public class MethodAnalyzer {
                 return handleIputWide(analyzedInstruction);
             case IPUT_OBJECT:
                 return handleIputObject(analyzedInstruction);
+            case SGET:
+                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Integer);
+            case SGET_BOOLEAN:
+                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Boolean);
+            case SGET_BYTE:
+                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Byte);
+            case SGET_CHAR:
+                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Char);
+            case SGET_SHORT:
+                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Short);
         }
 
         assert false;
@@ -1973,6 +1983,30 @@ public class MethodAnalyzer {
             throw new ValidationException(String.format("Cannot store a value of type %s into a field of type %s",
                     sourceRegisterType.type.getClassType(), fieldType.type.getClassType()));
         }
+
+        return true;
+    }
+
+    private boolean handle32BitPrimitiveSget(AnalyzedInstruction analyzedInstruction,
+                                             RegisterType.Category instructionCategory) {
+        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
+
+        //TODO: check access
+        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
+        Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
+        assert referencedItem instanceof FieldIdItem;
+        FieldIdItem field = (FieldIdItem)referencedItem;
+
+        RegisterType fieldType = RegisterType.getRegisterTypeForTypeIdItem(field.getFieldType());
+
+        if (!checkArrayFieldAssignment(fieldType.category, instructionCategory)) {
+                throw new ValidationException(String.format("Cannot use %s with field %s. Incorrect field type " +
+                        "for the instruction.", analyzedInstruction.instruction.opcode.name,
+                        field.getFieldString()));
+        }
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                RegisterType.getRegisterType(instructionCategory, null));
 
         return true;
     }
