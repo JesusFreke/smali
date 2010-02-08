@@ -810,6 +810,56 @@ public class MethodAnalyzer {
                 handleBinaryOp(analyzedInstruction, WideLowCategories, WideLowCategories,
                         RegisterType.Category.DoubleLo, false);
                 return;
+            case ADD_INT_2ADDR:
+            case SUB_INT_2ADDR:
+            case MUL_INT_2ADDR:
+            case DIV_INT_2ADDR:
+            case REM_INT_2ADDR:
+            case SHL_INT_2ADDR:
+            case SHR_INT_2ADDR:
+            case USHR_INT_2ADDR:
+                handleBinary2AddrOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
+                        RegisterType.Category.Integer, false);
+                return;
+            case AND_INT_2ADDR:
+            case OR_INT_2ADDR:
+            case XOR_INT_2ADDR:
+                handleBinary2AddrOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
+                        RegisterType.Category.Integer, true);
+                return;
+            case ADD_LONG_2ADDR:
+            case SUB_LONG_2ADDR:
+            case MUL_LONG_2ADDR:
+            case DIV_LONG_2ADDR:
+            case REM_LONG_2ADDR:
+            case AND_LONG_2ADDR:
+            case OR_LONG_2ADDR:
+            case XOR_LONG_2ADDR:
+                handleBinary2AddrOp(analyzedInstruction, WideLowCategories, WideLowCategories,
+                        RegisterType.Category.LongLo, false);
+                return;
+            case SHL_LONG_2ADDR:
+            case SHR_LONG_2ADDR:
+            case USHR_LONG_2ADDR:
+                handleBinary2AddrOp(analyzedInstruction, WideLowCategories, Primitive32BitCategories,
+                        RegisterType.Category.LongLo, false);
+                return;
+            case ADD_FLOAT_2ADDR:
+            case SUB_FLOAT_2ADDR:
+            case MUL_FLOAT_2ADDR:
+            case DIV_FLOAT_2ADDR:
+            case REM_FLOAT_2ADDR:
+                handleBinary2AddrOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
+                        RegisterType.Category.Float, false);
+                return;
+            case ADD_DOUBLE_2ADDR:
+            case SUB_DOUBLE_2ADDR:
+            case MUL_DOUBLE_2ADDR:
+            case DIV_DOUBLE_2ADDR:
+            case REM_DOUBLE_2ADDR:
+                handleBinary2AddrOp(analyzedInstruction, WideLowCategories, WideLowCategories,
+                        RegisterType.Category.DoubleLo, false);
+                return;
         }
     }
 
@@ -2298,6 +2348,28 @@ public class MethodAnalyzer {
         RegisterType source1RegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
                 validSource1Categories);
         RegisterType source2RegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(),
+                validSource2Categories);
+
+        if (checkForBoolean) {
+            if (BooleanCategories.contains(source1RegisterType.category) &&
+                BooleanCategories.contains(source2RegisterType.category)) {
+
+                destRegisterCategory = RegisterType.Category.Boolean;
+            }
+        }
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                RegisterType.getRegisterType(destRegisterCategory, null));
+    }
+
+    private void handleBinary2AddrOp(AnalyzedInstruction analyzedInstruction, EnumSet validSource1Categories,
+                                EnumSet validSource2Categories, RegisterType.Category destRegisterCategory,
+                                boolean checkForBoolean) {
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType source1RegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(),
+                validSource1Categories);
+        RegisterType source2RegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
                 validSource2Categories);
 
         if (checkForBoolean) {
