@@ -188,42 +188,24 @@ public class MethodAnalyzer {
         return instructions.keyAt(instruction.instructionIndex);
     }
 
-    private void setWideDestinationRegisterTypeAndPropagateChanges(AnalyzedInstruction analyzedInstruction,
-                                                                   RegisterType registerType) {
-        assert registerType.category == RegisterType.Category.LongLo ||
-               registerType.category == RegisterType.Category.DoubleLo;
-
-        checkWideDestinationPair(analyzedInstruction);
-
-        setRegisterTypeAndPropagateChanges(analyzedInstruction, analyzedInstruction.getDestinationRegister(),
-                registerType);
-        if (registerType.category == RegisterType.Category.LongLo) {
-            setRegisterTypeAndPropagateChanges(analyzedInstruction, analyzedInstruction.getDestinationRegister() + 1,
-                RegisterType.getRegisterType(RegisterType.Category.LongHi, null));
-        } else {
-            setRegisterTypeAndPropagateChanges(analyzedInstruction, analyzedInstruction.getDestinationRegister() + 1,
-                RegisterType.getRegisterType(RegisterType.Category.DoubleHi, null));
-        }
-    }
-
     private void setDestinationRegisterTypeAndPropagateChanges(AnalyzedInstruction analyzedInstruction,
                                                                RegisterType registerType) {
         setRegisterTypeAndPropagateChanges(analyzedInstruction, analyzedInstruction.getDestinationRegister(),
                 registerType);
     }
 
-    private void setRegisterTypeAndPropagateChanges(AnalyzedInstruction instruction, int registerNumber,
+    private void setRegisterTypeAndPropagateChanges(AnalyzedInstruction analyzedInstruction, int registerNumber,
                                                 RegisterType registerType) {
 
         BitSet changedInstructions = new BitSet(instructions.size());
 
-        boolean changed = instruction.setPostRegisterType(registerNumber, registerType);
+        boolean changed = analyzedInstruction.setPostRegisterType(registerNumber, registerType);
 
-        if (!changed || instruction.setsRegister(registerNumber)) {
+        if (!changed || analyzedInstruction.setsRegister(registerNumber)) {
             return;
         }
 
-        propagateRegisterToSuccessors(instruction, registerNumber, changedInstructions);
+        propagateRegisterToSuccessors(analyzedInstruction, registerNumber, changedInstructions);
 
         //using a for loop inside the while loop optimizes for the common case of the successors of an instruction
         //occurring after the instruction. Any successors that occur prior to the instruction will be picked up on
@@ -241,6 +223,16 @@ public class MethodAnalyzer {
                 propagateRegisterToSuccessors(instructions.valueAt(instructionIndex), registerNumber,
                         changedInstructions);
             }
+        }
+
+        if (registerType.category == RegisterType.Category.LongLo) {
+            checkWidePair(registerNumber, analyzedInstruction);
+            setRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber+1,
+                    RegisterType.getRegisterType(RegisterType.Category.LongHi, null));
+        } else if (registerType.category == RegisterType.Category.DoubleLo) {
+            checkWidePair(registerNumber, analyzedInstruction);
+            setRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber+1,
+                    RegisterType.getRegisterType(RegisterType.Category.DoubleHi, null));
         }
     }
 
@@ -434,7 +426,7 @@ public class MethodAnalyzer {
             case MOVE_WIDE:
             case MOVE_WIDE_FROM16:
             case MOVE_WIDE_16:
-                handleMoveWide(analyzedInstruction);
+                handleMove(analyzedInstruction, WideLowCategories);
                 return;
             case MOVE_OBJECT:
             case MOVE_OBJECT_FROM16:
@@ -457,13 +449,13 @@ public class MethodAnalyzer {
                 handleReturnVoid(analyzedInstruction);
                 return;
             case RETURN:
-                handleReturn(analyzedInstruction);
+                handleReturn(analyzedInstruction, Primitive32BitCategories);
                 return;
             case RETURN_WIDE:
-                handleReturnWide(analyzedInstruction);
+                handleReturn(analyzedInstruction, WideLowCategories);
                 return;
             case RETURN_OBJECT:
-                handleReturnObject(analyzedInstruction);
+                handleReturn(analyzedInstruction, ReferenceCategories);
                 return;
             case CONST_4:
             case CONST_16:
@@ -530,12 +522,12 @@ public class MethodAnalyzer {
                 return;
             case CMPL_FLOAT:
             case CMPG_FLOAT:
-                handleFloatCmp(analyzedInstruction);
+                handleFloatWideCmp(analyzedInstruction, Primitive32BitCategories);
                 return;
             case CMPL_DOUBLE:
             case CMPG_DOUBLE:
             case CMP_LONG:
-                handleWideCmp(analyzedInstruction);
+                handleFloatWideCmp(analyzedInstruction, WideLowCategories);
                 return;
             case IF_EQ:
             case IF_NE:
@@ -737,27 +729,23 @@ public class MethodAnalyzer {
             RegisterType.Category.Null,
             RegisterType.Category.Reference);
 
-    private void handleMove(AnalyzedInstruction analyzedInstruction,
-                               EnumSet<RegisterType.Category> allowedCategories) {
+    private static final EnumSet<RegisterType.Category> ReferenceAndPrimitive32BitCategories = EnumSet.of(
+            RegisterType.Category.Null,
+            RegisterType.Category.Boolean,
+            RegisterType.Category.Byte,
+            RegisterType.Category.Short,
+            RegisterType.Category.Char,
+            RegisterType.Category.Integer,
+            RegisterType.Category.Float,
+            RegisterType.Category.Reference);
+
+
+
+    private void handleMove(AnalyzedInstruction analyzedInstruction, EnumSet validCategories) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-        //get the "pre-instruction" register type for the source register
-        RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert sourceRegisterType != null;
-
-        checkRegister(sourceRegisterType, allowedCategories);
-
-        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, sourceRegisterType);
-    }
-
-    private void handleMoveWide(AnalyzedInstruction analyzedInstruction) {
-        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
-
-        RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction,
-                instruction.getRegisterB());
-        assert sourceRegisterType != null;
-
-        checkWideDestinationPair(analyzedInstruction);
+        RegisterType sourceRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                validCategories);
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, sourceRegisterType);
     }
@@ -779,26 +767,26 @@ public class MethodAnalyzer {
                     "invoke-*/fill-new-array instruction");
         }
 
-        if (analyzedInstruction.instruction.opcode.setsWideRegister()) {
-            checkWideDestinationPair(analyzedInstruction);
-        }
-
         //TODO: does dalvik allow a move-result after an invoke with a void return type?
-        RegisterType destinationRegisterType;
+        RegisterType resultRegisterType;
 
         InstructionWithReference invokeInstruction = (InstructionWithReference)previousInstruction.instruction;
         Item item = invokeInstruction.getReferencedItem();
 
         if (item instanceof MethodIdItem) {
-            destinationRegisterType = RegisterType.getRegisterTypeForTypeIdItem(
+            resultRegisterType = RegisterType.getRegisterTypeForTypeIdItem(
                     ((MethodIdItem)item).getPrototype().getReturnType());
         } else {
             assert item instanceof TypeIdItem;
-            destinationRegisterType = RegisterType.getRegisterTypeForTypeIdItem((TypeIdItem)item);
+            resultRegisterType = RegisterType.getRegisterTypeForTypeIdItem((TypeIdItem)item);
         }
 
-        checkRegister(destinationRegisterType, allowedCategories);
-        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, destinationRegisterType);
+        if (!allowedCategories.contains(resultRegisterType.category)) {
+            throw new ValidationException(String.format("Wrong move-result* instruction for return value %s",
+                    resultRegisterType.toString()));
+        }
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, resultRegisterType);
     }
 
     private void handleMoveException(AnalyzedInstruction analyzedInstruction) {
@@ -825,8 +813,16 @@ public class MethodAnalyzer {
             }
         }
 
+        if (exceptionType == null) {
+            throw new ValidationException("move-exception must be the first instruction in an exception handler block");
+        }
+
         //TODO: check if the type is a throwable. Should we throw a ValidationException or print a warning? (does dalvik validate that it's a throwable? It doesn't in CodeVerify.c, but it might check in DexSwapVerify.c)
-        checkRegister(exceptionType, ReferenceCategories);
+        if (exceptionType.category != RegisterType.Category.Reference) {
+            throw new ValidationException(String.format("Exception type %s is not a reference type",
+                    exceptionType.toString()));
+        }
+
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, exceptionType);
     }
 
@@ -861,83 +857,40 @@ public class MethodAnalyzer {
         }
     }
 
-    private void handleReturn(AnalyzedInstruction analyzedInstruction) {
-        if (this.isInstanceConstructor()) {
-            checkConstructorReturn(analyzedInstruction);
-        }
-
-        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
-        RegisterType returnRegisterType = analyzedInstruction.postRegisterMap[instruction.getRegisterA()];
-
-        checkRegister(returnRegisterType, Primitive32BitCategories);
-
-        TypeIdItem returnType = encodedMethod.method.getPrototype().getReturnType();
-        if (returnType.getTypeDescriptor().charAt(0) == 'V') {
-            throw new ValidationException("Cannot use return with a void return type. Use return-void instead");
-        }
-
-        RegisterType registerType = RegisterType.getRegisterTypeForTypeIdItem(returnType);
-
-        if (!Primitive32BitCategories.contains(registerType.category)) {
-            //TODO: could add which return-* variation should be used instead
-            throw new ValidationException("Cannot use return with return type " + returnType.getTypeDescriptor());
-        }
-    }
-
-    private void handleReturnWide(AnalyzedInstruction analyzedInstruction) {
-        if (this.isInstanceConstructor()) {
-            checkConstructorReturn(analyzedInstruction);
-        }
-
-        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
-        RegisterType returnType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
-
-        TypeIdItem returnTypeIdItem = encodedMethod.method.getPrototype().getReturnType();
-        if (returnTypeIdItem.getTypeDescriptor().charAt(0) == 'V') {
-            throw new ValidationException("Cannot use return-wide with a void return type. Use return-void instead");
-        }
-
-        returnType = RegisterType.getRegisterTypeForTypeIdItem(returnTypeIdItem);
-        if (!WideLowCategories.contains(returnType.category)) {
-            //TODO: could add which return-* variation should be used instead
-            throw new ValidationException("Cannot use return-wide with return type " +
-                    returnTypeIdItem.getTypeDescriptor());
-        }
-    }
-
-    private void handleReturnObject(AnalyzedInstruction analyzedInstruction) {
+    private void handleReturn(AnalyzedInstruction analyzedInstruction, EnumSet validCategories) {
         if (this.isInstanceConstructor()) {
             checkConstructorReturn(analyzedInstruction);
         }
 
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
         int returnRegister = instruction.getRegisterA();
-        RegisterType returnRegisterType = analyzedInstruction.postRegisterMap[returnRegister];
+        RegisterType returnRegisterType = getAndCheckSourceRegister(analyzedInstruction, returnRegister,
+                validCategories);
 
-        checkRegister(returnRegisterType, ReferenceCategories);
-
-        TypeIdItem returnTypeIdItem = encodedMethod.method.getPrototype().getReturnType();
-        if (returnTypeIdItem.getTypeDescriptor().charAt(0) == 'V') {
+        TypeIdItem returnType = encodedMethod.method.getPrototype().getReturnType();
+        if (returnType.getTypeDescriptor().charAt(0) == 'V') {
             throw new ValidationException("Cannot use return with a void return type. Use return-void instead");
         }
 
-        RegisterType returnType = RegisterType.getRegisterTypeForTypeIdItem(returnTypeIdItem);
+        RegisterType methodReturnRegisterType = RegisterType.getRegisterTypeForTypeIdItem(returnType);
 
-        if (!ReferenceCategories.contains(returnType.category)) {
+        if (!validCategories.contains(methodReturnRegisterType.category)) {
             //TODO: could add which return-* variation should be used instead
-            throw new ValidationException("Cannot use " + analyzedInstruction + " with return type " +
-                    returnTypeIdItem.getTypeDescriptor());
+            throw new ValidationException(String.format("Cannot use %s with return type %s",
+                    analyzedInstruction.instruction.opcode.name, returnType.getTypeDescriptor()));
         }
 
-        if (returnType.type.isInterface()) {
-            if (!returnRegisterType.type.implementsInterface(returnType.type)) {
-                //TODO: how to handle warnings?
-            }
-        } else {
-            if (!returnRegisterType.type.extendsClass(returnType.type)) {
-                throw new ValidationException("The return value in register v" + Integer.toString(returnRegister) +
-                        "(" + returnRegisterType.type.getClassType() + ") is not compatible with the method's return " +
-                        "type (" + returnType.type.getClassType() + ")");
+        if (validCategories == ReferenceCategories) {
+            if (methodReturnRegisterType.type.isInterface()) {
+                if (!returnRegisterType.type.implementsInterface(methodReturnRegisterType.type)) {
+                    //TODO: how to handle warnings?
+                }
+            } else {
+                if (!returnRegisterType.type.extendsClass(methodReturnRegisterType.type)) {
+                    throw new ValidationException(String.format("The return value in register v%d (%s) is not " +
+                            "compatible with the method's return type %s", returnRegister,
+                            returnRegisterType.type.getClassType(), methodReturnRegisterType.type.getClassType()));
+                }
             }
         }
     }
@@ -965,7 +918,7 @@ public class MethodAnalyzer {
     }
 
     private void handleWideConst(AnalyzedInstruction analyzedInstruction) {
-        setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.LongLo, null));
     }
 
@@ -989,12 +942,8 @@ public class MethodAnalyzer {
     }
 
     private void handleMonitor(AnalyzedInstruction analyzedInstruction) {
-        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction;
-
-        RegisterType registerType = analyzedInstruction.postRegisterMap[instruction.getRegisterA()];
-        assert registerType != null;
-
-        checkRegister(registerType, ReferenceCategories);
+        SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(), ReferenceCategories);
     }
 
     private void handleCheckCast(AnalyzedInstruction analyzedInstruction) {
@@ -1002,10 +951,8 @@ public class MethodAnalyzer {
             //ensure the "source" register is a reference type
             SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
-            RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
-            assert registerType != null;
-
-            checkRegister(registerType, ReferenceCategories);
+            RegisterType registerType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(),
+                    ReferenceCategories);
         }
 
         {
@@ -1016,27 +963,22 @@ public class MethodAnalyzer {
             assert item.getItemType() == ItemType.TYPE_TYPE_ID_ITEM;
 
             //TODO: need to check class access
-            RegisterType newDestinationRegisterType = RegisterType.getRegisterTypeForTypeIdItem((TypeIdItem)item);
-            try {
-                checkRegister(newDestinationRegisterType, ReferenceCategories);
-            } catch (ValidationException ex) {
+            RegisterType castRegisterType = RegisterType.getRegisterTypeForTypeIdItem((TypeIdItem)item);
+            if (castRegisterType.category != RegisterType.Category.Reference) {
                 //TODO: verify that dalvik allows a non-reference type..
                 //TODO: print a warning, but don't re-throw the exception. dalvik allows a non-reference type during validation (but throws an exception at runtime)
             }
 
-            setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, newDestinationRegisterType);
+            setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, castRegisterType);
         }
     }
 
     private void handleInstanceOf(AnalyzedInstruction analyzedInstruction) {
         {
             //ensure the register that is being checks is a reference type
-            TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction;
+            TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-            RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-            assert registerType != null;
-
-            checkRegister(registerType, ReferenceCategories);
+            getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(), ReferenceCategories);
         }
 
         {
@@ -1046,7 +988,10 @@ public class MethodAnalyzer {
             Item item = instruction.getReferencedItem();
             assert  item.getItemType() == ItemType.TYPE_TYPE_ID_ITEM;
             RegisterType registerType = RegisterType.getRegisterTypeForTypeIdItem((TypeIdItem)item);
-            checkRegister(registerType, ReferenceCategories);
+            if (registerType.category != RegisterType.Category.Reference) {
+                throw new ValidationException(String.format("Cannot use instance-of with a non-reference type %s",
+                        registerType.toString()));
+            }
 
             //TODO: is it valid to use an array type?
 
@@ -1057,21 +1002,20 @@ public class MethodAnalyzer {
     }
 
     private void handleArrayLength(AnalyzedInstruction analyzedInstruction) {
-        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction;
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         int arrayRegisterNumber = instruction.getRegisterB();
-        RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(arrayRegisterNumber);
-        assert arrayRegisterType != null;
+        RegisterType arrayRegisterType = getAndCheckSourceRegister(analyzedInstruction, arrayRegisterNumber,
+                ReferenceCategories);
 
-        assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
-
-        checkRegister(arrayRegisterType, ReferenceCategories);
         if (arrayRegisterType.type != null) {
             if (arrayRegisterType.type.getClassType().charAt(0) != '[') {
-                throw new ValidationException("Cannot use array-length with non-array type " +
-                        arrayRegisterType.type.getClassType());
+                throw new ValidationException(String.format("Cannot use array-length with non-array type %s",
+                        arrayRegisterType.type.getClassType()));
             }
         }
+
+        assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.Integer, null));
@@ -1107,7 +1051,11 @@ public class MethodAnalyzer {
 
         //TODO: need to check class access
         RegisterType classType = RegisterType.getRegisterTypeForTypeIdItem((TypeIdItem)item);
-        checkRegister(classType, ReferenceCategories);
+        if (classType.category != RegisterType.Category.Reference) {
+            throw new ValidationException(String.format("Cannot use new-instance with a non-reference type %s",
+                    classType.toString()));
+        }
+
         if (((TypeIdItem)item).getTypeDescriptor().charAt(0) == '[') {
             throw new ValidationException("Cannot use array type \"" + ((TypeIdItem)item).getTypeDescriptor() +
                     "\" with new-instance. Use new-array instead.");
@@ -1120,12 +1068,7 @@ public class MethodAnalyzer {
     private void handleNewArray(AnalyzedInstruction analyzedInstruction) {
         {
             TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
-
-            int sizeRegister = instruction.getRegisterB();
-            RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(sizeRegister);
-            assert registerType != null;
-
-            checkRegister(registerType, Primitive32BitCategories);
+            getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(), Primitive32BitCategories);
         }
 
         InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
@@ -1136,7 +1079,10 @@ public class MethodAnalyzer {
         RegisterType arrayType = RegisterType.getRegisterTypeForTypeIdItem((TypeIdItem)item);
         assert arrayType.type instanceof ClassPath.ArrayClassDef;
 
-        checkRegister(arrayType, ReferenceCategories);
+        if (arrayType.category != RegisterType.Category.Reference) {
+            throw new ValidationException(String.format("Cannot use new-array with a non-reference type %s",
+                    arrayType.toString()));
+        }
         if (arrayType.type.getClassType().charAt(0) != '[') {
             throw new ValidationException("Cannot use non-array type \"" + arrayType.type.getClassType() +
                     "\" with new-array. Use new-instance instead.");
@@ -1366,10 +1312,7 @@ public class MethodAnalyzer {
         int register = ((SingleRegisterInstruction)analyzedInstruction.instruction).getRegisterA();
         int switchCodeAddressOffset = ((OffsetInstruction)analyzedInstruction.instruction).getTargetAddressOffset();
 
-        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
-        assert registerType != null;
-
-        checkRegister(registerType, Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, register, Primitive32BitCategories);
 
         int switchDataCodeAddress = this.getInstructionAddress(analyzedInstruction) + switchCodeAddressOffset;
         AnalyzedInstruction switchDataAnalyzedInstruction = instructions.get(switchDataCodeAddress);
@@ -1381,31 +1324,11 @@ public class MethodAnalyzer {
         }
     }
 
-    private void handleFloatCmp(AnalyzedInstruction analyzedInstruction) {
+    private void handleFloatWideCmp(AnalyzedInstruction analyzedInstruction, EnumSet validCategories) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert registerType != null;
-
-        checkRegister(registerType, Primitive32BitCategories);
-
-        registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
-        assert registerType != null;
-
-        checkRegister(registerType, Primitive32BitCategories);
-
-        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
-                RegisterType.getRegisterType(RegisterType.Category.Byte, null));
-    }
-
-    private void handleWideCmp(AnalyzedInstruction analyzedInstruction) {
-        ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
-
-        RegisterType registerType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterB());
-        assert registerType != null;
-
-        registerType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterC());
-        assert registerType != null;
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(), validCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(), validCategories);
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.Byte, null));
@@ -1437,46 +1360,28 @@ public class MethodAnalyzer {
     private void handleIf(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
-        assert registerType != null;
-
-        checkRegister(registerType, Primitive32BitCategories);
-
-        registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert registerType != null;
-
-        checkRegister(registerType, Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(), Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(), Primitive32BitCategories);
     }
 
     private void handleIfEqzNez(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
-        assert registerType != null;
-
-        if (!ReferenceCategories.contains(registerType.category) &&
-            !Primitive32BitCategories.contains(registerType.category)) {
-            throw new ValidationException(String.format("%s cannot be used with register type %s. Expecting 32-bit " +
-                    "primitive type or reference type.", analyzedInstruction.instruction.opcode));
-        }
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(),
+                ReferenceAndPrimitive32BitCategories);
     }
 
     private void handleIfz(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
-        assert registerType != null;
-
-        checkRegister(registerType, Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(), Primitive32BitCategories);
     }
 
     private void handle32BitPrimitiveAget(AnalyzedInstruction analyzedInstruction,
                                              RegisterType.Category instructionCategory) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
-        assert indexRegisterType != null;
-        checkRegister(indexRegisterType, Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(), Primitive32BitCategories);
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
@@ -1517,9 +1422,7 @@ public class MethodAnalyzer {
     private void handleAgetWide(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
-        assert indexRegisterType != null;
-        checkRegister(indexRegisterType, Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(), Primitive32BitCategories);
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
@@ -1546,17 +1449,17 @@ public class MethodAnalyzer {
 
             char arrayBaseType = arrayClassDef.getBaseElementClass().getClassType().charAt(0);
             if (arrayBaseType == 'J') {
-                setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                         RegisterType.getRegisterType(RegisterType.Category.LongLo, null));
             } else if (arrayBaseType == 'D') {
-                setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                         RegisterType.getRegisterType(RegisterType.Category.DoubleLo, null));
             } else {
                 throw new ValidationException(String.format("Cannot use aget-wide with array type %s. Incorrect " +
                         "array type for the instruction.", arrayRegisterType.type.getClassType()));
             }
         } else {
-            setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+            setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                         RegisterType.getRegisterType(RegisterType.Category.LongLo, null));
         }
     }
@@ -1564,9 +1467,7 @@ public class MethodAnalyzer {
     private void handleAgetObject(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
-        assert indexRegisterType != null;
-        checkRegister(indexRegisterType, Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(), Primitive32BitCategories);
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
@@ -1605,10 +1506,7 @@ public class MethodAnalyzer {
                                              RegisterType.Category instructionCategory) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
-        assert indexRegisterType != null;
-        checkRegister(indexRegisterType, Primitive32BitCategories);
-
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(), Primitive32BitCategories);
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
@@ -1655,11 +1553,8 @@ public class MethodAnalyzer {
     private void handleAputWide(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
-        assert indexRegisterType != null;
-        checkRegister(indexRegisterType, Primitive32BitCategories);
-
-        RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(), Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(), WideLowCategories);
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
@@ -1695,9 +1590,7 @@ public class MethodAnalyzer {
     private void handleAputObject(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
-        assert indexRegisterType != null;
-        checkRegister(indexRegisterType, Primitive32BitCategories);
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(), Primitive32BitCategories);
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
@@ -1737,9 +1630,8 @@ public class MethodAnalyzer {
                                              RegisterType.Category instructionCategory) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert objectRegisterType != null;
-        checkRegister(objectRegisterType, ReferenceCategories);
+        RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                ReferenceCategories);
 
         //TODO: check access
         //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
@@ -1768,11 +1660,8 @@ public class MethodAnalyzer {
     private void handleIgetWide(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert objectRegisterType != null;
-        checkRegister(objectRegisterType, ReferenceCategories);
-
-        getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterB());
+        RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                ReferenceCategories);
 
         //TODO: check access
         //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
@@ -1788,23 +1677,20 @@ public class MethodAnalyzer {
 
         RegisterType fieldType = RegisterType.getRegisterTypeForTypeIdItem(field.getFieldType());
 
-        try {
-            checkRegister(fieldType, WideLowCategories);
-        } catch (ValidationException ex) {
+        if (!WideLowCategories.contains(fieldType.category)) {
             throw new ValidationException(String.format("Cannot use %s with field %s. Incorrect field type " +
-                        "for the instruction.", analyzedInstruction.instruction.opcode.name,
-                        field.getFieldString()));
+                    "for the instruction.", analyzedInstruction.instruction.opcode.name,
+                    field.getFieldString()));
         }
 
-        setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
     }
 
     private void handleIgetObject(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert objectRegisterType != null;
-        checkRegister(objectRegisterType, ReferenceCategories);
+        RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                ReferenceCategories);
 
         //TODO: check access
         //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
@@ -1833,9 +1719,8 @@ public class MethodAnalyzer {
                                              RegisterType.Category instructionCategory) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert objectRegisterType != null;
-        checkRegister(objectRegisterType, ReferenceCategories);
+        RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                ReferenceCategories);
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
@@ -1879,12 +1764,10 @@ public class MethodAnalyzer {
     private void handleIputWide(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert objectRegisterType != null;
-        checkRegister(objectRegisterType, ReferenceCategories);
+        RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                ReferenceCategories);
 
-        RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
-        assert sourceRegisterType != null;
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(), WideLowCategories);
 
         //TODO: check access
         //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
@@ -1910,13 +1793,11 @@ public class MethodAnalyzer {
     private void handleIputObject(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
-        assert objectRegisterType != null;
-        checkRegister(objectRegisterType, ReferenceCategories);
+        RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                ReferenceCategories);
 
-        RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
-        assert sourceRegisterType != null;
-        checkRegister(sourceRegisterType, ReferenceCategories);
+        RegisterType sourceRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                ReferenceCategories);
 
         //TODO: check access
         //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
@@ -1983,7 +1864,7 @@ public class MethodAnalyzer {
                     field.getFieldString()));
         }
 
-        setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
     }
 
     private void handleSgetObject(AnalyzedInstruction analyzedInstruction) {
@@ -2042,8 +1923,7 @@ public class MethodAnalyzer {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
 
-        RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
-        assert sourceRegisterType != null;
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(), WideLowCategories);
 
         //TODO: check access
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
@@ -2058,15 +1938,14 @@ public class MethodAnalyzer {
                         field.getFieldString()));
         }
 
-        setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
     }
 
     private void handleSputObject(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
-        RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
-        assert sourceRegisterType != null;
-        checkRegister(sourceRegisterType, ReferenceCategories);
+        RegisterType sourceRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(),
+                ReferenceCategories);
 
         //TODO: check access
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
@@ -2237,7 +2116,7 @@ public class MethodAnalyzer {
 
             RegisterType parameterRegisterType;
             if (WideLowCategories.contains(parameterType.category)) {
-                parameterRegisterType = getAndCheckWideSourcePair(analyzedInstruction, register);
+                parameterRegisterType = getAndCheckSourceRegister(analyzedInstruction, register, WideLowCategories);
 
                 if (!registers.moveNext()) {
                     throw new ValidationException(String.format("No 2nd register specified for wide register pair v%d",
@@ -2310,51 +2189,39 @@ public class MethodAnalyzer {
         return false;
     }
 
-    private static void checkRegister(RegisterType registerType, EnumSet validCategories) {
-        if (!validCategories.contains(registerType.category)) {
-            //TODO: add expected categories to error message
-            throw new ValidationException("Invalid register type. Expecting one of: " + " but got \"" +
-                    registerType.category + "\"");
-        }
-    }
+    private static RegisterType getAndCheckSourceRegister(AnalyzedInstruction analyzedInstruction, int registerNumber,
+                                            EnumSet validCategories) {
+        assert registerNumber >= 0 && registerNumber < analyzedInstruction.postRegisterMap.length;
 
-    private static void checkWideDestinationPair(AnalyzedInstruction analyzedInstruction) {
-        int register = analyzedInstruction.getDestinationRegister();
-
-        if (register == (analyzedInstruction.postRegisterMap.length - 1)) {
-            throw new ValidationException("v" + register + " is the last register and not a valid wide register " +
-                    "pair.");
-        }
-    }
-
-    private static RegisterType getAndCheckWideSourcePair(AnalyzedInstruction analyzedInstruction, int firstRegister) {
-        assert firstRegister >= 0 && firstRegister < analyzedInstruction.postRegisterMap.length;
-
-        if (firstRegister == analyzedInstruction.postRegisterMap.length - 1) {
-            throw new ValidationException("v" + firstRegister + " is the last register and not a valid wide register " +
-                    "pair.");
-        }
-
-        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(firstRegister);
+        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(registerNumber);
         assert registerType != null;
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return registerType;
-        }
-        checkRegister(registerType, WideLowCategories);
 
-        RegisterType secondRegisterType = analyzedInstruction.getPreInstructionRegisterType(firstRegister + 1);
-        assert secondRegisterType != null;
-        checkRegister(secondRegisterType, WideHighCategories);
+        checkRegister(registerType, registerNumber, validCategories);
 
-        if ((       registerType.category == RegisterType.Category.LongLo &&
-                    secondRegisterType.category == RegisterType.Category.DoubleHi)
-            ||  (   registerType.category == RegisterType.Category.DoubleLo &&
-                    secondRegisterType.category == RegisterType.Category.LongHi)) {
-            assert false;
-            throw new ValidationException("The first register in the wide register pair isn't the same type (long " +
-                    "vs. double) as the second register in the pair");
+        if (validCategories == WideLowCategories) {
+            checkRegister(registerType, registerNumber, WideLowCategories);
+            checkWidePair(registerNumber, analyzedInstruction);
+
+            RegisterType secondRegisterType = analyzedInstruction.getPreInstructionRegisterType(registerNumber + 1);
+            assert secondRegisterType != null;
+            checkRegister(secondRegisterType, registerNumber+1, WideHighCategories);
         }
 
         return registerType;
+    }
+
+    private static void checkRegister(RegisterType registerType, int registerNumber, EnumSet validCategories) {
+        if (!validCategories.contains(registerType.category)) {
+            //TODO: add expected categories to error message
+            throw new ValidationException(String.format("Invalid register type for register v%d. Expecting one of: " +
+                    "but got %s", registerNumber, registerType.toString()));
+        }
+    }
+
+    private static void checkWidePair(int registerNumber, AnalyzedInstruction analyzedInstruction) {
+        if (registerNumber + 1 >= analyzedInstruction.postRegisterMap.length) {
+            throw new ValidationException(String.format("v%d is the last register and not a valid wide register " +
+                    "pair.", registerNumber));
+        }
     }
 }
