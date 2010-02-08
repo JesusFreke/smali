@@ -860,6 +860,45 @@ public class MethodAnalyzer {
                 handleBinary2AddrOp(analyzedInstruction, WideLowCategories, WideLowCategories,
                         RegisterType.Category.DoubleLo, false);
                 return;
+            case ADD_INT_LIT16:
+            case RSUB_INT:
+            case MUL_INT_LIT16:
+            case DIV_INT_LIT16:
+            case REM_INT_LIT16:
+                handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer,
+                        false);
+                return;
+            case AND_INT_LIT16:
+            case OR_INT_LIT16:
+            case XOR_INT_LIT16:
+                handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer,
+                        true);
+                return;
+            case ADD_INT_LIT8:
+            case RSUB_INT_LIT8:
+            case MUL_INT_LIT8:
+            case DIV_INT_LIT8:
+            case REM_INT_LIT8:
+            case SHL_INT_LIT8:
+                handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer,
+                        false);
+                return;
+            case AND_INT_LIT8:
+            case OR_INT_LIT8:
+            case XOR_INT_LIT8:
+                handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer,
+                        true);
+                return;
+            case SHR_INT_LIT8:
+                handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories,
+                        getDestTypeForLiteralShiftRight(analyzedInstruction, true), false);
+                return;
+            case USHR_INT_LIT8:
+                handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories,
+                        getDestTypeForLiteralShiftRight(analyzedInstruction, false), false);
+                return;
+            default:
+                assert false;
         }
     }
 
@@ -2382,6 +2421,99 @@ public class MethodAnalyzer {
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(destRegisterCategory, null));
+    }
+
+    private void handleLiteralBinaryOp(AnalyzedInstruction analyzedInstruction, EnumSet validSourceCategories,
+                                RegisterType.Category destRegisterCategory, boolean checkForBoolean) {
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType sourceRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                validSourceCategories);
+
+        if (checkForBoolean) {
+            if (BooleanCategories.contains(sourceRegisterType.category)) {
+                long literal = ((LiteralInstruction)analyzedInstruction.instruction).getLiteral();
+                if (literal == 0 || literal == 1) {
+                    destRegisterCategory = RegisterType.Category.Boolean;
+                }
+            }
+        }
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                RegisterType.getRegisterType(destRegisterCategory, null));
+    }
+
+    private RegisterType.Category getDestTypeForLiteralShiftRight(AnalyzedInstruction analyzedInstruction,
+                                                                  boolean signedShift) {
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType sourceRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                Primitive32BitCategories);
+        long literalShift = ((LiteralInstruction)analyzedInstruction.instruction).getLiteral();
+
+        if (literalShift == 0) {
+            return sourceRegisterType.category;
+        }
+
+        RegisterType.Category destRegisterCategory;
+        if (!signedShift) {
+            destRegisterCategory = RegisterType.Category.Integer;
+        } else {
+            destRegisterCategory = sourceRegisterType.category;
+        }
+
+        if (literalShift >= 32) {
+            //TODO: add warning
+            return destRegisterCategory;
+        }
+
+        switch (sourceRegisterType.category) {
+            case Integer:
+            case Float:
+                if (!signedShift) {
+                    if (literalShift > 24) {
+                        return RegisterType.Category.PosByte;
+                    }
+                    if (literalShift >= 16) {
+                        return RegisterType.Category.Char;
+                    }
+                } else {
+                    if (literalShift >= 24) {
+                        return RegisterType.Category.Byte;
+                    }
+                    if (literalShift >= 16) {
+                        return RegisterType.Category.Short;
+                    }
+                }
+                break;
+            case Short:
+                if (signedShift && literalShift >= 8) {
+                    return RegisterType.Category.Byte;
+                }
+                break;
+            case PosShort:
+                if (literalShift >= 8) {
+                    return RegisterType.Category.PosByte;
+                }
+                break;
+            case Char:
+                if (literalShift > 8) {
+                    return RegisterType.Category.PosByte;
+                }
+                break;
+            case Byte:
+                break;
+            case PosByte:
+                return RegisterType.Category.PosByte;
+            case Null:
+            case One:
+            case Boolean:
+                return RegisterType.Category.Null;
+            default:
+                assert false;
+        }
+
+        return destRegisterCategory;
     }
 
     private static boolean checkArrayFieldAssignment(RegisterType.Category arrayFieldCategory,
