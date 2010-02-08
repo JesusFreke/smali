@@ -31,6 +31,9 @@ package org.jf.baksmali.Adaptors;
 import org.jf.baksmali.Adaptors.Format.*;
 import org.jf.baksmali.baksmali;
 import org.jf.dexlib.*;
+import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
+import org.jf.dexlib.Code.Analysis.MethodAnalyzer;
+import org.jf.dexlib.Code.Analysis.RegisterType;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
@@ -45,6 +48,7 @@ import java.util.*;
 public class MethodDefinition {
     private final StringTemplateGroup stg;
     private final ClassDataItem.EncodedMethod encodedMethod;
+    private final MethodAnalyzer methodAnalyzer;
 
     private final LabelCache labelCache = new LabelCache();
 
@@ -59,7 +63,8 @@ public class MethodDefinition {
         //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
 
         if (encodedMethod.codeItem != null) {
-            Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+            methodAnalyzer = new MethodAnalyzer(encodedMethod);
+            AnalyzedInstruction[] instructions = methodAnalyzer.makeInstructionArray();
 
             packedSwitchMap = new SparseIntArray(1);
             sparseSwitchMap = new SparseIntArray(1);
@@ -67,23 +72,24 @@ public class MethodDefinition {
 
             int currentCodeAddress = 0;
             for (int i=0; i<instructions.length; i++) {
-                Instruction instruction = instructions[i];
-                if (instruction.opcode == Opcode.PACKED_SWITCH) {
+                AnalyzedInstruction instruction = instructions[i];
+                if (instruction.instruction.opcode == Opcode.PACKED_SWITCH) {
                     packedSwitchMap.append(
                             currentCodeAddress + ((OffsetInstruction)instruction).getTargetAddressOffset(),
                             currentCodeAddress);
-                } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
+                } else if (instruction.instruction.opcode == Opcode.SPARSE_SWITCH) {
                     sparseSwitchMap.append(
                             currentCodeAddress + ((OffsetInstruction)instruction).getTargetAddressOffset(),
                             currentCodeAddress);
                 }
                 instructionMap.append(currentCodeAddress, i);
-                currentCodeAddress += instruction.getSize(currentCodeAddress);
+                currentCodeAddress += instruction.instruction.getSize(currentCodeAddress);
             }
         } else {
             packedSwitchMap = null;
             sparseSwitchMap = null;
             instructionMap = null;
+            methodAnalyzer = null;
         }
     }
 
@@ -227,20 +233,35 @@ public class MethodDefinition {
             return methodItems;
         }
 
-        Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+        AnalyzedInstruction[] instructions;
+        if (baksmali.verboseRegisterInfo) {
+            instructions = methodAnalyzer.analyze();
+        } else {
+            instructions = methodAnalyzer.makeInstructionArray();
+        }
 
         int currentCodeAddress = 0;
         for (int i=0; i<instructions.length; i++) {
-            Instruction instruction = instructions[i];
+            AnalyzedInstruction instruction = instructions[i];
 
             methodItems.add(InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
-                    encodedMethod.codeItem, currentCodeAddress, stg, instruction));
+                    encodedMethod.codeItem, currentCodeAddress, stg, instruction.instruction));
 
             if (i != instructions.length - 1) {
                 methodItems.add(new BlankMethodItem(stg, currentCodeAddress));
             }
 
-            currentCodeAddress += instruction.getSize(currentCodeAddress);
+            if (baksmali.verboseRegisterInfo) {
+                if (instruction.getPredecessorCount() > 1 || i == 0) {
+                    methodItems.add(new CommentMethodItem(stg, getPreInstructionRegisterString(instruction),
+                            currentCodeAddress, Integer.MIN_VALUE));
+                }
+                methodItems.add(new CommentMethodItem(stg, getPostInstructionRegisterString(instruction),
+                        currentCodeAddress, Integer.MAX_VALUE-1));
+            }
+
+
+            currentCodeAddress += instruction.instruction.getSize(currentCodeAddress);
         }
 
         addTries(methodItems);
@@ -263,6 +284,41 @@ public class MethodDefinition {
 
         return methodItems;
     }
+
+    private String getPreInstructionRegisterString(AnalyzedInstruction instruction) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i=0; i<instruction.getRegisterCount(); i++) {
+            RegisterType registerType = instruction.getPreInstructionRegisterType(i);
+            sb.append("v");
+            sb.append(i);
+            sb.append("=");
+            if (registerType == null) {
+                sb.append("null");
+            } else {
+                sb.append(registerType.toString());
+            }
+            sb.append(";");
+        }
+
+        return sb.toString();
+    }
+
+    private String getPostInstructionRegisterString(AnalyzedInstruction instruction) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i=0; i<instruction.getRegisterCount(); i++) {
+            RegisterType registerType = instruction.getPostInstructionRegisterType(i);
+            sb.append("v");
+            sb.append(i);
+            sb.append("=");
+            sb.append(registerType.toString());
+            sb.append(";");
+        }
+
+        return sb.toString();
+    }
+
 
     private void addTries(List<MethodItem> methodItems) {
         if (encodedMethod.codeItem == null || encodedMethod.codeItem.getTries() == null) {

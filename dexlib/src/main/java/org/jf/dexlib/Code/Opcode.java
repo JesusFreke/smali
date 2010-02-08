@@ -281,9 +281,9 @@ public enum Opcode
     //if the instruction sets the "hidden" result register
     public static final int SETS_RESULT = 0x8;
     //if the instruction sets the value of it's first register
-    public static final int SETS_REGISTER = 0x16;
+    public static final int SETS_REGISTER = 0x10;
     //if the instruction sets the value of it's first register to a wide type
-    public static final int SETS_WIDE_REGISTER = 0x32;
+    public static final int SETS_WIDE_REGISTER = 0x20;
 
     static {
         opcodesByValue = new Opcode[256];

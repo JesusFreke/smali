@@ -12,7 +12,7 @@ public class AnalyzedInstruction {
     /**
      * The actual instruction
      */
-    protected final Instruction instruction;
+    public final Instruction instruction;
 
     /**
      * The index of the instruction, where the first instruction in the method is at index 0, and so on
@@ -49,10 +49,18 @@ public class AnalyzedInstruction {
         this.instruction = instruction;
         this.instructionIndex = instructionIndex;
         this.postRegisterMap = new RegisterType[registerCount];
+        RegisterType unknown = RegisterType.getRegisterType(RegisterType.Category.Unknown, null);
+        for (int i=0; i<registerCount; i++) {
+            postRegisterMap[i] = unknown;
+        }
     }
 
     public int getInstructionIndex() {
         return instructionIndex;
+    }
+
+    public int getPredecessorCount() {
+        return predecessors.size();
     }
 
     protected void addPredecessor(AnalyzedInstruction predecessor) {
@@ -104,7 +112,8 @@ public class AnalyzedInstruction {
     }
 
     protected boolean isInvokeInit() {
-        if (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE) {
+        if (instruction == null ||
+                (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE)) {
             return false;
         }
 
@@ -115,7 +124,7 @@ public class AnalyzedInstruction {
         assert item.getItemType() == ItemType.TYPE_METHOD_ID_ITEM;
         MethodIdItem method = (MethodIdItem)item;
 
-        if (!method.getMethodName().equals("<init>")) {
+        if (!method.getMethodName().getStringValue().equals("<init>")) {
             return false;
         }
 
@@ -173,6 +182,14 @@ public class AnalyzedInstruction {
                     "store a value");
         }
         return ((SingleRegisterInstruction)instruction).getRegisterA();
+    }
+
+    public int getRegisterCount() {
+        return postRegisterMap.length;
+    }
+
+    public RegisterType getPostInstructionRegisterType(int registerNumber) {
+        return postRegisterMap[registerNumber];
     }
 
     public RegisterType getPreInstructionRegisterType(int registerNumber) {

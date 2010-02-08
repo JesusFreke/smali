@@ -222,17 +222,17 @@ public class RegisterType {
         }
 
         Category mergedCategory = Category.mergeTable[this.category.ordinal()][type.category.ordinal()];
-        if (mergedCategory == Category.Conflicted) {
-            throw new ValidationException("Incompatible register types." +
-                    " Category1: " + this.category.name() +
-                    (this.type==null?"":" Type1: " + this.type.getClassType()) +
-                    " Category2: " + type.category.name() +
-                    (type.type==null?"":" Type2: " + type.type.getClassType()));
-        }
 
         ClassDef mergedType = null;
         if (mergedCategory == Category.Reference) {
             mergedType = ClassPath.getCommonSuperclass(this.type, type.type);
+        }
+        if (mergedCategory == Category.UninitRef) {
+            if (this.category == Category.Unknown) {
+                return type;
+            }
+            assert type.category == Category.Unknown;
+            return this;
         }
         return RegisterType.getRegisterType(mergedCategory, mergedType);
     }

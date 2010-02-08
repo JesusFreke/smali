@@ -75,13 +75,14 @@ public class main {
         boolean useLocalsDirective = false;
         boolean useSequentialLabels = false;
         boolean outputDebugInfo = true;
-
+        boolean verboseRegisterInfo = false;
 
         String outputDirectory = "out";
         String dumpFileName = null;
         String outputDexFileName = null;
         String inputDexFileName = null;
         String deodexerantHost = null;
+        String bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
         int deodexerantPort = 0;
 
         String[] remainingArgs = commandLine.getArgs();
@@ -145,6 +146,14 @@ public class main {
             outputDebugInfo = false;
         }
 
+        if (commandLine.hasOption("r")) {
+            verboseRegisterInfo = true;
+        }
+
+        if (commandLine.hasOption("c")) {
+            bootClassPath = commandLine.getOptionValue("c");
+        }
+
         if (commandLine.hasOption("x")) {
             String deodexerantAddress = commandLine.getOptionValue("x");
             String[] parts = deodexerantAddress.split(":");
@@ -200,8 +209,8 @@ public class main {
             }
 
             if (disassemble) {
-                baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, noParameterRegisters,
-                        useLocalsDirective, useSequentialLabels, outputDebugInfo);
+                baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, bootClassPath, noParameterRegisters,
+                        useLocalsDirective, useSequentialLabels, outputDebugInfo, verboseRegisterInfo);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -310,6 +319,16 @@ public class main {
                 .withDescription("don't write out debug info (.local, .param, .line, etc.)")
                 .create("b");
 
+        Option verboseRegisterInfoOption = OptionBuilder.withLongOpt("verbose-registers")
+                .withDescription("print verbose register type information for each instruction")
+                .create("r");
+
+        Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
+                .withDescription("the bootclasspath jars to use, for analysis")
+                .hasArg()
+                .withArgName("BOOTCLASSPATH")
+                .create("c");
+
         options.addOption(versionOption);
         options.addOption(helpOption);
         options.addOption(dumpOption);
@@ -323,5 +342,7 @@ public class main {
         options.addOption(useLocalsOption);
         options.addOption(sequentialLabelsOption);
         options.addOption(noDebugInfoOption);
+        options.addOption(verboseRegisterInfoOption);
+        options.addOption(classPathOption);
     }
 }

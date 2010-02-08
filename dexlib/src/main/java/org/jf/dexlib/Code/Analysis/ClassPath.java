@@ -15,34 +15,31 @@ public class ClassPath {
     private static ClassPath theClassPath = null;
 
     private final HashMap<String, ClassDef> classDefs;
-    protected final ClassDef javaLangObjectClassDef; //Ljava/lang/Object;
+    protected ClassDef javaLangObjectClassDef; //Ljava/lang/Object;
 
     public static void InitializeClassPath(String[] bootClassPath, DexFile dexFile) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
         }
 
-        theClassPath = new ClassPath(bootClassPath, dexFile);
+        theClassPath = new ClassPath();
+        theClassPath.initClassPath(bootClassPath, dexFile);
     }
 
-    private ClassPath(String[] bootClassPath, DexFile dexFile) {
+    private ClassPath() {
+        classDefs = new HashMap<String, ClassDef>();
+    }
+
+    private void initClassPath(String[] bootClassPath, DexFile dexFile) {
         if (bootClassPath == null || bootClassPath.length == 0) {
             throw new ExceptionWithContext("No BOOTCLASSPATH entries were given");
         }
-
-        classDefs = new HashMap<String, ClassDef>();
 
         for (String bootClassPathEntry: bootClassPath) {
             loadBootClassPath(bootClassPathEntry);
         }
 
         loadDexFile(dexFile);
-
-        try {
-            javaLangObjectClassDef = getClassDef("Ljava/lang/Object;");
-        } catch (ClassNotFoundException ex) {
-            throw ExceptionWithContext.withContext(ex, "Ljava/lang/Object; must be present in the classpath");
-        }
 
         for (String primitiveType: new String[]{"Z", "B", "S", "C", "I", "J", "F", "D"}) {
             ClassDef classDef = new PrimitiveClassDef(primitiveType);
@@ -77,8 +74,12 @@ public class ClassPath {
             //TODO: need to check if the class already exists. (and if so, what to do about it?)
             ClassDef classDef = new ClassDef(classDefItem);
             classDefs.put(classDef.getClassType(), classDef);
-            classDef.dumpVtable();
-            classDef.dumpFields();
+
+            if (classDefItem.getClassType().getTypeDescriptor().equals("Ljava/lang/Object;")) {
+                theClassPath.javaLangObjectClassDef = classDef;
+            }
+            /*classDef.dumpVtable();
+            classDef.dumpFields();*/
         }
     }
 
@@ -274,7 +275,7 @@ public class ClassPath {
         }
     }
 
-    public static class ClassDef {
+    public static class ClassDef implements Comparable<ClassDef> {
         private final String classType;
         private final ClassDef superclass;
         /**
@@ -329,7 +330,7 @@ public class ClassPath {
             }
         }
 
-        protected ClassDef(ClassDefItem classDefItem) {
+        protected ClassDef(ClassDefItem classDefItem)  {
             classType = classDefItem.getClassType().getTypeDescriptor();
 
             isInterface = (classDefItem.getAccessFlags() & AccessFlags.INTERFACE.getValue()) != 0;
@@ -406,23 +407,23 @@ public class ClassPath {
         }
 
         //TODO: GROT
-        public void dumpVtable() {
+        /*public void dumpVtable() {
             System.out.println(classType + " methods:");
             int i=0;
             for (String method: vtable) {
                 System.out.println(i + ":\t" + method);
                 i++;
             }
-        }
+        }*/
 
         //TODO: GROT
-        public void dumpFields() {
+        /*public void dumpFields() {
             System.out.println(classType + " fields:");
             for (int i=0; i<instanceFields.size(); i++) {
                 int fieldOffset = instanceFields.keyAt(i);
                 System.out.println(fieldOffset + ":\t" + instanceFields.valueAt(i));
             }
-        }
+        }*/
 
         private void swap(byte[] fieldTypes, String[] fields, int position1, int position2) {
             byte tempType = fieldTypes[position1];
@@ -724,6 +725,10 @@ public class ClassPath {
         @Override
         public int hashCode() {
             return classType.hashCode();
+        }
+
+        public int compareTo(ClassDef classDef) {
+            return classType.compareTo(classDef.classType);
         }
     }
 }

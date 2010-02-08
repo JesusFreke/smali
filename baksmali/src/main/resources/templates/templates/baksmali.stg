@@ -435,3 +435,8 @@ AnnotationElement(Name, Value) ::=
 <<
 <Name> = <Value>
 >>
+
+Comment(Comment) ::=
+<<
+#<Comment>
+>>
