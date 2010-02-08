@@ -760,6 +760,56 @@ public class MethodAnalyzer {
             case INT_TO_SHORT:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Short);
                 return;
+            case ADD_INT:
+            case SUB_INT:
+            case MUL_INT:
+            case DIV_INT:
+            case REM_INT:
+            case SHL_INT:
+            case SHR_INT:
+            case USHR_INT:
+                handleBinaryOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
+                        RegisterType.Category.Integer, false);
+                return;
+            case AND_INT:
+            case OR_INT:
+            case XOR_INT:
+                handleBinaryOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
+                        RegisterType.Category.Integer, true);
+
+            case ADD_LONG:
+            case SUB_LONG:
+            case MUL_LONG:
+            case DIV_LONG:
+            case REM_LONG:
+            case AND_LONG:
+            case OR_LONG:
+            case XOR_LONG:
+                handleBinaryOp(analyzedInstruction, WideLowCategories, WideLowCategories, RegisterType.Category.LongLo,
+                        false);
+                return;
+            case SHL_LONG:
+            case SHR_LONG:
+            case USHR_LONG:
+                handleBinaryOp(analyzedInstruction, WideLowCategories, Primitive32BitCategories,
+                        RegisterType.Category.LongLo, false);
+                return;
+            case ADD_FLOAT:
+            case SUB_FLOAT:
+            case MUL_FLOAT:
+            case DIV_FLOAT:
+            case REM_FLOAT:
+                handleBinaryOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
+                        RegisterType.Category.Float, false);
+                return;
+            case ADD_DOUBLE:
+            case SUB_DOUBLE:
+            case MUL_DOUBLE:
+            case DIV_DOUBLE:
+            case REM_DOUBLE:
+                handleBinaryOp(analyzedInstruction, WideLowCategories, WideLowCategories,
+                        RegisterType.Category.DoubleLo, false);
+                return;
         }
     }
 
@@ -794,7 +844,10 @@ public class MethodAnalyzer {
             RegisterType.Category.Float,
             RegisterType.Category.Reference);
 
-
+    private static final EnumSet<RegisterType.Category> BooleanCategories = EnumSet.of(
+            RegisterType.Category.Null,
+            RegisterType.Category.One,
+            RegisterType.Category.Boolean);
 
     private void handleMove(AnalyzedInstruction analyzedInstruction, EnumSet validCategories) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
@@ -2232,6 +2285,28 @@ public class MethodAnalyzer {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(), validSourceCategories);
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                RegisterType.getRegisterType(destRegisterCategory, null));
+    }
+
+    private void handleBinaryOp(AnalyzedInstruction analyzedInstruction, EnumSet validSource1Categories,
+                                EnumSet validSource2Categories, RegisterType.Category destRegisterCategory,
+                                boolean checkForBoolean) {
+        ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+
+        RegisterType source1RegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                validSource1Categories);
+        RegisterType source2RegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterC(),
+                validSource2Categories);
+
+        if (checkForBoolean) {
+            if (BooleanCategories.contains(source1RegisterType.category) &&
+                BooleanCategories.contains(source2RegisterType.category)) {
+
+                destRegisterCategory = RegisterType.Category.Boolean;
+            }
+        }
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(destRegisterCategory, null));
