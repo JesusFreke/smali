@@ -108,6 +108,8 @@ public class AnalyzedInstruction {
             return false;
         }
 
+        //TODO: check access flags instead of name?
+
         InstructionWithReference instruction = (InstructionWithReference)this.instruction;
         Item item = instruction.getReferencedItem();
         assert item.getItemType() == ItemType.TYPE_METHOD_ID_ITEM;

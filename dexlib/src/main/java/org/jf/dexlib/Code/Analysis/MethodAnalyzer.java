@@ -120,6 +120,7 @@ public class MethodAnalyzer {
         while (!instructionsToVerify.isEmpty()) {
             for(int i=instructionsToVerify.nextSetBit(0); i>=0; i=instructionsToVerify.nextSetBit(i+1)) {
                 analyzeInstruction(instructions.get(i));
+                instructionsToVerify.clear(i);
             }
         }
 
@@ -248,6 +249,10 @@ public class MethodAnalyzer {
         for (AnalyzedInstruction successor: instruction.successors) {
             if (!successor.setsRegister(registerNumber)) {
                 RegisterType registerType = successor.getMergedRegisterTypeFromPredecessors(registerNumber);
+
+                if (registerType.category == RegisterType.Category.UninitRef && instruction.isInvokeInit()) {
+                    continue;
+                }
 
                 if (successor.setPostRegisterType(registerNumber, registerType)) {
                     changedInstructions.set(successor.instructionIndex);
@@ -602,6 +607,26 @@ public class MethodAnalyzer {
                 return handleSputWide(analyzedInstruction);
             case SPUT_OBJECT:
                 return handleSputObject(analyzedInstruction);
+            case INVOKE_VIRTUAL:
+                return handleInvoke(analyzedInstruction, INVOKE_VIRTUAL);
+            case INVOKE_SUPER:
+                return handleInvoke(analyzedInstruction, INVOKE_SUPER);
+            case INVOKE_DIRECT:
+                return handleInvoke(analyzedInstruction, INVOKE_DIRECT);
+            case INVOKE_STATIC:
+                return handleInvoke(analyzedInstruction, INVOKE_STATIC);
+            case INVOKE_INTERFACE:
+                return handleInvoke(analyzedInstruction, INVOKE_INTERFACE);
+            case INVOKE_VIRTUAL_RANGE:
+                return handleInvokeRange(analyzedInstruction, INVOKE_VIRTUAL);
+            case INVOKE_SUPER_RANGE:
+                return handleInvokeRange(analyzedInstruction, INVOKE_SUPER);
+            case INVOKE_DIRECT_RANGE:
+                return handleInvokeRange(analyzedInstruction, INVOKE_DIRECT);
+            case INVOKE_STATIC_RANGE:
+                return handleInvokeRange(analyzedInstruction, INVOKE_STATIC);
+            case INVOKE_INTERFACE_RANGE:
+                return handleInvokeRange(analyzedInstruction, INVOKE_INTERFACE);
         }
 
         assert false;
@@ -2233,6 +2258,216 @@ public class MethodAnalyzer {
 
         return true;
     }
+
+    private boolean handleInvoke(AnalyzedInstruction analyzedInstruction, int invokeType) {
+        FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
+        return handleInvokeCommon(analyzedInstruction, false, invokeType, new Format35cRegisterIterator(instruction));
+    }
+
+    private boolean handleInvokeRange(AnalyzedInstruction analyzedInstruction, int invokeType) {
+        RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
+        return handleInvokeCommon(analyzedInstruction, true, invokeType, new Format3rcRegisterIterator(instruction));
+    }
+
+    private static final int INVOKE_VIRTUAL = 0x01;
+    private static final int INVOKE_SUPER = 0x02;
+    private static final int INVOKE_DIRECT = 0x04;
+    private static final int INVOKE_INTERFACE = 0x08;
+    private static final int INVOKE_STATIC = 0x10;
+
+    private boolean handleInvokeCommon(AnalyzedInstruction analyzedInstruction, boolean isRange, int invokeType,
+                                       RegisterIterator registers) {
+        InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
+
+        //TODO: check access
+        //TODO: allow uninitialized reference if this in an <init> method
+
+        Item item = instruction.getReferencedItem();
+        assert item.getItemType() == ItemType.TYPE_METHOD_ID_ITEM;
+        MethodIdItem methodIdItem = (MethodIdItem)item;
+
+        TypeIdItem methodClass = methodIdItem.getContainingClass();
+        boolean isInit = false;
+
+        if (methodIdItem.getMethodName().getStringValue().charAt(0) == '<') {
+            if ((invokeType & INVOKE_DIRECT) != 0) {
+                isInit = true;
+            } else {
+                throw new ValidationException(String.format("Cannot call constructor %s with %s",
+                        methodIdItem.getMethodString(), analyzedInstruction.instruction.opcode.name));
+            }
+        }
+
+        ClassPath.ClassDef methodClassDef = ClassPath.getClassDef(methodClass);
+        if ((invokeType & INVOKE_INTERFACE) != 0) {
+            if (!methodClassDef.isInterface()) {
+                throw new ValidationException(String.format("Cannot call method %s with %s. %s is not an interface " +
+                        "class.", methodIdItem.getMethodString(), analyzedInstruction.instruction.opcode.name,
+                        methodClassDef.getClassType()));
+            }
+        } else {
+            if (methodClassDef.isInterface()) {
+                throw new ValidationException(String.format("Cannot call method %s with %s. %s is an interface class." +
+                        " Use invoke-interface or invoke-interface/range instead.", methodIdItem.getMethodString(),
+                        analyzedInstruction.instruction.opcode.name, methodClassDef.getClassType()));
+            }
+        }
+
+        if ((invokeType & INVOKE_SUPER) != 0) {
+            if (methodClassDef.getSuperclass() == null) {
+                throw new ValidationException(String.format("Cannot call method %s with %s. %s has no superclass",
+                        methodIdItem.getMethodString(), analyzedInstruction.instruction.opcode.name,
+                        methodClassDef.getSuperclass().getClassType()));
+            }
+
+            if (!methodClassDef.getSuperclass().hasVirtualMethod(methodIdItem.getMethodString())) {
+                throw new ValidationException(String.format("Cannot call method %s with %s. The superclass %s has" +
+                        "no such method", methodIdItem.getMethodString(),
+                        analyzedInstruction.instruction.opcode.name, methodClassDef.getSuperclass().getClassType()));
+            }
+        }
+
+        assert isRange || registers.getCount() <= 5;
+
+        TypeListItem typeListItem = methodIdItem.getPrototype().getParameters();
+        int methodParameterRegisterCount;
+        if (typeListItem == null) {
+            methodParameterRegisterCount = 0;
+        } else {
+            methodParameterRegisterCount = typeListItem.getRegisterCount();
+        }
+
+        if ((invokeType & INVOKE_STATIC) == 0) {
+            methodParameterRegisterCount++;
+        }
+
+        if (methodParameterRegisterCount != registers.getCount()) {
+            throw new ValidationException(String.format("The number of registers does not match the number of " +
+                    "parameters for method %s. Expecting %d registers, got %d.", methodIdItem.getMethodString(),
+                    methodParameterRegisterCount + 1, registers.getCount()));
+        }
+
+        RegisterType objectRegisterType = null;
+        int objectRegister = 0;
+        if ((invokeType & INVOKE_STATIC) == 0) {
+            objectRegister = registers.getRegister();
+            registers.moveNext();
+
+            objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(objectRegister);
+            assert objectRegisterType != null;
+            if (objectRegisterType.category == RegisterType.Category.UninitRef) {
+                if (!isInit) {
+                    throw new ValidationException(String.format("Cannot invoke non-<init> method %s on uninitialized " +
+                            "reference type %s", methodIdItem.getMethodString(),
+                            objectRegisterType.type.getClassType()));
+                }
+            } else if (objectRegisterType.category == RegisterType.Category.Reference) {
+                if (isInit) {
+                    throw new ValidationException(String.format("Cannot invoke %s on initialized reference type %s",
+                            methodIdItem.getMethodString(), objectRegisterType.type.getClassType()));
+                }
+            } else if (objectRegisterType.category == RegisterType.Category.Null) {
+                if (isInit) {
+                    throw new ValidationException(String.format("Cannot invoke %s on a null reference",
+                            methodIdItem.getMethodString()));
+                }
+            }
+            else {
+                throw new ValidationException(String.format("Cannot invoke %s on non-reference type %s",
+                        methodIdItem.getMethodString(), objectRegisterType.toString()));
+            }
+
+            if (isInit) {
+                if (objectRegisterType.type == methodClassDef.getSuperclass()) {
+                    if (!encodedMethod.method.getMethodName().equals("<init>")) {
+                        throw new ValidationException(String.format("Cannot call %s on type %s. The object type must " +
+                                "match the method type exactly", methodIdItem.getMethodString(),
+                                objectRegisterType.type.getClassType()));
+                    }
+                }
+            }
+
+
+            if ((invokeType & INVOKE_INTERFACE) == 0 && !objectRegisterType.type.extendsClass(methodClassDef)) {
+               throw new ValidationException(String.format("Cannot call method %s on an object of type %s, which " +
+                       "does not extend %s.", methodIdItem.getMethodString(), objectRegisterType.type.getClassType(),
+                        methodClassDef.getClassType()));
+            }
+        }
+
+        List<TypeIdItem> parameterTypes = typeListItem.getTypes();
+        int parameterTypeIndex = 0;
+        while (!registers.pastEnd()) {
+            assert parameterTypeIndex < parameterTypes.size();
+            RegisterType parameterType =
+                    RegisterType.getRegisterTypeForTypeIdItem(parameterTypes.get(parameterTypeIndex));
+
+            int register = registers.getRegister();
+
+            RegisterType parameterRegisterType;
+            if (WideLowCategories.contains(parameterType.category)) {
+                parameterRegisterType = getAndCheckWideSourcePair(analyzedInstruction, register);
+
+                if (!registers.moveNext()) {
+                    throw new ValidationException(String.format("No 2nd register specified for wide register pair v%d",
+                            parameterTypeIndex+1));
+                }
+                int nextRegister = registers.getRegister();
+
+                if (nextRegister != register + 1) {
+                    throw new ValidationException(String.format("Invalid wide register pair (v%d, v%d). Registers " +
+                            "must be consecutive.", register, nextRegister));
+                }
+            } else {
+                parameterRegisterType = analyzedInstruction.getPreInstructionRegisterType(register);
+            }
+
+            assert parameterRegisterType != null;
+            if (parameterRegisterType.category == RegisterType.Category.Unknown) {
+                return false;
+            }
+
+            if (!parameterRegisterType.canBeAssignedTo(parameterType)) {
+                throw new ValidationException(
+                        String.format("Invalid register type %s for parameter %d %s.",
+                                parameterRegisterType.toString(), parameterTypeIndex+1,
+                                parameterType.toString()));
+            }
+
+            parameterTypeIndex++;
+            registers.moveNext();
+        }
+
+
+        //TODO: need to ensure the "this" register is initialized, in a constructor method
+        if (isInit) {
+            setRegisterTypeAndPropagateChanges(analyzedInstruction, objectRegister,
+                    RegisterType.getRegisterType(RegisterType.Category.Reference, objectRegisterType.type));
+
+            for (int i=0; i<analyzedInstruction.postRegisterMap.length; i++) {
+                RegisterType postInstructionRegisterType = analyzedInstruction.postRegisterMap[i];
+                if (postInstructionRegisterType.category == RegisterType.Category.Unknown) {
+                    RegisterType preInstructionRegisterType =
+                            analyzedInstruction.getMergedRegisterTypeFromPredecessors(i);
+
+                    if (preInstructionRegisterType.category == RegisterType.Category.UninitRef) {
+                        RegisterType registerType = null;
+                        if (preInstructionRegisterType == objectRegisterType) {
+                            registerType = analyzedInstruction.postRegisterMap[objectRegister];
+                        } else {
+                            registerType = preInstructionRegisterType;
+                        }
+
+                        setRegisterTypeAndPropagateChanges(analyzedInstruction, i, registerType);
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+
 
     private static boolean checkArrayFieldAssignment(RegisterType.Category arrayFieldCategory,
                                                   RegisterType.Category instructionCategory) {

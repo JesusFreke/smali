@@ -401,6 +401,10 @@ public class ClassPath {
             return implementedInterfaces.contains(interfaceDef);
         }
 
+        public boolean hasVirtualMethod(String method) {
+            return virtualMethodLookup.containsKey(method);
+        }
+
         //TODO: GROT
         public void dumpVtable() {
             System.out.println(classType + " methods:");
