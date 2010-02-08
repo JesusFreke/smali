@@ -1076,6 +1076,7 @@ public class MethodAnalyzer {
     private static interface RegisterIterator {
         int getRegister();
         boolean moveNext();
+        int getCount();
     }
 
     private boolean handleFilledNewArrayCommon(AnalyzedInstruction analyzedInstruction,
@@ -1146,6 +1147,10 @@ public class MethodAnalyzer {
                         }
                         return true;
                     }
+
+                    public int getCount() {
+                        return registerCount;
+                    }
                 });
     }
 
@@ -1177,6 +1182,10 @@ public class MethodAnalyzer {
                             return false;
                         }
                         return true;
+                    }
+
+                    public int getCount() {
+                        return registerCount;
                     }
                 });
     }
