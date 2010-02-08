@@ -1080,6 +1080,64 @@ public class MethodAnalyzer {
         boolean pastEnd();
     }
 
+    private static class Format35cRegisterIterator implements RegisterIterator {
+        private final int registerCount;
+        private final int[] registers;
+        private int currentRegister = 0;
+
+        public Format35cRegisterIterator(FiveRegisterInstruction instruction) {
+            registerCount = instruction.getRegCount();
+            registers = new int[]{instruction.getRegisterD(), instruction.getRegisterE(),
+                                  instruction.getRegisterF(), instruction.getRegisterG(),
+                                  instruction.getRegisterA()};
+        }
+
+        public int getRegister() {
+            return registers[currentRegister];
+        }
+
+        public boolean moveNext() {
+            currentRegister++;
+            return pastEnd();
+        }
+
+        public int getCount() {
+            return registerCount;
+        }
+
+        public boolean pastEnd() {
+            return currentRegister >= registerCount;
+        }
+    }
+
+    private static class Format3rcRegisterIterator implements RegisterIterator {
+        private final int startRegister;
+        private final int registerCount;
+        private int currentRegister = 0;
+
+        public Format3rcRegisterIterator(RegisterRangeInstruction instruction) {
+            startRegister = instruction.getStartRegister();
+            registerCount = instruction.getRegCount();
+        }
+
+        public int getRegister() {
+            return startRegister + currentRegister;
+        }
+
+        public boolean moveNext() {
+            currentRegister++;
+            return pastEnd();
+        }
+
+        public int getCount() {
+            return registerCount;
+        }
+
+        public boolean pastEnd() {
+            return currentRegister >= registerCount;
+        }
+    }
+
     private boolean handleFilledNewArrayCommon(AnalyzedInstruction analyzedInstruction,
                                                RegisterIterator registerIterator) {
         InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
@@ -1129,35 +1187,11 @@ public class MethodAnalyzer {
 
     private boolean handleFilledNewArray(AnalyzedInstruction analyzedInstruction) {
         FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
-        final int registerCount = instruction.getRegCount();
-        final int[] registers = new int[]{instruction.getRegisterD(), instruction.getRegisterE(),
-                                          instruction.getRegisterF(), instruction.getRegisterG(),
-                                          instruction.getRegisterA()};
-
-        return handleFilledNewArrayCommon(analyzedInstruction,
-                new RegisterIterator() {
-                    private int currentRegister = 0;
-                    public int getRegister() {
-                        return registers[currentRegister];
-                    }
-
-                    public boolean moveNext() {
-                        currentRegister++;
-                        return pastEnd();
-                    }
-
-                    public int getCount() {
-                        return registerCount;
-                    }
-
-                    public boolean pastEnd() {
-                        return currentRegister >= registerCount;
-                    }
-                });
+        return handleFilledNewArrayCommon(analyzedInstruction, new Format35cRegisterIterator(instruction));
     }
 
     private boolean handleFilledNewArrayRange(AnalyzedInstruction analyzedInstruction) {
-        final RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
+        RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
 
         //instruction.getStartRegister() and instruction.getRegCount() both return an int value, but are actually
         //unsigned 16 bit values, so we don't have to worry about overflowing an int when adding them together
@@ -1168,29 +1202,7 @@ public class MethodAnalyzer {
                     instruction.getStartRegister() + instruction.getRegCount() - 1));
         }
 
-        return handleFilledNewArrayCommon(analyzedInstruction,
-                new RegisterIterator() {
-                    private int currentRegister = 0;
-                    private final int startRegister = instruction.getStartRegister();
-                    private final int registerCount = instruction.getRegCount();
-
-                    public int getRegister() {
-                        return startRegister + currentRegister;
-                    }
-
-                    public boolean moveNext() {
-                        currentRegister++;
-                        return pastEnd();
-                    }
-
-                    public int getCount() {
-                        return registerCount;
-                    }
-
-                    public boolean pastEnd() {
-                        return currentRegister >= registerCount;
-                    }
-                });
+        return handleFilledNewArrayCommon(analyzedInstruction, new Format3rcRegisterIterator(instruction));
     }
 
     private boolean handleFillArrayData(AnalyzedInstruction analyzedInstruction) {
