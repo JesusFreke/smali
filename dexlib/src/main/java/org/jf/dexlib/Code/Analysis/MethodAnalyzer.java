@@ -420,217 +420,300 @@ public class MethodAnalyzer {
         return exceptionHandlers;
     }
 
-    private boolean analyzeInstruction(AnalyzedInstruction analyzedInstruction) {
+    private void analyzeInstruction(AnalyzedInstruction analyzedInstruction) {
         Instruction instruction = analyzedInstruction.instruction;
 
         switch (instruction.opcode) {
             case NOP:
-                return true;
+                return;
             case MOVE:
             case MOVE_FROM16:
             case MOVE_16:
-                return handleMove(analyzedInstruction, Primitive32BitCategories);
+                handleMove(analyzedInstruction, Primitive32BitCategories);
+                return;
             case MOVE_WIDE:
             case MOVE_WIDE_FROM16:
             case MOVE_WIDE_16:
-                return handleMoveWide(analyzedInstruction);
+                handleMoveWide(analyzedInstruction);
+                return;
             case MOVE_OBJECT:
             case MOVE_OBJECT_FROM16:
             case MOVE_OBJECT_16:
-                return handleMove(analyzedInstruction, ReferenceCategories);
+                handleMove(analyzedInstruction, ReferenceCategories);
+                return;
             case MOVE_RESULT:
-                return handleMoveResult(analyzedInstruction, Primitive32BitCategories);
+                handleMoveResult(analyzedInstruction, Primitive32BitCategories);
+                return;
             case MOVE_RESULT_WIDE:
-                return handleMoveResult(analyzedInstruction, WideLowCategories);
+                handleMoveResult(analyzedInstruction, WideLowCategories);
+                return;
             case MOVE_RESULT_OBJECT:
-                return handleMoveResult(analyzedInstruction, ReferenceCategories);
+                handleMoveResult(analyzedInstruction, ReferenceCategories);
+                return;
             case MOVE_EXCEPTION:
-                return handleMoveException(analyzedInstruction);
+                handleMoveException(analyzedInstruction);
+                return;
             case RETURN_VOID:
-                return handleReturnVoid(analyzedInstruction);
+                handleReturnVoid(analyzedInstruction);
+                return;
             case RETURN:
-                return handleReturn(analyzedInstruction);
+                handleReturn(analyzedInstruction);
+                return;
             case RETURN_WIDE:
-                return handleReturnWide(analyzedInstruction);
+                handleReturnWide(analyzedInstruction);
+                return;
             case RETURN_OBJECT:
-                return handleReturnObject(analyzedInstruction);
+                handleReturnObject(analyzedInstruction);
+                return;
             case CONST_4:
             case CONST_16:
             case CONST:
-                return handleConst(analyzedInstruction);
+                handleConst(analyzedInstruction);
+                return;
             case CONST_HIGH16:
-                return handleConstHigh16(analyzedInstruction);
+                handleConstHigh16(analyzedInstruction);
+                return;
             case CONST_WIDE_16:
             case CONST_WIDE_32:
             case CONST_WIDE:
             case CONST_WIDE_HIGH16:
-                return handleWideConst(analyzedInstruction);
+                handleWideConst(analyzedInstruction);
+                return;
             case CONST_STRING:
             case CONST_STRING_JUMBO:
-                return handleConstString(analyzedInstruction);
+                handleConstString(analyzedInstruction);
+                return;
             case CONST_CLASS:
-                return handleConstClass(analyzedInstruction);
+                handleConstClass(analyzedInstruction);
+                return;
             case MONITOR_ENTER:
             case MONITOR_EXIT:
-                return handleMonitor(analyzedInstruction);
+                handleMonitor(analyzedInstruction);
+                return;
             case CHECK_CAST:
-                return handleCheckCast(analyzedInstruction);
+                handleCheckCast(analyzedInstruction);
+                return;
             case INSTANCE_OF:
-                return handleInstanceOf(analyzedInstruction);
+                handleInstanceOf(analyzedInstruction);
+                return;
             case ARRAY_LENGTH:
-                return handleArrayLength(analyzedInstruction);
+                handleArrayLength(analyzedInstruction);
+                return;
             case NEW_INSTANCE:
-                return handleNewInstance(analyzedInstruction);
+                handleNewInstance(analyzedInstruction);
+                return;
             case NEW_ARRAY:
-                return handleNewArray(analyzedInstruction);
+                handleNewArray(analyzedInstruction);
+                return;
             case FILLED_NEW_ARRAY:
-                return handleFilledNewArray(analyzedInstruction);
+                handleFilledNewArray(analyzedInstruction);
+                return;
             case FILLED_NEW_ARRAY_RANGE:
-                return handleFilledNewArrayRange(analyzedInstruction);
+                handleFilledNewArrayRange(analyzedInstruction);
+                return;
             case FILL_ARRAY_DATA:
-                return handleFillArrayData(analyzedInstruction);
+                handleFillArrayData(analyzedInstruction);
+                return;
             case THROW:
-                return handleThrow(analyzedInstruction);
+                handleThrow(analyzedInstruction);
+                return;
             case GOTO:
             case GOTO_16:
             case GOTO_32:
                 //nothing to do
-                return true;
+                return;
             case PACKED_SWITCH:
-                return handleSwitch(analyzedInstruction, Format.PackedSwitchData);
+                handleSwitch(analyzedInstruction, Format.PackedSwitchData);
+                return;
             case SPARSE_SWITCH:
-                return handleSwitch(analyzedInstruction, Format.SparseSwitchData);
+                handleSwitch(analyzedInstruction, Format.SparseSwitchData);
+                return;
             case CMPL_FLOAT:
             case CMPG_FLOAT:
-                return handleFloatCmp(analyzedInstruction);
+                handleFloatCmp(analyzedInstruction);
+                return;
             case CMPL_DOUBLE:
             case CMPG_DOUBLE:
             case CMP_LONG:
-                return handleWideCmp(analyzedInstruction);
+                handleWideCmp(analyzedInstruction);
+                return;
             case IF_EQ:
             case IF_NE:
-                return handleIfEqNe(analyzedInstruction);
+                handleIfEqNe(analyzedInstruction);
+                return;
             case IF_LT:
             case IF_GE:
             case IF_GT:
             case IF_LE:
-                return handleIf(analyzedInstruction);
+                handleIf(analyzedInstruction);
+                return;
             case IF_EQZ:
             case IF_NEZ:
-                return handleIfEqzNez(analyzedInstruction);
+                handleIfEqzNez(analyzedInstruction);
+                return;
             case IF_LTZ:
             case IF_GEZ:
             case IF_GTZ:
             case IF_LEZ:
-                return handleIfz(analyzedInstruction);
+                handleIfz(analyzedInstruction);
+                return;
             case AGET:
-                return handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Integer);
+                handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Integer);
+                return;
             case AGET_BOOLEAN:
-                return handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Boolean);
+                handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Boolean);
+                return;
             case AGET_BYTE:
-                return handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Byte);
+                handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Byte);
+                return;
             case AGET_CHAR:
-                return handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Char);
+                handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Char);
+                return;
             case AGET_SHORT:
-                return handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Short);
+                handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Short);
+                return;
             case AGET_WIDE:
-                return handleAgetWide(analyzedInstruction);
+                handleAgetWide(analyzedInstruction);
+                return;
             case AGET_OBJECT:
-                return handleAgetObject(analyzedInstruction);
+                handleAgetObject(analyzedInstruction);
+                return;
             case APUT:
-                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Integer);
+                handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Integer);
+                return;
             case APUT_BOOLEAN:
-                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Boolean);
+                handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Boolean);
+                return;
             case APUT_BYTE:
-                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Byte);
+                handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Byte);
+                return;
             case APUT_CHAR:
-                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Char);
+                handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Char);
+                return;
             case APUT_SHORT:
-                return handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Short);
+                handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Short);
+                return;
             case APUT_WIDE:
-                return handleAputWide(analyzedInstruction);
+                handleAputWide(analyzedInstruction);
+                return;
             case APUT_OBJECT:
-                return handleAputObject(analyzedInstruction);
+                handleAputObject(analyzedInstruction);
+                return;
             case IGET:
-                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Integer);
+                handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Integer);
+                return;
             case IGET_BOOLEAN:
-                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Boolean);
+                handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Boolean);
+                return;
             case IGET_BYTE:
-                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Byte);
+                handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Byte);
+                return;
             case IGET_CHAR:
-                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Char);
+                handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Char);
+                return;
             case IGET_SHORT:
-                return handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Short);
+                handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Short);
+                return;
             case IGET_WIDE:
-                return handleIgetWide(analyzedInstruction);
+                handleIgetWide(analyzedInstruction);
+                return;
             case IGET_OBJECT:
-                return handleIgetObject(analyzedInstruction);
+                handleIgetObject(analyzedInstruction);
+                return;
             case IPUT:
-                return handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Integer);
+                handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Integer);
+                return;
             case IPUT_BOOLEAN:
-                return handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Boolean);
+                handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Boolean);
+                return;
             case IPUT_BYTE:
-                return handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Byte);
+                handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Byte);
+                return;
             case IPUT_CHAR:
-                return handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Char);
+                handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Char);
+                return;
             case IPUT_SHORT:
-                return handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Short);
+                handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Short);
+                return;
             case IPUT_WIDE:
-                return handleIputWide(analyzedInstruction);
+                handleIputWide(analyzedInstruction);
+                return;
             case IPUT_OBJECT:
-                return handleIputObject(analyzedInstruction);
+                handleIputObject(analyzedInstruction);
+                return;
             case SGET:
-                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Integer);
+                handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Integer);
+                return;
             case SGET_BOOLEAN:
-                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Boolean);
+                handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Boolean);
+                return;
             case SGET_BYTE:
-                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Byte);
+                handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Byte);
+                return;
             case SGET_CHAR:
-                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Char);
+                handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Char);
+                return;
             case SGET_SHORT:
-                return handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Short);
+                handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Short);
+                return;
             case SGET_WIDE:
-                return handleSgetWide(analyzedInstruction);
+                handleSgetWide(analyzedInstruction);
+                return;
             case SGET_OBJECT:
-                return handleSgetObject(analyzedInstruction);
+                handleSgetObject(analyzedInstruction);
+                return;
             case SPUT:
-                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Integer);
+                handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Integer);
+                return;
             case SPUT_BOOLEAN:
-                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Boolean);
+                handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Boolean);
+                return;
             case SPUT_BYTE:
-                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Byte);
+                handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Byte);
+                return;
             case SPUT_CHAR:
-                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Char);
+                handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Char);
+                return;
             case SPUT_SHORT:
-                return handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Short);
+                handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Short);
+                return;
             case SPUT_WIDE:
-                return handleSputWide(analyzedInstruction);
+                handleSputWide(analyzedInstruction);
+                return;
             case SPUT_OBJECT:
-                return handleSputObject(analyzedInstruction);
+                handleSputObject(analyzedInstruction);
+                return;
             case INVOKE_VIRTUAL:
-                return handleInvoke(analyzedInstruction, INVOKE_VIRTUAL);
+                handleInvoke(analyzedInstruction, INVOKE_VIRTUAL);
+                return;
             case INVOKE_SUPER:
-                return handleInvoke(analyzedInstruction, INVOKE_SUPER);
+                handleInvoke(analyzedInstruction, INVOKE_SUPER);
+                return;
             case INVOKE_DIRECT:
-                return handleInvoke(analyzedInstruction, INVOKE_DIRECT);
+                handleInvoke(analyzedInstruction, INVOKE_DIRECT);
+                return;
             case INVOKE_STATIC:
-                return handleInvoke(analyzedInstruction, INVOKE_STATIC);
+                handleInvoke(analyzedInstruction, INVOKE_STATIC);
+                return;
             case INVOKE_INTERFACE:
-                return handleInvoke(analyzedInstruction, INVOKE_INTERFACE);
+                handleInvoke(analyzedInstruction, INVOKE_INTERFACE);
+                return;
             case INVOKE_VIRTUAL_RANGE:
-                return handleInvokeRange(analyzedInstruction, INVOKE_VIRTUAL);
+                handleInvokeRange(analyzedInstruction, INVOKE_VIRTUAL);
+                return;
             case INVOKE_SUPER_RANGE:
-                return handleInvokeRange(analyzedInstruction, INVOKE_SUPER);
+                handleInvokeRange(analyzedInstruction, INVOKE_SUPER);
+                return;
             case INVOKE_DIRECT_RANGE:
-                return handleInvokeRange(analyzedInstruction, INVOKE_DIRECT);
+                handleInvokeRange(analyzedInstruction, INVOKE_DIRECT);
+                return;
             case INVOKE_STATIC_RANGE:
-                return handleInvokeRange(analyzedInstruction, INVOKE_STATIC);
+                handleInvokeRange(analyzedInstruction, INVOKE_STATIC);
+                return;
             case INVOKE_INTERFACE_RANGE:
-                return handleInvokeRange(analyzedInstruction, INVOKE_INTERFACE);
+                handleInvokeRange(analyzedInstruction, INVOKE_INTERFACE);
+                return;
         }
-
-        assert false;
-        return false;
     }
 
     private static final EnumSet<RegisterType.Category> Primitive32BitCategories = EnumSet.of(
@@ -654,7 +737,7 @@ public class MethodAnalyzer {
             RegisterType.Category.Null,
             RegisterType.Category.Reference);
 
-    private boolean handleMove(AnalyzedInstruction analyzedInstruction,
+    private void handleMove(AnalyzedInstruction analyzedInstruction,
                                EnumSet<RegisterType.Category> allowedCategories) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
@@ -662,36 +745,24 @@ public class MethodAnalyzer {
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert sourceRegisterType != null;
 
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            //we don't know the source register type yet, so we can't verify it. Return false, and we'll come back later
-            return false;
-        }
-
         checkRegister(sourceRegisterType, allowedCategories);
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, sourceRegisterType);
-        return true;
     }
 
-    private boolean handleMoveWide(AnalyzedInstruction analyzedInstruction) {
+    private void handleMoveWide(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction,
                 instruction.getRegisterB());
         assert sourceRegisterType != null;
 
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            //we don't know the source register type yet, so we can't verify it. Return false, and we'll come back later
-            return false;
-        }
-
         checkWideDestinationPair(analyzedInstruction);
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, sourceRegisterType);
-        return true;
     }
 
-    private boolean handleMoveResult(AnalyzedInstruction analyzedInstruction,
+    private void handleMoveResult(AnalyzedInstruction analyzedInstruction,
                                      EnumSet<RegisterType.Category> allowedCategories) {
 
         //TODO: handle the case when the previous instruction is an odexed instruction
@@ -728,10 +799,9 @@ public class MethodAnalyzer {
 
         checkRegister(destinationRegisterType, allowedCategories);
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, destinationRegisterType);
-        return true;
     }
 
-    private boolean handleMoveException(AnalyzedInstruction analyzedInstruction) {
+    private void handleMoveException(AnalyzedInstruction analyzedInstruction) {
         CodeItem.TryItem[] tries = encodedMethod.codeItem.getTries();
         int instructionAddress = getInstructionAddress(analyzedInstruction);
 
@@ -758,10 +828,9 @@ public class MethodAnalyzer {
         //TODO: check if the type is a throwable. Should we throw a ValidationException or print a warning? (does dalvik validate that it's a throwable? It doesn't in CodeVerify.c, but it might check in DexSwapVerify.c)
         checkRegister(exceptionType, ReferenceCategories);
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, exceptionType);
-        return true;
     }
 
-    private boolean checkConstructorReturn(AnalyzedInstruction analyzedInstruction) {
+    private void checkConstructorReturn(AnalyzedInstruction analyzedInstruction) {
         assert this.isInstanceConstructor();
 
         //if we're in an instance constructor (an <init> method), then the superclass <init> must have been called.
@@ -772,23 +841,16 @@ public class MethodAnalyzer {
         int thisRegister = getThisRegister();
         RegisterType thisRegisterType = analyzedInstruction.postRegisterMap[thisRegister];
 
-        if (thisRegisterType.category == RegisterType.Category.Unknown) {
-            //we don't have enough information yet, so return false. We'll come back later
-            return false;
-        }
         if (thisRegisterType.category == RegisterType.Category.UninitRef) {
             throw new ValidationException("Returning from constructor without calling the superclass' <init>");
         }
         assert thisRegisterType.category == RegisterType.Category.Reference;
         assert thisRegisterType.type == ClassPath.getClassDef(encodedMethod.method.getContainingClass());
-        return true;
     }
 
-    private boolean handleReturnVoid(AnalyzedInstruction analyzedInstruction) {
+    private void handleReturnVoid(AnalyzedInstruction analyzedInstruction) {
         if (this.isInstanceConstructor()) {
-            if (!checkConstructorReturn(analyzedInstruction)) {
-                return false;
-            }
+            checkConstructorReturn(analyzedInstruction);
         }
 
         TypeIdItem returnType = encodedMethod.method.getPrototype().getReturnType();
@@ -797,22 +859,15 @@ public class MethodAnalyzer {
             throw new ValidationException("Cannot use return-void with a non-void return type (" +
                 returnType.getTypeDescriptor() + ")");
         }
-        return true;
     }
 
-    private boolean handleReturn(AnalyzedInstruction analyzedInstruction) {
+    private void handleReturn(AnalyzedInstruction analyzedInstruction) {
         if (this.isInstanceConstructor()) {
-            if (!checkConstructorReturn(analyzedInstruction)) {
-                return false;
-            }
+            checkConstructorReturn(analyzedInstruction);
         }
 
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
         RegisterType returnRegisterType = analyzedInstruction.postRegisterMap[instruction.getRegisterA()];
-
-        if (returnRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         checkRegister(returnRegisterType, Primitive32BitCategories);
 
@@ -827,25 +882,15 @@ public class MethodAnalyzer {
             //TODO: could add which return-* variation should be used instead
             throw new ValidationException("Cannot use return with return type " + returnType.getTypeDescriptor());
         }
-
-
-        return true;
     }
 
-    private boolean handleReturnWide(AnalyzedInstruction analyzedInstruction) {
+    private void handleReturnWide(AnalyzedInstruction analyzedInstruction) {
         if (this.isInstanceConstructor()) {
-            if (!checkConstructorReturn(analyzedInstruction)) {
-                return false;
-            }
+            checkConstructorReturn(analyzedInstruction);
         }
 
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
         RegisterType returnType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
-
-        if (returnType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
-
 
         TypeIdItem returnTypeIdItem = encodedMethod.method.getPrototype().getReturnType();
         if (returnTypeIdItem.getTypeDescriptor().charAt(0) == 'V') {
@@ -858,27 +903,18 @@ public class MethodAnalyzer {
             throw new ValidationException("Cannot use return-wide with return type " +
                     returnTypeIdItem.getTypeDescriptor());
         }
-
-        return true;
     }
 
-    private boolean handleReturnObject(AnalyzedInstruction analyzedInstruction) {
+    private void handleReturnObject(AnalyzedInstruction analyzedInstruction) {
         if (this.isInstanceConstructor()) {
-            if (!checkConstructorReturn(analyzedInstruction)) {
-                return false;
-            }
+            checkConstructorReturn(analyzedInstruction);
         }
 
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
         int returnRegister = instruction.getRegisterA();
         RegisterType returnRegisterType = analyzedInstruction.postRegisterMap[returnRegister];
 
-        if (returnRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
-
         checkRegister(returnRegisterType, ReferenceCategories);
-
 
         TypeIdItem returnTypeIdItem = encodedMethod.method.getPrototype().getReturnType();
         if (returnTypeIdItem.getTypeDescriptor().charAt(0) == 'V') {
@@ -904,11 +940,9 @@ public class MethodAnalyzer {
                         "type (" + returnType.type.getClassType() + ")");
             }
         }
-
-        return true;
     }
 
-    private boolean handleConst(AnalyzedInstruction analyzedInstruction) {
+    private void handleConst(AnalyzedInstruction analyzedInstruction) {
         LiteralInstruction instruction = (LiteralInstruction)analyzedInstruction.instruction;
 
         RegisterType newDestinationRegisterType = RegisterType.getRegisterTypeForLiteral(instruction.getLiteral());
@@ -916,10 +950,9 @@ public class MethodAnalyzer {
         //we assume that the literal value is a valid value for the given instruction type, because it's impossible
         //to store an invalid literal with the instruction. so we don't need to check the type of the literal
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, newDestinationRegisterType);
-        return true;
     }
 
-    private boolean handleConstHigh16(AnalyzedInstruction analyzedInstruction) {
+    private void handleConstHigh16(AnalyzedInstruction analyzedInstruction) {
         LiteralInstruction instruction = (LiteralInstruction)analyzedInstruction.instruction;
 
         //TODO: test this
@@ -929,23 +962,20 @@ public class MethodAnalyzer {
         //we assume that the literal value is a valid value for the given instruction type, because it's impossible
         //to store an invalid literal with the instruction. so we don't need to check the type of the literal
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, newDestinationRegisterType);
-        return true;
     }
 
-    private boolean handleWideConst(AnalyzedInstruction analyzedInstruction) {
+    private void handleWideConst(AnalyzedInstruction analyzedInstruction) {
         setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.LongLo, null));
-        return true;
     }
 
-    private boolean handleConstString(AnalyzedInstruction analyzedInstruction) {
+    private void handleConstString(AnalyzedInstruction analyzedInstruction) {
         ClassPath.ClassDef stringClassDef = ClassPath.getClassDef("Ljava/lang/String;");
         RegisterType stringType = RegisterType.getRegisterType(RegisterType.Category.Reference, stringClassDef);
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, stringType);
-        return true;
     }
 
-    private boolean handleConstClass(AnalyzedInstruction analyzedInstruction) {
+    private void handleConstClass(AnalyzedInstruction analyzedInstruction) {
         ClassPath.ClassDef classClassDef = ClassPath.getClassDef("Ljava/lang/Class;");
         RegisterType classType = RegisterType.getRegisterType(RegisterType.Category.Reference, classClassDef);
 
@@ -956,32 +986,24 @@ public class MethodAnalyzer {
         //make sure the referenced class is resolvable
         //TODO: need to check class access
         ClassPath.ClassDef classDef = ClassPath.getClassDef((TypeIdItem)item);
-        return false;
     }
 
-    private boolean handleMonitor(AnalyzedInstruction analyzedInstruction) {
+    private void handleMonitor(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction;
 
         RegisterType registerType = analyzedInstruction.postRegisterMap[instruction.getRegisterA()];
         assert registerType != null;
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         checkRegister(registerType, ReferenceCategories);
-        return true;
     }
 
-    private boolean handleCheckCast(AnalyzedInstruction analyzedInstruction) {
+    private void handleCheckCast(AnalyzedInstruction analyzedInstruction) {
         {
             //ensure the "source" register is a reference type
             SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
             RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
             assert registerType != null;
-            if (registerType.category == RegisterType.Category.Unknown) {
-                return false;
-            }
 
             checkRegister(registerType, ReferenceCategories);
         }
@@ -1003,20 +1025,16 @@ public class MethodAnalyzer {
             }
 
             setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, newDestinationRegisterType);
-            return true;
         }
     }
 
-    private boolean handleInstanceOf(AnalyzedInstruction analyzedInstruction) {
+    private void handleInstanceOf(AnalyzedInstruction analyzedInstruction) {
         {
             //ensure the register that is being checks is a reference type
             TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction;
 
             RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
             assert registerType != null;
-            if (registerType.category == RegisterType.Category.Unknown) {
-                return false;
-            }
 
             checkRegister(registerType, ReferenceCategories);
         }
@@ -1035,19 +1053,15 @@ public class MethodAnalyzer {
             //TODO: could probably do an even more sophisticated check, where we check the possible register types against the specified type. In some cases, we could determine that it always fails, and print a warning to that effect.
             setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                     RegisterType.getRegisterType(RegisterType.Category.Boolean, null));
-            return true;
         }
     }
 
-    private boolean handleArrayLength(AnalyzedInstruction analyzedInstruction) {
+    private void handleArrayLength(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction;
 
         int arrayRegisterNumber = instruction.getRegisterB();
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(arrayRegisterNumber);
         assert arrayRegisterType != null;
-        if (arrayRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
 
@@ -1061,10 +1075,9 @@ public class MethodAnalyzer {
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.Integer, null));
-        return true;
     }
 
-    private boolean handleNewInstance(AnalyzedInstruction analyzedInstruction) {
+    private void handleNewInstance(AnalyzedInstruction analyzedInstruction) {
         InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
 
         int register = ((SingleRegisterInstruction)analyzedInstruction.instruction).getRegisterA();
@@ -1102,20 +1115,15 @@ public class MethodAnalyzer {
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getUnitializedReference(classType.type));
-        return true;
     }
 
-    private boolean handleNewArray(AnalyzedInstruction analyzedInstruction) {
+    private void handleNewArray(AnalyzedInstruction analyzedInstruction) {
         {
             TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
             int sizeRegister = instruction.getRegisterB();
             RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(sizeRegister);
             assert registerType != null;
-
-            if (registerType.category == RegisterType.Category.Unknown) {
-                return false;
-            }
 
             checkRegister(registerType, Primitive32BitCategories);
         }
@@ -1135,7 +1143,6 @@ public class MethodAnalyzer {
         }
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, arrayType);
-        return true;
     }
 
     private static interface RegisterIterator {
@@ -1203,7 +1210,7 @@ public class MethodAnalyzer {
         }
     }
 
-    private boolean handleFilledNewArrayCommon(AnalyzedInstruction analyzedInstruction,
+    private void handleFilledNewArrayCommon(AnalyzedInstruction analyzedInstruction,
                                                RegisterIterator registerIterator) {
         InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
 
@@ -1235,10 +1242,6 @@ public class MethodAnalyzer {
             RegisterType elementType = analyzedInstruction.getPreInstructionRegisterType(register);
             assert elementType != null;
 
-            if (elementType.category == RegisterType.Category.Unknown) {
-                return false;
-            }
-
             if (!elementType.canBeAssignedTo(arrayImmediateElementType)) {
                 throw new ValidationException("Register v" + Integer.toString(register) + " is of type " +
                         elementType.toString() + " and is incompatible with the array type " +
@@ -1247,15 +1250,14 @@ public class MethodAnalyzer {
         } while (registerIterator.moveNext());
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, arrayType);
-        return true;
     }
 
-    private boolean handleFilledNewArray(AnalyzedInstruction analyzedInstruction) {
+    private void handleFilledNewArray(AnalyzedInstruction analyzedInstruction) {
         FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
-        return handleFilledNewArrayCommon(analyzedInstruction, new Format35cRegisterIterator(instruction));
+        handleFilledNewArrayCommon(analyzedInstruction, new Format35cRegisterIterator(instruction));
     }
 
-    private boolean handleFilledNewArrayRange(AnalyzedInstruction analyzedInstruction) {
+    private void handleFilledNewArrayRange(AnalyzedInstruction analyzedInstruction) {
         RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
 
         //instruction.getStartRegister() and instruction.getRegCount() both return an int value, but are actually
@@ -1267,19 +1269,18 @@ public class MethodAnalyzer {
                     instruction.getStartRegister() + instruction.getRegCount() - 1));
         }
 
-        return handleFilledNewArrayCommon(analyzedInstruction, new Format3rcRegisterIterator(instruction));
+        handleFilledNewArrayCommon(analyzedInstruction, new Format3rcRegisterIterator(instruction));
     }
 
-    private boolean handleFillArrayData(AnalyzedInstruction analyzedInstruction) {
+    private void handleFillArrayData(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
         int register = instruction.getRegisterA();
         RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
         assert registerType != null;
 
-        if (registerType.category == RegisterType.Category.Unknown ||
-            registerType.category == RegisterType.Category.Null) {
-            return false;
+        if (registerType.category == RegisterType.Category.Null) {
+            return;
         }
 
         if (registerType.category != RegisterType.Category.Reference) {
@@ -1336,22 +1337,16 @@ public class MethodAnalyzer {
                     arrayDataCodeAddress, arrayClassDef.getClassType(), elementWidth,
                     arrayDataPseudoInstruction.getElementWidth()));
         }
-
-        return true;
     }
 
-    private boolean handleThrow(AnalyzedInstruction analyzedInstruction) {
+    private void handleThrow(AnalyzedInstruction analyzedInstruction) {
         int register = ((SingleRegisterInstruction)analyzedInstruction.instruction).getRegisterA();
 
         RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
         assert registerType != null;
 
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
-
         if (registerType.category == RegisterType.Category.Null) {
-            return true;
+            return;
         }
 
         if (registerType.category != RegisterType.Category.Reference) {
@@ -1365,20 +1360,14 @@ public class MethodAnalyzer {
             throw new ValidationException(String.format("Cannot use throw with non-throwable type %s in register v%d",
                     registerType.type.getClassType(), register));
         }
-
-        return true;
     }
 
-    private boolean handleSwitch(AnalyzedInstruction analyzedInstruction, Format expectedSwitchDataFormat) {
+    private void handleSwitch(AnalyzedInstruction analyzedInstruction, Format expectedSwitchDataFormat) {
         int register = ((SingleRegisterInstruction)analyzedInstruction.instruction).getRegisterA();
         int switchCodeAddressOffset = ((OffsetInstruction)analyzedInstruction.instruction).getTargetAddressOffset();
 
         RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
         assert registerType != null;
-
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         checkRegister(registerType, Primitive32BitCategories);
 
@@ -1390,68 +1379,46 @@ public class MethodAnalyzer {
             throw new ValidationException(String.format("There is no %s structure at code address 0x%x",
                     expectedSwitchDataFormat.name(), switchDataCodeAddress));
         }
-
-        return true;
     }
 
-    private boolean handleFloatCmp(AnalyzedInstruction analyzedInstruction) {
+    private void handleFloatCmp(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert registerType != null;
 
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(registerType, Primitive32BitCategories);
 
         registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
         assert registerType != null;
 
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(registerType, Primitive32BitCategories);
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.Byte, null));
-        return true;
     }
 
-    private boolean handleWideCmp(AnalyzedInstruction analyzedInstruction) {
+    private void handleWideCmp(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType registerType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterB());
         assert registerType != null;
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         registerType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterC());
         assert registerType != null;
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.Byte, null));
-        return true;
     }
 
-    private boolean handleIfEqNe(AnalyzedInstruction analyzedInstruction) {
+    private void handleIfEqNe(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType registerType1 = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert registerType1 != null;
-        if (registerType1.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         RegisterType registerType2 = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert registerType2 != null;
-        if (registerType2.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         if (!(
                 (ReferenceCategories.contains(registerType1.category) &&
@@ -1465,80 +1432,54 @@ public class MethodAnalyzer {
                     "%s. They must both be a reference type or a primitive 32 bit type.",
                     analyzedInstruction.instruction.opcode.name, registerType1.toString(), registerType2.toString()));
         }
-
-        return true;
     }
 
-    private boolean handleIf(AnalyzedInstruction analyzedInstruction) {
+    private void handleIf(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert registerType != null;
 
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(registerType, Primitive32BitCategories);
 
         registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert registerType != null;
 
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(registerType, Primitive32BitCategories);
-
-        return true;
     }
 
-    private boolean handleIfEqzNez(AnalyzedInstruction analyzedInstruction) {
+    private void handleIfEqzNez(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert registerType != null;
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         if (!ReferenceCategories.contains(registerType.category) &&
             !Primitive32BitCategories.contains(registerType.category)) {
             throw new ValidationException(String.format("%s cannot be used with register type %s. Expecting 32-bit " +
                     "primitive type or reference type.", analyzedInstruction.instruction.opcode));
         }
-
-        return true;
     }
 
-    private boolean handleIfz(AnalyzedInstruction analyzedInstruction) {
+    private void handleIfz(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert registerType != null;
 
-        if (registerType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(registerType, Primitive32BitCategories);
-
-        return true;
     }
 
-    private boolean handle32BitPrimitiveAget(AnalyzedInstruction analyzedInstruction,
+    private void handle32BitPrimitiveAget(AnalyzedInstruction analyzedInstruction,
                                              RegisterType.Category instructionCategory) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
         assert indexRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(indexRegisterType, Primitive32BitCategories);
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         if (arrayRegisterType.category != RegisterType.Category.Null) {
             if (arrayRegisterType.category != RegisterType.Category.Reference) {
@@ -1571,25 +1512,17 @@ public class MethodAnalyzer {
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(instructionCategory, null));
-
-        return true;
     }
 
-    private boolean handleAgetWide(AnalyzedInstruction analyzedInstruction) {
+    private void handleAgetWide(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
         assert indexRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(indexRegisterType, Primitive32BitCategories);
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         if (arrayRegisterType.category != RegisterType.Category.Null) {
             if (arrayRegisterType.category != RegisterType.Category.Reference) {
@@ -1626,25 +1559,17 @@ public class MethodAnalyzer {
             setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                         RegisterType.getRegisterType(RegisterType.Category.LongLo, null));
         }
-
-        return true;
     }
 
-    private boolean handleAgetObject(AnalyzedInstruction analyzedInstruction) {
+    private void handleAgetObject(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
         assert indexRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(indexRegisterType, Primitive32BitCategories);
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         if (arrayRegisterType.category != RegisterType.Category.Null) {
             if (arrayRegisterType.category != RegisterType.Category.Reference) {
@@ -1674,27 +1599,19 @@ public class MethodAnalyzer {
             setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                     RegisterType.getRegisterType(RegisterType.Category.Null, null));
         }
-
-        return true;
     }
 
-    private boolean handle32BitPrimitiveAput(AnalyzedInstruction analyzedInstruction,
+    private void handle32BitPrimitiveAput(AnalyzedInstruction analyzedInstruction,
                                              RegisterType.Category instructionCategory) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
         assert indexRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(indexRegisterType, Primitive32BitCategories);
 
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         RegisterType instructionRegisterType = RegisterType.getRegisterType(instructionCategory, null);
         if (!sourceRegisterType.canBeAssignedTo(instructionRegisterType)) {
             throw new ValidationException(String.format("Cannot use %s with source register type %s.",
@@ -1704,9 +1621,6 @@ public class MethodAnalyzer {
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         if (arrayRegisterType.category != RegisterType.Category.Null) {
             if (arrayRegisterType.category != RegisterType.Category.Reference) {
@@ -1736,30 +1650,19 @@ public class MethodAnalyzer {
                         arrayRegisterType.type.getClassType()));
             }
         }
-
-        return true;
     }
 
-    private boolean handleAputWide(AnalyzedInstruction analyzedInstruction) {
+    private void handleAputWide(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
         assert indexRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(indexRegisterType, Primitive32BitCategories);
 
         RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         if (arrayRegisterType.category != RegisterType.Category.Null) {
             if (arrayRegisterType.category != RegisterType.Category.Reference) {
@@ -1787,32 +1690,22 @@ public class MethodAnalyzer {
                         "array type for the instruction.", arrayRegisterType.type.getClassType()));
             }
         }
-
-        return true;
     }
 
-    private boolean handleAputObject(AnalyzedInstruction analyzedInstruction) {
+    private void handleAputObject(AnalyzedInstruction analyzedInstruction) {
         ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType indexRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterC());
         assert indexRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(indexRegisterType, Primitive32BitCategories);
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
+
         //TODO: ensure sourceRegisterType is a Reference type?
 
         RegisterType arrayRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert arrayRegisterType != null;
-        if (indexRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         if (arrayRegisterType.category != RegisterType.Category.Null) {
             //don't check the source type against the array type, just make sure it is an array of reference types
@@ -1838,19 +1731,14 @@ public class MethodAnalyzer {
                         "array type for the instruction.", arrayRegisterType.type.getClassType()));
             }
         }
-
-        return true;
     }
 
-    private boolean handle32BitPrimitiveIget(AnalyzedInstruction analyzedInstruction,
+    private void handle32BitPrimitiveIget(AnalyzedInstruction analyzedInstruction,
                                              RegisterType.Category instructionCategory) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert objectRegisterType != null;
-        if (objectRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(objectRegisterType, ReferenceCategories);
 
         //TODO: check access
@@ -1875,18 +1763,13 @@ public class MethodAnalyzer {
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(instructionCategory, null));
-
-        return true;
     }
 
-    private boolean handleIgetWide(AnalyzedInstruction analyzedInstruction) {
+    private void handleIgetWide(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert objectRegisterType != null;
-        if (objectRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(objectRegisterType, ReferenceCategories);
 
         getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterB());
@@ -1914,18 +1797,13 @@ public class MethodAnalyzer {
         }
 
         setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
-
-        return true;
     }
 
-    private boolean handleIgetObject(AnalyzedInstruction analyzedInstruction) {
+    private void handleIgetObject(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert objectRegisterType != null;
-        if (objectRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(objectRegisterType, ReferenceCategories);
 
         //TODO: check access
@@ -1949,26 +1827,18 @@ public class MethodAnalyzer {
         }
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
-
-        return true;
     }
 
-    private boolean handle32BitPrimitiveIput(AnalyzedInstruction analyzedInstruction,
+    private void handle32BitPrimitiveIput(AnalyzedInstruction analyzedInstruction,
                                              RegisterType.Category instructionCategory) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert objectRegisterType != null;
-        if (objectRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(objectRegisterType, ReferenceCategories);
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         //per CodeVerify.c in dalvik:
         //java generates synthetic functions that write byte values into boolean fields
@@ -2004,25 +1874,17 @@ public class MethodAnalyzer {
                         "for the instruction.", analyzedInstruction.instruction.opcode.name,
                         field.getFieldString()));
         }
-
-        return true;
     }
 
-    private boolean handleIputWide(AnalyzedInstruction analyzedInstruction) {
+    private void handleIputWide(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert objectRegisterType != null;
-        if (objectRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(objectRegisterType, ReferenceCategories);
 
         RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
         assert sourceRegisterType != null;
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         //TODO: check access
         //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
@@ -2043,25 +1905,17 @@ public class MethodAnalyzer {
                     "for the instruction.", analyzedInstruction.instruction.opcode.name,
                     field.getFieldString()));
         }
-
-        return true;
     }
 
-    private boolean handleIputObject(AnalyzedInstruction analyzedInstruction) {
+    private void handleIputObject(AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterB());
         assert objectRegisterType != null;
-        if (objectRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(objectRegisterType, ReferenceCategories);
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(sourceRegisterType, ReferenceCategories);
 
         //TODO: check access
@@ -2091,11 +1945,9 @@ public class MethodAnalyzer {
             throw new ValidationException(String.format("Cannot store a value of type %s into a field of type %s",
                     sourceRegisterType.type.getClassType(), fieldType.type.getClassType()));
         }
-
-        return true;
     }
 
-    private boolean handle32BitPrimitiveSget(AnalyzedInstruction analyzedInstruction,
+    private void handle32BitPrimitiveSget(AnalyzedInstruction analyzedInstruction,
                                              RegisterType.Category instructionCategory) {
         //TODO: check access
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
@@ -2112,11 +1964,9 @@ public class MethodAnalyzer {
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(instructionCategory, null));
-
-        return true;
     }
 
-    private boolean handleSgetWide(AnalyzedInstruction analyzedInstruction) {
+    private void handleSgetWide(AnalyzedInstruction analyzedInstruction) {
         //TODO: check access
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
@@ -2134,11 +1984,9 @@ public class MethodAnalyzer {
         }
 
         setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
-
-        return true;
     }
 
-    private boolean handleSgetObject(AnalyzedInstruction analyzedInstruction) {
+    private void handleSgetObject(AnalyzedInstruction analyzedInstruction) {
         //TODO: check access
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
@@ -2153,19 +2001,14 @@ public class MethodAnalyzer {
         }
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
-
-        return true;
     }
 
-    private boolean handle32BitPrimitiveSput(AnalyzedInstruction analyzedInstruction,
+    private void handle32BitPrimitiveSput(AnalyzedInstruction analyzedInstruction,
                                              RegisterType.Category instructionCategory) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         //per CodeVerify.c in dalvik:
         //java generates synthetic functions that write byte values into boolean fields
@@ -2193,19 +2036,14 @@ public class MethodAnalyzer {
                         "for the instruction.", analyzedInstruction.instruction.opcode.name,
                         field.getFieldString()));
         }
-
-        return true;
     }
 
-    private boolean handleSputWide(AnalyzedInstruction analyzedInstruction) {
+    private void handleSputWide(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
 
         RegisterType sourceRegisterType = getAndCheckWideSourcePair(analyzedInstruction, instruction.getRegisterA());
         assert sourceRegisterType != null;
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
 
         //TODO: check access
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
@@ -2221,18 +2059,13 @@ public class MethodAnalyzer {
         }
 
         setWideDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
-
-        return true;
     }
 
-    private boolean handleSputObject(AnalyzedInstruction analyzedInstruction) {
+    private void handleSputObject(AnalyzedInstruction analyzedInstruction) {
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
-        if (sourceRegisterType.category == RegisterType.Category.Unknown) {
-            return false;
-        }
         checkRegister(sourceRegisterType, ReferenceCategories);
 
         //TODO: check access
@@ -2255,18 +2088,16 @@ public class MethodAnalyzer {
             throw new ValidationException(String.format("Cannot store a value of type %s into a field of type %s",
                     sourceRegisterType.type.getClassType(), fieldType.type.getClassType()));
         }
-
-        return true;
     }
 
-    private boolean handleInvoke(AnalyzedInstruction analyzedInstruction, int invokeType) {
+    private void handleInvoke(AnalyzedInstruction analyzedInstruction, int invokeType) {
         FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
-        return handleInvokeCommon(analyzedInstruction, false, invokeType, new Format35cRegisterIterator(instruction));
+        handleInvokeCommon(analyzedInstruction, false, invokeType, new Format35cRegisterIterator(instruction));
     }
 
-    private boolean handleInvokeRange(AnalyzedInstruction analyzedInstruction, int invokeType) {
+    private void handleInvokeRange(AnalyzedInstruction analyzedInstruction, int invokeType) {
         RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
-        return handleInvokeCommon(analyzedInstruction, true, invokeType, new Format3rcRegisterIterator(instruction));
+        handleInvokeCommon(analyzedInstruction, true, invokeType, new Format3rcRegisterIterator(instruction));
     }
 
     private static final int INVOKE_VIRTUAL = 0x01;
@@ -2275,7 +2106,7 @@ public class MethodAnalyzer {
     private static final int INVOKE_INTERFACE = 0x08;
     private static final int INVOKE_STATIC = 0x10;
 
-    private boolean handleInvokeCommon(AnalyzedInstruction analyzedInstruction, boolean isRange, int invokeType,
+    private void handleInvokeCommon(AnalyzedInstruction analyzedInstruction, boolean isRange, int invokeType,
                                        RegisterIterator registers) {
         InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
 
@@ -2423,9 +2254,6 @@ public class MethodAnalyzer {
             }
 
             assert parameterRegisterType != null;
-            if (parameterRegisterType.category == RegisterType.Category.Unknown) {
-                return false;
-            }
 
             if (!parameterRegisterType.canBeAssignedTo(parameterType)) {
                 throw new ValidationException(
@@ -2463,8 +2291,6 @@ public class MethodAnalyzer {
                 }
             }
         }
-
-        return true;
     }
 
 
