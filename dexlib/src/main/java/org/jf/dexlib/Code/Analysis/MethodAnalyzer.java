@@ -15,6 +15,8 @@ public class MethodAnalyzer {
 
     private boolean analyzed = false;
 
+    private BitSet instructionsToVerify;
+
     //This is a dummy instruction that occurs immediately before the first real instruction. We can initialize the
     //register types for this instruction to the parameter types, in order to have them propagate to all of its
     //successors, e.g. the first real instruction, the first instructions in any exception handlers covering the first
@@ -54,6 +56,8 @@ public class MethodAnalyzer {
                 return -1;
             };
         };
+
+        instructionsToVerify = new BitSet(instructions.size());
     }
 
     public AnalyzedInstruction[] analyze() {
@@ -103,6 +107,19 @@ public class MethodAnalyzer {
                 RegisterType registerType = parameterTypes[i];
                 int registerNum = (totalRegisters - parameterRegisters) + i;
                 setRegisterTypeAndPropagateChanges(startOfMethod, registerNum, registerType);
+            }
+        }
+
+        BitSet analyzedInstructions = new BitSet(instructionsToVerify.size());
+
+        //make sure all of the "first instructions" are marked for processing
+        for (AnalyzedInstruction successor: startOfMethod.successors) {
+            instructionsToVerify.set(successor.instructionIndex);
+        }
+
+        while (!instructionsToVerify.isEmpty()) {
+            for(int i=instructionsToVerify.nextSetBit(0); i>=0; i=instructionsToVerify.nextSetBit(i+1)) {
+                analyzeInstruction(instructions.get(i));
             }
         }
 
@@ -234,6 +251,7 @@ public class MethodAnalyzer {
 
                 if (successor.setPostRegisterType(registerNumber, registerType)) {
                     changedInstructions.set(successor.instructionIndex);
+                    instructionsToVerify.set(successor.instructionIndex);
                 }
             }
         }
@@ -397,7 +415,7 @@ public class MethodAnalyzer {
         return exceptionHandlers;
     }
 
-    private boolean setDestinationRegisterTypeForInstruction(AnalyzedInstruction analyzedInstruction) {
+    private boolean analyzeInstruction(AnalyzedInstruction analyzedInstruction) {
         Instruction instruction = analyzedInstruction.instruction;
 
         switch (instruction.opcode) {
