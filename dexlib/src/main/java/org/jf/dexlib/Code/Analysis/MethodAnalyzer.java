@@ -1024,6 +1024,28 @@ public class MethodAnalyzer {
     private boolean handleNewInstance(AnalyzedInstruction analyzedInstruction) {
         InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
 
+        int register = ((SingleRegisterInstruction)analyzedInstruction.instruction).getRegisterA();
+        RegisterType destRegisterType = analyzedInstruction.postRegisterMap[register];
+        if (destRegisterType.category != RegisterType.Category.Unknown) {
+            assert destRegisterType.category == RegisterType.Category.UninitRef;
+
+            //the "post-instruction" destination register will only be set if we've gone over
+            //this instruction at least once before. If this is the case, then we need to check
+            //all the other registers, and make sure that none of them contain the same
+            //uninitialized reference that is in the destination register.
+
+            for (int i=0; i<analyzedInstruction.postRegisterMap.length; i++) {
+                if (i==register) {
+                    continue;
+                }
+
+                if (analyzedInstruction.getPreInstructionRegisterType(i) == destRegisterType) {
+                    throw new ValidationException(String.format("Register v%d contains an uninitialized reference " +
+                            "that was created by this new-instance instruction.", i));
+                }
+            }
+        }
+
         Item item = instruction.getReferencedItem();
         assert item.getItemType() == ItemType.TYPE_TYPE_ID_ITEM;
 
@@ -1036,7 +1058,7 @@ public class MethodAnalyzer {
         }
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
-                RegisterType.getRegisterType(RegisterType.Category.UninitRef, classType.type));
+                RegisterType.getUnitializedReference(classType.type));
         return true;
     }
 

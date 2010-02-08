@@ -95,7 +95,7 @@ public class RegisterType {
                 /*LongHi*/     {Unknown,    Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongHi,     Conflicted, LongHi,     Conflicted, Conflicted, Conflicted},
                 /*DoubleLo*/   {Unknown,    Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongLo,     Conflicted, DoubleLo,   Conflicted, Conflicted, Conflicted, Conflicted},
                 /*DoubleHi*/   {Unknown,    Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongHi,     Conflicted, DoubleHi,   Conflicted, Conflicted, Conflicted},
-                /*UninitRef*/  {Unknown,    Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, UninitRef,  Conflicted, Conflicted},
+                /*UninitRef*/  {Unknown,    Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
                 /*Reference*/  {Unknown,    Reference,  Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Reference,  Conflicted},
                 /*Conflicted*/ {Unknown,    Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted}
         };
@@ -249,6 +249,14 @@ public class RegisterType {
             return true;
         }
         return false;
+    }
+
+    public static RegisterType getUnitializedReference(ClassDef classType) {
+        //We always create a new RegisterType instance for an uninit ref. Each unique uninit RegisterType instance
+        //is used to track a specific uninitialized reference, so that if multiple registers contain the same
+        //uninitialized reference, then they can all be upgraded to an initialized reference when the appropriate
+        //<init> is invoked
+        return new RegisterType(Category.UninitRef, classType);
     }
 
     public static RegisterType getRegisterType(Category category, ClassDef classType) {

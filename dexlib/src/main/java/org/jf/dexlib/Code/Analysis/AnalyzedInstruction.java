@@ -1,6 +1,9 @@
 package org.jf.dexlib.Code.Analysis;
 
 import org.jf.dexlib.Code.*;
+import org.jf.dexlib.Item;
+import org.jf.dexlib.ItemType;
+import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Util.ExceptionWithContext;
 
 import java.util.LinkedList;
@@ -100,6 +103,23 @@ public class AnalyzedInstruction {
         return mergedRegisterType;
     }
 
+    protected boolean isInvokeInit() {
+        if (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE) {
+            return false;
+        }
+
+        InstructionWithReference instruction = (InstructionWithReference)this.instruction;
+        Item item = instruction.getReferencedItem();
+        assert item.getItemType() == ItemType.TYPE_METHOD_ID_ITEM;
+        MethodIdItem method = (MethodIdItem)item;
+
+        if (!method.getMethodName().equals("<init>")) {
+            return false;
+        }
+
+        return true;
+    }
+
     public boolean setsRegister() {
         return instruction.opcode.setsRegister();
     }
@@ -109,10 +129,33 @@ public class AnalyzedInstruction {
     }
 
     public boolean setsRegister(int registerNumber) {
+
+        //When constructing a new object, the register type will be an uninitialized reference after the new-instance
+        //instruction, but becomes an initialized reference once the <init> method is called. So even though invoke
+        //instructions don't normally change any registers, calling an <init> method will change the type of its
+        //object register. If the uninitialized reference has been copied to other registers, they will be initialized
+        //as well, so we need to check for that too
+        if (isInvokeInit()) {
+            int destinationRegister = ((FiveRegisterInstruction)instruction).getRegisterD();
+            if (registerNumber == destinationRegister) {
+                return true;
+            }
+            RegisterType preInstructionDestRegisterType = getMergedRegisterTypeFromPredecessors(destinationRegister);
+            if (preInstructionDestRegisterType.category != RegisterType.Category.UninitRef) {
+                return false;
+            }
+            //check if the uninit ref has been copied to another register
+            if (getMergedRegisterTypeFromPredecessors(registerNumber) == preInstructionDestRegisterType) {
+                return true;
+            }
+            return false;
+        }
+
         if (!setsRegister()) {
             return false;
         }
         int destinationRegister = getDestinationRegister();
+
         if (registerNumber == destinationRegister) {
             return true;
         }
