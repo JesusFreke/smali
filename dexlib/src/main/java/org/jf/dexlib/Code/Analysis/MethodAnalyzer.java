@@ -1077,6 +1077,7 @@ public class MethodAnalyzer {
         int getRegister();
         boolean moveNext();
         int getCount();
+        boolean pastEnd();
     }
 
     private boolean handleFilledNewArrayCommon(AnalyzedInstruction analyzedInstruction,
@@ -1142,14 +1143,15 @@ public class MethodAnalyzer {
 
                     public boolean moveNext() {
                         currentRegister++;
-                        if (currentRegister >= registerCount) {
-                            return false;
-                        }
-                        return true;
+                        return pastEnd();
                     }
 
                     public int getCount() {
                         return registerCount;
+                    }
+
+                    public boolean pastEnd() {
+                        return currentRegister >= registerCount;
                     }
                 });
     }
@@ -1178,14 +1180,15 @@ public class MethodAnalyzer {
 
                     public boolean moveNext() {
                         currentRegister++;
-                        if (currentRegister >= registerCount) {
-                            return false;
-                        }
-                        return true;
+                        return pastEnd();
                     }
 
                     public int getCount() {
                         return registerCount;
+                    }
+
+                    public boolean pastEnd() {
+                        return currentRegister >= registerCount;
                     }
                 });
     }
