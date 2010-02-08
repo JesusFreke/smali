@@ -705,6 +705,61 @@ public class MethodAnalyzer {
             case INVOKE_INTERFACE_RANGE:
                 handleInvokeRange(analyzedInstruction, INVOKE_INTERFACE);
                 return;
+            case NEG_INT:
+            case NOT_INT:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer);
+                return;
+            case NEG_LONG:
+            case NOT_LONG:
+                handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.LongLo);
+                return;
+            case NEG_FLOAT:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Float);
+                return;
+            case NEG_DOUBLE:
+                handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.DoubleLo);
+                return;
+            case INT_TO_LONG:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.LongLo);
+                return;
+            case INT_TO_FLOAT:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Float);
+                return;
+            case INT_TO_DOUBLE:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.DoubleLo);
+                return;
+            case LONG_TO_INT:
+            case DOUBLE_TO_INT:
+                handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.Integer);
+                return;
+            case LONG_TO_FLOAT:
+            case DOUBLE_TO_FLOAT:
+                handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.Float);
+                return;
+            case LONG_TO_DOUBLE:
+                handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.DoubleLo);
+                return;
+            case FLOAT_TO_INT:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer);
+                return;
+            case FLOAT_TO_LONG:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.LongLo);
+                return;
+            case FLOAT_TO_DOUBLE:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.DoubleLo);
+                return;
+            case DOUBLE_TO_LONG:
+                handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.LongLo);
+                return;
+            case INT_TO_BYTE:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Byte);
+                return;
+            case INT_TO_CHAR:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Char);
+                return;
+            case INT_TO_SHORT:
+                handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Short);
+                return;
         }
     }
 
@@ -2172,7 +2227,15 @@ public class MethodAnalyzer {
         }
     }
 
+    private void handleUnaryOp(AnalyzedInstruction analyzedInstruction, EnumSet validSourceCategories,
+                            RegisterType.Category destRegisterCategory) {
+        TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
+        getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(), validSourceCategories);
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
+                RegisterType.getRegisterType(destRegisterCategory, null));
+    }
 
     private static boolean checkArrayFieldAssignment(RegisterType.Category arrayFieldCategory,
                                                   RegisterType.Category instructionCategory) {
