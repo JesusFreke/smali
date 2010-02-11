@@ -147,6 +147,23 @@ public class MethodIdItem extends Item<MethodIdItem> {
         return cachedMethodString;
     }
 
+    private String cachedVirtualMethodString = null;
+    /**
+     * @return a string formatted like methodName(TTTT..)R
+     */
+    public String getVirtualMethodString() {
+        if (cachedVirtualMethodString == null) {
+            String methodName = this.methodName.getStringValue();
+            String prototypeString = methodPrototype.getPrototypeString();
+
+            StringBuilder sb = new StringBuilder(methodName.length() + prototypeString.length());
+            sb.append(methodName);
+            sb.append(prototypeString);
+            cachedVirtualMethodString = sb.toString();
+        }
+        return cachedVirtualMethodString;
+    }
+
     /**
      * @return the method prototype
      */

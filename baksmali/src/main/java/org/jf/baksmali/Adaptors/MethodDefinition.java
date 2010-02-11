@@ -34,6 +34,7 @@ import org.jf.dexlib.*;
 import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
 import org.jf.dexlib.Code.Analysis.MethodAnalyzer;
 import org.jf.dexlib.Code.Analysis.RegisterType;
+import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
@@ -75,11 +76,11 @@ public class MethodDefinition {
                 AnalyzedInstruction instruction = instructions[i];
                 if (instruction.instruction.opcode == Opcode.PACKED_SWITCH) {
                     packedSwitchMap.append(
-                            currentCodeAddress + ((OffsetInstruction)instruction).getTargetAddressOffset(),
+                            currentCodeAddress + ((OffsetInstruction)instruction.instruction).getTargetAddressOffset(),
                             currentCodeAddress);
                 } else if (instruction.instruction.opcode == Opcode.SPARSE_SWITCH) {
                     sparseSwitchMap.append(
-                            currentCodeAddress + ((OffsetInstruction)instruction).getTargetAddressOffset(),
+                            currentCodeAddress + ((OffsetInstruction)instruction.instruction).getTargetAddressOffset(),
                             currentCodeAddress);
                 }
                 instructionMap.append(currentCodeAddress, i);
@@ -191,6 +192,14 @@ public class MethodDefinition {
         return labelCache;
     }
 
+    public ValidationException getValidationException() {
+        if (methodAnalyzer == null) {
+            return null;
+        }
+
+        return methodAnalyzer.getValidationException();
+    }
+
     public int getPackedSwitchBaseAddress(int packedSwitchDataAddress) {
         int packedSwitchBaseAddress = this.packedSwitchMap.get(packedSwitchDataAddress, -1);
 
@@ -236,6 +245,12 @@ public class MethodDefinition {
         AnalyzedInstruction[] instructions;
         if (baksmali.verboseRegisterInfo) {
             instructions = methodAnalyzer.analyze();
+
+            ValidationException validationException = methodAnalyzer.getValidationException();
+            if (validationException != null) {
+                methodItems.add(new CommentMethodItem(stg, validationException.getMessage(),
+                        validationException.getCodeAddress(), Integer.MIN_VALUE));
+            }
         } else {
             instructions = methodAnalyzer.makeInstructionArray();
         }

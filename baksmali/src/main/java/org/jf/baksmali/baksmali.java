@@ -62,7 +62,7 @@ public class baksmali {
         baksmali.bootClassPath = bootClassPath;
 
         if (verboseRegisterInfo) {
-            ClassPath.InitializeClassPath(bootClassPath.split(":"), dexFile);
+            ClassPath.InitializeClassPath(bootClassPath==null?null:bootClassPath.split(":"), dexFile);
         }
 
         if (deodexerant != null) {
@@ -166,6 +166,11 @@ public class baksmali {
                         ex.printStackTrace();
                     }
                 }
+            }
+
+            //TODO: GROT
+            if (classDefinition.hadValidationErrors()) {
+                System.exit(1);
             }
         }
     }

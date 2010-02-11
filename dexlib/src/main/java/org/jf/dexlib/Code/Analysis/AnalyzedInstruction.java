@@ -147,12 +147,23 @@ public class AnalyzedInstruction {
         //object register. If the uninitialized reference has been copied to other registers, they will be initialized
         //as well, so we need to check for that too
         if (isInvokeInit()) {
-            int destinationRegister = ((FiveRegisterInstruction)instruction).getRegisterD();
+            int destinationRegister;
+            if (instruction instanceof FiveRegisterInstruction) {
+                destinationRegister = ((FiveRegisterInstruction)instruction).getRegisterD();
+            } else {
+                assert instruction instanceof RegisterRangeInstruction;
+                RegisterRangeInstruction rangeInstruction = (RegisterRangeInstruction)instruction;
+                assert rangeInstruction.getRegCount() > 0;
+                destinationRegister = rangeInstruction.getStartRegister();
+            }
+
             if (registerNumber == destinationRegister) {
                 return true;
             }
-            RegisterType preInstructionDestRegisterType = getMergedRegisterTypeFromPredecessors(destinationRegister);
-            if (preInstructionDestRegisterType.category != RegisterType.Category.UninitRef) {
+            RegisterType preInstructionDestRegisterType = getMergedRegisterTypeFromPredecessors(registerNumber);
+            if (preInstructionDestRegisterType.category != RegisterType.Category.UninitRef &&
+                preInstructionDestRegisterType.category != RegisterType.Category.UninitThis) {
+
                 return false;
             }
             //check if the uninit ref has been copied to another register

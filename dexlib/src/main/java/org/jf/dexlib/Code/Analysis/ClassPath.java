@@ -31,12 +31,10 @@ public class ClassPath {
     }
 
     private void initClassPath(String[] bootClassPath, DexFile dexFile) {
-        if (bootClassPath == null || bootClassPath.length == 0) {
-            throw new ExceptionWithContext("No BOOTCLASSPATH entries were given");
-        }
-
-        for (String bootClassPathEntry: bootClassPath) {
-            loadBootClassPath(bootClassPathEntry);
+        if (bootClassPath != null) {
+            for (String bootClassPathEntry: bootClassPath) {
+                loadBootClassPath(bootClassPathEntry);
+            }
         }
 
         loadDexFile(dexFile);
@@ -266,6 +264,46 @@ public class ClassPath {
 
         public int getArrayDimensions() {
             return arrayDimensions;
+        }
+
+        @Override
+        public boolean extendsClass(ClassDef superclassDef) {
+            if (!(superclassDef instanceof ArrayClassDef)) {
+                if (superclassDef == ClassPath.theClassPath.javaLangObjectClassDef) {
+                    return true;
+                } else if (superclassDef.isInterface) {
+                    return this.implementsInterface(superclassDef);
+                }
+                return false;
+            }
+
+            ArrayClassDef arraySuperclassDef = (ArrayClassDef)superclassDef;
+            if (this.arrayDimensions == arraySuperclassDef.arrayDimensions) {
+                ClassDef baseElementClass = arraySuperclassDef.getBaseElementClass();
+
+                if (baseElementClass.isInterface) {
+                    return true;
+                }
+
+                return baseElementClass.extendsClass(arraySuperclassDef.getBaseElementClass());
+            } else if (this.arrayDimensions > arraySuperclassDef.arrayDimensions) {
+                ClassDef baseElementClass = arraySuperclassDef.getBaseElementClass();
+                if (baseElementClass.isInterface) {
+                    return true;
+                }
+
+                if (baseElementClass == ClassPath.theClassPath.javaLangObjectClassDef) {
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean implementsInterface(ClassDef interfaceDef) {
+            return interfaceDef.classType.equals("Ljava/lang/Cloneable;") ||
+                    interfaceDef.classType.equals("Ljava/io/Serializable;");
         }
     }
 
@@ -524,7 +562,7 @@ public class ClassPath {
                 EncodedMethod[] virtualMethods = classDataItem.getVirtualMethods();
                 if (virtualMethods != null) {
                     for (EncodedMethod virtualMethod: virtualMethods) {
-                        String methodString = virtualMethod.method.getMethodString();
+                        String methodString = virtualMethod.method.getVirtualMethodString();
                         if (tempVirtualMethodLookup.get(methodString) == null) {
                             virtualMethodList.add(methodString);
                         }

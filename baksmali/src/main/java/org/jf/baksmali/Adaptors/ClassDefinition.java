@@ -28,6 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.Instruction;
@@ -49,6 +50,8 @@ public class ClassDefinition {
     private SparseArray<AnnotationSetRefList> parameterAnnotationsMap;
 
     private SparseArray<FieldIdItem> fieldsSetInStaticConstructor;
+
+    protected boolean validationErrors;
 
     public ClassDefinition(StringTemplateGroup stg, ClassDefItem classDefItem) {
         this.stg = stg;
@@ -73,6 +76,10 @@ public class ClassDefinition {
         template.setAttribute("VirtualMethods", getVirtualMethods());
 
         return template;
+    }
+
+    public boolean hadValidationErrors() {
+        return validationErrors;
     }
 
     private void buildAnnotationMaps() {
@@ -270,6 +277,13 @@ public class ClassDefinition {
             MethodDefinition methodDefinition = new MethodDefinition(stg, method);
 
             methodTemplates.add(methodDefinition.createTemplate(annotationSet, parameterAnnotationList));
+
+            ValidationException validationException = methodDefinition.getValidationException();
+            if (validationException != null) {
+                //System.err.println(validationException.toString());
+                validationException.printStackTrace(System.err);
+                this.validationErrors = true;
+            }
         }
 
         return methodTemplates;

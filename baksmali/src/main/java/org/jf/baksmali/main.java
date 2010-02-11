@@ -325,7 +325,7 @@ public class main {
 
         Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
                 .withDescription("the bootclasspath jars to use, for analysis")
-                .hasArg()
+                .hasOptionalArg()
                 .withArgName("BOOTCLASSPATH")
                 .create("c");
 

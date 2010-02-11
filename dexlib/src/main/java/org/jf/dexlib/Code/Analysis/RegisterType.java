@@ -15,8 +15,10 @@ public class RegisterType {
     public final ClassDef type;
 
     private RegisterType(Category category, ClassDef type) {
-        assert ((category == Category.Reference || category == Category.UninitRef) && type != null) ||
-               ((category != Category.Reference && category != Category.UninitRef) && type == null);
+        assert ((category == Category.Reference || category == Category.UninitRef || category == Category.UninitThis) &&
+                    type != null) ||
+               ((category != Category.Reference && category != Category.UninitRef && category != Category.UninitThis) &&
+                    type == null);
 
         this.category = category;
         this.type = type;
@@ -65,9 +67,10 @@ public class RegisterType {
         DoubleLo,
         DoubleHi,
         //the UninitRef category is used after a new-instance operation, and before the corresponding <init> is called
-        //it is also used for the "this" register inside an <init> method, before the superclass' <init> method is
-        //called
         UninitRef,
+        //the UninitThis category is used the "this" register inside an <init> method, before the superclass' <init>
+        //method is called
+        UninitThis,
         Reference,
         //This is used when there are multiple incoming execution paths that have incompatible register types. For
         //example if the register's type is an Integer on one incomming code path, but is a Reference type on another
@@ -79,25 +82,26 @@ public class RegisterType {
         //could hold either type of value.
         protected static Category[][] mergeTable  =
         {
-                /*             Unknown      Null        One,        Boolean     Byte        PosByte     Short       PosShort    Char        Integer,    Float,      LongLo      LongHi      DoubleLo    DoubleHi    UninitRef   Reference   Conflicted*/
-                /*Unknown*/    {Unknown,    Null,       One,        Boolean,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      LongLo,     LongHi,     DoubleLo,   DoubleHi,   UninitRef,  Reference,  Conflicted},
-                /*Null*/       {Null,       Null,       Conflicted, Boolean,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Reference,  Conflicted},
-                /*One*/        {One,        Conflicted, One,        Boolean,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*Boolean*/    {Boolean,    Boolean,    Boolean,    Boolean,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*Byte*/       {Byte,       Byte,       Byte,       Byte,       Byte,       Byte,       Short,      Short,      Integer,    Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*PosByte*/    {PosByte,    PosByte,    PosByte,    PosByte,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*Short*/      {Short,      Short,      Short,      Short,      Short,      Short,      Short,      Short,      Integer,    Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*PosShort*/   {PosShort,   PosShort,   PosShort,   PosShort,   Short,      PosShort,   Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*Char*/       {Char,       Char,       Char,       Char,       Integer,    Char,       Integer,    Char,       Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*Integer*/    {Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*Float*/      {Float,      Float,      Float,      Float,      Float,      Float,      Float,      Float,      Float,      Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*LongLo*/     {LongLo,     Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongLo,     Conflicted, LongLo,     Conflicted, Conflicted, Conflicted, Conflicted},
-                /*LongHi*/     {LongHi,     Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongHi,     Conflicted, LongHi,     Conflicted, Conflicted, Conflicted},
-                /*DoubleLo*/   {DoubleLo,   Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongLo,     Conflicted, DoubleLo,   Conflicted, Conflicted, Conflicted, Conflicted},
-                /*DoubleHi*/   {DoubleHi,   Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongHi,     Conflicted, DoubleHi,   Conflicted, Conflicted, Conflicted},
-                /*UninitRef*/  {UninitRef,  Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
-                /*Reference*/  {Reference,  Reference,  Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Reference,  Conflicted},
-                /*Conflicted*/ {Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted}
+                /*             Unknown      Null        One,        Boolean     Byte        PosByte     Short       PosShort    Char        Integer,    Float,      LongLo      LongHi      DoubleLo    DoubleHi    UninitRef   UninitThis  Reference   Conflicted*/
+                /*Unknown*/    {Unknown,    Null,       One,        Boolean,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      LongLo,     LongHi,     DoubleLo,   DoubleHi,   UninitRef,  UninitThis, Reference,  Conflicted},
+                /*Null*/       {Null,       Null,       Boolean,    Boolean,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Reference,  Conflicted},
+                /*One*/        {One,        Boolean,    One,        Boolean,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*Boolean*/    {Boolean,    Boolean,    Boolean,    Boolean,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*Byte*/       {Byte,       Byte,       Byte,       Byte,       Byte,       Byte,       Short,      Short,      Integer,    Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*PosByte*/    {PosByte,    PosByte,    PosByte,    PosByte,    Byte,       PosByte,    Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*Short*/      {Short,      Short,      Short,      Short,      Short,      Short,      Short,      Short,      Integer,    Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*PosShort*/   {PosShort,   PosShort,   PosShort,   PosShort,   Short,      PosShort,   Short,      PosShort,   Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*Char*/       {Char,       Char,       Char,       Char,       Integer,    Char,       Integer,    Char,       Char,       Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*Integer*/    {Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Integer,    Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*Float*/      {Float,      Float,      Float,      Float,      Float,      Float,      Float,      Float,      Float,      Integer,    Float,      Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*LongLo*/     {LongLo,     Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongLo,     Conflicted, LongLo,     Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*LongHi*/     {LongHi,     Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongHi,     Conflicted, LongHi,     Conflicted, Conflicted, Conflicted, Conflicted},
+                /*DoubleLo*/   {DoubleLo,   Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongLo,     Conflicted, DoubleLo,   Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*DoubleHi*/   {DoubleHi,   Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, LongHi,     Conflicted, DoubleHi,   Conflicted, Conflicted, Conflicted, Conflicted},
+                /*UninitRef*/  {UninitRef,  Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted},
+                /*UninitThis*/ {UninitThis, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, UninitThis, Conflicted, Conflicted},
+                /*Reference*/  {Reference,  Reference,  Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Reference,  Conflicted},
+                /*Conflicted*/ {Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted, Conflicted}
         };
 
         //this table is used to denote whether a given value type can be assigned to a "slot" of a certain type. For
@@ -107,25 +111,26 @@ public class RegisterType {
         //check if a value can be assigned to an uninitialized reference slot - because there is no such thing.
         protected static boolean[][] assigmentTable =
         {
-                /*             Unknown      Null        One,        Boolean     Byte        PosByte     Short       PosShort    Char        Integer,    Float,      LongLo      LongHi      DoubleLo    DoubleHi    UninitRef   Reference   Conflicted  |slot type*/
-                /*Unknown*/    {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false},
-                /*Null*/       {false,      true,       false,      true,       true,       true,       true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      true,       false},
-                /*One*/        {false,      false,      true,       true,       true,       true,       true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*Boolean*/    {false,      false,      false,      true,       true,       true,       true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*Byte*/       {false,      false,      false,      false,      true,       false,      true,       true,       false,      true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*PosByte*/    {false,      false,      false,      false,      true,       true,       true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*Short*/      {false,      false,      false,      false,      false,      false,      true,       false,      false,      true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*PosShort*/   {false,      false,      false,      false,      false,      false,      true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*Char*/       {false,      false,      false,      false,      false,      false,      false,      false,      true,       true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*Integer*/    {false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*Float*/      {false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       true,       false,      false,      false,      false,      false,      false,      false},
-                /*LongLo*/     {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false,      true,       false,      false,      false,      false},
-                /*LongHi*/     {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false,      true,       false,      false,      false},
-                /*DoubleLo*/   {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false,      true,       false,      false,      false,      false},
-                /*DoubleHi*/   {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false,      true,       false,      false,      false},
-                /*UninitRef*/  {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false},
-                /*Reference*/  {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false},
-                /*Conflicted*/ {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false}
+                /*             Unknown      Null        One,        Boolean     Byte        PosByte     Short       PosShort    Char        Integer,    Float,      LongLo      LongHi      DoubleLo    DoubleHi    UninitRef   UninitThis  Reference   Conflicted  |slot type*/
+                /*Unknown*/    {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false},
+                /*Null*/       {false,      true,       false,      true,       true,       true,       true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      true,       false},
+                /*One*/        {false,      false,      true,       true,       true,       true,       true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*Boolean*/    {false,      false,      false,      true,       true,       true,       true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*Byte*/       {false,      false,      false,      false,      true,       false,      true,       true,       false,      true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*PosByte*/    {false,      false,      false,      false,      true,       true,       true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*Short*/      {false,      false,      false,      false,      false,      false,      true,       false,      false,      true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*PosShort*/   {false,      false,      false,      false,      false,      false,      true,       true,       true,       true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*Char*/       {false,      false,      false,      false,      false,      false,      false,      false,      true,       true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*Integer*/    {false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*Float*/      {false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       true,       false,      false,      false,      false,      false,      false,      false,      false},
+                /*LongLo*/     {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false,      true,       false,      false,      false,      false,      false},
+                /*LongHi*/     {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false,      true,       false,      false,      false,      false},
+                /*DoubleLo*/   {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false,      true,       false,      false,      false,      false,      false},
+                /*DoubleHi*/   {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false,      true,       false,      false,      false,      false},
+                /*UninitRef*/  {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false},
+                /*UninitThis*/ {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false},
+                /*Reference*/  {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      true,       false},
+                /*Conflicted*/ {false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false,      false}
                 /*----------*/
                 /*value type*/
         };
@@ -227,7 +232,7 @@ public class RegisterType {
         if (mergedCategory == Category.Reference) {
             mergedType = ClassPath.getCommonSuperclass(this.type, type.type);
         }
-        if (mergedCategory == Category.UninitRef) {
+        if (mergedCategory == Category.UninitRef || mergedCategory == Category.UninitThis) {
             if (this.category == Category.Unknown) {
                 return type;
             }

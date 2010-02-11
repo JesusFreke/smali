@@ -15,7 +15,9 @@ public class MethodAnalyzer {
 
     private boolean analyzed = false;
 
-    private BitSet instructionsToVerify;
+    private BitSet verifiedInstructions;
+
+    private ValidationException validationException = null;
 
     //This is a dummy instruction that occurs immediately before the first real instruction. We can initialize the
     //register types for this instruction to the parameter types, in order to have them propagate to all of its
@@ -58,7 +60,7 @@ public class MethodAnalyzer {
 
         buildInstructionList();
 
-        instructionsToVerify = new BitSet(instructions.size());
+        verifiedInstructions = new BitSet(instructions.size());
     }
 
     public AnalyzedInstruction[] analyze() {
@@ -88,7 +90,7 @@ public class MethodAnalyzer {
                 }
 
                 setRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
-                        RegisterType.getRegisterType(RegisterType.Category.UninitRef,
+                        RegisterType.getRegisterType(RegisterType.Category.UninitThis,
                             ClassPath.getClassDef(methodIdItem.getContainingClass())));
             } else {
                 if (encodedMethod.method.getMethodName().getStringValue().equals("<init>")) {
@@ -111,17 +113,40 @@ public class MethodAnalyzer {
             }
         }
 
-        BitSet analyzedInstructions = new BitSet(instructionsToVerify.size());
+        BitSet instructionsToAnalyze = new BitSet(verifiedInstructions.size());
 
         //make sure all of the "first instructions" are marked for processing
         for (AnalyzedInstruction successor: startOfMethod.successors) {
-            instructionsToVerify.set(successor.instructionIndex);
+            instructionsToAnalyze.set(successor.instructionIndex);
         }
 
-        while (!instructionsToVerify.isEmpty()) {
-            for(int i=instructionsToVerify.nextSetBit(0); i>=0; i=instructionsToVerify.nextSetBit(i+1)) {
-                instructionsToVerify.clear(i);
-                analyzeInstruction(instructions.valueAt(i));
+        while (!instructionsToAnalyze.isEmpty()) {
+            for(int i=instructionsToAnalyze.nextSetBit(0); i>=0; i=instructionsToAnalyze.nextSetBit(i+1)) {
+                instructionsToAnalyze.clear(i);
+                if (verifiedInstructions.get(i)) {
+                    continue;
+                }
+                AnalyzedInstruction instructionToVerify = instructions.valueAt(i);
+                try {
+                    analyzeInstruction(instructionToVerify);
+                } catch (ValidationException ex) {
+                    this.validationException = ex;
+                    int codeAddress = getInstructionAddress(instructionToVerify);
+                    ex.setCodeAddress(codeAddress);
+                    ex.addContext(String.format("opcode: %s", instructionToVerify.instruction.opcode.name));
+                    ex.addContext(String.format("CodeAddress: %d", codeAddress));
+                    ex.addContext(String.format("Method: %s", encodedMethod.method.getMethodString()));
+                    break;
+                }
+
+                verifiedInstructions.set(instructionToVerify.getInstructionIndex());
+
+                for (AnalyzedInstruction successor: instructionToVerify.successors) {
+                    instructionsToAnalyze.set(successor.getInstructionIndex());
+                }
+            }
+            if (validationException != null) {
+                break;
             }
         }
 
@@ -166,6 +191,10 @@ public class MethodAnalyzer {
         return instructionArray;
     }
 
+    public ValidationException getValidationException() {
+        return validationException;
+    }
+
     private static RegisterType[] getParameterTypes(TypeListItem typeListItem, int parameterRegisterCount) {
         assert typeListItem != null;
         assert parameterRegisterCount == typeListItem.getRegisterCount();
@@ -178,7 +207,7 @@ public class MethodAnalyzer {
                 registerTypes[registerNum++] = RegisterType.getWideRegisterTypeForTypeIdItem(type, true);
                 registerTypes[registerNum++] = RegisterType.getWideRegisterTypeForTypeIdItem(type, false);
             } else {
-                registerTypes[registerNum] = RegisterType.getRegisterTypeForTypeIdItem(type);
+                registerTypes[registerNum++] = RegisterType.getRegisterTypeForTypeIdItem(type);
             }
         }
 
@@ -250,7 +279,7 @@ public class MethodAnalyzer {
 
                 if (successor.setPostRegisterType(registerNumber, registerType)) {
                     changedInstructions.set(successor.instructionIndex);
-                    instructionsToVerify.set(successor.instructionIndex);
+                    verifiedInstructions.clear(successor.instructionIndex);
                 }
             }
         }
@@ -288,6 +317,7 @@ public class MethodAnalyzer {
             for (int i=0; i<instructions.size(); i++) {
                 AnalyzedInstruction instruction = instructions.valueAt(i);
                 Opcode instructionOpcode = instruction.instruction.opcode;
+                currentCodeAddress = getInstructionAddress(instruction);
 
                 //check if we have gone past the end of the current try
                 if (currentTry != null) {
@@ -328,11 +358,16 @@ public class MethodAnalyzer {
             int instructionCodeAddress = getInstructionAddress(instruction);
 
             if (instruction.instruction.opcode.canContinue()) {
-                if (i == instructions.size() - 1) {
-                    throw new ValidationException("Execution can continue past the last instruction");
+                if (instruction.instruction.opcode != Opcode.NOP ||
+                    !instruction.instruction.getFormat().variableSizeFormat) {
+
+                    if (i == instructions.size() - 1) {
+                        throw new ValidationException("Execution can continue past the last instruction");
+                    }
+
+                    AnalyzedInstruction nextInstruction = instructions.valueAt(i+1);
+                    addPredecessorSuccessor(instruction, nextInstruction, exceptionHandlers);
                 }
-                AnalyzedInstruction nextInstruction = instructions.valueAt(i+1);
-                addPredecessorSuccessor(instruction, nextInstruction, exceptionHandlers);
             }
 
             if (instruction.instruction instanceof OffsetInstruction) {
@@ -387,7 +422,7 @@ public class MethodAnalyzer {
         if (exceptionHandlersForSuccessor != null) {
             //the item for this instruction in exceptionHandlersForSuccessor should only be set if this instruction
             //can throw an exception
-            assert predecessor.instruction.opcode.canThrow();
+            assert successor.instruction.opcode.canThrow();
 
             for (AnalyzedInstruction exceptionHandler: exceptionHandlersForSuccessor) {
                 addPredecessorSuccessor(predecessor, exceptionHandler, exceptionHandlers, true);
@@ -778,7 +813,7 @@ public class MethodAnalyzer {
             case XOR_INT:
                 handleBinaryOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
                         RegisterType.Category.Integer, true);
-
+                return;
             case ADD_LONG:
             case SUB_LONG:
             case MUL_LONG:
@@ -928,9 +963,15 @@ public class MethodAnalyzer {
             RegisterType.Category.Null,
             RegisterType.Category.Reference);
 
+    private static final EnumSet<RegisterType.Category> ReferenceOrUninitThisCategories = EnumSet.of(
+            RegisterType.Category.Null,
+            RegisterType.Category.UninitThis,
+            RegisterType.Category.Reference);
+
     private static final EnumSet<RegisterType.Category> ReferenceOrUninitCategories = EnumSet.of(
             RegisterType.Category.Null,
             RegisterType.Category.UninitRef,
+            RegisterType.Category.UninitThis,
             RegisterType.Category.Reference);
 
     private static final EnumSet<RegisterType.Category> ReferenceAndPrimitive32BitCategories = EnumSet.of(
@@ -1036,7 +1077,8 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, exceptionType);
     }
 
-    private void checkConstructorReturn(AnalyzedInstruction analyzedInstruction) {
+    //TODO: GROT
+    /*private void checkConstructorReturn(AnalyzedInstruction analyzedInstruction) {
         assert this.isInstanceConstructor();
 
         //if we're in an instance constructor (an <init> method), then the superclass <init> must have been called.
@@ -1053,12 +1095,12 @@ public class MethodAnalyzer {
         //TODO: GROT
         //assert thisRegisterType.category == RegisterType.Category.Reference;
         //assert thisRegisterType.type == ClassPath.getClassDef(encodedMethod.method.getContainingClass());
-    }
+    }*/
 
     private void handleReturnVoid(AnalyzedInstruction analyzedInstruction) {
-        if (this.isInstanceConstructor()) {
+        /*if (this.isInstanceConstructor()) {
             checkConstructorReturn(analyzedInstruction);
-        }
+        }*/
 
         TypeIdItem returnType = encodedMethod.method.getPrototype().getReturnType();
         if (returnType.getTypeDescriptor().charAt(0) != 'V') {
@@ -1069,9 +1111,9 @@ public class MethodAnalyzer {
     }
 
     private void handleReturn(AnalyzedInstruction analyzedInstruction, EnumSet validCategories) {
-        if (this.isInstanceConstructor()) {
+        /*if (this.isInstanceConstructor()) {
             checkConstructorReturn(analyzedInstruction);
-        }
+        }*/
 
         SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
         int returnRegister = instruction.getRegisterA();
@@ -1093,11 +1135,14 @@ public class MethodAnalyzer {
 
         if (validCategories == ReferenceCategories) {
             if (methodReturnRegisterType.type.isInterface()) {
-                if (!returnRegisterType.type.implementsInterface(methodReturnRegisterType.type)) {
+                if (returnRegisterType.category != RegisterType.Category.Null &&
+                    !returnRegisterType.type.implementsInterface(methodReturnRegisterType.type)) {
                     //TODO: how to handle warnings?
                 }
             } else {
-                if (!returnRegisterType.type.extendsClass(methodReturnRegisterType.type)) {
+                if (returnRegisterType.category == RegisterType.Category.Reference &&
+                    !returnRegisterType.type.extendsClass(methodReturnRegisterType.type)) {
+
                     throw new ValidationException(String.format("The return value in register v%d (%s) is not " +
                             "compatible with the method's return type %s", returnRegister,
                             returnRegisterType.type.getClassType(), methodReturnRegisterType.type.getClassType()));
@@ -1147,9 +1192,11 @@ public class MethodAnalyzer {
         Item item = instruction.getReferencedItem();
         assert item.getItemType() == ItemType.TYPE_TYPE_ID_ITEM;
 
-        //make sure the referenced class is resolvable
         //TODO: need to check class access
-        ClassPath.ClassDef classDef = ClassPath.getClassDef((TypeIdItem)item);
+        //make sure the referenced class is resolvable
+        ClassPath.getClassDef((TypeIdItem)item);
+
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, classType);
     }
 
     private void handleMonitor(AnalyzedInstruction analyzedInstruction) {
@@ -1224,9 +1271,8 @@ public class MethodAnalyzer {
                 throw new ValidationException(String.format("Cannot use array-length with non-array type %s",
                         arrayRegisterType.type.getClassType()));
             }
+            assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
         }
-
-        assert arrayRegisterType.type instanceof ClassPath.ArrayClassDef;
 
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction,
                 RegisterType.getRegisterType(RegisterType.Category.Integer, null));
@@ -1255,6 +1301,8 @@ public class MethodAnalyzer {
                             "that was created by this new-instance instruction.", i));
                 }
             }
+
+            return;
         }
 
         Item item = instruction.getReferencedItem();
@@ -1327,7 +1375,7 @@ public class MethodAnalyzer {
 
         public boolean moveNext() {
             currentRegister++;
-            return pastEnd();
+            return !pastEnd();
         }
 
         public int getCount() {
@@ -1355,7 +1403,7 @@ public class MethodAnalyzer {
 
         public boolean moveNext() {
             currentRegister++;
-            return pastEnd();
+            return !pastEnd();
         }
 
         public int getCount() {
@@ -1405,8 +1453,6 @@ public class MethodAnalyzer {
                         arrayType.type.getClassType());
             }
         } while (registerIterator.moveNext());
-
-        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, arrayType);
     }
 
     private void handleFilledNewArray(AnalyzedInstruction analyzedInstruction) {
@@ -1619,7 +1665,7 @@ public class MethodAnalyzer {
 
             RegisterType arrayBaseType =
                     RegisterType.getRegisterTypeForType(arrayClassDef.getBaseElementClass().getClassType());
-            if (checkArrayFieldAssignment(arrayBaseType.category, instructionCategory)) {
+            if (!checkArrayFieldAssignment(arrayBaseType.category, instructionCategory)) {
                 throw new ValidationException(String.format("Cannot use %s with array type %s. Incorrect array type " +
                         "for the instruction.", analyzedInstruction.instruction.opcode.name,
                         arrayRegisterType.type.getClassType()));
@@ -1753,7 +1799,7 @@ public class MethodAnalyzer {
 
             RegisterType arrayBaseType =
                     RegisterType.getRegisterTypeForType(arrayClassDef.getBaseElementClass().getClassType());
-            if (checkArrayFieldAssignment(arrayBaseType.category, instructionCategory)) {
+            if (!checkArrayFieldAssignment(arrayBaseType.category, instructionCategory)) {
                 throw new ValidationException(String.format("Cannot use %s with array type %s. Incorrect array type " +
                         "for the instruction.", analyzedInstruction.instruction.opcode.name,
                         arrayRegisterType.type.getClassType()));
@@ -1842,10 +1888,9 @@ public class MethodAnalyzer {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
-                ReferenceCategories);
+                ReferenceOrUninitThisCategories);
 
         //TODO: check access
-        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
         FieldIdItem field = (FieldIdItem)referencedItem;
@@ -1872,10 +1917,9 @@ public class MethodAnalyzer {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
-                ReferenceCategories);
+                ReferenceOrUninitThisCategories);
 
         //TODO: check access
-        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
         FieldIdItem field = (FieldIdItem)referencedItem;
@@ -1901,10 +1945,9 @@ public class MethodAnalyzer {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
-                ReferenceCategories);
+                ReferenceOrUninitThisCategories);
 
         //TODO: check access
-        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
         FieldIdItem field = (FieldIdItem)referencedItem;
@@ -1931,7 +1974,7 @@ public class MethodAnalyzer {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
-                ReferenceCategories);
+                ReferenceOrUninitThisCategories);
 
         RegisterType sourceRegisterType = analyzedInstruction.getPreInstructionRegisterType(instruction.getRegisterA());
         assert sourceRegisterType != null;
@@ -1952,7 +1995,6 @@ public class MethodAnalyzer {
 
 
         //TODO: check access
-        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
         FieldIdItem field = (FieldIdItem)referencedItem;
@@ -1976,12 +2018,11 @@ public class MethodAnalyzer {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
-                ReferenceCategories);
+                ReferenceOrUninitThisCategories);
 
         getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(), WideLowCategories);
 
         //TODO: check access
-        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
         FieldIdItem field = (FieldIdItem)referencedItem;
@@ -2005,13 +2046,12 @@ public class MethodAnalyzer {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
         RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
-                ReferenceCategories);
+                ReferenceOrUninitThisCategories);
 
-        RegisterType sourceRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+        RegisterType sourceRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterA(),
                 ReferenceCategories);
 
         //TODO: check access
-        //TODO: allow an uninitialized "this" reference, if the current method is an <init> method
         Item referencedItem = ((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem();
         assert referencedItem instanceof FieldIdItem;
         FieldIdItem field = (FieldIdItem)referencedItem;
@@ -2148,8 +2188,6 @@ public class MethodAnalyzer {
                         "for the instruction.", analyzedInstruction.instruction.opcode.name,
                         field.getFieldString()));
         }
-
-        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
     }
 
     private void handleSputObject(AnalyzedInstruction analyzedInstruction) {
@@ -2235,13 +2273,21 @@ public class MethodAnalyzer {
         }
 
         if ((invokeType & INVOKE_SUPER) != 0) {
-            if (methodClassDef.getSuperclass() == null) {
+            ClassPath.ClassDef currentMethodClassDef = ClassPath.getClassDef(encodedMethod.method.getContainingClass());
+            if (currentMethodClassDef.getSuperclass() == null) {
                 throw new ValidationException(String.format("Cannot call method %s with %s. %s has no superclass",
                         methodIdItem.getMethodString(), analyzedInstruction.instruction.opcode.name,
                         methodClassDef.getSuperclass().getClassType()));
             }
 
-            if (!methodClassDef.getSuperclass().hasVirtualMethod(methodIdItem.getMethodString())) {
+            if (!currentMethodClassDef.getSuperclass().extendsClass(methodClassDef)) {
+                throw new ValidationException(String.format("Cannot call method %s with %s. %s is not an ancestor " +
+                        "of the current class %s", methodIdItem.getMethodString(),
+                        analyzedInstruction.instruction.opcode.name, methodClass.getTypeDescriptor(),
+                        encodedMethod.method.getContainingClass().getTypeDescriptor()));
+            }
+
+            if (!currentMethodClassDef.getSuperclass().hasVirtualMethod(methodIdItem.getVirtualMethodString())) {
                 throw new ValidationException(String.format("Cannot call method %s with %s. The superclass %s has" +
                         "no such method", methodIdItem.getMethodString(),
                         analyzedInstruction.instruction.opcode.name, methodClassDef.getSuperclass().getClassType()));
@@ -2276,7 +2322,9 @@ public class MethodAnalyzer {
 
             objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(objectRegister);
             assert objectRegisterType != null;
-            if (objectRegisterType.category == RegisterType.Category.UninitRef) {
+            if (objectRegisterType.category == RegisterType.Category.UninitRef ||
+                    objectRegisterType.category == RegisterType.Category.UninitThis) {
+
                 if (!isInit) {
                     throw new ValidationException(String.format("Cannot invoke non-<init> method %s on uninitialized " +
                             "reference type %s", methodIdItem.getMethodString(),
@@ -2308,8 +2356,9 @@ public class MethodAnalyzer {
                 }
             }
 
+            if ((invokeType & INVOKE_INTERFACE) == 0 && objectRegisterType.category != RegisterType.Category.Null &&
+                    !objectRegisterType.type.extendsClass(methodClassDef)) {
 
-            if ((invokeType & INVOKE_INTERFACE) == 0 && !objectRegisterType.type.extendsClass(methodClassDef)) {
                throw new ValidationException(String.format("Cannot call method %s on an object of type %s, which " +
                        "does not extend %s.", methodIdItem.getMethodString(), objectRegisterType.type.getClassType(),
                         methodClassDef.getClassType()));
@@ -2370,7 +2419,9 @@ public class MethodAnalyzer {
                     RegisterType preInstructionRegisterType =
                             analyzedInstruction.getMergedRegisterTypeFromPredecessors(i);
 
-                    if (preInstructionRegisterType.category == RegisterType.Category.UninitRef) {
+                    if (preInstructionRegisterType.category == RegisterType.Category.UninitRef ||
+                        preInstructionRegisterType.category == RegisterType.Category.UninitThis) {
+
                         RegisterType registerType = null;
                         if (preInstructionRegisterType == objectRegisterType) {
                             registerType = analyzedInstruction.postRegisterMap[objectRegister];
