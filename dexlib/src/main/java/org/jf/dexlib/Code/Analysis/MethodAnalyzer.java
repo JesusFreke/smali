@@ -77,9 +77,12 @@ public class MethodAnalyzer {
         int totalRegisters = codeItem.getRegisterCount();
         int parameterRegisters = methodIdItem.getPrototype().getParameterRegisterCount();
 
+        int nonParameterRegisters = totalRegisters - parameterRegisters;
+
         //if this isn't a static method, determine which register is the "this" register and set the type to the
         //current class
         if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) == 0) {
+            nonParameterRegisters--;
             int thisRegister = totalRegisters - parameterRegisters - 1;
 
             //if this is a constructor, then set the "this" register to an uninitialized reference of the current class
@@ -111,6 +114,11 @@ public class MethodAnalyzer {
                 int registerNum = (totalRegisters - parameterRegisters) + i;
                 setRegisterTypeAndPropagateChanges(startOfMethod, registerNum, registerType);
             }
+        }
+
+        RegisterType uninit = RegisterType.getRegisterType(RegisterType.Category.Uninit, null);
+        for (int i=0; i<nonParameterRegisters; i++) {
+            setRegisterTypeAndPropagateChanges(startOfMethod, i, uninit);
         }
 
         BitSet instructionsToAnalyze = new BitSet(verifiedInstructions.size());
