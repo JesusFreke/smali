@@ -158,6 +158,15 @@ public class MethodAnalyzer {
             }
         }
 
+        for (int i=0; i<instructions.size(); i++) {
+            AnalyzedInstruction instruction = instructions.valueAt(i);
+            for (int j=0; j<instruction.postRegisterMap.length; j++) {
+                if (instruction.postRegisterMap[j].category == RegisterType.Category.Unknown) {
+                    instruction.postRegisterMap[j] = uninit;
+                }
+            }
+        }
+
         analyzed = true;
         return makeInstructionArray();
     }
