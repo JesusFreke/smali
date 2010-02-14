@@ -34,16 +34,16 @@ import org.antlr.stringtemplate.StringTemplate;
 public class DebugMethodItem extends MethodItem {
     private final StringTemplateGroup stg;
     private final String templateName;
-    private final int sortOrder;
+    private final double sortOrder;
 
-    public DebugMethodItem(int codeAddress, StringTemplateGroup stg, String templateName, int sortOrder) {
+    public DebugMethodItem(int codeAddress, StringTemplateGroup stg, String templateName, double sortOrder) {
         super(codeAddress);
         this.stg = stg;
         this.templateName = templateName;
         this.sortOrder = sortOrder;
     }
 
-    public int getSortOrder() {
+    public double getSortOrder() {
         return sortOrder;
     }
 

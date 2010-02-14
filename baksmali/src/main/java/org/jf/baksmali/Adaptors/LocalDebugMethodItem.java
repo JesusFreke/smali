@@ -41,7 +41,7 @@ public class LocalDebugMethodItem extends DebugMethodItem {
     private final String signature;
 
     public LocalDebugMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg, String templateName,
-                                int sortOrder, int register, StringIdItem name, TypeIdItem type,
+                                double sortOrder, int register, StringIdItem name, TypeIdItem type,
                                 StringIdItem signature) {
         super(codeAddress, stg, templateName, sortOrder);
         this.register = RegisterFormatter.formatRegister(codeItem, register);

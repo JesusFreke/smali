@@ -60,7 +60,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         this.instruction = instruction;
     }
 
-    public int getSortOrder() {
+    public double getSortOrder() {
         //instructions should appear after everything except an "end try" label and .catch directive
         return 100;
     }

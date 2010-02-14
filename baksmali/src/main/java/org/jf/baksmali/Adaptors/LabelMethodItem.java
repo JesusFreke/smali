@@ -44,7 +44,7 @@ public class LabelMethodItem extends MethodItem {
         this.labelPrefix = labelPrefix;
     }
 
-    public int getSortOrder() {
+    public double getSortOrder() {
         return 0;
     }
 

@@ -74,7 +74,7 @@ public class CatchMethodItem extends MethodItem {
         return handlerLabel;
     }
 
-    public int getSortOrder() {
+    public double getSortOrder() {
         //sort after instruction and end_try label
         return 102;
     }

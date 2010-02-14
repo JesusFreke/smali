@@ -38,7 +38,7 @@ public class EndTryLabelMethodItem extends LabelMethodItem {
         this.endTryAddress = endTryAddress;
     }
 
-    public int getSortOrder() {
+    public double getSortOrder() {
         //sort after instruction, but before catch directive
         return 101;
     }

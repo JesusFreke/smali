@@ -42,7 +42,7 @@ public class BlankMethodItem extends MethodItem {
         }
     }
 
-    public int getSortOrder() {
+    public double getSortOrder() {
         return Integer.MAX_VALUE;
     }
 

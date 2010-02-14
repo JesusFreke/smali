@@ -41,8 +41,8 @@ public class CommentedOutMethodItem extends MethodItem {
         this.commentedOutMethodItem = commentedOutMethodItem;
     }
 
-    public int getSortOrder() {
-        return commentedOutMethodItem.getSortOrder() + 1;
+    public double getSortOrder() {
+        return commentedOutMethodItem.getSortOrder() + .001;
     }
 
     @Override
