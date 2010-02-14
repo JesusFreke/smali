@@ -94,7 +94,7 @@ public class ClassPath {
             if (classType.charAt(0) == '[') {
                 return theClassPath.createArrayClassDef(classType);
             } else {
-                //TODO: we should output a warning 
+                //TODO: we should output a warning
                 return theClassPath.createUnresolvedClassDef(classType);
             }
         }
@@ -571,12 +571,12 @@ public class ClassPath {
             if (interfaces != null) {
                 for (TypeIdItem interfaceType: interfaces.getTypes()) {
                     ClassDef interfaceDef = ClassPath.getClassDef(interfaceType.getTypeDescriptor());
-                    assert interfaceDef.isInterface;
+                    assert interfaceDef.isInterface();
                     implementedInterfaceSet.add(interfaceDef);
 
                     interfaceDef = interfaceDef.getSuperclass();
                     while (!interfaceDef.getClassType().equals("Ljava/lang/Object;")) {
-                        assert interfaceDef.isInterface;
+                        assert interfaceDef.isInterface();
                         implementedInterfaceSet.add(interfaceDef);
                         interfaceDef = interfaceDef.getSuperclass();
                     }

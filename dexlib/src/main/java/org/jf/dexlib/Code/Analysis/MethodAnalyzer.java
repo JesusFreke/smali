@@ -183,6 +183,10 @@ public class MethodAnalyzer {
                (encodedMethod.accessFlags & AccessFlags.CONSTRUCTOR.getValue()) != 0;
     }
 
+    public AnalyzedInstruction getStartOfMethod() {
+        return startOfMethod;
+    }
+
     public AnalyzedInstruction[] makeInstructionArray() {
         AnalyzedInstruction[] instructionArray = new AnalyzedInstruction[instructions.size()];
         for (int i=0; i<instructions.size(); i++) {
@@ -214,7 +218,7 @@ public class MethodAnalyzer {
         return registerTypes;
     }
 
-    private int getInstructionAddress(AnalyzedInstruction instruction) {
+    public int getInstructionAddress(AnalyzedInstruction instruction) {
         return instructions.keyAt(instruction.instructionIndex);
     }
 

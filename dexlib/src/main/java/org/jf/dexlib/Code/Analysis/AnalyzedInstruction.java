@@ -6,7 +6,9 @@ import org.jf.dexlib.ItemType;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Util.ExceptionWithContext;
 
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 public class AnalyzedInstruction {
     /**
@@ -63,7 +65,24 @@ public class AnalyzedInstruction {
         return predecessors.size();
     }
 
+    public List<AnalyzedInstruction> getPredecessors() {
+        return Collections.unmodifiableList(predecessors);
+    }
+
+    private boolean checkPredecessorSorted(AnalyzedInstruction predecessor) {
+        if (predecessors.size() == 0) {
+            return true;
+        }
+
+        if (predecessor.getInstructionIndex() <= predecessors.getLast().getInstructionIndex()) {
+            return false;
+        }
+
+        return true;
+    }
+
     protected void addPredecessor(AnalyzedInstruction predecessor) {
+        assert checkPredecessorSorted(predecessor);
         predecessors.add(predecessor);
     }
 
@@ -78,6 +97,34 @@ public class AnalyzedInstruction {
         }
         successors.add(successor);
         return true;
+    }
+
+    public int getSuccessorCount() {
+        return successors.size();
+    }
+
+    public List<AnalyzedInstruction> getSuccesors() {
+        return Collections.unmodifiableList(successors);
+    }
+
+    /**
+     * Is this instruction a "beginning instruction". A beginning instruction is defined to be an instruction
+     * that can be the first successfully executed instruction in the method. The first instruction is always a
+     * beginning instruction. If the first instruction can throw an exception, and is covered by a try block, then
+     * the first instruction of any exception handler for that try block is also a beginning instruction. And likewise,
+     * if any of those instructions can throw an exception and are covered by try blocks, the first instruction of the
+     * corresponding exception handler is a beginning instruction, etc.
+     * @return a boolean value indicating whether this instruction is a beginning instruction
+     */
+    public boolean isBeginningInstruction() {
+        if (predecessors.size() == 0) {
+            return false;
+        }
+
+        if (predecessors.getFirst().instructionIndex == -1) {
+            return true;
+        }
+        return false;
     }
 
     /*

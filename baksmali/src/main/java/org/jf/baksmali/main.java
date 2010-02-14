@@ -31,6 +31,14 @@ public class main {
 
     private static final Options options;
 
+    public static final int ALL = 1;
+    public static final int ALLPRE = 2;
+    public static final int ALLPOST = 4;
+    public static final int ARGS = 8;
+    public static final int DEST = 16;
+    public static final int MERGE = 32;
+    public static final int FULLMERGE = 64;
+
     static {
         options = new Options();
         buildOptions();
@@ -75,7 +83,8 @@ public class main {
         boolean useLocalsDirective = false;
         boolean useSequentialLabels = false;
         boolean outputDebugInfo = true;
-        boolean verboseRegisterInfo = false;
+
+        int registerInfo = 0;
 
         String outputDirectory = "out";
         String dumpFileName = null;
@@ -147,7 +156,36 @@ public class main {
         }
 
         if (commandLine.hasOption("r")) {
-            verboseRegisterInfo = true;
+            String[] values = commandLine.getOptionValues('r');
+
+            if (values == null || values.length == 0) {
+                registerInfo = ARGS | DEST | MERGE;
+            } else {
+                for (String value: values) {
+                    if (value.equalsIgnoreCase("ALL")) {
+                        registerInfo |= ALL;
+                    } else if (value.equalsIgnoreCase("ALLPRE")) {
+                        registerInfo |= ALLPRE;
+                    } else if (value.equalsIgnoreCase("ALLPOST")) {
+                        registerInfo |= ALLPOST;
+                    } else if (value.equalsIgnoreCase("ARGS")) {
+                        registerInfo |= ARGS;
+                    } else if (value.equalsIgnoreCase("DEST")) {
+                        registerInfo |= DEST;
+                    } else if (value.equalsIgnoreCase("MERGE")) {
+                        registerInfo |= MERGE;
+                    } else if (value.equalsIgnoreCase("FULLMERGE")) {
+                        registerInfo |= FULLMERGE;
+                    } else {
+                        usage();
+                        return;
+                    }
+                }
+
+                if ((registerInfo & FULLMERGE) != 0) {
+                    registerInfo &= ~MERGE;
+                }
+            }
         }
 
         if (commandLine.hasOption("c")) {
@@ -210,7 +248,7 @@ public class main {
 
             if (disassemble) {
                 baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, bootClassPath, noParameterRegisters,
-                        useLocalsDirective, useSequentialLabels, outputDebugInfo, verboseRegisterInfo);
+                        useLocalsDirective, useSequentialLabels, outputDebugInfo, registerInfo);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -238,6 +276,7 @@ public class main {
      */
     private static void usage() {
         HelpFormatter formatter = new HelpFormatter();
+        formatter.setWidth(100);
         formatter.printHelp("java -jar baksmali.jar [options] <dex-file>",
                 "disassembles and/or dumps a dex file", options, "");
     }
@@ -319,8 +358,18 @@ public class main {
                 .withDescription("don't write out debug info (.local, .param, .line, etc.)")
                 .create("b");
 
-        Option verboseRegisterInfoOption = OptionBuilder.withLongOpt("verbose-registers")
-                .withDescription("print verbose register type information for each instruction")
+        Option registerInfoOption = OptionBuilder.withLongOpt("register-info")
+                .hasOptionalArgs()
+                .withArgName("REGISTER_INFO_TYPES")
+                .withValueSeparator(',')
+                .withDescription("print the specificed type(s) of register information for each instruction. " +
+                        "\"ARGS,DEST,MERGE\" is the default if no types are specified.\nValid values are:\nALL: all " +
+                        "pre- and post-instruction registers.\nALLPRE: all pre-instruction registers\nALLPOST: all " +
+                        "post-instruction registers\nARGS: any pre-instruction registers used as arguments to the " +
+                        "instruction\nDEST: the post-instruction destination register, if any\nMERGE: Any " +
+                        "pre-instruction register has been merged from more than 1 different post-instruction " +
+                        "register from its predecessors\nFULLMERGE: For each register that would be printed by " +
+                        "MERGE, also show the incoming register types that were merged")
                 .create("r");
 
         Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
@@ -342,7 +391,7 @@ public class main {
         options.addOption(useLocalsOption);
         options.addOption(sequentialLabelsOption);
         options.addOption(noDebugInfoOption);
-        options.addOption(verboseRegisterInfoOption);
+        options.addOption(registerInfoOption);
         options.addOption(classPathOption);
     }
 }

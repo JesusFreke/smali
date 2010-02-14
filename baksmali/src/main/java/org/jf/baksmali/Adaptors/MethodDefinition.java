@@ -30,15 +30,14 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.Format.*;
 import org.jf.baksmali.baksmali;
+import org.jf.baksmali.main;
 import org.jf.dexlib.*;
+import org.jf.dexlib.Code.*;
 import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
 import org.jf.dexlib.Code.Analysis.MethodAnalyzer;
 import org.jf.dexlib.Code.Analysis.RegisterType;
 import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
-import org.jf.dexlib.Code.Instruction;
-import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
@@ -57,6 +56,8 @@ public class MethodDefinition {
     private final SparseIntArray sparseSwitchMap;
     private final SparseIntArray instructionMap;
 
+    private final int registerCount;
+
     public MethodDefinition(StringTemplateGroup stg, ClassDataItem.EncodedMethod encodedMethod) {
         this.stg = stg;
         this.encodedMethod = encodedMethod;
@@ -70,6 +71,8 @@ public class MethodDefinition {
             packedSwitchMap = new SparseIntArray(1);
             sparseSwitchMap = new SparseIntArray(1);
             instructionMap = new SparseIntArray(instructions.length);
+
+            registerCount = encodedMethod.codeItem.getRegisterCount();
 
             int currentCodeAddress = 0;
             for (int i=0; i<instructions.length; i++) {
@@ -91,6 +94,7 @@ public class MethodDefinition {
             sparseSwitchMap = null;
             instructionMap = null;
             methodAnalyzer = null;
+            registerCount = 0;
         }
     }
 
@@ -243,17 +247,21 @@ public class MethodDefinition {
         }
 
         AnalyzedInstruction[] instructions;
-        if (baksmali.verboseRegisterInfo) {
+        if (baksmali.registerInfo != 0) {
             instructions = methodAnalyzer.analyze();
 
             ValidationException validationException = methodAnalyzer.getValidationException();
             if (validationException != null) {
-                methodItems.add(new CommentMethodItem(stg, validationException.getMessage(),
+                methodItems.add(new CommentMethodItem(stg,
+                        String.format("ValidationException: %s" ,validationException.getMessage()),
                         validationException.getCodeAddress(), Integer.MIN_VALUE));
             }
         } else {
             instructions = methodAnalyzer.makeInstructionArray();
         }
+
+        BitSet printPreRegister = new BitSet(registerCount);
+        BitSet printPostRegister = new BitSet(registerCount);
 
         int currentCodeAddress = 0;
         for (int i=0; i<instructions.length; i++) {
@@ -266,15 +274,51 @@ public class MethodDefinition {
                 methodItems.add(new BlankMethodItem(stg, currentCodeAddress));
             }
 
-            if (baksmali.verboseRegisterInfo) {
-                if (instruction.getPredecessorCount() > 1 || i == 0) {
-                    methodItems.add(new CommentMethodItem(stg, getPreInstructionRegisterString(instruction),
-                            currentCodeAddress, Integer.MIN_VALUE));
-                }
-                methodItems.add(new CommentMethodItem(stg, getPostInstructionRegisterString(instruction),
-                        currentCodeAddress, Integer.MAX_VALUE-1));
-            }
+            if (baksmali.registerInfo != 0) {
+                printPreRegister.clear();
+                printPostRegister.clear();
 
+                if ((baksmali.registerInfo & main.ALL) != 0) {
+                    printPreRegister.set(0, registerCount);
+                    printPostRegister.set(0, registerCount);
+                } else {
+                    if ((baksmali.registerInfo & main.ALLPRE) != 0) {
+                        printPreRegister.set(0, registerCount);
+                    } else {
+                        if ((baksmali.registerInfo & main.ARGS) != 0) {
+                            addArgsRegs(printPreRegister, instruction);
+                        }
+                        if ((baksmali.registerInfo & main.MERGE) != 0) {
+                            addMergeRegs(printPreRegister, instructions, i);
+                        } else if ((baksmali.registerInfo & main.FULLMERGE) != 0 &&
+                                (i == 0 || instruction.isBeginningInstruction())) {
+                            addParamRegs(printPreRegister);
+                        }
+                    }
+
+                    if ((baksmali.registerInfo & main.ALLPOST) != 0) {
+                        printPostRegister.set(0, registerCount);
+                    } else if ((baksmali.registerInfo & main.DEST) != 0) {
+                        addDestRegs(printPostRegister, instruction);
+                    }
+                }
+
+                if ((baksmali.registerInfo & main.FULLMERGE) != 0) {
+                    addFullMergeRegs(printPreRegister, methodItems, methodAnalyzer, i, currentCodeAddress);
+                }
+
+                if (!printPreRegister.isEmpty()) {
+                    methodItems.add(new CommentMethodItem(stg,
+                            getPreInstructionRegisterString(instruction, printPreRegister),
+                            currentCodeAddress, 99.9));
+                }
+
+                if (!printPostRegister.isEmpty()) {
+                    methodItems.add(new CommentMethodItem(stg,
+                            getPostInstructionRegisterString(instruction, printPostRegister),
+                            currentCodeAddress, 100.1));
+                }
+            }
 
             currentCodeAddress += instruction.instruction.getSize(currentCodeAddress);
         }
@@ -300,13 +344,168 @@ public class MethodDefinition {
         return methodItems;
     }
 
-    private String getPreInstructionRegisterString(AnalyzedInstruction instruction) {
+    private void addArgsRegs(BitSet printPreRegister, AnalyzedInstruction analyzedInstruction) {
+        if (analyzedInstruction.instruction instanceof RegisterRangeInstruction) {
+            RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
+
+            printPreRegister.set(instruction.getStartRegister(),
+                    instruction.getStartRegister() + instruction.getRegCount());
+        } else if (analyzedInstruction.instruction instanceof FiveRegisterInstruction) {
+            FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
+            int regCount = instruction.getRegCount();
+            switch (regCount) {
+                case 5:
+                    printPreRegister.set(instruction.getRegisterA());
+                    //fall through
+                case 4:
+                    printPreRegister.set(instruction.getRegisterG());
+                    //fall through
+                case 3:
+                    printPreRegister.set(instruction.getRegisterF());
+                    //fall through
+                case 2:
+                    printPreRegister.set(instruction.getRegisterE());
+                    //fall through
+                case 1:
+                    printPreRegister.set(instruction.getRegisterD());
+            }
+        } else if (analyzedInstruction.instruction instanceof ThreeRegisterInstruction) {
+            ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+            printPreRegister.set(instruction.getRegisterA());
+            printPreRegister.set(instruction.getRegisterB());
+            printPreRegister.set(instruction.getRegisterC());
+        } else if (analyzedInstruction.instruction instanceof TwoRegisterInstruction) {
+            TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+            printPreRegister.set(instruction.getRegisterA());
+            printPreRegister.set(instruction.getRegisterB());
+        } else if (analyzedInstruction.instruction instanceof SingleRegisterInstruction) {
+            SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
+            printPreRegister.set(instruction.getRegisterA());
+        }
+    }
+
+    private void addFullMergeRegs(BitSet printPreRegister, List<MethodItem> methodItems, MethodAnalyzer methodAnalyzer,
+                                  int instructionNum, int currentCodeAddress) {
+        if (instructionNum == 0) {
+            return;
+        }
+
+        //MethodAnalyzer cached the analyzedInstructions, so we're not actually re-analyzing, just getting the
+        //instructions that have already been analyzed
+        AnalyzedInstruction[] instructions = methodAnalyzer.analyze();
+        AnalyzedInstruction instruction = instructions[instructionNum];
+
+        if (instruction.getPredecessorCount() <= 1) {
+            return;
+        }
+
+        StringBuffer sb = new StringBuffer();
+
+        for (int registerNum=0; registerNum<registerCount; registerNum++) {
+            sb.setLength(0);
+            sb.append(RegisterFormatter.formatRegister(encodedMethod.codeItem, registerNum));
+            sb.append('=');
+            sb.append(instruction.getPreInstructionRegisterType(registerNum));
+            sb.append(":merge{");
+
+            RegisterType mergedRegisterType = instruction.getPreInstructionRegisterType(registerNum);
+            boolean addRegister = false;
+
+            boolean first = true;
+            for (AnalyzedInstruction predecessor: instruction.getPredecessors()) {
+                RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
+
+                if (!first) {
+                    sb.append(',');
+                    if (!addRegister && mergedRegisterType != predecessorRegisterType) {
+                        addRegister = true;
+                    }
+                }
+
+                if (predecessor.getInstructionIndex() == -1) {
+                    //the fake "StartOfMethod" instruction
+                    sb.append("Start:");
+                } else {
+                    sb.append("0x");
+                    sb.append(Integer.toHexString(methodAnalyzer.getInstructionAddress(predecessor)));
+                    sb.append(':');
+                }
+                sb.append(predecessor.getPostInstructionRegisterType(registerNum).toString());
+                first = false;
+            }
+
+            if (!addRegister) {
+                continue;
+            }
+
+            sb.append("}");
+
+            methodItems.add(new CommentMethodItem(stg, sb.toString(),  currentCodeAddress, 99.8));
+            printPreRegister.clear(registerNum);
+        }
+    }
+
+    private void addMergeRegs(BitSet printPreRegister, AnalyzedInstruction instructions[], int instructionNum) {
+        //MethodAnalyzer cached the analyzedInstructions, so we're not actually re-analyzing, just getting the
+        //instructions that have already been analyzed
+        AnalyzedInstruction instruction = instructions[instructionNum];
+
+        if (instructionNum == 0) {
+            addParamRegs(printPreRegister);
+        } else {
+            if (instruction.isBeginningInstruction()) {
+                addParamRegs(printPreRegister);
+            }
+
+            if (instruction.getPredecessorCount() <= 1) {
+                //in the common case of an instruction that only has a single predecessor which is the previous
+                //instruction, the pre-instruction registers will always match the previous instruction's
+                //post-instruction registers
+                return;
+            }
+
+            for (int registerNum=0; registerNum<registerCount; registerNum++) {
+                RegisterType mergedRegisterType = instruction.getPreInstructionRegisterType(registerNum);
+
+                for (AnalyzedInstruction predecessor: instruction.getPredecessors()) {
+                    if (predecessor.getPostInstructionRegisterType(registerNum) != mergedRegisterType) {
+                        printPreRegister.set(registerNum);
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    private void addParamRegs(BitSet printPreRegister) {
+        int registerCount = encodedMethod.codeItem.getRegisterCount();
+
+        int parameterRegisterCount = encodedMethod.method.getPrototype().getParameterRegisterCount();
+        if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) == 0) {
+            parameterRegisterCount++;
+        }
+
+        printPreRegister.set(registerCount-parameterRegisterCount, registerCount);
+    }
+
+    private void addDestRegs(BitSet printPostRegister, AnalyzedInstruction analyzedInstruction) {
+        for (int registerNum=0; registerNum<registerCount; registerNum++) {
+            if (analyzedInstruction.getPreInstructionRegisterType(registerNum) !=
+                    analyzedInstruction.getPostInstructionRegisterType(registerNum)) {
+                printPostRegister.set(registerNum);
+            }
+        }
+    }
+
+
+    private String getPreInstructionRegisterString(AnalyzedInstruction instruction, BitSet registers) {
         StringBuilder sb = new StringBuilder();
 
-        for (int i=0; i<instruction.getRegisterCount(); i++) {
-            RegisterType registerType = instruction.getPreInstructionRegisterType(i);
-            sb.append("v");
-            sb.append(i);
+        for (int registerNum = registers.nextSetBit(0); registerNum >= 0;
+             registerNum = registers.nextSetBit(registerNum + 1)) {
+
+            RegisterType registerType = instruction.getPreInstructionRegisterType(registerNum);
+            sb.append(RegisterFormatter.formatRegister(encodedMethod.codeItem,registerNum));
             sb.append("=");
             if (registerType == null) {
                 sb.append("null");
@@ -319,21 +518,25 @@ public class MethodDefinition {
         return sb.toString();
     }
 
-    private String getPostInstructionRegisterString(AnalyzedInstruction instruction) {
+    private String getPostInstructionRegisterString(AnalyzedInstruction instruction, BitSet registers) {
         StringBuilder sb = new StringBuilder();
 
-        for (int i=0; i<instruction.getRegisterCount(); i++) {
-            RegisterType registerType = instruction.getPostInstructionRegisterType(i);
-            sb.append("v");
-            sb.append(i);
+        for (int registerNum = registers.nextSetBit(0); registerNum >= 0;
+             registerNum = registers.nextSetBit(registerNum + 1)) {
+
+            RegisterType registerType = instruction.getPostInstructionRegisterType(registerNum);
+            sb.append(RegisterFormatter.formatRegister(encodedMethod.codeItem,registerNum));
             sb.append("=");
-            sb.append(registerType.toString());
+            if (registerType == null) {
+                sb.append("null");
+            } else {
+                sb.append(registerType.toString());
+            }
             sb.append(";");
         }
 
         return sb.toString();
     }
-
 
     private void addTries(List<MethodItem> methodItems) {
         if (encodedMethod.codeItem == null || encodedMethod.codeItem.getTries() == null) {

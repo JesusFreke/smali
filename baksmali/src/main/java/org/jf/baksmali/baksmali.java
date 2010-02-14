@@ -45,23 +45,23 @@ public class baksmali {
     public static boolean useLocalsDirective = false;
     public static boolean useSequentialLabels = false;
     public static boolean outputDebugInfo = true;
-    public static boolean verboseRegisterInfo = false;
+    public static int registerInfo = 0;
     public static String bootClassPath;
     public static DeodexUtil deodexUtil = null;
 
     public static void disassembleDexFile(DexFile dexFile, Deodexerant deodexerant, String outputDirectory,
                                           String bootClassPath, boolean noParameterRegisters,
                                           boolean useLocalsDirective, boolean useSequentialLabels,
-                                          boolean outputDebugInfo, boolean verboseRegisterInfo)
+                                          boolean outputDebugInfo, int registerInfo)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
         baksmali.useLocalsDirective = useLocalsDirective;
         baksmali.useSequentialLabels = useSequentialLabels;
         baksmali.outputDebugInfo = outputDebugInfo;
-        baksmali.verboseRegisterInfo = verboseRegisterInfo;
+        baksmali.registerInfo = registerInfo;
         baksmali.bootClassPath = bootClassPath;
 
-        if (verboseRegisterInfo) {
+        if (registerInfo != 0) {
             ClassPath.InitializeClassPath(bootClassPath==null?null:bootClassPath.split(":"), dexFile);
         }
 
