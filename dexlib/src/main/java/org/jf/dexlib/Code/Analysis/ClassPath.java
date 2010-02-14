@@ -58,7 +58,7 @@ public class ClassPath {
 
         DexFile dexFile;
         try {
-            dexFile = new DexFile(file);
+            dexFile = new DexFile(file, false, true);
         } catch (Exception ex) {
             throw ExceptionWithContext.withContext(ex, "Error while reading ClassPath entry \"" +
                     bootClassPathEntry + "\".");

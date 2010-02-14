@@ -182,7 +182,7 @@ public class main {
             }
 
             //Read in and parse the dex file
-            DexFile dexFile = new DexFile(dexFileFile, !fixRegisters);
+            DexFile dexFile = new DexFile(dexFileFile, !fixRegisters, false);
 
             Deodexerant deodexerant = null;
 

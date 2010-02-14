@@ -30,7 +30,7 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.*;
 import org.jf.dexlib.*;
-import org.jf.dexlib.Item;
+import org.jf.dexlib.Item; 
 import org.jf.dexlib.StringDataItem;
 
 import java.io.*;
@@ -140,6 +140,13 @@ public class DexFile
     private final boolean preserveSignedRegisters;
 
     /**
+     * When true, any instructions in a code item are skipped over instead of being read in. This is useful when
+     * you only need the information about the classes and their methods, for example, when loading the BOOTCLASSPATH
+     * jars in order to analyze a dex file
+     */
+    private final boolean skipInstructions;
+
+    /**
      * When true, this prevents any sorting of the items during placement of the dex file. This
      * should *only* be set to true when this dex file was read in from an existing (valid) dex file,
      * and no modifications were made (i.e. no items added or deleted). Otherwise it is likely that
@@ -184,11 +191,13 @@ public class DexFile
     /**
      * A private constructor containing common code to initialize the section maps and lists
      * @param preserveSignedRegisters If true, keep track of any registers in the debug information
+     * @param skipInstructions If true, skip the instructions in any code item.
      * that are signed, so they will be written in the same format. See
      * <code>getPreserveSignedRegisters()</code>
      */
-    private DexFile(boolean preserveSignedRegisters) {
+    private DexFile(boolean preserveSignedRegisters, boolean skipInstructions) {
         this.preserveSignedRegisters = preserveSignedRegisters;
+        this.skipInstructions = skipInstructions;
 
         sectionsByType = new Section[] {
                 StringIdsSection,
@@ -242,7 +251,7 @@ public class DexFile
      */
     public DexFile(String file)
             throws IOException {
-        this(new File(file), true);
+        this(new File(file), true, false);
     }
 
     /**
@@ -252,12 +261,13 @@ public class DexFile
      * @param file The dex file to read in
      * @param preserveSignedRegisters If true, keep track of any registers in the debug information
      * that are signed, so they will be written in the same format. See
+     * @param skipInstructions If true, skip the instructions in any code item.
      * <code>getPreserveSignedRegisters()</code>
      * @throws IOException if an IOException occurs
      */
-    public DexFile(String file, boolean preserveSignedRegisters)
+    public DexFile(String file, boolean preserveSignedRegisters, boolean skipInstructions)
             throws IOException {
-        this(new File(file), preserveSignedRegisters);
+        this(new File(file), preserveSignedRegisters, skipInstructions);
     }
 
     /**
@@ -267,7 +277,7 @@ public class DexFile
      */
     public DexFile(File file)
             throws IOException {
-        this(file, true);
+        this(file, true, false);
     }
 
     /**
@@ -277,12 +287,13 @@ public class DexFile
      * @param file The dex file to read in
      * @param preserveSignedRegisters If true, keep track of any registers in the debug information
      * that are signed, so they will be written in the same format.
+     * @param skipInstructions If true, skip the instructions in any code item.
      * @see #getPreserveSignedRegisters
      * @throws IOException if an IOException occurs
      */
-    public DexFile(File file, boolean preserveSignedRegisters)
+    public DexFile(File file, boolean preserveSignedRegisters, boolean skipInstructions)
             throws IOException {
-        this(preserveSignedRegisters);
+        this(preserveSignedRegisters, skipInstructions);
 
         long fileLength;
         byte[] magic = FileUtils.readFile(file, 0, 8);
@@ -415,7 +426,7 @@ public class DexFile
      * the <code>Section.intern()</code> method of <code>ClassDefsSection</code>
      */
     public DexFile() {
-        this(true);
+        this(true, false);
     }
 
     /**
@@ -455,6 +466,16 @@ public class DexFile
      */
     public boolean getPreserveSignedRegisters() {
         return preserveSignedRegisters;
+    }
+
+    /**
+     * Get a boolean value indicating whether to skip any instructions in a code item while reading in the dex file.
+     * This is useful when  you only need the information about the classes and their methods, for example, when
+     * loading the BOOTCLASSPATH jars in order to analyze a dex file
+     * @return a boolean value indicating whether to skip any instructions in a code item
+     */
+    public boolean skipInstructions() {
+        return skipInstructions;
     }
 
     /**

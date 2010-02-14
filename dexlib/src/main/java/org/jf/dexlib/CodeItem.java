@@ -148,57 +148,80 @@ public class CodeItem extends Item<CodeItem> {
         if (this.debugInfo != null) {
             this.debugInfo.setParent(this);
         }
+
         int instructionCount = in.readInt();
 
-        final ArrayList<Instruction> instructionList = new ArrayList<Instruction>();
+        if (dexFile.skipInstructions()) {
+            in.skipBytes(instructionCount * 2);
 
-        byte[] encodedInstructions = in.readBytes(instructionCount * 2);
-        InstructionIterator.IterateInstructions(dexFile, encodedInstructions,
-                new InstructionIterator.ProcessInstructionDelegate() {
-                    public void ProcessInstruction(int codeAddress, Instruction instruction) {
-                        instructionList.add(instruction);
+            if (triesCount > 0) {
+                in.alignTo(4);
+                in.skipBytes(8 * triesCount);
+
+                int handlerCount = in.readUnsignedLeb128();
+                for (int i=0; i<handlerCount; i++) {
+                    int size = in.readSignedLeb128();
+                    int absSize = Math.abs(size);
+                    for (int j=0; j<absSize; j++) {
+                        in.readUnsignedLeb128();
+                        in.readUnsignedLeb128();
                     }
-                });
-
-        this.instructions = new Instruction[instructionList.size()];
-        instructionList.toArray(instructions);
-
-        if (triesCount > 0) {
-            in.alignTo(4);
-
-            //we need to read in the catch handlers first, so save the offset to the try items for future reference
-            int triesOffset = in.getCursor();
-            in.setCursor(triesOffset + 8 * triesCount);
-
-            //read in the encoded catch handlers
-            int encodedHandlerStart = in.getCursor();
-            int handlerCount = in.readUnsignedLeb128();
-            SparseArray<EncodedCatchHandler> handlerMap = new SparseArray<EncodedCatchHandler>(handlerCount);
-            encodedCatchHandlers = new EncodedCatchHandler[handlerCount];
-            for (int i=0; i<handlerCount; i++) {
-                try {
-                    int position = in.getCursor() - encodedHandlerStart;
-                    encodedCatchHandlers[i] = new EncodedCatchHandler(dexFile, in);
-                    handlerMap.append(position, encodedCatchHandlers[i]);
-                } catch (Exception ex) {
-                    throw ExceptionWithContext.withContext(ex, "Error while reading EncodedCatchHandler at index " + i);
+                    if (size <= 0) {
+                        in.readUnsignedLeb128();
+                    }
                 }
             }
-            int codeItemEnd = in.getCursor();
+        } else {
+            final ArrayList<Instruction> instructionList = new ArrayList<Instruction>();
 
-            //now go back and read the tries
-            in.setCursor(triesOffset);
-            tries = new TryItem[triesCount];
-            for (int i=0; i<triesCount; i++) {
-                try {
-                    tries[i] = new TryItem(in, handlerMap);
-                } catch (Exception ex) {
-                    throw ExceptionWithContext.withContext(ex, "Error while reading TryItem at index " + i);
+            byte[] encodedInstructions = in.readBytes(instructionCount * 2);
+            InstructionIterator.IterateInstructions(dexFile, encodedInstructions,
+                    new InstructionIterator.ProcessInstructionDelegate() {
+                        public void ProcessInstruction(int codeAddress, Instruction instruction) {
+                            instructionList.add(instruction);
+                        }
+                    });
+
+            this.instructions = new Instruction[instructionList.size()];
+            instructionList.toArray(instructions);
+
+            if (triesCount > 0) {
+                in.alignTo(4);
+
+                //we need to read in the catch handlers first, so save the offset to the try items for future reference
+                int triesOffset = in.getCursor();
+                in.setCursor(triesOffset + 8 * triesCount);
+
+                //read in the encoded catch handlers
+                int encodedHandlerStart = in.getCursor();
+                int handlerCount = in.readUnsignedLeb128();
+                SparseArray<EncodedCatchHandler> handlerMap = new SparseArray<EncodedCatchHandler>(handlerCount);
+                encodedCatchHandlers = new EncodedCatchHandler[handlerCount];
+                for (int i=0; i<handlerCount; i++) {
+                    try {
+                        int position = in.getCursor() - encodedHandlerStart;
+                        encodedCatchHandlers[i] = new EncodedCatchHandler(dexFile, in);
+                        handlerMap.append(position, encodedCatchHandlers[i]);
+                    } catch (Exception ex) {
+                        throw ExceptionWithContext.withContext(ex, "Error while reading EncodedCatchHandler at index " + i);
+                    }
                 }
-            }
+                int codeItemEnd = in.getCursor();
 
-            //and now back to the end of the code item
-            in.setCursor(codeItemEnd);
+                //now go back and read the tries
+                in.setCursor(triesOffset);
+                tries = new TryItem[triesCount];
+                for (int i=0; i<triesCount; i++) {
+                    try {
+                        tries[i] = new TryItem(in, handlerMap);
+                    } catch (Exception ex) {
+                        throw ExceptionWithContext.withContext(ex, "Error while reading TryItem at index " + i);
+                    }
+                }
+
+                //and now back to the end of the code item
+                in.setCursor(codeItemEnd);
+            }
         }
     }
 
@@ -867,7 +890,7 @@ public class CodeItem extends Item<CodeItem> {
 
         /**
          * @return the "Catch All" handler address for this <code>EncodedCatchHandler</code>, or -1 if there
-         * is no "Catch All" handler 
+         * is no "Catch All" handler
          */
         public int getCatchAllHandlerAddress() {
             return catchAllHandlerAddress;
