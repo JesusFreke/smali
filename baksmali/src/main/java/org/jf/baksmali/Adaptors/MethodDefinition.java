@@ -274,7 +274,7 @@ public class MethodDefinition {
                 methodItems.add(new BlankMethodItem(stg, currentCodeAddress));
             }
 
-            if (baksmali.registerInfo != 0) {
+            if (baksmali.registerInfo != 0 && !instruction.instruction.getFormat().variableSizeFormat) {
                 printPreRegister.clear();
                 printPostRegister.clear();
 
