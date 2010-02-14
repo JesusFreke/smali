@@ -94,7 +94,8 @@ public class ClassPath {
             if (classType.charAt(0) == '[') {
                 return theClassPath.createArrayClassDef(classType);
             } else {
-                throw new ClassNotFoundException("Class " + classType + " cannot be found");
+                //TODO: we should output a warning 
+                return theClassPath.createUnresolvedClassDef(classType);
             }
         }
         return classDef;
@@ -112,7 +113,15 @@ public class ClassPath {
         return getClassDef(arrayPrefix.substring(256 - arrayDimension) + classDef.classType);
     }
 
-    private static ClassDef createArrayClassDef(String arrayClassName) {
+    private ClassDef createUnresolvedClassDef(String classType)  {
+        assert classType.charAt(0) == 'L';
+
+        UnresolvedClassDef unresolvedClassDef = new UnresolvedClassDef(classType);
+        classDefs.put(classType, unresolvedClassDef);
+        return unresolvedClassDef;
+    }
+
+    private ClassDef createArrayClassDef(String arrayClassName) {
         assert arrayClassName != null;
         assert arrayClassName.charAt(0) == '[';
 
@@ -121,7 +130,7 @@ public class ClassPath {
             return null;
         }
 
-        theClassPath.classDefs.put(arrayClassName, arrayClassDef);
+        classDefs.put(arrayClassName, arrayClassDef);
         return arrayClassDef;
     }
 
@@ -216,7 +225,7 @@ public class ClassPath {
         private final int arrayDimensions;
 
         protected ArrayClassDef(String arrayClassType) {
-            super(arrayClassType, true);
+            super(arrayClassType, ClassDef.ArrayClassDef);
             assert arrayClassType.charAt(0) == '[';
 
             int i=0;
@@ -299,17 +308,53 @@ public class ClassPath {
             }
             return false;
         }
-
-        @Override
-        public boolean implementsInterface(ClassDef interfaceDef) {
-            return interfaceDef.classType.equals("Ljava/lang/Cloneable;") ||
-                    interfaceDef.classType.equals("Ljava/io/Serializable;");
-        }
     }
 
     public static class PrimitiveClassDef extends ClassDef {
         protected PrimitiveClassDef(String primitiveClassType) {
-            super(primitiveClassType, false);
+            super(primitiveClassType, ClassDef.PrimitiveClassDef);
+            assert primitiveClassType.charAt(0) != 'L' && primitiveClassType.charAt(0) != '[';
+        }
+    }
+
+    public static class UnresolvedClassDef extends ClassDef {
+        protected UnresolvedClassDef(String unresolvedClassDef) {
+            super(unresolvedClassDef, ClassDef.UnresolvedClassDef);
+            assert unresolvedClassDef.charAt(0) == 'L';
+        }
+
+        protected ValidationException unresolvedValidationException() {
+            return new ValidationException(String.format("class %s cannot be resolved.", this.getClassType()));
+        }
+
+        public ClassDef getSuperclass() {
+            throw unresolvedValidationException();
+        }
+
+        public int getClassDepth() {
+            throw unresolvedValidationException();
+        }
+
+        public boolean isInterface() {
+            throw unresolvedValidationException();
+        }
+
+         public boolean extendsClass(ClassDef superclassDef) {
+            if (superclassDef != theClassPath.javaLangObjectClassDef && superclassDef != this) {
+                throw unresolvedValidationException();
+            }
+            return true;
+        }
+
+        public boolean implementsInterface(ClassDef interfaceDef) {
+            throw unresolvedValidationException();
+        }
+
+        public boolean hasVirtualMethod(String method) {
+            if (!super.hasVirtualMethod(method)) {
+                throw unresolvedValidationException();
+            }
+            return true;
         }
     }
 
@@ -333,14 +378,18 @@ public class ClassPath {
         private final SparseArray<String> instanceFields;
         private final HashMap<String, Integer> instanceFieldLookup;
 
+        public final static int ArrayClassDef = 0;
+        public final static int PrimitiveClassDef = 1;
+        public final static int UnresolvedClassDef = 2;
+
         /**
-         * This constructor is used for the ArrayClassDef and PrimitiveClassDef subclasses
+         * This constructor is used for the ArrayClassDef, PrimitiveClassDef and UnresolvedClassDef subclasses
          * @param classType the class type
-         * @param isArrayType whether this is an array ClassDef or a primitive ClassDef
+         * @param classFlavor one of ArrayClassDef, PrimitiveClassDef or UnresolvedClassDef
          */
-        protected ClassDef(String classType, boolean isArrayType) {
-            if (isArrayType) {
-                assert (classType.charAt(0) == '[');
+        protected ClassDef(String classType, int classFlavor) {
+            if (classFlavor == ArrayClassDef) {
+                assert classType.charAt(0) == '[';
                 this.classType = classType;
                 this.superclass = ClassPath.theClassPath.javaLangObjectClassDef;
                 implementedInterfaces = new TreeSet<ClassDef>();
@@ -354,8 +403,10 @@ public class ClassPath {
                 instanceFields = superclass.instanceFields;
                 instanceFieldLookup = superclass.instanceFieldLookup;
                 classDepth = 1; //1 off from java.lang.Object
-            } else {
+            } else if (classFlavor == PrimitiveClassDef) {
                 //primitive type
+                assert classType.charAt(0) != '[' && classType.charAt(0) != 'L';
+
                 this.classType = classType;
                 this.superclass = null;
                 implementedInterfaces = null;
@@ -365,6 +416,19 @@ public class ClassPath {
                 instanceFields = null;
                 instanceFieldLookup = null;
                 classDepth = 0; //TODO: maybe use -1 to indicate not applicable?
+            } else /*if (classFlavor == UnresolvedClassDef)*/ {
+                assert classType.charAt(0) == 'L';
+                this.classType = classType;
+                this.superclass = ClassPath.theClassPath.javaLangObjectClassDef;
+                implementedInterfaces = new TreeSet<ClassDef>();
+                isInterface = false;
+
+                vtable = superclass.vtable;
+                virtualMethodLookup = superclass.virtualMethodLookup;
+
+                instanceFields = superclass.instanceFields;
+                instanceFieldLookup = superclass.instanceFieldLookup;
+                classDepth = 1; //1 off from java.lang.Object
             }
         }
 
@@ -420,6 +484,10 @@ public class ClassPath {
                 return true;
             }
 
+            if (superclassDef instanceof UnresolvedClassDef) {
+                throw ((UnresolvedClassDef)superclassDef).unresolvedValidationException();
+            }
+
             int superclassDepth = superclassDef.classDepth;
             ClassDef ancestor = this;
             while (ancestor.classDepth > superclassDepth) {
@@ -437,31 +505,13 @@ public class ClassPath {
          * @return true if this class implements the given interface
          */
         public boolean implementsInterface(ClassDef interfaceDef) {
+            assert !(interfaceDef instanceof UnresolvedClassDef);
             return implementedInterfaces.contains(interfaceDef);
         }
 
         public boolean hasVirtualMethod(String method) {
             return virtualMethodLookup.containsKey(method);
         }
-
-        //TODO: GROT
-        /*public void dumpVtable() {
-            System.out.println(classType + " methods:");
-            int i=0;
-            for (String method: vtable) {
-                System.out.println(i + ":\t" + method);
-                i++;
-            }
-        }*/
-
-        //TODO: GROT
-        /*public void dumpFields() {
-            System.out.println(classType + " fields:");
-            for (int i=0; i<instanceFields.size(); i++) {
-                int fieldOffset = instanceFields.keyAt(i);
-                System.out.println(fieldOffset + ":\t" + instanceFields.valueAt(i));
-            }
-        }*/
 
         private void swap(byte[] fieldTypes, String[] fields, int position1, int position2) {
             byte tempType = fieldTypes[position1];
