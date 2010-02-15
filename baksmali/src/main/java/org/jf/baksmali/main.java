@@ -190,7 +190,12 @@ public class main {
         }
 
         if (commandLine.hasOption("c")) {
-            bootClassPath = commandLine.getOptionValue("c");
+            String bcp = commandLine.getOptionValue("c");
+            if (bcp.charAt(0) == ':') {
+                bootClassPath = bootClassPath + bcp;
+            } else {
+                bootClassPath = bcp;
+            }
         }
 
         if (commandLine.hasOption("C")) {
@@ -379,7 +384,8 @@ public class main {
 
         Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
                 .withDescription("the bootclasspath jars to use, for analysis. Defaults to " +
-                        "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar")
+                        "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar. If you specify a value that " +
+                        "begins with a :, it will be appended to the default bootclasspath")
                 .hasOptionalArg()
                 .withArgName("BOOTCLASSPATH")
                 .create("c");
