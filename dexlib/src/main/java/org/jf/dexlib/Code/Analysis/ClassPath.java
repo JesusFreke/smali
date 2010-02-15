@@ -17,23 +17,23 @@ public class ClassPath {
     private final HashMap<String, ClassDef> classDefs;
     protected ClassDef javaLangObjectClassDef; //Ljava/lang/Object;
 
-    public static void InitializeClassPath(String[] bootClassPath, DexFile dexFile) {
+    public static void InitializeClassPath(String bootClassPathDir, String[] bootClassPath, DexFile dexFile) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
         }
 
         theClassPath = new ClassPath();
-        theClassPath.initClassPath(bootClassPath, dexFile);
+        theClassPath.initClassPath(bootClassPathDir, bootClassPath, dexFile);
     }
 
     private ClassPath() {
         classDefs = new HashMap<String, ClassDef>();
     }
 
-    private void initClassPath(String[] bootClassPath, DexFile dexFile) {
+    private void initClassPath(String bootClassPathDir, String[] bootClassPath, DexFile dexFile) {
         if (bootClassPath != null) {
             for (String bootClassPathEntry: bootClassPath) {
-                loadBootClassPath(bootClassPathEntry);
+                loadBootClassPath(bootClassPathDir, bootClassPathEntry);
             }
         }
 
@@ -45,8 +45,8 @@ public class ClassPath {
         }
     }
 
-    private void loadBootClassPath(String bootClassPathEntry) {
-        File file = new File(bootClassPathEntry);
+    private void loadBootClassPath(String bootClassPathDir, String bootClassPathEntry) {
+        File file = new File(bootClassPathDir, bootClassPathEntry);
 
         if (!file.exists()) {
             throw new ExceptionWithContext("ClassPath entry \"" + bootClassPathEntry + "\" does not exist.");

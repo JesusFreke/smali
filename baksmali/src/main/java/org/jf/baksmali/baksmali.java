@@ -50,7 +50,7 @@ public class baksmali {
     public static DeodexUtil deodexUtil = null;
 
     public static void disassembleDexFile(DexFile dexFile, Deodexerant deodexerant, String outputDirectory,
-                                          String bootClassPath, boolean noParameterRegisters,
+                                          String bootClassPathDir, String bootClassPath, boolean noParameterRegisters,
                                           boolean useLocalsDirective, boolean useSequentialLabels,
                                           boolean outputDebugInfo, int registerInfo)
     {
@@ -62,7 +62,7 @@ public class baksmali {
         baksmali.bootClassPath = bootClassPath;
 
         if (registerInfo != 0) {
-            ClassPath.InitializeClassPath(bootClassPath==null?null:bootClassPath.split(":"), dexFile);
+            ClassPath.InitializeClassPath(bootClassPathDir, bootClassPath==null?null:bootClassPath.split(":"), dexFile);
         }
 
         if (deodexerant != null) {

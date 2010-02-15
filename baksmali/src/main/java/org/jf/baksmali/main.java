@@ -92,6 +92,7 @@ public class main {
         String inputDexFileName = null;
         String deodexerantHost = null;
         String bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
+        String bootClassPathDir = ".";
         int deodexerantPort = 0;
 
         String[] remainingArgs = commandLine.getArgs();
@@ -192,6 +193,10 @@ public class main {
             bootClassPath = commandLine.getOptionValue("c");
         }
 
+        if (commandLine.hasOption("C")) {
+            bootClassPathDir = commandLine.getOptionValue("C");
+        }
+
         if (commandLine.hasOption("x")) {
             String deodexerantAddress = commandLine.getOptionValue("x");
             String[] parts = deodexerantAddress.split(":");
@@ -247,8 +252,8 @@ public class main {
             }
 
             if (disassemble) {
-                baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, bootClassPath, noParameterRegisters,
-                        useLocalsDirective, useSequentialLabels, outputDebugInfo, registerInfo);
+                baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, bootClassPathDir, bootClassPath,
+                        noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, registerInfo);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -373,10 +378,18 @@ public class main {
                 .create("r");
 
         Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
-                .withDescription("the bootclasspath jars to use, for analysis")
+                .withDescription("the bootclasspath jars to use, for analysis. Defaults to " +
+                        "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar")
                 .hasOptionalArg()
                 .withArgName("BOOTCLASSPATH")
                 .create("c");
+
+        Option classPathDirOption = OptionBuilder.withLongOpt("bootclasspath-dir")
+                .withDescription("the base folder to look for the bootclasspath files in. Defaults to the current " +
+                        "directory")
+                .hasArg()
+                .withArgName("DIR")
+                .create("C");
 
         options.addOption(versionOption);
         options.addOption(helpOption);
@@ -393,5 +406,6 @@ public class main {
         options.addOption(noDebugInfoOption);
         options.addOption(registerInfoOption);
         options.addOption(classPathOption);
+        options.addOption(classPathDirOption);
     }
 }
