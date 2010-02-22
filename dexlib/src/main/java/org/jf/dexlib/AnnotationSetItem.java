@@ -63,7 +63,7 @@ public class AnnotationSetItem extends Item<AnnotationSetItem> {
      * @param annotations The annotations for this <code>AnnotationSetItem</code>
      * @return an <code>AnnotationSetItem</code> for the given annotations
      */
-    public static AnnotationSetItem getInternedAnnotationSetItem(DexFile dexFile, List<AnnotationItem> annotations) {
+    public static AnnotationSetItem internAnnotationSetItem(DexFile dexFile, List<AnnotationItem> annotations) {
         AnnotationItem[] annotationsArray = new AnnotationItem[annotations.size()];
         annotations.toArray(annotationsArray);
         AnnotationSetItem annotationSetItem = new AnnotationSetItem(dexFile, annotationsArray);

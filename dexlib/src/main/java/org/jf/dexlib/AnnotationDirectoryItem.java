@@ -108,7 +108,7 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
      * @return an <code>AnnotationItem</code> for the given values, and that has been interned into the given
      * <code>DexFile</code>
      */
-    public static AnnotationDirectoryItem getInternedAnnotationDirectoryItem(DexFile dexFile,
+    public static AnnotationDirectoryItem internAnnotationDirectoryItem(DexFile dexFile,
                                     AnnotationSetItem classAnnotations,
                                     List<FieldAnnotation> fieldAnnotations,
                                     List<MethodAnnotation> methodAnnotations,

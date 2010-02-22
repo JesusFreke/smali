@@ -87,7 +87,7 @@ public class DebugInfoItem extends Item<DebugInfoItem> {
      * debug info
      * @return a new <code>DebugInfoItem</code> with the given values
      */
-    public static DebugInfoItem getInternedDebugInfoItem(DexFile dexFile,
+    public static DebugInfoItem internDebugInfoItem(DexFile dexFile,
                          int lineStart,
                          StringIdItem[] parameterNames,
                          byte[] encodedDebugInfo,

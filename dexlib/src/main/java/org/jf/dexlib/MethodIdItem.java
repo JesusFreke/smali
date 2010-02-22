@@ -70,10 +70,26 @@ public class MethodIdItem extends Item<MethodIdItem> {
      * @return a <code>MethodIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static MethodIdItem getInternedMethodIdItem(DexFile dexFile, TypeIdItem classType,
+    public static MethodIdItem internMethodIdItem(DexFile dexFile, TypeIdItem classType,
                                                        ProtoIdItem methodPrototype, StringIdItem methodName) {
         MethodIdItem methodIdItem = new MethodIdItem(dexFile, classType, methodPrototype, methodName);
         return dexFile.MethodIdsSection.intern(methodIdItem);
+    }
+
+    /**
+     * Looks up a <code>MethodIdItem</code> from the given <code>DexFile</code> for the given
+     * values
+     * @param dexFile The <code>DexFile</code> that this item belongs to
+     * @param classType the class that the method is a member of
+     * @param methodPrototype the type of the method
+     * @param methodName the name of the method
+     * @return a <code>MethodIdItem</code> from the given <code>DexFile</code> for the given
+     * values, or null if it doesn't exist
+     */
+    public static MethodIdItem lookupMethodIdItem(DexFile dexFile, TypeIdItem classType,
+                                                       ProtoIdItem methodPrototype, StringIdItem methodName) {
+        MethodIdItem methodIdItem = new MethodIdItem(dexFile, classType, methodPrototype, methodName);
+        return dexFile.MethodIdsSection.getInternedItem(methodIdItem);
     }
 
     /** {@inheritDoc} */

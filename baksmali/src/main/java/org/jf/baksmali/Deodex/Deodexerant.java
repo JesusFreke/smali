@@ -112,7 +112,7 @@ public class Deodexerant {
     }
 
     private TypeIdItem resolveTypeOrSupertype(String type) {
-        TypeIdItem typeItem = TypeIdItem.getInternedTypeIdItem(dexFile, type);
+        TypeIdItem typeItem = TypeIdItem.internTypeIdItem(dexFile, type);
 
         while (typeItem == null) {
             type = lookupSuperclass(type);
@@ -120,7 +120,7 @@ public class Deodexerant {
                 throw new RuntimeException("Could not find the type or a supertype of " + type + " in the dex file");
             }
 
-            typeItem = TypeIdItem.getInternedTypeIdItem(dexFile, type);
+            typeItem = TypeIdItem.internTypeIdItem(dexFile, type);
         }
         return typeItem;
     }
@@ -249,7 +249,7 @@ public class Deodexerant {
                                                String methodRet) {
         TypeIdItem classTypeItem = resolveTypeOrSupertype(classType);
 
-        StringIdItem methodNameItem = StringIdItem.getInternedStringIdItem(dexFile, methodName);
+        StringIdItem methodNameItem = StringIdItem.internStringIdItem(dexFile, methodName);
         if (methodNameItem == null) {
             return null;
         }
@@ -318,7 +318,7 @@ public class Deodexerant {
 
         TypeListItem paramListItem = null;
         if (paramList.size() > 0) {
-            paramListItem = TypeListItem.getInternedTypeListItem(dexFile, paramList);
+            paramListItem = TypeListItem.internTypeListItem(dexFile, paramList);
             if (paramListItem == null) {
                 throw new RuntimeException("Could not find type list item in dex file");
             }
@@ -326,7 +326,7 @@ public class Deodexerant {
 
         TypeIdItem retType = getType(methodRet);
 
-        ProtoIdItem protoItem = ProtoIdItem.getInternedProtoIdItem(dexFile, retType, paramListItem);
+        ProtoIdItem protoItem = ProtoIdItem.internProtoIdItem(dexFile, retType, paramListItem);
         if (protoItem == null) {
             return null;
         }
@@ -334,7 +334,7 @@ public class Deodexerant {
         MethodIdItem methodIdItem;
 
         do {
-            methodIdItem = MethodIdItem.getInternedMethodIdItem(dexFile, classTypeItem, protoItem, methodNameItem);
+            methodIdItem = MethodIdItem.internMethodIdItem(dexFile, classTypeItem, protoItem, methodNameItem);
             if (methodIdItem != null) {
                 return methodIdItem;
             }
@@ -343,11 +343,11 @@ public class Deodexerant {
             if (superclassDescriptor == null) {
                 return null;
             }
-            classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
+            classTypeItem = TypeIdItem.internTypeIdItem(dexFile, superclassDescriptor);
 
             while (classTypeItem == null && superclassDescriptor != null) {
                 superclassDescriptor = lookupSuperclass(superclassDescriptor);
-                classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
+                classTypeItem = TypeIdItem.internTypeIdItem(dexFile, superclassDescriptor);
             }
         } while (true);
     }
@@ -371,12 +371,12 @@ public class Deodexerant {
         String fieldName = parts[0];
         String fieldType = parts[1];
 
-        StringIdItem fieldNameItem = StringIdItem.getInternedStringIdItem(dexFile, fieldName);
+        StringIdItem fieldNameItem = StringIdItem.internStringIdItem(dexFile, fieldName);
         if (fieldNameItem == null) {
             return null;
         }
 
-        TypeIdItem fieldTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, fieldType);
+        TypeIdItem fieldTypeItem = TypeIdItem.internTypeIdItem(dexFile, fieldType);
         if (fieldTypeItem == null) {
             return null;
         }
@@ -384,17 +384,17 @@ public class Deodexerant {
         FieldIdItem fieldIdItem;
 
         do {
-            fieldIdItem = FieldIdItem.getInternedFieldIdItem(dexFile, classTypeItem, fieldTypeItem, fieldNameItem);
+            fieldIdItem = FieldIdItem.internFieldIdItem(dexFile, classTypeItem, fieldTypeItem, fieldNameItem);
             if (fieldIdItem != null) {
                 return fieldIdItem;
             }
 
             String superclassDescriptor = lookupSuperclass(classTypeItem.getTypeDescriptor());
-            classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
+            classTypeItem = TypeIdItem.internTypeIdItem(dexFile, superclassDescriptor);
 
             while (classTypeItem == null && superclassDescriptor != null) {
                 superclassDescriptor = lookupSuperclass(superclassDescriptor);
-                classTypeItem = TypeIdItem.getInternedTypeIdItem(dexFile, superclassDescriptor);
+                classTypeItem = TypeIdItem.internTypeIdItem(dexFile, superclassDescriptor);
             }
         } while (classTypeItem != null);
         throw new RuntimeException("Could not find field in dex file");
@@ -447,7 +447,7 @@ public class Deodexerant {
     }
 
     private TypeIdItem getType(String typeDescriptor) {
-        TypeIdItem type = TypeIdItem.getInternedTypeIdItem(dexFile, typeDescriptor);
+        TypeIdItem type = TypeIdItem.internTypeIdItem(dexFile, typeDescriptor);
         if (type == null) {
             throw new RuntimeException("Could not find type \"" + typeDescriptor + "\" in dex file");
         }

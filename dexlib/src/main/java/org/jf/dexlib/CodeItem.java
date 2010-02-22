@@ -105,7 +105,7 @@ public class CodeItem extends Item<CodeItem> {
      * @param encodedCatchHandlers a list of the exception handlers defined for this code/method or null if none
      * @return a new <code>CodeItem</code> with the given values.
      */
-    public static CodeItem getInternedCodeItem(DexFile dexFile,
+    public static CodeItem internCodeItem(DexFile dexFile,
                     int registerCount,
                     int inWords,
                     int outWords,

@@ -112,7 +112,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
      * @return a <code>ClassDefItem</code> for the given values, and that has been interned into the given
      * <code>DexFile</code>
      */
-    public static ClassDefItem getInternedClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags,
+    public static ClassDefItem internClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags,
                          TypeIdItem superType, TypeListItem implementedInterfaces, StringIdItem sourceFile,
                          AnnotationDirectoryItem annotations, ClassDataItem classData,
                          List<StaticFieldInitializer> staticFieldInitializers) {
@@ -126,6 +126,40 @@ public class ClassDefItem extends Item<ClassDefItem> {
         ClassDefItem classDefItem = new ClassDefItem(dexFile, classType, accessFlags, superType, implementedInterfaces,
                 sourceFile, annotations, classData, encodedArrayItem);
         return dexFile.ClassDefsSection.intern(classDefItem);
+    }
+
+    /**
+     * Looks up a <code>ClassDefItem</code> from the given <code>DexFile</code> for the given
+     * values
+     * @param dexFile The <code>DexFile</code> that the <code>ClassDefItem</code> belongs to
+     * @param classType The type of the class
+     * @param accessFlags The access flags of the class
+     * @param superType The superclass of the class, or null if none (only valid for java.lang.Object)
+     * @param implementedInterfaces A list of the interfaces that the class implements, or null if none
+     * @param sourceFile The main source file that the class is defined in, or null if not available
+     * @param annotations The annotations for the class and its fields, methods and method parameters, or null if none
+     * @param classData The <code>ClassDataItem</code> containing the method and field definitions for the class
+     * @param staticFieldInitializers The initial values for the class's static fields, or null if none. If it is not
+     * null, it must contain the same number of items as the number of static fields in the class. The value in the
+     * <code>StaticFieldInitializer</code> for any field that doesn't have an explicit initial value can either be null
+     * or be the type-appropriate null/0 value.
+     * @return a <code>ClassDefItem</code> from the given <code>DexFile</code> for the given
+     * values, or null if it doesn't exist
+     */
+    public static ClassDefItem lookupClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags,
+                         TypeIdItem superType, TypeListItem implementedInterfaces, StringIdItem sourceFile,
+                         AnnotationDirectoryItem annotations, ClassDataItem classData,
+                         List<StaticFieldInitializer> staticFieldInitializers) {
+        EncodedArrayItem encodedArrayItem = null;
+        if(!dexFile.getInplace() && staticFieldInitializers != null && staticFieldInitializers.size() > 0) {
+            assert classData != null;
+            assert staticFieldInitializers.size() == classData.getStaticFields().length;
+            encodedArrayItem = makeStaticFieldInitializersItem(dexFile, staticFieldInitializers);
+        }
+
+        ClassDefItem classDefItem = new ClassDefItem(dexFile, classType, accessFlags, superType, implementedInterfaces,
+                sourceFile, annotations, classData, encodedArrayItem);
+        return dexFile.ClassDefsSection.getInternedItem(classDefItem);
     }
 
     /** {@inheritDoc} */
@@ -373,6 +407,6 @@ public class ClassDefItem extends Item<ClassDefItem> {
         }
 
         ArrayEncodedSubValue encodedArrayValue = new ArrayEncodedSubValue(values);
-        return EncodedArrayItem.getInternedEncodedArrayItem(dexFile, encodedArrayValue);
+        return EncodedArrayItem.internEncodedArrayItem(dexFile, encodedArrayValue);
     }
 }

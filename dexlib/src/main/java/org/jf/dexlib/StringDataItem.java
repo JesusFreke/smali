@@ -62,10 +62,23 @@ public class StringDataItem extends Item<StringDataItem> {
      * @return a <code>StringDataItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static StringDataItem getInternedStringDataItem(DexFile dexFile, String value) {
+    public static StringDataItem internStringDataItem(DexFile dexFile, String value) {
         StringDataItem StringDataItem = new StringDataItem(dexFile, value);
         return dexFile.StringDataSection.intern(StringDataItem);
     }
+
+    /**
+     * Looks up the <code>StringDataItem</code> from the given <code>DexFile</code> for the given
+     * string value
+     * @param dexFile the <code>Dexfile</code> to find the string value in
+     * @param value The string value to look up
+     * @return a <code>StringDataItem</code> from the given <code>DexFile</code> for the given
+     * string value, or null if it doesn't exist
+     **/
+    public static StringDataItem lookupStringDataItem(DexFile dexFile, String value) {
+        StringDataItem StringDataItem = new StringDataItem(dexFile, value);
+        return dexFile.StringDataSection.getInternedItem(StringDataItem);
+    }    
 
     /** {@inheritDoc} */
     protected void readItem(Input in, ReadContext readContext) {

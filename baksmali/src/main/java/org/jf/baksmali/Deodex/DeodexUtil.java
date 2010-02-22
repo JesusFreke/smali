@@ -41,7 +41,6 @@ public class DeodexUtil {
 
     public DeodexUtil(Deodexerant deodexerant) {
         this.deodexerant = deodexerant;
-        deodexerant.dexFile.disableInterning();
     }
 
     private List<insn> makeInsnList(final CodeItem codeItem) {

@@ -170,13 +170,13 @@ public class DebugInfoBuilder
             if (parameterName == null) {
                 parameterNamesArray[index++] = null;
             } else {
-                parameterNamesArray[index++] = StringIdItem.getInternedStringIdItem(dexFile, parameterName);
+                parameterNamesArray[index++] = StringIdItem.internStringIdItem(dexFile, parameterName);
             }
         }
 
         Item[] referencedItemsArray = new Item[referencedItems.size()];
         referencedItems.toArray(referencedItemsArray);
-        return DebugInfoItem.getInternedDebugInfoItem(dexFile, lineStart, parameterNamesArray, out.toByteArray(),
+        return DebugInfoItem.internDebugInfoItem(dexFile, lineStart, parameterNamesArray, out.toByteArray(),
                 referencedItemsArray);
     }
 
@@ -307,9 +307,9 @@ public class DebugInfoBuilder
         public void emit(DexFile dexFile, Output out, List<Item> referencedItems) {
             emitAdvancePC(out, address);
             emitStartLocal(out, registerNum);
-            referencedItems.add(localName==null?null:StringIdItem.getInternedStringIdItem(dexFile, localName));
-            referencedItems.add(localType==null?null:TypeIdItem.getInternedTypeIdItem(dexFile,
-                    StringIdItem.getInternedStringIdItem(dexFile, localType)));
+            referencedItems.add(localName==null?null:StringIdItem.internStringIdItem(dexFile, localName));
+            referencedItems.add(localType==null?null:TypeIdItem.internTypeIdItem(dexFile,
+                    StringIdItem.internStringIdItem(dexFile, localType)));
         }
     }
 
@@ -338,14 +338,14 @@ public class DebugInfoBuilder
             emitAdvancePC(out, address);
             emitStartLocalExtended(out, registerNum);
             if (localName != null) {
-                referencedItems.add(StringIdItem.getInternedStringIdItem(dexFile, localName));
+                referencedItems.add(StringIdItem.internStringIdItem(dexFile, localName));
             }
             if (localType != null) {
-                referencedItems.add(TypeIdItem.getInternedTypeIdItem(dexFile,
-                    StringIdItem.getInternedStringIdItem(dexFile, localType)));
+                referencedItems.add(TypeIdItem.internTypeIdItem(dexFile,
+                    StringIdItem.internStringIdItem(dexFile, localType)));
             }
             if (signature != null) {
-                referencedItems.add(StringIdItem.getInternedStringIdItem(dexFile, signature));
+                referencedItems.add(StringIdItem.internStringIdItem(dexFile, signature));
             }
         }
     }
@@ -444,7 +444,7 @@ public class DebugInfoBuilder
             emitAdvancePC(out, address);
             emitSetFile(out);
             if (fileName != null) {
-                referencedItems.add(StringIdItem.getInternedStringIdItem(dexFile, fileName));
+                referencedItems.add(StringIdItem.internStringIdItem(dexFile, fileName));
             }
         }
     }

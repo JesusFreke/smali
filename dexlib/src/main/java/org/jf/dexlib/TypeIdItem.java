@@ -62,7 +62,7 @@ public class TypeIdItem extends Item<TypeIdItem> {
      * @return a <code>TypeIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static TypeIdItem getInternedTypeIdItem(DexFile dexFile, StringIdItem typeDescriptor) {
+    public static TypeIdItem internTypeIdItem(DexFile dexFile, StringIdItem typeDescriptor) {
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, typeDescriptor);
         return dexFile.TypeIdsSection.intern(typeIdItem);
     }
@@ -76,13 +76,30 @@ public class TypeIdItem extends Item<TypeIdItem> {
      * @return a <code>TypeIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static TypeIdItem getInternedTypeIdItem(DexFile dexFile, String typeDescriptor) {
-        StringIdItem stringIdItem = StringIdItem.getInternedStringIdItem(dexFile, typeDescriptor);
+    public static TypeIdItem internTypeIdItem(DexFile dexFile, String typeDescriptor) {
+        StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, typeDescriptor);
         if (stringIdItem == null) {
             return null;
         }
         TypeIdItem typeIdItem = new TypeIdItem(dexFile, stringIdItem);
         return dexFile.TypeIdsSection.intern(typeIdItem);
+    }
+
+    /**
+     * Looks up the <code>TypeIdItem</code> from the given <code>DexFile</code> for the given
+     * type descriptor
+     * @param dexFile the <code>Dexfile</code> to find the type in
+     * @param typeDescriptor The string containing the type descriptor to look up
+     * @return a <code>TypeIdItem</code> from the given <code>DexFile</code> for the given
+     * type descriptor, or null if it doesn't exist
+     */
+    public static TypeIdItem lookupTypeIdItem(DexFile dexFile, String typeDescriptor) {
+        StringIdItem stringIdItem = StringIdItem.lookupStringIdItem(dexFile, typeDescriptor);
+        if (stringIdItem == null) {
+            return null;
+        }
+        TypeIdItem typeIdItem = new TypeIdItem(dexFile, stringIdItem);
+        return dexFile.TypeIdsSection.getInternedItem(typeIdItem);
     }
 
     /** {@inheritDoc} */

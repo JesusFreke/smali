@@ -62,7 +62,7 @@ public class EncodedArrayItem extends Item<EncodedArrayItem> {
      * @param encodedArray The encoded array value
      * @return an <code>EncodedArrayItem</code> for the given values, and that has been interned into the given
      */
-    public static EncodedArrayItem getInternedEncodedArrayItem(DexFile dexFile, ArrayEncodedSubValue encodedArray) {
+    public static EncodedArrayItem internEncodedArrayItem(DexFile dexFile, ArrayEncodedSubValue encodedArray) {
         EncodedArrayItem encodedArrayItem = new EncodedArrayItem(dexFile, encodedArray);
         return dexFile.EncodedArraysSection.intern(encodedArrayItem);
     }

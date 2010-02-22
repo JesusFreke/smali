@@ -68,7 +68,7 @@ public class AnnotationItem extends Item<AnnotationItem> {
      * @return an <code>AnnotationItem</code> for the given values, and that has been interned into the given
      * <code>DexFile</code>
      */
-    public static AnnotationItem getInternedAnnotationItem(DexFile dexFile, AnnotationVisibility visibility,
+    public static AnnotationItem internAnnotationItem(DexFile dexFile, AnnotationVisibility visibility,
                            AnnotationEncodedSubValue annotationValue) {
         AnnotationItem annotationItem = new AnnotationItem(dexFile, visibility, annotationValue);
         return dexFile.AnnotationsSection.intern(annotationItem);

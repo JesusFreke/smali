@@ -158,7 +158,7 @@ smali_file
 			$methods.parameterAnnotations != null ||
 			$fields.fieldAnnotations != null ||
 			$annotations.annotationSetItem != null) {
-			annotationDirectoryItem = AnnotationDirectoryItem.getInternedAnnotationDirectoryItem(
+			annotationDirectoryItem = AnnotationDirectoryItem.internAnnotationDirectoryItem(
 				dexFile,
 				$annotations.annotationSetItem,
 				$fields.fieldAnnotations,
@@ -168,11 +168,11 @@ smali_file
 		
 		if ($fields.staticFields.size() != 0 || $fields.instanceFields.size() != 0 ||
 		    $methods.directMethods.size() != 0 || $methods.virtualMethods.size()!= 0) {
-			classDataItem = ClassDataItem.getInternedClassDataItem(dexFile, $fields.staticFields, $fields.instanceFields,
+			classDataItem = ClassDataItem.internClassDataItem(dexFile, $fields.staticFields, $fields.instanceFields,
 									$methods.directMethods, $methods.virtualMethods);
 		}
 									
-		classDefItem = ClassDefItem.getInternedClassDefItem(dexFile, $header.classType, $header.accessFlags,
+		classDefItem = ClassDefItem.internClassDefItem(dexFile, $header.classType, $header.accessFlags,
 				$header.superType, $header.implementsList, $header.sourceSpec, annotationDirectoryItem, 
 				classDataItem, $fields.staticFieldInitialValues);
 	};
@@ -220,7 +220,7 @@ implements_list returns[TypeListItem implementsList]
 		(implements_spec {typeList.add($implements_spec.type);} )*
 	{
 		if (typeList.size() > 0) {
-			$implementsList = TypeListItem.getInternedTypeListItem(dexFile, typeList);
+			$implementsList = TypeListItem.internTypeListItem(dexFile, typeList);
 		} else {
 			$implementsList = null;
 		}
@@ -228,7 +228,7 @@ implements_list returns[TypeListItem implementsList]
 		
 source_spec returns[StringIdItem source]
 	:	{$source = null;}
-		^(I_SOURCE string_literal {$source = StringIdItem.getInternedStringIdItem(dexFile, $string_literal.value);})
+		^(I_SOURCE string_literal {$source = StringIdItem.internStringIdItem(dexFile, $string_literal.value);})
 	|	;
 		
 	
@@ -314,10 +314,10 @@ methods returns[List<ClassDataItem.EncodedMethod> directMethods,
 field returns [ClassDataItem.EncodedField encodedField, EncodedValue encodedValue, AnnotationSetItem fieldAnnotationSet]
 	:^(I_FIELD MEMBER_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
 	{
-		StringIdItem memberName = StringIdItem.getInternedStringIdItem(dexFile, $MEMBER_NAME.text);
+		StringIdItem memberName = StringIdItem.internStringIdItem(dexFile, $MEMBER_NAME.text);
 		TypeIdItem fieldType = $nonvoid_type_descriptor.type;
 
-		FieldIdItem fieldIdItem = FieldIdItem.getInternedFieldIdItem(dexFile, classType, fieldType, memberName);
+		FieldIdItem fieldIdItem = FieldIdItem.internFieldIdItem(dexFile, classType, fieldType, memberName);
 		$encodedField = new ClassDataItem.EncodedField(fieldIdItem, $access_list.value);
 		
 		if ($field_initial_value.encodedValue != null) {
@@ -348,7 +348,7 @@ literal returns[EncodedValue encodedValue]
 	|	float_literal { $encodedValue = new FloatEncodedValue($float_literal.value); }
 	|	double_literal { $encodedValue = new DoubleEncodedValue($double_literal.value); }
 	|	char_literal { $encodedValue = new CharEncodedValue($char_literal.value); }
-	|	string_literal { $encodedValue = new StringEncodedValue(StringIdItem.getInternedStringIdItem(dexFile, $string_literal.value)); }
+	|	string_literal { $encodedValue = new StringEncodedValue(StringIdItem.internStringIdItem(dexFile, $string_literal.value)); }
 	|	bool_literal { $encodedValue = $bool_literal.value?BooleanEncodedValue.TrueValue:BooleanEncodedValue.FalseValue; }
 	|	NULL_LITERAL { $encodedValue = NullEncodedValue.NullValue; }
 	|	type_descriptor { $encodedValue = new TypeEncodedValue($type_descriptor.type); }
@@ -537,7 +537,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 								" parameters.");
 			}
 				
-			codeItem = CodeItem.getInternedCodeItem(dexFile,
+			codeItem = CodeItem.internCodeItem(dexFile,
 						totalMethodRegisters,
 						methodParameterRegisters,
 						$statements.maxOutRegisters,
@@ -565,20 +565,20 @@ method_prototype returns[ProtoIdItem protoIdItem]
 		List<TypeIdItem> parameterTypes = $field_type_list.types;
 		TypeListItem parameterTypeListItem = null;
 		if (parameterTypes != null && parameterTypes.size() > 0) {
-			parameterTypeListItem = TypeListItem.getInternedTypeListItem(dexFile, parameterTypes);
+			parameterTypeListItem = TypeListItem.internTypeListItem(dexFile, parameterTypes);
 		}
 		
-		$protoIdItem = ProtoIdItem.getInternedProtoIdItem(dexFile, returnType, parameterTypeListItem);
+		$protoIdItem = ProtoIdItem.internProtoIdItem(dexFile, returnType, parameterTypeListItem);
 	};
 
 method_name_and_prototype returns[MethodIdItem methodIdItem]
 	:	MEMBER_NAME method_prototype
 	{
 		String methodNameString = $MEMBER_NAME.text;
-		StringIdItem methodName = StringIdItem.getInternedStringIdItem(dexFile, methodNameString);
+		StringIdItem methodName = StringIdItem.internStringIdItem(dexFile, methodNameString);
 		ProtoIdItem protoIdItem = $method_prototype.protoIdItem;
 
-		$methodIdItem = MethodIdItem.getInternedMethodIdItem(dexFile, classType, protoIdItem, methodName);
+		$methodIdItem = MethodIdItem.internMethodIdItem(dexFile, classType, protoIdItem, methodName);
 	};
 
 field_type_list returns[List<TypeIdItem> types]
@@ -598,18 +598,18 @@ fully_qualified_method returns[MethodIdItem methodIdItem]
 	:	reference_type_descriptor MEMBER_NAME method_prototype
 	{
 		TypeIdItem classType = $reference_type_descriptor.type;
-		StringIdItem methodName = StringIdItem.getInternedStringIdItem(dexFile, $MEMBER_NAME.text);
+		StringIdItem methodName = StringIdItem.internStringIdItem(dexFile, $MEMBER_NAME.text);
 		ProtoIdItem prototype = $method_prototype.protoIdItem;
-		$methodIdItem = MethodIdItem.getInternedMethodIdItem(dexFile, classType, prototype, methodName);
+		$methodIdItem = MethodIdItem.internMethodIdItem(dexFile, classType, prototype, methodName);
 	};
 
 fully_qualified_field returns[FieldIdItem fieldIdItem]
 	:	reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor
 	{
 		TypeIdItem classType = $reference_type_descriptor.type;
-		StringIdItem fieldName = StringIdItem.getInternedStringIdItem(dexFile, $MEMBER_NAME.text);
+		StringIdItem fieldName = StringIdItem.internStringIdItem(dexFile, $MEMBER_NAME.text);
 		TypeIdItem fieldType = $nonvoid_type_descriptor.type;
-		$fieldIdItem = FieldIdItem.getInternedFieldIdItem(dexFile, classType, fieldType, fieldName);
+		$fieldIdItem = FieldIdItem.internFieldIdItem(dexFile, classType, fieldType, fieldName);
 	};
 
 registers_directive returns[boolean isLocalsDirective, int registers]
@@ -706,7 +706,7 @@ parameters returns[AnnotationSetRefList parameterAnnotations]
 				{
 					if ($parameter.parameterAnnotationSet != null) {
 						while (annotationSetItems.size() < parameterCount) {
-							annotationSetItems.add(AnnotationSetItem.getInternedAnnotationSetItem(dexFile, null));
+							annotationSetItems.add(AnnotationSetItem.internAnnotationSetItem(dexFile, null));
 						}
 						annotationSetItems.add($parameter.parameterAnnotationSet);
 					}
@@ -717,9 +717,9 @@ parameters returns[AnnotationSetRefList parameterAnnotations]
 		{
 			if (annotationSetItems.size() > 0) {
 				while (annotationSetItems.size() < parameterCount) {
-					annotationSetItems.add(AnnotationSetItem.getInternedAnnotationSetItem(dexFile, null));
+					annotationSetItems.add(AnnotationSetItem.internAnnotationSetItem(dexFile, null));
 				}
-				$parameterAnnotations = AnnotationSetRefList.getInternedAnnotationSetRefList(dexFile, annotationSetItems);
+				$parameterAnnotations = AnnotationSetRefList.internAnnotationSetRefList(dexFile, annotationSetItems);
 			}
 		};
 	
@@ -941,7 +941,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			
-			StringIdItem stringIdItem = StringIdItem.getInternedStringIdItem(dexFile, $string_literal.value);
+			StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, $string_literal.value);
 
 			instructions.add(new Instruction21c(opcode, regA, stringIdItem));
 		}
@@ -1083,7 +1083,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 					
-			StringIdItem stringIdItem = StringIdItem.getInternedStringIdItem(dexFile, $string_literal.value);
+			StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, $string_literal.value);
 			
 			$instructions.add(new Instruction31c(opcode, regA, stringIdItem));
 		}
@@ -1276,7 +1276,7 @@ nonvoid_type_descriptor returns [TypeIdItem type]
 	|	CLASS_DESCRIPTOR	
 	|	ARRAY_DESCRIPTOR)
 	{
-		$type = TypeIdItem.getInternedTypeIdItem(dexFile, $start.getText());
+		$type = TypeIdItem.internTypeIdItem(dexFile, $start.getText());
 	};
 
 
@@ -1284,7 +1284,7 @@ reference_type_descriptor returns [TypeIdItem type]
 	:	(CLASS_DESCRIPTOR
 	|	ARRAY_DESCRIPTOR)
 	{
-		$type = TypeIdItem.getInternedTypeIdItem(dexFile, $start.getText());
+		$type = TypeIdItem.internTypeIdItem(dexFile, $start.getText());
 	};
 
 
@@ -1295,11 +1295,11 @@ reference_type_descriptor returns [TypeIdItem type]
 class_type_descriptor returns [TypeIdItem type]
 	:	CLASS_DESCRIPTOR
 	{
-		$type = TypeIdItem.getInternedTypeIdItem(dexFile, $CLASS_DESCRIPTOR.text);
+		$type = TypeIdItem.internTypeIdItem(dexFile, $CLASS_DESCRIPTOR.text);
 	};
 
 type_descriptor returns [TypeIdItem type]
-	:	VOID_TYPE {$type = TypeIdItem.getInternedTypeIdItem(dexFile, "V");}
+	:	VOID_TYPE {$type = TypeIdItem.internTypeIdItem(dexFile, "V");}
 	|	nonvoid_type_descriptor {$type = $nonvoid_type_descriptor.type;}
 	;
 	
@@ -1374,7 +1374,7 @@ annotations returns[AnnotationSetItem annotationSetItem]
 		^(I_ANNOTATIONS (annotation {annotationList.add($annotation.annotationItem);} )*)
 		{
 			if (annotationList.size() > 0) {
-				$annotationSetItem = AnnotationSetItem.getInternedAnnotationSetItem(dexFile, annotationList);
+				$annotationSetItem = AnnotationSetItem.internAnnotationSetItem(dexFile, annotationList);
 			}
 		};
 		
@@ -1385,13 +1385,13 @@ annotation returns[AnnotationItem annotationItem]
 			AnnotationVisibility visibility = AnnotationVisibility.valueOf($ANNOTATION_VISIBILITY.text.toUpperCase());
 			AnnotationEncodedSubValue encodedAnnotation = new AnnotationEncodedSubValue($subannotation.annotationType,
 					$subannotation.elementNames, $subannotation.elementValues);
-			$annotationItem = AnnotationItem.getInternedAnnotationItem(dexFile, visibility, encodedAnnotation);
+			$annotationItem = AnnotationItem.internAnnotationItem(dexFile, visibility, encodedAnnotation);
 		};
 
 annotation_element returns[StringIdItem elementName, EncodedValue elementValue]
 	:	^(I_ANNOTATION_ELEMENT MEMBER_NAME literal)
 		{
-			$elementName = StringIdItem.getInternedStringIdItem(dexFile, $MEMBER_NAME.text);
+			$elementName = StringIdItem.internStringIdItem(dexFile, $MEMBER_NAME.text);
 			$elementValue = $literal.encodedValue;
 		};
 

@@ -59,7 +59,7 @@ public class ProtoIdItem extends Item<ProtoIdItem> {
         if (parameters != null) {
             shortyString += parameters.getShortyString();
         }
-        this.shortyDescriptor = StringIdItem.getInternedStringIdItem(dexFile, shortyString);
+        this.shortyDescriptor = StringIdItem.internStringIdItem(dexFile, shortyString);
         this.returnType = returnType;
         this.parameters = parameters;
     }
@@ -73,9 +73,23 @@ public class ProtoIdItem extends Item<ProtoIdItem> {
      * @return a <code>ProtoIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static ProtoIdItem getInternedProtoIdItem(DexFile dexFile, TypeIdItem returnType, TypeListItem parameters) {
+    public static ProtoIdItem internProtoIdItem(DexFile dexFile, TypeIdItem returnType, TypeListItem parameters) {
         ProtoIdItem protoIdItem = new ProtoIdItem(dexFile, returnType, parameters);
         return dexFile.ProtoIdsSection.intern(protoIdItem);
+    }
+
+    /**
+     * Looks up the <code>ProtoIdItem</code> from the given <code>DexFile</code> for the given
+     * values
+     * @param dexFile the <code>Dexfile</code> to find the type in
+     * @param returnType the return type
+     * @param parameters a <code>TypeListItem</code> containing a list of the parameter types
+     * @return a <code>ProtoIdItem</code> from the given <code>DexFile</code> for the given
+     * values, or null if it doesn't exist
+     */
+    public static ProtoIdItem lookupProtoIdItem(DexFile dexFile, TypeIdItem returnType, TypeListItem parameters) {
+        ProtoIdItem protoIdItem = new ProtoIdItem(dexFile, returnType, parameters);
+        return dexFile.ProtoIdsSection.getInternedItem(protoIdItem);
     }
 
     /** {@inheritDoc} */

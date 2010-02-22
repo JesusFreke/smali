@@ -30,7 +30,7 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.*;
 import org.jf.dexlib.*;
-import org.jf.dexlib.Item; 
+import org.jf.dexlib.Item;
 import org.jf.dexlib.StringDataItem;
 
 import java.io.*;
@@ -184,9 +184,6 @@ public class DexFile
     private int dataOffset;
     private int dataSize;
     private int fileSize;
-
-    private boolean disableInterning = false;
-
 
     /**
      * A private constructor containing common code to initialize the section maps and lists
@@ -504,23 +501,6 @@ public class DexFile
      */
     public void setSortAllItems(boolean value) {
         this.sortAllItems = value;
-    }
-
-    /**
-     * Disables adding new items to this dex file. The various getInterned*() type
-     * methods on individual items will return null if there isn't an existing item
-     * that matches
-     */
-    public void disableInterning() {
-        this.disableInterning = true;
-    }
-
-    /**
-     * @return a boolean value indicating whether interning new items has been disabled
-     * for this dex file
-     */
-    public boolean getInterningDisabled() {
-        return disableInterning;
     }
 
     /**

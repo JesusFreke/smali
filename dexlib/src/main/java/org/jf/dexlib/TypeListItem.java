@@ -66,11 +66,26 @@ public class TypeListItem extends Item<TypeListItem> {
      * @return a <code>TypeListItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static TypeListItem getInternedTypeListItem(DexFile dexFile, List<TypeIdItem> typeList) {
+    public static TypeListItem internTypeListItem(DexFile dexFile, List<TypeIdItem> typeList) {
         TypeIdItem[] typeArray = new TypeIdItem[typeList.size()];
         typeList.toArray(typeArray);
         TypeListItem typeListItem = new TypeListItem(dexFile, typeArray);
         return dexFile.TypeListsSection.intern(typeListItem);
+    }
+
+    /**
+     * Looks up the <code>TypeListItem</code> from the given <code>DexFile</code> for the given
+     * list of types
+     * @param dexFile the <code>Dexfile</code> to find the type in
+     * @param typeList A list of the types that the <code>TypeListItem</code> represents
+     * @return a <code>TypeListItem</code> from the given <code>DexFile</code> for the given
+     * list of types, or null if it doesn't exist
+     */
+    public static TypeListItem lookupTypeListItem(DexFile dexFile, List<TypeIdItem> typeList) {
+        TypeIdItem[] typeArray = new TypeIdItem[typeList.size()];
+        typeList.toArray(typeArray);
+        TypeListItem typeListItem = new TypeListItem(dexFile, typeArray);
+        return dexFile.TypeListsSection.getInternedItem(typeListItem);
     }
 
     /** {@inheritDoc} */

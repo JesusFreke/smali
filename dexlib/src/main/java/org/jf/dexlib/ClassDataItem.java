@@ -75,7 +75,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
      * @param virtualMethods The virtual methods for this class
      * @return a new <code>ClassDataItem</code> with the given values
      */
-    public static ClassDataItem getInternedClassDataItem(DexFile dexFile, List<EncodedField> staticFields,
+    public static ClassDataItem internClassDataItem(DexFile dexFile, List<EncodedField> staticFields,
                                                          List<EncodedField> instanceFields,
                                                          List<EncodedMethod> directMethods,
                                                          List<EncodedMethod> virtualMethods) {

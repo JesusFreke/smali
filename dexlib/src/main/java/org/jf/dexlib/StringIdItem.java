@@ -61,13 +61,30 @@ public class StringIdItem extends Item<StringIdItem> {
      * @return a <code>StringIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static StringIdItem getInternedStringIdItem(DexFile dexFile, String stringValue) {
-        StringDataItem stringDataItem = StringDataItem.getInternedStringDataItem(dexFile, stringValue);
+    public static StringIdItem internStringIdItem(DexFile dexFile, String stringValue) {
+        StringDataItem stringDataItem = StringDataItem.internStringDataItem(dexFile, stringValue);
         if (stringDataItem == null) {
             return null;
         }
         StringIdItem stringIdItem = new StringIdItem(dexFile, stringDataItem);
         return dexFile.StringIdsSection.intern(stringIdItem);
+    }
+
+    /**
+     * Looks up the <code>StringIdItem</code> from the given <code>DexFile</code> for the given
+     * string value
+     * @param dexFile the <code>Dexfile</code> to find the string value in
+     * @param stringValue The string value to look up
+     * @return a <code>StringIdItem</code> from the given <code>DexFile</code> for the given
+     * string value, or null if it doesn't exist
+     */
+    public static StringIdItem lookupStringIdItem(DexFile dexFile, String stringValue) {
+        StringDataItem stringDataItem = StringDataItem.lookupStringDataItem(dexFile, stringValue);
+        if (stringDataItem == null) {
+            return null;
+        }
+        StringIdItem stringIdItem = new StringIdItem(dexFile, stringDataItem);
+        return dexFile.StringIdsSection.getInternedItem(stringIdItem);
     }
 
     /** {@inheritDoc} */

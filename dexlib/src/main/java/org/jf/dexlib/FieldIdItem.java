@@ -75,10 +75,26 @@ public class FieldIdItem extends Item<FieldIdItem> {
      * @return a <code>FieldIdItem</code> for the given values, and that has been interned into
      * the given <code>DexFile</code>
      */
-    public static FieldIdItem getInternedFieldIdItem(DexFile dexFile, TypeIdItem classType, TypeIdItem fieldType,
+    public static FieldIdItem internFieldIdItem(DexFile dexFile, TypeIdItem classType, TypeIdItem fieldType,
                                               StringIdItem fieldName) {
         FieldIdItem fieldIdItem = new FieldIdItem(dexFile, classType, fieldType, fieldName);
         return dexFile.FieldIdsSection.intern(fieldIdItem);
+    }
+
+    /**
+     * Looks up a <code>FieldIdItem</code> from the given <code>DexFile</code> for the given
+     * values
+     * @param dexFile The <code>DexFile</code> that this item belongs to
+     * @param classType the class that the field is a member of
+     * @param fieldType the type of the field
+     * @param fieldName the name of the field
+     * @return a <code>FieldIdItem</code> from the given <code>DexFile</code> for the given
+     * values, or null if it doesn't exist
+     */
+    public static FieldIdItem lookupFieldIdItem(DexFile dexFile, TypeIdItem classType, TypeIdItem fieldType,
+                                              StringIdItem fieldName) {
+        FieldIdItem fieldIdItem = new FieldIdItem(dexFile, classType, fieldType, fieldName);
+        return dexFile.FieldIdsSection.getInternedItem(fieldIdItem);
     }
 
     /** {@inheritDoc} */
