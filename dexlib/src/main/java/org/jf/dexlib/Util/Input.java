@@ -1,6 +1,6 @@
 /*
  * [The "BSD licence"]
- * Copyright (c) 2009 Ben Gruver
+ * Copyright (c) 2010 Ben Gruver (JesusFreke)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
