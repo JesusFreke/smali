@@ -17,23 +17,23 @@ public class ClassPath {
     private final HashMap<String, ClassDef> classDefs;
     protected ClassDef javaLangObjectClassDef; //Ljava/lang/Object;
 
-    public static void InitializeClassPath(String bootClassPathDir, String[] bootClassPath, DexFile dexFile) {
+    public static void InitializeClassPath(String[] classPathDirs, String[] bootClassPath, DexFile dexFile) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
         }
 
         theClassPath = new ClassPath();
-        theClassPath.initClassPath(bootClassPathDir, bootClassPath, dexFile);
+        theClassPath.initClassPath(classPathDirs, bootClassPath, dexFile);
     }
 
     private ClassPath() {
         classDefs = new HashMap<String, ClassDef>();
     }
 
-    private void initClassPath(String bootClassPathDir, String[] bootClassPath, DexFile dexFile) {
+    private void initClassPath(String[] classPathDirs, String[] bootClassPath, DexFile dexFile) {
         if (bootClassPath != null) {
             for (String bootClassPathEntry: bootClassPath) {
-                loadBootClassPath(bootClassPathDir, bootClassPathEntry);
+                loadBootClassPath(classPathDirs, bootClassPathEntry);
             }
         }
 
@@ -47,26 +47,30 @@ public class ClassPath {
         }
     }
 
-    private void loadBootClassPath(String bootClassPathDir, String bootClassPathEntry) {
-        File file = new File(bootClassPathDir, bootClassPathEntry);
+    private void loadBootClassPath(String[] classPathDirs, String bootClassPathEntry) {
+        for (String classPathDir: classPathDirs) {
+            File file = new File(classPathDir, bootClassPathEntry);
 
-        if (!file.exists()) {
-            throw new ExceptionWithContext("ClassPath entry \"" + bootClassPathEntry + "\" does not exist.");
+            if (!file.exists()) {
+                continue;
+            }
+
+            if (!file.canRead()) {
+                throw new ExceptionWithContext("Cannot read ClassPath entry \"" + bootClassPathEntry + "\".");
+            }
+
+            DexFile dexFile;
+            try {
+                dexFile = new DexFile(file, false, true);
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex, "Error while reading boot class path entry \"" +
+                        bootClassPathEntry + "\".");
+            }
+
+            loadDexFile(dexFile);
+            return;
         }
-
-        if (!file.canRead()) {
-            throw new ExceptionWithContext("Cannot read ClassPath entry \"" + bootClassPathEntry + "\".");
-        }
-
-        DexFile dexFile;
-        try {
-            dexFile = new DexFile(file, false, true);
-        } catch (Exception ex) {
-            throw ExceptionWithContext.withContext(ex, "Error while reading ClassPath entry \"" +
-                    bootClassPathEntry + "\".");
-        }
-
-        loadDexFile(dexFile);
+        throw new ExceptionWithContext(String.format("Cannot locate boot class path file %s", bootClassPathEntry));
     }
 
     private void loadDexFile(DexFile dexFile) {

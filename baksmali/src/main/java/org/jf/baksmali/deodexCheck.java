@@ -3,6 +3,9 @@ package org.jf.baksmali;
 import org.apache.commons.cli.*;
 import org.jf.dexlib.Code.Analysis.ClassPath;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class deodexCheck {
     public static void main(String[] args) {
         CommandLineParser parser = new PosixParser();
@@ -18,7 +21,8 @@ public class deodexCheck {
         }
 
         String bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
-        String bootClassPathDir = ".";
+        List<String> bootClassPathDirs = new ArrayList<String>();
+        bootClassPathDirs.add(".");
         String deodexerantHost = null;
         int deodexerantPort = 0;
         int classStartIndex = 0;
@@ -59,8 +63,8 @@ public class deodexCheck {
             }
         }
 
-        if (commandLine.hasOption("C")) {
-            bootClassPathDir = commandLine.getOptionValue("C");
+        if (commandLine.hasOption("d")) {
+            bootClassPathDirs.add(commandLine.getOptionValue("d"));
         }
 
         if (commandLine.hasOption("x")) {
@@ -83,7 +87,12 @@ public class deodexCheck {
             }
         }
 
-        ClassPath.InitializeClassPath(bootClassPathDir, bootClassPath==null?null:bootClassPath.split(":"), null);
+        String[] bootClassPathDirsArray = new String[bootClassPathDirs.size()];
+        for (int i=0; i<bootClassPathDirsArray.length; i++) {
+            bootClassPathDirsArray[i] = bootClassPathDirs.get(i);
+        }
+
+        ClassPath.InitializeClassPath(bootClassPathDirsArray, bootClassPath==null?null:bootClassPath.split(":"), null);
 
         ClassPath.validateAgainstDeodexerant(deodexerantHost, deodexerantPort, classStartIndex);
     }
@@ -119,10 +128,10 @@ public class deodexCheck {
 
         Option classPathDirOption = OptionBuilder.withLongOpt("bootclasspath-dir")
                 .withDescription("the base folder to look for the bootclasspath files in. Defaults to the current " +
-                        "directory")
+                        "directory.")
                 .hasArg()
                 .withArgName("DIR")
-                .create("C");
+                .create("d");
 
         Option deodexerantOption = OptionBuilder.withLongOpt("deodexerant")
                 .isRequired()

@@ -22,6 +22,8 @@ import org.jf.dexlib.DexFile;
 import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class main {
@@ -96,7 +98,8 @@ public class main {
         String outputDexFileName = null;
         String inputDexFileName = null;
         String bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
-        String bootClassPathDir = ".";
+        List<String> bootClassPathDirs = new ArrayList<String>();
+        bootClassPathDirs.add(".");
 
 
         String[] remainingArgs = commandLine.getArgs();
@@ -136,7 +139,7 @@ public class main {
                     outputDebugInfo = false;
                     break;
                 case 'd':
-                    bootClassPathDir = commandLine.getOptionValue("d");
+                    bootClassPathDirs.add(option.getValue());
                     break;
                 case 'f':
                     addCodeOffsets = true;
@@ -240,7 +243,12 @@ public class main {
             }
 
             if (disassemble) {
-                baksmali.disassembleDexFile(dexFile, deodex, outputDirectory, bootClassPathDir, bootClassPath,
+                String[] bootClassPathDirsArray = new String[bootClassPathDirs.size()];
+                for (int i=0; i<bootClassPathDirsArray.length; i++) {
+                    bootClassPathDirsArray[i] = bootClassPathDirs.get(i);
+                }
+
+                baksmali.disassembleDexFile(dexFile, deodex, outputDirectory, bootClassPathDirsArray, bootClassPath,
                         noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
                         registerInfo);
             }
