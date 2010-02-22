@@ -225,10 +225,10 @@ public class main {
 
             if (dexFile.isOdex()) {
                 if (doDump) {
-                    System.err.println("-d cannot be used with on odex file. Ignoring -d");
+                    System.err.println("-D cannot be used with on odex file. Ignoring -D");
                 }
                 if (write) {
-                    System.err.println("-w cannot be used with an odex file. Ignoring -w");
+                    System.err.println("-W cannot be used with an odex file. Ignoring -W");
                 }
                 if (!deodex) {
                     System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
@@ -305,7 +305,7 @@ public class main {
                 .create("v");
 
         Option helpOption = OptionBuilder.withLongOpt("help")
-                .withDescription("prints the help message then exits")
+                .withDescription("prints the help message then exits. Specify twice for debug options")
                 .create("?");
 
         Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
@@ -380,8 +380,8 @@ public class main {
 
         Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
                 .withDescription("the bootclasspath jars to use, for analysis. Defaults to " +
-                        "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar. If you specify a value that " +
-                        "begins with a :, it will be appended to the default bootclasspath")
+                        "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar. If the value begins with a " +
+                        ":, it will be appended to the default bootclasspath instead of replacing it")
                 .hasOptionalArg()
                 .withArgName("BOOTCLASSPATH")
                 .create("c");

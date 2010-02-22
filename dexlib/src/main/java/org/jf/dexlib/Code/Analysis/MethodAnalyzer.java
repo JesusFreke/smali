@@ -1233,31 +1233,7 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, exceptionType);
     }
 
-    //TODO: GROT
-    /*private void checkConstructorReturn(AnalyzedInstruction analyzedInstruction) {
-        assert this.isInstanceConstructor();
-
-        //if we're in an instance constructor (an <init> method), then the superclass <init> must have been called.
-        //When execution enters the method, the "this" register is set as an uninitialized reference to the containing
-        //class. Once the superclass' <init> is called, the "this" register is upgraded to a full-blown reference type,
-        //so we need to ensure that the "this" register isn't an uninitialized reference
-
-        int thisRegister = getThisRegister();
-        RegisterType thisRegisterType = analyzedInstruction.postRegisterMap[thisRegister];
-
-        if (thisRegisterType.category == RegisterType.Category.UninitRef) {
-            throw new ValidationException("Returning from constructor without calling the superclass' <init>");
-        }
-        //TODO: GROT
-        //assert thisRegisterType.category == RegisterType.Category.Reference;
-        //assert thisRegisterType.type == ClassPath.getClassDef(encodedMethod.method.getContainingClass());
-    }*/
-
     private void handleReturnVoid(AnalyzedInstruction analyzedInstruction) {
-        /*if (this.isInstanceConstructor()) {
-            checkConstructorReturn(analyzedInstruction);
-        }*/
-
         TypeIdItem returnType = encodedMethod.method.getPrototype().getReturnType();
         if (returnType.getTypeDescriptor().charAt(0) != 'V') {
             //TODO: could add which return-* variation should be used instead
@@ -1320,7 +1296,6 @@ public class MethodAnalyzer {
     private void handleConstHigh16(AnalyzedInstruction analyzedInstruction) {
         LiteralInstruction instruction = (LiteralInstruction)analyzedInstruction.instruction;
 
-        //TODO: test this
         long literalValue = instruction.getLiteral() << 16;
         RegisterType newDestinationRegisterType = RegisterType.getRegisterTypeForLiteral(literalValue);
 
@@ -2395,7 +2370,6 @@ public class MethodAnalyzer {
         InstructionWithReference instruction = (InstructionWithReference)analyzedInstruction.instruction;
 
         //TODO: check access
-        //TODO: allow uninitialized reference if this in an <init> method
 
         Item item = instruction.getReferencedItem();
         assert item.getItemType() == ItemType.TYPE_METHOD_ID_ITEM;
@@ -2578,7 +2552,7 @@ public class MethodAnalyzer {
                     if (preInstructionRegisterType.category == RegisterType.Category.UninitRef ||
                         preInstructionRegisterType.category == RegisterType.Category.UninitThis) {
 
-                        RegisterType registerType = null;
+                        RegisterType registerType;
                         if (preInstructionRegisterType == objectRegisterType) {
                             registerType = analyzedInstruction.postRegisterMap[objectRegister];
                         } else {
@@ -2836,8 +2810,6 @@ public class MethodAnalyzer {
 
         if (objectRegisterType.category == RegisterType.Category.Null) {
             return false;
-            //throw new ValidationException("Unodexable instructions not supported yet");
-            //TODO: handle unodexable instruction
         }
 
         FieldIdItem fieldIdItem = deodexUtil.lookupField(objectRegisterType.type, fieldOffset);
@@ -2879,8 +2851,6 @@ public class MethodAnalyzer {
 
         if (objectRegisterType.category == RegisterType.Category.Null) {
             return false;
-            //throw new ValidationException("Unodexable instructions not supported yet");
-            //TODO: handle unodexable instruction
         }
 
         MethodIdItem methodIdItem = null;
@@ -3062,9 +3032,8 @@ public class MethodAnalyzer {
 
     private static void checkRegister(RegisterType registerType, int registerNumber, EnumSet validCategories) {
         if (!validCategories.contains(registerType.category)) {
-            //TODO: add expected categories to error message
-            throw new ValidationException(String.format("Invalid register type for register v%d. Expecting one of: " +
-                    "but got %s", registerNumber, registerType.toString()));
+            throw new ValidationException(String.format("Invalid register type %s for register v%d.",
+                    registerType.toString(), registerNumber));
         }
     }
 

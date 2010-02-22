@@ -17,24 +17,6 @@ public class ClassPath {
     private final HashMap<String, ClassDef> classDefs;
     protected ClassDef javaLangObjectClassDef; //Ljava/lang/Object;
 
-    private final static String[][] inlineMethods =
-            new String[][]  {
-                                { "Lorg/apache/harmony/dalvik/NativeTestTarget;", "emptyInlineMethod()V"},
-                                { "Ljava/lang/String;", "charAt(I)C"},
-                                { "Ljava/lang/String;", "compareTo(Ljava/lang/String;)I"},
-                                { "Ljava/lang/String;", "equals(Ljava/lang/Object;)Z"},
-                                { "Ljava/lang/String;", "length()I"},
-                                { "Ljava/lang/Math;", "abs(I)I"},
-                                { "Ljava/lang/Math;", "abs(J)J"},
-                                { "Ljava/lang/Math;", "abs(F)F"},
-                                { "Ljava/lang/Math;", "abs(D)D"},
-                                { "Ljava/lang/Math;", "min(I)I"},
-                                { "Ljava/lang/Math;", "max(II)I"},
-                                { "Ljava/lang/Math;", "sqrt(D)D"},
-                                { "Ljava/lang/Math;", "cos(D)D"},
-                                { "Ljava/lang/Math;", "sin(D)D"}
-            };
-
     public static void InitializeClassPath(String bootClassPathDir, String[] bootClassPath, DexFile dexFile) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
@@ -250,15 +232,6 @@ public class ClassPath {
         return getArrayClassDefByElementClassAndDimension(theClassPath.javaLangObjectClassDef, dimensions);
     }
 
-
-
-    public static String[] getInlineMethod(int inlineIndex) {
-        if (inlineIndex < 0 || inlineIndex >= inlineMethods.length) {
-            return null;
-        }
-        return inlineMethods[inlineIndex];
-    }
-
     public static class ArrayClassDef extends ClassDef {
         private final ClassDef elementClass;
         private final int arrayDimensions;
@@ -290,7 +263,7 @@ public class ClassPath {
          *
          * For example, for a multi-dimensional array of strings ([[Ljava/lang/String;), this method would return
          * Ljava/lang/String;
-         * @return
+         * @return the "base" element class of the array
          */
         public ClassDef getBaseElementClass() {
             return elementClass;
@@ -301,7 +274,7 @@ public class ClassPath {
          *
          * For example, for a multi-dimensional array of stings with 2 dimensions ([[Ljava/lang/String;), this method
          * would return [Ljava/lang/String;
-         * @return
+         * @return the immediate element class of the array
          */
         public ClassDef getImmediateElementClass() {
             if (arrayDimensions == 1) {
@@ -1065,25 +1038,5 @@ public class ClassPath {
         } catch (Exception ex) {
             throw ExceptionWithContext.withContext(ex, String.format("Error while checking class #%d", count));
         }
-    }
-
-    public static String join(String[] vals)
-    {
-        StringBuilder sb = new StringBuilder();
-        for (String val: vals) {
-            sb.append(val);
-            sb.append('\n');
-        }
-        return sb.toString();
-    }
-
-    public static String join(List<String> vals)
-    {
-        StringBuilder sb = new StringBuilder();
-        for (String val: vals) {
-            sb.append(val);
-            sb.append('\n');
-        }
-        return sb.toString();
     }
 }

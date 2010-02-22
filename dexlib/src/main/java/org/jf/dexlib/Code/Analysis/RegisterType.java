@@ -1,10 +1,7 @@
 package org.jf.dexlib.Code.Analysis;
 
-import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.TypeIdItem;
 import static org.jf.dexlib.Code.Analysis.ClassPath.ClassDef;
-import static org.jf.dexlib.Code.Analysis.ClassPath.PrimitiveClassDef;
-import static org.jf.dexlib.Code.Analysis.ClassPath.ArrayClassDef;
 import java.util.HashMap;
 
 public class RegisterType {

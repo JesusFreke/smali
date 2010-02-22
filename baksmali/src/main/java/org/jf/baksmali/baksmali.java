@@ -64,7 +64,13 @@ public class baksmali {
         baksmali.bootClassPath = bootClassPath;
 
         if (registerInfo != 0 || deodex) {
-            ClassPath.InitializeClassPath(bootClassPathDir, bootClassPath==null?null:bootClassPath.split(":"), dexFile);
+            try {
+                ClassPath.InitializeClassPath(bootClassPathDir, bootClassPath==null?null:bootClassPath.split(":"), dexFile);
+            } catch (Exception ex) {
+                System.err.println("\n\nError occured while loading boot class path files. Aborting.");
+                ex.printStackTrace(System.err);
+                System.exit(1);
+            }
         }
 
         File outputDirectoryFile = new File(outputDirectory);
@@ -150,7 +156,7 @@ public class baksmali {
 
                 writer = new FileWriter(smaliFile);
                 writer.write(output);
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
                 System.err.println("\n\nError occured while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
                 ex.printStackTrace();
             }

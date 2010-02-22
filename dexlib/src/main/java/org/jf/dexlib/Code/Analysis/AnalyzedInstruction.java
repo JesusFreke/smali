@@ -186,7 +186,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
     /**
      * Iterates over the predecessors of this instruction, and merges all the post-instruction register types for the
      * given register. Any dead, unreachable, or odexed predecessor is ignored
-     * @param registerNumber
+     * @param registerNumber the register number
      * @return The register type resulting from merging the post-instruction register types from all predecessors
      */
     protected RegisterType mergePreRegisterTypeFromPredecessors(int registerNumber) {

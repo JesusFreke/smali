@@ -1,7 +1,6 @@
 package org.jf.dexlib.Code.Analysis;
 
 import org.jf.dexlib.*;
-import org.jf.dexlib.Util.ExceptionWithContext;
 
 import java.util.LinkedList;
 import java.util.regex.Matcher;
@@ -41,23 +40,6 @@ public class DeodexUtil {
         }
 
         return inlineMethods[inlineMethodIndex];
-    }
-
-    private TypeIdItem resolveTypeOrSupertype(ClassPath.ClassDef classDef) {
-        ClassPath.ClassDef originalClassDef = classDef;
-
-        do {
-            TypeIdItem typeItem = TypeIdItem.lookupTypeIdItem(dexFile, classDef.getClassType());
-
-            if (typeItem != null) {
-                return typeItem;
-            }
-
-            classDef = classDef.getSuperclass();
-        } while (classDef != null);
-
-        throw new ExceptionWithContext(String.format("Cannot find type %s in the dex file",
-                originalClassDef.getClassType()));
     }
 
     public FieldIdItem lookupField(ClassPath.ClassDef classDef, int fieldOffset) {
@@ -249,7 +231,7 @@ public class DeodexUtil {
      * Newer versions of dalvik add additional inline methods, but (so far) have changed any existing ones.
      *
      * If anything doesn't look right, we just throw an exception
-     * @param inlineMethods
+     * @param inlineMethods the inline methods from deodexerant
      */
     protected void checkInlineMethods(String[] inlineMethods) {
         if (inlineMethods.length > this.inlineMethods.length) {
