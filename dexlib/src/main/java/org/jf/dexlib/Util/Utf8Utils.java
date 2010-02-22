@@ -20,13 +20,13 @@ package org.jf.dexlib.Util;
  * Constants of type <code>CONSTANT_Utf8_info</code>.
  */
 public final class Utf8Utils {
- 
+
 
     /**
      * Converts a string into its Java-style UTF-8 form. Java-style UTF-8
      * differs from normal UTF-8 in the handling of character '\0' and
      * surrogate pairs.
-     * 
+     *
      * @param string non-null; the string to convert
      * @return non-null; the UTF-8 bytes for it
      */
@@ -57,15 +57,22 @@ public final class Utf8Utils {
         return result;
     }
 
+    private static char[] tempBuffer = null;
+
     /**
      * Converts an array of UTF-8 bytes into a string.
-     * 
+     *
+     * This method uses a global buffer to avoid having to allocate one every time, so it is *not* thread-safe
+     *
      * @param bytes non-null; the bytes to convert
      * @return non-null; the converted string
      */
     public static String utf8BytesToString(byte[] bytes) {
         int length = bytes.length;
-        char[] chars = new char[length]; // This is sized to avoid a realloc.
+        if (tempBuffer == null || tempBuffer.length < length) {
+            tempBuffer = new char[length];
+        }
+        char[] chars = tempBuffer;
         int outAt = 0;
 
         for (int at = 0; length > 0; /*at*/) {
@@ -148,7 +155,7 @@ public final class Utf8Utils {
     /**
      * Helper for {@link #utf8BytesToString}, which throws the right
      * exception for a bogus utf-8 byte.
-     * 
+     *
      * @param value the byte value
      * @param offset the file offset
      * @return never
