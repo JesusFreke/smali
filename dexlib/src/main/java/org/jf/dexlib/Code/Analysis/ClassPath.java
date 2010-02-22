@@ -52,7 +52,27 @@ public class ClassPath {
             File file = new File(classPathDir, bootClassPathEntry);
 
             if (!file.exists()) {
-                continue;
+                boolean found = false;
+                int extIndex = bootClassPathEntry.lastIndexOf(".");
+
+                String baseEntry;
+                if (extIndex == -1) {
+                    baseEntry = bootClassPathEntry;
+                } else {
+                    baseEntry = bootClassPathEntry.substring(0, extIndex);
+                }
+
+                for (String ext: new String[]{".odex", ".jar", ".apk", ".zip"}) {
+                    String newEntry = baseEntry + ext;
+                    file = new File(classPathDir, newEntry);
+                    if (file.exists()) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    continue;
+                }
             }
 
             if (!file.canRead()) {
