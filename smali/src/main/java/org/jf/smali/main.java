@@ -44,9 +44,13 @@ public class main {
 
     public static final String VERSION;
 
+    private final static Options basicOptions;
+    private final static Options debugOptions;
     private final static Options options;
 
     static {
+        basicOptions = new Options();
+        debugOptions = new Options();
         options = new Options();
         buildOptions();
 
@@ -91,14 +95,43 @@ public class main {
 
         String[] remainingArgs = commandLine.getArgs();
 
-        if (commandLine.hasOption("v")) {
-            version();
-            return;
-        }
+        Option[] options = commandLine.getOptions();
 
-        if (commandLine.hasOption("?")) {
-            usage();
-            return;
+        for (int i=0; i<options.length; i++) {
+            Option option = options[i];
+            String opt = option.getOpt();
+
+            switch (opt.charAt(0)) {
+                case 'v':
+                    version();
+                    return;
+                case '?':
+                    while (++i < options.length) {
+                        if (options[i].getOpt().charAt(0) == '?') {
+                            usage(true);
+                            return;
+                        }
+                    }
+                    usage(false);
+                    return;
+                case 'o':
+                    outputDexFile = commandLine.getOptionValue("o");
+                    break;
+                case 'D':
+                    dumpFileName = commandLine.getOptionValue("D", outputDexFile + ".dump");
+                    break;
+                case 'S':
+                    sort = true;
+                    break;
+                case 'C':
+                    fixStringConst = false;
+                    break;
+                case 'G':
+                    fixGoto = false;
+                    break;
+                default:
+                    assert false;
+            }
         }
 
         if (remainingArgs.length == 0) {
@@ -106,29 +139,7 @@ public class main {
             return;
         }
 
-        if (commandLine.hasOption("o")) {
-            outputDexFile = commandLine.getOptionValue("o");
-        }
-
-        if (commandLine.hasOption("d")) {
-            dumpFileName = commandLine.getOptionValue("d", outputDexFile + ".dump");
-        }
-
-        if (commandLine.hasOption("s")) {
-            sort = true;
-        }
-
-        if (commandLine.hasOption("c")) {
-            fixStringConst = false;
-        }
-
-        if (commandLine.hasOption("g")) {
-            fixGoto = false;
-        }
-
-
         try {
-
             LinkedHashSet<File> filesToProcess = new LinkedHashSet<File>();
 
             for (String arg: remainingArgs) {
@@ -263,10 +274,25 @@ public class main {
     /**
      * Prints the usage message.
      */
-    private static void usage() {
-        HelpFormatter formatter = new HelpFormatter();
+    private static void usage(boolean printDebugOptions) {
+        smaliHelpFormatter formatter = new smaliHelpFormatter();
+        formatter.setWidth(100);
+
         formatter.printHelp("java -jar smali.jar [options] [--] [<smali-file>|folder]*",
-                "assembles a set of smali files into a dex file, and optionally generats an annotated dump of the output file", options, "");
+                "assembles a set of smali files into a dex file", basicOptions, "");
+
+        if (printDebugOptions) {
+            System.out.println();
+            System.out.println("Debug Options:");
+
+            StringBuffer sb = new StringBuffer();
+            formatter.renderOptions(sb, debugOptions);
+            System.out.println(sb.toString());
+        }
+    }
+
+    private static void usage() {
+        usage(false);
     }
 
     /**
@@ -279,22 +305,14 @@ public class main {
         System.exit(0);
     }
 
-
-
     private static void buildOptions() {
         Option versionOption = OptionBuilder.withLongOpt("version")
                 .withDescription("prints the version then exits")
                 .create("v");
 
         Option helpOption = OptionBuilder.withLongOpt("help")
-                .withDescription("prints the help message then exits")
+                .withDescription("prints the help message then exits. Specify twice for debug options")
                 .create("?");
-
-        Option dumpOption = OptionBuilder.withLongOpt("dump-to")
-                .withDescription("additionally writes a dump of written dex file to FILE (<dexfile>.dump by default)")
-                .hasOptionalArg()
-                .withArgName("FILE")
-                .create("d");
 
         Option outputOption = OptionBuilder.withLongOpt("output")
                 .withDescription("the name of the dex file that will be written. The default is out.dex")
@@ -302,24 +320,39 @@ public class main {
                 .withArgName("FILE")
                 .create("o");
 
+        Option dumpOption = OptionBuilder.withLongOpt("dump-to")
+                .withDescription("additionally writes a dump of written dex file to FILE (<dexfile>.dump by default)")
+                .hasOptionalArg()
+                .withArgName("FILE")
+                .create("D");
+
         Option sortOption = OptionBuilder.withLongOpt("sort")
                 .withDescription("sort the items in the dex file into a canonical order before writing")
-                .create("s");
+                .create("S");
 
         Option noFixStringConstOption = OptionBuilder.withLongOpt("no-fix-string-const")
                 .withDescription("Don't replace string-const instructions with string-const/jumbo where appropriate")
-                .create("c");
+                .create("C");
 
         Option noFixGotoOption = OptionBuilder.withLongOpt("no-fix-goto")
                 .withDescription("Don't replace goto type instructions with a larger version where appropriate")
-                .create("g");
+                .create("G");
 
-        options.addOption(versionOption);
-        options.addOption(helpOption);
-        options.addOption(dumpOption);
-        options.addOption(outputOption);
-        options.addOption(sortOption);
-        options.addOption(noFixStringConstOption);
-        options.addOption(noFixGotoOption);
+        basicOptions.addOption(versionOption);
+        basicOptions.addOption(helpOption);
+        basicOptions.addOption(outputOption);
+
+        debugOptions.addOption(dumpOption);
+        debugOptions.addOption(sortOption);
+        debugOptions.addOption(noFixStringConstOption);
+        debugOptions.addOption(noFixGotoOption);
+
+        for (Object option: basicOptions.getOptions()) {
+            options.addOption((Option)option);
+        }
+
+        for (Object option: debugOptions.getOptions()) {
+            options.addOption((Option)option);
+        }
     }
 }
