@@ -188,11 +188,6 @@ Format22cs(Opcode, RegisterA, RegisterB, FieldOffset) ::=
 <Opcode> <RegisterA>, <RegisterB>, field@<FieldOffset>
 >>
 
-Format22csf(Opcode, RegisterA, RegisterB, Reference) ::=
-<<
-<Opcode> <RegisterA>, <RegisterB>, <Reference>
->>
-
 Format22s(Opcode, RegisterA, RegisterB, Literal) ::=
 <<
 <Opcode> <RegisterA>, <RegisterB>, <Literal>
@@ -248,19 +243,9 @@ Format35s(Opcode, Registers, Reference) ::=
 <Opcode> {<Registers; separator=", ">}, <Reference>
 >>
 
-Format35sf(Opcode, Registers, Reference) ::=
-<<
-<Opcode> {<Registers; separator=", ">}, <Reference>
->>
-
 Format35ms(Opcode, Registers, MethodIndex) ::=
 <<
 <Opcode> {<Registers; separator=", ">}, vtable@<MethodIndex>
->>
-
-Format35msf(Opcode, Registers, Reference) ::=
-<<
-<Opcode> {<Registers; separator=", ">}, <Reference>
 >>
 
 Format3rc(Opcode, StartRegister, LastRegister, Reference) ::=
@@ -271,11 +256,6 @@ Format3rc(Opcode, StartRegister, LastRegister, Reference) ::=
 Format3rms(Opcode, StartRegister, LastRegister, MethodIndex) ::=
 <<
 <Opcode> {<StartRegister> .. <LastRegister>}, vtable@<MethodIndex>
->>
-
-Format3rmsf(Opcode, StartRegister, LastRegister, Reference) ::=
-<<
-<Opcode> {<StartRegister> .. <LastRegister>}, <Reference>
 >>
 
 Format51l(Opcode, RegisterA, Literal) ::=
@@ -399,7 +379,6 @@ TypeReference(TypeDescriptor) ::=
 <<
 <TypeDescriptor>
 >>
-
 
 
 SimpleEncodedValue(Value) ::=

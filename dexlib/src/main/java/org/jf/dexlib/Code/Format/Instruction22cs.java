@@ -29,13 +29,14 @@
 package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.OdexedFieldAccess;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
 import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
 
-public class Instruction22cs extends Instruction implements TwoRegisterInstruction {
+public class Instruction22cs extends Instruction implements TwoRegisterInstruction, OdexedFieldAccess {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
     private byte regB;

@@ -20,11 +20,7 @@
     #and this will always throw an exception. Everything below
     #here, until the here2: label is dead code, and should be
     #commented out. This instruction itself should be be replaced
-    #with a call to Ljava/lang/Object;->hashCode()I, followed
-    #by a goto/32 0, which is just there to prevent dexopt from
-    #thinking that execution will fall off the end of the method
-    #i.e. if all the code following this was dead (and thus commented
-    #out)
+    #with a call to Ljava/lang/Object;->hashCode()I
     invoke-virtual {v0}, Lrandomclass;->getSuperclass()Lsuperclass;
     move-result-object v1
 

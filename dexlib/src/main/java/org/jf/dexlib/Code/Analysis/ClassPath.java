@@ -17,6 +17,24 @@ public class ClassPath {
     private final HashMap<String, ClassDef> classDefs;
     protected ClassDef javaLangObjectClassDef; //Ljava/lang/Object;
 
+    private final static String[][] inlineMethods =
+            new String[][]  {
+                                { "Lorg/apache/harmony/dalvik/NativeTestTarget;", "emptyInlineMethod()V"},
+                                { "Ljava/lang/String;", "charAt(I)C"},
+                                { "Ljava/lang/String;", "compareTo(Ljava/lang/String;)I"},
+                                { "Ljava/lang/String;", "equals(Ljava/lang/Object;)Z"},
+                                { "Ljava/lang/String;", "length()I"},
+                                { "Ljava/lang/Math;", "abs(I)I"},
+                                { "Ljava/lang/Math;", "abs(J)J"},
+                                { "Ljava/lang/Math;", "abs(F)F"},
+                                { "Ljava/lang/Math;", "abs(D)D"},
+                                { "Ljava/lang/Math;", "min(I)I"},
+                                { "Ljava/lang/Math;", "max(II)I"},
+                                { "Ljava/lang/Math;", "sqrt(D)D"},
+                                { "Ljava/lang/Math;", "cos(D)D"},
+                                { "Ljava/lang/Math;", "sin(D)D"}
+            };
+
     public static void InitializeClassPath(String bootClassPathDir, String[] bootClassPath, DexFile dexFile) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
@@ -37,7 +55,9 @@ public class ClassPath {
             }
         }
 
-        loadDexFile(dexFile);
+        if (dexFile != null) {
+            loadDexFile(dexFile);
+        }
 
         for (String primitiveType: new String[]{"Z", "B", "S", "C", "I", "J", "F", "D"}) {
             ClassDef classDef = new PrimitiveClassDef(primitiveType);
@@ -76,8 +96,6 @@ public class ClassPath {
             if (classDefItem.getClassType().getTypeDescriptor().equals("Ljava/lang/Object;")) {
                 theClassPath.javaLangObjectClassDef = classDef;
             }
-            /*classDef.dumpVtable();
-            classDef.dumpFields();*/
         }
     }
 
@@ -87,15 +105,23 @@ public class ClassPath {
         }
     }
 
-    public static ClassDef getClassDef(String classType)  {
+    public static ClassDef getClassDef(String classType) {
+        return getClassDef(classType, true);
+    }
+
+    public static ClassDef getClassDef(String classType, boolean createUnresolvedClassDef)  {
         ClassDef classDef = theClassPath.classDefs.get(classType);
         if (classDef == null) {
             //if it's an array class, try to create it
             if (classType.charAt(0) == '[') {
                 return theClassPath.createArrayClassDef(classType);
             } else {
-                //TODO: we should output a warning
-                return theClassPath.createUnresolvedClassDef(classType);
+                if (createUnresolvedClassDef) {
+                    //TODO: we should output a warning
+                    return theClassPath.createUnresolvedClassDef(classType);
+                } else {
+                    return null;
+                }
             }
         }
         return classDef;
@@ -103,6 +129,10 @@ public class ClassPath {
 
     public static ClassDef getClassDef(TypeIdItem classType) {
         return getClassDef(classType.getTypeDescriptor());
+    }
+
+    public static ClassDef getClassDef(TypeIdItem classType, boolean creatUnresolvedClassDef) {
+        return getClassDef(classType.getTypeDescriptor(), creatUnresolvedClassDef);
     }
 
     //256 [ characters
@@ -149,14 +179,14 @@ public class ClassPath {
 
         //TODO: do we want to handle primitive types here? I don't think so.. (if not, add assert)
 
-        if (!class1.isInterface && class2.isInterface) {
+        if (class2.isInterface) {
             if (class1.implementsInterface(class2)) {
                 return class2;
             }
             return theClassPath.javaLangObjectClassDef;
         }
 
-        if (!class2.isInterface && class1.isInterface) {
+        if (class1.isInterface) {
             if (class2.implementsInterface(class1)) {
                 return class1;
             }
@@ -218,6 +248,15 @@ public class ClassPath {
         //this also holds when the element classes aren't the same (but are both reference types)
         int dimensions = Math.min(class1.arrayDimensions, class2.arrayDimensions);
         return getArrayClassDefByElementClassAndDimension(theClassPath.javaLangObjectClassDef, dimensions);
+    }
+
+
+
+    public static String[] getInlineMethod(int inlineIndex) {
+        if (inlineIndex < 0 || inlineIndex >= inlineMethods.length) {
+            return null;
+        }
+        return inlineMethods[inlineIndex];
     }
 
     public static class ArrayClassDef extends ClassDef {
@@ -382,6 +421,18 @@ public class ClassPath {
         public final static int PrimitiveClassDef = 1;
         public final static int UnresolvedClassDef = 2;
 
+
+        /**
+         * The following fields are used only during the initial loading of classes, and are set to null afterwards
+         * TODO: free these
+         */
+
+        //This is only the virtual methods that this class declares itself.
+        private String[] virtualMethods;
+        //this is a list of all the interfaces that the class implements directory, or any super interfaces of those
+        //interfaces. It is generated in such a way that it is ordered in the same way as dalvik's ClassObject.iftable,
+        private LinkedHashMap<String, ClassDef> interfaceTable;
+
         /**
          * This constructor is used for the ArrayClassDef, PrimitiveClassDef and UnresolvedClassDef subclasses
          * @param classType the class type
@@ -403,6 +454,9 @@ public class ClassPath {
                 instanceFields = superclass.instanceFields;
                 instanceFieldLookup = superclass.instanceFieldLookup;
                 classDepth = 1; //1 off from java.lang.Object
+
+                virtualMethods = null;
+                interfaceTable = null;
             } else if (classFlavor == PrimitiveClassDef) {
                 //primitive type
                 assert classType.charAt(0) != '[' && classType.charAt(0) != 'L';
@@ -416,6 +470,9 @@ public class ClassPath {
                 instanceFields = null;
                 instanceFieldLookup = null;
                 classDepth = 0; //TODO: maybe use -1 to indicate not applicable?
+
+                virtualMethods = null;
+                interfaceTable = null;
             } else /*if (classFlavor == UnresolvedClassDef)*/ {
                 assert classType.charAt(0) == 'L';
                 this.classType = classType;
@@ -429,6 +486,9 @@ public class ClassPath {
                 instanceFields = superclass.instanceFields;
                 instanceFieldLookup = superclass.instanceFieldLookup;
                 classDepth = 1; //1 off from java.lang.Object
+
+                virtualMethods = null;
+                interfaceTable = null;
             }
         }
 
@@ -446,6 +506,9 @@ public class ClassPath {
 
             implementedInterfaces = loadAllImplementedInterfaces(classDefItem);
 
+            //TODO: we can probably get away with only creating the interface table for interface types
+            interfaceTable = loadInterfaceTable(classDefItem);
+            virtualMethods = loadVirtualMethods(classDefItem);
             vtable = loadVtable(classDefItem);
             virtualMethodLookup = new HashMap<String, Integer>((int)Math.ceil(vtable.length / .7f), .75f);
             for (int i=0; i<vtable.length; i++) {
@@ -511,6 +574,17 @@ public class ClassPath {
 
         public boolean hasVirtualMethod(String method) {
             return virtualMethodLookup.containsKey(method);
+        }
+
+        public String getInstanceField(int fieldOffset) {
+            return this.instanceFields.get(fieldOffset, null);
+        }
+
+        public String getVirtualMethod(int vtableIndex) {
+            if (vtableIndex < 0 || vtableIndex >= vtable.length) {
+                return null;
+            }
+            return this.vtable[vtableIndex];
         }
 
         private void swap(byte[] fieldTypes, String[] fields, int position1, int position2) {
@@ -586,6 +660,56 @@ public class ClassPath {
             return implementedInterfaceSet;
         }
 
+        private LinkedHashMap<String, ClassDef> loadInterfaceTable(ClassDefItem classDefItem) {
+            TypeListItem typeListItem = classDefItem.getInterfaces();
+            if (typeListItem == null) {
+                return null;
+            }
+
+            LinkedHashMap<String, ClassDef> interfaceTable = new LinkedHashMap<String, ClassDef>();
+
+            for (TypeIdItem interfaceType: typeListItem.getTypes()) {
+                if (!interfaceTable.containsKey(interfaceType.getTypeDescriptor())) {
+                    ClassDef classDef = getClassDef(interfaceType);
+                    if (classDef == null) {
+                        throw new ValidationException(String.format(
+                                "Could not resolve type %s", interfaceType.getTypeDescriptor()));
+                    }
+                    interfaceTable.put(interfaceType.getTypeDescriptor(), classDef);
+
+                    if (classDef.interfaceTable != null) {
+                        for (ClassDef superInterface: classDef.interfaceTable.values()) {
+                            if (!interfaceTable.containsKey(superInterface.classType)) {
+                                interfaceTable.put(superInterface.classType, superInterface);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return interfaceTable;
+        }
+
+        private String[] loadVirtualMethods(ClassDefItem classDefItem) {
+            ClassDataItem classDataItem = classDefItem.getClassData();
+            if (classDataItem == null) {
+                return null;
+            }
+
+            EncodedMethod[] virtualEncodedMethods = classDataItem.getVirtualMethods();
+            if (virtualEncodedMethods == null) {
+                return null;
+            }
+
+            String[] virtualMethods = new String[virtualEncodedMethods.length];
+
+            for (int i=0; i<virtualEncodedMethods.length; i++) {
+                virtualMethods[i] = virtualEncodedMethods[i].method.getVirtualMethodString();
+            }
+
+            return virtualMethods;
+        }
+
         private String[] loadVtable(ClassDefItem classDefItem) {
             //TODO: it might be useful to keep track of which class's implementation is used for each virtual method. In other words, associate the implementing class type with each vtable entry
             List<String> virtualMethodList = new LinkedList<String>();
@@ -607,14 +731,32 @@ public class ClassPath {
 
             //iterate over the virtual methods in the current class, and only add them when we don't already have the
             //method (i.e. if it was implemented by the superclass)
-            ClassDataItem classDataItem = classDefItem.getClassData();
-            if (classDataItem != null) {
-                EncodedMethod[] virtualMethods = classDataItem.getVirtualMethods();
-                if (virtualMethods != null) {
-                    for (EncodedMethod virtualMethod: virtualMethods) {
-                        String methodString = virtualMethod.method.getVirtualMethodString();
-                        if (tempVirtualMethodLookup.get(methodString) == null) {
-                            virtualMethodList.add(methodString);
+            if (!this.isInterface) {
+                ClassDataItem classDataItem = classDefItem.getClassData();
+                if (classDataItem != null) {
+                    EncodedMethod[] virtualMethods = classDataItem.getVirtualMethods();
+                    if (virtualMethods != null) {
+                        for (EncodedMethod virtualMethod: virtualMethods) {
+                            String methodString = virtualMethod.method.getVirtualMethodString();
+                            if (tempVirtualMethodLookup.get(methodString) == null) {
+                                virtualMethodList.add(methodString);
+                                tempVirtualMethodLookup.put(methodString, methodIndex++);
+                            }
+                        }
+                    }
+                }
+
+                if (interfaceTable != null) {
+                    for (ClassDef interfaceDef: interfaceTable.values()) {
+                        if (interfaceDef.virtualMethods == null) {
+                            continue;
+                        }
+
+                        for (String virtualMethod: interfaceDef.virtualMethods) {
+                            if (tempVirtualMethodLookup.get(virtualMethod) == null) {
+                                virtualMethodList.add(virtualMethod);
+                                tempVirtualMethodLookup.put(virtualMethod, methodIndex++);
+                            }
                         }
                     }
                 }
@@ -628,9 +770,30 @@ public class ClassPath {
             return vtable;
         }
 
+        private int getNextFieldOffset() {
+            if (instanceFields == null || instanceFields.size() == 0) {
+                return 8;
+            }
+
+            int lastItemIndex = instanceFields.size()-1;
+            int fieldOffset = instanceFields.keyAt(lastItemIndex);
+            String lastField = instanceFields.valueAt(lastItemIndex);
+
+            int fieldTypeIndex = lastField.indexOf(":") + 1;
+
+            switch (lastField.charAt(fieldTypeIndex)) {
+                case 'J':
+                case 'D':
+                    return fieldOffset + 8;
+                default:
+                    return fieldOffset + 4;
+            }
+        }
+
         private SparseArray<String> loadFields(ClassDefItem classDefItem) {
             //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
             //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
+            //See mydroid/dalvik/vm/oo/Class.c - computeFieldOffsets()
 
             final byte REFERENCE = 0;
             final byte WIDE = 1;
@@ -684,11 +847,24 @@ public class ClassPath {
                 }
             }
 
+
+            int startFieldOffset = 8;
+            if (this.superclass != null) {
+                startFieldOffset = this.superclass.getNextFieldOffset();
+            }
+
+            int fieldIndexMod;
+            if ((startFieldOffset % 8) == 0) {
+                fieldIndexMod = 0;
+            } else {
+                fieldIndexMod = 1;
+            }
+
             //next, we need to group all the wide fields after the reference fields. But the wide fields have to be
             //8-byte aligned. If we're on an odd field index, we need to insert a 32-bit field. If the next field
             //is already a 32-bit field, use that. Otherwise, find the first 32-bit field from the end and swap it in.
             //If there are no 32-bit fields, do nothing for now. We'll add padding when calculating the field offsets
-            if (front < fields.length && (front % 2) != 0) {
+            if (front < fields.length && (front % 2) != fieldIndexMod) {
                 if (fieldTypes[front] == WIDE) {
                     //we need to swap in a 32-bit field, so the wide fields will be correctly aligned
                     back = fields.length - 1;
@@ -725,7 +901,7 @@ public class ClassPath {
 
             int superFieldCount = 0;
             if (superclass != null) {
-                superclass.instanceFields.size();
+                superFieldCount = superclass.instanceFields.size();
             }
 
             //now the fields are in the correct order. Add them to the SparseArray and lookup, and calculate the offsets
@@ -743,7 +919,7 @@ public class ClassPath {
 
                 String lastSuperField = superclass.instanceFields.valueAt(superFieldCount-1);
                 assert lastSuperField.indexOf(':') >= 0;
-                assert lastSuperField.indexOf(':') < superFieldCount-1; //the ':' shouldn't be the last char
+                assert lastSuperField.indexOf(':') < lastSuperField.length()-1; //the ':' shouldn't be the last char
                 char fieldType = lastSuperField.charAt(lastSuperField.indexOf(':') + 1);
                 if (fieldType == 'J' || fieldType == 'D') {
                     fieldOffset += 8;
@@ -818,5 +994,96 @@ public class ClassPath {
         public int compareTo(ClassDef classDef) {
             return classType.compareTo(classDef.classType);
         }
+    }
+
+
+    public static void validateAgainstDeodexerant(String host, int port, int skipClasses) {
+        Deodexerant deodexerant = new Deodexerant(host, port);
+
+        int count = 0;
+
+        try {
+            String[] inlineMethods = deodexerant.getInlineMethods();
+            (new DeodexUtil(null)).checkInlineMethods(inlineMethods);
+        } catch (Exception ex) {
+            throw ExceptionWithContext.withContext(ex, "Error while checking inline methods");
+        }
+
+        try {
+            for (ClassDef classDef: theClassPath.classDefs.values()) {
+                if (count < skipClasses) {
+                    count++;
+                    continue;
+                }
+                if (classDef instanceof UnresolvedClassDef || classDef instanceof ArrayClassDef ||
+                        classDef instanceof PrimitiveClassDef) {
+                    continue;
+                }
+
+                String[] vtable = deodexerant.getVirtualMethods(classDef.classType);
+
+                if (vtable.length != classDef.vtable.length) {
+                    throw new ValidationException(String.format("virtual table size mismatch for class %s",
+                            classDef.classType));
+                }
+
+                for (int i=0; i<classDef.vtable.length; i++) {
+                    if (!classDef.vtable[i].equals(vtable[i])) {
+                        throw new ValidationException(String.format("virtual method mismatch for class %s at index %d",
+                                classDef.classType, i));
+                    }
+                }
+
+                String[] fields = deodexerant.getInstanceFields(classDef.classType);
+
+                if (fields.length != classDef.instanceFields.size()) {
+                    throw new ValidationException(String.format("field count mismatch for class %s",
+                            classDef.classType));
+                }
+
+                for (int i=0; i<classDef.instanceFields.size(); i++) {
+                    String[] fieldValues = fields[i].split(" ");
+                    if (fieldValues.length != 2) {
+                        throw new ValidationException("Could not parse field");
+                    }
+
+                    int fieldOffset = Integer.parseInt(fieldValues[0]);
+
+                    String field = classDef.instanceFields.get(fieldOffset);
+                    if (field == null) {
+                        throw new ValidationException("Could not find a field at the given offset");
+                    }
+
+                    if (!field.equals(fieldValues[1])) {
+                        throw new ValidationException(String.format("field offset mismatch for class %s at index %d",
+                                classDef.classType, i));
+                    }
+                }
+
+                count++;
+            }
+        } catch (Exception ex) {
+            throw ExceptionWithContext.withContext(ex, String.format("Error while checking class #%d", count));
+        }
+    }
+
+    public static String join(String[] vals)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (String val: vals) {
+            sb.append(val);
+            sb.append('\n');
+        }
+        return sb.toString();
+    }
+
+    public static String join(List<String> vals)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (String val: vals) {
+            sb.append(val);
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 }

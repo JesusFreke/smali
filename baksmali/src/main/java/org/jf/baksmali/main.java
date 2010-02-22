@@ -17,7 +17,6 @@
 package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
-import org.jf.baksmali.Deodex.Deodexerant;
 import org.jf.dexlib.DexFile;
 
 import java.io.File;
@@ -88,6 +87,7 @@ public class main {
         boolean useSequentialLabels = false;
         boolean outputDebugInfo = true;
         boolean addCodeOffsets = false;
+        boolean deodex = false;
 
         int registerInfo = 0;
 
@@ -95,10 +95,9 @@ public class main {
         String dumpFileName = null;
         String outputDexFileName = null;
         String inputDexFileName = null;
-        String deodexerantHost = null;
         String bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
         String bootClassPathDir = ".";
-        int deodexerantPort = 0;
+
 
         String[] remainingArgs = commandLine.getArgs();
 
@@ -176,30 +175,14 @@ public class main {
                     break;
                 case 'c':
                     String bcp = commandLine.getOptionValue("c");
-                    if (bcp.charAt(0) == ':') {
+                    if (bcp != null && bcp.charAt(0) == ':') {
                         bootClassPath = bootClassPath + bcp;
                     } else {
                         bootClassPath = bcp;
                     }
                     break;
                 case 'x':
-                    String deodexerantAddress = commandLine.getOptionValue("x");
-                    String[] parts = deodexerantAddress.split(":");
-                    if (parts.length != 2) {
-                        System.err.println("Invalid deodexerant address. Expecting :<port> or <host>:<port>");
-                        System.exit(1);
-                    }
-
-                    deodexerantHost = parts[0];
-                    if (deodexerantHost.length() == 0) {
-                        deodexerantHost = "localhost";
-                    }
-                    try {
-                        deodexerantPort = Integer.parseInt(parts[1]);
-                    } catch (NumberFormatException ex) {
-                        System.err.println("Invalid port \"" + deodexerantPort + "\" for deodexerant address");
-                        System.exit(1);
-                    }
+                    deodex = true;
                     break;
                 case 'N':
                     disassemble = false;
@@ -240,16 +223,6 @@ public class main {
             //Read in and parse the dex file
             DexFile dexFile = new DexFile(dexFileFile, !fixRegisters, false);
 
-            Deodexerant deodexerant = null;
-
-
-            if (deodexerantHost != null) {
-                if (!dexFile.isOdex()) {
-                    System.err.println("-x cannot be used with a normal dex file. Ignoring -x");
-                }
-                deodexerant = new Deodexerant(dexFile, deodexerantHost, deodexerantPort);
-            }
-
             if (dexFile.isOdex()) {
                 if (doDump) {
                     System.err.println("-d cannot be used with on odex file. Ignoring -d");
@@ -257,15 +230,17 @@ public class main {
                 if (write) {
                     System.err.println("-w cannot be used with an odex file. Ignoring -w");
                 }
-                if (deodexerant == null) {
+                if (!deodex) {
                     System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
-                    System.err.println("won't be able to re-assemble the results unless you use deodexerant, and");
-                    System.err.println("the -x option for baksmali");
+                    System.err.println("won't be able to re-assemble the results unless you deodex it with the -x");
+                    System.err.println("option");
                 }
+            } else {
+                deodex = false;
             }
 
             if (disassemble) {
-                baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, bootClassPathDir, bootClassPath,
+                baksmali.disassembleDexFile(dexFile, deodex, outputDirectory, bootClassPathDir, bootClassPath,
                         noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
                         registerInfo);
             }
@@ -317,7 +292,7 @@ public class main {
     /**
      * Prints the version message.
      */
-    private static void version() {
+    protected static void version() {
         System.out.println("baksmali " + VERSION + " (http://smali.googlecode.com)");
         System.out.println("Copyright (C) 2009 Ben Gruver");
         System.out.println("BSD license (http://www.opensource.org/licenses/bsd-license.php)");
@@ -366,15 +341,13 @@ public class main {
                 .create("F");
 
         Option noParameterRegistersOption = OptionBuilder.withLongOpt("no-parameter-registers")
-                .withDescription("use the v<n> syntax instead of the p<n> syntax for registers mapped to method" +
-                        " parameters")
+                .withDescription("use the v<n> syntax instead of the p<n> syntax for registers mapped to method " +
+                        "parameters")
                 .create("p");
 
-        Option deodexerantOption = OptionBuilder.withLongOpt("deodexerant")
-                .withDescription("connect to deodexerant on the specified HOST:PORT, and deodex the input odex"
-                        + " file. This option is ignored if the input file is a dex file instead of an odex file")
-                .hasArg()
-                .withArgName("HOST:PORT")
+        Option deodexerantOption = OptionBuilder.withLongOpt("deodex")
+                .withDescription("deodex the given odex file. This option is ignored if the input file is not an " +
+                        "odex file.")
                 .create("x");
 
         Option useLocalsOption = OptionBuilder.withLongOpt("use-locals")

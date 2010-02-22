@@ -2,6 +2,7 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.baksmali.Adaptors.MethodDefinition;
+import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
 import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.OffsetInstruction;
@@ -15,8 +16,8 @@ public class InstructionMethodItemFactory {
                                                                               CodeItem codeItem,
                                                                               int codeAddress,
                                                                               StringTemplateGroup stg,
-                                                                              Instruction instruction) {
-
+                                                                              Instruction instruction,
+                                                                              boolean isLastInstruction) {
         if (instruction instanceof OffsetInstruction) {
             return new OffsetInstructionFormatMethodItem(methodDefinition.getLabelCache(), codeItem, codeAddress, stg,
                     instruction);
@@ -32,6 +33,9 @@ public class InstructionMethodItemFactory {
             case SparseSwitchData:
                 return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, stg,
                         (SparseSwitchDataPseudoInstruction)instruction);
+            case UnresolvedNullReference:
+                return new UnresolvedNullReferenceMethodItem(codeItem, codeAddress, stg,
+                        (UnresolvedNullReference)instruction, isLastInstruction);
             default:
                 return new InstructionMethodItem(codeItem, codeAddress, stg, instruction);
         }

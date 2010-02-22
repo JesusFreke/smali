@@ -43,16 +43,6 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     protected final StringTemplateGroup stg;
     protected final T instruction;
 
-    /**
-     * Instructions that execution could pass on to next
-     */
-    private LinkedList<InstructionMethodItem> successors = new LinkedList<InstructionMethodItem>();
-
-    /**
-     * Instructions that can pass on execution to this one
-     */
-    private LinkedList<InstructionMethodItem> predecessors = new LinkedList<InstructionMethodItem>();
-
     public InstructionMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg, T instruction) {
         super(codeAddress);
         this.codeItem = codeItem;
@@ -96,6 +86,14 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
         if (instruction instanceof InstructionWithReference) {
             setInstructionWithReferenceAttributes((InstructionWithReference)instruction, template);
+        }
+
+        if (instruction instanceof OdexedInvokeVirtual) {
+            setOdexedInvokeVirtualAttributes((OdexedInvokeVirtual)instruction, template);
+        }
+
+        if (instruction instanceof OdexedFieldAccess) {
+            setOdexedFieldAccessAttributes((OdexedFieldAccess)instruction, template);
         }
     }
 
@@ -169,5 +167,13 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     private void setInstructionWithReferenceAttributes(InstructionWithReference instruction, StringTemplate template) {
         template.setAttribute("Reference", Reference.createReference(template.getGroup(),
                 instruction.getReferencedItem()));
+    }
+
+    private void setOdexedInvokeVirtualAttributes(OdexedInvokeVirtual instruction, StringTemplate template) {
+        template.setAttribute("MethodIndex", instruction.getMethodIndex());
+    }
+
+    private void setOdexedFieldAccessAttributes(OdexedFieldAccess instruction, StringTemplate template) {
+        template.setAttribute("FieldOffset", instruction.getFieldOffset());
     }
 }

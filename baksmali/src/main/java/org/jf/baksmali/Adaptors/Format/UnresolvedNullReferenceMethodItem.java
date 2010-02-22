@@ -26,41 +26,33 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib.Code.Format;
+package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Code.TwoRegisterInstruction;
-import org.jf.dexlib.Code.InstructionWithReference;
-import org.jf.dexlib.FieldIdItem;
-import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Code.Format.UnresolvedNullReference;
+import org.jf.dexlib.CodeItem;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplate;
 
-public class Instruction22csf extends InstructionWithReference implements TwoRegisterInstruction {
-    private final Instruction22cs unfixedInstruction;
+public class UnresolvedNullReferenceMethodItem extends InstructionMethodItem<UnresolvedNullReference> {
+    public final boolean isLastInstruction;
 
-    public Instruction22csf(Opcode opcode, Instruction22cs unfixedInstruction, FieldIdItem field) {
-        //the opcode should be the "fixed" opcode. i.e. iget-object, etc. (NOT the "quick" version)
-        super(opcode, field);
-        this.unfixedInstruction = unfixedInstruction;
+    public UnresolvedNullReferenceMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg,
+                                    UnresolvedNullReference instruction, boolean isLastInstruction) {
+        super(codeItem, codeAddress, stg, instruction);
+        this.isLastInstruction = isLastInstruction;
     }
 
-    protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
-        byte regA = (byte)getRegisterA();
-        byte regB = (byte)getRegisterB();
+    protected void setAttributes(StringTemplate template) {
+        template.setAttribute("Register", formatRegister(instruction.ObjectRegisterNum));
+        switch (instruction.OriginalInstruction.opcode)
+        {
+            case INVOKE_VIRTUAL_QUICK_RANGE:
+            case INVOKE_SUPER_QUICK_RANGE:
+                template.setAttribute("UseInvokeRange", 1);
+                if (isLastInstruction) {
+                    template.setAttribute("AddGoto", 1);
+                }
+        }
 
-        out.writeByte(opcode.value);
-        out.writeByte((regB << 4) | regA);
-        out.writeShort(this.getReferencedItem().getIndex());
-    }
-
-    public Format getFormat() {
-        return Format.Format22csf;
-    }
-
-    public int getRegisterA() {
-        return unfixedInstruction.getRegisterA();
-    }
-
-    public int getRegisterB() {
-        return unfixedInstruction.getRegisterB();
     }
 }

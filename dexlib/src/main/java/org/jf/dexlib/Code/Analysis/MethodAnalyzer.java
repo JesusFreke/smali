@@ -2,14 +2,16 @@ package org.jf.dexlib.Code.Analysis;
 
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.*;
-import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.Format;
+import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Util.*;
+
 
 import java.util.*;
 
 public class MethodAnalyzer {
     private final ClassDataItem.EncodedMethod encodedMethod;
+
+    private final DeodexUtil deodexUtil;
 
     private SparseArray<AnalyzedInstruction> instructions;
 
@@ -25,7 +27,7 @@ public class MethodAnalyzer {
     //instruction, etc.
     private AnalyzedInstruction startOfMethod;
 
-    public MethodAnalyzer(ClassDataItem.EncodedMethod encodedMethod) {
+    public MethodAnalyzer(ClassDataItem.EncodedMethod encodedMethod, boolean deodex) {
         if (encodedMethod == null) {
             throw new IllegalArgumentException("encodedMethod cannot be null");
         }
@@ -33,6 +35,12 @@ public class MethodAnalyzer {
             throw new IllegalArgumentException("The method has no code");
         }
         this.encodedMethod = encodedMethod;
+
+        if (deodex) {
+            this.deodexUtil = new DeodexUtil(encodedMethod.method.getDexFile());
+        } else {
+            this.deodexUtil = null;
+        }
 
         //override AnalyzedInstruction and provide custom implementations of some of the methods, so that we don't
         //have to handle the case this special case of instruction being null, in the main class
@@ -92,7 +100,7 @@ public class MethodAnalyzer {
                     throw new ValidationException("The constructor flag can only be used with an <init> method.");
                 }
 
-                setRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
+                setPostRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
                         RegisterType.getRegisterType(RegisterType.Category.UninitThis,
                             ClassPath.getClassDef(methodIdItem.getContainingClass())));
             } else {
@@ -100,7 +108,7 @@ public class MethodAnalyzer {
                     throw new ValidationException("An <init> method must have the \"constructor\" access flag");
                 }
 
-                setRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
+                setPostRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
                         RegisterType.getRegisterType(RegisterType.Category.Reference,
                             ClassPath.getClassDef(methodIdItem.getContainingClass())));
             }
@@ -112,13 +120,13 @@ public class MethodAnalyzer {
             for (int i=0; i<parameterTypes.length; i++) {
                 RegisterType registerType = parameterTypes[i];
                 int registerNum = (totalRegisters - parameterRegisters) + i;
-                setRegisterTypeAndPropagateChanges(startOfMethod, registerNum, registerType);
+                setPostRegisterTypeAndPropagateChanges(startOfMethod, registerNum, registerType);
             }
         }
 
         RegisterType uninit = RegisterType.getRegisterType(RegisterType.Category.Uninit, null);
         for (int i=0; i<nonParameterRegisters; i++) {
-            setRegisterTypeAndPropagateChanges(startOfMethod, i, uninit);
+            setPostRegisterTypeAndPropagateChanges(startOfMethod, i, uninit);
         }
 
         BitSet instructionsToAnalyze = new BitSet(verifiedInstructions.size());
@@ -128,42 +136,100 @@ public class MethodAnalyzer {
             instructionsToAnalyze.set(successor.instructionIndex);
         }
 
-        while (!instructionsToAnalyze.isEmpty()) {
-            for(int i=instructionsToAnalyze.nextSetBit(0); i>=0; i=instructionsToAnalyze.nextSetBit(i+1)) {
-                instructionsToAnalyze.clear(i);
-                if (verifiedInstructions.get(i)) {
-                    continue;
+        BitSet odexedInstructions = new BitSet(verifiedInstructions.size());
+
+        do {
+            boolean didSomething = false;
+
+            while (!instructionsToAnalyze.isEmpty()) {
+                for(int i=instructionsToAnalyze.nextSetBit(0); i>=0; i=instructionsToAnalyze.nextSetBit(i+1)) {
+                    instructionsToAnalyze.clear(i);
+                    if (verifiedInstructions.get(i)) {
+                        continue;
+                    }
+                    AnalyzedInstruction instructionToVerify = instructions.valueAt(i);
+                    try {
+                        if (instructionToVerify.originalInstruction.opcode.odexOnly()) {
+                            instructionToVerify.restoreOdexedInstruction();
+                        }
+
+                        if (!analyzeInstruction(instructionToVerify)) {
+                            odexedInstructions.set(i);
+                            continue;
+                        } else {
+                            didSomething = true;
+                            odexedInstructions.clear(i);
+                        }
+                    } catch (ValidationException ex) {
+                        this.validationException = ex;
+                        int codeAddress = getInstructionAddress(instructionToVerify);
+                        ex.setCodeAddress(codeAddress);
+                        ex.addContext(String.format("opcode: %s", instructionToVerify.instruction.opcode.name));
+                        ex.addContext(String.format("CodeAddress: %d", codeAddress));
+                        ex.addContext(String.format("Method: %s", encodedMethod.method.getMethodString()));
+                        break;
+                    }
+
+                    verifiedInstructions.set(instructionToVerify.getInstructionIndex());
+
+                    for (AnalyzedInstruction successor: instructionToVerify.successors) {
+                        instructionsToAnalyze.set(successor.getInstructionIndex());
+                    }
                 }
-                AnalyzedInstruction instructionToVerify = instructions.valueAt(i);
-                try {
-                    analyzeInstruction(instructionToVerify);
-                } catch (ValidationException ex) {
-                    this.validationException = ex;
-                    int codeAddress = getInstructionAddress(instructionToVerify);
-                    ex.setCodeAddress(codeAddress);
-                    ex.addContext(String.format("opcode: %s", instructionToVerify.instruction.opcode.name));
-                    ex.addContext(String.format("CodeAddress: %d", codeAddress));
-                    ex.addContext(String.format("Method: %s", encodedMethod.method.getMethodString()));
+                if (validationException != null) {
                     break;
                 }
-
-                verifiedInstructions.set(instructionToVerify.getInstructionIndex());
-
-                for (AnalyzedInstruction successor: instructionToVerify.successors) {
-                    instructionsToAnalyze.set(successor.getInstructionIndex());
-                }
             }
-            if (validationException != null) {
+
+            if (!didSomething) {
                 break;
             }
-        }
+
+            if (!odexedInstructions.isEmpty()) {
+                for (int i=odexedInstructions.nextSetBit(0); i>=0; i=odexedInstructions.nextSetBit(i+1)) {
+                    instructionsToAnalyze.set(i);
+                }
+            }
+        } while (true);
 
         for (int i=0; i<instructions.size(); i++) {
             AnalyzedInstruction instruction = instructions.valueAt(i);
-            for (int j=0; j<instruction.postRegisterMap.length; j++) {
-                if (instruction.postRegisterMap[j].category == RegisterType.Category.Unknown) {
-                    instruction.postRegisterMap[j] = uninit;
+
+            if (!odexedInstructions.get(i)) {
+
+                //TODO: We probably need to re-verify everything after changing unknown-uninit. Better yet, maybe we should split the register propagation logic and the verification logic, and only do the verification after all the register info is known
+
+                //We don't want to change unknown register types to uninit for unreachable instructions, as the register
+                //types for the unreachable instruction shouldn't be taken into account when merging registers for any
+                //reachable predecessor (for example, the predecessor of an unreachable goto instruction)
+                //So we keep the unreachable register types as unknown, because anything else + unknown = anything else
+                if (verifiedInstructions.get(i)) {
+                    for (int j=0; j<instruction.postRegisterMap.length; j++) {
+                        if (instruction.postRegisterMap[j].category == RegisterType.Category.Unknown) {
+                            instruction.postRegisterMap[j] = uninit;
+                        }
+                    }
                 }
+            } else {
+                Instruction odexedInstruction = instruction.instruction;
+                int objectRegisterNumber;
+
+                if (odexedInstruction.getFormat() == Format.Format22cs) {
+                    objectRegisterNumber = ((Instruction22cs)odexedInstruction).getRegisterB();
+                } else if (odexedInstruction.getFormat() == Format.Format35ms) {
+                    objectRegisterNumber = ((Instruction35ms)odexedInstruction).getRegisterD();
+                } else if (odexedInstruction.getFormat() == Format.Format3rms) {
+                    objectRegisterNumber = ((Instruction3rms)odexedInstruction).getStartRegister();
+                } else {
+                    assert false;
+                    throw new ExceptionWithContext(String.format("Unexpected format %s for odexed instruction",
+                            odexedInstruction.getFormat().name()));
+                }
+
+                instruction.setDeodexedInstruction(new UnresolvedNullReference(odexedInstruction,
+                        objectRegisterNumber));
+
+                setAndPropagateDeadness(instruction);
             }
         }
 
@@ -241,29 +307,72 @@ public class MethodAnalyzer {
 
     private void setDestinationRegisterTypeAndPropagateChanges(AnalyzedInstruction analyzedInstruction,
                                                                RegisterType registerType) {
-        setRegisterTypeAndPropagateChanges(analyzedInstruction, analyzedInstruction.getDestinationRegister(),
+        setPostRegisterTypeAndPropagateChanges(analyzedInstruction, analyzedInstruction.getDestinationRegister(),
                 registerType);
     }
 
-    private void setRegisterTypeAndPropagateChanges(AnalyzedInstruction analyzedInstruction, int registerNumber,
+
+    private void setAndPropagateDeadness(AnalyzedInstruction analyzedInstruction) {
+        BitSet instructionsToProcess = new BitSet(instructions.size());
+
+        //temporarily set the undeodexeble instruction as dead, so that the "set dead if all predecessors are dead"
+        //operation works
+        analyzedInstruction.dead = true;
+
+        for (AnalyzedInstruction successor: analyzedInstruction.successors) {
+            instructionsToProcess.set(successor.instructionIndex);
+        }
+
+        instructionsToProcess.set(analyzedInstruction.instructionIndex);
+
+        while (!instructionsToProcess.isEmpty()) {
+            for (int i=instructionsToProcess.nextSetBit(0); i>=0; i=instructionsToProcess.nextSetBit(i+1)) {
+                AnalyzedInstruction currentInstruction = instructions.valueAt(i);
+                instructionsToProcess.clear(i);
+
+                if (currentInstruction.dead) {
+                    continue;
+                }
+
+                boolean isDead = true;
+
+                for (AnalyzedInstruction predecessor: currentInstruction.predecessors) {
+                    if (!predecessor.dead) {
+                        isDead = false;
+                        break;
+                    }
+                }
+
+                if (isDead) {
+                    currentInstruction.dead = true;
+
+                    for (AnalyzedInstruction successor: currentInstruction.successors) {
+                        instructionsToProcess.set(successor.instructionIndex);
+                    }
+                }
+            }
+        }
+
+        analyzedInstruction.dead = false;
+    }
+
+    private void setPostRegisterTypeAndPropagateChanges(AnalyzedInstruction analyzedInstruction, int registerNumber,
                                                 RegisterType registerType) {
 
         BitSet changedInstructions = new BitSet(instructions.size());
 
-        boolean changed = analyzedInstruction.setPostRegisterType(registerNumber, registerType);
-
-        if (!changed) {
+        if (!analyzedInstruction.setPostRegisterType(registerNumber, registerType)) {
             return;
         }
 
         propagateRegisterToSuccessors(analyzedInstruction, registerNumber, changedInstructions);
 
-        //using a for loop inside the while loop optimizes for the common case of the successors of an instruction
+        //Using a for loop inside the while loop optimizes for the common case of the successors of an instruction
         //occurring after the instruction. Any successors that occur prior to the instruction will be picked up on
         //the next iteration of the while loop.
-        //this could also be done recursively, but in large methods it would likely cause very deep recursion,
-        //which would requires the user to specify a larger stack size. This isn't really a problem, but it is
-        //slightly annoying.
+        //This could also be done recursively, but in large methods it would likely cause very deep recursion,
+        //which requires the user to specify a larger stack size. This isn't really a problem, but it is slightly
+        //annoying.
         while (!changedInstructions.isEmpty()) {
             for (int instructionIndex=changedInstructions.nextSetBit(0);
                      instructionIndex>=0;
@@ -278,35 +387,24 @@ public class MethodAnalyzer {
 
         if (registerType.category == RegisterType.Category.LongLo) {
             checkWidePair(registerNumber, analyzedInstruction);
-            setRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber+1,
+            setPostRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber+1,
                     RegisterType.getRegisterType(RegisterType.Category.LongHi, null));
         } else if (registerType.category == RegisterType.Category.DoubleLo) {
             checkWidePair(registerNumber, analyzedInstruction);
-            setRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber+1,
+            setPostRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber+1,
                     RegisterType.getRegisterType(RegisterType.Category.DoubleHi, null));
         }
     }
 
     private void propagateRegisterToSuccessors(AnalyzedInstruction instruction, int registerNumber,
                                                BitSet changedInstructions) {
+        RegisterType postRegisterType = instruction.getPostInstructionRegisterType(registerNumber);
         for (AnalyzedInstruction successor: instruction.successors) {
-            if (!successor.setsRegister(registerNumber)) {
-                RegisterType registerType = successor.getMergedRegisterTypeFromPredecessors(registerNumber);
-
-                //TODO: GROT?
-                /*if (registerType.category == RegisterType.Category.UninitRef && instruction.isInvokeInit()) {
-                    continue;
-                }*/
-
-                if (successor.setPostRegisterType(registerNumber, registerType)) {
-                    changedInstructions.set(successor.instructionIndex);
-                    verifiedInstructions.clear(successor.instructionIndex);
-                }
+            if (successor.mergeRegister(registerNumber, postRegisterType, verifiedInstructions)) {
+                changedInstructions.set(successor.instructionIndex);
             }
         }
     }
-
-
 
     private void buildInstructionList() {
         assert encodedMethod != null;
@@ -368,13 +466,18 @@ public class MethodAnalyzer {
             }
         }
 
-        //finally, populate the successors and predecessors for each instruction
+        //finally, populate the successors and predecessors for each instruction. We start at the fake "StartOfMethod"
+        //instruction and follow the execution path. Any unreachable code won't have any predecessors or successors,
+        //and no reachable code will have an unreachable predessor or successor
         assert instructions.size() > 0;
-        addPredecessorSuccessor(startOfMethod, instructions.valueAt(0), exceptionHandlers);
-        startOfMethod.addSuccessor(instructions.valueAt(0));
+        BitSet instructionsToProcess = new BitSet(insns.length);
 
-        for (int i=0; i<instructions.size(); i++) {
-            AnalyzedInstruction instruction = instructions.valueAt(i);
+        addPredecessorSuccessor(startOfMethod, instructions.valueAt(0), exceptionHandlers, instructionsToProcess);
+        while (!instructionsToProcess.isEmpty()) {
+            int currentInstructionIndex = instructionsToProcess.nextSetBit(0);
+            instructionsToProcess.clear(currentInstructionIndex);
+
+            AnalyzedInstruction instruction = instructions.valueAt(currentInstructionIndex);
             Opcode instructionOpcode = instruction.instruction.opcode;
             int instructionCodeAddress = getInstructionAddress(instruction);
 
@@ -382,12 +485,12 @@ public class MethodAnalyzer {
                 if (instruction.instruction.opcode != Opcode.NOP ||
                     !instruction.instruction.getFormat().variableSizeFormat) {
 
-                    if (i == instructions.size() - 1) {
+                    if (currentInstructionIndex == instructions.size() - 1) {
                         throw new ValidationException("Execution can continue past the last instruction");
                     }
 
-                    AnalyzedInstruction nextInstruction = instructions.valueAt(i+1);
-                    addPredecessorSuccessor(instruction, nextInstruction, exceptionHandlers);
+                    AnalyzedInstruction nextInstruction = instructions.valueAt(currentInstructionIndex+1);
+                    addPredecessorSuccessor(instruction, nextInstruction, exceptionHandlers, instructionsToProcess);
                 }
             }
 
@@ -402,25 +505,28 @@ public class MethodAnalyzer {
                         AnalyzedInstruction targetInstruction = instructions.get(instructionCodeAddress +
                                 targetAddressOffset);
 
-                        addPredecessorSuccessor(instruction, targetInstruction, exceptionHandlers);
+                        addPredecessorSuccessor(instruction, targetInstruction, exceptionHandlers,
+                                instructionsToProcess);
                     }
                 } else {
                     int targetAddressOffset = offsetInstruction.getTargetAddressOffset();
                     AnalyzedInstruction targetInstruction = instructions.get(instructionCodeAddress +
                             targetAddressOffset);
-                    addPredecessorSuccessor(instruction, targetInstruction, exceptionHandlers);
+                    addPredecessorSuccessor(instruction, targetInstruction, exceptionHandlers, instructionsToProcess);
                 }
             }
         }
     }
 
     private void addPredecessorSuccessor(AnalyzedInstruction predecessor, AnalyzedInstruction successor,
-                                                AnalyzedInstruction[][] exceptionHandlers) {
-        addPredecessorSuccessor(predecessor, successor, exceptionHandlers, false);
+                                                AnalyzedInstruction[][] exceptionHandlers,
+                                                BitSet instructionsToProcess) {
+        addPredecessorSuccessor(predecessor, successor, exceptionHandlers, instructionsToProcess, false);
     }
 
     private void addPredecessorSuccessor(AnalyzedInstruction predecessor, AnalyzedInstruction successor,
-                                                AnalyzedInstruction[][] exceptionHandlers, boolean allowMoveException) {
+                                                AnalyzedInstruction[][] exceptionHandlers,
+                                                BitSet instructionsToProcess, boolean allowMoveException) {
 
         if (!allowMoveException && successor.instruction.opcode == Opcode.MOVE_EXCEPTION) {
             throw new ValidationException("Execution can pass from the " + predecessor.instruction.opcode.name +
@@ -429,16 +535,19 @@ public class MethodAnalyzer {
                     Integer.toHexString(getInstructionAddress(successor)));
         }
 
-        if (!predecessor.addSuccessor(successor)) {
-            //if predecessor already had successor as a successor, then there's nothing else to do
+        if (!successor.addPredecessor(predecessor)) {
             return;
         }
 
-        successor.addPredecessor(predecessor);
+        predecessor.addSuccessor(successor);
+        instructionsToProcess.set(successor.getInstructionIndex());
 
-        //TODO: need to handle the case of monitor-exit as a special case - the exception is thrown *after* the instruction executes
+
         //if the successor can throw an instruction, then we need to add the exception handlers as additional
         //successors to the predecessor (and then apply this same logic recursively if needed)
+        //Technically, we should handle the monitor-exit instruction as a special case. The exception is actually
+        //thrown *after* the instruction executes, instead of "before" the instruction executes, lke for any other
+        //instruction. But since it doesn't modify any registers, we can treat it like any other instruction.
         AnalyzedInstruction[] exceptionHandlersForSuccessor = exceptionHandlers[successor.instructionIndex];
         if (exceptionHandlersForSuccessor != null) {
             //the item for this instruction in exceptionHandlersForSuccessor should only be set if this instruction
@@ -446,7 +555,7 @@ public class MethodAnalyzer {
             assert successor.instruction.opcode.canThrow();
 
             for (AnalyzedInstruction exceptionHandler: exceptionHandlersForSuccessor) {
-                addPredecessorSuccessor(predecessor, exceptionHandler, exceptionHandlers, true);
+                addPredecessorSuccessor(predecessor, exceptionHandler, exceptionHandlers, instructionsToProcess, true);
             }
         }
     }
@@ -470,354 +579,354 @@ public class MethodAnalyzer {
         return exceptionHandlers;
     }
 
-    private void analyzeInstruction(AnalyzedInstruction analyzedInstruction) {
+    private boolean analyzeInstruction(AnalyzedInstruction analyzedInstruction) {
         Instruction instruction = analyzedInstruction.instruction;
 
         switch (instruction.opcode) {
             case NOP:
-                return;
+                return true;
             case MOVE:
             case MOVE_FROM16:
             case MOVE_16:
                 handleMove(analyzedInstruction, Primitive32BitCategories);
-                return;
+                return true;
             case MOVE_WIDE:
             case MOVE_WIDE_FROM16:
             case MOVE_WIDE_16:
                 handleMove(analyzedInstruction, WideLowCategories);
-                return;
+                return true;
             case MOVE_OBJECT:
             case MOVE_OBJECT_FROM16:
             case MOVE_OBJECT_16:
                 handleMove(analyzedInstruction, ReferenceOrUninitCategories);
-                return;
+                return true;
             case MOVE_RESULT:
                 handleMoveResult(analyzedInstruction, Primitive32BitCategories);
-                return;
+                return true;
             case MOVE_RESULT_WIDE:
                 handleMoveResult(analyzedInstruction, WideLowCategories);
-                return;
+                return true;
             case MOVE_RESULT_OBJECT:
                 handleMoveResult(analyzedInstruction, ReferenceCategories);
-                return;
+                return true;
             case MOVE_EXCEPTION:
                 handleMoveException(analyzedInstruction);
-                return;
+                return true;
             case RETURN_VOID:
                 handleReturnVoid(analyzedInstruction);
-                return;
+                return true;
             case RETURN:
                 handleReturn(analyzedInstruction, Primitive32BitCategories);
-                return;
+                return true;
             case RETURN_WIDE:
                 handleReturn(analyzedInstruction, WideLowCategories);
-                return;
+                return true;
             case RETURN_OBJECT:
                 handleReturn(analyzedInstruction, ReferenceCategories);
-                return;
+                return true;
             case CONST_4:
             case CONST_16:
             case CONST:
                 handleConst(analyzedInstruction);
-                return;
+                return true;
             case CONST_HIGH16:
                 handleConstHigh16(analyzedInstruction);
-                return;
+                return true;
             case CONST_WIDE_16:
             case CONST_WIDE_32:
             case CONST_WIDE:
             case CONST_WIDE_HIGH16:
                 handleWideConst(analyzedInstruction);
-                return;
+                return true;
             case CONST_STRING:
             case CONST_STRING_JUMBO:
                 handleConstString(analyzedInstruction);
-                return;
+                return true;
             case CONST_CLASS:
                 handleConstClass(analyzedInstruction);
-                return;
+                return true;
             case MONITOR_ENTER:
             case MONITOR_EXIT:
                 handleMonitor(analyzedInstruction);
-                return;
+                return true;
             case CHECK_CAST:
                 handleCheckCast(analyzedInstruction);
-                return;
+                return true;
             case INSTANCE_OF:
                 handleInstanceOf(analyzedInstruction);
-                return;
+                return true;
             case ARRAY_LENGTH:
                 handleArrayLength(analyzedInstruction);
-                return;
+                return true;
             case NEW_INSTANCE:
                 handleNewInstance(analyzedInstruction);
-                return;
+                return true;
             case NEW_ARRAY:
                 handleNewArray(analyzedInstruction);
-                return;
+                return true;
             case FILLED_NEW_ARRAY:
                 handleFilledNewArray(analyzedInstruction);
-                return;
+                return true;
             case FILLED_NEW_ARRAY_RANGE:
                 handleFilledNewArrayRange(analyzedInstruction);
-                return;
+                return true;
             case FILL_ARRAY_DATA:
                 handleFillArrayData(analyzedInstruction);
-                return;
+                return true;
             case THROW:
                 handleThrow(analyzedInstruction);
-                return;
+                return true;
             case GOTO:
             case GOTO_16:
             case GOTO_32:
                 //nothing to do
-                return;
+                return true;
             case PACKED_SWITCH:
                 handleSwitch(analyzedInstruction, Format.PackedSwitchData);
-                return;
+                return true;
             case SPARSE_SWITCH:
                 handleSwitch(analyzedInstruction, Format.SparseSwitchData);
-                return;
+                return true;
             case CMPL_FLOAT:
             case CMPG_FLOAT:
                 handleFloatWideCmp(analyzedInstruction, Primitive32BitCategories);
-                return;
+                return true;
             case CMPL_DOUBLE:
             case CMPG_DOUBLE:
             case CMP_LONG:
                 handleFloatWideCmp(analyzedInstruction, WideLowCategories);
-                return;
+                return true;
             case IF_EQ:
             case IF_NE:
                 handleIfEqNe(analyzedInstruction);
-                return;
+                return true;
             case IF_LT:
             case IF_GE:
             case IF_GT:
             case IF_LE:
                 handleIf(analyzedInstruction);
-                return;
+                return true;
             case IF_EQZ:
             case IF_NEZ:
                 handleIfEqzNez(analyzedInstruction);
-                return;
+                return true;
             case IF_LTZ:
             case IF_GEZ:
             case IF_GTZ:
             case IF_LEZ:
                 handleIfz(analyzedInstruction);
-                return;
+                return true;
             case AGET:
                 handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Integer);
-                return;
+                return true;
             case AGET_BOOLEAN:
                 handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Boolean);
-                return;
+                return true;
             case AGET_BYTE:
                 handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Byte);
-                return;
+                return true;
             case AGET_CHAR:
                 handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Char);
-                return;
+                return true;
             case AGET_SHORT:
                 handle32BitPrimitiveAget(analyzedInstruction, RegisterType.Category.Short);
-                return;
+                return true;
             case AGET_WIDE:
                 handleAgetWide(analyzedInstruction);
-                return;
+                return true;
             case AGET_OBJECT:
                 handleAgetObject(analyzedInstruction);
-                return;
+                return true;
             case APUT:
                 handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Integer);
-                return;
+                return true;
             case APUT_BOOLEAN:
                 handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Boolean);
-                return;
+                return true;
             case APUT_BYTE:
                 handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Byte);
-                return;
+                return true;
             case APUT_CHAR:
                 handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Char);
-                return;
+                return true;
             case APUT_SHORT:
                 handle32BitPrimitiveAput(analyzedInstruction, RegisterType.Category.Short);
-                return;
+                return true;
             case APUT_WIDE:
                 handleAputWide(analyzedInstruction);
-                return;
+                return true;
             case APUT_OBJECT:
                 handleAputObject(analyzedInstruction);
-                return;
+                return true;
             case IGET:
                 handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Integer);
-                return;
+                return true;
             case IGET_BOOLEAN:
                 handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Boolean);
-                return;
+                return true;
             case IGET_BYTE:
                 handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Byte);
-                return;
+                return true;
             case IGET_CHAR:
                 handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Char);
-                return;
+                return true;
             case IGET_SHORT:
                 handle32BitPrimitiveIget(analyzedInstruction, RegisterType.Category.Short);
-                return;
+                return true;
             case IGET_WIDE:
                 handleIgetWide(analyzedInstruction);
-                return;
+                return true;
             case IGET_OBJECT:
                 handleIgetObject(analyzedInstruction);
-                return;
+                return true;
             case IPUT:
                 handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Integer);
-                return;
+                return true;
             case IPUT_BOOLEAN:
                 handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Boolean);
-                return;
+                return true;
             case IPUT_BYTE:
                 handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Byte);
-                return;
+                return true;
             case IPUT_CHAR:
                 handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Char);
-                return;
+                return true;
             case IPUT_SHORT:
                 handle32BitPrimitiveIput(analyzedInstruction, RegisterType.Category.Short);
-                return;
+                return true;
             case IPUT_WIDE:
                 handleIputWide(analyzedInstruction);
-                return;
+                return true;
             case IPUT_OBJECT:
                 handleIputObject(analyzedInstruction);
-                return;
+                return true;
             case SGET:
                 handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Integer);
-                return;
+                return true;
             case SGET_BOOLEAN:
                 handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Boolean);
-                return;
+                return true;
             case SGET_BYTE:
                 handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Byte);
-                return;
+                return true;
             case SGET_CHAR:
                 handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Char);
-                return;
+                return true;
             case SGET_SHORT:
                 handle32BitPrimitiveSget(analyzedInstruction, RegisterType.Category.Short);
-                return;
+                return true;
             case SGET_WIDE:
                 handleSgetWide(analyzedInstruction);
-                return;
+                return true;
             case SGET_OBJECT:
                 handleSgetObject(analyzedInstruction);
-                return;
+                return true;
             case SPUT:
                 handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Integer);
-                return;
+                return true;
             case SPUT_BOOLEAN:
                 handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Boolean);
-                return;
+                return true;
             case SPUT_BYTE:
                 handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Byte);
-                return;
+                return true;
             case SPUT_CHAR:
                 handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Char);
-                return;
+                return true;
             case SPUT_SHORT:
                 handle32BitPrimitiveSput(analyzedInstruction, RegisterType.Category.Short);
-                return;
+                return true;
             case SPUT_WIDE:
                 handleSputWide(analyzedInstruction);
-                return;
+                return true;
             case SPUT_OBJECT:
                 handleSputObject(analyzedInstruction);
-                return;
+                return true;
             case INVOKE_VIRTUAL:
                 handleInvoke(analyzedInstruction, INVOKE_VIRTUAL);
-                return;
+                return true;
             case INVOKE_SUPER:
                 handleInvoke(analyzedInstruction, INVOKE_SUPER);
-                return;
+                return true;
             case INVOKE_DIRECT:
                 handleInvoke(analyzedInstruction, INVOKE_DIRECT);
-                return;
+                return true;
             case INVOKE_STATIC:
                 handleInvoke(analyzedInstruction, INVOKE_STATIC);
-                return;
+                return true;
             case INVOKE_INTERFACE:
                 handleInvoke(analyzedInstruction, INVOKE_INTERFACE);
-                return;
+                return true;
             case INVOKE_VIRTUAL_RANGE:
                 handleInvokeRange(analyzedInstruction, INVOKE_VIRTUAL);
-                return;
+                return true;
             case INVOKE_SUPER_RANGE:
                 handleInvokeRange(analyzedInstruction, INVOKE_SUPER);
-                return;
+                return true;
             case INVOKE_DIRECT_RANGE:
                 handleInvokeRange(analyzedInstruction, INVOKE_DIRECT);
-                return;
+                return true;
             case INVOKE_STATIC_RANGE:
                 handleInvokeRange(analyzedInstruction, INVOKE_STATIC);
-                return;
+                return true;
             case INVOKE_INTERFACE_RANGE:
                 handleInvokeRange(analyzedInstruction, INVOKE_INTERFACE);
-                return;
+                return true;
             case NEG_INT:
             case NOT_INT:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer);
-                return;
+                return true;
             case NEG_LONG:
             case NOT_LONG:
                 handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.LongLo);
-                return;
+                return true;
             case NEG_FLOAT:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Float);
-                return;
+                return true;
             case NEG_DOUBLE:
                 handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.DoubleLo);
-                return;
+                return true;
             case INT_TO_LONG:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.LongLo);
-                return;
+                return true;
             case INT_TO_FLOAT:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Float);
-                return;
+                return true;
             case INT_TO_DOUBLE:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.DoubleLo);
-                return;
+                return true;
             case LONG_TO_INT:
             case DOUBLE_TO_INT:
                 handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.Integer);
-                return;
+                return true;
             case LONG_TO_FLOAT:
             case DOUBLE_TO_FLOAT:
                 handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.Float);
-                return;
+                return true;
             case LONG_TO_DOUBLE:
                 handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.DoubleLo);
-                return;
+                return true;
             case FLOAT_TO_INT:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer);
-                return;
+                return true;
             case FLOAT_TO_LONG:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.LongLo);
-                return;
+                return true;
             case FLOAT_TO_DOUBLE:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.DoubleLo);
-                return;
+                return true;
             case DOUBLE_TO_LONG:
                 handleUnaryOp(analyzedInstruction, WideLowCategories, RegisterType.Category.LongLo);
-                return;
+                return true;
             case INT_TO_BYTE:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Byte);
-                return;
+                return true;
             case INT_TO_CHAR:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Char);
-                return;
+                return true;
             case INT_TO_SHORT:
                 handleUnaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Short);
-                return;
+                return true;
             case ADD_INT:
             case SUB_INT:
             case MUL_INT:
@@ -828,13 +937,13 @@ public class MethodAnalyzer {
             case USHR_INT:
                 handleBinaryOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
                         RegisterType.Category.Integer, false);
-                return;
+                return true;
             case AND_INT:
             case OR_INT:
             case XOR_INT:
                 handleBinaryOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
                         RegisterType.Category.Integer, true);
-                return;
+                return true;
             case ADD_LONG:
             case SUB_LONG:
             case MUL_LONG:
@@ -845,13 +954,13 @@ public class MethodAnalyzer {
             case XOR_LONG:
                 handleBinaryOp(analyzedInstruction, WideLowCategories, WideLowCategories, RegisterType.Category.LongLo,
                         false);
-                return;
+                return true;
             case SHL_LONG:
             case SHR_LONG:
             case USHR_LONG:
                 handleBinaryOp(analyzedInstruction, WideLowCategories, Primitive32BitCategories,
                         RegisterType.Category.LongLo, false);
-                return;
+                return true;
             case ADD_FLOAT:
             case SUB_FLOAT:
             case MUL_FLOAT:
@@ -859,7 +968,7 @@ public class MethodAnalyzer {
             case REM_FLOAT:
                 handleBinaryOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
                         RegisterType.Category.Float, false);
-                return;
+                return true;
             case ADD_DOUBLE:
             case SUB_DOUBLE:
             case MUL_DOUBLE:
@@ -867,7 +976,7 @@ public class MethodAnalyzer {
             case REM_DOUBLE:
                 handleBinaryOp(analyzedInstruction, WideLowCategories, WideLowCategories,
                         RegisterType.Category.DoubleLo, false);
-                return;
+                return true;
             case ADD_INT_2ADDR:
             case SUB_INT_2ADDR:
             case MUL_INT_2ADDR:
@@ -878,13 +987,13 @@ public class MethodAnalyzer {
             case USHR_INT_2ADDR:
                 handleBinary2AddrOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
                         RegisterType.Category.Integer, false);
-                return;
+                return true;
             case AND_INT_2ADDR:
             case OR_INT_2ADDR:
             case XOR_INT_2ADDR:
                 handleBinary2AddrOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
                         RegisterType.Category.Integer, true);
-                return;
+                return true;
             case ADD_LONG_2ADDR:
             case SUB_LONG_2ADDR:
             case MUL_LONG_2ADDR:
@@ -895,13 +1004,13 @@ public class MethodAnalyzer {
             case XOR_LONG_2ADDR:
                 handleBinary2AddrOp(analyzedInstruction, WideLowCategories, WideLowCategories,
                         RegisterType.Category.LongLo, false);
-                return;
+                return true;
             case SHL_LONG_2ADDR:
             case SHR_LONG_2ADDR:
             case USHR_LONG_2ADDR:
                 handleBinary2AddrOp(analyzedInstruction, WideLowCategories, Primitive32BitCategories,
                         RegisterType.Category.LongLo, false);
-                return;
+                return true;
             case ADD_FLOAT_2ADDR:
             case SUB_FLOAT_2ADDR:
             case MUL_FLOAT_2ADDR:
@@ -909,7 +1018,7 @@ public class MethodAnalyzer {
             case REM_FLOAT_2ADDR:
                 handleBinary2AddrOp(analyzedInstruction, Primitive32BitCategories, Primitive32BitCategories,
                         RegisterType.Category.Float, false);
-                return;
+                return true;
             case ADD_DOUBLE_2ADDR:
             case SUB_DOUBLE_2ADDR:
             case MUL_DOUBLE_2ADDR:
@@ -917,7 +1026,7 @@ public class MethodAnalyzer {
             case REM_DOUBLE_2ADDR:
                 handleBinary2AddrOp(analyzedInstruction, WideLowCategories, WideLowCategories,
                         RegisterType.Category.DoubleLo, false);
-                return;
+                return true;
             case ADD_INT_LIT16:
             case RSUB_INT:
             case MUL_INT_LIT16:
@@ -925,13 +1034,13 @@ public class MethodAnalyzer {
             case REM_INT_LIT16:
                 handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer,
                         false);
-                return;
+                return true;
             case AND_INT_LIT16:
             case OR_INT_LIT16:
             case XOR_INT_LIT16:
                 handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer,
                         true);
-                return;
+                return true;
             case ADD_INT_LIT8:
             case RSUB_INT_LIT8:
             case MUL_INT_LIT8:
@@ -940,23 +1049,49 @@ public class MethodAnalyzer {
             case SHL_INT_LIT8:
                 handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer,
                         false);
-                return;
+                return true;
             case AND_INT_LIT8:
             case OR_INT_LIT8:
             case XOR_INT_LIT8:
                 handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories, RegisterType.Category.Integer,
                         true);
-                return;
+                return true;
             case SHR_INT_LIT8:
                 handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories,
                         getDestTypeForLiteralShiftRight(analyzedInstruction, true), false);
-                return;
+                return true;
             case USHR_INT_LIT8:
                 handleLiteralBinaryOp(analyzedInstruction, Primitive32BitCategories,
                         getDestTypeForLiteralShiftRight(analyzedInstruction, false), false);
-                return;
+                return true;
+            case EXECUTE_INLINE:
+                handleExecuteInline(analyzedInstruction);
+                return true;
+            case EXECUTE_INLINE_RANGE:
+                handleExecuteInlineRange(analyzedInstruction);
+                return true;
+            case INVOKE_DIRECT_EMPTY:
+                handleInvokeDirectEmpty(analyzedInstruction);
+                return true;
+            case IGET_QUICK:
+            case IGET_WIDE_QUICK:
+            case IGET_OBJECT_QUICK:
+                return handleIputIgetQuick(analyzedInstruction, false);
+            case IPUT_QUICK:
+            case IPUT_WIDE_QUICK:
+            case IPUT_OBJECT_QUICK:
+                return handleIputIgetQuick(analyzedInstruction, true);
+            case INVOKE_VIRTUAL_QUICK:
+                return handleInvokeVirtualQuick(analyzedInstruction, false, false);
+            case INVOKE_SUPER_QUICK:
+                return handleInvokeVirtualQuick(analyzedInstruction, true, false);
+            case INVOKE_VIRTUAL_QUICK_RANGE:
+                return handleInvokeVirtualQuick(analyzedInstruction, false, true);
+            case INVOKE_SUPER_QUICK_RANGE:
+                return handleInvokeVirtualQuick(analyzedInstruction, true, true);
             default:
                 assert false;
+                return true;
         }
     }
 
@@ -2431,14 +2566,14 @@ public class MethodAnalyzer {
 
         //TODO: need to ensure the "this" register is initialized, in a constructor method
         if (isInit) {
-            setRegisterTypeAndPropagateChanges(analyzedInstruction, objectRegister,
+            setPostRegisterTypeAndPropagateChanges(analyzedInstruction, objectRegister,
                     RegisterType.getRegisterType(RegisterType.Category.Reference, objectRegisterType.type));
 
             for (int i=0; i<analyzedInstruction.postRegisterMap.length; i++) {
                 RegisterType postInstructionRegisterType = analyzedInstruction.postRegisterMap[i];
                 if (postInstructionRegisterType.category == RegisterType.Category.Unknown) {
                     RegisterType preInstructionRegisterType =
-                            analyzedInstruction.getMergedRegisterTypeFromPredecessors(i);
+                            analyzedInstruction.getPreInstructionRegisterType(i);
 
                     if (preInstructionRegisterType.category == RegisterType.Category.UninitRef ||
                         preInstructionRegisterType.category == RegisterType.Category.UninitThis) {
@@ -2450,7 +2585,7 @@ public class MethodAnalyzer {
                             registerType = preInstructionRegisterType;
                         }
 
-                        setRegisterTypeAndPropagateChanges(analyzedInstruction, i, registerType);
+                        setPostRegisterTypeAndPropagateChanges(analyzedInstruction, i, registerType);
                     }
                 }
             }
@@ -2602,6 +2737,291 @@ public class MethodAnalyzer {
         }
 
         return destRegisterCategory;
+    }
+
+
+    private void handleExecuteInline(AnalyzedInstruction analyzedInstruction) {
+        if (deodexUtil == null) {
+            throw new ValidationException("Cannot analyze an odexed instruction unless we are deodexing");
+        }
+
+        Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;
+
+        int methodIndex = instruction.getMethodIndex();
+        DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(methodIndex);
+        MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
+        if (inlineMethodIdItem == null) {
+            throw new ValidationException(String.format("Cannot load inline method with index %d", methodIndex));
+        }
+
+        Opcode deodexedOpcode = null;
+        switch (inlineMethod.methodType) {
+            case DeodexUtil.Direct:
+                deodexedOpcode = Opcode.INVOKE_DIRECT;
+                break;
+            case DeodexUtil.Static:
+                deodexedOpcode = Opcode.INVOKE_STATIC;
+                break;
+            case DeodexUtil.Virtual:
+                deodexedOpcode = Opcode.INVOKE_VIRTUAL;
+                break;
+            default:
+                assert false;
+        }
+
+        Instruction35c deodexedInstruction = new Instruction35c(deodexedOpcode, instruction.getRegCount(),
+                instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),
+                instruction.getRegisterG(), instruction.getRegisterA(), inlineMethodIdItem);
+
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+
+        analyzeInstruction(analyzedInstruction);
+    }
+
+    private void handleExecuteInlineRange(AnalyzedInstruction analyzedInstruction) {
+        if (deodexUtil == null) {
+            throw new ValidationException("Cannot analyze an odexed instruction unless we are deodexing");
+        }
+
+        Instruction3rms instruction = (Instruction3rms)analyzedInstruction.instruction;
+
+        int methodIndex = instruction.getMethodIndex();
+        DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(methodIndex);
+        MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
+        if (inlineMethodIdItem == null) {
+            throw new ValidationException(String.format("Cannot load inline method with index %d", methodIndex));
+        }
+
+        Opcode deodexedOpcode = null;
+        switch (inlineMethod.methodType) {
+            case DeodexUtil.Direct:
+                deodexedOpcode = Opcode.INVOKE_DIRECT;
+                break;
+            case DeodexUtil.Static:
+                deodexedOpcode = Opcode.INVOKE_STATIC;
+                break;
+            case DeodexUtil.Virtual:
+                deodexedOpcode = Opcode.INVOKE_VIRTUAL;
+                break;
+            default:
+                assert false;
+        }
+
+        Instruction3rc deodexedInstruction = new Instruction3rc(deodexedOpcode, instruction.getRegCount(),
+                instruction.getStartRegister(), inlineMethodIdItem);
+
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+
+        analyzeInstruction(analyzedInstruction);
+    }
+
+    private void handleInvokeDirectEmpty(AnalyzedInstruction analyzedInstruction) {
+        Instruction35s instruction = (Instruction35s)analyzedInstruction.instruction;
+
+        Instruction35c deodexedInstruction = new Instruction35c(Opcode.INVOKE_DIRECT, instruction.getRegCount(),
+                instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),
+                instruction.getRegisterG(), instruction.getRegisterA(), instruction.getReferencedItem());
+
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+
+        analyzeInstruction(analyzedInstruction);
+    }
+
+    private boolean handleIputIgetQuick(AnalyzedInstruction analyzedInstruction, boolean isIput) {
+        Instruction22cs instruction = (Instruction22cs)analyzedInstruction.instruction;
+
+        int fieldOffset = instruction.getFieldOffset();
+        RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, instruction.getRegisterB(),
+                ReferenceOrUninitCategories);
+
+        if (objectRegisterType.category == RegisterType.Category.Null) {
+            return false;
+            //throw new ValidationException("Unodexable instructions not supported yet");
+            //TODO: handle unodexable instruction
+        }
+
+        FieldIdItem fieldIdItem = deodexUtil.lookupField(objectRegisterType.type, fieldOffset);
+        if (fieldIdItem == null) {
+            throw new ValidationException(String.format("Could not resolve the field in class %s at offset %d",
+                    objectRegisterType.type.getClassType(), fieldOffset));
+        }
+
+        String fieldType = fieldIdItem.getFieldType().getTypeDescriptor();
+
+        Opcode opcode = getAndCheckIgetIputOpcodeForType(fieldType, instruction.opcode, isIput);
+
+        Instruction22c deodexedInstruction = new Instruction22c(opcode, (byte)instruction.getRegisterA(),
+                (byte)instruction.getRegisterB(), fieldIdItem);
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+
+        analyzeInstruction(analyzedInstruction);
+
+        return true;
+    }
+
+    private boolean handleInvokeVirtualQuick(AnalyzedInstruction analyzedInstruction, boolean isSuper, boolean isRange) {
+        int methodIndex;
+        int objectRegister;
+
+
+        if (isRange) {
+            Instruction3rms instruction = (Instruction3rms)analyzedInstruction.instruction;
+            methodIndex = instruction.getMethodIndex();
+            objectRegister = instruction.getStartRegister();
+        } else {
+            Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;
+            methodIndex = instruction.getMethodIndex();
+            objectRegister = instruction.getRegisterD();
+        }
+
+        RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, objectRegister,
+                ReferenceOrUninitCategories);
+
+        if (objectRegisterType.category == RegisterType.Category.Null) {
+            return false;
+            //throw new ValidationException("Unodexable instructions not supported yet");
+            //TODO: handle unodexable instruction
+        }
+
+        MethodIdItem methodIdItem = null;
+        if (isSuper) {
+            ClassPath.ClassDef classDef = ClassPath.getClassDef(this.encodedMethod.method.getContainingClass(), false);
+            assert classDef != null;
+
+            if (classDef.getSuperclass() != null) {
+                methodIdItem = deodexUtil.lookupVirtualMethod(classDef.getSuperclass(), methodIndex);
+            }
+
+            if (methodIdItem == null) {
+                //it's possible that the pre-odexed instruction had used the method from the current class instead
+                //of from the superclass (although the superclass method is still what would actually be called).
+                //And so the MethodIdItem for the superclass method may not be in the dex file. Let's try to get the
+                //MethodIdItem for the method in the current class instead
+                methodIdItem = deodexUtil.lookupVirtualMethod(classDef, methodIndex);
+            }
+        } else{
+            methodIdItem = deodexUtil.lookupVirtualMethod(objectRegisterType.type, methodIndex);
+        }
+
+        if (methodIdItem == null) {
+            throw new ValidationException(String.format("Could not resolve the method in class %s at index %d",
+                    objectRegisterType.type.getClassType(), methodIndex));
+        }
+
+
+        Instruction deodexedInstruction;
+        if (isRange) {
+            Instruction3rms instruction = (Instruction3rms)analyzedInstruction.instruction;
+            Opcode opcode;
+            if (isSuper) {
+                opcode = Opcode.INVOKE_SUPER_RANGE;
+            } else {
+                opcode = Opcode.INVOKE_VIRTUAL_RANGE;
+            }
+
+            deodexedInstruction = new Instruction3rc(opcode, instruction.getRegCount(),
+                    instruction.getStartRegister(), methodIdItem);
+        } else {
+            Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;
+            Opcode opcode;
+            if (isSuper) {
+                opcode = Opcode.INVOKE_SUPER;
+            } else {
+                opcode = Opcode.INVOKE_VIRTUAL;
+            }
+
+            deodexedInstruction = new Instruction35c(opcode, instruction.getRegCount(),
+                    instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),
+                    instruction.getRegisterG(), instruction.getRegisterA(), methodIdItem);
+        }
+
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+        analyzeInstruction(analyzedInstruction);
+
+        return true;
+    }
+
+    private static Opcode getAndCheckIgetIputOpcodeForType(String fieldType, Opcode odexedOpcode, boolean isIput) {
+        Opcode opcode;
+        Opcode validOdexedOpcode;
+        switch (fieldType.charAt(0)) {
+            case 'Z':
+                if (isIput) {
+                    validOdexedOpcode = Opcode.IPUT_QUICK;
+                    opcode = Opcode.IPUT_BOOLEAN;
+                } else {
+                    validOdexedOpcode = Opcode.IGET_QUICK;
+                    opcode = Opcode.IGET_BOOLEAN;
+                }
+                break;
+            case 'B':
+                if (isIput) {
+                    validOdexedOpcode = Opcode.IPUT_QUICK;
+                    opcode = Opcode.IPUT_BYTE;
+                } else {
+                    validOdexedOpcode = Opcode.IGET_QUICK;
+                    opcode = Opcode.IGET_BYTE;
+                }
+                break;
+            case 'S':
+                if (isIput) {
+                    validOdexedOpcode = Opcode.IPUT_QUICK;
+                    opcode = Opcode.IPUT_SHORT;
+                } else {
+                    validOdexedOpcode = Opcode.IGET_QUICK;
+                    opcode = Opcode.IGET_SHORT;
+                }
+                break;
+            case 'C':
+                if (isIput) {
+                    validOdexedOpcode = Opcode.IPUT_QUICK;
+                    opcode = Opcode.IPUT_CHAR;
+                } else {
+                    validOdexedOpcode = Opcode.IGET_QUICK;
+                    opcode = Opcode.IGET_CHAR;
+                }
+                break;
+            case 'I':
+            case 'F':
+                if (isIput) {
+                    validOdexedOpcode = Opcode.IPUT_QUICK;
+                    opcode = Opcode.IPUT;
+                } else {
+                    validOdexedOpcode = Opcode.IGET_QUICK;
+                    opcode = Opcode.IGET;
+                }
+                break;
+            case 'J':
+            case 'D':
+                if (isIput) {
+                    validOdexedOpcode = Opcode.IPUT_WIDE_QUICK;
+                    opcode = Opcode.IPUT_WIDE;
+                } else {
+                    validOdexedOpcode = Opcode.IGET_WIDE_QUICK;
+                    opcode = Opcode.IGET_WIDE;
+                }
+                break;
+            case 'L':
+            case '[':
+                if (isIput) {
+                    validOdexedOpcode = Opcode.IPUT_OBJECT_QUICK;
+                    opcode = Opcode.IPUT_OBJECT;
+                } else {
+                    validOdexedOpcode = Opcode.IGET_OBJECT_QUICK;
+                    opcode = Opcode.IGET_OBJECT;
+                }
+                break;
+            default:
+                throw new RuntimeException(String.format("Unexpected field type %s for %s: ", fieldType,
+                        odexedOpcode.name));
+        }
+
+        if (odexedOpcode != validOdexedOpcode) {
+            throw new ValidationException(String.format("Incorrect field type \"%s\" for %s", fieldType,
+                    odexedOpcode.name));
+        }
+
+        return opcode;
     }
 
     private static boolean checkArrayFieldAssignment(RegisterType.Category arrayFieldCategory,

@@ -29,13 +29,14 @@
 package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.OdexedInvokeVirtual;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.RegisterRangeInstruction;
 import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
 
-public class Instruction3rms extends Instruction implements RegisterRangeInstruction {
+public class Instruction3rms extends Instruction implements RegisterRangeInstruction, OdexedInvokeVirtual {
  public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regCount;
     private short startReg;

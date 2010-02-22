@@ -31,7 +31,6 @@ package org.jf.baksmali;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Deodex.*;
 import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.Code.Analysis.ClassPath;
 import org.jf.dexlib.DexFile;
@@ -46,11 +45,11 @@ public class baksmali {
     public static boolean useSequentialLabels = false;
     public static boolean outputDebugInfo = true;
     public static boolean addCodeOffsets = false;
+    public static boolean deodex = false;
     public static int registerInfo = 0;
     public static String bootClassPath;
-    public static DeodexUtil deodexUtil = null;
 
-    public static void disassembleDexFile(DexFile dexFile, Deodexerant deodexerant, String outputDirectory,
+    public static void disassembleDexFile(DexFile dexFile, boolean deodex, String outputDirectory,
                                           String bootClassPathDir, String bootClassPath, boolean noParameterRegisters,
                                           boolean useLocalsDirective, boolean useSequentialLabels,
                                           boolean outputDebugInfo, boolean addCodeOffsets, int registerInfo)
@@ -60,15 +59,12 @@ public class baksmali {
         baksmali.useSequentialLabels = useSequentialLabels;
         baksmali.outputDebugInfo = outputDebugInfo;
         baksmali.addCodeOffsets = addCodeOffsets;
+        baksmali.deodex = deodex;
         baksmali.registerInfo = registerInfo;
         baksmali.bootClassPath = bootClassPath;
 
-        if (registerInfo != 0) {
+        if (registerInfo != 0 || deodex) {
             ClassPath.InitializeClassPath(bootClassPathDir, bootClassPath==null?null:bootClassPath.split(":"), dexFile);
-        }
-
-        if (deodexerant != null) {
-            baksmali.deodexUtil = new DeodexUtil(deodexerant);
         }
 
         File outputDirectoryFile = new File(outputDirectory);

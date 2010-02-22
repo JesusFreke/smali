@@ -44,7 +44,6 @@ public enum Format {
     Format22b(Instruction22b.Factory, 4),
     Format22c(Instruction22c.Factory, 4),
     Format22cs(Instruction22cs.Factory, 4),
-    Format22csf(null, 4),
     Format22s(Instruction22s.Factory, 4),
     Format22t(Instruction22t.Factory, 4),
     Format22x(Instruction22x.Factory, 4),
@@ -56,18 +55,14 @@ public enum Format {
     Format32x(Instruction32x.Factory, 6),
     Format35c(Instruction35c.Factory, 6),
     Format35s(Instruction35s.Factory, 6),
-    Format35sf(null, 6),
     Format35ms(Instruction35ms.Factory, 6),
-    Format35msf(null, 6),
     Format3rc(Instruction3rc.Factory, 6),
     Format3rms(Instruction3rms.Factory, 6),
-    Format3rmsf(null, 6),
     Format51l(Instruction51l.Factory, 10),
     ArrayData(null, -1, true),
     PackedSwitchData(null, -1, true),
     SparseSwitchData(null, -1, true),
     UnresolvedNullReference(null, -1, false),
-    DeadInstruction(null, -1, false)
     ;
 
     public final Instruction.InstructionFactory Factory;

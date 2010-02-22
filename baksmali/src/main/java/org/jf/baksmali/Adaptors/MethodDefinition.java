@@ -37,6 +37,7 @@ import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
 import org.jf.dexlib.Code.Analysis.MethodAnalyzer;
 import org.jf.dexlib.Code.Analysis.RegisterType;
 import org.jf.dexlib.Code.Analysis.ValidationException;
+import org.jf.dexlib.Code.Format.Format;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
@@ -66,7 +67,7 @@ public class MethodDefinition {
         //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
 
         if (encodedMethod.codeItem != null) {
-            methodAnalyzer = new MethodAnalyzer(encodedMethod);
+            methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex);
             AnalyzedInstruction[] instructions = methodAnalyzer.makeInstructionArray();
 
             packedSwitchMap = new SparseIntArray(1);
@@ -78,17 +79,17 @@ public class MethodDefinition {
             int currentCodeAddress = 0;
             for (int i=0; i<instructions.length; i++) {
                 AnalyzedInstruction instruction = instructions[i];
-                if (instruction.instruction.opcode == Opcode.PACKED_SWITCH) {
+                if (instruction.getInstruction().opcode == Opcode.PACKED_SWITCH) {
                     packedSwitchMap.append(
-                            currentCodeAddress + ((OffsetInstruction)instruction.instruction).getTargetAddressOffset(),
+                            currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
                             currentCodeAddress);
-                } else if (instruction.instruction.opcode == Opcode.SPARSE_SWITCH) {
+                } else if (instruction.getInstruction().opcode == Opcode.SPARSE_SWITCH) {
                     sparseSwitchMap.append(
-                            currentCodeAddress + ((OffsetInstruction)instruction.instruction).getTargetAddressOffset(),
+                            currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
                             currentCodeAddress);
                 }
                 instructionMap.append(currentCodeAddress, i);
-                currentCodeAddress += instruction.instruction.getSize(currentCodeAddress);
+                currentCodeAddress += instruction.getInstruction().getSize(currentCodeAddress);
             }
         } else {
             packedSwitchMap = null;
@@ -248,7 +249,7 @@ public class MethodDefinition {
         }
 
         AnalyzedInstruction[] instructions;
-        if (baksmali.registerInfo != 0) {
+        if (baksmali.registerInfo != 0 || baksmali.deodex) {
             instructions = methodAnalyzer.analyze();
 
             ValidationException validationException = methodAnalyzer.getValidationException();
@@ -261,6 +262,17 @@ public class MethodDefinition {
             instructions = methodAnalyzer.makeInstructionArray();
         }
 
+        AnalyzedInstruction lastInstruction = null;
+
+        for (int i=instructions.length-1; i>=0; i--) {
+            AnalyzedInstruction instruction = instructions[i];
+
+            if (!instruction.isDead()) {
+                lastInstruction = instruction;
+                break;
+            }
+        }
+
         BitSet printPreRegister = new BitSet(registerCount);
         BitSet printPostRegister = new BitSet(registerCount);
 
@@ -268,8 +280,20 @@ public class MethodDefinition {
         for (int i=0; i<instructions.length; i++) {
             AnalyzedInstruction instruction = instructions[i];
 
-            methodItems.add(InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
-                    encodedMethod.codeItem, currentCodeAddress, stg, instruction.instruction));
+            MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
+                    encodedMethod.codeItem, currentCodeAddress, stg, instruction.getInstruction(),
+                    instruction == lastInstruction);
+
+            if (instruction.isDead()) {
+                methodItems.add(new CommentedOutMethodItem(stg, methodItem));
+            } else {
+                methodItems.add(methodItem);
+            }
+
+            if (instruction.getInstruction().getFormat() == Format.UnresolvedNullReference) {
+                methodItems.add(new CommentedOutMethodItem(stg, InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
+                        encodedMethod.codeItem, currentCodeAddress, stg, instruction.getOriginalInstruction(), false)));
+            }
 
             if (i != instructions.length - 1) {
                 methodItems.add(new BlankMethodItem(stg, currentCodeAddress));
@@ -280,7 +304,7 @@ public class MethodDefinition {
                         currentCodeAddress, -1000));
             }
 
-            if (baksmali.registerInfo != 0 && !instruction.instruction.getFormat().variableSizeFormat) {
+            if (baksmali.registerInfo != 0 && !instruction.getInstruction().getFormat().variableSizeFormat) {
                 printPreRegister.clear();
                 printPostRegister.clear();
 
@@ -314,19 +338,21 @@ public class MethodDefinition {
                 }
 
                 if (!printPreRegister.isEmpty()) {
-                    methodItems.add(new CommentMethodItem(stg,
-                            getPreInstructionRegisterString(instruction, printPreRegister),
-                            currentCodeAddress, 99.9));
+                    String comment = getPreInstructionRegisterString(instruction, printPreRegister);
+                    if (comment != null && comment.length() > 0) {
+                        methodItems.add(new CommentMethodItem(stg, comment, currentCodeAddress, 99.9));
+                    }
                 }
 
                 if (!printPostRegister.isEmpty()) {
-                    methodItems.add(new CommentMethodItem(stg,
-                            getPostInstructionRegisterString(instruction, printPostRegister),
-                            currentCodeAddress, 100.1));
+                    String comment = getPostInstructionRegisterString(instruction, printPostRegister);
+                    if (comment != null && comment.length() > 0) {
+                        methodItems.add(new CommentMethodItem(stg, comment, currentCodeAddress, 100.1));
+                    }
                 }
             }
 
-            currentCodeAddress += instruction.instruction.getSize(currentCodeAddress);
+            currentCodeAddress += instruction.getInstruction().getSize(currentCodeAddress);
         }
 
         addTries(methodItems);
@@ -351,13 +377,13 @@ public class MethodDefinition {
     }
 
     private void addArgsRegs(BitSet printPreRegister, AnalyzedInstruction analyzedInstruction) {
-        if (analyzedInstruction.instruction instanceof RegisterRangeInstruction) {
-            RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
+        if (analyzedInstruction.getInstruction() instanceof RegisterRangeInstruction) {
+            RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.getInstruction();
 
             printPreRegister.set(instruction.getStartRegister(),
                     instruction.getStartRegister() + instruction.getRegCount());
-        } else if (analyzedInstruction.instruction instanceof FiveRegisterInstruction) {
-            FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
+        } else if (analyzedInstruction.getInstruction() instanceof FiveRegisterInstruction) {
+            FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.getInstruction();
             int regCount = instruction.getRegCount();
             switch (regCount) {
                 case 5:
@@ -375,17 +401,17 @@ public class MethodDefinition {
                 case 1:
                     printPreRegister.set(instruction.getRegisterD());
             }
-        } else if (analyzedInstruction.instruction instanceof ThreeRegisterInstruction) {
-            ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.instruction;
+        } else if (analyzedInstruction.getInstruction() instanceof ThreeRegisterInstruction) {
+            ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.getInstruction();
             printPreRegister.set(instruction.getRegisterA());
             printPreRegister.set(instruction.getRegisterB());
             printPreRegister.set(instruction.getRegisterC());
-        } else if (analyzedInstruction.instruction instanceof TwoRegisterInstruction) {
-            TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+        } else if (analyzedInstruction.getInstruction() instanceof TwoRegisterInstruction) {
+            TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.getInstruction();
             printPreRegister.set(instruction.getRegisterA());
             printPreRegister.set(instruction.getRegisterB());
-        } else if (analyzedInstruction.instruction instanceof SingleRegisterInstruction) {
-            SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
+        } else if (analyzedInstruction.getInstruction() instanceof SingleRegisterInstruction) {
+            SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.getInstruction();
             printPreRegister.set(instruction.getRegisterA());
         }
     }
@@ -414,7 +440,7 @@ public class MethodDefinition {
             sb.append(instruction.getPreInstructionRegisterType(registerNum));
             sb.append(":merge{");
 
-            RegisterType mergedRegisterType = instruction.getPreInstructionRegisterType(registerNum);
+            RegisterType mergedRegisterType = null;
             boolean addRegister = false;
 
             boolean first = true;
@@ -422,10 +448,15 @@ public class MethodDefinition {
                 RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
 
                 if (!first) {
-                    sb.append(',');
-                    if (!addRegister && mergedRegisterType != predecessorRegisterType) {
-                        addRegister = true;
+                    if (!addRegister) {
+                        sb.append(',');
+                        if (mergedRegisterType != predecessorRegisterType) {
+                            addRegister = true;
+                        }
+                        mergedRegisterType = mergedRegisterType.merge(predecessorRegisterType);
                     }
+                } else {
+                    mergedRegisterType = predecessorRegisterType;
                 }
 
                 if (predecessor.getInstructionIndex() == -1) {
@@ -436,7 +467,7 @@ public class MethodDefinition {
                     sb.append(Integer.toHexString(methodAnalyzer.getInstructionAddress(predecessor)));
                     sb.append(':');
                 }
-                sb.append(predecessor.getPostInstructionRegisterType(registerNum).toString());
+                sb.append(predecessorRegisterType.toString());
                 first = false;
             }
 

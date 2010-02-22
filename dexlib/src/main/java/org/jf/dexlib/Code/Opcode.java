@@ -253,13 +253,12 @@ public enum Opcode
     SHR_INT_LIT8((byte)0xe1, "shr-int/lit8", ReferenceType.none, Format.Format22b, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     USHR_INT_LIT8((byte)0xe2, "ushr-int/lit8", ReferenceType.none, Format.Format22b, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
 
-
-    EXECUTE_INLINE((byte)0xee, "execute-inline", ReferenceType.none,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    EXECUTE_INLINE_RANGE((byte)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rms,  Opcode.ODEX_ONLY | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    EXECUTE_INLINE((byte)0xee, "execute-inline", ReferenceType.none,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    EXECUTE_INLINE_RANGE((byte)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rms,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_DIRECT_EMPTY((byte)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35s, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    IGET_QUICK((byte)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IGET_WIDE_QUICK((byte)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_WIDE_REGISTER),
-    IGET_OBJECT_QUICK((byte)0xf4, "iget-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IGET_QUICK((byte)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IGET_WIDE_QUICK((byte)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    IGET_OBJECT_QUICK((byte)0xf4, "iget-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     IPUT_QUICK((byte)0xf5, "iput-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     IPUT_WIDE_QUICK((byte)0xf6, "iput-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     IPUT_OBJECT_QUICK((byte)0xf7, "iput-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),

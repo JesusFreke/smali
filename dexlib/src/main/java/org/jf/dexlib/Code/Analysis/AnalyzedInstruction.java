@@ -6,15 +6,13 @@ import org.jf.dexlib.ItemType;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Util.ExceptionWithContext;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
-public class AnalyzedInstruction {
+public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
     /**
      * The actual instruction
      */
-    public final Instruction instruction;
+    protected Instruction instruction;
 
     /**
      * The index of the instruction, where the first instruction in the method is at index 0, and so on
@@ -24,7 +22,7 @@ public class AnalyzedInstruction {
     /**
      * Instructions that can pass on execution to this one during normal execution
      */
-    protected final LinkedList<AnalyzedInstruction> predecessors = new LinkedList<AnalyzedInstruction>();
+    protected final TreeSet<AnalyzedInstruction> predecessors = new TreeSet<AnalyzedInstruction>();
 
     /**
      * Instructions that can execution could pass on to next during normal execution
@@ -32,27 +30,51 @@ public class AnalyzedInstruction {
     protected final LinkedList<AnalyzedInstruction> successors = new LinkedList<AnalyzedInstruction>();
 
     /**
+     * This contains the register types *before* the instruction has executed
+     */
+    protected final RegisterType[] preRegisterMap;
+
+    /**
      * This contains the register types *after* the instruction has executed
      */
     protected final RegisterType[] postRegisterMap;
 
     /**
-     * This is set to true when this instruction follows an odexed instruction that couldn't be deodexed. In this case
-     * the unodexable instruction is guaranteed to throw an NPE, so anything following it is dead, up until a non-dead
-     * code path merges in. And more importantly, the code following the unodexable instruction isn't verifiable in
-     * some cases, if it depends on the return/field type of the unodexeable instruction. Meaning that if the "dead"
-     * code was left in, dalvik would reject it because it couldn't verify the register types. In some cases, this
-     * dead code could be left in without ill-effect, but it's easier to always remove it, which is always valid. Since
-     * it is dead code, removing it won't have any effect.
+     * When deodexing, we might need to deodex this instruction multiple times, when we merge in new register
+     * information. When this happens, we need to restore the original (odexed) instruction, so we can deodex it again
+     */
+    protected final Instruction originalInstruction;
+
+
+    /**
+     * A dead instruction is one that is unreachable because it follows an odexed instruction that can't be deodexed
+     * because it's object register is always null. In the non-odexed code that the odex was generated from, we would
+     * have technically considered this code reachable and could verify it, even though the instruction that ended up
+     * being odexed was always null, because we would assume both "paths" out of the instruction are valid - the one
+     * where execution proceeds normally to the next instruction, and the one where an exception occurs and execution
+     * either goes to a catch block, or out of the method.
+     *
+     * However, in the odexed case, we can't verify the code following an undeodexable instruction because we lack
+     * the register information from the undeodexable instruction - because we don't know the actual method or field
+     * that is being accessed.
+     *
+     * The undeodexable instruction is guaranteed to throw an NPE, so the following code is effectivetly unreachable.
+     * Once we detect an undeodexeable instruction, the following code is marked as dead up until a non-dead execution
+     * path merges in. Additionally, we remove the predecessors/successors of any dead instruction. For example, if
+     * there is a dead goto instruction, then we would remove the target instruction as a successor, and we would
+     * also remove the dead goto instruction as a predecessor to the target.
      */
     protected boolean dead = false;
 
     public AnalyzedInstruction(Instruction instruction, int instructionIndex, int registerCount) {
         this.instruction = instruction;
+        this.originalInstruction = instruction;
         this.instructionIndex = instructionIndex;
         this.postRegisterMap = new RegisterType[registerCount];
+        this.preRegisterMap = new RegisterType[registerCount];
         RegisterType unknown = RegisterType.getRegisterType(RegisterType.Category.Unknown, null);
         for (int i=0; i<registerCount; i++) {
+            preRegisterMap[i] = unknown;
             postRegisterMap[i] = unknown;
         }
     }
@@ -65,38 +87,26 @@ public class AnalyzedInstruction {
         return predecessors.size();
     }
 
-    public List<AnalyzedInstruction> getPredecessors() {
-        return Collections.unmodifiableList(predecessors);
+    public SortedSet<AnalyzedInstruction> getPredecessors() {
+        return Collections.unmodifiableSortedSet(predecessors);
     }
 
-    private boolean checkPredecessorSorted(AnalyzedInstruction predecessor) {
-        if (predecessors.size() == 0) {
-            return true;
-        }
-
-        if (predecessor.getInstructionIndex() <= predecessors.getLast().getInstructionIndex()) {
-            return false;
-        }
-
-        return true;
+    protected boolean addPredecessor(AnalyzedInstruction predecessor) {
+        return predecessors.add(predecessor);
     }
 
-    protected void addPredecessor(AnalyzedInstruction predecessor) {
-        assert checkPredecessorSorted(predecessor);
-        predecessors.add(predecessor);
-    }
-
-    /**
-     * @return true if the successor was added or false if it wasn't added because it already existed
-     */
-    protected boolean addSuccessor(AnalyzedInstruction successor) {
-        for (AnalyzedInstruction instruction: successors) {
-            if (instruction == successor) {
-                return false;
-            }
-        }
+    protected void addSuccessor(AnalyzedInstruction successor) {
         successors.add(successor);
-        return true;
+    }
+
+    protected void setDeodexedInstruction(Instruction instruction) {
+        assert originalInstruction.opcode.odexOnly();
+        this.instruction = instruction;
+    }
+
+    protected void restoreOdexedInstruction() {
+        assert originalInstruction.opcode.odexOnly();
+        instruction = originalInstruction;
     }
 
     public int getSuccessorCount() {
@@ -107,6 +117,18 @@ public class AnalyzedInstruction {
         return Collections.unmodifiableList(successors);
     }
 
+    public Instruction getInstruction() {
+        return instruction;
+    }
+
+    public Instruction getOriginalInstruction() {
+        return originalInstruction;
+    }
+
+    public boolean isDead() {
+        return dead;
+    }
+
     /**
      * Is this instruction a "beginning instruction". A beginning instruction is defined to be an instruction
      * that can be the first successfully executed instruction in the method. The first instruction is always a
@@ -114,6 +136,9 @@ public class AnalyzedInstruction {
      * the first instruction of any exception handler for that try block is also a beginning instruction. And likewise,
      * if any of those instructions can throw an exception and are covered by try blocks, the first instruction of the
      * corresponding exception handler is a beginning instruction, etc.
+     *
+     * To determine this, we simply check if the first predecessor is the fake "StartOfMethod" instruction, which has
+     * an instruction index of -1.
      * @return a boolean value indicating whether this instruction is a beginning instruction
      */
     public boolean isBeginningInstruction() {
@@ -121,34 +146,50 @@ public class AnalyzedInstruction {
             return false;
         }
 
-        if (predecessors.getFirst().instructionIndex == -1) {
+        if (predecessors.first().instructionIndex == -1) {
             return true;
         }
         return false;
     }
 
     /*
-     * Sets the "post-instruction" register type as indicated. This should only be used to set
-     * the method parameter types for the "start of method" instruction, or to set the register
-     * type of the destination register during verification. The change to the register type
-     * will
+     * Merges the given register type into the specified pre-instruction register, and also sets the post-instruction
+     * register type accordingly if it isn't a destination register for this instruction
      * @param registerNumber Which register to set
-     * @param registerType The "post-instruction" register type
+     * @param registerType The register type
+     * @returns true If the post-instruction register type was changed. This might be false if either the specified
+     * register is a destination register for this instruction, or if the pre-instruction register type didn't change
+     * after merging in the given register type
      */
-    protected boolean setPostRegisterType(int registerNumber, RegisterType registerType) {
+    protected boolean mergeRegister(int registerNumber, RegisterType registerType, BitSet verifiedInstructions) {
         assert registerNumber >= 0 && registerNumber < postRegisterMap.length;
         assert registerType != null;
 
-        RegisterType oldRegisterType = postRegisterMap[registerNumber];
-        if (oldRegisterType == registerType) {
+        RegisterType oldRegisterType = preRegisterMap[registerNumber];
+        RegisterType mergedRegisterType = oldRegisterType.merge(registerType);
+
+        if (mergedRegisterType == oldRegisterType) {
             return false;
         }
 
-        postRegisterMap[registerNumber] = registerType;
-        return true;
+        preRegisterMap[registerNumber] = mergedRegisterType;
+        verifiedInstructions.clear(instructionIndex);
+
+        if (!setsRegister(registerNumber)) {
+            postRegisterMap[registerNumber] = mergedRegisterType;
+            return true;
+        }
+
+        return false;
     }
 
-    protected RegisterType getMergedRegisterTypeFromPredecessors(int registerNumber) {
+    /**
+     * Iterates over the predecessors of this instruction, and merges all the post-instruction register types for the
+     * given register. Any dead, unreachable, or odexed predecessor is ignored
+     * @param registerNumber
+     * @return The register type resulting from merging the post-instruction register types from all predecessors
+     */
+    protected RegisterType mergePreRegisterTypeFromPredecessors(int registerNumber) {
         RegisterType mergedRegisterType = null;
         for (AnalyzedInstruction predecessor: predecessors) {
             RegisterType predecessorRegisterType = predecessor.postRegisterMap[registerNumber];
@@ -158,9 +199,30 @@ public class AnalyzedInstruction {
         return mergedRegisterType;
     }
 
+    /*
+      * Sets the "post-instruction" register type as indicated.
+      * @param registerNumber Which register to set
+      * @param registerType The "post-instruction" register type
+      * @returns true if the given register type is different than the existing post-instruction register type
+      */
+     protected boolean setPostRegisterType(int registerNumber, RegisterType registerType) {
+         assert registerNumber >= 0 && registerNumber < postRegisterMap.length;
+         assert registerType != null;
+
+         RegisterType oldRegisterType = postRegisterMap[registerNumber];
+         if (oldRegisterType == registerType) {
+             return false;
+         }
+
+         postRegisterMap[registerNumber] = registerType;
+         return true;
+     }
+
+
     protected boolean isInvokeInit() {
         if (instruction == null ||
-                (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE)) {
+                (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE &&
+                instruction.opcode != Opcode.INVOKE_DIRECT_EMPTY)) {
             return false;
         }
 
@@ -187,7 +249,6 @@ public class AnalyzedInstruction {
     }
 
     public boolean setsRegister(int registerNumber) {
-
         //When constructing a new object, the register type will be an uninitialized reference after the new-instance
         //instruction, but becomes an initialized reference once the <init> method is called. So even though invoke
         //instructions don't normally change any registers, calling an <init> method will change the type of its
@@ -207,14 +268,14 @@ public class AnalyzedInstruction {
             if (registerNumber == destinationRegister) {
                 return true;
             }
-            RegisterType preInstructionDestRegisterType = getMergedRegisterTypeFromPredecessors(registerNumber);
+            RegisterType preInstructionDestRegisterType = getPreInstructionRegisterType(registerNumber);
             if (preInstructionDestRegisterType.category != RegisterType.Category.UninitRef &&
                 preInstructionDestRegisterType.category != RegisterType.Category.UninitThis) {
 
                 return false;
             }
             //check if the uninit ref has been copied to another register
-            if (getMergedRegisterTypeFromPredecessors(registerNumber) == preInstructionDestRegisterType) {
+            if (getPreInstructionRegisterType(registerNumber) == preInstructionDestRegisterType) {
                 return true;
             }
             return false;
@@ -251,14 +312,17 @@ public class AnalyzedInstruction {
     }
 
     public RegisterType getPreInstructionRegisterType(int registerNumber) {
-        //if the specific register is not a destination register, then the stored post-instruction register type will
-        //be the same as the pre-instruction regsiter type, so we can use that.
-        //otherwise, we need to merge the predecessor's post-instruction register types
+        return preRegisterMap[registerNumber];
+    }
 
-        if (this.setsRegister(registerNumber)) {
-            return getMergedRegisterTypeFromPredecessors(registerNumber);
+    public int compareTo(AnalyzedInstruction analyzedInstruction) {
+        //TODO: out of curiosity, check the disassembly of this to see if it retrieves the value of analyzedInstruction.instructionIndex for every access. It should, because the field is final. What about if we set the field to non-final?
+        if (instructionIndex < analyzedInstruction.instructionIndex) {
+            return -1;
+        } else if (instructionIndex == analyzedInstruction.instructionIndex) {
+            return 0;
         } else {
-            return postRegisterMap[registerNumber];
+            return 1;
         }
     }
 }
