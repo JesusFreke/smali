@@ -478,8 +478,13 @@ public class ClassDataItem extends Item<ClassDataItem> {
             int previousIndex = previousEncodedMethod==null?0:previousEncodedMethod.method.getIndex();
             method = dexFile.MethodIdsSection.getItemByIndex(in.readUnsignedLeb128() + previousIndex);
             accessFlags = in.readUnsignedLeb128();
-            codeItem = (CodeItem)readContext.getOptionalOffsettedItemByOffset(ItemType.TYPE_CODE_ITEM,
-                    in.readUnsignedLeb128());
+            if (dexFile.skipInstructions()) {
+                in.readUnsignedLeb128();
+                codeItem = null;
+            } else {
+                codeItem = (CodeItem)readContext.getOptionalOffsettedItemByOffset(ItemType.TYPE_CODE_ITEM,
+                        in.readUnsignedLeb128());
+            }
             if (codeItem != null) {
                 codeItem.setParent(this);
             }

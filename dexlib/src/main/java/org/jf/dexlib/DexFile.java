@@ -409,6 +409,10 @@ public class DexFile
                 continue;
             }
 
+            if (skipInstructions && (section == CodeItemsSection || section == DebugInfoItemsSection)) {
+                continue;
+            }
+
             int sectionOffset = readContext.getSectionOffset(section.ItemType);
             if (sectionOffset > 0) {
                 int sectionSize = readContext.getSectionSize(section.ItemType);
