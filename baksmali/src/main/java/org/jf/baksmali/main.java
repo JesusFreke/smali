@@ -29,6 +29,8 @@ public class main {
 
     public static final String VERSION;
 
+    private static final Options basicOptions;
+    private static final Options debugOptions;
     private static final Options options;
 
     public static final int ALL = 1;
@@ -41,6 +43,8 @@ public class main {
 
     static {
         options = new Options();
+        basicOptions = new Options();
+        debugOptions = new Options();
         buildOptions();
 
         InputStream templateStream = baksmali.class.getClassLoader().getResourceAsStream("baksmali.properties");
@@ -97,14 +101,122 @@ public class main {
 
         String[] remainingArgs = commandLine.getArgs();
 
-        if (commandLine.hasOption("v")) {
-            version();
-            return;
-        }
+        Option[] options = commandLine.getOptions();
 
-        if (commandLine.hasOption("?")) {
-            usage();
-            return;
+        for (int i=0; i<options.length; i++) {
+            Option option = options[i];
+            String opt = option.getOpt();
+
+            switch (opt.charAt(0)) {
+                case 'v':
+                    version();
+                    return;
+                case '?':
+                    while (++i < options.length) {
+                        if (options[i].getOpt().charAt(0) == '?') {
+                            usage(true);
+                            return;
+                        }
+                    }
+                    usage(false);
+                    return;
+                case 'o':
+                    outputDirectory = commandLine.getOptionValue("o");
+                    break;
+                case 'p':
+                    noParameterRegisters = true;
+                    break;
+                case 'l':
+                    useLocalsDirective = true;
+                    break;
+                case 's':
+                    useSequentialLabels = true;
+                    break;
+                case 'b':
+                    outputDebugInfo = false;
+                    break;
+                case 'd':
+                    bootClassPathDir = commandLine.getOptionValue("d");
+                    break;
+                case 'r':
+                    String[] values = commandLine.getOptionValues('r');
+
+                    if (values == null || values.length == 0) {
+                        registerInfo = ARGS | DEST | MERGE;
+                    } else {
+                        for (String value: values) {
+                            if (value.equalsIgnoreCase("ALL")) {
+                                registerInfo |= ALL;
+                            } else if (value.equalsIgnoreCase("ALLPRE")) {
+                                registerInfo |= ALLPRE;
+                            } else if (value.equalsIgnoreCase("ALLPOST")) {
+                                registerInfo |= ALLPOST;
+                            } else if (value.equalsIgnoreCase("ARGS")) {
+                                registerInfo |= ARGS;
+                            } else if (value.equalsIgnoreCase("DEST")) {
+                                registerInfo |= DEST;
+                            } else if (value.equalsIgnoreCase("MERGE")) {
+                                registerInfo |= MERGE;
+                            } else if (value.equalsIgnoreCase("FULLMERGE")) {
+                                registerInfo |= FULLMERGE;
+                            } else {
+                                usage();
+                                return;
+                            }
+                        }
+
+                        if ((registerInfo & FULLMERGE) != 0) {
+                            registerInfo &= ~MERGE;
+                        }
+                    }
+                    break;
+                case 'c':
+                    String bcp = commandLine.getOptionValue("c");
+                    if (bcp.charAt(0) == ':') {
+                        bootClassPath = bootClassPath + bcp;
+                    } else {
+                        bootClassPath = bcp;
+                    }
+                    break;
+                case 'x':
+                    String deodexerantAddress = commandLine.getOptionValue("x");
+                    String[] parts = deodexerantAddress.split(":");
+                    if (parts.length != 2) {
+                        System.err.println("Invalid deodexerant address. Expecting :<port> or <host>:<port>");
+                        System.exit(1);
+                    }
+
+                    deodexerantHost = parts[0];
+                    if (deodexerantHost.length() == 0) {
+                        deodexerantHost = "localhost";
+                    }
+                    try {
+                        deodexerantPort = Integer.parseInt(parts[1]);
+                    } catch (NumberFormatException ex) {
+                        System.err.println("Invalid port \"" + deodexerantPort + "\" for deodexerant address");
+                        System.exit(1);
+                    }
+                    break;
+                case 'N':
+                    disassemble = false;
+                    break;
+                case 'D':
+                    doDump = true;
+                    dumpFileName = commandLine.getOptionValue("D", inputDexFileName + ".dump");
+                    break;
+                case 'W':
+                    write = true;
+                    outputDexFileName = commandLine.getOptionValue("W");
+                    break;
+                case 'S':
+                    sort = true;
+                    break;
+                case 'F':
+                    fixRegisters = true;
+                    break;
+                default:
+                    assert false;
+            }
         }
 
         if (remainingArgs.length != 1) {
@@ -113,114 +225,6 @@ public class main {
         }
 
         inputDexFileName = remainingArgs[0];
-
-        if (commandLine.hasOption("n")) {
-            disassemble = false;
-        }
-
-        if (commandLine.hasOption("d")) {
-            doDump = true;
-            dumpFileName = commandLine.getOptionValue("d", inputDexFileName + ".dump");
-        }
-
-        if (commandLine.hasOption("w")) {
-            write = true;
-            outputDexFileName = commandLine.getOptionValue("w");
-        }
-
-        if (commandLine.hasOption("o")) {
-            outputDirectory = commandLine.getOptionValue("o");
-        }
-
-        if (commandLine.hasOption("s")) {
-            sort = true;
-        }
-
-        if (commandLine.hasOption("f")) {
-            fixRegisters = true;
-        }
-
-        if (commandLine.hasOption("p")) {
-            noParameterRegisters = true;
-        }
-
-        if (commandLine.hasOption("l")) {
-            useLocalsDirective = true;
-        }
-
-        if (commandLine.hasOption("i")) {
-            useSequentialLabels = true;
-        }
-
-        if (commandLine.hasOption("b")) {
-            outputDebugInfo = false;
-        }
-
-        if (commandLine.hasOption("r")) {
-            String[] values = commandLine.getOptionValues('r');
-
-            if (values == null || values.length == 0) {
-                registerInfo = ARGS | DEST | MERGE;
-            } else {
-                for (String value: values) {
-                    if (value.equalsIgnoreCase("ALL")) {
-                        registerInfo |= ALL;
-                    } else if (value.equalsIgnoreCase("ALLPRE")) {
-                        registerInfo |= ALLPRE;
-                    } else if (value.equalsIgnoreCase("ALLPOST")) {
-                        registerInfo |= ALLPOST;
-                    } else if (value.equalsIgnoreCase("ARGS")) {
-                        registerInfo |= ARGS;
-                    } else if (value.equalsIgnoreCase("DEST")) {
-                        registerInfo |= DEST;
-                    } else if (value.equalsIgnoreCase("MERGE")) {
-                        registerInfo |= MERGE;
-                    } else if (value.equalsIgnoreCase("FULLMERGE")) {
-                        registerInfo |= FULLMERGE;
-                    } else {
-                        usage();
-                        return;
-                    }
-                }
-
-                if ((registerInfo & FULLMERGE) != 0) {
-                    registerInfo &= ~MERGE;
-                }
-            }
-        }
-
-        if (commandLine.hasOption("c")) {
-            String bcp = commandLine.getOptionValue("c");
-            if (bcp.charAt(0) == ':') {
-                bootClassPath = bootClassPath + bcp;
-            } else {
-                bootClassPath = bcp;
-            }
-        }
-
-        if (commandLine.hasOption("C")) {
-            bootClassPathDir = commandLine.getOptionValue("C");
-        }
-
-        if (commandLine.hasOption("x")) {
-            String deodexerantAddress = commandLine.getOptionValue("x");
-            String[] parts = deodexerantAddress.split(":");
-            if (parts.length != 2) {
-                System.err.println("Invalid deodexerant address. Expecting :<port> or <host>:<port>");
-                System.exit(1);
-            }
-
-            deodexerantHost = parts[0];
-            if (deodexerantHost.length() == 0) {
-                deodexerantHost = "localhost";
-            }
-            try {
-                deodexerantPort = Integer.parseInt(parts[1]);
-            } catch (NumberFormatException ex) {
-                System.err.println("Invalid port \"" + deodexerantPort + "\" for deodexerant address");
-                System.exit(1);
-            }
-        }
 
         try {
             File dexFileFile = new File(inputDexFileName);
@@ -284,11 +288,25 @@ public class main {
     /**
      * Prints the usage message.
      */
-    private static void usage() {
-        HelpFormatter formatter = new HelpFormatter();
+    private static void usage(boolean printDebugOptions) {
+        baksmaliHelpFormatter formatter = new baksmaliHelpFormatter();
         formatter.setWidth(100);
+
         formatter.printHelp("java -jar baksmali.jar [options] <dex-file>",
-                "disassembles and/or dumps a dex file", options, "");
+                "disassembles and/or dumps a dex file", basicOptions, "");
+
+        if (printDebugOptions) {
+            System.out.println();
+            System.out.println("Debug Options:");
+
+            StringBuffer sb = new StringBuffer();
+            formatter.renderOptions(sb, debugOptions);
+            System.out.println(sb.toString());
+        }
+    }
+
+    private static void usage() {
+        usage(false);
     }
 
     /**
@@ -312,20 +330,20 @@ public class main {
 
         Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
                 .withDescription("suppresses the output of the disassembly")
-                .create("n");
+                .create("N");
 
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
                         " (<dexfile>.dump by default), along with the normal disassembly.")
                 .hasOptionalArg()
                 .withArgName("FILE")
-                .create("d");
+                .create("D");
 
         Option writeDexOption = OptionBuilder.withLongOpt("write-dex")
                 .withDescription("additionally rewrites the input dex file to FILE")
                 .hasArg()
                 .withArgName("FILE")
-                .create("w");
+                .create("W");
 
         Option outputDirOption = OptionBuilder.withLongOpt("output")
                 .withDescription("the directory where the disassembled files will be placed. The default is out")
@@ -335,12 +353,12 @@ public class main {
 
         Option sortOption = OptionBuilder.withLongOpt("sort")
                 .withDescription("sort the items in the dex file into a canonical order before dumping/writing")
-                .create("s");
+                .create("S");
 
         Option fixSignedRegisterOption = OptionBuilder.withLongOpt("fix-signed-registers")
                 .withDescription("when dumping or rewriting, fix any registers in the debug info that are encoded as" +
                         " a signed value")
-                .create("f");
+                .create("F");
 
         Option noParameterRegistersOption = OptionBuilder.withLongOpt("no-parameter-registers")
                 .withDescription("use the v<n> syntax instead of the p<n> syntax for registers mapped to method" +
@@ -362,7 +380,7 @@ public class main {
         Option sequentialLabelsOption = OptionBuilder.withLongOpt("sequential-labels")
                 .withDescription("create label names using a sequential numbering scheme per label type, rather than " +
                         "using the bytecode address")
-                .create("q");
+                .create("s");
 
         Option noDebugInfoOption = OptionBuilder.withLongOpt("no-debug-info")
                 .withDescription("don't write out debug info (.local, .param, .line, etc.)")
@@ -395,23 +413,32 @@ public class main {
                         "directory")
                 .hasArg()
                 .withArgName("DIR")
-                .create("C");
+                .create("d");
 
-        options.addOption(versionOption);
-        options.addOption(helpOption);
-        options.addOption(dumpOption);
-        options.addOption(noDisassemblyOption);
-        options.addOption(writeDexOption);
-        options.addOption(outputDirOption);
-        options.addOption(sortOption);
-        options.addOption(fixSignedRegisterOption);
-        options.addOption(noParameterRegistersOption);
-        options.addOption(deodexerantOption);
-        options.addOption(useLocalsOption);
-        options.addOption(sequentialLabelsOption);
-        options.addOption(noDebugInfoOption);
-        options.addOption(registerInfoOption);
-        options.addOption(classPathOption);
-        options.addOption(classPathDirOption);
+        basicOptions.addOption(versionOption);
+        basicOptions.addOption(helpOption);
+        basicOptions.addOption(outputDirOption);
+        basicOptions.addOption(noParameterRegistersOption);
+        basicOptions.addOption(deodexerantOption);
+        basicOptions.addOption(useLocalsOption);
+        basicOptions.addOption(sequentialLabelsOption);
+        basicOptions.addOption(noDebugInfoOption);
+        basicOptions.addOption(registerInfoOption);
+        basicOptions.addOption(classPathOption);
+        basicOptions.addOption(classPathDirOption);
+
+        debugOptions.addOption(dumpOption);
+        debugOptions.addOption(noDisassemblyOption);
+        debugOptions.addOption(writeDexOption);
+        debugOptions.addOption(sortOption);
+        debugOptions.addOption(fixSignedRegisterOption);
+
+
+        for (Object option: basicOptions.getOptions()) {
+            options.addOption((Option)option);
+        }
+        for (Object option: debugOptions.getOptions()) {
+            options.addOption((Option)option);
+        }        
     }
 }
