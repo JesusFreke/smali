@@ -148,7 +148,7 @@ public class main {
                     String[] values = commandLine.getOptionValues('r');
 
                     if (values == null || values.length == 0) {
-                        registerInfo = ARGS | DEST | MERGE;
+                        registerInfo = ARGS | DEST;
                     } else {
                         for (String value: values) {
                             if (value.equalsIgnoreCase("ALL")) {
@@ -377,7 +377,7 @@ public class main {
                 .withArgName("REGISTER_INFO_TYPES")
                 .withValueSeparator(',')
                 .withDescription("print the specificed type(s) of register information for each instruction. " +
-                        "\"ARGS,DEST,MERGE\" is the default if no types are specified.\nValid values are:\nALL: all " +
+                        "\"ARGS,DEST\" is the default if no types are specified.\nValid values are:\nALL: all " +
                         "pre- and post-instruction registers.\nALLPRE: all pre-instruction registers\nALLPOST: all " +
                         "post-instruction registers\nARGS: any pre-instruction registers used as arguments to the " +
                         "instruction\nDEST: the post-instruction destination register, if any\nMERGE: Any " +
