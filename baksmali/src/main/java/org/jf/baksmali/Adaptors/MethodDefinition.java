@@ -41,6 +41,7 @@ import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.jf.dexlib.Util.Hex;
 import org.jf.dexlib.Util.SparseIntArray;
 
 import java.util.*;
@@ -272,6 +273,11 @@ public class MethodDefinition {
 
             if (i != instructions.length - 1) {
                 methodItems.add(new BlankMethodItem(stg, currentCodeAddress));
+            }
+
+            if (baksmali.addCodeOffsets) {
+                methodItems.add(new CommentMethodItem(stg, String.format("@%x", currentCodeAddress),
+                        currentCodeAddress, -1000));
             }
 
             if (baksmali.registerInfo != 0 && !instruction.instruction.getFormat().variableSizeFormat) {

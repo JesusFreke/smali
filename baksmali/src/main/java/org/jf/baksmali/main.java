@@ -87,6 +87,7 @@ public class main {
         boolean useLocalsDirective = false;
         boolean useSequentialLabels = false;
         boolean outputDebugInfo = true;
+        boolean addCodeOffsets = false;
 
         int registerInfo = 0;
 
@@ -137,6 +138,9 @@ public class main {
                     break;
                 case 'd':
                     bootClassPathDir = commandLine.getOptionValue("d");
+                    break;
+                case 'f':
+                    addCodeOffsets = true;
                     break;
                 case 'r':
                     String[] values = commandLine.getOptionValues('r');
@@ -262,7 +266,8 @@ public class main {
 
             if (disassemble) {
                 baksmali.disassembleDexFile(dexFile, deodexerant, outputDirectory, bootClassPathDir, bootClassPath,
-                        noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, registerInfo);
+                        noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
+                        registerInfo);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -415,6 +420,10 @@ public class main {
                 .withArgName("DIR")
                 .create("d");
 
+        Option codeOffsetOption = OptionBuilder.withLongOpt("code-offsets")
+                .withDescription("add comments to the disassembly containing the code offset for each address")
+                .create("f");
+
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputDirOption);
@@ -426,6 +435,7 @@ public class main {
         basicOptions.addOption(registerInfoOption);
         basicOptions.addOption(classPathOption);
         basicOptions.addOption(classPathDirOption);
+        basicOptions.addOption(codeOffsetOption);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(noDisassemblyOption);
@@ -439,6 +449,6 @@ public class main {
         }
         for (Object option: debugOptions.getOptions()) {
             options.addOption((Option)option);
-        }        
+        }
     }
 }
