@@ -16,6 +16,10 @@
 
 package org.jf.dexlib.Util;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * SparseArrays map integers to Objects.  Unlike a normal array of Objects,
  * there can be gaps in the indices.  It is intended to be more efficient
@@ -338,6 +342,14 @@ public class SparseArray<E> {
             return high;
         else
             return ~high;
+    }
+
+    /**
+     * @return a read-only list of the values in this SparseArray which are in ascending order, based on their
+     * associated key
+     */
+    public List<E> getValues() {
+        return Collections.unmodifiableList(Arrays.asList((E[])mValues));
     }
 
     private int[] mKeys;

@@ -68,17 +68,17 @@ public class MethodDefinition {
 
         if (encodedMethod.codeItem != null) {
             methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex);
-            AnalyzedInstruction[] instructions = methodAnalyzer.makeInstructionArray();
+            List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
 
             packedSwitchMap = new SparseIntArray(1);
             sparseSwitchMap = new SparseIntArray(1);
-            instructionMap = new SparseIntArray(instructions.length);
+            instructionMap = new SparseIntArray(instructions.size());
 
             registerCount = encodedMethod.codeItem.getRegisterCount();
 
             int currentCodeAddress = 0;
-            for (int i=0; i<instructions.length; i++) {
-                AnalyzedInstruction instruction = instructions[i];
+            for (int i=0; i<instructions.size(); i++) {
+                AnalyzedInstruction instruction = instructions.get(i);
                 if (instruction.getInstruction().opcode == Opcode.PACKED_SWITCH) {
                     packedSwitchMap.append(
                             currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
@@ -248,9 +248,8 @@ public class MethodDefinition {
             return methodItems;
         }
 
-        AnalyzedInstruction[] instructions;
         if (baksmali.registerInfo != 0 || baksmali.deodex) {
-            instructions = methodAnalyzer.analyze();
+            methodAnalyzer.analyze();
 
             ValidationException validationException = methodAnalyzer.getValidationException();
             if (validationException != null) {
@@ -258,14 +257,13 @@ public class MethodDefinition {
                         String.format("ValidationException: %s" ,validationException.getMessage()),
                         validationException.getCodeAddress(), Integer.MIN_VALUE));
             }
-        } else {
-            instructions = methodAnalyzer.makeInstructionArray();
         }
+        List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
 
         AnalyzedInstruction lastInstruction = null;
 
-        for (int i=instructions.length-1; i>=0; i--) {
-            AnalyzedInstruction instruction = instructions[i];
+        for (int i=instructions.size()-1; i>=0; i--) {
+            AnalyzedInstruction instruction = instructions.get(i);
 
             if (!instruction.isDead()) {
                 lastInstruction = instruction;
@@ -277,8 +275,8 @@ public class MethodDefinition {
         BitSet printPostRegister = new BitSet(registerCount);
 
         int currentCodeAddress = 0;
-        for (int i=0; i<instructions.length; i++) {
-            AnalyzedInstruction instruction = instructions[i];
+        for (int i=0; i<instructions.size(); i++) {
+            AnalyzedInstruction instruction = instructions.get(i);
 
             MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
                     encodedMethod.codeItem, currentCodeAddress, stg, instruction.getInstruction(),
@@ -295,7 +293,7 @@ public class MethodDefinition {
                         encodedMethod.codeItem, currentCodeAddress, stg, instruction.getOriginalInstruction(), false)));
             }
 
-            if (i != instructions.length - 1) {
+            if (i != instructions.size() - 1) {
                 methodItems.add(new BlankMethodItem(stg, currentCodeAddress));
             }
 
@@ -319,7 +317,7 @@ public class MethodDefinition {
                             addArgsRegs(printPreRegister, instruction);
                         }
                         if ((baksmali.registerInfo & main.MERGE) != 0) {
-                            addMergeRegs(printPreRegister, instructions, i);
+                            addMergeRegs(printPreRegister, instruction);
                         } else if ((baksmali.registerInfo & main.FULLMERGE) != 0 &&
                                 (i == 0 || instruction.isBeginningInstruction())) {
                             addParamRegs(printPreRegister);
@@ -334,7 +332,7 @@ public class MethodDefinition {
                 }
 
                 if ((baksmali.registerInfo & main.FULLMERGE) != 0) {
-                    addFullMergeRegs(printPreRegister, methodItems, methodAnalyzer, i, currentCodeAddress);
+                    addFullMergeRegs(printPreRegister, methodItems, methodAnalyzer, instruction, currentCodeAddress);
                 }
 
                 if (!printPreRegister.isEmpty()) {
@@ -417,16 +415,7 @@ public class MethodDefinition {
     }
 
     private void addFullMergeRegs(BitSet printPreRegister, List<MethodItem> methodItems, MethodAnalyzer methodAnalyzer,
-                                  int instructionNum, int currentCodeAddress) {
-        if (instructionNum == 0) {
-            return;
-        }
-
-        //MethodAnalyzer cached the analyzedInstructions, so we're not actually re-analyzing, just getting the
-        //instructions that have already been analyzed
-        AnalyzedInstruction[] instructions = methodAnalyzer.analyze();
-        AnalyzedInstruction instruction = instructions[instructionNum];
-
+                                  AnalyzedInstruction instruction, int currentCodeAddress) {
         if (instruction.getPredecessorCount() <= 1) {
             return;
         }
@@ -482,33 +471,25 @@ public class MethodDefinition {
         }
     }
 
-    private void addMergeRegs(BitSet printPreRegister, AnalyzedInstruction instructions[], int instructionNum) {
-        //MethodAnalyzer cached the analyzedInstructions, so we're not actually re-analyzing, just getting the
-        //instructions that have already been analyzed
-        AnalyzedInstruction instruction = instructions[instructionNum];
-
-        if (instructionNum == 0) {
+    private void addMergeRegs(BitSet printPreRegister, AnalyzedInstruction instruction) {
+        if (instruction.isBeginningInstruction()) {
             addParamRegs(printPreRegister);
-        } else {
-            if (instruction.isBeginningInstruction()) {
-                addParamRegs(printPreRegister);
-            }
+        }
 
-            if (instruction.getPredecessorCount() <= 1) {
-                //in the common case of an instruction that only has a single predecessor which is the previous
-                //instruction, the pre-instruction registers will always match the previous instruction's
-                //post-instruction registers
-                return;
-            }
+        if (instruction.getPredecessorCount() <= 1) {
+            //in the common case of an instruction that only has a single predecessor which is the previous
+            //instruction, the pre-instruction registers will always match the previous instruction's
+            //post-instruction registers
+            return;
+        }
 
-            for (int registerNum=0; registerNum<registerCount; registerNum++) {
-                RegisterType mergedRegisterType = instruction.getPreInstructionRegisterType(registerNum);
+        for (int registerNum=0; registerNum<registerCount; registerNum++) {
+            RegisterType mergedRegisterType = instruction.getPreInstructionRegisterType(registerNum);
 
-                for (AnalyzedInstruction predecessor: instruction.getPredecessors()) {
-                    if (predecessor.getPostInstructionRegisterType(registerNum) != mergedRegisterType) {
-                        printPreRegister.set(registerNum);
-                        continue;
-                    }
+            for (AnalyzedInstruction predecessor: instruction.getPredecessors()) {
+                if (predecessor.getPostInstructionRegisterType(registerNum) != mergedRegisterType) {
+                    printPreRegister.set(registerNum);
+                    continue;
                 }
             }
         }

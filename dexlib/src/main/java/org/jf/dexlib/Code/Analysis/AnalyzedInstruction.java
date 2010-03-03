@@ -170,6 +170,8 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
      * @return a boolean value indicating whether this instruction is a beginning instruction
      */
     public boolean isBeginningInstruction() {
+        //if this instruction has no predecessors, it is either the fake "StartOfMethod" instruction or it is an
+        //unreachable instruction.
         if (predecessors.size() == 0) {
             return false;
         }

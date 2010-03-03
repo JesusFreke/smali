@@ -110,12 +110,13 @@ public class MethodAnalyzer {
         return analyzerState == VERIFIED;
     }
 
-    public AnalyzedInstruction[] analyze() {
+    public void analyze() {
         assert encodedMethod != null;
         assert encodedMethod.codeItem != null;
 
         if (analyzerState >= ANALYZED) {
-            return makeInstructionArray();
+            //the instructions have already been analyzed, so there is nothing to do
+            return;
         }
 
         CodeItem codeItem = encodedMethod.codeItem;
@@ -273,7 +274,6 @@ public class MethodAnalyzer {
         }
 
         analyzerState = ANALYZED;
-        return makeInstructionArray();
     }
 
     private int getThisRegister() {
@@ -309,12 +309,11 @@ public class MethodAnalyzer {
         return startOfMethod;
     }
 
-    public AnalyzedInstruction[] makeInstructionArray() {
-        AnalyzedInstruction[] instructionArray = new AnalyzedInstruction[instructions.size()];
-        for (int i=0; i<instructions.size(); i++) {
-            instructionArray[i] = instructions.valueAt(i);
-        }
-        return instructionArray;
+    /**
+     * @return a read-only list containing the instructions for tihs method.
+     */
+    public List<AnalyzedInstruction> getInstructions() {
+        return instructions.getValues();
     }
 
     public ValidationException getValidationException() {
