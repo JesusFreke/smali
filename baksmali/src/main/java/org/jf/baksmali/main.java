@@ -102,6 +102,7 @@ public class main {
         boolean outputDebugInfo = true;
         boolean addCodeOffsets = false;
         boolean deodex = false;
+        boolean verify = false;
 
         int registerInfo = 0;
 
@@ -216,6 +217,9 @@ public class main {
                 case 'F':
                     fixRegisters = true;
                     break;
+                case 'V':
+                    verify = true;
+                    break;
                 default:
                     assert false;
             }
@@ -262,7 +266,7 @@ public class main {
 
                 baksmali.disassembleDexFile(dexFile, deodex, outputDirectory, bootClassPathDirsArray, bootClassPath,
                         noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
-                        registerInfo);
+                        registerInfo, verify);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -417,6 +421,10 @@ public class main {
                 .withDescription("add comments to the disassembly containing the code offset for each address")
                 .create("f");
 
+        Option verifyDexOption = OptionBuilder.withLongOpt("verify")
+                .withDescription("perform bytecode verification")
+                .create("V");
+
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputDirOption);
@@ -435,6 +443,7 @@ public class main {
         debugOptions.addOption(writeDexOption);
         debugOptions.addOption(sortOption);
         debugOptions.addOption(fixSignedRegisterOption);
+        debugOptions.addOption(verifyDexOption);
 
 
         for (Object option: basicOptions.getOptions()) {

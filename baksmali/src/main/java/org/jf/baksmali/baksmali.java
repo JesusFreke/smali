@@ -46,13 +46,15 @@ public class baksmali {
     public static boolean outputDebugInfo = true;
     public static boolean addCodeOffsets = false;
     public static boolean deodex = false;
+    public static boolean verify = false;
     public static int registerInfo = 0;
     public static String bootClassPath;
 
     public static void disassembleDexFile(DexFile dexFile, boolean deodex, String outputDirectory,
                                           String[] classPathDirs, String bootClassPath, boolean noParameterRegisters,
                                           boolean useLocalsDirective, boolean useSequentialLabels,
-                                          boolean outputDebugInfo, boolean addCodeOffsets, int registerInfo)
+                                          boolean outputDebugInfo, boolean addCodeOffsets, int registerInfo,
+                                          boolean verify)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
         baksmali.useLocalsDirective = useLocalsDirective;
@@ -62,8 +64,9 @@ public class baksmali {
         baksmali.deodex = deodex;
         baksmali.registerInfo = registerInfo;
         baksmali.bootClassPath = bootClassPath;
+        baksmali.verify = verify;
 
-        if (registerInfo != 0 || deodex) {
+        if (registerInfo != 0 || deodex || verify) {
             try {
                 ClassPath.InitializeClassPath(classPathDirs, bootClassPath==null?null:bootClassPath.split(":"), dexFile);
             } catch (Exception ex) {

@@ -248,7 +248,7 @@ public class MethodDefinition {
             return methodItems;
         }
 
-        if (baksmali.registerInfo != 0 || baksmali.deodex) {
+        if (baksmali.registerInfo != 0 || baksmali.deodex || baksmali.verify) {
             methodAnalyzer.analyze();
 
             ValidationException validationException = methodAnalyzer.getValidationException();
@@ -256,6 +256,15 @@ public class MethodDefinition {
                 methodItems.add(new CommentMethodItem(stg,
                         String.format("ValidationException: %s" ,validationException.getMessage()),
                         validationException.getCodeAddress(), Integer.MIN_VALUE));
+            } else if (baksmali.verify) {
+                methodAnalyzer.verify();
+
+                validationException = methodAnalyzer.getValidationException();
+                if (validationException != null) {
+                    methodItems.add(new CommentMethodItem(stg,
+                            String.format("ValidationException: %s" ,validationException.getMessage()),
+                            validationException.getCodeAddress(), Integer.MIN_VALUE));
+                }
             }
         }
         List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
