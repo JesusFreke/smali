@@ -43,7 +43,10 @@ public class MethodAnalyzer {
 
     private SparseArray<AnalyzedInstruction> instructions;
 
-    private boolean analyzed = false;
+    private static final int NOT_ANALYZED = 0;
+    private static final int ANALYZED = 1;
+    private static final int VERIFIED = 2;
+    private int analyzerState = NOT_ANALYZED;
 
     private BitSet verifiedInstructions;
 
@@ -99,11 +102,19 @@ public class MethodAnalyzer {
         verifiedInstructions = new BitSet(instructions.size());
     }
 
+    public boolean isAnalyzed() {
+        return analyzerState >= ANALYZED;
+    }
+
+    public boolean isVerified() {
+        return analyzerState == VERIFIED;
+    }
+
     public AnalyzedInstruction[] analyze() {
         assert encodedMethod != null;
         assert encodedMethod.codeItem != null;
 
-        if (analyzed) {
+        if (analyzerState >= ANALYZED) {
             return makeInstructionArray();
         }
 
@@ -261,7 +272,7 @@ public class MethodAnalyzer {
             }
         }
 
-        analyzed = true;
+        analyzerState = ANALYZED;
         return makeInstructionArray();
     }
 
