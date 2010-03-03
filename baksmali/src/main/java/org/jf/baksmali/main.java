@@ -30,7 +30,7 @@ package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
 import org.jf.dexlib.DexFile;
-import org.jf.util.ConsoleUtil;
+import org.jf.util.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -294,7 +294,7 @@ public class main {
      * Prints the usage message.
      */
     private static void usage(boolean printDebugOptions) {
-        baksmaliHelpFormatter formatter = new baksmaliHelpFormatter();
+        smaliHelpFormatter formatter = new smaliHelpFormatter();
         formatter.setWidth(ConsoleUtil.getConsoleWidth());
 
         formatter.printHelp("java -jar baksmali.jar [options] <dex-file>",
