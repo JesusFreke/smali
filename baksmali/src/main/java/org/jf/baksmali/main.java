@@ -30,6 +30,7 @@ package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
 import org.jf.dexlib.DexFile;
+import org.jf.util.ConsoleUtil;
 
 import java.io.File;
 import java.io.InputStream;
@@ -294,7 +295,7 @@ public class main {
      */
     private static void usage(boolean printDebugOptions) {
         baksmaliHelpFormatter formatter = new baksmaliHelpFormatter();
-        formatter.setWidth(100);
+        formatter.setWidth(ConsoleUtil.getConsoleWidth());
 
         formatter.printHelp("java -jar baksmali.jar [options] <dex-file>",
                 "disassembles and/or dumps a dex file", basicOptions, "");

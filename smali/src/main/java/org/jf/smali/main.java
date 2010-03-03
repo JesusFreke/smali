@@ -42,6 +42,7 @@ import org.antlr.runtime.TokenRewriteStream;
 import org.antlr.runtime.Lexer;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
+import org.jf.util.ConsoleUtil;
 
 import java.io.*;
 import java.util.Set;
@@ -288,7 +289,7 @@ public class main {
      */
     private static void usage(boolean printDebugOptions) {
         smaliHelpFormatter formatter = new smaliHelpFormatter();
-        formatter.setWidth(100);
+        formatter.setWidth(ConsoleUtil.getConsoleWidth());
 
         formatter.printHelp("java -jar smali.jar [options] [--] [<smali-file>|folder]*",
                 "assembles a set of smali files into a dex file", basicOptions, "");

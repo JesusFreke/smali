@@ -25,6 +25,7 @@
         <module>dexlib</module>
         <module>smali</module>
         <module>baksmali</module>
+	<module>util</module>
         <module>maven-smali-plugin</module>
         <module>smali-integration-tests</module>
     </modules>
