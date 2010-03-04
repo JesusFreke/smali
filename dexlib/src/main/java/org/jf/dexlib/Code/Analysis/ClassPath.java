@@ -115,7 +115,12 @@ public class ClassPath {
                         bootClassPathEntry + "\".");
             }
 
-            loadDexFile(dexFile);
+            try {
+                loadDexFile(dexFile);
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex,
+                        String.format("Error while loading boot classpath entry %s", bootClassPathEntry));
+            }
             return;
         }
         throw new ExceptionWithContext(String.format("Cannot locate boot class path file %s", bootClassPathEntry));
@@ -123,12 +128,17 @@ public class ClassPath {
 
     private void loadDexFile(DexFile dexFile) {
         for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
-            //TODO: need to check if the class already exists. (and if so, what to do about it?)
-            ClassDef classDef = new ClassDef(classDefItem);
-            classDefs.put(classDef.getClassType(), classDef);
+            try {
+                //TODO: need to check if the class already exists. (and if so, what to do about it?)
+                ClassDef classDef = new ClassDef(classDefItem);
+                classDefs.put(classDef.getClassType(), classDef);
 
-            if (classDefItem.getClassType().getTypeDescriptor().equals("Ljava/lang/Object;")) {
-                theClassPath.javaLangObjectClassDef = classDef;
+                if (classDefItem.getClassType().getTypeDescriptor().equals("Ljava/lang/Object;")) {
+                    theClassPath.javaLangObjectClassDef = classDef;
+                }
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex, String.format("Error while loading class %s",
+                        classDefItem.getClassType().getTypeDescriptor()));
             }
         }
     }
