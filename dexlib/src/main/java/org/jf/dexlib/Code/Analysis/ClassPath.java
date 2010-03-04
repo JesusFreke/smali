@@ -93,42 +93,44 @@ public class ClassPath {
 
     private void loadBootClassPath(String[] classPathDirs, String bootClassPathEntry) {
         for (String classPathDir: classPathDirs) {
-            File file = new File(classPathDir, bootClassPathEntry);
+            File file = null;
+            DexFile dexFile = null;
 
-            if (!file.exists()) {
-                boolean found = false;
-                int extIndex = bootClassPathEntry.lastIndexOf(".");
+            int extIndex = bootClassPathEntry.lastIndexOf(".");
 
-                String baseEntry;
-                if (extIndex == -1) {
-                    baseEntry = bootClassPathEntry;
+            String baseEntry;
+            if (extIndex == -1) {
+                baseEntry = bootClassPathEntry;
+            } else {
+                baseEntry = bootClassPathEntry.substring(0, extIndex);
+            }
+
+            for (String ext: new String[]{"", ".odex", ".jar", ".apk", ".zip"}) {
+                if (ext.length() == 0) {
+                    file = new File(classPathDir, bootClassPathEntry);
                 } else {
-                    baseEntry = bootClassPathEntry.substring(0, extIndex);
+                    file = new File(classPathDir, baseEntry + ext);
                 }
 
-                for (String ext: new String[]{".odex", ".jar", ".apk", ".zip"}) {
-                    String newEntry = baseEntry + ext;
-                    file = new File(classPathDir, newEntry);
-                    if (file.exists()) {
-                        found = true;
-                        break;
+                if (file.exists()) {
+                    if (!file.canRead()) {
+                        System.err.println(String.format("warning: cannot open %s for reading. Will continue " +
+                                "looking.", file.getPath()));
+                        continue;
+                    }
+
+                    try {
+                        dexFile = new DexFile(file, false, true);
+                    } catch (DexFile.NoClassesDexException ex) {
+                        continue;
+                    } catch (Exception ex) {
+                        throw ExceptionWithContext.withContext(ex, "Error while reading boot class path entry \"" +
+                        bootClassPathEntry + "\".");
                     }
                 }
-                if (!found) {
-                    continue;
-                }
             }
-
-            if (!file.canRead()) {
-                throw new ExceptionWithContext("Cannot read ClassPath entry \"" + bootClassPathEntry + "\".");
-            }
-
-            DexFile dexFile;
-            try {
-                dexFile = new DexFile(file, false, true);
-            } catch (Exception ex) {
-                throw ExceptionWithContext.withContext(ex, "Error while reading boot class path entry \"" +
-                        bootClassPathEntry + "\".");
+            if (dexFile == null) {
+                continue;
             }
 
             try {

@@ -305,7 +305,8 @@ public class DexFile
                 zipFile = new ZipFile(file);
                 ZipEntry zipEntry = zipFile.getEntry("classes.dex");
                 if (zipEntry == null) {
-                    throw new RuntimeException("zip file " + file.getName() + " does not contain a classes.dex file");
+                    throw new NoClassesDexException("zip file " + file.getName() + " does not contain a classes.dex " +
+                            "file");
                 }
                 fileLength = zipEntry.getSize();
                 if (fileLength < 40) {
@@ -865,5 +866,11 @@ public class DexFile
         bytes[9]  = (byte) (sum >> 8);
         bytes[10] = (byte) (sum >> 16);
         bytes[11] = (byte) (sum >> 24);
+    }
+
+    public static class NoClassesDexException extends ExceptionWithContext {
+        public NoClassesDexException(String message) {
+            super(message);
+        }
     }
 }
