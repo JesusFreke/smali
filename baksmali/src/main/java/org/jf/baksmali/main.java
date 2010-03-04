@@ -265,9 +265,9 @@ public class main {
                     bootClassPathDirsArray[i] = bootClassPathDirs.get(i);
                 }
 
-                baksmali.disassembleDexFile(dexFile, deodex, outputDirectory, bootClassPathDirsArray, bootClassPath,
-                        noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
-                        registerInfo, verify);
+                baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
+                        bootClassPathDirsArray, bootClassPath, noParameterRegisters, useLocalsDirective,
+                        useSequentialLabels, outputDebugInfo, addCodeOffsets, registerInfo, verify);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {

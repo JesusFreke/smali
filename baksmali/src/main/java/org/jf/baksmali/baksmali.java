@@ -50,7 +50,7 @@ public class baksmali {
     public static int registerInfo = 0;
     public static String bootClassPath;
 
-    public static void disassembleDexFile(DexFile dexFile, boolean deodex, String outputDirectory,
+    public static void disassembleDexFile(String dexFilePath, DexFile dexFile, boolean deodex, String outputDirectory,
                                           String[] classPathDirs, String bootClassPath, boolean noParameterRegisters,
                                           boolean useLocalsDirective, boolean useSequentialLabels,
                                           boolean outputDebugInfo, boolean addCodeOffsets, int registerInfo,
@@ -68,7 +68,8 @@ public class baksmali {
 
         if (registerInfo != 0 || deodex || verify) {
             try {
-                ClassPath.InitializeClassPath(classPathDirs, bootClassPath==null?null:bootClassPath.split(":"), dexFile);
+                ClassPath.InitializeClassPath(classPathDirs, bootClassPath==null?null:bootClassPath.split(":"),
+                        dexFilePath, dexFile);
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
                 ex.printStackTrace(System.err);

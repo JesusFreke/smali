@@ -45,20 +45,26 @@ public class ClassPath {
     private final HashMap<String, ClassDef> classDefs;
     protected ClassDef javaLangObjectClassDef; //Ljava/lang/Object;
 
-    public static void InitializeClassPath(String[] classPathDirs, String[] bootClassPath, DexFile dexFile) {
+    //This is only used while initialing the class path. It is set to null after initialization has finished.
+    private LinkedHashMap<String, TempClassInfo> tempClasses;
+
+    public static void InitializeClassPath(String[] classPathDirs, String[] bootClassPath, String dexFilePath,
+                                           DexFile dexFile) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
         }
 
         theClassPath = new ClassPath();
-        theClassPath.initClassPath(classPathDirs, bootClassPath, dexFile);
+        theClassPath.initClassPath(classPathDirs, bootClassPath, dexFilePath, dexFile);
     }
 
     private ClassPath() {
         classDefs = new HashMap<String, ClassDef>();
     }
 
-    private void initClassPath(String[] classPathDirs, String[] bootClassPath, DexFile dexFile) {
+    private void initClassPath(String[] classPathDirs, String[] bootClassPath, String dexFilePath, DexFile dexFile) {
+        tempClasses = new LinkedHashMap<String, TempClassInfo>();
+
         if (bootClassPath != null) {
             for (String bootClassPathEntry: bootClassPath) {
                 loadBootClassPath(classPathDirs, bootClassPathEntry);
@@ -66,13 +72,23 @@ public class ClassPath {
         }
 
         if (dexFile != null) {
-            loadDexFile(dexFile);
+            loadDexFile(dexFilePath, dexFile);
+        }
+
+
+        for (String classType: tempClasses.keySet()) {
+            ClassDef classDef = ClassPath.loadClassDef(classType);
+            if (classType.equals("Ljava/lang/Object;")) {
+                this.javaLangObjectClassDef = classDef;
+            }
         }
 
         for (String primitiveType: new String[]{"Z", "B", "S", "C", "I", "J", "F", "D"}) {
             ClassDef classDef = new PrimitiveClassDef(primitiveType);
             classDefs.put(primitiveType, classDef);
         }
+
+        tempClasses = null;
     }
 
     private void loadBootClassPath(String[] classPathDirs, String bootClassPathEntry) {
@@ -116,7 +132,7 @@ public class ClassPath {
             }
 
             try {
-                loadDexFile(dexFile);
+                loadDexFile(file.getPath(), dexFile);
             } catch (Exception ex) {
                 throw ExceptionWithContext.withContext(ex,
                         String.format("Error while loading boot classpath entry %s", bootClassPathEntry));
@@ -126,16 +142,13 @@ public class ClassPath {
         throw new ExceptionWithContext(String.format("Cannot locate boot class path file %s", bootClassPathEntry));
     }
 
-    private void loadDexFile(DexFile dexFile) {
+    private void loadDexFile(String dexFilePath, DexFile dexFile) {
         for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
             try {
                 //TODO: need to check if the class already exists. (and if so, what to do about it?)
-                ClassDef classDef = new ClassDef(classDefItem);
-                classDefs.put(classDef.getClassType(), classDef);
+                TempClassInfo tempClassInfo = new TempClassInfo(dexFilePath, classDefItem);
 
-                if (classDefItem.getClassType().getTypeDescriptor().equals("Ljava/lang/Object;")) {
-                    theClassPath.javaLangObjectClassDef = classDef;
-                }
+                tempClasses.put(tempClassInfo.classType, tempClassInfo);
             } catch (Exception ex) {
                 throw ExceptionWithContext.withContext(ex, String.format("Error while loading class %s",
                         classDefItem.getClassType().getTypeDescriptor()));
@@ -151,6 +164,32 @@ public class ClassPath {
 
     public static ClassDef getClassDef(String classType) {
         return getClassDef(classType, true);
+    }
+
+    /**
+     * This method checks if the given class has been loaded yet. If it has, it returns the loaded ClassDef. If not,
+     * then it looks up the TempClassItem for the given class and (possibly recursively) loads the ClassDef.
+     * @param classType the class to load
+     * @return the existing or newly loaded ClassDef object for the given class
+     */
+    private static ClassDef loadClassDef(String classType) {
+        ClassDef classDef = getClassDef(classType, false);
+
+        if (classDef == null) {
+            TempClassInfo classInfo = theClassPath.tempClasses.get(classType);
+            if (classInfo == null) {
+                throw new ExceptionWithContext(String.format("Could not find class %s", classType));
+            }
+
+            try {
+                classDef = new ClassDef(classInfo);
+                theClassPath.classDefs.put(classDef.classType, classDef);
+            } catch (Exception ex) {
+                throw ExceptionWithContext.withContext(ex, String.format("Error while loading class %s from file %s",
+                        classInfo.classType, classInfo.dexFilePath));
+            }
+        }
+        return classDef;
     }
 
     public static ClassDef getClassDef(String classType, boolean createUnresolvedClassDef)  {
@@ -527,30 +566,29 @@ public class ClassPath {
             }
         }
 
-        protected ClassDef(ClassDefItem classDefItem)  {
-            classType = classDefItem.getClassType().getTypeDescriptor();
+        protected ClassDef(TempClassInfo classInfo)  {
+            classType = classInfo.classType;
+            isInterface = classInfo.isInterface;
 
-            isInterface = (classDefItem.getAccessFlags() & AccessFlags.INTERFACE.getValue()) != 0;
-
-            superclass = loadSuperclass(classDefItem);
+            superclass = loadSuperclass(classInfo);
             if (superclass == null) {
                 classDepth = 0;
             } else {
                 classDepth = superclass.classDepth + 1;
             }
 
-            implementedInterfaces = loadAllImplementedInterfaces(classDefItem);
+            implementedInterfaces = loadAllImplementedInterfaces(classInfo);
 
             //TODO: we can probably get away with only creating the interface table for interface types
-            interfaceTable = loadInterfaceTable(classDefItem);
-            virtualMethods = loadVirtualMethods(classDefItem);
-            vtable = loadVtable(classDefItem);
+            interfaceTable = loadInterfaceTable(classInfo);
+            virtualMethods = classInfo.virtualMethods;
+            vtable = loadVtable(classInfo);
             virtualMethodLookup = new HashMap<String, Integer>((int)Math.ceil(vtable.length / .7f), .75f);
             for (int i=0; i<vtable.length; i++) {
                 virtualMethodLookup.put(vtable[i], i);
             }
 
-            instanceFields = loadFields(classDefItem);
+            instanceFields = loadFields(classInfo);
             instanceFieldLookup = new HashMap<String, Integer>((int)Math.ceil(instanceFields.size() / .7f), .75f);
             for (int i=0; i<instanceFields.size(); i++) {
                 instanceFieldLookup.put(instanceFields.get(i), i);
@@ -632,22 +670,21 @@ public class ClassPath {
             fields[position2] = tempField;
         }
 
-        private ClassDef loadSuperclass(ClassDefItem classDefItem) {
-            if (classDefItem.getClassType().getTypeDescriptor().equals("Ljava/lang/Object;")) {
-                if (classDefItem.getSuperclass() != null) {
+        private ClassDef loadSuperclass(TempClassInfo classInfo) {
+            if (classInfo.classType.equals("Ljava/lang/Object;")) {
+                if (classInfo.superclassType != null) {
                     throw new ExceptionWithContext("Invalid superclass " +
-                            classDefItem.getSuperclass().getTypeDescriptor() + " for Ljava/lang/Object;. " +
+                            classInfo.superclassType + " for Ljava/lang/Object;. " +
                             "The Object class cannot have a superclass");
                 }
                 return null;
             } else {
-                TypeIdItem superClass = classDefItem.getSuperclass();
-                if (superClass == null) {
-                    throw new ExceptionWithContext(classDefItem.getClassType().getTypeDescriptor() +
-                            " has no superclass");
+                String superclassType = classInfo.superclassType;
+                if (superclassType == null) {
+                    throw new ExceptionWithContext(classInfo.classType + " has no superclass");
                 }
 
-                ClassDef superclass = ClassPath.getClassDef(superClass.getTypeDescriptor());
+                ClassDef superclass = ClassPath.loadClassDef(superclassType);
 
                 if (!isInterface && superclass.isInterface) {
                     throw new ValidationException("Class " + classType + " has the interface " + superclass.classType +
@@ -663,10 +700,10 @@ public class ClassPath {
             }
         }
 
-        private TreeSet<ClassDef> loadAllImplementedInterfaces(ClassDefItem classDefItem) {
+        private TreeSet<ClassDef> loadAllImplementedInterfaces(TempClassInfo classInfo) {
             assert classType != null;
             assert classType.equals("Ljava/lang/Object;") || superclass != null;
-            assert classDefItem != null;
+            assert classInfo != null;
 
             TreeSet<ClassDef> implementedInterfaceSet = new TreeSet<ClassDef>();
 
@@ -676,10 +713,10 @@ public class ClassPath {
                 }
             }
 
-            TypeListItem interfaces = classDefItem.getInterfaces();
-            if (interfaces != null) {
-                for (TypeIdItem interfaceType: interfaces.getTypes()) {
-                    ClassDef interfaceDef = ClassPath.getClassDef(interfaceType.getTypeDescriptor());
+
+            if (classInfo.interfaces != null) {
+                for (String interfaceType: classInfo.interfaces) {
+                    ClassDef interfaceDef = ClassPath.loadClassDef(interfaceType);
                     assert interfaceDef.isInterface();
                     implementedInterfaceSet.add(interfaceDef);
 
@@ -695,25 +732,23 @@ public class ClassPath {
             return implementedInterfaceSet;
         }
 
-        private LinkedHashMap<String, ClassDef> loadInterfaceTable(ClassDefItem classDefItem) {
-            TypeListItem typeListItem = classDefItem.getInterfaces();
-            if (typeListItem == null) {
+        private LinkedHashMap<String, ClassDef> loadInterfaceTable(TempClassInfo classInfo) {
+            if (classInfo.interfaces == null) {
                 return null;
             }
 
             LinkedHashMap<String, ClassDef> interfaceTable = new LinkedHashMap<String, ClassDef>();
 
-            for (TypeIdItem interfaceType: typeListItem.getTypes()) {
-                if (!interfaceTable.containsKey(interfaceType.getTypeDescriptor())) {
-                    ClassDef classDef = getClassDef(interfaceType);
-                    if (classDef == null) {
-                        throw new ValidationException(String.format(
-                                "Could not resolve type %s", interfaceType.getTypeDescriptor()));
+            for (String interfaceType: classInfo.interfaces) {
+                if (!interfaceTable.containsKey(interfaceType)) {
+                    ClassDef interfaceDef = ClassPath.loadClassDef(interfaceType);
+                    if (interfaceDef == null) {
+                        throw new ValidationException(String.format("Could not resolve type %s", interfaceType));
                     }
-                    interfaceTable.put(interfaceType.getTypeDescriptor(), classDef);
+                    interfaceTable.put(interfaceType, interfaceDef);
 
-                    if (classDef.interfaceTable != null) {
-                        for (ClassDef superInterface: classDef.interfaceTable.values()) {
+                    if (interfaceDef.interfaceTable != null) {
+                        for (ClassDef superInterface: interfaceDef.interfaceTable.values()) {
                             if (!interfaceTable.containsKey(superInterface.classType)) {
                                 interfaceTable.put(superInterface.classType, superInterface);
                             }
@@ -725,27 +760,7 @@ public class ClassPath {
             return interfaceTable;
         }
 
-        private String[] loadVirtualMethods(ClassDefItem classDefItem) {
-            ClassDataItem classDataItem = classDefItem.getClassData();
-            if (classDataItem == null) {
-                return null;
-            }
-
-            EncodedMethod[] virtualEncodedMethods = classDataItem.getVirtualMethods();
-            if (virtualEncodedMethods == null) {
-                return null;
-            }
-
-            String[] virtualMethods = new String[virtualEncodedMethods.length];
-
-            for (int i=0; i<virtualEncodedMethods.length; i++) {
-                virtualMethods[i] = virtualEncodedMethods[i].method.getVirtualMethodString();
-            }
-
-            return virtualMethods;
-        }
-
-        private String[] loadVtable(ClassDefItem classDefItem) {
+        private String[] loadVtable(TempClassInfo classInfo) {
             //TODO: it might be useful to keep track of which class's implementation is used for each virtual method. In other words, associate the implementing class type with each vtable entry
             List<String> virtualMethodList = new LinkedList<String>();
             //use a temp hash table, so that we can construct the final lookup with an appropriate
@@ -767,16 +782,11 @@ public class ClassPath {
             //iterate over the virtual methods in the current class, and only add them when we don't already have the
             //method (i.e. if it was implemented by the superclass)
             if (!this.isInterface) {
-                ClassDataItem classDataItem = classDefItem.getClassData();
-                if (classDataItem != null) {
-                    EncodedMethod[] virtualMethods = classDataItem.getVirtualMethods();
-                    if (virtualMethods != null) {
-                        for (EncodedMethod virtualMethod: virtualMethods) {
-                            String methodString = virtualMethod.method.getVirtualMethodString();
-                            if (tempVirtualMethodLookup.get(methodString) == null) {
-                                virtualMethodList.add(methodString);
-                                tempVirtualMethodLookup.put(methodString, methodIndex++);
-                            }
+                if (classInfo.virtualMethods != null) {
+                    for (String virtualMethod: classInfo.virtualMethods) {
+                        if (tempVirtualMethodLookup.get(virtualMethod) == null) {
+                            virtualMethodList.add(virtualMethod);
+                            tempVirtualMethodLookup.put(virtualMethod, methodIndex++);
                         }
                     }
                 }
@@ -825,7 +835,7 @@ public class ClassPath {
             }
         }
 
-        private SparseArray<String> loadFields(ClassDefItem classDefItem) {
+        private SparseArray<String> loadFields(TempClassInfo classInfo) {
             //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
             //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
             //See mydroid/dalvik/vm/oo/Class.c - computeFieldOffsets()
@@ -834,26 +844,23 @@ public class ClassPath {
             final byte WIDE = 1;
             final byte OTHER = 2;
 
-            ClassDataItem classDataItem = classDefItem.getClassData();
-
             String[] fields = null;
             //the "type" for each field in fields. 0=reference,1=wide,2=other
             byte[] fieldTypes = null;
 
-            if (classDataItem != null) {
-                EncodedField[] encodedFields = classDataItem.getInstanceFields();
-                if (encodedFields != null) {
-                    fields = new String[encodedFields.length];
-                    fieldTypes = new byte[encodedFields.length];
+            if (classInfo.instanceFields != null) {
+                fields = new String[classInfo.instanceFields.length];
+                fieldTypes = new byte[fields.length];
 
-                    for (int i=0; i<encodedFields.length; i++) {
-                        EncodedField encodedField = encodedFields[i];
-                        String fieldType = encodedField.field.getFieldType().getTypeDescriptor();
-                        String field = String.format("%s:%s", encodedField.field.getFieldName().getStringValue(),
-                                fieldType);
-                        fieldTypes[i] = getFieldType(field);
-                        fields[i] = field;
-                    }
+                for (int i=0; i<fields.length; i++) {
+                    String[] fieldInfo = classInfo.instanceFields[i];
+
+                    String fieldName = fieldInfo[0];
+                    String fieldType = fieldInfo[1];
+
+                    String field = String.format("%s:%s", fieldName, fieldType);
+                    fieldTypes[i] = getFieldType(fieldType);
+                    fields[i] = field;
                 }
             }
 
@@ -991,15 +998,8 @@ public class ClassPath {
             return instanceFields;
         }
 
-        private byte getFieldType(String field) {
-            int sepIndex = field.indexOf(':');
-
-            //we could use sepIndex >= field.length()-1 instead, but that's too easy to mistake for an off-by-one error
-            if (sepIndex < 0 || sepIndex == field.length()-1 || sepIndex >= field.length()) {
-                assert false;
-                throw new ExceptionWithContext("Invalid field format: " + field);
-            }
-            switch (field.charAt(sepIndex+1)) {
+        private byte getFieldType(String fieldType) {
+            switch (fieldType.charAt(0)) {
                 case '[':
                 case 'L':
                     return 0; //REFERENCE
@@ -1031,6 +1031,87 @@ public class ClassPath {
         }
     }
 
+    /**
+     * In some cases, classes can reference another class (i.e. a superclass or an interface) that is in a *later*
+     * boot class path entry. So we load all classes from all boot class path entries before starting to process them
+     */
+    private static class TempClassInfo {
+        public final String dexFilePath;
+        public final String classType;
+        public final boolean isInterface;
+        public final String superclassType;
+        public final String[] interfaces;
+        public final String[] virtualMethods;
+        public final String[][] instanceFields;
+
+        public TempClassInfo(String dexFilePath, ClassDefItem classDefItem) {
+            this.dexFilePath = dexFilePath;
+
+            classType = classDefItem.getClassType().getTypeDescriptor();
+
+            isInterface = (classDefItem.getAccessFlags() & AccessFlags.INTERFACE.getValue()) != 0;
+
+            TypeIdItem superclassType = classDefItem.getSuperclass();
+            if (superclassType == null) {
+                this.superclassType = null;
+            } else {
+                this.superclassType = superclassType.getTypeDescriptor();
+            }
+
+            interfaces = loadInterfaces(classDefItem);
+
+            ClassDataItem classDataItem = classDefItem.getClassData();
+            if (classDataItem != null) {
+                virtualMethods = loadVirtualMethods(classDataItem);
+                instanceFields = loadInstanceFields(classDataItem);
+            } else {
+                virtualMethods = null;
+                instanceFields = null;
+            }
+        }
+
+        private String[] loadInterfaces(ClassDefItem classDefItem) {
+            TypeListItem typeList = classDefItem.getInterfaces();
+            if (typeList != null) {
+                List<TypeIdItem> types = typeList.getTypes();
+                if (types != null && types.size() > 0) {
+                    String[] interfaces = new String[types.size()];
+                    for (int i=0; i<interfaces.length; i++) {
+                        interfaces[i] = types.get(i).getTypeDescriptor();
+                    }
+                    return interfaces;
+                }
+            }
+            return null;
+        }
+
+        private String[] loadVirtualMethods(ClassDataItem classDataItem) {
+            EncodedMethod[] encodedMethods = classDataItem.getVirtualMethods();
+            if (encodedMethods != null && encodedMethods.length > 0) {
+                String[] virtualMethods = new String[encodedMethods.length];
+                for (int i=0; i<encodedMethods.length; i++) {
+                    virtualMethods[i] = encodedMethods[i].method.getVirtualMethodString();
+                }
+                return virtualMethods;
+            }
+            return null;
+        }
+
+        private String[][] loadInstanceFields(ClassDataItem classDataItem) {
+            EncodedField[] encodedFields = classDataItem.getInstanceFields();
+            if (encodedFields != null && encodedFields.length > 0) {
+                String[][] instanceFields = new String[encodedFields.length][2];
+                for (int i=0; i<encodedFields.length; i++) {
+                    EncodedField encodedField = encodedFields[i];
+                    instanceFields[i][0] = encodedField.field.getFieldName().getStringValue();
+                    instanceFields[i][1] = encodedField.field.getFieldType().getTypeDescriptor();
+                }
+                return instanceFields;
+            }
+            return null;
+        }
+    }
+
 
     public static void validateAgainstDeodexerant(String host, int port, int skipClasses) {
         Deodexerant deodexerant = new Deodexerant(host, port);
@@ -1049,6 +1130,10 @@ public class ClassPath {
                 if (count < skipClasses) {
                     count++;
                     continue;
+                }
+
+                if ((count%1000)==0) {
+                    System.out.println(count);
                 }
                 if (classDef instanceof UnresolvedClassDef || classDef instanceof ArrayClassDef ||
                         classDef instanceof PrimitiveClassDef) {
