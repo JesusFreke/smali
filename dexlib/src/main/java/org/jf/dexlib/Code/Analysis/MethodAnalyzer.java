@@ -233,6 +233,32 @@ public class MethodAnalyzer {
             }
         } while (true);
 
+
+        for (int i=odexedInstructions.nextSetBit(0); i>=0; i=odexedInstructions.nextSetBit(i+1)) {
+            AnalyzedInstruction instruction = instructions.valueAt(i);
+
+            Instruction odexedInstruction = instruction.instruction;
+            int objectRegisterNumber;
+
+            if (odexedInstruction.getFormat() == Format.Format22cs) {
+                objectRegisterNumber = ((Instruction22cs)odexedInstruction).getRegisterB();
+            } else if (odexedInstruction.getFormat() == Format.Format35ms) {
+                objectRegisterNumber = ((Instruction35ms)odexedInstruction).getRegisterD();
+            } else if (odexedInstruction.getFormat() == Format.Format3rms) {
+                objectRegisterNumber = ((Instruction3rms)odexedInstruction).getStartRegister();
+            } else {
+                    assert false;
+                    throw new ExceptionWithContext(String.format("Unexpected format %s for odexed instruction",
+                            odexedInstruction.getFormat().name()));
+            }
+
+            instruction.setDeodexedInstruction(new UnresolvedNullReference(odexedInstruction,
+                    objectRegisterNumber));
+
+            setAndPropagateDeadness(instruction);
+        }
+
+
         analyzerState = ANALYZED;
     }
 
