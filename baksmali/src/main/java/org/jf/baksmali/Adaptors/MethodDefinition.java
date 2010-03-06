@@ -291,6 +291,8 @@ public class MethodDefinition {
         BitSet printPreRegister = new BitSet(registerCount);
         BitSet printPostRegister = new BitSet(registerCount);
 
+        boolean lastIsUnreachable = false;
+
         int currentCodeAddress = 0;
         for (int i=0; i<instructions.size(); i++) {
             AnalyzedInstruction instruction = instructions.get(i);
@@ -301,13 +303,25 @@ public class MethodDefinition {
 
             if (instruction.isDead()) {
                 methodItems.add(new CommentedOutMethodItem(stg, methodItem));
+                lastIsUnreachable = false;
+            } else if (instruction.getPredecessorCount() == 0 &&
+                    !instruction.getInstruction().getFormat().variableSizeFormat) {
+                if (!lastIsUnreachable) {
+                    methodItems.add(
+                            new CommentMethodItem(stg, "Unreachable code", currentCodeAddress, Double.MIN_VALUE));
+                }
+
+                methodItems.add(new CommentedOutMethodItem(stg, methodItem));
+                lastIsUnreachable = true;
             } else {
                 methodItems.add(methodItem);
+                lastIsUnreachable = false;
             }
 
             if (instruction.getInstruction().getFormat() == Format.UnresolvedNullReference) {
-                methodItems.add(new CommentedOutMethodItem(stg, InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
-                        encodedMethod.codeItem, currentCodeAddress, stg, instruction.getOriginalInstruction(), false)));
+                methodItems.add(new CommentedOutMethodItem(stg,
+                        InstructionMethodItemFactory.makeInstructionFormatMethodItem(this, encodedMethod.codeItem,
+                                currentCodeAddress, stg, instruction.getOriginalInstruction(), false)));
             }
 
             if (i != instructions.size() - 1) {
