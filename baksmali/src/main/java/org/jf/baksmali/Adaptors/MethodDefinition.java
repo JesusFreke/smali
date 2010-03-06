@@ -42,6 +42,7 @@ import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Util.AccessFlags;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.StringTemplate;
+import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.dexlib.Util.Hex;
 import org.jf.dexlib.Util.SparseIntArray;
 
@@ -61,42 +62,49 @@ public class MethodDefinition {
     private final int registerCount;
 
     public MethodDefinition(StringTemplateGroup stg, ClassDataItem.EncodedMethod encodedMethod) {
-        this.stg = stg;
-        this.encodedMethod = encodedMethod;
 
-        //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
 
-        if (encodedMethod.codeItem != null) {
-            methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex);
-            List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
+        try {
+            this.stg = stg;
+            this.encodedMethod = encodedMethod;
 
-            packedSwitchMap = new SparseIntArray(1);
-            sparseSwitchMap = new SparseIntArray(1);
-            instructionMap = new SparseIntArray(instructions.size());
+            //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
 
-            registerCount = encodedMethod.codeItem.getRegisterCount();
+            if (encodedMethod.codeItem != null) {
+                methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex);
+                List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
 
-            int currentCodeAddress = 0;
-            for (int i=0; i<instructions.size(); i++) {
-                AnalyzedInstruction instruction = instructions.get(i);
-                if (instruction.getInstruction().opcode == Opcode.PACKED_SWITCH) {
-                    packedSwitchMap.append(
-                            currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
-                            currentCodeAddress);
-                } else if (instruction.getInstruction().opcode == Opcode.SPARSE_SWITCH) {
-                    sparseSwitchMap.append(
-                            currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
-                            currentCodeAddress);
+                packedSwitchMap = new SparseIntArray(1);
+                sparseSwitchMap = new SparseIntArray(1);
+                instructionMap = new SparseIntArray(instructions.size());
+
+                registerCount = encodedMethod.codeItem.getRegisterCount();
+
+                int currentCodeAddress = 0;
+                for (int i=0; i<instructions.size(); i++) {
+                    AnalyzedInstruction instruction = instructions.get(i);
+                    if (instruction.getInstruction().opcode == Opcode.PACKED_SWITCH) {
+                        packedSwitchMap.append(
+                                currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
+                                currentCodeAddress);
+                    } else if (instruction.getInstruction().opcode == Opcode.SPARSE_SWITCH) {
+                        sparseSwitchMap.append(
+                                currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
+                                currentCodeAddress);
+                    }
+                    instructionMap.append(currentCodeAddress, i);
+                    currentCodeAddress += instruction.getInstruction().getSize(currentCodeAddress);
                 }
-                instructionMap.append(currentCodeAddress, i);
-                currentCodeAddress += instruction.getInstruction().getSize(currentCodeAddress);
+            } else {
+                packedSwitchMap = null;
+                sparseSwitchMap = null;
+                instructionMap = null;
+                methodAnalyzer = null;
+                registerCount = 0;
             }
-        } else {
-            packedSwitchMap = null;
-            sparseSwitchMap = null;
-            instructionMap = null;
-            methodAnalyzer = null;
-            registerCount = 0;
+        }catch (Exception ex) {
+            throw ExceptionWithContext.withContext(ex, String.format("Error while processing method %s",
+                    encodedMethod.method.getMethodString()));
         }
     }
 
