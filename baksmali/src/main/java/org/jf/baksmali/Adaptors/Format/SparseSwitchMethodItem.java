@@ -41,9 +41,10 @@ import java.util.List;
 
 public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDataPseudoInstruction>
         implements Iterable<LabelMethodItem> {
-    private List<SparseSwitchTarget> targets = null;
+    private final List<SparseSwitchTarget> targets;
+    private final boolean dead;
 
-    public SparseSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress,
+    public SparseSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress, boolean dead,
                                   StringTemplateGroup stg, SparseSwitchDataPseudoInstruction instruction) {
         super(codeItem, codeAddress, stg, instruction);
 
@@ -63,10 +64,13 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDa
 
             targets.add(sparseSwitchTarget);
         }
+
+        this.dead = dead;
     }
 
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("Targets", targets);
+        template.setAttribute("Dead", dead);
     }
 
     public Iterator<LabelMethodItem> iterator() {

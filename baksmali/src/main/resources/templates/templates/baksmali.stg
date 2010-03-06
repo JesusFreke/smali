@@ -282,11 +282,16 @@ throw <Register>
 >>
 
 
-ArrayData(Opcode, ElementWidth, Values) ::=
+ArrayData(Opcode, ElementWidth, Values, Dead) ::=
 <<
-.array-data <ElementWidth>
-    <Values; separator="\n">
-.end array-data
+<if(Dead)>#<endif>.array-data <ElementWidth>
+<if(Dead)>
+<Values:  {#    <it>}; separator="\n">
+<else>
+<Values:  {     <it>}; separator="\n">
+<endif>
+
+<if(Dead)>#<endif>.end array-data
 >>
 
 ArrayElement(Bytes) ::=
@@ -294,18 +299,28 @@ ArrayElement(Bytes) ::=
 <Bytes; format="unsigned",separator=" ">
 >>
 
-PackedSwitchData(Opcode, FirstKey, Targets) ::=
+PackedSwitchData(Opcode, FirstKey, Targets, Dead) ::=
 <<
-.packed-switch <FirstKey>
-    <Targets: {<it>}; separator="\n">
-.end packed-switch
+<if(Dead)>#<endif>.packed-switch <FirstKey>
+<if(Dead)>
+<Targets:  {#   <it>}; separator="\n">
+<else>
+<Targets:  {    <it>}; separator="\n">
+<endif>
+
+<if(Dead)>#<endif>.end packed-switch
 >>
 
-SparseSwitchData(Opcode, Targets) ::=
+SparseSwitchData(Opcode, Targets, Dead) ::=
 <<
-.sparse-switch
-    <Targets:{<it.Key> -> <it.Target>}; separator="\n">
-.end sparse-switch
+<if(Dead)>#<endif>.sparse-switch
+<if(Dead)>
+<Targets:  {#   <it.Key> -> <it.Target>}; separator="\n">
+<else>
+<Targets:  {    <it.Key> -> <it.Target>}; separator="\n">
+<endif>
+
+<if(Dead)>#<endif>.end sparse-switch
 >>
 
 

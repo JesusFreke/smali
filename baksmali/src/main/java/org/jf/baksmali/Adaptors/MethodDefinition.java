@@ -249,6 +249,30 @@ public class MethodDefinition {
         return annotationAdaptors;
     }
 
+    /**
+     * @param instructions The instructions array for this method
+     * @param instruction The instruction
+     * @return true if the specified instruction is a NOP, and the next instruction is one of the variable sized
+     * switch/array data structures
+     */
+    private boolean isInstructionPaddingNop(List<AnalyzedInstruction> instructions, AnalyzedInstruction instruction) {
+        if (instruction.getInstruction().opcode != Opcode.NOP ||
+            instruction.getInstruction().getFormat().variableSizeFormat) {
+
+            return false;
+        }
+
+        if (instruction.getInstructionIndex() == instructions.size()-1) {
+            return false;
+        }
+
+        AnalyzedInstruction nextInstruction = instructions.get(instruction.getInstructionIndex()+1);
+        if (nextInstruction.getInstruction().getFormat().variableSizeFormat) {
+            return true;
+        }
+        return false;
+    }
+
     private List<MethodItem> getMethodItems() {
         List<MethodItem> methodItems = new ArrayList<MethodItem>();
 
@@ -298,21 +322,25 @@ public class MethodDefinition {
             AnalyzedInstruction instruction = instructions.get(i);
 
             MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
-                    encodedMethod.codeItem, currentCodeAddress, stg, instruction.getInstruction(),
+                    encodedMethod.codeItem, currentCodeAddress, instruction.isDead(), stg, instruction.getInstruction(),
                     instruction == lastInstruction);
 
-            if (instruction.isDead()) {
+            boolean addedInstruction = false;
+            if (instruction.isDead() && !instruction.getInstruction().getFormat().variableSizeFormat) {
                 methodItems.add(new CommentedOutMethodItem(stg, methodItem));
                 lastIsUnreachable = false;
-            } else if (instruction.getPredecessorCount() == 0 &&
-                    !instruction.getInstruction().getFormat().variableSizeFormat) {
+                addedInstruction = true;
+            } else if ( instruction.getPredecessorCount() == 0 &&
+                        !instruction.getInstruction().getFormat().variableSizeFormat &&
+                        !isInstructionPaddingNop(instructions, instruction)) {
+
                 if (!lastIsUnreachable) {
                     methodItems.add(
-                            new CommentMethodItem(stg, "Unreachable code", currentCodeAddress, Double.MIN_VALUE));
+                        new CommentMethodItem(stg, "Unreachable code", currentCodeAddress, Double.MIN_VALUE));
                 }
 
                 methodItems.add(new CommentedOutMethodItem(stg, methodItem));
-                lastIsUnreachable = true;
+                    lastIsUnreachable = true;
             } else {
                 methodItems.add(methodItem);
                 lastIsUnreachable = false;
@@ -321,7 +349,8 @@ public class MethodDefinition {
             if (instruction.getInstruction().getFormat() == Format.UnresolvedNullReference) {
                 methodItems.add(new CommentedOutMethodItem(stg,
                         InstructionMethodItemFactory.makeInstructionFormatMethodItem(this, encodedMethod.codeItem,
-                                currentCodeAddress, stg, instruction.getOriginalInstruction(), false)));
+                                currentCodeAddress, instruction.isDead(), stg, instruction.getOriginalInstruction(),
+                                false)));
             }
 
             if (i != instructions.size() - 1) {

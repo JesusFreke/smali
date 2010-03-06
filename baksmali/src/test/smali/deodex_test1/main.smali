@@ -58,6 +58,21 @@
     invoke-virtual {v2}, Lsuperclass;->somemethod()V
 
 
+    const v0, 1
+    new-array v0, v0, [I
+
+    #this should be marked as dead, and so should the corresponding .sparse-switch structure
+    fill-array-data v0, :array-data
+
+    const v0, 0
+
+    #this should be marked as dead, and so should the corresponding .sparse-switch structure
+    sparse-switch v0, :sparse-switch
+
+    #this should be marked as dead, and so should the corresponding .packed-switch structure
+    packed-switch v0, :packed-switch
+
+
     :here2
 
     #and we're back to the non-dead code
@@ -67,6 +82,24 @@
 
 
     return-void
+
+    #this should be marked as dead
+    :packed-switch
+    .packed-switch 0x0
+        :here
+    .end packed-switch
+
+    #this should be marked as dead
+    :sparse-switch
+    .sparse-switch
+        0x0 -> :here
+    .end sparse-switch
+
+    #this should be marked as dead
+    :array-data
+    .array-data 0x4
+        0x0t 0x0t 0x0t 0x0t
+    .end array-data
 .end method
 
 .method public static UnresolvedInstructionTest1()Lsuperclass;

@@ -137,6 +137,10 @@ public class MethodAnalyzer {
 
         int nonParameterRegisters = totalRegisters - parameterRegisters;
 
+        for (AnalyzedInstruction instruction: instructions.getValues()) {
+            instruction.dead = true;
+        }
+
         //if this isn't a static method, determine which register is the "this" register and set the type to the
         //current class
         if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) == 0) {
@@ -189,6 +193,7 @@ public class MethodAnalyzer {
                         continue;
                     }
                     AnalyzedInstruction instructionToAnalyze = instructions.valueAt(i);
+                    instructionToAnalyze.dead = false;
                     try {
                         if (instructionToAnalyze.originalInstruction.opcode.odexOnly()) {
                             instructionToAnalyze.restoreOdexedInstruction();
@@ -233,7 +238,6 @@ public class MethodAnalyzer {
             }
         } while (true);
 
-
         for (int i=odexedInstructions.nextSetBit(0); i>=0; i=odexedInstructions.nextSetBit(i+1)) {
             AnalyzedInstruction instruction = instructions.valueAt(i);
 
@@ -254,10 +258,7 @@ public class MethodAnalyzer {
 
             instruction.setDeodexedInstruction(new UnresolvedNullReference(odexedInstruction,
                     objectRegisterNumber));
-
-            setAndPropagateDeadness(instruction);
         }
-
 
         analyzerState = ANALYZED;
     }
@@ -390,8 +391,6 @@ public class MethodAnalyzer {
     private void setAndPropagateDeadness(AnalyzedInstruction analyzedInstruction) {
         BitSet instructionsToProcess = new BitSet(instructions.size());
 
-        //temporarily set the undeodexeble instruction as dead, so that the "set dead if all predecessors are dead"
-        //operation works
         analyzedInstruction.dead = true;
 
         for (AnalyzedInstruction successor: analyzedInstruction.successors) {
@@ -427,8 +426,6 @@ public class MethodAnalyzer {
                 }
             }
         }
-
-        analyzedInstruction.dead = false;
     }
 
     private void setPostRegisterTypeAndPropagateChanges(AnalyzedInstruction analyzedInstruction, int registerNumber,
@@ -725,13 +722,17 @@ public class MethodAnalyzer {
                 return true;
             case FILLED_NEW_ARRAY:
             case FILLED_NEW_ARRAY_RANGE:
+                return true;
             case FILL_ARRAY_DATA:
+                analyzeArrayDataOrSwitch(analyzedInstruction);
             case THROW:
             case GOTO:
             case GOTO_16:
             case GOTO_32:
+                return true;
             case PACKED_SWITCH:
             case SPARSE_SWITCH:
+                analyzeArrayDataOrSwitch(analyzedInstruction);
                 return true;
             case CMPL_FLOAT:
             case CMPG_FLOAT:
@@ -2159,6 +2160,26 @@ public class MethodAnalyzer {
         if (!registerType.type.extendsClass(ClassPath.getClassDef("Ljava/lang/Throwable;"))) {
             throw new ValidationException(String.format("Cannot use throw with non-throwable type %s in register v%d",
                     registerType.type.getClassType(), register));
+        }
+    }
+
+    private void analyzeArrayDataOrSwitch(AnalyzedInstruction analyzedInstruction) {
+        int dataAddressOffset = ((OffsetInstruction)analyzedInstruction.instruction).getTargetAddressOffset();
+
+        int dataCodeAddress = this.getInstructionAddress(analyzedInstruction) + dataAddressOffset;
+        AnalyzedInstruction dataAnalyzedInstruction = instructions.get(dataCodeAddress);
+
+        if (dataAnalyzedInstruction != null) {
+            dataAnalyzedInstruction.dead = false;
+
+            //if there is a preceding nop, it's deadness should be the same
+            AnalyzedInstruction priorInstruction =
+                    instructions.valueAt(dataAnalyzedInstruction.getInstructionIndex()-1);
+            if (priorInstruction.getInstruction().opcode == Opcode.NOP &&
+                    !priorInstruction.getInstruction().getFormat().variableSizeFormat) {
+
+                priorInstruction.dead = false;
+            }
         }
     }
 

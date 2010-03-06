@@ -41,9 +41,10 @@ import java.util.List;
 
 public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDataPseudoInstruction>
         implements Iterable<LabelMethodItem> {
-    private List<LabelMethodItem> labels;
+    private final List<LabelMethodItem> labels;
+    private final boolean dead;
 
-    public PackedSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress,
+    public PackedSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress, boolean dead,
                                   StringTemplateGroup stg, PackedSwitchDataPseudoInstruction instruction) {
         super(codeItem, codeAddress, stg, instruction);
 
@@ -58,11 +59,14 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
             labels.add(label);
             label.setUncommented();
         }
+
+        this.dead = dead;
     }
 
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("FirstKey", instruction.getFirstKey());
         template.setAttribute("Targets", labels);
+        template.setAttribute("Dead", dead);
     }
 
     public Iterator<LabelMethodItem> iterator() {

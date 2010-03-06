@@ -36,13 +36,17 @@ import org.jf.dexlib.CodeItem;
 import java.util.Iterator;
 
 public class ArrayDataMethodItem extends InstructionMethodItem<ArrayDataPseudoInstruction> {
-    public ArrayDataMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg,
+    private final boolean dead;
+
+    public ArrayDataMethodItem(CodeItem codeItem, int codeAddress, boolean dead, StringTemplateGroup stg,
                                ArrayDataPseudoInstruction instruction) {
         super(codeItem, codeAddress, stg, instruction);
+        this.dead = dead;
     }
 
     protected void setAttributes(StringTemplate template) {
         template.setAttribute("ElementWidth", instruction.getElementWidth());
+        template.setAttribute("Dead", dead);
         setValuesAttribute(template);
     }
 

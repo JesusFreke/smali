@@ -42,7 +42,7 @@ public class InstructionMethodItemFactory {
 
     public static InstructionMethodItem makeInstructionFormatMethodItem(MethodDefinition methodDefinition,
                                                                               CodeItem codeItem,
-                                                                              int codeAddress,
+                                                                              int codeAddress, boolean dead,
                                                                               StringTemplateGroup stg,
                                                                               Instruction instruction,
                                                                               boolean isLastInstruction) {
@@ -53,13 +53,13 @@ public class InstructionMethodItemFactory {
 
         switch (instruction.getFormat()) {
             case ArrayData:
-                return new ArrayDataMethodItem(codeItem, codeAddress, stg,
+                return new ArrayDataMethodItem(codeItem, codeAddress, dead, stg,
                         (ArrayDataPseudoInstruction)instruction);
             case PackedSwitchData:
-                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, stg,
+                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, dead, stg,
                         (PackedSwitchDataPseudoInstruction)instruction);
             case SparseSwitchData:
-                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, stg,
+                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, dead, stg,
                         (SparseSwitchDataPseudoInstruction)instruction);
             case UnresolvedNullReference:
                 return new UnresolvedNullReferenceMethodItem(codeItem, codeAddress, stg,
