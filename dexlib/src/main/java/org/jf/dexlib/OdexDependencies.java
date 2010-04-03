@@ -1,6 +1,6 @@
 /*
  * [The "BSD licence"]
- * Copyright (c) 2010 Ben Gruver (JesusFreke)
+ * Copyright (c) 2010 Ben Gruver
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,7 @@
  * INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.jf.dexlib;
 
-import org.jf.dexlib.Util.Input;
-
-public class OdexHeaderItem {
-
-    /**
-     * the file format magic number, represented as the
-     * low-order bytes of a string
-     */
-    public static final byte[] MAGIC = new byte[] {0x64, 0x65, 0x79, 0x0A, 0x30, 0x33, 0x35, 0x00};//"dey\n035" + '\0';
-
-    public final byte[] magic;
-    public final int dexOffset;
-    public final int dexLength;
-    public final int depsOffset;
-    public final int depsLength;
-    public final int auxOffset;
-    public final int auxLength;
-    public final int flags;
-
-    public OdexHeaderItem(Input in) {
-        magic = in.readBytes(8);
-
-        for (int i=0; i<8; i++) {
-            if (MAGIC[i] != magic[i]) {
-                throw new RuntimeException("The magic value is not the expected value");
-            }
-        }
-
-        dexOffset = in.readInt();
-        dexLength = in.readInt();
-        depsOffset = in.readInt();
-        depsLength = in.readInt();
-        auxOffset = in.readInt();
-        auxLength = in.readInt();
-        flags = in.readInt();
-        in.readInt(); //padding
-    }
-
+public class OdexDependencies {
 }
