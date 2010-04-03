@@ -38,6 +38,8 @@ import org.jf.dexlib.Util.SparseArray;
 
 import java.io.File;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ClassPath {
     private static ClassPath theClassPath = null;
@@ -48,25 +50,91 @@ public class ClassPath {
     //This is only used while initialing the class path. It is set to null after initialization has finished.
     private LinkedHashMap<String, TempClassInfo> tempClasses;
 
-    public static void InitializeClassPath(String[] classPathDirs, String[] bootClassPath, String dexFilePath,
-                                           DexFile dexFile) {
+
+    private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
+
+    /**
+     * Initialize the class path using the dependencies from an odex file
+     * @param classPathDirs The directories to search for boot class path files
+     * @param extraBootClassPathEntries any extra entries that should be added after the entries that are read
+     * from the odex file
+     * @param dexFilePath The path of the dex file (used for error reporting purposes only)
+     * @param dexFile The DexFile to load - it must represents an odex file
+     */
+    public static void InitializeClassPathFromOdex(String[] classPathDirs, String[] extraBootClassPathEntries,
+                                                   String dexFilePath, DexFile dexFile) {
+        if (!dexFile.isOdex()) {
+            throw new ExceptionWithContext("Cannot use InitialiazeClassPathFromOdex with a non-odex DexFile");
+        }
+
+        if (theClassPath != null) {
+            throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
+        }
+
+        OdexDependencies odexDependencies = dexFile.getOdexDependencies();
+
+        String[] bootClassPath = new String[odexDependencies.getDependencyCount()];
+        for (int i=0; i<bootClassPath.length; i++) {
+            String dependency = odexDependencies.getDependency(i);
+
+            if (dependency.endsWith(".odex")) {
+                int slashIndex = dependency.lastIndexOf("/");
+
+                if (slashIndex != -1) {
+                    dependency = dependency.substring(slashIndex+1);
+                }
+            } else if (dependency.endsWith("@classes.dex")) {
+                Matcher m = dalvikCacheOdexPattern.matcher(dependency);
+
+                if (!m.find()) {
+                    throw new ExceptionWithContext(String.format("Cannot parse dependency value %s", dependency));
+                }
+
+                dependency = m.group(1);
+            } else {
+                throw new ExceptionWithContext(String.format("Cannot parse dependency value %s", dependency));
+            }
+
+            bootClassPath[i] = dependency;
+        }
+
+        theClassPath = new ClassPath();
+        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile);
+    }
+
+    /**
+     * Initialize the class path using the given boot class path entries
+     * @param classPathDirs The directories to search for boot class path files
+     * @param bootClassPath A list of the boot class path entries to search for and load
+     * @param dexFilePath The path of the dex file (used for error reporting purposes only)
+     * @param dexFile the DexFile to load
+     */
+    public static void InitializeClassPath(String[] classPathDirs, String[] bootClassPath,
+                                           String[] extraBootClassPathEntries, String dexFilePath, DexFile dexFile) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
         }
 
         theClassPath = new ClassPath();
-        theClassPath.initClassPath(classPathDirs, bootClassPath, dexFilePath, dexFile);
+        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile);
     }
 
     private ClassPath() {
         classDefs = new HashMap<String, ClassDef>();
     }
 
-    private void initClassPath(String[] classPathDirs, String[] bootClassPath, String dexFilePath, DexFile dexFile) {
+    private void initClassPath(String[] classPathDirs, String[] bootClassPath, String[] extraBootClassPathEntries,
+                               String dexFilePath, DexFile dexFile) {
         tempClasses = new LinkedHashMap<String, TempClassInfo>();
 
         if (bootClassPath != null) {
             for (String bootClassPathEntry: bootClassPath) {
+                loadBootClassPath(classPathDirs, bootClassPathEntry);
+            }
+        }
+
+        if (extraBootClassPathEntries != null) {
+            for (String bootClassPathEntry: extraBootClassPathEntries) {
                 loadBootClassPath(classPathDirs, bootClassPathEntry);
             }
         }

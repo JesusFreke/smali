@@ -30,6 +30,8 @@ package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.OdexDependencies;
+import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.util.*;
 
 import java.io.File;
@@ -111,7 +113,8 @@ public class main {
         String dumpFileName = null;
         String outputDexFileName = null;
         String inputDexFileName = null;
-        String bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
+        String bootClassPath = null;
+        StringBuffer extraBootClassPathEntries = new StringBuffer();
         List<String> bootClassPathDirs = new ArrayList<String>();
         bootClassPathDirs.add(".");
 
@@ -193,7 +196,7 @@ public class main {
                 case 'c':
                     String bcp = commandLine.getOptionValue("c");
                     if (bcp != null && bcp.charAt(0) == ':') {
-                        bootClassPath = bootClassPath + bcp;
+                        extraBootClassPathEntries.append(bcp);
                     } else {
                         bootClassPath = bcp;
                     }
@@ -257,6 +260,10 @@ public class main {
                 }
             } else {
                 deodex = false;
+
+                if (bootClassPath == null) {
+                    bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
+                }
             }
 
             if (disassemble) {
@@ -266,8 +273,9 @@ public class main {
                 }
 
                 baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
-                        bootClassPathDirsArray, bootClassPath, noParameterRegisters, useLocalsDirective,
-                        useSequentialLabels, outputDebugInfo, addCodeOffsets, registerInfo, verify);
+                        bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
+                        noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
+                        registerInfo, verify);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {

@@ -38,6 +38,8 @@ import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.StringIdItem;
 
 import java.io.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class baksmali {
     public static boolean noParameterRegisters = false;
@@ -51,10 +53,10 @@ public class baksmali {
     public static String bootClassPath;
 
     public static void disassembleDexFile(String dexFilePath, DexFile dexFile, boolean deodex, String outputDirectory,
-                                          String[] classPathDirs, String bootClassPath, boolean noParameterRegisters,
-                                          boolean useLocalsDirective, boolean useSequentialLabels,
-                                          boolean outputDebugInfo, boolean addCodeOffsets, int registerInfo,
-                                          boolean verify)
+                                          String[] classPathDirs, String bootClassPath, String extraBootClassPath,
+                                          boolean noParameterRegisters, boolean useLocalsDirective,
+                                          boolean useSequentialLabels, boolean outputDebugInfo, boolean addCodeOffsets,
+                                          int registerInfo, boolean verify)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
         baksmali.useLocalsDirective = useLocalsDirective;
@@ -68,8 +70,28 @@ public class baksmali {
 
         if (registerInfo != 0 || deodex || verify) {
             try {
-                ClassPath.InitializeClassPath(classPathDirs, bootClassPath==null?null:bootClassPath.split(":"),
-                        dexFilePath, dexFile);
+                String[] extraBootClassPathArray = null;
+                if (extraBootClassPath != null && extraBootClassPath.length() > 0) {
+                    assert extraBootClassPath.charAt(0) == ':';
+                    extraBootClassPathArray = extraBootClassPath.substring(1).split(":");
+                }
+
+                if (dexFile.isOdex() && bootClassPath == null) {
+                    //ext.jar is a special case - it is typically the 2nd jar in the boot class path, but it also
+                    //depends on classes in framework.jar. If the user didn't specify a -c option, we should add
+                    //framework.jar to the boot class path by default, so that it "just works"
+                    if (extraBootClassPathArray == null && isExtJar(dexFilePath)) {
+                        extraBootClassPath = ":framework.jar";
+                    }
+                    ClassPath.InitializeClassPathFromOdex(classPathDirs, extraBootClassPathArray, dexFilePath, dexFile);
+                } else {
+                    String[] bootClassPathArray = null;
+                    if (bootClassPath != null) {
+                        bootClassPathArray = bootClassPath.split(":");
+                    }
+                    ClassPath.InitializeClassPath(classPathDirs, bootClassPathArray, extraBootClassPathArray,
+                            dexFilePath, dexFile);
+                }
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
                 ex.printStackTrace(System.err);
@@ -181,5 +203,11 @@ public class baksmali {
                 System.exit(1);
             }
         }
+    }
+
+    private static final Pattern extJarPattern = Pattern.compile("(?:^|\\\\|/)ext.(?:jar|odex)$");
+    private static boolean isExtJar(String dexFilePath) {
+        Matcher m = extJarPattern.matcher(dexFilePath);
+        return m.find();
     }
 }

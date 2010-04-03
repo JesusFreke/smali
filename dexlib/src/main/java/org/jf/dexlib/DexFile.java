@@ -29,7 +29,6 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.Util.*;
-import org.jf.dexlib.*;
 import org.jf.dexlib.Item;
 import org.jf.dexlib.StringDataItem;
 
@@ -37,13 +36,11 @@ import java.io.*;
 import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.zip.Adler32;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipException;
 import java.util.zip.ZipEntry;
 
 /**
@@ -180,6 +177,7 @@ public class DexFile
      */
     private boolean isOdex = false;
 
+    private OdexDependencies odexDependencies;
 
     private int dataOffset;
     private int dataSize;
@@ -338,7 +336,7 @@ public class DexFile
             byte[] dexMagic, odexMagic;
 
             dexMagic = org.jf.dexlib.HeaderItem.MAGIC;
-            odexMagic = OdexHeaderItem.MAGIC;
+            odexMagic = OdexHeader.MAGIC;
 
             boolean isDex = true;
             this.isOdex = true;
@@ -354,9 +352,25 @@ public class DexFile
             if (isOdex) {
                 byte[] odexHeaderBytes = FileUtils.readStream(inputStream, 40);
                 Input odexHeaderIn = new ByteArrayInput(odexHeaderBytes);
-                OdexHeaderItem odexHeader = new OdexHeaderItem(odexHeaderIn);
+                OdexHeader odexHeader = new OdexHeader(odexHeaderIn);
+
+                int dependencySkip = odexHeader.depsOffset - odexHeader.dexOffset - odexHeader.dexLength;
+                if (dependencySkip < 0) {
+                    throw new ExceptionWithContext("Unexpected placement of the odex dependency data");
+                }
+
+                if (odexHeader.dexOffset > 40) {
+                    FileUtils.readStream(inputStream, odexHeader.dexOffset - 40);
+                }
 
                 in = new ByteArrayInput(FileUtils.readStream(inputStream, odexHeader.dexLength));
+
+                if (dependencySkip > 0) {
+                    FileUtils.readStream(inputStream, dependencySkip);
+                }
+
+                odexDependencies = new OdexDependencies(
+                        new ByteArrayInput(FileUtils.readStream(inputStream, odexHeader.depsLength)));
             } else if (isDex) {
                 in = new ByteArrayInput(FileUtils.readStream(inputStream, (int)fileLength));
             } else {
@@ -513,6 +527,14 @@ public class DexFile
      */
     public boolean isOdex() {
         return this.isOdex;
+    }
+
+    /**
+     * @return an OdexDependencies object that contains the dependencies for this odex, or null if this
+     * DexFile represents a dex file instead of an odex file
+     */
+    public OdexDependencies getOdexDependencies() {
+        return odexDependencies;
     }
 
     /**
