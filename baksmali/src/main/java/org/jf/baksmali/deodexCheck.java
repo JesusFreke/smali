@@ -121,7 +121,7 @@ public class deodexCheck {
         }
 
         ClassPath.InitializeClassPath(bootClassPathDirsArray, bootClassPath==null?null:bootClassPath.split(":"), null,
-                null, null);
+                null, null, null);
 
         ClassPath.validateAgainstDeodexerant(deodexerantHost, deodexerantPort, classStartIndex);
     }

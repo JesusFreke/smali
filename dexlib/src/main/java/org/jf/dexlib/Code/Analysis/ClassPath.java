@@ -53,6 +53,11 @@ public class ClassPath {
 
     private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
 
+
+    public static interface ClassPathErrorHandler {
+        void ClassPathError(String className, Exception ex);
+    }
+
     /**
      * Initialize the class path using the dependencies from an odex file
      * @param classPathDirs The directories to search for boot class path files
@@ -60,9 +65,12 @@ public class ClassPath {
      * from the odex file
      * @param dexFilePath The path of the dex file (used for error reporting purposes only)
      * @param dexFile The DexFile to load - it must represents an odex file
+     * @param errorHandler a ClassPathErrorHandler object to receive and handle any errors that occur while loading
+     * classes
      */
     public static void InitializeClassPathFromOdex(String[] classPathDirs, String[] extraBootClassPathEntries,
-                                                   String dexFilePath, DexFile dexFile) {
+                                                   String dexFilePath, DexFile dexFile,
+                                                   ClassPathErrorHandler errorHandler) {
         if (!dexFile.isOdex()) {
             throw new ExceptionWithContext("Cannot use InitialiazeClassPathFromOdex with a non-odex DexFile");
         }
@@ -99,7 +107,8 @@ public class ClassPath {
         }
 
         theClassPath = new ClassPath();
-        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile);
+        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile,
+                errorHandler);
     }
 
     /**
@@ -108,15 +117,19 @@ public class ClassPath {
      * @param bootClassPath A list of the boot class path entries to search for and load
      * @param dexFilePath The path of the dex file (used for error reporting purposes only)
      * @param dexFile the DexFile to load
+     * @param errorHandler a ClassPathErrorHandler object to receive and handle any errors that occur while loading
+     * classes
      */
     public static void InitializeClassPath(String[] classPathDirs, String[] bootClassPath,
-                                           String[] extraBootClassPathEntries, String dexFilePath, DexFile dexFile) {
+                                           String[] extraBootClassPathEntries, String dexFilePath, DexFile dexFile,
+                                           ClassPathErrorHandler errorHandler) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
         }
 
         theClassPath = new ClassPath();
-        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile);
+        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile,
+                errorHandler);
     }
 
     private ClassPath() {
@@ -124,7 +137,7 @@ public class ClassPath {
     }
 
     private void initClassPath(String[] classPathDirs, String[] bootClassPath, String[] extraBootClassPathEntries,
-                               String dexFilePath, DexFile dexFile) {
+                               String dexFilePath, DexFile dexFile, ClassPathErrorHandler errorHandler) {
         tempClasses = new LinkedHashMap<String, TempClassInfo>();
 
         if (bootClassPath != null) {
@@ -150,8 +163,12 @@ public class ClassPath {
                 classDef = ClassPath.loadClassDef(classType);
                 assert classDef != null;
             } catch (Exception ex) {
-                System.err.println(String.format("Skipping %s", classType));
-                ex.printStackTrace(System.err);
+                if (errorHandler != null) {
+                    errorHandler.ClassPathError(classType, ex);
+                } else {
+                    throw ExceptionWithContext.withContext(ex,
+                            String.format("Error while loading ClassPath class %s", classType));
+                }
             }
 
             if (classType.equals("Ljava/lang/Object;")) {

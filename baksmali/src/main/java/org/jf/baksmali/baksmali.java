@@ -52,7 +52,7 @@ public class baksmali {
                                           String[] classPathDirs, String bootClassPath, String extraBootClassPath,
                                           boolean noParameterRegisters, boolean useLocalsDirective,
                                           boolean useSequentialLabels, boolean outputDebugInfo, boolean addCodeOffsets,
-                                          int registerInfo, boolean verify)
+                                          int registerInfo, boolean verify, boolean ignoreErrors)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
         baksmali.useLocalsDirective = useLocalsDirective;
@@ -63,6 +63,16 @@ public class baksmali {
         baksmali.registerInfo = registerInfo;
         baksmali.bootClassPath = bootClassPath;
         baksmali.verify = verify;
+
+        ClassPath.ClassPathErrorHandler classPathErrorHandler = null;
+        if (ignoreErrors) {
+            classPathErrorHandler = new ClassPath.ClassPathErrorHandler() {
+                public void ClassPathError(String className, Exception ex) {
+                    System.err.println(String.format("Skipping %s", className));
+                    ex.printStackTrace(System.err);
+                }
+            };
+        }
 
         if (registerInfo != 0 || deodex || verify) {
             try {
@@ -80,14 +90,15 @@ public class baksmali {
                     if (extraBootClassPathArray == null && isExtJar(dexFilePath)) {
                         extraBootClassPathArray = new String[] {"framework.jar"};
                     }
-                    ClassPath.InitializeClassPathFromOdex(classPathDirs, extraBootClassPathArray, dexFilePath, dexFile);
+                    ClassPath.InitializeClassPathFromOdex(classPathDirs, extraBootClassPathArray, dexFilePath, dexFile,
+                            classPathErrorHandler);
                 } else {
                     String[] bootClassPathArray = null;
                     if (bootClassPath != null) {
                         bootClassPathArray = bootClassPath.split(":");
                     }
                     ClassPath.InitializeClassPath(classPathDirs, bootClassPathArray, extraBootClassPathArray,
-                            dexFilePath, dexFile);
+                            dexFilePath, dexFile, classPathErrorHandler);
                 }
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
@@ -188,6 +199,10 @@ public class baksmali {
                         ex.printStackTrace();
                     }
                 }
+            }
+
+            if (!ignoreErrors && classDefinition.hadValidationErrors()) {
+                System.exit(1);
             }
         }
     }

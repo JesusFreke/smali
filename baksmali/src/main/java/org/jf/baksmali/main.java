@@ -104,6 +104,7 @@ public class main {
         boolean addCodeOffsets = false;
         boolean deodex = false;
         boolean verify = false;
+        boolean ignoreErrors = false;
 
         int registerInfo = 0;
 
@@ -209,6 +210,9 @@ public class main {
                     doDump = true;
                     dumpFileName = commandLine.getOptionValue("D", inputDexFileName + ".dump");
                     break;
+                case 'I':
+                    ignoreErrors = true;
+                    break;
                 case 'W':
                     write = true;
                     outputDexFileName = commandLine.getOptionValue("W");
@@ -273,7 +277,7 @@ public class main {
                 baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
                         bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
                         noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
-                        registerInfo, verify);
+                        registerInfo, verify, ignoreErrors);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -411,6 +415,12 @@ public class main {
                 .withArgName("FILE")
                 .create("D");
 
+        Option ignoreErrorsOption = OptionBuilder.withLongOpt("ignore-errors")
+                .withDescription("ignores any non-fatal errors that occur while disassembling/deodexing," +
+                        " ignoring the class if needed, and continuing with the next class. The default" +
+                        " behavior is to stop disassembling and exit once an error is encountered")
+                .create("I");
+
         Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
                 .withDescription("suppresses the output of the disassembly")
                 .create("N");
@@ -448,6 +458,7 @@ public class main {
         basicOptions.addOption(codeOffsetOption);
 
         debugOptions.addOption(dumpOption);
+        debugOptions.addOption(ignoreErrorsOption);
         debugOptions.addOption(noDisassemblyOption);
         debugOptions.addOption(writeDexOption);
         debugOptions.addOption(sortOption);
