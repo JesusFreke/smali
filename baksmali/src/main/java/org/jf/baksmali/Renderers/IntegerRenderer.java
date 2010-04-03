@@ -28,23 +28,21 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.antlr.stringtemplate.AttributeRenderer;
+import org.jf.baksmali.IndentingPrintWriter;
 
-public class IntegerRenderer implements AttributeRenderer {
-    public String toString(Object o) {
-        Integer i = (Integer)o;
-        if (i < 0) {
-            return "-0x" + Integer.toHexString(-1 * i);
+public class IntegerRenderer {
+    public static void writeTo(IndentingPrintWriter writer, int val) {
+        if (val<0) {
+            writer.write("-0x");
+            writer.printLongAsHex(-((long)val));
+        } else {
+            writer.write("0x");
+            writer.printLongAsHex(val);
         }
-        return "0x" + Integer.toHexString((Integer)o);
     }
 
-    public String toString(Object o, String s) {
-        if (s.equals("decimal")) {
-            return Integer.toString((Integer)o);
-        } else if (s.equals("barehex")) {
-            return Integer.toHexString((Integer)o);
-        }
-        return toString(o);
+    public static void writeUnsignedTo(IndentingPrintWriter writer, int val) {
+        writer.write("0x");
+        writer.printLongAsHex(val & 0xFFFFFFFF);
     }
 }

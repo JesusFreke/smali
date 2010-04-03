@@ -28,25 +28,23 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.baksmali.Adaptors.MethodItem;
-import org.jf.baksmali.Adaptors.Reference.Reference;
+import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
+import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.Renderers.LongRenderer;
+import org.jf.dexlib.*;
 import org.jf.dexlib.Code.*;
-import org.jf.dexlib.CodeItem;
 
-import java.util.LinkedList;
+import java.io.IOException;
 
 public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     protected final CodeItem codeItem;
-    protected final StringTemplateGroup stg;
     protected final T instruction;
 
-    public InstructionMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg, T instruction) {
+    public InstructionMethodItem(CodeItem codeItem, int codeAddress, T instruction) {
         super(codeAddress);
         this.codeItem = codeItem;
-        this.stg = stg;
         this.instruction = instruction;
     }
 
@@ -55,125 +53,255 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         return 100;
     }
 
-    protected String formatRegister(int register) {
-        return RegisterFormatter.formatRegister(codeItem, register);
-    }
-
     @Override
-    public String toString() {
-        StringTemplate template = stg.getInstanceOf(instruction.getFormat().name());
-        template.setAttribute("Opcode", instruction.opcode.name);
-        setAttributes(template);
-        return template.toString();
+    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+        switch (instruction.getFormat()) {
+            case Format10t:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeTargetLabel(writer);
+                return true;
+            case Format10x:
+                writeOpcode(writer);
+                return true;
+            case Format11n:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeLiteral(writer);
+                return true;
+            case Format11x:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                return true;
+            case Format12x:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeSecondRegister(writer);
+                return true;
+            case Format20t:
+            case Format30t:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeTargetLabel(writer);
+                return true;
+            case Format21c:
+            case Format31c:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeReference(writer);
+                return true;
+            case Format21h:
+            case Format21s:
+            case Format31i:
+            case Format51l:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeLiteral(writer);
+                return true;
+            case Format21t:
+            case Format31t:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeTargetLabel(writer);
+                return true;
+            case Format22b:
+            case Format22s:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeSecondRegister(writer);
+                writer.write(", ");
+                writeLiteral(writer);
+                return true;
+            case Format22c:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeSecondRegister(writer);
+                writer.write(", ");
+                writeReference(writer);
+                return true;
+            case Format22cs:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeSecondRegister(writer);
+                writer.write(", ");
+                writeFieldOffset(writer);
+                return true;
+            case Format22t:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeSecondRegister(writer);
+                writer.write(", ");
+                writeTargetLabel(writer);
+                return true;
+            case Format22x:
+            case Format32x:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeSecondRegister(writer);
+                return true;
+            case Format23x:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writeSecondRegister(writer);
+                writer.write(", ");
+                writeThirdRegister(writer);
+                return true;
+            case Format35c:
+            case Format35s:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeInvokeRegisters(writer);
+                writer.write(", ");
+                writeReference(writer);
+                return true;
+            case Format35ms:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeInvokeRegisters(writer);
+                writer.write(", ");
+                writeVtableIndex(writer);
+                return true;
+            case Format3rc:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeInvokeRangeRegisters(writer);
+                writer.write(", ");
+                writeReference(writer);
+                return true;
+            case Format3rms:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeInvokeRangeRegisters(writer);
+                writer.write(", ");
+                writeVtableIndex(writer);
+                return true;
+        }
+        assert false;
+        return false;
     }
 
-    protected void setAttributes(StringTemplate template) {
-        if (instruction instanceof LiteralInstruction) {
-            setLiteralAttributes((LiteralInstruction)instruction, template);
-        }
-
-        if (instruction instanceof SingleRegisterInstruction) {
-            setSingleRegisterAttributes((SingleRegisterInstruction)instruction, template);
-        }
-
-        if (instruction instanceof FiveRegisterInstruction) {
-            setFiveRegisterAttributes((FiveRegisterInstruction)instruction, template);
-        }
-
-        if (instruction instanceof RegisterRangeInstruction) {
-            setRegisterRangeAttributes((RegisterRangeInstruction)instruction, template);
-        }
-
-        if (instruction instanceof InstructionWithReference) {
-            setInstructionWithReferenceAttributes((InstructionWithReference)instruction, template);
-        }
-
-        if (instruction instanceof OdexedInvokeVirtual) {
-            setOdexedInvokeVirtualAttributes((OdexedInvokeVirtual)instruction, template);
-        }
-
-        if (instruction instanceof OdexedFieldAccess) {
-            setOdexedFieldAccessAttributes((OdexedFieldAccess)instruction, template);
-        }
+    protected void writeOpcode(IndentingPrintWriter writer) throws IOException {
+        writer.write(instruction.opcode.name);
     }
 
-    private void setLiteralAttributes(LiteralInstruction instruction, StringTemplate template) {
-        long literal = instruction.getLiteral();
-            //TODO: do we really need to check and cast it to an int?
-            if (literal <= Integer.MAX_VALUE && literal >= Integer.MIN_VALUE) {
-                template.setAttribute("Literal", (int)literal);
-            } else {
-                template.setAttribute("Literal", literal);
-            }
+    protected void writeTargetLabel(IndentingPrintWriter writer) throws IOException {
+        //this method is overrided by OffsetInstructionMethodItem, and should only be called for the formats that
+        //have a target
+        throw new RuntimeException();
     }
 
-    private void setSingleRegisterAttributes(SingleRegisterInstruction instruction, StringTemplate template) {
-        template.setAttribute("RegisterA", formatRegister(instruction.getRegisterA()));
-
-        if (instruction instanceof TwoRegisterInstruction) {
-            setTwoRegisterAttributes((TwoRegisterInstruction)instruction, template);
-        }
+    protected void writeRegister(IndentingPrintWriter writer, int registerNumber) throws IOException {
+        RegisterFormatter.writeTo(writer, codeItem, registerNumber);
     }
 
-    private void setTwoRegisterAttributes(TwoRegisterInstruction instruction, StringTemplate template) {
-        template.setAttribute("RegisterB", formatRegister(instruction.getRegisterB()));
-
-        if (instruction instanceof ThreeRegisterInstruction) {
-            setThreeRegisterAttributes((ThreeRegisterInstruction)instruction, template);
-        }
+    protected void writeFirstRegister(IndentingPrintWriter writer) throws IOException {
+        writeRegister(writer, ((SingleRegisterInstruction)instruction).getRegisterA());
     }
 
-    private void setThreeRegisterAttributes(ThreeRegisterInstruction instruction, StringTemplate template) {
-        template.setAttribute("RegisterC", formatRegister(instruction.getRegisterC()));
+    protected void writeSecondRegister(IndentingPrintWriter writer) throws IOException {
+        writeRegister(writer, ((TwoRegisterInstruction)instruction).getRegisterB());
     }
 
-    private void setFiveRegisterAttributes(FiveRegisterInstruction instruction, StringTemplate template) {
-        switch (instruction.getRegCount()) {
+    protected void writeThirdRegister(IndentingPrintWriter writer) throws IOException {
+        writeRegister(writer, ((ThreeRegisterInstruction)instruction).getRegisterC());
+    }
+
+    protected void writeInvokeRegisters(IndentingPrintWriter writer) throws IOException {
+        FiveRegisterInstruction instruction = (FiveRegisterInstruction)this.instruction;
+        final int regCount = instruction.getRegCount();
+
+        writer.write('{');
+        switch (regCount) {
             case 1:
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
-                return;
+                writeRegister(writer, instruction.getRegisterD());
+                break;
             case 2:
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterE()));
-                return;
+                writeRegister(writer, instruction.getRegisterD());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterE());
+                break;
             case 3:
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterE()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterF()));
-                return;
+                writeRegister(writer, instruction.getRegisterD());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterE());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterF());
+                break;
             case 4:
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterE()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterF()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterG()));
-                return;
+                writeRegister(writer, instruction.getRegisterD());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterE());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterF());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterG());
+                break;
             case 5:
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterD()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterE()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterF()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterG()));
-                template.setAttribute("Registers", formatRegister(instruction.getRegisterA()));
+                writeRegister(writer, instruction.getRegisterD());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterE());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterF());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterG());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterA());
+                break;
+        }
+        writer.write('}');
+    }
+
+    protected void writeInvokeRangeRegisters(IndentingPrintWriter writer) throws IOException {
+        RegisterRangeInstruction instruction = (RegisterRangeInstruction)this.instruction;
+
+        int regCount = instruction.getRegCount();
+        if (regCount == 0) {
+            writer.write("{}");
+        } else {
+            int startRegister = instruction.getStartRegister();
+            RegisterFormatter.writeRegisterRange(writer, codeItem, startRegister, startRegister+regCount-1);
         }
     }
 
-    private void setRegisterRangeAttributes(RegisterRangeInstruction instruction, StringTemplate template) {
-        String[] registers = RegisterFormatter.formatFormat3rcRegisters(codeItem, instruction.getStartRegister(),
-                instruction.getStartRegister() + instruction.getRegCount() - 1);
-
-        template.setAttribute("StartRegister", registers[0]);
-        template.setAttribute("LastRegister", registers[1]);
+    protected void writeLiteral(IndentingPrintWriter writer) throws IOException {
+        LongRenderer.writeSignedIntOrLongTo(writer, ((LiteralInstruction)instruction).getLiteral());
     }
 
-    private void setInstructionWithReferenceAttributes(InstructionWithReference instruction, StringTemplate template) {
-        template.setAttribute("Reference", Reference.createReference(template.getGroup(),
-                instruction.getReferencedItem()));
+    protected void writeFieldOffset(IndentingPrintWriter writer) throws IOException {
+        writer.write("field@0x");
+        writer.printLongAsHex(((OdexedFieldAccess)instruction).getFieldOffset());
     }
 
-    private void setOdexedInvokeVirtualAttributes(OdexedInvokeVirtual instruction, StringTemplate template) {
-        template.setAttribute("MethodIndex", instruction.getMethodIndex());
+    protected void writeVtableIndex(IndentingPrintWriter writer) throws IOException {
+        writer.write("vtable@0x");
+        writer.printLongAsHex(((OdexedInvokeVirtual)instruction).getMethodIndex());
     }
 
-    private void setOdexedFieldAccessAttributes(OdexedFieldAccess instruction, StringTemplate template) {
-        template.setAttribute("FieldOffset", instruction.getFieldOffset());
+    protected void writeReference(IndentingPrintWriter writer) throws IOException {
+        Item item = ((InstructionWithReference)instruction).getReferencedItem();
+        ReferenceFormatter.writeReference(writer, item);
     }
 }

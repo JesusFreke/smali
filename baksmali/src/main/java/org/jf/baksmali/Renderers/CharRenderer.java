@@ -28,15 +28,15 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.antlr.stringtemplate.AttributeRenderer;
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.Util.Utf8Utils;
 
-public class CharRenderer implements AttributeRenderer {
-    public String toString(Object o) {
-        return "'" + Utf8Utils.escapeString(o.toString()) + "'";
-    }
+import java.io.IOException;
 
-    public String toString(Object o, String s) {
-        return toString(o);
+public class CharRenderer {
+    public static void writeTo(IndentingPrintWriter writer, char val) throws IOException {
+        writer.write('\'');
+        Utf8Utils.writeEscapedChar(writer, val);
+        writer.write('\'');
     }
 }

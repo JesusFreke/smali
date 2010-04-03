@@ -73,18 +73,9 @@
                 <directory>src/main/resources/properties</directory>
                 <filtering>true</filtering>
             </resource>
-            <resource>
-                <directory>src/main/resources/templates</directory>
-                <filtering>false</filtering>
-            </resource>
         </resources>
     </build>
     <dependencies>
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>stringtemplate</artifactId>
-            <version>3.2</version>
-        </dependency>
         <dependency>
             <groupId>org.jf</groupId>
             <artifactId>dexlib</artifactId>

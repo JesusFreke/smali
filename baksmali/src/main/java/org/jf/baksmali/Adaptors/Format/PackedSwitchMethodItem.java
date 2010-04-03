@@ -28,13 +28,14 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
 import org.jf.baksmali.Adaptors.LabelMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -45,8 +46,8 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
     private final boolean dead;
 
     public PackedSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress, boolean dead,
-                                  StringTemplateGroup stg, PackedSwitchDataPseudoInstruction instruction) {
-        super(codeItem, codeAddress, stg, instruction);
+                                  PackedSwitchDataPseudoInstruction instruction) {
+        super(codeItem, codeAddress, instruction);
 
         int baseCodeAddress = methodDefinition.getPackedSwitchBaseAddress(codeAddress);
 
@@ -54,7 +55,7 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
         Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.iterateKeysAndTargets();
         while (iterator.hasNext()) {
             PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
-            LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, stg, "pswitch_");
+            LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, "pswitch_");
             label = methodDefinition.getLabelCache().internLabel(label);
             labels.add(label);
             label.setUncommented();
@@ -63,10 +64,31 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
         this.dead = dead;
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("FirstKey", instruction.getFirstKey());
-        template.setAttribute("Targets", labels);
-        template.setAttribute("Dead", dead);
+    @Override
+    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+        if (dead) {
+            writer.write("'#.packed-switch ");
+            IntegerRenderer.writeTo(writer, instruction.getFirstKey());
+            writer.println();
+            for (LabelMethodItem label: labels) {
+                writer.write("#   ");
+                label.writeTo(writer);
+                writer.println();
+            }
+            writer.write("#.end packed-switch");
+        } else {
+            writer.write(".packed-switch ");
+            IntegerRenderer.writeTo(writer, instruction.getFirstKey());
+            writer.indent(4);
+            writer.println();
+            for (LabelMethodItem label: labels) {
+                label.writeTo(writer);
+                writer.println();
+            }
+            writer.deindent(4);
+            writer.write(".end packed-switch");
+        }
+        return true;
     }
 
     public Iterator<LabelMethodItem> iterator() {

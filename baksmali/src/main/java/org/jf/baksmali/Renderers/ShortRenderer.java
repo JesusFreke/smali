@@ -28,18 +28,18 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.antlr.stringtemplate.AttributeRenderer;
+import org.jf.baksmali.IndentingPrintWriter;
 
-public class ShortRenderer implements AttributeRenderer {
-    public String toString(Object o) {
-        Short s = (Short)o;
-        if (s < 0) {
-            return "-0x" + Integer.toHexString(-1 * s) + "s";
+public class ShortRenderer {
+    public static void writeTo(IndentingPrintWriter writer, short val) {
+        if (val < 0) {
+            writer.write("-0x");
+            writer.printLongAsHex(-val);
+            writer.write('s');
+        } else {
+            writer.write("0x");
+            writer.printLongAsHex(val);
+            writer.write('s');
         }
-        return "0x" + Integer.toHexString(s) + "s";
-    }
-
-    public String toString(Object o, String s) {
-        return toString(o);
     }
 }

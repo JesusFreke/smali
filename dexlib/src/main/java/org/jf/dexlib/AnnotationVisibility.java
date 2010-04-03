@@ -31,13 +31,15 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.ExceptionWithContext;
 
 public enum AnnotationVisibility {
-    BUILD((byte)0),
-    RUNTIME((byte)1),
-    SYSTEM((byte)2);
+    BUILD((byte)0, "build"),
+    RUNTIME((byte)1, "runtime"),
+    SYSTEM((byte)2, "system");
 
     public final byte value;
-    private AnnotationVisibility(byte value) {
+    public final String visibility;
+    private AnnotationVisibility(byte value, String visibility) {
         this.value = value;
+        this.visibility = visibility;
     }
 
     public static AnnotationVisibility fromByte(byte value) {

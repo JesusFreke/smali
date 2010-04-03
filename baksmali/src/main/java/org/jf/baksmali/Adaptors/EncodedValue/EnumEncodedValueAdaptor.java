@@ -28,14 +28,15 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.baksmali.Adaptors.Reference.FieldReference;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.Adaptors.ReferenceFormatter;
+import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.dexlib.FieldIdItem;
+
+import java.io.IOException;
 
 public class EnumEncodedValueAdaptor {
-    public static StringTemplate createTemplate(StringTemplateGroup stg, StringTemplate fieldReference) {
-        StringTemplate template = stg.getInstanceOf("EnumEncodedValue");
-        template.setAttribute("Value", fieldReference);
-        return template;
+    public static void writeTo(IndentingPrintWriter writer, FieldIdItem item) throws IOException {
+        writer.write(".enum ");
+        ReferenceFormatter.writeFieldReference(writer, item);
     }
 }

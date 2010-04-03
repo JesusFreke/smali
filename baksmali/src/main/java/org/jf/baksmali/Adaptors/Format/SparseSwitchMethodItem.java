@@ -28,13 +28,14 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.baksmali.Adaptors.MethodDefinition;
+import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
 import org.jf.baksmali.Adaptors.LabelMethodItem;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -45,8 +46,8 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDa
     private final boolean dead;
 
     public SparseSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress, boolean dead,
-                                  StringTemplateGroup stg, SparseSwitchDataPseudoInstruction instruction) {
-        super(codeItem, codeAddress, stg, instruction);
+                                  SparseSwitchDataPseudoInstruction instruction) {
+        super(codeItem, codeAddress, instruction);
 
         int baseCodeAddress = methodDefinition.getSparseSwitchBaseAddress(codeAddress);
 
@@ -57,7 +58,7 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDa
             SparseSwitchTarget sparseSwitchTarget = new SparseSwitchTarget();
             sparseSwitchTarget.Key = target.key;
 
-            LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, stg, "sswitch_");
+            LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, "sswitch_");
             label = methodDefinition.getLabelCache().internLabel(label);
             sparseSwitchTarget.Target = label;
             label.setUncommented();
@@ -68,9 +69,30 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDa
         this.dead = dead;
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Targets", targets);
-        template.setAttribute("Dead", dead);
+    @Override
+    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+        if (dead) {
+            writer.println("#.sparse-switch");
+            for (SparseSwitchTarget target: targets) {
+                IntegerRenderer.writeTo(writer, target.Key);
+                writer.write(" -> ");
+                target.Target.writeTo(writer);
+                writer.println();
+            }
+            writer.write("#.end sparse-switch");
+        } else {
+            writer.println(".sparse-switch");
+            writer.indent(4);
+            for (SparseSwitchTarget target: targets) {
+                IntegerRenderer.writeTo(writer, target.Key);
+                writer.write(" -> ");
+                target.Target.writeTo(writer);
+                writer.println();
+            }
+            writer.deindent(4);
+            writer.write(".end sparse-switch");
+        }
+        return true;
     }
 
     public Iterator<LabelMethodItem> iterator() {

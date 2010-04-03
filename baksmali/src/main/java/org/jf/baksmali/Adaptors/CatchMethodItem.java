@@ -28,36 +28,32 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.TypeIdItem;
-import org.jf.baksmali.Adaptors.Reference.TypeReference;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
 
 public class CatchMethodItem extends MethodItem {
-    private final StringTemplateGroup stg;
     private final TypeIdItem exceptionType;
 
     private final LabelMethodItem tryStartLabel;
     private final LabelMethodItem tryEndLabel;
     private final LabelMethodItem handlerLabel;
 
-    public CatchMethodItem(MethodDefinition.LabelCache labelCache, int codeAddress, StringTemplateGroup stg,
-                           TypeIdItem exceptionType, int startAddress, int endAddress, int handlerAddress) {
+    public CatchMethodItem(MethodDefinition.LabelCache labelCache, int codeAddress, TypeIdItem exceptionType,
+                           int startAddress, int endAddress, int handlerAddress) {
         super(codeAddress);
-        this.stg = stg;
         this.exceptionType = exceptionType;
 
-        tryStartLabel = labelCache.internLabel(new LabelMethodItem(startAddress, stg, "try_start_"));
+        tryStartLabel = labelCache.internLabel(new LabelMethodItem(startAddress, "try_start_"));
         tryStartLabel.setUncommented();
         //use the address from the last covered instruction, but make the label
         //name refer to the address of the next instruction
-        tryEndLabel = labelCache.internLabel(new EndTryLabelMethodItem(codeAddress, stg, endAddress));
+        tryEndLabel = labelCache.internLabel(new EndTryLabelMethodItem(codeAddress, endAddress));
         tryEndLabel.setUncommented();
 
         if (exceptionType == null) {
-            handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, stg, "catchall_"));
+            handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, "catchall_"));
         } else {
-            handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, stg, "catch_"));
+            handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, "catch_"));
         }
         handlerLabel.setUncommented();
     }
@@ -79,19 +75,20 @@ public class CatchMethodItem extends MethodItem {
         return 102;
     }
 
-    protected String getTemplateName() {
-        return "Catch";
-    }
-
     @Override
-    public String toString() {
-        StringTemplate template = stg.getInstanceOf(getTemplateName());
-        if (exceptionType != null) {
-            template.setAttribute("ExceptionType", TypeReference.createTemplate(stg, exceptionType));
+    public boolean writeTo(IndentingPrintWriter writer) {
+        if (exceptionType == null) {
+            writer.write(".catchall");
+        } else {
+            writer.write(".catch ");
+            ReferenceFormatter.writeTypeReference(writer, exceptionType);
         }
-        template.setAttribute("StartLabel", tryStartLabel);
-        template.setAttribute("EndLabel", tryEndLabel);
-        template.setAttribute("HandlerLabel", handlerLabel);
-        return template.toString();
+        writer.write(" {");
+        tryStartLabel.writeTo(writer);
+        writer.write(" .. ");
+        tryEndLabel.writeTo(writer);
+        writer.write("} ");
+        handlerLabel.writeTo(writer);
+        return true;
     }
 }

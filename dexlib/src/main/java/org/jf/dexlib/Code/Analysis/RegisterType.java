@@ -30,6 +30,9 @@ package org.jf.dexlib.Code.Analysis;
 
 import org.jf.dexlib.TypeIdItem;
 import static org.jf.dexlib.Code.Analysis.ClassPath.ClassDef;
+
+import java.io.IOException;
+import java.io.Writer;
 import java.util.HashMap;
 
 public class RegisterType {
@@ -52,6 +55,16 @@ public class RegisterType {
     @Override
     public String toString() {
         return "(" + category.name() + (type==null?"":("," + type.getClassType())) + ")";
+    }
+
+    public void writeTo(Writer writer) throws IOException {
+        writer.write('(');
+        writer.write(category.name());
+        if (type != null) {
+            writer.write(',');
+            writer.write(type.getClassType());
+        }
+        writer.write(')');
     }
 
     @Override

@@ -28,16 +28,15 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.IndentingPrintWriter;
+
+import java.io.IOException;
 
 public class CommentedOutMethodItem extends MethodItem {
-    private final StringTemplateGroup stg;
     private final MethodItem commentedOutMethodItem;
 
-    public CommentedOutMethodItem(StringTemplateGroup stg, MethodItem commentedOutMethodItem) {
+    public CommentedOutMethodItem(MethodItem commentedOutMethodItem) {
         super(commentedOutMethodItem.getCodeAddress());
-        this.stg = stg;
         this.commentedOutMethodItem = commentedOutMethodItem;
     }
 
@@ -45,10 +44,9 @@ public class CommentedOutMethodItem extends MethodItem {
         return commentedOutMethodItem.getSortOrder() + .001;
     }
 
-    @Override
-    public String toString() {
-        StringTemplate template = stg.getInstanceOf("CommentedOutMethodItem");
-        template.setAttribute("MethodItem", commentedOutMethodItem);
-        return template.toString();
+    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+        writer.write('#');
+        commentedOutMethodItem.writeTo(writer);
+        return true;
     }
 }

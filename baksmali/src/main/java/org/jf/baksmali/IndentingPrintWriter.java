@@ -1,6 +1,6 @@
 /*
  * [The "BSD licence"]
- * Copyright (c) 2010 Ben Gruver (JesusFreke)
+ * Copyright (c) 2010 Ben Gruver
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,36 +26,48 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors;
+package org.jf.baksmali;
 
-import org.jf.dexlib.AnnotationSetItem;
-import org.jf.dexlib.AnnotationItem;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+import java.io.PrintWriter;
 
-import java.util.List;
-import java.util.ArrayList;
+public class IndentingPrintWriter extends PrintWriter {
+    private IndentingWriter writer;
+    private final char[] buffer = new char[16];
 
-public class ParameterAdaptor {
-    public static StringTemplate createTemplate(StringTemplateGroup stg, String parameterName,
-                                                AnnotationSetItem parameterAnnotations) {
-        StringTemplate template = stg.getInstanceOf("Parameter");
-
-        template.setAttribute("ParameterName", parameterName);
-        template.setAttribute("Annotations", getAnnotations(stg, parameterAnnotations));
-        return template;
+    public IndentingPrintWriter(IndentingWriter writer) {
+        super(writer);
+        this.writer = writer;
     }
 
-    private static List<StringTemplate> getAnnotations(StringTemplateGroup stg,
-                                                       AnnotationSetItem parameterAnnotations) {
-        if (parameterAnnotations == null) {
-            return null;
-        }
+    public IndentingPrintWriter(IndentingWriter writer, boolean autoFlush) {
+        super(writer, autoFlush);
+    }
 
-        List<StringTemplate> annotations = new ArrayList<StringTemplate>();
-        for (AnnotationItem annotationItem: parameterAnnotations.getAnnotations()) {
-            annotations.add(AnnotationAdaptor.createTemplate(stg, annotationItem));
-        }
-        return annotations;
+    public void indent(int indentAmount) {
+        writer.indent(indentAmount);
+    }
+
+    public void deindent(int indentAmount) {
+        writer.deindent(indentAmount);
+    }
+
+    public void printLongAsHex(long l) {
+        //synchronized(lock) {
+            int i=0;
+            do {
+                int digit = (int)(l & 15);
+                if (digit < 10) {
+                    buffer[i++] = (char)(digit + '0');
+                } else {
+                    buffer[i++] = (char)((digit - 10) + 'a');
+                }
+
+                l >>>= 4;
+            } while (l != 0);
+
+            while (i>0) {
+                write(buffer[--i]);
+            }
+        //}
     }
 }

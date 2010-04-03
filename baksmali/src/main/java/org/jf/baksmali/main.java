@@ -30,8 +30,6 @@ package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.OdexDependencies;
-import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.util.*;
 
 import java.io.File;

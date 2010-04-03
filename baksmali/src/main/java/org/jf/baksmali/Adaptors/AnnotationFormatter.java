@@ -28,33 +28,37 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.dexlib.TypeIdItem;
-import org.jf.dexlib.StringIdItem;
-import org.jf.dexlib.CodeItem;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
+import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.dexlib.AnnotationItem;
+import org.jf.baksmali.Adaptors.EncodedValue.AnnotationEncodedValueAdaptor;
+import org.jf.dexlib.AnnotationSetItem;
 
-public class LocalDebugMethodItem extends DebugMethodItem {
-    private final String register;
-    private final String name;
-    private final String type;
-    private final String signature;
+import java.io.IOException;
 
-    public LocalDebugMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg, String templateName,
-                                double sortOrder, int register, StringIdItem name, TypeIdItem type,
-                                StringIdItem signature) {
-        super(codeAddress, stg, templateName, sortOrder);
-        this.register = RegisterFormatter.formatRegister(codeItem, register);
-        this.name = name==null?null:name.getStringValue();
-        this.type = type==null?null:type.getTypeDescriptor();
-        this.signature = signature==null?null:signature.getStringValue();
+
+public class AnnotationFormatter {
+
+    public static void writeTo(IndentingPrintWriter writer, AnnotationSetItem annotationSet) throws IOException {
+        boolean first = true;
+        for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
+            if (!first) {
+                writer.println();
+            }
+            first = false;
+
+            writeTo(writer, annotationItem);
+        }
     }
 
-    @Override
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Register", register);
-        template.setAttribute("Name", name);
-        template.setAttribute("Type", type);
-        template.setAttribute("Signature", signature);
+    public static void writeTo(IndentingPrintWriter writer, AnnotationItem annotationItem) throws IOException {
+        writer.write(".annotation ");
+        writer.write(annotationItem.getVisibility().visibility);
+        writer.write(' ');
+        ReferenceFormatter.writeTypeReference(writer, annotationItem.getEncodedAnnotation().annotationType);
+        writer.println();
+
+        AnnotationEncodedValueAdaptor.writeElementsTo(writer, annotationItem.getEncodedAnnotation());
+
+        writer.println(".end annotation");
     }
 }

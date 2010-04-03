@@ -28,50 +28,34 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.baksmali.Adaptors.ReferenceFormatter;
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
-import org.jf.dexlib.StringIdItem;
-import org.jf.baksmali.Adaptors.Reference.TypeReference;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.io.IOException;
 
 public abstract class AnnotationEncodedValueAdaptor {
 
-    public static StringTemplate createTemplate(StringTemplateGroup stg, AnnotationEncodedSubValue encodedAnnotation) {
-        StringTemplate template = stg.getInstanceOf("AnnotationEncodedValue");
-        template.setAttribute("AnnotationType", TypeReference.createTemplate(stg, encodedAnnotation.annotationType));
-        template.setAttribute("Elements", getElements(stg, encodedAnnotation));
-        return template;
+    public static void writeTo(IndentingPrintWriter writer, AnnotationEncodedSubValue encodedAnnotation)
+                               throws IOException {
+        writer.write(".subannotation ");
+        ReferenceFormatter.writeTypeReference(writer, encodedAnnotation.annotationType);
+        writer.println();
+
+        writeElementsTo(writer, encodedAnnotation);
+        writer.write(".end subannotation");
     }
 
-    public static void setAttributesForAnnotation(StringTemplate template,
-                                                  AnnotationEncodedSubValue encodedAnnotation) {
-        template.setAttribute("AnnotationType", TypeReference.createTemplate(template.getGroup(),
-                encodedAnnotation.annotationType));
-        template.setAttribute("Elements", getElements(template.getGroup(), encodedAnnotation));
-    }
-
-    private static List<String> getElements(StringTemplateGroup stg,
-                                                              AnnotationEncodedSubValue encodedAnnotation) {
-        List<String> elements = new ArrayList<String>();
-
+    public static void writeElementsTo(IndentingPrintWriter writer, AnnotationEncodedSubValue encodedAnnotation)
+                                throws IOException {
+        writer.indent(4);
         for (int i=0; i<encodedAnnotation.names.length; i++) {
-            elements.add(AnnotationElementAdaptor.toString(stg, encodedAnnotation.names[i], encodedAnnotation.values[i]));
+            writer.write(encodedAnnotation.names[i].getStringValue());
+            writer.write(" = ");
+
+            EncodedValueAdaptor.writeTo(writer, encodedAnnotation.values[i]);
+            writer.println();
         }
-
-        return elements;
-    }
-
-
-    private static class AnnotationElementAdaptor {
-        public static String toString(StringTemplateGroup stg, StringIdItem name, EncodedValue value) {
-            StringTemplate template = stg.getInstanceOf("AnnotationElement");
-            template.setAttribute("Name", name);
-            template.setAttribute("Value", EncodedValueAdaptor.create(stg, value));
-            return template.toString();
-        }
+        writer.deindent(4);
     }
 }

@@ -28,40 +28,64 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.Renderers.ByteRenderer;
 import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 public class ArrayDataMethodItem extends InstructionMethodItem<ArrayDataPseudoInstruction> {
     private final boolean dead;
 
-    public ArrayDataMethodItem(CodeItem codeItem, int codeAddress, boolean dead, StringTemplateGroup stg,
+    public ArrayDataMethodItem(CodeItem codeItem, int codeAddress, boolean dead,
                                ArrayDataPseudoInstruction instruction) {
-        super(codeItem, codeAddress, stg, instruction);
+        super(codeItem, codeAddress, instruction);
         this.dead = dead;
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("ElementWidth", instruction.getElementWidth());
-        template.setAttribute("Dead", dead);
-        setValuesAttribute(template);
-    }
+    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+        if (dead) {
+            writer.print("#.array-data 0x");
+            writer.printLongAsHex(instruction.getElementWidth());
+            writer.println();
 
-    private void setValuesAttribute(StringTemplate parentTemplate) {
-        Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
-        while (iterator.hasNext()) {
-            ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
+            Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
+            while (iterator.hasNext()) {
+                ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
 
-            StringTemplate template = parentTemplate.getGroup().getInstanceOf("ArrayElement");
-
-            for (int i = element.bufferIndex; i < element.bufferIndex + element.elementWidth; i++) {
-                template.setAttribute("Bytes", (Byte)element.buffer[i]);
+                writer.write("#   ");
+                for (int i=0; i<element.elementWidth; i++) {
+                    if (i!=0) {
+                        writer.write(' ');
+                    }
+                    ByteRenderer.writeUnsignedTo(writer, element.buffer[element.bufferIndex+i]);
+                }
+                writer.println();
             }
+            writer.print("#.end array-data");
+        } else {
+            writer.print(".array-data 0x");
+            writer.printLongAsHex(instruction.getElementWidth());
+            writer.println();
 
-            parentTemplate.setAttribute("Values", template);
+            writer.indent(4);
+            Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
+            while (iterator.hasNext()) {
+                ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
+
+                for (int i=0; i<element.elementWidth; i++) {
+                    if (i!=0) {
+                        writer.write(' ');
+                    }
+                    ByteRenderer.writeUnsignedTo(writer, element.buffer[element.bufferIndex+i]);
+                }
+                writer.println();
+            }
+            writer.deindent(4);
+            writer.print(".end array-data");
         }
+        return true;
     }
 }

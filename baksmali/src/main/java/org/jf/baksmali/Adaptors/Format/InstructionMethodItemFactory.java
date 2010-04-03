@@ -28,9 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
 import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.OffsetInstruction;
@@ -43,29 +41,28 @@ public class InstructionMethodItemFactory {
     public static InstructionMethodItem makeInstructionFormatMethodItem(MethodDefinition methodDefinition,
                                                                               CodeItem codeItem,
                                                                               int codeAddress, boolean dead,
-                                                                              StringTemplateGroup stg,
                                                                               Instruction instruction,
                                                                               boolean isLastInstruction) {
         if (instruction instanceof OffsetInstruction) {
-            return new OffsetInstructionFormatMethodItem(methodDefinition.getLabelCache(), codeItem, codeAddress, stg,
+            return new OffsetInstructionFormatMethodItem(methodDefinition.getLabelCache(), codeItem, codeAddress,
                     instruction);
         }
 
         switch (instruction.getFormat()) {
             case ArrayData:
-                return new ArrayDataMethodItem(codeItem, codeAddress, dead, stg,
+                return new ArrayDataMethodItem(codeItem, codeAddress, dead,
                         (ArrayDataPseudoInstruction)instruction);
             case PackedSwitchData:
-                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, dead, stg,
+                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, dead,
                         (PackedSwitchDataPseudoInstruction)instruction);
             case SparseSwitchData:
-                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, dead, stg,
+                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, dead,
                         (SparseSwitchDataPseudoInstruction)instruction);
             case UnresolvedNullReference:
-                return new UnresolvedNullReferenceMethodItem(codeItem, codeAddress, stg,
+                return new UnresolvedNullReferenceMethodItem(codeItem, codeAddress,
                         (UnresolvedNullReference)instruction, isLastInstruction);
             default:
-                return new InstructionMethodItem(codeItem, codeAddress, stg, instruction);
+                return new InstructionMethodItem(codeItem, codeAddress, instruction);
         }
     }
 }

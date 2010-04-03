@@ -28,6 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.*;
@@ -35,13 +36,11 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Format.Instruction21c;
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.dexlib.Util.SparseArray;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.List;
 
 public class ClassDefinition {
-    private StringTemplateGroup stg;
     private ClassDefItem classDefItem;
     private ClassDataItem classDataItem;
 
@@ -53,29 +52,11 @@ public class ClassDefinition {
 
     protected boolean validationErrors;
 
-    public ClassDefinition(StringTemplateGroup stg, ClassDefItem classDefItem) {
-        this.stg = stg;
+    public ClassDefinition(ClassDefItem classDefItem) {
         this.classDefItem = classDefItem;
         this.classDataItem = classDefItem.getClassData();
         buildAnnotationMaps();
         findFieldsSetInStaticConstructor();
-    }
-
-    public StringTemplate createTemplate() {
-        StringTemplate template = stg.getInstanceOf("smaliFile");
-
-        template.setAttribute("AccessFlags", getAccessFlags());
-        template.setAttribute("ClassType", classDefItem.getClassType().getTypeDescriptor());
-        template.setAttribute("SuperType", getSuperType());
-        template.setAttribute("SourceFile", getSourceFile());
-        template.setAttribute("Interfaces", getInterfaces());
-        template.setAttribute("Annotations", getAnnotations());
-        template.setAttribute("StaticFields", getStaticFields());
-        template.setAttribute("InstanceFields", getInstanceFields());
-        template.setAttribute("DirectMethods", getDirectMethods());
-        template.setAttribute("VirtualMethods", getVirtualMethods());
-
-        return template;
     }
 
     public boolean hadValidationErrors() {
@@ -143,149 +124,212 @@ public class ClassDefinition {
         }
     }
 
-    private List<String> getAccessFlags() {
-        List<String> accessFlags = new ArrayList<String>();
-
-        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForClass(classDefItem.getAccessFlags())) {
-            accessFlags.add(accessFlag.toString());
-        }
-
-        return accessFlags;
+    public void writeTo(IndentingPrintWriter writer) throws IOException {
+        writeClass(writer);
+        writeSuper(writer);
+        writeSourceFile(writer);
+        writeInterfaces(writer);
+        writeAnnotations(writer);
+        writeStaticFields(writer);
+        writeInstanceFields(writer);
+        writeDirectMethods(writer);
+        writeVirtualMethods(writer);
+        return ;
     }
 
+    private void writeClass(IndentingPrintWriter writer) {
+        writer.write(".class ");
+        writeAccessFlags(writer);
+        writer.println(classDefItem.getClassType().getTypeDescriptor());
+    }
 
-    private String getSuperType() {
+    private void writeAccessFlags(IndentingPrintWriter writer) {
+        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForClass(classDefItem.getAccessFlags())) {
+            writer.write(accessFlag.toString());
+            writer.write(' ');
+        }
+    }
+
+    private void writeSuper(IndentingPrintWriter writer) {
         TypeIdItem superClass = classDefItem.getSuperclass();
         if (superClass != null) {
-            return superClass.getTypeDescriptor();
+            writer.write(".super ");
+            writer.println(superClass.getTypeDescriptor());
         }
-        return null;
     }
 
-    private String getSourceFile() {
+    private void writeSourceFile(IndentingPrintWriter writer) {
         StringIdItem sourceFile = classDefItem.getSourceFile();
-
-        if (sourceFile == null) {
-            return null;
+        if (sourceFile != null) {
+            writer.write(".source \"");
+            writer.print(sourceFile.getStringValue());
+            writer.println('"');
         }
-        return classDefItem.getSourceFile().getStringValue();
     }
 
-    private List<String> getInterfaces() {
-        List<String> interfaces = new ArrayList<String>();
-
+    private void writeInterfaces(IndentingPrintWriter writer) {
         TypeListItem interfaceList = classDefItem.getInterfaces();
-
-        if (interfaceList != null) {
-            for (TypeIdItem typeIdItem: interfaceList.getTypes()) {
-                interfaces.add(typeIdItem.getTypeDescriptor());
-            }
+        if (interfaceList == null) {
+            return;
         }
 
-        return interfaces;
+        List<TypeIdItem> interfaces = interfaceList.getTypes();
+        if (interfaces == null || interfaces.size() == 0) {
+            return;
+        }
+
+        writer.println();
+        writer.println("# interfaces");
+        for (TypeIdItem typeIdItem: interfaceList.getTypes()) {
+            writer.write(".implements ");
+            writer.println(typeIdItem.getTypeDescriptor());
+        }
     }
 
-    private List<StringTemplate> getAnnotations() {
+    private void writeAnnotations(IndentingPrintWriter writer) throws IOException {
         AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
         if (annotationDirectory == null) {
-            return null;
+            return;
         }
 
         AnnotationSetItem annotationSet = annotationDirectory.getClassAnnotations();
         if (annotationSet == null) {
-            return null;
+            return;
         }
 
-        List<StringTemplate> annotations = new ArrayList<StringTemplate>();
-
-        for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
-            annotations.add(AnnotationAdaptor.createTemplate(stg, annotationItem));
-        }
-        return annotations;
+        writer.println();
+        writer.println();
+        writer.println("# annotations");
+        AnnotationFormatter.writeTo(writer, annotationSet);
     }
 
-    private List<StringTemplate> getStaticFields() {
-        List<StringTemplate> staticFields = new ArrayList<StringTemplate>();
-
-        if (classDataItem != null) {
-            //if classDataItem is not null, then classDefItem won't be null either
-            assert(classDefItem != null);
-            EncodedArrayItem encodedStaticInitializers = classDefItem.getStaticFieldInitializers();
-
-            EncodedValue[] staticInitializers;
-            if (encodedStaticInitializers != null) {
-                staticInitializers = encodedStaticInitializers.getEncodedArray().values;
-            } else {
-                staticInitializers = new EncodedValue[0];
-            }
-
-            int i=0;
-            for (ClassDataItem.EncodedField field: classDataItem.getStaticFields()) {
-                EncodedValue encodedValue = null;
-                if (i < staticInitializers.length) {
-                    encodedValue = staticInitializers[i];
-                }
-                AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
-
-                boolean setInStaticConstructor =
-                        fieldsSetInStaticConstructor.get(field.field.getIndex()) != null;
-
-                staticFields.add(FieldDefinition.createTemplate(stg, field, encodedValue, annotationSet,
-                        setInStaticConstructor));
-                i++;
-            }
-        }
-        return staticFields;
-    }
-
-    private List<StringTemplate> getInstanceFields() {
-        List<StringTemplate> instanceFields = new ArrayList<StringTemplate>();
-
-        if (classDataItem != null) {
-            for (ClassDataItem.EncodedField field: classDataItem.getInstanceFields()) {
-                AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
-                instanceFields.add(FieldDefinition.createTemplate(stg, field, annotationSet));
-            }
-        }
-
-        return instanceFields;
-    }
-
-    private List<StringTemplate> getDirectMethods() {
+    private void writeStaticFields(IndentingPrintWriter writer) throws IOException {
         if (classDataItem == null) {
-            return null;
+            return;
+        }
+        //if classDataItem is not null, then classDefItem won't be null either
+        assert(classDefItem != null);
+
+        EncodedArrayItem encodedStaticInitializers = classDefItem.getStaticFieldInitializers();
+
+        EncodedValue[] staticInitializers;
+        if (encodedStaticInitializers != null) {
+            staticInitializers = encodedStaticInitializers.getEncodedArray().values;
+        } else {
+            staticInitializers = new EncodedValue[0];
         }
 
-        return getTemplatesForMethods(classDataItem.getDirectMethods());
+        ClassDataItem.EncodedField[] encodedFields = classDataItem.getStaticFields();
+        if (encodedFields == null || encodedFields.length == 0) {
+            return;
+        }
+
+        writer.println();
+        writer.println();
+        writer.println("# static fields");
+
+        boolean first = true;
+        for (int i=0; i<encodedFields.length; i++) {
+            if (!first) {
+                writer.println();
+            }
+            first = false;
+
+            ClassDataItem.EncodedField field = encodedFields[i];
+            EncodedValue encodedValue = null;
+            if (i < staticInitializers.length) {
+                encodedValue = staticInitializers[i];
+            }
+            AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
+
+            boolean setInStaticConstructor =
+                    fieldsSetInStaticConstructor.get(field.field.getIndex()) != null;
+
+            FieldDefinition.writeTo(writer, field, encodedValue, annotationSet, setInStaticConstructor);
+        }
     }
 
-    private List<StringTemplate> getVirtualMethods() {
+    private void writeInstanceFields(IndentingPrintWriter writer) throws IOException {
         if (classDataItem == null) {
-            return null;
+            return;
         }
 
-        return getTemplatesForMethods(classDataItem.getVirtualMethods());
+        ClassDataItem.EncodedField[] encodedFields = classDataItem.getInstanceFields();
+        if (encodedFields == null || encodedFields.length == 0) {
+            return;
+        }
+
+        writer.println();
+        writer.println();
+        writer.println("# instance fields");
+        boolean first = true;
+        for (ClassDataItem.EncodedField field: classDataItem.getInstanceFields()) {
+            if (!first) {
+                writer.println();
+            }
+            first = false;
+
+            AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
+
+            FieldDefinition.writeTo(writer, field, null, annotationSet, false);
+        }
     }
 
-    private List<StringTemplate> getTemplatesForMethods(ClassDataItem.EncodedMethod[] methods) {
-        List<StringTemplate> methodTemplates = new ArrayList<StringTemplate>();
+    private void writeDirectMethods(IndentingPrintWriter writer) throws IOException {
+        if (classDataItem == null) {
+            return;
+        }
 
+        ClassDataItem.EncodedMethod[] directMethods = classDataItem.getDirectMethods();
+
+        if (directMethods == null || directMethods.length == 0) {
+            return;
+        }
+
+        writer.println();
+        writer.println();
+        writer.println("# direct methods");
+        writeMethods(writer, directMethods);
+    }
+
+    private void writeVirtualMethods(IndentingPrintWriter writer) throws IOException {
+        if (classDataItem == null) {
+            return;
+        }
+
+        ClassDataItem.EncodedMethod[] virtualMethods = classDataItem.getVirtualMethods();
+
+        if (virtualMethods == null || virtualMethods.length == 0) {
+            return;
+        }
+
+        writer.println();
+        writer.println();
+        writer.println("# virtual methods");
+        writeMethods(writer, virtualMethods);
+    }
+
+    private void writeMethods(IndentingPrintWriter writer, ClassDataItem.EncodedMethod[] methods) throws IOException {
+        boolean first = true;
         for (ClassDataItem.EncodedMethod method: methods) {
+            if (!first) {
+                writer.println();
+            }
+            first = false;
+
             AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
             AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
 
-            MethodDefinition methodDefinition = new MethodDefinition(stg, method);
+            MethodDefinition methodDefinition = new MethodDefinition(method);
+            methodDefinition.writeTo(writer, annotationSet, parameterAnnotationList);
 
-            methodTemplates.add(methodDefinition.createTemplate(annotationSet, parameterAnnotationList));
+
 
             ValidationException validationException = methodDefinition.getValidationException();
             if (validationException != null) {
-                //System.err.println(validationException.toString());
                 validationException.printStackTrace(System.err);
                 this.validationErrors = true;
             }
         }
-
-        return methodTemplates;
     }
 }

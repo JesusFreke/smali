@@ -28,22 +28,24 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.antlr.stringtemplate.AttributeRenderer;
+import org.jf.baksmali.IndentingPrintWriter;
 
-public class ByteRenderer implements AttributeRenderer {
-    public String toString(Object o) {
-        Byte b = (Byte)o;
-        if (b < 0) {
-            return "-0x" + Integer.toHexString(-1 * b) + "t";
+public class ByteRenderer  {
+    public static void writeTo(IndentingPrintWriter writer, byte val) {
+        if (val<0) {
+            writer.write("-0x");
+            writer.printLongAsHex(-val);
+            writer.write('t');
+        } else {
+            writer.write("0x");
+            writer.printLongAsHex(val);
+            writer.write('t');
         }
-        return "0x" + Integer.toHexString(b) + "t";
     }
 
-    public String toString(Object o, String s) {
-        if (s.equals("unsigned")) {
-            Byte b = (Byte)o;
-            return "0x" + Integer.toHexString(b & 0xFF) + "t";
-        }
-        return toString(o);
+    public static void writeUnsignedTo(IndentingPrintWriter writer, byte val) {
+        writer.write("0x");
+        writer.printLongAsHex(val & 0xFF);
+        writer.write('t');
     }
 }

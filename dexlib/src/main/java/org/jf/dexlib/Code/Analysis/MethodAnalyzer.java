@@ -354,6 +354,10 @@ public class MethodAnalyzer {
         return instructions.getValues();
     }
 
+    public ClassDataItem.EncodedMethod getMethod() {
+        return this.encodedMethod;
+    }
+
     public ValidationException getValidationException() {
         return validationException;
     }

@@ -28,31 +28,51 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.Code.Format.UnresolvedNullReference;
 import org.jf.dexlib.CodeItem;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
+
+import java.io.IOException;
 
 public class UnresolvedNullReferenceMethodItem extends InstructionMethodItem<UnresolvedNullReference> {
     public final boolean isLastInstruction;
 
-    public UnresolvedNullReferenceMethodItem(CodeItem codeItem, int codeAddress, StringTemplateGroup stg,
-                                    UnresolvedNullReference instruction, boolean isLastInstruction) {
-        super(codeItem, codeAddress, stg, instruction);
+    public UnresolvedNullReferenceMethodItem(CodeItem codeItem, int codeAddress, UnresolvedNullReference instruction,
+                                             boolean isLastInstruction) {
+        super(codeItem, codeAddress, instruction);
         this.isLastInstruction = isLastInstruction;
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("Register", formatRegister(instruction.ObjectRegisterNum));
+    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
         switch (instruction.OriginalInstruction.opcode)
         {
             case INVOKE_VIRTUAL_QUICK_RANGE:
             case INVOKE_SUPER_QUICK_RANGE:
-                template.setAttribute("UseInvokeRange", 1);
-                if (isLastInstruction) {
-                    template.setAttribute("AddGoto", 1);
-                }
+                writeInvokeRangeTo(writer);
+                return true;
+            default:
+                writeThrowTo(writer);
+                return true;
         }
+    }
 
+    private void writeInvokeRangeTo(IndentingPrintWriter writer) throws IOException {
+        writer.println("#Replaced unresolvable optimized invoke-*-range-quick instruction");
+        writer.println("#with a generic method call that will throw a NullPointerException");
+        writer.write("invoke-virtual/range {");
+        writeRegister(writer, instruction.ObjectRegisterNum);
+        writer.write(" .. ");
+        writeRegister(writer, instruction.ObjectRegisterNum);
+        writer.write("}, Ljava/lang/Object;->hashCode()I");
+        if (isLastInstruction) {
+            writer.println();
+            writer.write("goto/32 0");
+        }
+    }
+
+    private void writeThrowTo(IndentingPrintWriter writer) throws IOException {
+        writer.println("#Replaced unresolvable optimized instruction with a throw");
+        writer.write("throw ");
+        writeRegister(writer, instruction.ObjectRegisterNum);
     }
 }

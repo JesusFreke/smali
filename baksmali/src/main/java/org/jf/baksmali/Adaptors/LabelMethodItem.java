@@ -28,19 +28,16 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.baksmali.baksmali;
 
 public class LabelMethodItem extends MethodItem {
-    private final StringTemplateGroup stg;
     private final String labelPrefix;
     private int labelSequence;
     private boolean isCommentedOut = true;
 
-    public LabelMethodItem(int codeAddress, StringTemplateGroup stg, String labelPrefix) {
+    public LabelMethodItem(int codeAddress, String labelPrefix) {
         super(codeAddress);
-        this.stg = stg;
         this.labelPrefix = labelPrefix;
     }
 
@@ -79,24 +76,24 @@ public class LabelMethodItem extends MethodItem {
         return this.compareTo((MethodItem)o) == 0;
     }
 
-    @Override
-    public String toString() {
-        StringTemplate template = stg.getInstanceOf("Label");
-        template.setAttribute("Prefix", labelPrefix);
+
+    public boolean writeTo(IndentingPrintWriter writer) {
+        writer.write(':');
+        writer.write(labelPrefix);
         if (baksmali.useSequentialLabels) {
-            template.setAttribute("Suffix", Integer.toHexString(labelSequence));
+            writer.printLongAsHex(labelSequence);
         } else {
-            template.setAttribute("Suffix", getLabelAddress());
+            writer.printLongAsHex(this.getLabelAddress());
         }
-        return template.toString();
+        return true;
     }
 
     public String getLabelPrefix() {
         return labelPrefix;
     }
 
-    public String getLabelAddress() {
-        return Integer.toHexString(this.getCodeAddress());
+    public int getLabelAddress() {
+        return this.getCodeAddress();
     }
 
     public int getLabelSequence() {

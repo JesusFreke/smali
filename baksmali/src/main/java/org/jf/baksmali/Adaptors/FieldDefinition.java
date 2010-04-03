@@ -29,30 +29,21 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.NullEncodedValue;
 import org.jf.dexlib.AnnotationSetItem;
-import org.jf.dexlib.AnnotationItem;
 import org.jf.dexlib.Util.AccessFlags;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 
 public class FieldDefinition {
-    public static StringTemplate createTemplate(StringTemplateGroup stg, ClassDataItem.EncodedField encodedField,
+    public static void writeTo(IndentingPrintWriter writer, ClassDataItem.EncodedField encodedField,
                                                 EncodedValue initialValue, AnnotationSetItem annotationSet,
-                                                boolean setInStaticConstructor) {
-        StringTemplate template = stg.getInstanceOf("field");
+                                                boolean setInStaticConstructor) throws IOException {
 
         String fieldTypeDescriptor = encodedField.field.getFieldType().getTypeDescriptor();
-
-        template.setAttribute("AccessFlags", getAccessFlags(encodedField));
-        template.setAttribute("FieldName", encodedField.field.getFieldName().getStringValue());
-        template.setAttribute("FieldType", encodedField.field.getFieldType().getTypeDescriptor());
-        template.setAttribute("Annotations", getAnnotations(stg, annotationSet));
 
         if (setInStaticConstructor &&
             encodedField.isStatic() &&
@@ -64,44 +55,33 @@ public class FieldDefinition {
                 initialValue != NullEncodedValue.NullValue
             )) {
 
-            template.setAttribute("Comments",
-                    new String[]{"the value of this static final field might be set in the static constructor"});
-        } else {
-            template.setAttribute("Comments", null);
+            writer.println("#the value of this static final field might be set in the static constructor");
         }
 
+        writer.write(".field ");
+        writeAccessFlags(writer, encodedField);
+        writer.write(encodedField.field.getFieldName().getStringValue());
+        writer.write(':');
+        writer.write(encodedField.field.getFieldType().getTypeDescriptor());
         if (initialValue != null) {
-            template.setAttribute("InitialValue", EncodedValueAdaptor.create(stg, initialValue));
+            writer.write(" = ");
+            EncodedValueAdaptor.writeTo(writer, initialValue);
         }
 
-        return template;
+        writer.println();
+
+        if (annotationSet != null) {
+            writer.indent(4);
+            AnnotationFormatter.writeTo(writer, annotationSet);
+            writer.deindent(4);
+            writer.println(".end field");
+        }
     }
 
-    public static StringTemplate createTemplate(StringTemplateGroup stg, ClassDataItem.EncodedField encodedField,
-                                                AnnotationSetItem annotationSet) {
-        return createTemplate(stg, encodedField, null, annotationSet, false);
-    }
-
-    private static List<String> getAccessFlags(ClassDataItem.EncodedField encodedField) {
-        List<String> accessFlags = new ArrayList<String>();
-
+    private static void writeAccessFlags(IndentingPrintWriter writer, ClassDataItem.EncodedField encodedField) {
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(encodedField.accessFlags)) {
-            accessFlags.add(accessFlag.toString());
+            writer.write(accessFlag.toString());
+            writer.write(' ');
         }
-
-        return accessFlags;
-    }
-
-    private static List<StringTemplate> getAnnotations(StringTemplateGroup stg, AnnotationSetItem annotationSet) {
-        if (annotationSet == null) {
-            return null;
-        }
-
-        List<StringTemplate> annotationAdaptors = new ArrayList<StringTemplate>();
-
-        for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
-            annotationAdaptors.add(AnnotationAdaptor.createTemplate(stg, annotationItem));
-        }
-        return annotationAdaptors;
     }
 }

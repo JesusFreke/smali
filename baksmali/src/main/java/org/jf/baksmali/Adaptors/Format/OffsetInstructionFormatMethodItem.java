@@ -28,31 +28,32 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.baksmali.Adaptors.LabelMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
+
+import java.io.IOException;
 
 public class OffsetInstructionFormatMethodItem<T extends Instruction & OffsetInstruction>
         extends InstructionMethodItem<T> {
     protected LabelMethodItem label;
 
     public OffsetInstructionFormatMethodItem(MethodDefinition.LabelCache labelCache, CodeItem codeItem, int codeAddress,
-                                             StringTemplateGroup stg, T instruction) {
-        super(codeItem, codeAddress, stg, instruction);
+                                             T instruction) {
+        super(codeItem, codeAddress, instruction);
 
-        label = new LabelMethodItem(codeAddress + instruction.getTargetAddressOffset(), stg, getLabelPrefix());
+        label = new LabelMethodItem(codeAddress + instruction.getTargetAddressOffset(), getLabelPrefix());
         label = labelCache.internLabel(label);
         label.setUncommented();
     }
 
-    protected void setAttributes(StringTemplate template) {
-        template.setAttribute("TargetLabel", label);
-        super.setAttributes(template);
+    @Override
+    protected void writeTargetLabel(IndentingPrintWriter writer) throws IOException {
+        label.writeTo(writer);
     }
 
     public LabelMethodItem getLabel() {

@@ -28,27 +28,34 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.ArrayEncodedValue;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.io.IOException;
 
 public class ArrayEncodedValueAdaptor {
-    public static StringTemplate createTemplate(StringTemplateGroup stg, ArrayEncodedValue encodedArray) {
-        StringTemplate template = stg.getInstanceOf("ArrayEncodedValue");
-        template.setAttribute("Value", getValue(stg, encodedArray));
-        return template;
-    }
-
-    private static List<StringTemplate> getValue(StringTemplateGroup stg, ArrayEncodedValue encodedArray) {
-        List<StringTemplate> encodedValues = new ArrayList<StringTemplate>();
-
-        for (EncodedValue encodedValue: encodedArray.values) {
-            encodedValues.add(EncodedValueAdaptor.create(stg, encodedValue));
+    public static void writeTo(IndentingPrintWriter writer, ArrayEncodedValue encodedArray) throws IOException {
+        writer.print('{');
+        EncodedValue[] values = encodedArray.values;
+        if (values == null || values.length == 0) {
+            writer.print('}');
+            return;
         }
-        return encodedValues;
+
+        writer.println();
+        writer.indent(4);
+        boolean first = true;
+        for (EncodedValue encodedValue: encodedArray.values) {
+            if (!first) {
+                writer.println(',');
+            }
+            first = false;
+
+            EncodedValueAdaptor.writeTo(writer, encodedValue);
+        }
+        writer.deindent(4);
+        writer.println();
+        writer.print('}');
     }
 }

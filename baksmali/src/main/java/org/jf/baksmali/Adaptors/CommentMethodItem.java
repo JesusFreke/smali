@@ -28,17 +28,16 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.IndentingPrintWriter;
 
 public class CommentMethodItem extends MethodItem {
-    private final StringTemplate template;
+    //private final StringTemplate template;
+    private final String comment;
     private final double sortOrder;
 
-    public CommentMethodItem(StringTemplateGroup stg, String comment, int codeAddress, double sortOrder) {
+    public CommentMethodItem(String comment, int codeAddress, double sortOrder) {
         super(codeAddress);
-        template = stg.getInstanceOf("Comment");
-        template.setAttribute("Comment", comment);
+        this.comment = comment;
         this.sortOrder = sortOrder;
     }
 
@@ -46,8 +45,9 @@ public class CommentMethodItem extends MethodItem {
         return sortOrder;
     }
 
-    @Override
-    public String toString() {
-        return template.toString();
+    public boolean writeTo(IndentingPrintWriter writer) {
+        writer.write('#');
+        writer.write(comment);
+        return true;
     }
 }

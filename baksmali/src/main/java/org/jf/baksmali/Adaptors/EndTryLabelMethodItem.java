@@ -28,13 +28,11 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.antlr.stringtemplate.StringTemplateGroup;
-
 public class EndTryLabelMethodItem extends LabelMethodItem {
     private int endTryAddress;
 
-    public EndTryLabelMethodItem(int codeAddress, StringTemplateGroup stg, int endTryAddress) {
-        super(codeAddress, stg, "try_end_");
+    public EndTryLabelMethodItem(int codeAddress, int endTryAddress) {
+        super(codeAddress, "try_end_");
         this.endTryAddress = endTryAddress;
     }
 
@@ -43,7 +41,7 @@ public class EndTryLabelMethodItem extends LabelMethodItem {
         return 101;
     }
 
-    public String getLabelAddress() {
-        return Integer.toHexString(endTryAddress);
+    public int getLabelAddress() {
+        return endTryAddress;
     }
 }

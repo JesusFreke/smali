@@ -28,6 +28,10 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.baksmali.IndentingPrintWriter;
+
+import java.io.IOException;
+
 public abstract class MethodItem implements Comparable<MethodItem> {
     protected final int codeAddress;
 
@@ -50,4 +54,6 @@ public abstract class MethodItem implements Comparable<MethodItem> {
         }
         return result;
     }
+
+    public abstract boolean writeTo(IndentingPrintWriter writer) throws IOException;
 }

@@ -1,6 +1,6 @@
 /*
  * [The "BSD licence"]
- * Copyright (c) 2010 Ben Gruver (JesusFreke)
+ * Copyright (c) 2010 Ben Gruver
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,17 +26,16 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Reference;
+package org.jf.baksmali.Renderers;
 
-import org.jf.dexlib.StringIdItem;
-import org.jf.dexlib.Util.Utf8Utils;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
+import org.jf.baksmali.IndentingPrintWriter;
 
-public class StringReference {
-    public static StringTemplate createTemplate(StringTemplateGroup stg, StringIdItem item) {
-        StringTemplate template = stg.getInstanceOf("StringReference");
-        template.setAttribute("EscapedValue", Utf8Utils.escapeString(item.getStringValue()));
-        return template;
+public class BooleanRenderer {
+    public static void writeTo(IndentingPrintWriter writer, boolean val) {
+        if (val) {
+            writer.write("true");
+        } else {
+            writer.write("false");
+        }
     }
 }

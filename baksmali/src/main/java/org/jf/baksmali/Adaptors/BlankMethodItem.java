@@ -28,26 +28,21 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
+import org.jf.baksmali.IndentingPrintWriter;
 
 //a "spacer" between instructions
 public class BlankMethodItem extends MethodItem {
-    private static StringTemplate template;
-
-    public BlankMethodItem(StringTemplateGroup stg, int codeAddress) {
+    public BlankMethodItem(int codeAddress) {
         super(codeAddress);
-        if (template == null) {
-            template = stg.getInstanceOf("Blank");
-        }
     }
 
     public double getSortOrder() {
         return Integer.MAX_VALUE;
     }
 
-    @Override
-    public String toString() {
-        return template.toString();
+    public boolean writeTo(IndentingPrintWriter writer) {
+        //we didn't technically print something, but returning true indicates that a newline should be printed
+        //after this method item, which is the intended functionality
+        return true;
     }
 }

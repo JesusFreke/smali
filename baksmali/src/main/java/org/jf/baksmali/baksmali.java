@@ -28,8 +28,6 @@
 
 package org.jf.baksmali;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.Code.Analysis.ClassPath;
@@ -107,18 +105,6 @@ public class baksmali {
             }
         }
 
-        //load and initialize the templates
-        InputStream templateStream = baksmali.class.getClassLoader().getResourceAsStream("templates/baksmali.stg");
-        StringTemplateGroup templates = new StringTemplateGroup(new InputStreamReader(templateStream));
-        templates.registerRenderer(Long.class, new LongRenderer());
-        templates.registerRenderer(Integer.class,  new IntegerRenderer());
-        templates.registerRenderer(Short.class, new ShortRenderer());
-        templates.registerRenderer(Byte.class, new ByteRenderer());
-        templates.registerRenderer(Float.class, new FloatRenderer());
-        templates.registerRenderer(Character.class, new CharRenderer());
-        templates.registerRenderer(StringIdItem.class, new StringIdItemRenderer());
-
-
         for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
             /**
              * The path for the disassembly file is based on the package name
@@ -154,15 +140,10 @@ public class baksmali {
             File smaliFile = new File(smaliPath.toString());
 
             //create and initialize the top level string template
-            ClassDefinition classDefinition = new ClassDefinition(templates, classDefItem);
-
-            StringTemplate smaliFileST = classDefinition.createTemplate();
-
-            //generate the disassembly
-            String output = smaliFileST.toString();
+            ClassDefinition classDefinition = new ClassDefinition(classDefItem);
 
             //write the disassembly
-            FileWriter writer = null;
+            Writer writer = null;
             try
             {
                 File smaliParent = smaliFile.getParentFile();
@@ -180,8 +161,10 @@ public class baksmali {
                     }
                 }
 
-                writer = new FileWriter(smaliFile);
-                writer.write(output);
+                BufferedWriter bufWriter = new BufferedWriter(new FileWriter(smaliFile));
+
+                writer = new IndentingPrintWriter(new IndentingWriter(bufWriter));
+                classDefinition.writeTo((IndentingPrintWriter)writer);
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
                 ex.printStackTrace();

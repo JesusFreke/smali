@@ -28,18 +28,16 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.StringTemplate;
+import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.StringIdItem;
+import org.jf.dexlib.TypeIdItem;
 
-public class DebugMethodItem extends MethodItem {
-    private final StringTemplateGroup stg;
-    private final String templateName;
+public abstract class DebugMethodItem extends MethodItem {
     private final double sortOrder;
 
-    public DebugMethodItem(int codeAddress, StringTemplateGroup stg, String templateName, double sortOrder) {
+    public DebugMethodItem(int codeAddress, double sortOrder) {
         super(codeAddress);
-        this.stg = stg;
-        this.templateName = templateName;
         this.sortOrder = sortOrder;
     }
 
@@ -47,14 +45,74 @@ public class DebugMethodItem extends MethodItem {
         return sortOrder;
     }
 
-    @Override
-    public String toString() {
-        StringTemplate template = stg.getInstanceOf(templateName);
-        setAttributes(template);
-        return template.toString();
+    protected static void writeLine(IndentingPrintWriter writer, int line) {
+        writer.write(".line ");
+        writer.print(line);
     }
 
-    protected void setAttributes(StringTemplate template)
-    {
+    protected static void writeEndPrologue(IndentingPrintWriter writer) {
+        writer.write(".prologue");
+    }
+
+    protected static void writeBeginEpilogue(IndentingPrintWriter writer) {
+        writer.write(".epilogue");
+    }
+
+    protected static void writeStartLocal(IndentingPrintWriter writer, CodeItem codeItem, int register,
+                                          StringIdItem name, TypeIdItem type, StringIdItem signature) {
+        writer.write(".local ");
+        RegisterFormatter.writeTo(writer, codeItem, register);
+        writer.write(", ");
+        writer.write(name.getStringValue());
+        writer.write(':');
+        writer.write(type.getTypeDescriptor());
+        if (signature != null) {
+            writer.write(",\"");
+            writer.write(signature.getStringValue());
+            writer.write('"');
+        }
+    }
+
+    protected static void writeEndLocal(IndentingPrintWriter writer, CodeItem codeItem, int register, StringIdItem name,
+                                       TypeIdItem type, StringIdItem signature) {
+        writer.write(".end local ");
+        RegisterFormatter.writeTo(writer, codeItem, register);
+
+        if (name != null) {
+            writer.write("           #");
+            writer.write(name.getStringValue());
+            writer.write(':');
+            writer.write(type.getTypeDescriptor());
+            if (signature != null) {
+                writer.write(",\"");
+                writer.write(signature.getStringValue());
+                writer.write('"');
+            }
+        }
+    }
+
+
+    protected static void writeRestartLocal(IndentingPrintWriter writer, CodeItem codeItem, int register,
+                                         StringIdItem name, TypeIdItem type, StringIdItem signature) {
+        writer.write(".restart local ");
+        RegisterFormatter.writeTo(writer, codeItem, register);
+
+        if (name != null) {
+            writer.write("       #");
+            writer.write(name.getStringValue());
+            writer.write(':');
+            writer.write(type.getTypeDescriptor());
+            if (signature != null) {
+                writer.write(",\"");
+                writer.write(signature.getStringValue());
+                writer.write('"');
+            }
+        }
+    }
+
+    protected static void writeSetFile(IndentingPrintWriter writer, String fileName) {
+        writer.write(".source \"");
+        writer.write(fileName);
+        writer.write('"');
     }
 }

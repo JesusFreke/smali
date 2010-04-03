@@ -28,14 +28,11 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.antlr.stringtemplate.AttributeRenderer;
+import org.jf.baksmali.IndentingPrintWriter;
 
-public class FloatRenderer implements AttributeRenderer {
-    public String toString(Object o) {
-        return Float.toString((Float)o) + "f";
-    }
-
-    public String toString(Object o, String s) {
-        return toString(o);
+public class FloatRenderer {
+    public static void writeTo(IndentingPrintWriter writer, float val) {
+        writer.print(val);
+        writer.write('f');
     }
 }

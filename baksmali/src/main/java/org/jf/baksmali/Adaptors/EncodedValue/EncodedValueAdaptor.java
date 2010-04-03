@@ -28,52 +28,63 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
+import org.jf.baksmali.Adaptors.ReferenceFormatter;
+import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.EncodedValue.*;
-import org.jf.baksmali.Adaptors.Reference.*;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+
+import java.io.IOException;
 
 public abstract class EncodedValueAdaptor {
-    public static StringTemplate create(StringTemplateGroup stg, EncodedValue encodedValue) {
+    public static void writeTo(IndentingPrintWriter writer, EncodedValue encodedValue) throws IOException {
         switch (encodedValue.getValueType()) {
             case VALUE_ANNOTATION:
-                return AnnotationEncodedValueAdaptor.createTemplate(stg, (AnnotationEncodedValue)encodedValue);
+                AnnotationEncodedValueAdaptor.writeTo(writer, (AnnotationEncodedValue)encodedValue);
+                return;
             case VALUE_ARRAY:
-                return ArrayEncodedValueAdaptor.createTemplate(stg, (ArrayEncodedValue)encodedValue);
+                ArrayEncodedValueAdaptor.writeTo(writer, (ArrayEncodedValue)encodedValue);
+                return;
             case VALUE_BOOLEAN:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, ((BooleanEncodedValue)encodedValue).value);
+                BooleanRenderer.writeTo(writer, ((BooleanEncodedValue)encodedValue).value);
+                return;
             case VALUE_BYTE:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, ((ByteEncodedValue)encodedValue).value);
+                ByteRenderer.writeTo(writer, ((ByteEncodedValue)encodedValue).value);
+                return;
             case VALUE_CHAR:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, ((CharEncodedValue)encodedValue).value);
+                CharRenderer.writeTo(writer, ((CharEncodedValue)encodedValue).value);
+                return;
             case VALUE_DOUBLE:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, ((DoubleEncodedValue)encodedValue).value);
+                DoubleRenderer.writeTo(writer, ((DoubleEncodedValue)encodedValue).value);
+                return;
             case VALUE_ENUM:
-                return EnumEncodedValueAdaptor.createTemplate(stg,
-                        FieldReference.createTemplate(stg, ((EnumEncodedValue)encodedValue).value));
+                EnumEncodedValueAdaptor.writeTo(writer, ((EnumEncodedValue)encodedValue).value);
+                return;
             case VALUE_FIELD:
-                return EncodedIndexedItemAdaptor.createTemplate(stg, FieldReference.createTemplate(stg,
-                        ((FieldEncodedValue)encodedValue).value));
+                ReferenceFormatter.writeFieldReference(writer, ((FieldEncodedValue)encodedValue).value);
+                return;
             case VALUE_FLOAT:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, ((FloatEncodedValue)encodedValue).value);
+                FloatRenderer.writeTo(writer, ((FloatEncodedValue)encodedValue).value);
+                return;
             case VALUE_INT:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, ((IntEncodedValue)encodedValue).value);
+                IntegerRenderer.writeTo(writer, ((IntEncodedValue)encodedValue).value);
+                return;
             case VALUE_LONG:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, ((LongEncodedValue)encodedValue).value);
+                LongRenderer.writeTo(writer, ((LongEncodedValue)encodedValue).value);
+                return;
             case VALUE_METHOD:
-                return EncodedIndexedItemAdaptor.createTemplate(stg, MethodReference.createTemplate(stg,
-                        ((MethodEncodedValue)encodedValue).value));
+                ReferenceFormatter.writeMethodReference(writer, ((MethodEncodedValue)encodedValue).value);
+                return;
             case VALUE_NULL:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, "null");
+                writer.write("null");
+                return;
             case VALUE_SHORT:
-                return SimpleEncodedValueAdaptor.createTemplate(stg, ((ShortEncodedValue)encodedValue).value);
+                ShortRenderer.writeTo(writer, ((ShortEncodedValue)encodedValue).value);
+                return;
             case VALUE_STRING:
-                return EncodedIndexedItemAdaptor.createTemplate(stg, StringReference.createTemplate(stg,
-                        ((StringEncodedValue)encodedValue).value));
+                ReferenceFormatter.writeStringReference(writer, ((StringEncodedValue)encodedValue).value);
+                return;
             case VALUE_TYPE:
-                return EncodedIndexedItemAdaptor.createTemplate(stg, TypeReference.createTemplate(stg,
-                        ((TypeEncodedValue)encodedValue).value));
+                ReferenceFormatter.writeTypeReference(writer, ((TypeEncodedValue)encodedValue).value);
         }
-        return null;
     }
 }

@@ -1,6 +1,6 @@
 /*
  * [The "BSD licence"]
- * Copyright (c) 2010 Ben Gruver (JesusFreke)
+ * Copyright (c) 2010 Ben Gruver
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,18 +26,12 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali.Adaptors.Reference;
+package org.jf.baksmali.Renderers;
 
-import org.jf.dexlib.MethodIdItem;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+import org.jf.baksmali.IndentingPrintWriter;
 
-public class MethodReference {
-    public static StringTemplate createTemplate(StringTemplateGroup stg, MethodIdItem item) {
-        StringTemplate template = stg.getInstanceOf("MethodReference");
-        template.setAttribute("ContainingClass", item.getContainingClass().getTypeDescriptor());
-        template.setAttribute("MethodName", item.getMethodName().getStringValue());
-        template.setAttribute("Prototype", item.getPrototype().getPrototypeString());
-        return template;
+public class DoubleRenderer {
+    public static void writeTo(IndentingPrintWriter writer, double val) {
+        writer.print(val);
     }
 }

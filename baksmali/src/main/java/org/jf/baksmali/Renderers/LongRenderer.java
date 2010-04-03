@@ -28,18 +28,34 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.antlr.stringtemplate.AttributeRenderer;
+import org.jf.baksmali.IndentingPrintWriter;
 
-public class LongRenderer implements AttributeRenderer {
-    public String toString(Object o) {
-        Long l = (Long)o;
-        if (l < 0) {
-            return "-0x" + Long.toHexString(-1 * l) + "L";
+public class LongRenderer {
+    public static void writeTo(IndentingPrintWriter writer, long val) {
+        if (val<0) {
+            writer.write("-0x");
+            writer.printLongAsHex(-val);
+            writer.write('L');
+        } else {
+            writer.write("0x");
+            writer.printLongAsHex(val);
+            writer.write('L');
         }
-        return "0x" + Long.toHexString(l) + "L";
     }
 
-    public String toString(Object o, String s) {
-         return toString(o);
+    public static void writeSignedIntOrLongTo(IndentingPrintWriter writer, long val) {
+        if (val<0) {
+            writer.write("-0x");
+            writer.printLongAsHex(-val);
+            if (val < Integer.MIN_VALUE) {
+                writer.write('L');
+            }
+        } else {
+            writer.write("0x");
+            writer.printLongAsHex(val);
+            if (val > Integer.MAX_VALUE) {
+                writer.write('L');
+            }
+        }
     }
 }

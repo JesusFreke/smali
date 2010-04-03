@@ -28,6 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.baksmali.IndentingPrintWriter;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.baksmali.baksmali;
@@ -38,15 +39,19 @@ import org.jf.baksmali.baksmali;
 public class RegisterFormatter {
 
     /**
-     * This method is used (only) by format 3rc (the format that uses a range of regsiters like {v1 .. v10}) to format
-     * it's registers. If both registers are parameter registers, they will be formatted as such, otherwise they will
-     * both be formatted as normal registers
-     * @param codeItem
-     * @param startRegister
-     * @param lastRegister
-     * @return an array of 2 strings containing the formatted registers
+     * Write out the register range value used by Format3rc. If baksmali.noParameterRegisters is true, it will always
+     * output the registers in the v<n> format. But if false, then it will check if *both* registers are parameter
+     * registers, and if so, use the p<n> format for both. If only the last register is a parameter register, it will
+     * use the v<n> format for both, otherwise it would be confusing to have something like {v20 .. p1}
+     * @param writer the <code>IndentingPrintWriter</code> to write to
+     * @param codeItem the <code>CodeItem</code> that the register is from
+     * @param startRegister the first register in the range
+     * @param lastRegister the last register in the range
      */
-    public static String[] formatFormat3rcRegisters(CodeItem codeItem, int startRegister, int lastRegister) {
+    public static void writeRegisterRange(IndentingPrintWriter writer, CodeItem codeItem, int startRegister,
+                                          int lastRegister) {
+        assert lastRegister >= startRegister;
+
         if (!baksmali.noParameterRegisters) {
             int parameterRegisterCount = codeItem.getParent().method.getPrototype().getParameterRegisterCount()
                 + (((codeItem.getParent().accessFlags & AccessFlags.STATIC.getValue())==0)?1:0);
@@ -55,32 +60,42 @@ public class RegisterFormatter {
             assert startRegister <= lastRegister;
 
             if (startRegister >= registerCount - parameterRegisterCount) {
-                return new String[] {"p" + (startRegister - (registerCount - parameterRegisterCount)),
-                                     "p" + (lastRegister - (registerCount - parameterRegisterCount))};
+                writer.write("{p");
+                writer.print(startRegister - (registerCount - parameterRegisterCount));
+                writer.write(" .. p");
+                writer.print(lastRegister - (registerCount - parameterRegisterCount));
+                writer.write('}');
+                return;
             }
         }
-        return new String[] {"v" + startRegister,
-                             "v" + lastRegister};
+        writer.write("{v");
+        writer.print(startRegister);
+        writer.write(" .. v");
+        writer.print(lastRegister);
+        writer.write('}');
     }
 
     /**
-     * Formats a register with the appropriate format - with either the normal v<n> format or the p<n> parameter format.
+     * Writes a register with the appropriate format. If baksmali.noParameterRegisters is true, then it will always
+     * output a register in the v<n> format. If false, then it determines if the register is a parameter register,
+     * and if so, formats it in the p<n> format instead.
      *
-     * It uses the register and parameter information from the give <code>CodeItem</code> to determine if the given
-     * register is a normal or parameter register.
-     * @param codeItem
-     * @param register
-     * @return The formatted register
+     * @param writer the <code>IndentingPrintWriter</code> to write to
+     * @param codeItem the <code>CodeItem</code> that the register is from
+     * @param register the register number
      */
-    public static String formatRegister(CodeItem codeItem, int register) {
+    public static void writeTo(IndentingPrintWriter writer, CodeItem codeItem, int register) {
         if (!baksmali.noParameterRegisters) {
             int parameterRegisterCount = codeItem.getParent().method.getPrototype().getParameterRegisterCount()
-                + (((codeItem.getParent().accessFlags & AccessFlags.STATIC.getValue())==0)?1:0);
+                    + (((codeItem.getParent().accessFlags & AccessFlags.STATIC.getValue())==0)?1:0);
             int registerCount = codeItem.getRegisterCount();
             if (register >= registerCount - parameterRegisterCount) {
-                return "p" + (register - (registerCount - parameterRegisterCount));
+                writer.write('p');
+                writer.print((register - (registerCount - parameterRegisterCount)));
+                return;
             }
         }
-        return "v" + register;
+        writer.write('v');
+        writer.print(register);
     }
 }
