@@ -77,11 +77,13 @@ public class MethodDefinition {
                     AnalyzedInstruction instruction = instructions.get(i);
                     if (instruction.getInstruction().opcode == Opcode.PACKED_SWITCH) {
                         packedSwitchMap.append(
-                                currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
+                                currentCodeAddress +
+                                        ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
                                 currentCodeAddress);
                     } else if (instruction.getInstruction().opcode == Opcode.SPARSE_SWITCH) {
                         sparseSwitchMap.append(
-                                currentCodeAddress + ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
+                                currentCodeAddress +
+                                        ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
                                 currentCodeAddress);
                     }
                     instructionMap.append(currentCodeAddress, i);
