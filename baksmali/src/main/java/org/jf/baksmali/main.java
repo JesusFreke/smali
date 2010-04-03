@@ -352,7 +352,7 @@ public class main {
 
         Option deodexerantOption = OptionBuilder.withLongOpt("deodex")
                 .withDescription("deodex the given odex file. This option is ignored if the input file is not an " +
-                        "odex file.")
+                        "odex file")
                 .create("x");
 
         Option useLocalsOption = OptionBuilder.withLongOpt("use-locals")
@@ -406,7 +406,7 @@ public class main {
 
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
-                        " (<dexfile>.dump by default), along with the normal disassembly.")
+                        " (<dexfile>.dump by default), along with the normal disassembly")
                 .hasOptionalArg()
                 .withArgName("FILE")
                 .create("D");
