@@ -321,10 +321,10 @@ public class ClassDefinition {
             MethodDefinition methodDefinition = new MethodDefinition(method);
             methodDefinition.writeTo(writer, annotationSet, parameterAnnotationList);
 
-
-
             ValidationException validationException = methodDefinition.getValidationException();
             if (validationException != null) {
+                System.err.println(String.format("Error while disassembling method %s. Continuing.",
+                        method.method.getMethodString()));
                 validationException.printStackTrace(System.err);
                 this.validationErrors = true;
             }

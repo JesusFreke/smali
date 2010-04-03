@@ -145,7 +145,15 @@ public class ClassPath {
 
 
         for (String classType: tempClasses.keySet()) {
-            ClassDef classDef = ClassPath.loadClassDef(classType);
+            ClassDef classDef = null;
+            try {
+                classDef = ClassPath.loadClassDef(classType);
+                assert classDef != null;
+            } catch (Exception ex) {
+                System.err.println(String.format("Skipping %s", classType));
+                ex.printStackTrace(System.err);
+            }
+
             if (classType.equals("Ljava/lang/Object;")) {
                 this.javaLangObjectClassDef = classDef;
             }
@@ -240,7 +248,7 @@ public class ClassPath {
      * This method checks if the given class has been loaded yet. If it has, it returns the loaded ClassDef. If not,
      * then it looks up the TempClassItem for the given class and (possibly recursively) loads the ClassDef.
      * @param classType the class to load
-     * @return the existing or newly loaded ClassDef object for the given class
+     * @return the existing or newly loaded ClassDef object for the given class, or null if the class cannot be found
      */
     private static ClassDef loadClassDef(String classType) {
         ClassDef classDef = getClassDef(classType, false);
@@ -248,7 +256,7 @@ public class ClassPath {
         if (classDef == null) {
             TempClassInfo classInfo = theClassPath.tempClasses.get(classType);
             if (classInfo == null) {
-                throw new ExceptionWithContext(String.format("Could not find class %s", classType));
+                return null;
             }
 
             try {
@@ -755,6 +763,9 @@ public class ClassPath {
                 }
 
                 ClassDef superclass = ClassPath.loadClassDef(superclassType);
+                if (superclass == null) {
+                    throw new ClassNotFoundException(String.format("Could not find superclass %s", superclassType));
+                }
 
                 if (!isInterface && superclass.isInterface) {
                     throw new ValidationException("Class " + classType + " has the interface " + superclass.classType +
@@ -787,6 +798,9 @@ public class ClassPath {
             if (classInfo.interfaces != null) {
                 for (String interfaceType: classInfo.interfaces) {
                     ClassDef interfaceDef = ClassPath.loadClassDef(interfaceType);
+                    if (interfaceDef == null) {
+                        throw new ClassNotFoundException(String.format("Could not find interface %s", interfaceType));
+                    }
                     assert interfaceDef.isInterface();
                     implementedInterfaceSet.add(interfaceDef);
 
@@ -813,7 +827,7 @@ public class ClassPath {
                 if (!interfaceTable.containsKey(interfaceType)) {
                     ClassDef interfaceDef = ClassPath.loadClassDef(interfaceType);
                     if (interfaceDef == null) {
-                        throw new ValidationException(String.format("Could not resolve type %s", interfaceType));
+                        throw new ClassNotFoundException(String.format("Could not find interface %s", interfaceType));
                     }
                     interfaceTable.put(interfaceType, interfaceDef);
 

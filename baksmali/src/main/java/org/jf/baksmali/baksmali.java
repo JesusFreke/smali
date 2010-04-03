@@ -113,6 +113,15 @@ public class baksmali {
              * package name are separated by '/'
              */
 
+            if (registerInfo != 0 || deodex || verify) {
+                //If we are analyzing the bytecode, make sure that this class is loaded into the ClassPath. If it isn't
+                //then there was some error while loading it, and we should skip it
+                ClassPath.ClassDef classDef = ClassPath.getClassDef(classDefItem.getClassType(), false);
+                if (classDef == null || classDef instanceof ClassPath.UnresolvedClassDef) {
+                    continue;
+                }
+            }
+
             String classDescriptor = classDefItem.getClassType().getTypeDescriptor();
 
             //validate that the descriptor is formatted like we expect
@@ -178,11 +187,6 @@ public class baksmali {
                         ex.printStackTrace();
                     }
                 }
-            }
-
-            //TODO: GROT
-            if (classDefinition.hadValidationErrors()) {
-                System.exit(1);
             }
         }
     }
