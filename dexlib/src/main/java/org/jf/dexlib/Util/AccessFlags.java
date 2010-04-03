@@ -60,11 +60,16 @@ public enum AccessFlags
     private boolean validForMethod;
     private boolean validForField;
 
+    //cache the array of all AccessFlags, because .values() allocates a new array for every call
+    private final static AccessFlags[] allFlags;
+
     private static HashMap<String, AccessFlags> accessFlagsByName;
 
     static {
+        allFlags = AccessFlags.values();
+
         accessFlagsByName = new HashMap<String, AccessFlags>();
-        for (AccessFlags accessFlag: AccessFlags.values()) {
+        for (AccessFlags accessFlag: allFlags) {
             accessFlagsByName.put(accessFlag.accessFlagName, accessFlag);
         }
     }
@@ -80,7 +85,7 @@ public enum AccessFlags
 
     public static AccessFlags[] getAccessFlagsForClass(int accessFlagValue) {
         int size = 0;
-        for (AccessFlags accessFlag: AccessFlags.values()) {
+        for (AccessFlags accessFlag: allFlags) {
             if (accessFlag.validForClass && (accessFlagValue & accessFlag.value) != 0) {
                 size++;
             }
@@ -88,7 +93,7 @@ public enum AccessFlags
 
         AccessFlags[] accessFlags = new AccessFlags[size];
         int accessFlagsPosition = 0;
-        for (AccessFlags accessFlag: AccessFlags.values()) {
+        for (AccessFlags accessFlag: allFlags) {
             if (accessFlag.validForClass && (accessFlagValue & accessFlag.value) != 0) {
                 accessFlags[accessFlagsPosition++] = accessFlag;
             }
@@ -119,7 +124,7 @@ public enum AccessFlags
 
     public static AccessFlags[] getAccessFlagsForMethod(int accessFlagValue) {
         int size = 0;
-        for (AccessFlags accessFlag: AccessFlags.values()) {
+        for (AccessFlags accessFlag: allFlags) {
             if (accessFlag.validForMethod && (accessFlagValue & accessFlag.value) != 0) {
                 size++;
             }
@@ -127,7 +132,7 @@ public enum AccessFlags
 
         AccessFlags[] accessFlags = new AccessFlags[size];
         int accessFlagsPosition = 0;
-        for (AccessFlags accessFlag: AccessFlags.values()) {
+        for (AccessFlags accessFlag: allFlags) {
             if (accessFlag.validForMethod && (accessFlagValue & accessFlag.value) != 0) {
                 accessFlags[accessFlagsPosition++] = accessFlag;
             }
@@ -141,7 +146,7 @@ public enum AccessFlags
 
     public static AccessFlags[] getAccessFlagsForField(int accessFlagValue) {
         int size = 0;
-        for (AccessFlags accessFlag: AccessFlags.values()) {
+        for (AccessFlags accessFlag: allFlags) {
             if (accessFlag.validForField && (accessFlagValue & accessFlag.value) != 0) {
                 size++;
             }
@@ -149,7 +154,7 @@ public enum AccessFlags
 
         AccessFlags[] accessFlags = new AccessFlags[size];
         int accessFlagsPosition = 0;
-        for (AccessFlags accessFlag: AccessFlags.values()) {
+        for (AccessFlags accessFlag: allFlags) {
             if (accessFlag.validForField && (accessFlagValue & accessFlag.value) != 0) {
                 accessFlags[accessFlagsPosition++] = accessFlag;
             }
