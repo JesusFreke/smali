@@ -67,7 +67,7 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
         if (dead) {
-            writer.write("'#.packed-switch ");
+            writer.write("#.packed-switch ");
             IntegerRenderer.writeTo(writer, instruction.getFirstKey());
             writer.write('\n');
             for (LabelMethodItem label: labels) {
