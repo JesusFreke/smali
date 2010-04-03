@@ -61,7 +61,9 @@ public class Instruction21c extends InstructionWithReference implements SingleRe
     private Instruction21c(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
         super(dexFile, opcode, buffer, bufferIndex);
 
-        if (opcode == Opcode.NEW_INSTANCE && ((TypeIdItem) this.getReferencedItem()).getTypeDescriptor().charAt(0) != 'L') {
+        if (opcode == Opcode.NEW_INSTANCE &&
+                ((TypeIdItem)this.getReferencedItem()).getTypeDescriptor().charAt(0) != 'L') {
+            
             throw new RuntimeException("Only class references can be used with the new-instance opcode");
         }
 
