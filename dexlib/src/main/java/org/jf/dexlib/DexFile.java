@@ -390,7 +390,7 @@ public class DexFile
             }
         }
 
-        ReadContext readContext = new ReadContext(this);
+        ReadContext readContext = new ReadContext();
 
         HeaderItem.readFrom(in, 0, readContext);
 
@@ -400,23 +400,24 @@ public class DexFile
         in.setCursor(mapOffset);
         MapItem.readFrom(in, 0, readContext);
 
+        //the sections are ordered in such a way that the item types
         Section sections[] = new Section[] {
+                StringDataSection,
                 StringIdsSection,
                 TypeIdsSection,
+                TypeListsSection,
                 ProtoIdsSection,
                 FieldIdsSection,
                 MethodIdsSection,
-                ClassDefsSection,
-                StringDataSection,
-                TypeListsSection,
-                AnnotationSetRefListsSection,
+                AnnotationsSection,
                 AnnotationSetsSection,
-                ClassDataSection,
-                CodeItemsSection,
+                AnnotationSetRefListsSection,
                 AnnotationDirectoriesSection,
                 DebugInfoItemsSection,
-                AnnotationsSection,
+                CodeItemsSection,
+                ClassDataSection,
                 EncodedArraysSection,
+                ClassDefsSection
         };
 
         for (Section section: sections) {

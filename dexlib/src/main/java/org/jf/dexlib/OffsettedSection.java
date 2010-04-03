@@ -40,39 +40,13 @@ public class OffsettedSection<T extends Item> extends Section<T> {
     }
 
     public void readItems(Input in, ReadContext readContext) {
-        SparseArray<T> precreatedItems = (SparseArray<T>)readContext.getItemsByType(ItemType);
-
-        assert precreatedItems.size() <= items.size(): "Trying to read " + items.size() + " items, but this section " +
-                "already contains " + precreatedItems.size() + " items.";
-
-        int precreatedIndex = 0;
-        int nextPrecreatedOffset = Integer.MAX_VALUE;
-
-        if (precreatedItems.size() > 0) {
-            nextPrecreatedOffset = precreatedItems.keyAt(0);
-        }
 
         for (int i = 0; i < items.size(); i++) {
             assert items.get(i) == null;
 
-            T item = null;
             in.alignTo(ItemType.ItemAlignment);
-            int currentOffset = in.getCursor();
 
-            if (currentOffset == nextPrecreatedOffset) {
-                item = precreatedItems.valueAt(precreatedIndex++);
-                if (precreatedIndex < precreatedItems.size()) {
-                    nextPrecreatedOffset = precreatedItems.keyAt(precreatedIndex);
-                } else {
-                    nextPrecreatedOffset = Integer.MAX_VALUE;
-                }
-            } else if (currentOffset > nextPrecreatedOffset) {
-                //we passed by the next precreated item, something is wrong
-                throw new RuntimeException("The pre-created item at offset 0x" + Hex.u4(nextPrecreatedOffset)
-                        + " was not read");
-            } else {
-                item = (T)ItemFactory.makeItem(ItemType, DexFile);
-            }
+            T item = (T)ItemFactory.makeItem(ItemType, DexFile);
 
             items.set(i, item);
             item.readFrom(in, i, readContext);

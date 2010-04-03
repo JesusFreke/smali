@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
+import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.dexlib.Util.SparseArray;
-import junit.framework.Assert;
 
 import java.util.List;
 
@@ -40,9 +40,7 @@ import java.util.List;
  * that it references, and keeps track of those pre-created items, so the corresponding section
  * for the pre-created items uses them, instead of creating new items
  */
-class ReadContext {
-    private final DexFile dexFile;
-
+public class ReadContext {
     private SparseArray<TypeListItem> typeListItems = new SparseArray<TypeListItem>(0);
     private SparseArray<AnnotationSetRefList> annotationSetRefLists = new SparseArray<AnnotationSetRefList>(0);
     private SparseArray<AnnotationSetItem> annotationSetItems = new SparseArray<AnnotationSetItem>(0);
@@ -51,8 +49,8 @@ class ReadContext {
     private SparseArray<StringDataItem> stringDataItems = new SparseArray<StringDataItem>(0);
     private SparseArray<DebugInfoItem> debugInfoItems = new SparseArray<DebugInfoItem>(0);
     private SparseArray<AnnotationItem> annotationItems = new SparseArray<AnnotationItem>(0);
-    private SparseArray<EncodedArrayItem> encodedArrayItems = new SparseArray<EncodedArrayItem>();
-    private SparseArray<AnnotationDirectoryItem> annotationDirectoryItems = new SparseArray<AnnotationDirectoryItem>();
+    private SparseArray<EncodedArrayItem> encodedArrayItems = new SparseArray<EncodedArrayItem>(0);
+    private SparseArray<AnnotationDirectoryItem> annotationDirectoryItems = new SparseArray<AnnotationDirectoryItem>(0);
 
     private SparseArray[] itemsByType = new SparseArray[] {
             null, //string_id_item
@@ -90,11 +88,8 @@ class ReadContext {
 
     /**
      * Creates a new ReadContext instance.
-     * @param dexFile The dex file that is being read in
      */
-    public ReadContext(DexFile dexFile) {
-        this.dexFile = dexFile;
-
+    public ReadContext() {
         for (int i=0; i<18; i++) {
             sectionSizes[i] = -1;
             sectionOffsets[i] = -1;
@@ -102,78 +97,44 @@ class ReadContext {
     }
 
     /**
-     * Returns a SparseArray containing the items of the given type
-     * that have been pre-created while reading in other sections.
-     *
-     * If the given ItemType isn't an offsetted item, this method will
-     * return null
-     * @param itemType The type of item to get
-     * @return a SparseArray containing the items of the given type
-     * that have been pre-created while reading in other sections, or
-     * null if the ItemType isn't an offsetted item
-     */
-    public SparseArray getItemsByType(ItemType itemType) {
-        return itemsByType[itemType.SectionIndex];
-    }
-
-    /**
-     * Gets or creates an offsetted item of the specified type for the
-     * given offset. Multiple calls to this method with the same itemType
-     * and offset will return the same item.
-     *
-     * This method expects that offset will be a valid offset, not
-     * zero or negative. Use getOptionalOffsetedItemByOffset to handle
-     * the case of an optional item, where an offset of 0 is used to
-     * indicate the item isn't present
-     *
-     * It should not be assumed that the item that is returned will be
-     * initialized. It is only guaranteed that the item will be read in
-     * and initialiazed once the entire dex file has been read in.
-     *
-     * Note that it *is* guaranteed that this exact item will be added to
-     * its corresponding section and read in. In other words, when the
-     * corresponding section is being read in, it will use any items for
-     * that have been "pre-created" by this method, and only create
-     * new items for offsets that haven't been pre-created yet.
+     * Gets the offsetted item of the specified type for the given offset. This method does not support retrieving an
+     * optional item where a value of 0 indicates "not present". Use getOptionalOffsettedItemByOffset instead.
      *
      * @param itemType The type of item to get
      * @param offset The offset of the item
-     * @return an item of the requested type for the given offset
+     * @return the offsetted item of the specified type at the specified offset
      */
     public Item getOffsettedItemByOffset(ItemType itemType, int offset) {
         assert !itemType.isIndexedItem();
 
-        if (offset <= 0) {
-            throw new RuntimeException("Invalid offset " + offset + " for item type " + itemType.TypeName);
-        }
-
         SparseArray<Item> sa = itemsByType[itemType.SectionIndex];
         Item item = sa.get(offset);
         if (item == null) {
-            item = ItemFactory.makeItem(itemType, dexFile);
-            sa.put(offset, item);
+            throw new ExceptionWithContext(String.format("Could not find the %s item at offset %#x",
+                    itemType.TypeName, offset));
         }
         return item;
     }
 
     /**
-     * This method is similar to getOffsettedItemByOffset, except that it allows
-     * the offset to be 0, in which case it will simply return null. This method
-     * should be used for an optional item, where an item offset of 0 indicates
-     * that the item isn't present
+     * Gets the optional offsetted item of the specified type for the given offset
+     *
      * @param itemType The type of item to get
-     * @param offset the offset of the item
-     * @return an item of the requested type for the given offset, or null if
-     * offset is 0
+     * @param offset The offset of the item
+     * @return the offsetted item of the specified type at the specified offset, or null if the offset is 0
      */
     public Item getOptionalOffsettedItemByOffset(ItemType itemType, int offset) {
         assert !itemType.isIndexedItem();
 
-        if (offset == 0) {
-            return null;
-        }
+        assert !itemType.isIndexedItem();
 
-        return getOffsettedItemByOffset(itemType, offset);
+        SparseArray<Item> sa = itemsByType[itemType.SectionIndex];
+        Item item = sa.get(offset);
+        if (item == null && offset != 0) {
+            throw new ExceptionWithContext(String.format("Could not find the %s item at offset %#x",
+                    itemType.TypeName, offset));
+        }
+        return item;
     }
 
     /**
@@ -183,9 +144,6 @@ class ReadContext {
      * @param sectionOffset the offset of the section
      */
     public void addSection(final ItemType itemType, int sectionSize, int sectionOffset) {
-        if (!itemType.isIndexedItem()) {
-            itemsByType[itemType.SectionIndex].ensureCapacity(sectionSize);
-        }
         int storedSectionSize = sectionSizes[itemType.SectionIndex];
         if (storedSectionSize == -1) {
             sectionSizes[itemType.SectionIndex] = sectionSize;
@@ -207,7 +165,6 @@ class ReadContext {
         }
     }
 
-
     /**
      * Sets the items for the specified section. This should be called by an offsetted section
      * after it is finished reading in all its items.
@@ -219,7 +176,6 @@ class ReadContext {
 
         SparseArray<Item> sa = itemsByType[itemType.SectionIndex];
 
-        sa.clear();
         sa.ensureCapacity(items.size());
         for (Item item: items) {
             sa.append(item.getOffset(), item);
