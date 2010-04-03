@@ -448,6 +448,11 @@ instruction returns [int size]
 	|	//e.g. filled-new-array {v0,v1}, I
 		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACE register_list CLOSE_BRACE nonvoid_type_descriptor {$size = Format.Format35c.size;}
 		-> ^(I_STATEMENT_FORMAT35c_TYPE[$start, "I_STATEMENT_FORMAT35c_TYPE"] INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
+	|	//e.g. invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+		INSTRUCTION_FORMAT35s_METHOD OPEN_BRACE register_list CLOSE_BRACE fully_qualified_method
+		{
+			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT35s_METHOD.text);
+		}		
 	|	//e.g. invoke-virtual-range {v0, v1} vtable@0x4
 		INSTRUCTION_FORMAT35ms_METHOD OPEN_BRACE register_list CLOSE_BRACE VTABLE_OFFSET
 		{
