@@ -168,7 +168,7 @@ public class TypeIdItem extends Item<TypeIdItem> {
         /** Only the long and double primitive types are 2 words,
          * everything else is a single word
          */
-        if (type.equals("J") || type.equals("D")) {
+        if (type.charAt(0) == 'J' || type.charAt(0) == 'D') {
             return 2;
         } else {
             return 1;
