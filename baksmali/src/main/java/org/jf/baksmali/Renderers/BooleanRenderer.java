@@ -28,10 +28,12 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
+
+import java.io.IOException;
 
 public class BooleanRenderer {
-    public static void writeTo(IndentingPrintWriter writer, boolean val) {
+    public static void writeTo(IndentingWriter writer, boolean val) throws IOException {
         if (val) {
             writer.write("true");
         } else {

@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.AnnotationItem;
 import org.jf.baksmali.Adaptors.EncodedValue.AnnotationEncodedValueAdaptor;
 import org.jf.dexlib.AnnotationSetItem;
@@ -38,11 +38,11 @@ import java.io.IOException;
 
 public class AnnotationFormatter {
 
-    public static void writeTo(IndentingPrintWriter writer, AnnotationSetItem annotationSet) throws IOException {
+    public static void writeTo(IndentingWriter writer, AnnotationSetItem annotationSet) throws IOException {
         boolean first = true;
         for (AnnotationItem annotationItem: annotationSet.getAnnotations()) {
             if (!first) {
-                writer.println();
+                writer.write('\n');
             }
             first = false;
 
@@ -50,15 +50,15 @@ public class AnnotationFormatter {
         }
     }
 
-    public static void writeTo(IndentingPrintWriter writer, AnnotationItem annotationItem) throws IOException {
+    public static void writeTo(IndentingWriter writer, AnnotationItem annotationItem) throws IOException {
         writer.write(".annotation ");
         writer.write(annotationItem.getVisibility().visibility);
         writer.write(' ');
         ReferenceFormatter.writeTypeReference(writer, annotationItem.getEncodedAnnotation().annotationType);
-        writer.println();
+        writer.write('\n');
 
         AnnotationEncodedValueAdaptor.writeElementsTo(writer, annotationItem.getEncodedAnnotation());
 
-        writer.println(".end annotation");
+        writer.write(".end annotation\n");
     }
 }

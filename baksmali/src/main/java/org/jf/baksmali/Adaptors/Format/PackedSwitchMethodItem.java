@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
@@ -65,25 +65,25 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
     }
 
     @Override
-    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         if (dead) {
             writer.write("'#.packed-switch ");
             IntegerRenderer.writeTo(writer, instruction.getFirstKey());
-            writer.println();
+            writer.write('\n');
             for (LabelMethodItem label: labels) {
                 writer.write("#   ");
                 label.writeTo(writer);
-                writer.println();
+                writer.write('\n');
             }
             writer.write("#.end packed-switch");
         } else {
             writer.write(".packed-switch ");
             IntegerRenderer.writeTo(writer, instruction.getFirstKey());
             writer.indent(4);
-            writer.println();
+            writer.write('\n');
             for (LabelMethodItem label: labels) {
                 label.writeTo(writer);
-                writer.println();
+                writer.write('\n');
             }
             writer.deindent(4);
             writer.write(".end packed-switch");

@@ -28,34 +28,33 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.ArrayEncodedValue;
 
 import java.io.IOException;
 
 public class ArrayEncodedValueAdaptor {
-    public static void writeTo(IndentingPrintWriter writer, ArrayEncodedValue encodedArray) throws IOException {
-        writer.print('{');
+    public static void writeTo(IndentingWriter writer, ArrayEncodedValue encodedArray) throws IOException {
+        writer.write('{');
         EncodedValue[] values = encodedArray.values;
         if (values == null || values.length == 0) {
-            writer.print('}');
+            writer.write('}');
             return;
         }
 
-        writer.println();
+        writer.write('\n');
         writer.indent(4);
         boolean first = true;
         for (EncodedValue encodedValue: encodedArray.values) {
             if (!first) {
-                writer.println(',');
+                writer.write(",\n");
             }
             first = false;
 
             EncodedValueAdaptor.writeTo(writer, encodedValue);
         }
         writer.deindent(4);
-        writer.println();
-        writer.print('}');
+        writer.write("\n}");
     }
 }

@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.baksmali;
 import org.jf.baksmali.main;
 import org.jf.dexlib.ClassDataItem;
@@ -56,7 +56,7 @@ public class PostInstructionRegisterInfoMethodItem extends MethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         int registerInfo = baksmali.registerInfo;
         int registerCount = analyzedInstruction.getRegisterCount();
         BitSet registers = new BitSet(registerCount);
@@ -83,7 +83,7 @@ public class PostInstructionRegisterInfoMethodItem extends MethodItem {
         }
     }
 
-    private boolean writeRegisterInfo(IndentingPrintWriter writer, BitSet registers) throws IOException {
+    private boolean writeRegisterInfo(IndentingWriter writer, BitSet registers) throws IOException {
         ClassDataItem.EncodedMethod encodedMethod = methodAnalyzer.getMethod();
 
         int registerNum = registers.nextSetBit(0);

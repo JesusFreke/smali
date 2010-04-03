@@ -29,24 +29,24 @@
 package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
 
 import java.io.IOException;
 
 public abstract class AnnotationEncodedValueAdaptor {
 
-    public static void writeTo(IndentingPrintWriter writer, AnnotationEncodedSubValue encodedAnnotation)
+    public static void writeTo(IndentingWriter writer, AnnotationEncodedSubValue encodedAnnotation)
                                throws IOException {
         writer.write(".subannotation ");
         ReferenceFormatter.writeTypeReference(writer, encodedAnnotation.annotationType);
-        writer.println();
+        writer.write('\n');
 
         writeElementsTo(writer, encodedAnnotation);
         writer.write(".end subannotation");
     }
 
-    public static void writeElementsTo(IndentingPrintWriter writer, AnnotationEncodedSubValue encodedAnnotation)
+    public static void writeElementsTo(IndentingWriter writer, AnnotationEncodedSubValue encodedAnnotation)
                                 throws IOException {
         writer.indent(4);
         for (int i=0; i<encodedAnnotation.names.length; i++) {
@@ -54,7 +54,7 @@ public abstract class AnnotationEncodedValueAdaptor {
             writer.write(" = ");
 
             EncodedValueAdaptor.writeTo(writer, encodedAnnotation.values[i]);
-            writer.println();
+            writer.write('\n');
         }
         writer.deindent(4);
     }

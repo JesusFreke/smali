@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.*;
@@ -124,7 +124,7 @@ public class ClassDefinition {
         }
     }
 
-    public void writeTo(IndentingPrintWriter writer) throws IOException {
+    public void writeTo(IndentingWriter writer) throws IOException {
         writeClass(writer);
         writeSuper(writer);
         writeSourceFile(writer);
@@ -137,37 +137,39 @@ public class ClassDefinition {
         return ;
     }
 
-    private void writeClass(IndentingPrintWriter writer) {
+    private void writeClass(IndentingWriter writer) throws IOException {
         writer.write(".class ");
         writeAccessFlags(writer);
-        writer.println(classDefItem.getClassType().getTypeDescriptor());
+        writer.write(classDefItem.getClassType().getTypeDescriptor());
+        writer.write('\n');
     }
 
-    private void writeAccessFlags(IndentingPrintWriter writer) {
+    private void writeAccessFlags(IndentingWriter writer) throws IOException {
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForClass(classDefItem.getAccessFlags())) {
             writer.write(accessFlag.toString());
             writer.write(' ');
         }
     }
 
-    private void writeSuper(IndentingPrintWriter writer) {
+    private void writeSuper(IndentingWriter writer) throws IOException {
         TypeIdItem superClass = classDefItem.getSuperclass();
         if (superClass != null) {
             writer.write(".super ");
-            writer.println(superClass.getTypeDescriptor());
+            writer.write(superClass.getTypeDescriptor());
+            writer.write('\n');
         }
     }
 
-    private void writeSourceFile(IndentingPrintWriter writer) {
+    private void writeSourceFile(IndentingWriter writer) throws IOException {
         StringIdItem sourceFile = classDefItem.getSourceFile();
         if (sourceFile != null) {
             writer.write(".source \"");
-            writer.print(sourceFile.getStringValue());
-            writer.println('"');
+            writer.write(sourceFile.getStringValue());
+            writer.write("\"\n");
         }
     }
 
-    private void writeInterfaces(IndentingPrintWriter writer) {
+    private void writeInterfaces(IndentingWriter writer) throws IOException {
         TypeListItem interfaceList = classDefItem.getInterfaces();
         if (interfaceList == null) {
             return;
@@ -178,15 +180,16 @@ public class ClassDefinition {
             return;
         }
 
-        writer.println();
-        writer.println("# interfaces");
+        writer.write('\n');
+        writer.write("# interfaces\n");
         for (TypeIdItem typeIdItem: interfaceList.getTypes()) {
             writer.write(".implements ");
-            writer.println(typeIdItem.getTypeDescriptor());
+            writer.write(typeIdItem.getTypeDescriptor());
+            writer.write('\n');
         }
     }
 
-    private void writeAnnotations(IndentingPrintWriter writer) throws IOException {
+    private void writeAnnotations(IndentingWriter writer) throws IOException {
         AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
         if (annotationDirectory == null) {
             return;
@@ -197,13 +200,12 @@ public class ClassDefinition {
             return;
         }
 
-        writer.println();
-        writer.println();
-        writer.println("# annotations");
+        writer.write("\n\n");
+        writer.write("# annotations\n");
         AnnotationFormatter.writeTo(writer, annotationSet);
     }
 
-    private void writeStaticFields(IndentingPrintWriter writer) throws IOException {
+    private void writeStaticFields(IndentingWriter writer) throws IOException {
         if (classDataItem == null) {
             return;
         }
@@ -224,14 +226,13 @@ public class ClassDefinition {
             return;
         }
 
-        writer.println();
-        writer.println();
-        writer.println("# static fields");
+        writer.write("\n\n");
+        writer.write("# static fields\n");
 
         boolean first = true;
         for (int i=0; i<encodedFields.length; i++) {
             if (!first) {
-                writer.println();
+                writer.write('\n');
             }
             first = false;
 
@@ -249,7 +250,7 @@ public class ClassDefinition {
         }
     }
 
-    private void writeInstanceFields(IndentingPrintWriter writer) throws IOException {
+    private void writeInstanceFields(IndentingWriter writer) throws IOException {
         if (classDataItem == null) {
             return;
         }
@@ -259,13 +260,12 @@ public class ClassDefinition {
             return;
         }
 
-        writer.println();
-        writer.println();
-        writer.println("# instance fields");
+        writer.write("\n\n");
+        writer.write("# instance fields\n");
         boolean first = true;
         for (ClassDataItem.EncodedField field: classDataItem.getInstanceFields()) {
             if (!first) {
-                writer.println();
+                writer.write('\n');
             }
             first = false;
 
@@ -275,7 +275,7 @@ public class ClassDefinition {
         }
     }
 
-    private void writeDirectMethods(IndentingPrintWriter writer) throws IOException {
+    private void writeDirectMethods(IndentingWriter writer) throws IOException {
         if (classDataItem == null) {
             return;
         }
@@ -286,13 +286,12 @@ public class ClassDefinition {
             return;
         }
 
-        writer.println();
-        writer.println();
-        writer.println("# direct methods");
+        writer.write("\n\n");
+        writer.write("# direct methods\n");
         writeMethods(writer, directMethods);
     }
 
-    private void writeVirtualMethods(IndentingPrintWriter writer) throws IOException {
+    private void writeVirtualMethods(IndentingWriter writer) throws IOException {
         if (classDataItem == null) {
             return;
         }
@@ -303,17 +302,16 @@ public class ClassDefinition {
             return;
         }
 
-        writer.println();
-        writer.println();
-        writer.println("# virtual methods");
+        writer.write("\n\n");
+        writer.write("# virtual methods\n");
         writeMethods(writer, virtualMethods);
     }
 
-    private void writeMethods(IndentingPrintWriter writer, ClassDataItem.EncodedMethod[] methods) throws IOException {
+    private void writeMethods(IndentingWriter writer, ClassDataItem.EncodedMethod[] methods) throws IOException {
         boolean first = true;
         for (ClassDataItem.EncodedMethod method: methods) {
             if (!first) {
-                writer.println();
+                writer.write('\n');
             }
             first = false;
 

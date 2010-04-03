@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
@@ -70,24 +70,24 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDa
     }
 
     @Override
-    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         if (dead) {
-            writer.println("#.sparse-switch");
+            writer.write("#.sparse-switch\n");
             for (SparseSwitchTarget target: targets) {
                 IntegerRenderer.writeTo(writer, target.Key);
                 writer.write(" -> ");
                 target.Target.writeTo(writer);
-                writer.println();
+                writer.write('\n');
             }
             writer.write("#.end sparse-switch");
         } else {
-            writer.println(".sparse-switch");
+            writer.write(".sparse-switch\n");
             writer.indent(4);
             for (SparseSwitchTarget target: targets) {
                 IntegerRenderer.writeTo(writer, target.Key);
                 writer.write(" -> ");
                 target.Target.writeTo(writer);
-                writer.println();
+                writer.write('\n');
             }
             writer.deindent(4);
             writer.write(".end sparse-switch");

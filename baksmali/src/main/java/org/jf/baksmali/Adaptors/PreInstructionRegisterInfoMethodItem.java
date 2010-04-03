@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.baksmali;
 import org.jf.baksmali.main;
 import org.jf.dexlib.ClassDataItem;
@@ -58,7 +58,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         int registerInfo = baksmali.registerInfo;
         int registerCount = analyzedInstruction.getRegisterCount();
         BitSet registers = new BitSet(registerCount);
@@ -165,7 +165,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
         registers.set(registerCount-parameterRegisterCount, registerCount);
     }
 
-    private boolean writeFullMergeRegs(IndentingPrintWriter writer, BitSet registers, int registerCount)
+    private boolean writeFullMergeRegs(IndentingWriter writer, BitSet registers, int registerCount)
                                     throws IOException {
         if (analyzedInstruction.getPredecessorCount() <= 1) {
             return false;
@@ -196,7 +196,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
             if (firstRegister) {
                 firstRegister = false;
             } else {
-                writer.println();
+                writer.write('\n');
             }
 
             writer.write('#');
@@ -233,7 +233,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
         return !firstRegister;
     }
 
-    private boolean writeRegisterInfo(IndentingPrintWriter writer, BitSet registers,
+    private boolean writeRegisterInfo(IndentingWriter writer, BitSet registers,
                                       boolean addNewline) throws IOException {
         ClassDataItem.EncodedMethod encodedMethod = methodAnalyzer.getMethod();
 
@@ -243,7 +243,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
         }
 
         if (addNewline) {
-            writer.println();
+            writer.write('\n');
         }
         writer.write('#');
         for (; registerNum >= 0; registerNum = registers.nextSetBit(registerNum + 1)) {

@@ -29,14 +29,14 @@
 package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.EncodedValue.*;
 
 import java.io.IOException;
 
 public abstract class EncodedValueAdaptor {
-    public static void writeTo(IndentingPrintWriter writer, EncodedValue encodedValue) throws IOException {
+    public static void writeTo(IndentingWriter writer, EncodedValue encodedValue) throws IOException {
         switch (encodedValue.getValueType()) {
             case VALUE_ANNOTATION:
                 AnnotationEncodedValueAdaptor.writeTo(writer, (AnnotationEncodedValue)encodedValue);

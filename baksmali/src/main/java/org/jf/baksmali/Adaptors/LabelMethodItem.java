@@ -28,8 +28,10 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.baksmali;
+
+import java.io.IOException;
 
 public class LabelMethodItem extends MethodItem {
     private final String labelPrefix;
@@ -77,7 +79,7 @@ public class LabelMethodItem extends MethodItem {
     }
 
 
-    public boolean writeTo(IndentingPrintWriter writer) {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         writer.write(':');
         writer.write(labelPrefix);
         if (baksmali.useSequentialLabels) {

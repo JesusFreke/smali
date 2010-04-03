@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.NullEncodedValue;
@@ -39,7 +39,7 @@ import org.jf.dexlib.Util.AccessFlags;
 import java.io.IOException;
 
 public class FieldDefinition {
-    public static void writeTo(IndentingPrintWriter writer, ClassDataItem.EncodedField encodedField,
+    public static void writeTo(IndentingWriter writer, ClassDataItem.EncodedField encodedField,
                                                 EncodedValue initialValue, AnnotationSetItem annotationSet,
                                                 boolean setInStaticConstructor) throws IOException {
 
@@ -55,7 +55,7 @@ public class FieldDefinition {
                 initialValue != NullEncodedValue.NullValue
             )) {
 
-            writer.println("#the value of this static final field might be set in the static constructor");
+            writer.write("#the value of this static final field might be set in the static constructor\n");
         }
 
         writer.write(".field ");
@@ -68,17 +68,18 @@ public class FieldDefinition {
             EncodedValueAdaptor.writeTo(writer, initialValue);
         }
 
-        writer.println();
+        writer.write('\n');
 
         if (annotationSet != null) {
             writer.indent(4);
             AnnotationFormatter.writeTo(writer, annotationSet);
             writer.deindent(4);
-            writer.println(".end field");
+            writer.write(".end field\n");
         }
     }
 
-    private static void writeAccessFlags(IndentingPrintWriter writer, ClassDataItem.EncodedField encodedField) {
+    private static void writeAccessFlags(IndentingWriter writer, ClassDataItem.EncodedField encodedField)
+                                                                                                 throws IOException {
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(encodedField.accessFlags)) {
             writer.write(accessFlag.toString());
             writer.write(' ');

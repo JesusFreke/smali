@@ -28,10 +28,12 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
+
+import java.io.IOException;
 
 public class LongRenderer {
-    public static void writeTo(IndentingPrintWriter writer, long val) {
+    public static void writeTo(IndentingWriter writer, long val) throws IOException {
         if (val<0) {
             writer.write("-0x");
             writer.printLongAsHex(-val);
@@ -43,7 +45,7 @@ public class LongRenderer {
         }
     }
 
-    public static void writeSignedIntOrLongTo(IndentingPrintWriter writer, long val) {
+    public static void writeSignedIntOrLongTo(IndentingWriter writer, long val) throws IOException {
         if (val<0) {
             writer.write("-0x");
             writer.printLongAsHex(-val);

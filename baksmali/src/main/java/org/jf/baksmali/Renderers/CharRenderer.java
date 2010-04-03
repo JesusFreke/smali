@@ -28,13 +28,13 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.Util.Utf8Utils;
 
 import java.io.IOException;
 
 public class CharRenderer {
-    public static void writeTo(IndentingPrintWriter writer, char val) throws IOException {
+    public static void writeTo(IndentingWriter writer, char val) throws IOException {
         writer.write('\'');
         Utf8Utils.writeEscapedChar(writer, val);
         writer.write('\'');

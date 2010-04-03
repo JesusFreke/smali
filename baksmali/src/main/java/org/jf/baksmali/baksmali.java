@@ -29,11 +29,9 @@
 package org.jf.baksmali;
 
 import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Renderers.*;
 import org.jf.dexlib.Code.Analysis.ClassPath;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.ClassDefItem;
-import org.jf.dexlib.StringIdItem;
 
 import java.io.*;
 import java.util.regex.Matcher;
@@ -163,8 +161,8 @@ public class baksmali {
 
                 BufferedWriter bufWriter = new BufferedWriter(new FileWriter(smaliFile));
 
-                writer = new IndentingPrintWriter(new IndentingWriter(bufWriter));
-                classDefinition.writeTo((IndentingPrintWriter)writer);
+                writer = new IndentingWriter(bufWriter);
+                classDefinition.writeTo((IndentingWriter)writer);
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
                 ex.printStackTrace();

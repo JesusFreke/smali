@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.Format.*;
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.baksmali.baksmali;
 import org.jf.dexlib.*;
@@ -45,7 +45,7 @@ import org.jf.dexlib.Util.SparseIntArray;
 
 import java.io.IOException;
 import java.util.*;
-                                                                          git
+
 public class MethodDefinition {
     private final ClassDataItem.EncodedMethod encodedMethod;
     private final MethodAnalyzer methodAnalyzer;
@@ -99,14 +99,15 @@ public class MethodDefinition {
         }
     }
 
-    public void writeTo(IndentingPrintWriter writer, AnnotationSetItem annotationSet,
+    public void writeTo(IndentingWriter writer, AnnotationSetItem annotationSet,
                         AnnotationSetRefList parameterAnnotations) throws IOException {
         final CodeItem codeItem = encodedMethod.codeItem;
 
         writer.write(".method ");
         writeAccessFlags(writer, encodedMethod);
         writer.write(encodedMethod.method.getMethodName().getStringValue());
-        writer.println(encodedMethod.method.getPrototype().getPrototypeString());
+        writer.write(encodedMethod.method.getPrototype().getPrototypeString());
+        writer.write('\n');
 
         writer.indent(4);
         if (codeItem != null) {
@@ -115,13 +116,14 @@ public class MethodDefinition {
             } else {
                 writer.write(".registers ");
             }
-            writer.println(getRegisterCount(encodedMethod));
+            writer.printIntAsDec(getRegisterCount(encodedMethod));
+            writer.write('\n');
             writeParameters(writer, codeItem, parameterAnnotations);
             if (annotationSet != null) {
                 AnnotationFormatter.writeTo(writer, annotationSet);
             }
 
-            writer.println();
+            writer.write('\n');
 
             for (MethodItem methodItem: getMethodItems()) {
                 if (methodItem.writeTo(writer)) {
@@ -134,7 +136,7 @@ public class MethodDefinition {
             }
         }
         writer.deindent(4);
-        writer.println(".end method");
+        writer.write(".end method\n");
     }
 
     private static int getRegisterCount(ClassDataItem.EncodedMethod encodedMethod)
@@ -150,14 +152,15 @@ public class MethodDefinition {
         return totalRegisters;
     }
 
-    private static void writeAccessFlags(IndentingPrintWriter writer, ClassDataItem.EncodedMethod encodedMethod) {
+    private static void writeAccessFlags(IndentingWriter writer, ClassDataItem.EncodedMethod encodedMethod)
+                                                                                            throws IOException {
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(encodedMethod.accessFlags)) {
             writer.write(accessFlag.toString());
             writer.write(' ');
         }
     }
 
-    private static void writeParameters(IndentingPrintWriter writer, CodeItem codeItem,
+    private static void writeParameters(IndentingWriter writer, CodeItem codeItem,
                                         AnnotationSetRefList parameterAnnotations) throws IOException {
         DebugInfoItem debugInfoItem = null;
         if (baksmali.outputDebugInfo && codeItem != null) {
@@ -205,13 +208,13 @@ public class MethodDefinition {
                 writer.write('"');
             }
 
-            writer.println();
+            writer.write('\n');
             if (annotationSet != null) {
                 writer.indent(4);
                 AnnotationFormatter.writeTo(writer, annotationSet);
                 writer.deindent(4);
 
-                writer.println(".end parameter");
+                writer.write(".end parameter\n");
             }
         }
     }
@@ -362,7 +365,7 @@ public class MethodDefinition {
                     }
 
                     @Override
-                    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                    public boolean writeTo(IndentingWriter writer) throws IOException {
                         writer.write("#@");
                         IntegerRenderer.writeUnsignedTo(writer, codeAddress);
                         return true;
@@ -483,7 +486,7 @@ public class MethodDefinition {
                                                   final StringIdItem name, final TypeIdItem type) {
                         methodItems.add(new DebugMethodItem(codeAddress, -1) {
                             @Override
-                            public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                            public boolean writeTo(IndentingWriter writer) throws IOException {
                                 writeStartLocal(writer, codeItem, registerNum, name, type, null);
                                 return true;
                             }
@@ -496,7 +499,7 @@ public class MethodDefinition {
                                                           final TypeIdItem type, final StringIdItem signature) {
                         methodItems.add(new DebugMethodItem(codeAddress, -1) {
                             @Override
-                            public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                            public boolean writeTo(IndentingWriter writer) throws IOException {
                                 writeStartLocal(writer, codeItem, registerNum, name, type, signature);
                                 return true;
                             }
@@ -509,7 +512,7 @@ public class MethodDefinition {
                                                 final StringIdItem signature) {
                         methodItems.add(new DebugMethodItem(codeAddress, -1) {
                             @Override
-                            public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                            public boolean writeTo(IndentingWriter writer) throws IOException {
                                 writeEndLocal(writer, codeItem, registerNum, name, type, signature);
                                 return true;
                             }
@@ -522,7 +525,7 @@ public class MethodDefinition {
                                                 final StringIdItem signature) {
                         methodItems.add(new DebugMethodItem(codeAddress, -1) {
                             @Override
-                            public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                            public boolean writeTo(IndentingWriter writer) throws IOException {
                                 writeRestartLocal(writer, codeItem, registerNum, name, type, signature);
                                 return true;
                             }
@@ -533,7 +536,7 @@ public class MethodDefinition {
                     public void ProcessSetPrologueEnd(int codeAddress) {
                         methodItems.add(new DebugMethodItem(codeAddress, -4) {
                             @Override
-                            public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                            public boolean writeTo(IndentingWriter writer) throws IOException {
                                 writeEndPrologue(writer);
                                 return true;
                             }
@@ -544,7 +547,7 @@ public class MethodDefinition {
                     public void ProcessSetEpilogueBegin(int codeAddress) {
                         methodItems.add(new DebugMethodItem(codeAddress, -4) {
                             @Override
-                            public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                            public boolean writeTo(IndentingWriter writer) throws IOException {
                                 writeBeginEpilogue(writer);
                                 return true;
                             }
@@ -555,7 +558,7 @@ public class MethodDefinition {
                     public void ProcessSetFile(int codeAddress, int length, final StringIdItem name) {
                         methodItems.add(new DebugMethodItem(codeAddress, -3) {
                             @Override
-                            public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                            public boolean writeTo(IndentingWriter writer) throws IOException {
                                 writeSetFile(writer, name.getStringValue());
                                 return true;
                             }
@@ -566,7 +569,7 @@ public class MethodDefinition {
                     public void ProcessLineEmit(int codeAddress, final int line) {
                         methodItems.add(new DebugMethodItem(codeAddress, -2) {
                             @Override
-                            public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+                            public boolean writeTo(IndentingWriter writer) throws IOException {
                                 writeLine(writer, line);
                                 return true;
                             }

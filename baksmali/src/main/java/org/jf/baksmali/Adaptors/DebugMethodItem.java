@@ -28,10 +28,12 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
+
+import java.io.IOException;
 
 public abstract class DebugMethodItem extends MethodItem {
     private final double sortOrder;
@@ -45,21 +47,22 @@ public abstract class DebugMethodItem extends MethodItem {
         return sortOrder;
     }
 
-    protected static void writeLine(IndentingPrintWriter writer, int line) {
+    protected static void writeLine(IndentingWriter writer, int line) throws IOException {
         writer.write(".line ");
-        writer.print(line);
+        writer.printIntAsDec(line);
     }
 
-    protected static void writeEndPrologue(IndentingPrintWriter writer) {
+    protected static void writeEndPrologue(IndentingWriter writer) throws IOException {
         writer.write(".prologue");
     }
 
-    protected static void writeBeginEpilogue(IndentingPrintWriter writer) {
+    protected static void writeBeginEpilogue(IndentingWriter writer) throws IOException {
         writer.write(".epilogue");
     }
 
-    protected static void writeStartLocal(IndentingPrintWriter writer, CodeItem codeItem, int register,
-                                          StringIdItem name, TypeIdItem type, StringIdItem signature) {
+    protected static void writeStartLocal(IndentingWriter writer, CodeItem codeItem, int register,
+                                          StringIdItem name, TypeIdItem type, StringIdItem signature)
+                                          throws IOException {
         writer.write(".local ");
         RegisterFormatter.writeTo(writer, codeItem, register);
         writer.write(", ");
@@ -73,8 +76,8 @@ public abstract class DebugMethodItem extends MethodItem {
         }
     }
 
-    protected static void writeEndLocal(IndentingPrintWriter writer, CodeItem codeItem, int register, StringIdItem name,
-                                       TypeIdItem type, StringIdItem signature) {
+    protected static void writeEndLocal(IndentingWriter writer, CodeItem codeItem, int register, StringIdItem name,
+                                       TypeIdItem type, StringIdItem signature) throws IOException {
         writer.write(".end local ");
         RegisterFormatter.writeTo(writer, codeItem, register);
 
@@ -92,8 +95,9 @@ public abstract class DebugMethodItem extends MethodItem {
     }
 
 
-    protected static void writeRestartLocal(IndentingPrintWriter writer, CodeItem codeItem, int register,
-                                         StringIdItem name, TypeIdItem type, StringIdItem signature) {
+    protected static void writeRestartLocal(IndentingWriter writer, CodeItem codeItem, int register,
+                                         StringIdItem name, TypeIdItem type, StringIdItem signature)
+                                         throws IOException {
         writer.write(".restart local ");
         RegisterFormatter.writeTo(writer, codeItem, register);
 
@@ -110,7 +114,7 @@ public abstract class DebugMethodItem extends MethodItem {
         }
     }
 
-    protected static void writeSetFile(IndentingPrintWriter writer, String fileName) {
+    protected static void writeSetFile(IndentingWriter writer, String fileName) throws IOException {
         writer.write(".source \"");
         writer.write(fileName);
         writer.write('"');

@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 
 import java.io.IOException;
 
@@ -44,7 +44,7 @@ public class CommentedOutMethodItem extends MethodItem {
         return commentedOutMethodItem.getSortOrder() + .001;
     }
 
-    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         writer.write('#');
         commentedOutMethodItem.writeTo(writer);
         return true;

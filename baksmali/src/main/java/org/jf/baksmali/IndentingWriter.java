@@ -33,6 +33,7 @@ import java.io.Writer;
 
 public class IndentingWriter extends Writer {
     private final Writer writer;
+    private final char[] buffer = new char[16];
     private int indentLevel = 0;
     private boolean beginningOfLine;
 
@@ -144,5 +145,43 @@ public class IndentingWriter extends Writer {
                 indentLevel = 0;
             }
         //}
+    }
+
+    public void printLongAsHex(long value) throws IOException {
+        int bufferIndex = 0;
+        do {
+            int digit = (int)(value & 15);
+            if (digit < 10) {
+                buffer[bufferIndex++] = (char)(digit + '0');
+            } else {
+                buffer[bufferIndex++] = (char)((digit - 10) + 'a');
+            }
+
+            value >>>= 4;
+        } while (value != 0);
+
+        while (bufferIndex>0) {
+            write(buffer[--bufferIndex]);
+        }
+    }
+
+    public void printIntAsDec(int value) throws IOException {
+        int bufferIndex = 0;
+        boolean negative = value < 0;
+
+        do {
+            int digit = value % 10;
+            buffer[bufferIndex++] = (char)(digit + '0');
+
+            value = value / 10;
+        } while (value != 0);
+
+        if (negative) {
+            write('-');
+        }
+
+        while (bufferIndex>0) {
+            write(buffer[--bufferIndex]);
+        }
     }
 }

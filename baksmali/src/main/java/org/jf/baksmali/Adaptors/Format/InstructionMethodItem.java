@@ -31,7 +31,7 @@ package org.jf.baksmali.Adaptors.Format;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.*;
@@ -54,7 +54,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         switch (instruction.getFormat()) {
             case Format10t:
                 writeOpcode(writer);
@@ -203,33 +203,33 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         return false;
     }
 
-    protected void writeOpcode(IndentingPrintWriter writer) throws IOException {
+    protected void writeOpcode(IndentingWriter writer) throws IOException {
         writer.write(instruction.opcode.name);
     }
 
-    protected void writeTargetLabel(IndentingPrintWriter writer) throws IOException {
+    protected void writeTargetLabel(IndentingWriter writer) throws IOException {
         //this method is overrided by OffsetInstructionMethodItem, and should only be called for the formats that
         //have a target
         throw new RuntimeException();
     }
 
-    protected void writeRegister(IndentingPrintWriter writer, int registerNumber) throws IOException {
+    protected void writeRegister(IndentingWriter writer, int registerNumber) throws IOException {
         RegisterFormatter.writeTo(writer, codeItem, registerNumber);
     }
 
-    protected void writeFirstRegister(IndentingPrintWriter writer) throws IOException {
+    protected void writeFirstRegister(IndentingWriter writer) throws IOException {
         writeRegister(writer, ((SingleRegisterInstruction)instruction).getRegisterA());
     }
 
-    protected void writeSecondRegister(IndentingPrintWriter writer) throws IOException {
+    protected void writeSecondRegister(IndentingWriter writer) throws IOException {
         writeRegister(writer, ((TwoRegisterInstruction)instruction).getRegisterB());
     }
 
-    protected void writeThirdRegister(IndentingPrintWriter writer) throws IOException {
+    protected void writeThirdRegister(IndentingWriter writer) throws IOException {
         writeRegister(writer, ((ThreeRegisterInstruction)instruction).getRegisterC());
     }
 
-    protected void writeInvokeRegisters(IndentingPrintWriter writer) throws IOException {
+    protected void writeInvokeRegisters(IndentingWriter writer) throws IOException {
         FiveRegisterInstruction instruction = (FiveRegisterInstruction)this.instruction;
         final int regCount = instruction.getRegCount();
 
@@ -274,7 +274,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         writer.write('}');
     }
 
-    protected void writeInvokeRangeRegisters(IndentingPrintWriter writer) throws IOException {
+    protected void writeInvokeRangeRegisters(IndentingWriter writer) throws IOException {
         RegisterRangeInstruction instruction = (RegisterRangeInstruction)this.instruction;
 
         int regCount = instruction.getRegCount();
@@ -286,21 +286,21 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         }
     }
 
-    protected void writeLiteral(IndentingPrintWriter writer) throws IOException {
+    protected void writeLiteral(IndentingWriter writer) throws IOException {
         LongRenderer.writeSignedIntOrLongTo(writer, ((LiteralInstruction)instruction).getLiteral());
     }
 
-    protected void writeFieldOffset(IndentingPrintWriter writer) throws IOException {
+    protected void writeFieldOffset(IndentingWriter writer) throws IOException {
         writer.write("field@0x");
         writer.printLongAsHex(((OdexedFieldAccess)instruction).getFieldOffset());
     }
 
-    protected void writeVtableIndex(IndentingPrintWriter writer) throws IOException {
+    protected void writeVtableIndex(IndentingWriter writer) throws IOException {
         writer.write("vtable@0x");
         writer.printLongAsHex(((OdexedInvokeVirtual)instruction).getMethodIndex());
     }
 
-    protected void writeReference(IndentingPrintWriter writer) throws IOException {
+    protected void writeReference(IndentingWriter writer) throws IOException {
         Item item = ((InstructionWithReference)instruction).getReferencedItem();
         ReferenceFormatter.writeReference(writer, item);
     }

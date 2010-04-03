@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.Renderers.ByteRenderer;
 import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
@@ -45,11 +45,11 @@ public class ArrayDataMethodItem extends InstructionMethodItem<ArrayDataPseudoIn
         this.dead = dead;
     }
 
-    public boolean writeTo(IndentingPrintWriter writer) throws IOException {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         if (dead) {
-            writer.print("#.array-data 0x");
+            writer.write("#.array-data 0x");
             writer.printLongAsHex(instruction.getElementWidth());
-            writer.println();
+            writer.write('\n');
 
             Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
             while (iterator.hasNext()) {
@@ -62,13 +62,13 @@ public class ArrayDataMethodItem extends InstructionMethodItem<ArrayDataPseudoIn
                     }
                     ByteRenderer.writeUnsignedTo(writer, element.buffer[element.bufferIndex+i]);
                 }
-                writer.println();
+                writer.write('\n');
             }
-            writer.print("#.end array-data");
+            writer.write("#.end array-data");
         } else {
-            writer.print(".array-data 0x");
+            writer.write(".array-data 0x");
             writer.printLongAsHex(instruction.getElementWidth());
-            writer.println();
+            writer.write('\n');
 
             writer.indent(4);
             Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
@@ -81,10 +81,10 @@ public class ArrayDataMethodItem extends InstructionMethodItem<ArrayDataPseudoIn
                     }
                     ByteRenderer.writeUnsignedTo(writer, element.buffer[element.bufferIndex+i]);
                 }
-                writer.println();
+                writer.write('\n');
             }
             writer.deindent(4);
-            writer.print(".end array-data");
+            writer.write(".end array-data");
         }
         return true;
     }

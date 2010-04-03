@@ -28,10 +28,12 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
+
+import java.io.IOException;
 
 public class ShortRenderer {
-    public static void writeTo(IndentingPrintWriter writer, short val) {
+    public static void writeTo(IndentingWriter writer, short val) throws IOException {
         if (val < 0) {
             writer.write("-0x");
             writer.printLongAsHex(-val);

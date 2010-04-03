@@ -28,8 +28,10 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.TypeIdItem;
+
+import java.io.IOException;
 
 public class CatchMethodItem extends MethodItem {
     private final TypeIdItem exceptionType;
@@ -76,7 +78,7 @@ public class CatchMethodItem extends MethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingPrintWriter writer) {
+    public boolean writeTo(IndentingWriter writer) throws IOException {
         if (exceptionType == null) {
             writer.write(".catchall");
         } else {

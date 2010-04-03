@@ -29,13 +29,13 @@
 package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.FieldIdItem;
 
 import java.io.IOException;
 
 public class EnumEncodedValueAdaptor {
-    public static void writeTo(IndentingPrintWriter writer, FieldIdItem item) throws IOException {
+    public static void writeTo(IndentingWriter writer, FieldIdItem item) throws IOException {
         writer.write(".enum ");
         ReferenceFormatter.writeFieldReference(writer, item);
     }

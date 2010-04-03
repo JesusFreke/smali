@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.Code.Instruction;
@@ -52,7 +52,7 @@ public class OffsetInstructionFormatMethodItem<T extends Instruction & OffsetIns
     }
 
     @Override
-    protected void writeTargetLabel(IndentingPrintWriter writer) throws IOException {
+    protected void writeTargetLabel(IndentingWriter writer) throws IOException {
         label.writeTo(writer);
     }
 

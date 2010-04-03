@@ -28,10 +28,12 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingPrintWriter;
+import org.jf.baksmali.IndentingWriter;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.baksmali.baksmali;
+
+import java.io.IOException;
 
 /**
  * This class contains the logic used for formatting registers
@@ -43,13 +45,13 @@ public class RegisterFormatter {
      * output the registers in the v<n> format. But if false, then it will check if *both* registers are parameter
      * registers, and if so, use the p<n> format for both. If only the last register is a parameter register, it will
      * use the v<n> format for both, otherwise it would be confusing to have something like {v20 .. p1}
-     * @param writer the <code>IndentingPrintWriter</code> to write to
+     * @param writer the <code>IndentingWriter</code> to write to
      * @param codeItem the <code>CodeItem</code> that the register is from
      * @param startRegister the first register in the range
      * @param lastRegister the last register in the range
      */
-    public static void writeRegisterRange(IndentingPrintWriter writer, CodeItem codeItem, int startRegister,
-                                          int lastRegister) {
+    public static void writeRegisterRange(IndentingWriter writer, CodeItem codeItem, int startRegister,
+                                          int lastRegister) throws IOException {
         assert lastRegister >= startRegister;
 
         if (!baksmali.noParameterRegisters) {
@@ -61,17 +63,17 @@ public class RegisterFormatter {
 
             if (startRegister >= registerCount - parameterRegisterCount) {
                 writer.write("{p");
-                writer.print(startRegister - (registerCount - parameterRegisterCount));
+                writer.printIntAsDec(startRegister - (registerCount - parameterRegisterCount));
                 writer.write(" .. p");
-                writer.print(lastRegister - (registerCount - parameterRegisterCount));
+                writer.printIntAsDec(lastRegister - (registerCount - parameterRegisterCount));
                 writer.write('}');
                 return;
             }
         }
         writer.write("{v");
-        writer.print(startRegister);
+        writer.printIntAsDec(startRegister);
         writer.write(" .. v");
-        writer.print(lastRegister);
+        writer.printIntAsDec(lastRegister);
         writer.write('}');
     }
 
@@ -80,22 +82,22 @@ public class RegisterFormatter {
      * output a register in the v<n> format. If false, then it determines if the register is a parameter register,
      * and if so, formats it in the p<n> format instead.
      *
-     * @param writer the <code>IndentingPrintWriter</code> to write to
+     * @param writer the <code>IndentingWriter</code> to write to
      * @param codeItem the <code>CodeItem</code> that the register is from
      * @param register the register number
      */
-    public static void writeTo(IndentingPrintWriter writer, CodeItem codeItem, int register) {
+    public static void writeTo(IndentingWriter writer, CodeItem codeItem, int register) throws IOException {
         if (!baksmali.noParameterRegisters) {
             int parameterRegisterCount = codeItem.getParent().method.getPrototype().getParameterRegisterCount()
                     + (((codeItem.getParent().accessFlags & AccessFlags.STATIC.getValue())==0)?1:0);
             int registerCount = codeItem.getRegisterCount();
             if (register >= registerCount - parameterRegisterCount) {
                 writer.write('p');
-                writer.print((register - (registerCount - parameterRegisterCount)));
+                writer.printIntAsDec((register - (registerCount - parameterRegisterCount)));
                 return;
             }
         }
         writer.write('v');
-        writer.print(register);
+        writer.printIntAsDec(register);
     }
 }
