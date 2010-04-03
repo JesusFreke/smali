@@ -72,6 +72,6 @@ public class OdexDependencies {
     }
 
     public byte[] getDependencyChecksum(int index) {
-        return Arrays.copyOf(dependencyChecksums[index], dependencyChecksums.length);
+        return dependencyChecksums[index].clone();
     }
 }
