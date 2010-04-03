@@ -78,66 +78,43 @@ public class ByteArrayInput
 
     /** {@inheritDoc} */
     public byte readByte() {
-        int readAt = cursor;
-        int end = readAt + 1;
-
-        if (end > data.length) {
-            throwBounds();
-        }
-
-        cursor = end;
-        return data[readAt];
+        return data[cursor++];
     }
 
     /** {@inheritDoc} */
     public int readShort() {
         int readAt = cursor;
-        int end = readAt + 2;
-
-        if (end > data.length) {
-            throwBounds();
-        }
-
-        cursor = end;
-        return ((data[readAt] & 0xff) +
-                ((data[readAt + 1] & 0xff) << 8));
+        int result = ((data[readAt++] & 0xff) +
+                     ((data[readAt++] & 0xff) << 8));
+        cursor = readAt;
+        return result;
     }
 
     /** {@inheritDoc} */
     public int readInt() {
         int readAt = cursor;
-        int end = readAt + 4;
-
-        if (end > data.length) {
-            throwBounds();
-        }
-
-        cursor = end;
-        return  (data[readAt] & 0xff) +
-                ((data[readAt + 1] & 0xff) << 8) +
-                ((data[readAt + 2] & 0xff) << 16) +
-                ((data[readAt + 3] & 0xff) << 24);
+        int result = (data[readAt++] & 0xff) +
+                     ((data[readAt++] & 0xff) << 8) +
+                     ((data[readAt++] & 0xff) << 16) +
+                     ((data[readAt++] & 0xff) << 24);
+        cursor = readAt;
+        return result;
     }
 
     /** {@inheritDoc} */
     public long readLong() {
         int readAt = cursor;
-        int end = readAt + 8;
 
-        if (end > data.length) {
-            throwBounds();
-        }
-
-        cursor = end;
-
-        return  (data[readAt] & 0xffL) |
-                ((data[readAt + 1] & 0xffL) << 8) |
-                ((data[readAt + 2] & 0xffL) << 16) |
-                ((data[readAt + 3] & 0xffL) << 24) |
-                ((data[readAt + 4] & 0xffL) << 32) |
-                ((data[readAt + 5] & 0xffL) << 40) |
-                ((data[readAt + 6] & 0xffL) << 48) |
-                ((data[readAt + 7] & 0xffL) << 58);
+        long result = (data[readAt++] & 0xffL) |
+                      ((data[readAt++] & 0xffL) << 8) |
+                      ((data[readAt++] & 0xffL) << 16) |
+                      ((data[readAt++] & 0xffL) << 24) |
+                      ((data[readAt++] & 0xffL) << 32) |
+                      ((data[readAt++] & 0xffL) << 40) |
+                      ((data[readAt++] & 0xffL) << 48) |
+                      ((data[readAt++] & 0xffL) << 58);
+        cursor = readAt;
+        return result;
     }
 
 
@@ -300,9 +277,6 @@ public class ByteArrayInput
         int startPosition = cursor;
         while (data[cursor] != 0) {
             cursor++;
-            if (cursor >= data.length) {
-                throwBounds();
-            }
         }
         int byteCount = cursor - startPosition;
 
@@ -314,24 +288,12 @@ public class ByteArrayInput
 
     /** {@inheritDoc} */
     public void skipBytes(int count) {
-        int end = cursor + count;
-
-        if (end > data.length) {
-            throwBounds();
-        }
-
-        cursor = end;
+        cursor += count;
     }
 
     /** {@inheritDoc} */
     public void alignTo(int alignment) {
-        int end = AlignmentUtils.alignOffset(cursor, alignment);
-
-        if (end > data.length) {
-            throwBounds();
-        }
-
-        cursor = end;
+        cursor = AlignmentUtils.alignOffset(cursor, alignment);
     }
 
     /**
