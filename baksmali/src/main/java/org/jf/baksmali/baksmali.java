@@ -74,10 +74,11 @@ public class baksmali {
 
                 if (dexFile.isOdex() && bootClassPath == null) {
                     //ext.jar is a special case - it is typically the 2nd jar in the boot class path, but it also
-                    //depends on classes in framework.jar. If the user didn't specify a -c option, we should add
-                    //framework.jar to the boot class path by default, so that it "just works"
+                    //depends on classes in framework.jar (typically the 3rd jar in the BCP). If the user didn't
+                    //specify a -c option, we should add framework.jar to the boot class path by default, so that it
+                    //"just works"
                     if (extraBootClassPathArray == null && isExtJar(dexFilePath)) {
-                        extraBootClassPath = ":framework.jar";
+                        extraBootClassPathArray = new String[] {"framework.jar"};
                     }
                     ClassPath.InitializeClassPathFromOdex(classPathDirs, extraBootClassPathArray, dexFilePath, dexFile);
                 } else {
