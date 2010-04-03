@@ -205,7 +205,7 @@ public class MethodDefinition {
             writer.write(".parameter");
 
             if (parameterName != null) {
-                writer.write('"');
+                writer.write(" \"");
                 writer.write(parameterName.getStringValue());
                 writer.write('"');
             }
