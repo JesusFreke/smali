@@ -339,37 +339,11 @@ public class main {
                 .withDescription("prints the help message then exits. Specify twice for debug options")
                 .create("?");
 
-        Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
-                .withDescription("suppresses the output of the disassembly")
-                .create("N");
-
-        Option dumpOption = OptionBuilder.withLongOpt("dump-to")
-                .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
-                        " (<dexfile>.dump by default), along with the normal disassembly.")
-                .hasOptionalArg()
-                .withArgName("FILE")
-                .create("D");
-
-        Option writeDexOption = OptionBuilder.withLongOpt("write-dex")
-                .withDescription("additionally rewrites the input dex file to FILE")
-                .hasArg()
-                .withArgName("FILE")
-                .create("W");
-
         Option outputDirOption = OptionBuilder.withLongOpt("output")
                 .withDescription("the directory where the disassembled files will be placed. The default is out")
                 .hasArg()
                 .withArgName("DIR")
                 .create("o");
-
-        Option sortOption = OptionBuilder.withLongOpt("sort")
-                .withDescription("sort the items in the dex file into a canonical order before dumping/writing")
-                .create("S");
-
-        Option fixSignedRegisterOption = OptionBuilder.withLongOpt("fix-signed-registers")
-                .withDescription("when dumping or rewriting, fix any registers in the debug info that are encoded as" +
-                        " a signed value")
-                .create("F");
 
         Option noParameterRegistersOption = OptionBuilder.withLongOpt("no-parameter-registers")
                 .withDescription("use the v<n> syntax instead of the p<n> syntax for registers mapped to method " +
@@ -427,6 +401,34 @@ public class main {
         Option codeOffsetOption = OptionBuilder.withLongOpt("code-offsets")
                 .withDescription("add comments to the disassembly containing the code offset for each address")
                 .create("f");
+
+
+
+        Option dumpOption = OptionBuilder.withLongOpt("dump-to")
+                .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
+                        " (<dexfile>.dump by default), along with the normal disassembly.")
+                .hasOptionalArg()
+                .withArgName("FILE")
+                .create("D");
+
+        Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
+                .withDescription("suppresses the output of the disassembly")
+                .create("N");
+
+        Option writeDexOption = OptionBuilder.withLongOpt("write-dex")
+                .withDescription("additionally rewrites the input dex file to FILE")
+                .hasArg()
+                .withArgName("FILE")
+                .create("W");
+
+        Option sortOption = OptionBuilder.withLongOpt("sort")
+                .withDescription("sort the items in the dex file into a canonical order before dumping/writing")
+                .create("S");
+
+        Option fixSignedRegisterOption = OptionBuilder.withLongOpt("fix-signed-registers")
+                .withDescription("when dumping or rewriting, fix any registers in the debug info that are encoded as" +
+                        " a signed value")
+                .create("F");
 
         Option verifyDexOption = OptionBuilder.withLongOpt("verify")
                 .withDescription("perform bytecode verification")
