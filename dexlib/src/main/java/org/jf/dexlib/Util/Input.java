@@ -132,11 +132,13 @@ public interface Input {
     public byte[] readBytes(int length);
 
     /**
-     * reads a <code>byte[]</code> from this instance, from the current cursor up to but not including
+     * reads and decodes a null terminated utf8 string from the current cursor up to but not including
      * the next null (0) byte. The terminating null byte is read and discarded, so that after the read,
      * the cursor is positioned at the byte immediately after the terminating null
+     *
+     * @return a string representing the decoded value
      */
-    public byte[] readNullTerminatedBytes();
+    public String realNullTerminatedUtf8String();
 
     /**
      * Skips the given number of bytes.

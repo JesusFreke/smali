@@ -68,17 +68,18 @@ public final class Utf8Utils {
      * This method uses a global buffer to avoid having to allocate one every time, so it is *not* thread-safe
      *
      * @param bytes non-null; the bytes to convert
+     * @param start the start index of the utf8 string to convert
+     * @param length the length of the utf8 string to convert, not including any null-terminator that might be present  
      * @return non-null; the converted string
      */
-    public static String utf8BytesToString(byte[] bytes) {
-        int length = bytes.length;
+    public static String utf8BytesToString(byte[] bytes, int start, int length) {
         if (tempBuffer == null || tempBuffer.length < length) {
             tempBuffer = new char[length];
         }
         char[] chars = tempBuffer;
         int outAt = 0;
 
-        for (int at = 0; length > 0; /*at*/) {
+        for (int at = start; length > 0; /*at*/) {
             int v0 = bytes[at] & 0xFF;
             char out;
             switch (v0 >> 4) {

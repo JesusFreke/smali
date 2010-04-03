@@ -296,7 +296,7 @@ public class ByteArrayInput
     }
 
     /** {@inheritDoc} */
-    public byte[] readNullTerminatedBytes() {
+    public String realNullTerminatedUtf8String() {
         int startPosition = cursor;
         while (data[cursor] != 0) {
             cursor++;
@@ -305,12 +305,11 @@ public class ByteArrayInput
             }
         }
         int byteCount = cursor - startPosition;
+
         //skip the terminating null
         cursor++;
 
-        byte[] result = new byte[byteCount];
-        System.arraycopy(data, startPosition, result, 0, byteCount);
-        return result;
+        return Utf8Utils.utf8BytesToString(data, startPosition, byteCount);
     }
 
     /** {@inheritDoc} */

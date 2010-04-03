@@ -78,12 +78,12 @@ public class StringDataItem extends Item<StringDataItem> {
     public static StringDataItem lookupStringDataItem(DexFile dexFile, String value) {
         StringDataItem StringDataItem = new StringDataItem(dexFile, value);
         return dexFile.StringDataSection.getInternedItem(StringDataItem);
-    }    
+    }
 
     /** {@inheritDoc} */
     protected void readItem(Input in, ReadContext readContext) {
         in.readUnsignedLeb128(); //string length
-        stringValue = Utf8Utils.utf8BytesToString(in.readNullTerminatedBytes());
+        stringValue = in.realNullTerminatedUtf8String();
     }
 
     /** {@inheritDoc} */
