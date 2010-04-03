@@ -246,7 +246,7 @@ public class main {
 
     private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile)
             throws Exception {
-        ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(smaliFile));
+        ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(smaliFile), "UTF8");
         input.name = smaliFile.getAbsolutePath();
 
         smaliLexer lexer = new smaliLexer(input);
