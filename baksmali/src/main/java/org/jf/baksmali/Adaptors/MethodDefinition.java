@@ -369,7 +369,7 @@ public class MethodDefinition {
                     @Override
                     public boolean writeTo(IndentingWriter writer) throws IOException {
                         writer.write("#@");
-                        IntegerRenderer.writeUnsignedTo(writer, codeAddress);
+                        writer.printLongAsHex(codeAddress & 0xFFFFFFFF);
                         return true;
                     }
                 });
