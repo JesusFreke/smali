@@ -1,8 +1,8 @@
-/* 
+/*
  * [The "BSD licence"]
- * Copyright (c) 2009 Ben Gruver
+ * Copyright (c) 2010 Ben Gruver
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -13,7 +13,7 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -61,7 +61,7 @@ tokens {
 	I_ENCODED_ENUM;
 	I_ENCODED_ARRAY;
 	I_ARRAY_ELEMENT_SIZE;
-	I_ARRAY_ELEMENTS;	
+	I_ARRAY_ELEMENTS;
 	I_PACKED_SWITCH_START_KEY;
 	I_PACKED_SWITCH_TARGET_COUNT;
 	I_PACKED_SWITCH_TARGETS;
@@ -109,7 +109,7 @@ tokens {
 	I_STATEMENT_FORMAT30t;
 	I_STATEMENT_FORMAT31c;
 	I_STATEMENT_FORMAT31i;
-	I_STATEMENT_FORMAT31t;	
+	I_STATEMENT_FORMAT31t;
 	I_STATEMENT_FORMAT32x;
 	I_STATEMENT_FORMAT35c_METHOD;
 	I_STATEMENT_FORMAT35c_TYPE;
@@ -121,6 +121,9 @@ tokens {
 	I_STATEMENT_SPARSE_SWITCH;
 	I_REGISTER_RANGE;
 	I_REGISTER_LIST;
+
+	LABEL;
+	INTEGER_LITERAL;
 }
 
 @header {
@@ -148,20 +151,69 @@ import org.jf.dexlib.Code.Format.*;
 		}
 		return stack+" "+msg;
 	}
-	
+
 	public String getTokenErrorDisplay(Token t) {
 		return t.toString();
 	}
-	
+
 	public String getErrorHeader(RecognitionException e) {
 		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
 	}
-	
+
 	private CommonTree buildTree(int type, String text, List<CommonTree> children) {
 		CommonTree root = new CommonTree(new CommonToken(type, text));
 		for (CommonTree child: children) {
 			root.addChild(child);
-		}	
+		}
+		return root;
+	}
+
+	private int getTypeLength(String str, int typeStartIndex) {
+		switch (str.charAt(typeStartIndex)) {
+			case 'Z':
+			case 'B':
+			case 'S':
+			case 'C':
+			case 'I':
+			case 'J':
+			case 'F':
+			case 'D':
+				return 1;
+			case 'L':
+			{
+				int i = typeStartIndex;
+				while (str.charAt(++i) != ';');
+				return i-typeStartIndex+1;
+			}
+			case '[':
+			{
+				int i = typeStartIndex;
+				while (str.charAt(++i) == '[');
+				return getTypeLength(str, i)+(i-typeStartIndex);
+			}
+			default:
+				throw new RuntimeException(String.format("Invalid character '\%c' in param list \"\%s\" at position \%d", str.charAt(typeStartIndex), str, typeStartIndex));
+		}
+	}
+
+	private CommonTree parseParamList(CommonToken paramListToken) {
+		String paramList = paramListToken.getText();
+		CommonTree root = new CommonTree();
+
+		int startIndex = paramListToken.getStartIndex();
+
+		int i=0;
+		while (i<paramList.length()) {
+			int typeLength = getTypeLength(paramList, i);
+			root.addChild(new CommonTree(new CommonToken(paramListToken.getInputStream(),
+				PRIMITIVE_TYPE, paramListToken.getChannel(), startIndex+i,
+				startIndex+i+typeLength-1)));
+			i += typeLength;
+		}
+
+		if (root.getChildCount() == 0) {
+			return null;
+		}
 		return root;
 	}
 }
@@ -173,8 +225,12 @@ smali_file
 		boolean hasClassSpec;
 		boolean hasSuperSpec;
 		boolean hasSourceSpec;
+		List<CommonTree> classAnnotations;
 	}
-	@init { $smali_file::hasClassSpec = $smali_file::hasSuperSpec = $smali_file::hasSourceSpec = false; }
+	@init
+	{	$smali_file::hasClassSpec = $smali_file::hasSuperSpec = $smali_file::hasSourceSpec = false;
+		$smali_file::classAnnotations = new ArrayList<CommonTree>();
+	}
 	:
 	(	{!$smali_file::hasClassSpec}?=> class_spec {$smali_file::hasClassSpec = true;}
 	|	{!$smali_file::hasSuperSpec}?=> super_spec {$smali_file::hasSuperSpec = true;}
@@ -182,14 +238,14 @@ smali_file
 	|	{!$smali_file::hasSourceSpec}?=> source_spec {$smali_file::hasSourceSpec = true;}
 	|	method
 	|	field
-	|	annotation
+	|	annotation {$smali_file::classAnnotations.add($annotation.tree);}
 	)+
 	EOF
 	{
 		if (!$smali_file::hasClassSpec) {
 			throw new SemanticException(input, "The file must contain a .class directive");
 		}
-		
+
 		if (!$smali_file::hasSuperSpec) {
 			if (!$class_spec.className.equals("Ljava/lang/Object;")) {
 				throw new SemanticException(input, "The file must contain a .super directive");
@@ -201,8 +257,8 @@ smali_file
 			super_spec?
 			implements_spec*
 			source_spec?
-			^(I_METHODS method*) ^(I_FIELDS field*) ^(I_ANNOTATIONS annotation*));
-		
+			^(I_METHODS method*) ^(I_FIELDS field*) {buildTree(I_ANNOTATIONS, "I_ANNOTATIONS", $smali_file::classAnnotations)});
+
 class_spec returns[String className]
 	:	CLASS_DIRECTIVE access_list CLASS_DESCRIPTOR {$className = $CLASS_DESCRIPTOR.text;} -> CLASS_DESCRIPTOR access_list;
 
@@ -211,7 +267,7 @@ super_spec
 
 implements_spec
 	:	IMPLEMENTS_DIRECTIVE CLASS_DESCRIPTOR -> ^(I_IMPLEMENTS[$start, "I_IMPLEMENTS"] CLASS_DESCRIPTOR);
-	
+
 source_spec
 	:	SOURCE_DIRECTIVE STRING_LITERAL -> ^(I_SOURCE[$start, "I_SOURCE"] STRING_LITERAL);
 
@@ -219,33 +275,23 @@ access_list
 	:	ACCESS_SPEC* -> ^(I_ACCESS_LIST[$start,"I_ACCESS_LIST"] ACCESS_SPEC*);
 
 
-field	:	FIELD_DIRECTIVE access_list MEMBER_NAME nonvoid_type_descriptor literal? 
-		//TODO: get rid of this predicate
-		(	(annotation+ END_FIELD_DIRECTIVE)=> annotation+ END_FIELD_DIRECTIVE
-		| 	END_FIELD_DIRECTIVE?
-		)
-		-> ^(I_FIELD[$start, "I_FIELD"] MEMBER_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*));
-		
-method	
+field
+	@init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
+	:	FIELD_DIRECTIVE access_list simple_name COLON nonvoid_type_descriptor (EQUAL literal)?
+		(	({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation { annotations.add($annotation.tree); } )*
+			(	END_FIELD_DIRECTIVE
+				-> ^(I_FIELD[$start, "I_FIELD"] simple_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*))
+			|	/*epsilon*/ {$smali_file::classAnnotations.addAll(annotations);}
+				-> ^(I_FIELD[$start, "I_FIELD"] simple_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS))
+			)
+		);
+
+method
 	scope {int currentAddress;}
 	:	{$method::currentAddress = 0;}
-		METHOD_DIRECTIVE access_list  MEMBER_NAME method_prototype 
-		statements_and_directives
+		METHOD_DIRECTIVE access_list method_name method_prototype statements_and_directives
 		END_METHOD_DIRECTIVE
-		-> ^(I_METHOD[$start, "I_METHOD"] MEMBER_NAME method_prototype access_list statements_and_directives);
-
-method_prototype
-	:	OPEN_PAREN nonvoid_type_descriptor* CLOSE_PAREN type_descriptor
-		-> ^(I_METHOD_PROTOTYPE[$start, "I_METHOD_PROTOTYPE"] ^(I_METHOD_RETURN_TYPE type_descriptor) nonvoid_type_descriptor*);
-
-
-fully_qualified_method
-	:	reference_type_descriptor ARROW MEMBER_NAME method_prototype
-	->	reference_type_descriptor MEMBER_NAME method_prototype;
-
-fully_qualified_field
-	:	reference_type_descriptor ARROW MEMBER_NAME nonvoid_type_descriptor
-	->	reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor;
+		-> ^(I_METHOD[$start, "I_METHOD"] method_name method_prototype access_list statements_and_directives);
 
 statements_and_directives
 	scope
@@ -268,7 +314,7 @@ statements_and_directives
 		|	parameter_directive
 		|	ordered_debug_directive
 		|	annotation
-		)*		
+		)*
 		->	^(I_REGISTERS registers_directive?)
 			^(I_LABELS label*)
 			{buildTree(I_PACKED_SWITCH_DECLARATIONS, "I_PACKED_SWITCH_DECLARATIONS", $statements_and_directives::packedSwitchDeclarations)}
@@ -281,21 +327,192 @@ statements_and_directives
 
 registers_directive
 	:	(REGISTERS_DIRECTIVE | LOCALS_DIRECTIVE) integral_literal
-	-> 	REGISTERS_DIRECTIVE? LOCALS_DIRECTIVE? integral_literal;
+	->	REGISTERS_DIRECTIVE? LOCALS_DIRECTIVE? integral_literal;
+
+/*identifiers are much more general than most languages. Any of the below can either be
+the indicated type OR an identifier, depending on the context*/
+simple_name
+	:	SIMPLE_NAME
+	|	ACCESS_SPEC -> SIMPLE_NAME[$ACCESS_SPEC]
+	|	POSITIVE_INTEGER_LITERAL -> SIMPLE_NAME[$POSITIVE_INTEGER_LITERAL]
+	|	NEGATIVE_INTEGER_LITERAL -> SIMPLE_NAME[$NEGATIVE_INTEGER_LITERAL]
+	|	FLOAT_LITERAL_OR_ID -> SIMPLE_NAME[$FLOAT_LITERAL_OR_ID]
+	|	DOUBLE_LITERAL_OR_ID -> SIMPLE_NAME[$DOUBLE_LITERAL_OR_ID]
+	|	BOOL_LITERAL -> SIMPLE_NAME[$BOOL_LITERAL]
+	|	REGISTER -> SIMPLE_NAME[$REGISTER]
+	|	PARAM_LIST_OR_ID -> SIMPLE_NAME[$PARAM_LIST_OR_ID]
+	|	PRIMITIVE_TYPE -> SIMPLE_NAME[$PRIMITIVE_TYPE]
+	|	VOID_TYPE -> SIMPLE_NAME[$VOID_TYPE]
+	|	ANNOTATION_VISIBILITY -> SIMPLE_NAME[$ANNOTATION_VISIBILITY]
+	|	INSTRUCTION_FORMAT10t -> SIMPLE_NAME[$INSTRUCTION_FORMAT10t]
+	|	INSTRUCTION_FORMAT10x -> SIMPLE_NAME[$INSTRUCTION_FORMAT10x]
+	|	INSTRUCTION_FORMAT11x -> SIMPLE_NAME[$INSTRUCTION_FORMAT11x]
+	|	INSTRUCTION_FORMAT12x_OR_ID -> SIMPLE_NAME[$INSTRUCTION_FORMAT12x_OR_ID]
+	|	INSTRUCTION_FORMAT21c_FIELD -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_FIELD]
+	|	INSTRUCTION_FORMAT21c_STRING -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_STRING]
+	|	INSTRUCTION_FORMAT21c_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_TYPE]
+	|	INSTRUCTION_FORMAT21t -> SIMPLE_NAME[$INSTRUCTION_FORMAT21t]
+	|	INSTRUCTION_FORMAT22c_FIELD -> SIMPLE_NAME[$INSTRUCTION_FORMAT22c_FIELD]
+	|	INSTRUCTION_FORMAT22c_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT22c_TYPE]
+	|	INSTRUCTION_FORMAT22cs_FIELD -> SIMPLE_NAME[$INSTRUCTION_FORMAT22cs_FIELD]
+	|	INSTRUCTION_FORMAT22s_OR_ID -> SIMPLE_NAME[$INSTRUCTION_FORMAT22s_OR_ID]
+	|	INSTRUCTION_FORMAT22t -> SIMPLE_NAME[$INSTRUCTION_FORMAT22t]
+	|	INSTRUCTION_FORMAT23x -> SIMPLE_NAME[$INSTRUCTION_FORMAT23x]
+	|	INSTRUCTION_FORMAT31i_OR_ID -> SIMPLE_NAME[$INSTRUCTION_FORMAT31i_OR_ID]
+	|	INSTRUCTION_FORMAT31t -> SIMPLE_NAME[$INSTRUCTION_FORMAT31t]
+	|	INSTRUCTION_FORMAT35c_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_METHOD]
+	|	INSTRUCTION_FORMAT35c_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_TYPE]
+	|	INSTRUCTION_FORMAT35s_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35s_METHOD]
+	|	INSTRUCTION_FORMAT35ms_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35ms_METHOD]
+	|	INSTRUCTION_FORMAT51l -> SIMPLE_NAME[$INSTRUCTION_FORMAT51l];
+
+method_name
+	:	simple_name
+	|	METHOD_NAME -> SIMPLE_NAME[$METHOD_NAME];
+
+method_prototype
+	:	OPEN_PAREN param_list CLOSE_PAREN type_descriptor
+		-> ^(I_METHOD_PROTOTYPE[$start, "I_METHOD_PROTOTYPE"] ^(I_METHOD_RETURN_TYPE type_descriptor) param_list?);
+
+param_list
+	:	PARAM_LIST -> { parseParamList((CommonToken)$PARAM_LIST) }
+	|	PARAM_LIST_OR_ID -> { parseParamList((CommonToken)$PARAM_LIST_OR_ID) }
+	|	nonvoid_type_descriptor*;
+
+type_descriptor
+	:	VOID_TYPE
+	|	PRIMITIVE_TYPE
+	|	CLASS_DESCRIPTOR
+	|	ARRAY_DESCRIPTOR;
+
+nonvoid_type_descriptor
+	:	PRIMITIVE_TYPE
+	|	CLASS_DESCRIPTOR
+	|	ARRAY_DESCRIPTOR;
+
+reference_type_descriptor
+	:	CLASS_DESCRIPTOR
+	|	ARRAY_DESCRIPTOR;
+
+integer_literal
+	:	POSITIVE_INTEGER_LITERAL -> INTEGER_LITERAL[$POSITIVE_INTEGER_LITERAL]
+	|	NEGATIVE_INTEGER_LITERAL -> INTEGER_LITERAL[$NEGATIVE_INTEGER_LITERAL];
+
+float_literal
+	:	FLOAT_LITERAL_OR_ID -> FLOAT_LITERAL[$FLOAT_LITERAL_OR_ID]
+	|	FLOAT_LITERAL;
+
+double_literal
+	:	DOUBLE_LITERAL_OR_ID -> DOUBLE_LITERAL[$DOUBLE_LITERAL_OR_ID]
+	|	DOUBLE_LITERAL;
+
+literal
+	:	LONG_LITERAL
+	|	integer_literal
+	|	SHORT_LITERAL
+	|	BYTE_LITERAL
+	|	float_literal
+	|	double_literal
+	|	CHAR_LITERAL
+	|	STRING_LITERAL
+	|	BOOL_LITERAL
+	|	NULL_LITERAL
+	|	array_literal
+	|	subannotation
+	|	type_field_method_literal
+	|	enum_literal;
+
+integral_literal
+	:	LONG_LITERAL
+	|	integer_literal
+	|	SHORT_LITERAL
+	|	CHAR_LITERAL
+	|	BYTE_LITERAL;
+
+fixed_32bit_literal
+	:	LONG_LITERAL
+	|	integer_literal
+	|	SHORT_LITERAL
+	|	BYTE_LITERAL
+	|	float_literal
+	|	CHAR_LITERAL
+	|	BOOL_LITERAL;
+
+fixed_literal returns[int size]
+	:	integer_literal {$size = 4;}
+	|	LONG_LITERAL {$size = 8;}
+	|	SHORT_LITERAL {$size = 2;}
+	|	BYTE_LITERAL {$size = 1;}
+	|	float_literal {$size = 4;}
+	|	double_literal {$size = 8;}
+	|	CHAR_LITERAL {$size = 2;}
+	|	BOOL_LITERAL {$size = 1;};
+
+array_literal
+	:	OPEN_BRACE (literal (COMMA literal)* | ) CLOSE_BRACE
+		-> ^(I_ENCODED_ARRAY[$start, "I_ENCODED_ARRAY"] literal*);
+
+annotation_element
+	:	simple_name EQUAL literal
+		-> ^(I_ANNOTATION_ELEMENT[$start, "I_ANNOTATION_ELEMENT"] simple_name literal);
+
+annotation
+	:	ANNOTATION_DIRECTIVE ANNOTATION_VISIBILITY CLASS_DESCRIPTOR
+		annotation_element* END_ANNOTATION_DIRECTIVE
+		-> ^(I_ANNOTATION[$start, "I_ANNOTATION"] ANNOTATION_VISIBILITY ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*));
+
+subannotation
+	:	SUBANNOTATION_DIRECTIVE CLASS_DESCRIPTOR annotation_element* END_SUBANNOTATION_DIRECTIVE
+		-> ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*);
+
+enum_literal
+	:	ENUM reference_type_descriptor ARROW simple_name COLON reference_type_descriptor
+	->	^(I_ENCODED_ENUM reference_type_descriptor simple_name reference_type_descriptor);
+
+type_field_method_literal
+	:	reference_type_descriptor
+		(	ARROW simple_name
+			(	COLON nonvoid_type_descriptor -> ^(I_ENCODED_FIELD reference_type_descriptor simple_name nonvoid_type_descriptor)
+			|	method_prototype -> ^(I_ENCODED_METHOD reference_type_descriptor simple_name method_prototype)
+			)
+		|	-> reference_type_descriptor
+		)
+	|	PRIMITIVE_TYPE
+	|	VOID_TYPE;
+
+fully_qualified_method
+	:	reference_type_descriptor ARROW method_name method_prototype
+	->	reference_type_descriptor method_name method_prototype;
+
+fully_qualified_field
+	:	reference_type_descriptor ARROW simple_name COLON nonvoid_type_descriptor
+	->	reference_type_descriptor simple_name nonvoid_type_descriptor;
+
+label
+	:	COLON SIMPLE_NAME -> ^(I_LABEL LABEL[$SIMPLE_NAME] I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+
+label_ref_or_offset
+	:	COLON SIMPLE_NAME -> LABEL[$SIMPLE_NAME]
+	|	OFFSET
+	|	NEGATIVE_INTEGER_LITERAL -> OFFSET[$NEGATIVE_INTEGER_LITERAL];
+
+register_list
+	:	REGISTER (COMMA REGISTER)* -> ^(I_REGISTER_LIST[$start, "I_REGISTER_LIST"] REGISTER*)
+	|	->^(I_REGISTER_LIST[$start, "I_REGISTER_LIST"]);
+
+register_range
+	:	REGISTER (DOTDOT REGISTER)? -> ^(I_REGISTER_RANGE[$start, "I_REGISTER_RANGE"] REGISTER REGISTER?);
 
 catch_directive
-	:	CATCH_DIRECTIVE nonvoid_type_descriptor from=offset_or_label to=offset_or_label using=offset_or_label
-		-> ^(I_CATCH[$start, "I_CATCH"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] nonvoid_type_descriptor $from $to $using)
-	;
-	
-catchall_directive
-	:	CATCHALL_DIRECTIVE from=offset_or_label to=offset_or_label using=offset_or_label
-		-> ^(I_CATCHALL[$start, "I_CATCHALL"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] $from $to $using)
-	;
+	:	CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE from=label_ref_or_offset DOTDOT to=label_ref_or_offset CLOSE_BRACE using=label_ref_or_offset
+		-> ^(I_CATCH[$start, "I_CATCH"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] nonvoid_type_descriptor $from $to $using);
 
+catchall_directive
+	:	CATCHALL_DIRECTIVE OPEN_BRACE from=label_ref_or_offset DOTDOT to=label_ref_or_offset CLOSE_BRACE using=label_ref_or_offset
+		-> ^(I_CATCHALL[$start, "I_CATCHALL"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] $from $to $using);
 
 parameter_directive
-	:	PARAMETER_DIRECTIVE 
+	:	PARAMETER_DIRECTIVE
 		(	STRING_LITERAL
 			(	(annotation+ END_PARAMETER_DIRECTIVE)=> annotation+ END_PARAMETER_DIRECTIVE
 			|	END_PARAMETER_DIRECTIVE?
@@ -319,15 +536,15 @@ ordered_debug_directive
 line_directive
 	:	LINE_DIRECTIVE integral_literal
 		-> ^(I_LINE integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
-					
+
 local_directive
-	:	LOCAL_DIRECTIVE	REGISTER SIMPLE_NAME nonvoid_type_descriptor STRING_LITERAL?
+	:	LOCAL_DIRECTIVE	REGISTER COMMA SIMPLE_NAME COLON nonvoid_type_descriptor (COMMA STRING_LITERAL)?
 		-> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER SIMPLE_NAME nonvoid_type_descriptor STRING_LITERAL? I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 end_local_directive
 	:	END_LOCAL_DIRECTIVE REGISTER
 		-> ^(I_END_LOCAL[$start, "I_END_LOCAL"] REGISTER I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
-		
+
 restart_local_directive
 	:	RESTART_LOCAL_DIRECTIVE REGISTER
 		-> ^(I_RESTART_LOCAL[$start, "I_RESTART_LOCAL"] REGISTER I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
@@ -339,142 +556,151 @@ prologue_directive
 epilogue_directive
 	:	EPILOGUE_DIRECTIVE
 		-> ^(I_EPILOGUE[$start, "I_EPILOGUE"] I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
-		
+
 source_directive
 	:	SOURCE_DIRECTIVE STRING_LITERAL
 		-> ^(I_SOURCE[$start, "I_SOURCE"] STRING_LITERAL I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
-		
-label
-	:	LABEL -> ^(I_LABEL LABEL I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
-	
+
+instruction_format12x
+	:	INSTRUCTION_FORMAT12x
+	|	INSTRUCTION_FORMAT12x_OR_ID -> INSTRUCTION_FORMAT12x[$INSTRUCTION_FORMAT12x_OR_ID];
+
+instruction_format22s
+	:	INSTRUCTION_FORMAT22s
+	|	INSTRUCTION_FORMAT22s_OR_ID -> INSTRUCTION_FORMAT22s[$INSTRUCTION_FORMAT22s_OR_ID];
+
+instruction_format31i
+	:	INSTRUCTION_FORMAT31i
+	|	INSTRUCTION_FORMAT31i_OR_ID -> INSTRUCTION_FORMAT31i[$INSTRUCTION_FORMAT31i_OR_ID];
+
 instruction returns [int size]
 	@init {boolean needsNop = false; int targetCount = 0;}
 	:	//e.g. goto endloop:
 		//e.g. goto +3
-		INSTRUCTION_FORMAT10t (LABEL | OFFSET) {$size = Format.Format10t.size;}
-		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t LABEL? OFFSET?)
+		INSTRUCTION_FORMAT10t label_ref_or_offset {$size = Format.Format10t.size;}
+		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t label_ref_or_offset)
 	|	//e.g. return
 		INSTRUCTION_FORMAT10x {$size = Format.Format10x.size;}
 		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x)
 	|	//e.g. const/4 v0, 5
-		INSTRUCTION_FORMAT11n REGISTER integral_literal {$size = Format.Format11n.size;}
+		INSTRUCTION_FORMAT11n REGISTER COMMA integral_literal {$size = Format.Format11n.size;}
 		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STATEMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER integral_literal)
 	|	//e.g. move-result-object v1
 		INSTRUCTION_FORMAT11x REGISTER {$size = Format.Format11x.size;}
 		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_FORMAT11x REGISTER)
 	|	//e.g. move v1 v2
-		INSTRUCTION_FORMAT12x REGISTER REGISTER {$size = Format.Format12x.size;}
-		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] INSTRUCTION_FORMAT12x REGISTER REGISTER)		
+		instruction_format12x REGISTER COMMA REGISTER {$size = Format.Format12x.size;}
+		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] instruction_format12x REGISTER REGISTER)
 	|	//e.g. goto/16 endloop:
-		INSTRUCTION_FORMAT20t (LABEL | OFFSET) {$size = Format.Format20t.size;}
-		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t LABEL? OFFSET?)
+		INSTRUCTION_FORMAT20t label_ref_or_offset {$size = Format.Format20t.size;}
+		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref_or_offset)
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
-		INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field {$size = Format.Format21c.size;}
+		INSTRUCTION_FORMAT21c_FIELD REGISTER COMMA fully_qualified_field {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
 	|	//e.g. const-string v1 "Hello World!"
-		INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL {$size = Format.Format21c.size;}
+		INSTRUCTION_FORMAT21c_STRING REGISTER COMMA STRING_LITERAL {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL)
 	|	//e.g. const-class v2 org/jf/HelloWorld2/HelloWorld2
-		INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor {$size = Format.Format21c.size;}
+		INSTRUCTION_FORMAT21c_TYPE REGISTER COMMA reference_type_descriptor {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 	|	//e.g. const/high16 v1, 1234
-		INSTRUCTION_FORMAT21h REGISTER integral_literal {$size = Format.Format21h.size;}
+		INSTRUCTION_FORMAT21h REGISTER COMMA integral_literal {$size = Format.Format21h.size;}
 		-> ^(I_STATEMENT_FORMAT21h[$start, "I_STATEMENT_FORMAT21h"] INSTRUCTION_FORMAT21h REGISTER integral_literal)
 	|	//e.g. const/16 v1, 1234
-		INSTRUCTION_FORMAT21s REGISTER integral_literal {$size = Format.Format21s.size;}
+		INSTRUCTION_FORMAT21s REGISTER COMMA integral_literal {$size = Format.Format21s.size;}
 		-> ^(I_STATEMENT_FORMAT21s[$start, "I_STATEMENT_FORMAT21s"] INSTRUCTION_FORMAT21s REGISTER integral_literal)
 	|	//e.g. if-eqz v0, endloop:
-		INSTRUCTION_FORMAT21t REGISTER (LABEL | OFFSET) {$size = Format.Format21t.size;}	
-		-> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER LABEL? OFFSET?)
+		INSTRUCTION_FORMAT21t REGISTER COMMA (label_ref_or_offset) {$size = Format.Format21t.size;}
+		-> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER label_ref_or_offset)
 	|	//e.g. add-int v0, v1, 123
-		INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal {$size = Format.Format22b.size;}
+		INSTRUCTION_FORMAT22b REGISTER COMMA REGISTER COMMA integral_literal {$size = Format.Format22b.size;}
 		-> ^(I_STATEMENT_FORMAT22b[$start, "I_STATEMENT_FORMAT22b"] INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal)
 	|	//e.g. iput-object v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field {$size = Format.Format22c.size;}
+		INSTRUCTION_FORMAT22c_FIELD REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format22c.size;}
 		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_STATEMENT_FORMAT22c_FIELD"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
 	|	//e.g. instance-of v0, v1, Ljava/lang/String;
-		INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor {$size = Format.Format22c.size;}
+		INSTRUCTION_FORMAT22c_TYPE REGISTER COMMA REGISTER COMMA nonvoid_type_descriptor {$size = Format.Format22c.size;}
 		-> ^(I_STATEMENT_FORMAT22c_TYPE[$start, "I_STATEMENT_FORMAT22c_TYPE"] INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
 	|	//e.g. iget-quick v0, v1, field@0xc
-		INSTRUCTION_FORMAT22cs_FIELD REGISTER REGISTER FIELD_OFFSET
+		INSTRUCTION_FORMAT22cs_FIELD REGISTER COMMA REGISTER COMMA FIELD_OFFSET
 		{
 			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT22cs_FIELD.text);
 		}
 	|	//e.g. add-int/lit16 v0, v1, 12345
-		INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal {$size = Format.Format22s.size;}
-		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] INSTRUCTION_FORMAT22s REGISTER REGISTER integral_literal)
+		instruction_format22s REGISTER COMMA REGISTER COMMA integral_literal {$size = Format.Format22s.size;}
+		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] instruction_format22s REGISTER REGISTER integral_literal)
 	|	//e.g. if-eq v0, v1, endloop:
-		INSTRUCTION_FORMAT22t REGISTER REGISTER (LABEL | OFFSET) {$size = Format.Format22t.size;}
-		-> ^(I_STATEMENT_FORMAT22t[$start, "I_STATEMENT_FFORMAT22t"] INSTRUCTION_FORMAT22t REGISTER REGISTER LABEL? OFFSET?)
+		INSTRUCTION_FORMAT22t REGISTER COMMA REGISTER COMMA label_ref_or_offset {$size = Format.Format22t.size;}
+		-> ^(I_STATEMENT_FORMAT22t[$start, "I_STATEMENT_FFORMAT22t"] INSTRUCTION_FORMAT22t REGISTER REGISTER label_ref_or_offset)
 	|	//e.g. move/from16 v1, v1234
-		INSTRUCTION_FORMAT22x REGISTER REGISTER {$size = Format.Format22x.size;}
+		INSTRUCTION_FORMAT22x REGISTER COMMA REGISTER {$size = Format.Format22x.size;}
 		-> ^(I_STATEMENT_FORMAT22x[$start, "I_STATEMENT_FORMAT22x"] INSTRUCTION_FORMAT22x REGISTER REGISTER)
 	|	//e.g. add-int v1, v2, v3
-		INSTRUCTION_FORMAT23x REGISTER REGISTER REGISTER {$size = Format.Format23x.size;}
+		INSTRUCTION_FORMAT23x REGISTER COMMA REGISTER COMMA REGISTER {$size = Format.Format23x.size;}
 		-> ^(I_STATEMENT_FORMAT23x[$start, "I_STATEMENT_FORMAT23x"] INSTRUCTION_FORMAT23x REGISTER REGISTER REGISTER)
 	|	//e.g. goto/32 endloop:
-		INSTRUCTION_FORMAT30t (LABEL | OFFSET) {$size = Format.Format30t.size;}
-		-> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t LABEL? OFFSET?)
+		INSTRUCTION_FORMAT30t label_ref_or_offset {$size = Format.Format30t.size;}
+		-> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t label_ref_or_offset)
 	|	//e.g. const-string/jumbo v1 "Hello World!"
-		INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL {$size = Format.Format31c.size;}
-		->^(I_STATEMENT_FORMAT31c[$start, "I_STATEMENT_FORMAT31c"] INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL)	
+		INSTRUCTION_FORMAT31c REGISTER COMMA STRING_LITERAL {$size = Format.Format31c.size;}
+		->^(I_STATEMENT_FORMAT31c[$start, "I_STATEMENT_FORMAT31c"] INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL)
 	|	//e.g. const v0, 123456
-		INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal {$size = Format.Format31i.size;}
-		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
+		instruction_format31i REGISTER COMMA fixed_32bit_literal {$size = Format.Format31i.size;}
+		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] instruction_format31i REGISTER fixed_32bit_literal)
 	|	//e.g. fill-array-data v0, ArrayData:
-		INSTRUCTION_FORMAT31t REGISTER offset_or_label {$size = Format.Format31t.size;}
+		INSTRUCTION_FORMAT31t REGISTER COMMA label_ref_or_offset {$size = Format.Format31t.size;}
 		{
 			if ($INSTRUCTION_FORMAT31t.text.equals("packed-switch")) {
 				CommonTree root = new CommonTree(new CommonToken(I_PACKED_SWITCH_DECLARATION, "I_PACKED_SWITCH_DECLARATION"));
 				CommonTree address = new CommonTree(new CommonToken(I_ADDRESS, Integer.toString($method::currentAddress)));
 				root.addChild(address);
-				root.addChild($offset_or_label.tree.dupNode());
+				root.addChild($label_ref_or_offset.tree.dupNode());
 				$statements_and_directives::packedSwitchDeclarations.add(root);
 			} else if ($INSTRUCTION_FORMAT31t.text.equals("sparse-switch")) {
 				CommonTree root = new CommonTree(new CommonToken(I_SPARSE_SWITCH_DECLARATION, "I_SPARSE_SWITCH_DECLARATION"));
 				CommonTree address = new CommonTree(new CommonToken(I_ADDRESS, Integer.toString($method::currentAddress)));
 				root.addChild(address);
-				root.addChild($offset_or_label.tree.dupNode());
+				root.addChild($label_ref_or_offset.tree.dupNode());
 				$statements_and_directives::sparseSwitchDeclarations.add(root);
-			}			
+			}
 		}
-		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER offset_or_label)
+		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER label_ref_or_offset)
 	|	//e.g. move/16 v4567, v1234
-		INSTRUCTION_FORMAT32x REGISTER REGISTER {$size = Format.Format32x.size;}
-		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER)		
+		INSTRUCTION_FORMAT32x REGISTER COMMA REGISTER {$size = Format.Format32x.size;}
+		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER)
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACE register_list CLOSE_BRACE fully_qualified_method {$size = Format.Format35c.size;}
+		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format35c.size;}
 		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
 	|	//e.g. filled-new-array {v0,v1}, I
-		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACE register_list CLOSE_BRACE nonvoid_type_descriptor {$size = Format.Format35c.size;}
+		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACE register_list CLOSE_BRACE COMMA nonvoid_type_descriptor {$size = Format.Format35c.size;}
 		-> ^(I_STATEMENT_FORMAT35c_TYPE[$start, "I_STATEMENT_FORMAT35c_TYPE"] INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
 	|	//e.g. invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-		INSTRUCTION_FORMAT35s_METHOD OPEN_BRACE register_list CLOSE_BRACE fully_qualified_method
+		INSTRUCTION_FORMAT35s_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method
 		{
 			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT35s_METHOD.text);
-		}		
-	|	//e.g. invoke-virtual-range {v0, v1} vtable@0x4
-		INSTRUCTION_FORMAT35ms_METHOD OPEN_BRACE register_list CLOSE_BRACE VTABLE_OFFSET
+		}
+	|	//e.g. invoke-virtual-range {v0, v1}, vtable@0x4
+		INSTRUCTION_FORMAT35ms_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA VTABLE_OFFSET
 		{
 			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT35ms_METHOD.text);
 		}
-	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACE register_range CLOSE_BRACE fully_qualified_method {$size = Format.Format3rc.size;}
+	|	//e.g. invoke-virtual/range {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
-	|	//e.g. filled-new-array/range {v0..v6} I
-		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACE register_range CLOSE_BRACE nonvoid_type_descriptor {$size = Format.Format3rc.size;}
+	|	//e.g. filled-new-array/range {v0..v6}, I
+		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACE register_range CLOSE_BRACE COMMA nonvoid_type_descriptor {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
 	|	//e.g. invoke-virtual-quick/range {v0 .. v10}, vtable@0x14
-		INSTRUCTION_FORMAT3rms_METHOD OPEN_BRACE register_range CLOSE_BRACE VTABLE_OFFSET
+		INSTRUCTION_FORMAT3rms_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA VTABLE_OFFSET
 		{
 			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT3rms_METHOD.text);
 		}
 	|	//e.g. const-wide v0, 5000000000L
-		INSTRUCTION_FORMAT51l REGISTER fixed_literal {$size = Format.Format51l.size;}
+		INSTRUCTION_FORMAT51l REGISTER COMMA fixed_literal {$size = Format.Format51l.size;}
 		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)
-	|	
+	|
 		ARRAY_DATA_DIRECTIVE
-		{	
+		{
 			if (($method::currentAddress \% 2) != 0) {
 				needsNop = true;
 				$size = 2;
@@ -482,175 +708,68 @@ instruction returns [int size]
 				$size = 0;
 			}
 		}
-		
+
 		integral_literal (fixed_literal {$size+=$fixed_literal.size;})* END_ARRAY_DATA_DIRECTIVE
 		{$size = (($size + 1)/2)*2 + 8;}
-		
-		/*add a nop statement before this if needed to force the correct alignment*/
- 		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
- 					^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
 
- 		->	^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
- 	|	
- 		PACKED_SWITCH_DIRECTIVE
- 		{
- 			targetCount = 0;
- 			if (($method::currentAddress \% 2) != 0) {
- 				needsNop = true;
- 				$size = 2;
- 			} else {
- 				$size = 0;
- 			}
- 		}
- 			
- 		fixed_32bit_literal 
- 		
- 		(switch_target += offset_or_label {$size+=4; targetCount++;})*
- 		
- 		END_PACKED_SWITCH_DIRECTIVE {$size = $size + 8;}
- 		
 		/*add a nop statement before this if needed to force the correct alignment*/
- 		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
- 					^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"] 
- 						^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal) 
- 						^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"] I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
- 					)
- 					
-		->	^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"] 
-				^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal) 
+		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"])
+					^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
+
+		->	^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
+	|
+		PACKED_SWITCH_DIRECTIVE
+		{
+			targetCount = 0;
+			if (($method::currentAddress \% 2) != 0) {
+				needsNop = true;
+				$size = 2;
+			} else {
+				$size = 0;
+			}
+		}
+
+		fixed_32bit_literal
+
+		(switch_target += label_ref_or_offset {$size+=4; targetCount++;})*
+
+		END_PACKED_SWITCH_DIRECTIVE {$size = $size + 8;}
+
+		/*add a nop statement before this if needed to force the correct alignment*/
+		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"])
+					^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"]
+						^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal)
+						^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"] I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
+					)
+
+		->	^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"]
+				^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal)
 				^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"] I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
 			)
- 		
- 	|
- 		SPARSE_SWITCH_DIRECTIVE
- 		{
- 			targetCount = 0;
- 			if (($method::currentAddress \% 2) != 0) {
- 				needsNop = true;
- 				$size = 2;
- 			} else {
- 				$size = 0;
- 			}
- 		}
- 			
- 		(fixed_32bit_literal switch_target += offset_or_label {$size += 8; targetCount++;})*
- 		
- 		END_SPARSE_SWITCH_DIRECTIVE {$size = $size + 4;}
- 		
+
+	|
+		SPARSE_SWITCH_DIRECTIVE
+		{
+			targetCount = 0;
+			if (($method::currentAddress \% 2) != 0) {
+				needsNop = true;
+				$size = 2;
+			} else {
+				$size = 0;
+			}
+		}
+
+		(fixed_32bit_literal ARROW switch_target += label_ref_or_offset {$size += 8; targetCount++;})*
+
+		END_SPARSE_SWITCH_DIRECTIVE {$size = $size + 4;}
+
 		/*add a nop statement before this if needed to force the correct alignment*/
- 		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"]) 
- 					^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
- 						I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
- 						^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
- 						^(I_SPARSE_SWITCH_TARGETS $switch_target*))
+		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"])
+					^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
+						I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
+						^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
+						^(I_SPARSE_SWITCH_TARGETS $switch_target*))
 		->	^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
 				I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
 				^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
-				^(I_SPARSE_SWITCH_TARGETS $switch_target*)) 					
-	;
-	
-offset_or_label
-	:	OFFSET | LABEL;	
-
-
-register_list
-	:	REGISTER* -> ^(I_REGISTER_LIST[$start, "I_REGISTER_LIST"] REGISTER*);
-	
-register_range
-	:	REGISTER REGISTER? -> ^(I_REGISTER_RANGE[$start, "I_REGISTER_RANGE"] REGISTER REGISTER?);
-
-
-nonvoid_type_descriptor
-	:	PRIMITIVE_TYPE
-	|	CLASS_DESCRIPTOR
-	|	ARRAY_DESCRIPTOR
-	;
-	
-reference_type_descriptor
-	:	CLASS_DESCRIPTOR
-	|	ARRAY_DESCRIPTOR;
-	
-type_descriptor
-	:	VOID_TYPE
-	|	PRIMITIVE_TYPE
-	|	CLASS_DESCRIPTOR
-	|	ARRAY_DESCRIPTOR
-	;	
-	
-integral_literal
-	:	LONG_LITERAL
-	|	INTEGER_LITERAL
-	|	SHORT_LITERAL
-	|	CHAR_LITERAL
-	|	BYTE_LITERAL;	
-	
-fixed_32bit_literal
-	:	INTEGER_LITERAL
-	|	LONG_LITERAL
-	|	SHORT_LITERAL
-	|	BYTE_LITERAL
-	|	FLOAT_LITERAL
-	|	CHAR_LITERAL
-	|	BOOL_LITERAL;
-	
-fixed_literal returns[int size]
-	:	INTEGER_LITERAL {$size = 4;}
-	|	LONG_LITERAL {$size = 8;}
-	|	SHORT_LITERAL {$size = 2;}
-	|	BYTE_LITERAL {$size = 1;}
-	|	FLOAT_LITERAL {$size = 4;}
-	|	DOUBLE_LITERAL {$size = 8;}
-	|	CHAR_LITERAL {$size = 2;}
-	|	BOOL_LITERAL {$size = 1;};
-
-literal
-	:	INTEGER_LITERAL
-	|	LONG_LITERAL
-	|	SHORT_LITERAL
-	|	BYTE_LITERAL
-	|	FLOAT_LITERAL
-	|	DOUBLE_LITERAL
-	|	CHAR_LITERAL
-	|	STRING_LITERAL
-	|	BOOL_LITERAL
-	|	NULL_LITERAL
-	|	array_literal
-	|	subannotation
-	|	type_field_method_literal
-	|	enum_literal;
-	
-array_literal
-	:	OPEN_BRACE literal* CLOSE_BRACE
-		-> ^(I_ENCODED_ARRAY[$start, "I_ENCODED_ARRAY"] literal*);
-		
-annotation
-	:	ANNOTATION_START ANNOTATION_VISIBILITY CLASS_DESCRIPTOR 
-		annotation_element* ANNOTATION_END
-		-> ^(I_ANNOTATION[$start, "I_ANNOTATION"] ANNOTATION_VISIBILITY ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*));
-	
-annotation_element
-	:	MEMBER_NAME literal
-		-> ^(I_ANNOTATION_ELEMENT[$start, "I_ANNOTATION_ELEMENT"] MEMBER_NAME literal);
-
-subannotation
-	:	SUBANNOTATION_START CLASS_DESCRIPTOR annotation_element* SUBANNOTATION_END
-		-> ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*);
-		
-type_field_method_literal
-	:	reference_type_descriptor 
-		(	ARROW MEMBER_NAME
-			(	nonvoid_type_descriptor -> ^(I_ENCODED_FIELD reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor)
-			|	method_prototype -> ^(I_ENCODED_METHOD reference_type_descriptor MEMBER_NAME method_prototype)
-			)
-		|	-> reference_type_descriptor
-		)
-	|	PRIMITIVE_TYPE
-	|	VOID_TYPE;
-
-enum_literal
-	:	ENUM	
-		reference_type_descriptor
-		ARROW
-		MEMBER_NAME
-		reference_type_descriptor
-	-> 	^(I_ENCODED_ENUM reference_type_descriptor MEMBER_NAME reference_type_descriptor);
+				^(I_SPARSE_SWITCH_TARGETS $switch_target*));

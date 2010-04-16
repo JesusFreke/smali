@@ -1,8 +1,8 @@
 /*
  * [The "BSD licence"]
- * Copyright (c) 2009 Ben Gruver
+ * Copyright (c) 2010 Ben Gruver
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -13,7 +13,7 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 tree grammar smaliTreeWalker;
 
 options {
@@ -55,18 +55,18 @@ import org.jf.dexlib.Code.Format.*;
 
 	private byte parseRegister_nibble(String register, int totalMethodRegisters, int methodParameterRegisters)
 		throws SemanticException {
-		//register should be in the format "v12"		
+		//register should be in the format "v12"
 		int val = Byte.parseByte(register.substring(1));
 		if (register.charAt(0) == 'p') {
 			val = totalMethodRegisters - methodParameterRegisters + val;
-		}		
+		}
 		if (val >= 2<<4) {
 			throw new SemanticException(input, "The maximum allowed register in this context is list of registers is v15");
 		}
 		//the parser wouldn't have accepted a negative register, i.e. v-1, so we don't have to check for val<0;
 		return (byte)val;
 	}
-	
+
 	//return a short, because java's byte is signed
 	private short parseRegister_byte(String register, int totalMethodRegisters, int methodParameterRegisters)
 		throws SemanticException {
@@ -80,11 +80,11 @@ import org.jf.dexlib.Code.Format.*;
 		}
 		return (short)val;
 	}
-	
+
 	//return an int because java's short is signed
 	private int parseRegister_short(String register, int totalMethodRegisters, int methodParameterRegisters)
 		throws SemanticException {
-		//register should be in the format "v12345"		
+		//register should be in the format "v12345"
 		int val = Integer.parseInt(register.substring(1));
 		if (register.charAt(0) == 'p') {
 			val = totalMethodRegisters - methodParameterRegisters + val;
@@ -95,7 +95,7 @@ import org.jf.dexlib.Code.Format.*;
 		//the parser wouldn't accept a negative register, i.e. v-1, so we don't have to check for val<0;
 		return val;
 	}
-	
+
 	private static Pattern specialFloatRegex = Pattern.compile("((-)?infinityf)|(nanf)", Pattern.CASE_INSENSITIVE);
 	private float parseFloat(String floatString) {
 		Matcher m = specialFloatRegex.matcher(floatString);
@@ -109,11 +109,11 @@ import org.jf.dexlib.Code.Format.*;
 				}
 			} else {
 				return Float.NaN;
-			}			
+			}
 		}
 		return Float.parseFloat(floatString);
 	}
-	
+
 	private static Pattern specialDoubleRegex = Pattern.compile("((-)?infinityd?)|(nand?)", Pattern.CASE_INSENSITIVE);
 	private double parseDouble(String doubleString) {
 		Matcher m = specialDoubleRegex.matcher(doubleString);
@@ -131,7 +131,7 @@ import org.jf.dexlib.Code.Format.*;
 		}
 		return Double.parseDouble(doubleString);
 	}
-	
+
 	public String getErrorMessage(RecognitionException e, String[] tokenNames) {
 		if ( e instanceof SemanticException ) {
 			return e.getMessage();
@@ -139,7 +139,7 @@ import org.jf.dexlib.Code.Format.*;
 			return super.getErrorMessage(e, tokenNames);
 		}
 	}
-	
+
 	public String getErrorHeader(RecognitionException e) {
 		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
 	}
@@ -153,7 +153,7 @@ smali_file
 		AnnotationDirectoryItem annotationDirectoryItem = null;
 		ClassDefItem classDefItem = null;
 		ClassDataItem classDataItem = null;
-		
+
 		if (	$methods.methodAnnotations != null ||
 			$methods.parameterAnnotations != null ||
 			$fields.fieldAnnotations != null ||
@@ -165,15 +165,15 @@ smali_file
 				$methods.methodAnnotations,
 				$methods.parameterAnnotations);
 		}
-		
+
 		if ($fields.staticFields.size() != 0 || $fields.instanceFields.size() != 0 ||
 		    $methods.directMethods.size() != 0 || $methods.virtualMethods.size()!= 0) {
 			classDataItem = ClassDataItem.internClassDataItem(dexFile, $fields.staticFields, $fields.instanceFields,
 									$methods.directMethods, $methods.virtualMethods);
 		}
-									
+
 		classDefItem = ClassDefItem.internClassDefItem(dexFile, $header.classType, $header.accessFlags,
-				$header.superType, $header.implementsList, $header.sourceSpec, annotationDirectoryItem, 
+				$header.superType, $header.implementsList, $header.sourceSpec, annotationDirectoryItem,
 				classDataItem, $fields.staticFieldInitialValues);
 	};
 	catch [Exception ex] {
@@ -213,7 +213,7 @@ implements_spec returns[TypeIdItem type]
 	{
 		$type = $class_type_descriptor.type;
 	};
-	
+
 implements_list returns[TypeListItem implementsList]
 @init	{ List<TypeIdItem> typeList; }
 	:	{typeList = new LinkedList<TypeIdItem>();}
@@ -225,13 +225,13 @@ implements_list returns[TypeListItem implementsList]
 			$implementsList = null;
 		}
 	};
-		
+
 source_spec returns[StringIdItem source]
 	:	{$source = null;}
 		^(I_SOURCE string_literal {$source = StringIdItem.internStringIdItem(dexFile, $string_literal.value);})
 	|	;
-		
-	
+
+
 
 access_list returns [int value]
 	@init
@@ -297,14 +297,14 @@ methods returns[List<ClassDataItem.EncodedMethod> directMethods,
 						$methodAnnotations = new LinkedList<AnnotationDirectoryItem.MethodAnnotation>();
 					}
 					AnnotationDirectoryItem.MethodAnnotation methodAnnotation =
-						new AnnotationDirectoryItem.MethodAnnotation($method.encodedMethod.method, $method.methodAnnotationSet);				
+						new AnnotationDirectoryItem.MethodAnnotation($method.encodedMethod.method, $method.methodAnnotationSet);
 					$methodAnnotations.add(methodAnnotation);
 				}
 				if ($method.parameterAnnotationSets != null) {
 					if ($parameterAnnotations == null) {
 						$parameterAnnotations = new LinkedList<AnnotationDirectoryItem.ParameterAnnotation>();
 					}
-					AnnotationDirectoryItem.ParameterAnnotation parameterAnnotation = 
+					AnnotationDirectoryItem.ParameterAnnotation parameterAnnotation =
 						new AnnotationDirectoryItem.ParameterAnnotation($method.encodedMethod.method,
 							$method.parameterAnnotationSets);
 					$parameterAnnotations.add(parameterAnnotation);
@@ -312,24 +312,24 @@ methods returns[List<ClassDataItem.EncodedMethod> directMethods,
 			})*);
 
 field returns [ClassDataItem.EncodedField encodedField, EncodedValue encodedValue, AnnotationSetItem fieldAnnotationSet]
-	:^(I_FIELD MEMBER_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
+	:^(I_FIELD SIMPLE_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
 	{
-		StringIdItem memberName = StringIdItem.internStringIdItem(dexFile, $MEMBER_NAME.text);
+		StringIdItem memberName = StringIdItem.internStringIdItem(dexFile, $SIMPLE_NAME.text);
 		TypeIdItem fieldType = $nonvoid_type_descriptor.type;
 
 		FieldIdItem fieldIdItem = FieldIdItem.internFieldIdItem(dexFile, classType, fieldType, memberName);
 		$encodedField = new ClassDataItem.EncodedField(fieldIdItem, $access_list.value);
-		
+
 		if ($field_initial_value.encodedValue != null) {
 			if (!$encodedField.isStatic()) {
 				throw new SemanticException(input, "Initial field values can only be specified for static fields.");
 			}
-			
+
 			$encodedValue = $field_initial_value.encodedValue;
 		} else {
-			$encodedValue = null;			
+			$encodedValue = null;
 		}
-		
+
 		if ($annotations.annotationSetItem != null) {
 			$fieldAnnotationSet = $annotations.annotationSetItem;
 		}
@@ -358,7 +358,7 @@ literal returns[EncodedValue encodedValue]
 	|	method_literal { $encodedValue = new MethodEncodedValue($method_literal.value); }
 	|	enum_literal { $encodedValue = new EnumEncodedValue($enum_literal.value); };
 
-	
+
 //everything but string
 fixed_size_literal returns[byte[\] value]
 	:	integer_literal { $value = literalTools.intToBytes($integer_literal.value); }
@@ -369,7 +369,7 @@ fixed_size_literal returns[byte[\] value]
 	|	double_literal { $value = literalTools.doubleToBytes($double_literal.value); }
 	|	char_literal { $value = literalTools.charToBytes($char_literal.value); }
 	|	bool_literal { $value = literalTools.boolToBytes($bool_literal.value); };
-	
+
 //everything but string
 fixed_64bit_literal returns[long value]
 	:	integer_literal { $value = $integer_literal.value; }
@@ -380,7 +380,7 @@ fixed_64bit_literal returns[long value]
 	|	double_literal { $value = Double.doubleToRawLongBits($double_literal.value); }
 	|	char_literal { $value = $char_literal.value; }
 	|	bool_literal { $value = $bool_literal.value?1:0; };
-	
+
 //everything but string and double
 //long is allowed, but it must fit into an int
 fixed_32bit_literal returns[int value]
@@ -397,9 +397,9 @@ array_elements returns[List<byte[\]> values]
 		^(I_ARRAY_ELEMENTS
 			(fixed_size_literal
 			{
-				$values.add($fixed_size_literal.value);				
-			})*);	
-			
+				$values.add($fixed_size_literal.value);
+			})*);
+
 packed_switch_target_count returns[int targetCount]
 	:	I_PACKED_SWITCH_TARGET_COUNT {$targetCount = Integer.parseInt($I_PACKED_SWITCH_TARGET_COUNT.text);};
 
@@ -412,7 +412,7 @@ packed_switch_targets[int baseAddress] returns[int[\] targets]
 				$targets = new int[targetCount];
 				int targetsPosition = 0;
 			}
-			
+
 			(offset_or_label
 			{
 				$targets[targetsPosition++] = ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress;
@@ -421,7 +421,7 @@ packed_switch_targets[int baseAddress] returns[int[\] targets]
 
 sparse_switch_target_count returns[int targetCount]
 	:	I_SPARSE_SWITCH_TARGET_COUNT {$targetCount = Integer.parseInt($I_SPARSE_SWITCH_TARGET_COUNT.text);};
-		
+
 sparse_switch_keys[int targetCount] returns[int[\] keys]
 	:	{
 			$keys = new int[$targetCount];
@@ -430,10 +430,10 @@ sparse_switch_keys[int targetCount] returns[int[\] keys]
 		^(I_SPARSE_SWITCH_KEYS
 			(fixed_32bit_literal
 			{
-				$keys[keysPosition++] = $fixed_32bit_literal.value;		
+				$keys[keysPosition++] = $fixed_32bit_literal.value;
 			})*
 		);
-		
+
 
 sparse_switch_targets[int baseAddress, int targetCount] returns[int[\] targets]
 	:	{
@@ -457,7 +457,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		int currentAddress;
 		DebugInfoBuilder debugInfo;
 		HashMap<Integer, Integer> packedSwitchDeclarations;
-		HashMap<Integer, Integer> sparseSwitchDeclarations;		
+		HashMap<Integer, Integer> sparseSwitchDeclarations;
 	}
 	@init
 	{
@@ -481,7 +481,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			{
 				methodIdItem = $method_name_and_prototype.methodIdItem;
 				accessFlags = $access_list.value;
-				isStatic = (accessFlags & AccessFlags.STATIC.getValue()) != 0; 
+				isStatic = (accessFlags & AccessFlags.STATIC.getValue()) != 0;
 				methodParameterRegisters = methodIdItem.getPrototype().getParameterRegisterCount();
 				if (!isStatic) {
 					methodParameterRegisters++;
@@ -504,14 +504,14 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			ordered_debug_directives[totalMethodRegisters, methodParameterRegisters]
 			annotations
 		)
-	{	
+	{
 		Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> temp = $method::tryList.encodeTries();
 		List<CodeItem.TryItem> tries = temp.first;
 		List<CodeItem.EncodedCatchHandler> handlers = temp.second;
-	
 
-		DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);		
-		
+
+		DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);
+
 		CodeItem codeItem;
 
 		if (totalMethodRegisters == 0 &&
@@ -519,24 +519,24 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		    $method::labels.size()== 0 &&
 		    (tries == null || tries.size() == 0) &&
 		    (handlers == null || handlers.size() == 0) &&
-		    debugInfoItem == null) {	
-		    		    
+		    debugInfoItem == null) {
+
 			codeItem = null;
-			
+
 		} else {
 			if (totalMethodRegisters < methodParameterRegisters) {
 				throw new SemanticException(input, "This method requires at least " +
 								Integer.toString(methodParameterRegisters) +
 								" registers, for the method parameters");
 			}
-			
+
 			int methodParameterCount = methodIdItem.getPrototype().getParameterRegisterCount();
 			if ($method::debugInfo.getParameterNameCount() > methodParameterCount) {
 				throw new SemanticException(input, "Too many parameter names specified. This method only has " +
 								Integer.toString(methodParameterCount) +
 								" parameters.");
 			}
-				
+
 			codeItem = CodeItem.internCodeItem(dexFile,
 						totalMethodRegisters,
 						methodParameterRegisters,
@@ -546,18 +546,18 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 						tries,
 						handlers);
 		}
-		
+
 		$encodedMethod = new ClassDataItem.EncodedMethod(methodIdItem, accessFlags, codeItem);
-		
+
 		if ($annotations.annotationSetItem != null) {
 			$methodAnnotationSet = $annotations.annotationSetItem;
 		}
-		
+
 		if ($parameters.parameterAnnotations != null) {
 			$parameterAnnotationSets = $parameters.parameterAnnotations;
 		}
 	};
-	
+
 method_prototype returns[ProtoIdItem protoIdItem]
 	:	^(I_METHOD_PROTOTYPE ^(I_METHOD_RETURN_TYPE type_descriptor) field_type_list)
 	{
@@ -567,14 +567,14 @@ method_prototype returns[ProtoIdItem protoIdItem]
 		if (parameterTypes != null && parameterTypes.size() > 0) {
 			parameterTypeListItem = TypeListItem.internTypeListItem(dexFile, parameterTypes);
 		}
-		
+
 		$protoIdItem = ProtoIdItem.internProtoIdItem(dexFile, returnType, parameterTypeListItem);
 	};
 
 method_name_and_prototype returns[MethodIdItem methodIdItem]
-	:	MEMBER_NAME method_prototype
+	:	SIMPLE_NAME method_prototype
 	{
-		String methodNameString = $MEMBER_NAME.text;
+		String methodNameString = $SIMPLE_NAME.text;
 		StringIdItem methodName = StringIdItem.internStringIdItem(dexFile, methodNameString);
 		ProtoIdItem protoIdItem = $method_prototype.protoIdItem;
 
@@ -592,22 +592,22 @@ field_type_list returns[List<TypeIdItem> types]
 				$types.add($nonvoid_type_descriptor.type);
 			}
 		)*;
-	
+
 
 fully_qualified_method returns[MethodIdItem methodIdItem]
-	:	reference_type_descriptor MEMBER_NAME method_prototype
+	:	reference_type_descriptor SIMPLE_NAME method_prototype
 	{
 		TypeIdItem classType = $reference_type_descriptor.type;
-		StringIdItem methodName = StringIdItem.internStringIdItem(dexFile, $MEMBER_NAME.text);
+		StringIdItem methodName = StringIdItem.internStringIdItem(dexFile, $SIMPLE_NAME.text);
 		ProtoIdItem prototype = $method_prototype.protoIdItem;
 		$methodIdItem = MethodIdItem.internMethodIdItem(dexFile, classType, prototype, methodName);
 	};
 
 fully_qualified_field returns[FieldIdItem fieldIdItem]
-	:	reference_type_descriptor MEMBER_NAME nonvoid_type_descriptor
+	:	reference_type_descriptor SIMPLE_NAME nonvoid_type_descriptor
 	{
 		TypeIdItem classType = $reference_type_descriptor.type;
-		StringIdItem fieldName = StringIdItem.internStringIdItem(dexFile, $MEMBER_NAME.text);
+		StringIdItem fieldName = StringIdItem.internStringIdItem(dexFile, $SIMPLE_NAME.text);
 		TypeIdItem fieldType = $nonvoid_type_descriptor.type;
 		$fieldIdItem = FieldIdItem.internFieldIdItem(dexFile, classType, fieldType, fieldName);
 	};
@@ -623,23 +623,22 @@ registers_directive returns[boolean isLocalsDirective, int registers]
 
 labels
 	:	^(I_LABELS label_def*);
-	
+
 label_def
-	:	^(I_LABEL label address)
+	:	^(I_LABEL LABEL address)
 		{
-			String labelName = $label.labelName;
-			if ($method::labels.containsKey(labelName)) {
-				throw new SemanticException(input, "Label " + labelName + " has multiple defintions.");
+			if ($method::labels.containsKey($LABEL.text)) {
+				throw new SemanticException(input, "Label " + $LABEL.text + " has multiple defintions.");
 			}
-				
-			
-			$method::labels.put(labelName, $address.address);
+
+
+			$method::labels.put($LABEL.text, $address.address);
 		};
-		
+
 packed_switch_declarations
 	:	^(I_PACKED_SWITCH_DECLARATIONS packed_switch_declaration*);
 packed_switch_declaration
-	:	^(I_PACKED_SWITCH_DECLARATION address offset_or_label_absolute[$address.address]) 
+	:	^(I_PACKED_SWITCH_DECLARATION address offset_or_label_absolute[$address.address])
 		{
 			int switchDataAddress = $offset_or_label_absolute.address;
 			if ((switchDataAddress \% 2) != 0) {
@@ -662,9 +661,9 @@ sparse_switch_declaration
 			if (!$method::sparseSwitchDeclarations.containsKey(switchDataAddress)) {
 				$method::sparseSwitchDeclarations.put(switchDataAddress, $address.address);
 			}
-			
+
 		};
-	
+
 catches	:	^(I_CATCHES catch_directive* catchall_directive*);
 
 catch_directive
@@ -689,11 +688,11 @@ catchall_directive
 
 			$method::tryList.addCatchAllHandler(startAddress, endAddress, handlerAddress);
 		};
-		
+
 address returns[int address]
 	:	I_ADDRESS
 		{
-			$address = Integer.parseInt($I_ADDRESS.text);	
+			$address = Integer.parseInt($I_ADDRESS.text);
 		};
 
 parameters returns[AnnotationSetRefList parameterAnnotations]
@@ -710,8 +709,8 @@ parameters returns[AnnotationSetRefList parameterAnnotations]
 						}
 						annotationSetItems.add($parameter.parameterAnnotationSet);
 					}
-					
-					parameterCount++;					
+
+					parameterCount++;
 				})*
 		)
 		{
@@ -722,7 +721,7 @@ parameters returns[AnnotationSetRefList parameterAnnotations]
 				$parameterAnnotations = AnnotationSetRefList.internAnnotationSetRefList(dexFile, annotationSetItems);
 			}
 		};
-	
+
 parameter returns[AnnotationSetItem parameterAnnotationSet]
 	:	^(I_PARAMETER 	(	string_literal {$method::debugInfo.addParameterName($string_literal.value);}
 				|	I_PARAMETER_NOT_SPECIFIED {$method::debugInfo.addParameterName(null);}
@@ -739,21 +738,21 @@ ordered_debug_directives[int totalMethodRegisters, int methodParameterRegisters]
 						|	epilogue
 						|	source
 						)*);
-		
+
 line
 	:	^(I_LINE integral_literal address)
 		{
-			$method::debugInfo.addLine($address.address, $integral_literal.value); 
+			$method::debugInfo.addLine($address.address, $integral_literal.value);
 		};
 
 local[int totalMethodRegisters, int methodParameterRegisters]
 	:	^(I_LOCAL REGISTER SIMPLE_NAME nonvoid_type_descriptor string_literal? address)
 		{
 			int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			if ($string_literal.value != null) {
 				$method::debugInfo.addLocalExtended($address.address, registerNumber, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type.getTypeDescriptor(), $string_literal.value);
-			} else {	
+			} else {
 				$method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type.getTypeDescriptor());
 			}
 		};
@@ -762,7 +761,7 @@ end_local[int totalMethodRegisters, int methodParameterRegisters]
 	:	^(I_END_LOCAL REGISTER address)
 		{
 			int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			$method::debugInfo.addEndLocal($address.address, registerNumber);
 		};
 
@@ -770,10 +769,10 @@ restart_local[int totalMethodRegisters, int methodParameterRegisters]
 	:	^(I_RESTART_LOCAL REGISTER address)
 		{
 			int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			$method::debugInfo.addRestartLocal($address.address, registerNumber);
 		};
-		
+
 prologue
 	:	^(I_PROLOGUE address)
 		{
@@ -795,7 +794,7 @@ source
 statements[int totalMethodRegisters, int methodParameterRegisters] returns[List<Instruction> instructions, int maxOutRegisters]
 	@init
 	{
-		$instructions = new LinkedList<Instruction>();		
+		$instructions = new LinkedList<Instruction>();
 		$maxOutRegisters = 0;
 	}
 	:	^(I_STATEMENTS	(instruction[$totalMethodRegisters, $methodParameterRegisters, $instructions]
@@ -805,36 +804,29 @@ statements[int totalMethodRegisters, int methodParameterRegisters] returns[List<
 						$maxOutRegisters = $instruction.outRegisters;
 					}
 				})*);
-			
+
 label_ref returns[int labelAddress]
-	:	label
-		{
-			String labelName = $label.labelName;
-			
-			Integer labelAdd = $method::labels.get(labelName);
-			
-			if (labelAdd == null) {
-				throw new SemanticException(input, "Label \"" + labelName + "\" is not defined.");
-			}
-			
-			$labelAddress = labelAdd;
-		};
-	
-	
-label returns[String labelName]
 	:	LABEL
 		{
-			String label = $LABEL.text;
-			return label.substring(1, label.length());
+			Integer labelAdd = $method::labels.get($LABEL.text);
+
+			if (labelAdd == null) {
+				throw new SemanticException(input, "Label \"" + $LABEL.text + "\" is not defined.");
+			}
+
+			$labelAddress = labelAdd;
 		};
-		
+
 offset	returns[int offsetValue]
 	:	OFFSET
 		{
 			String offsetText = $OFFSET.text;
+			if (offsetText.charAt(0) == '+') {
+				offsetText = offsetText.substring(1);
+			}
 			$offsetValue = literalTools.parseInt(offsetText);
 		};
-		
+
 offset_or_label_absolute[int baseAddress] returns[int address]
 	:	offset {$address = $offset.offsetValue + $baseAddress;}
 	|	label_ref {$address = $label_ref.labelAddress;};
@@ -842,7 +834,7 @@ offset_or_label_absolute[int baseAddress] returns[int address]
 offset_or_label returns[int offsetValue]
 	:	offset {$offsetValue = $offset.offsetValue;}
 	|	label_ref {$offsetValue = $label_ref.labelAddress-$method::currentAddress;};
-	
+
 
 register_list[int totalMethodRegisters, int methodParameterRegisters] returns[byte[\] registers, byte registerCount]
 	@init
@@ -850,14 +842,14 @@ register_list[int totalMethodRegisters, int methodParameterRegisters] returns[by
 		$registers = new byte[5];
 		$registerCount = 0;
 	}
-	:	^(I_REGISTER_LIST 
+	:	^(I_REGISTER_LIST
 			(REGISTER
 			{
 				if ($registerCount == 5) {
 					throw new SemanticException(input, "A list of registers can only have a maximum of 5 registers. Use the <op>/range alternate opcode instead.");
 				}
 				$registers[$registerCount++] = parseRegister_nibble($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			})*);			
+			})*);
 
 register_range[int totalMethodRegisters, int methodParameterRegisters] returns[int startRegister, int endRegister]
 	:	^(I_REGISTER_RANGE startReg=REGISTER endReg=REGISTER?)
@@ -877,7 +869,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10t.text);
-			
+
 			int addressOffset = $offset_or_label.offsetValue;
 
 			$instructions.add(new Instruction10t(opcode, addressOffset));
@@ -896,15 +888,15 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			short litB = $short_integral_literal.value;
 			literalTools.checkNibble(litB);
-			
+
 			$instructions.add(new Instruction11n(opcode, regA, (byte)litB));
-		}				
+		}
 	|	//e.g. move-result-object v1
 		^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			$instructions.add(new Instruction11x(opcode, regA));
 		}
 	|	//e.g. move v1 v2
@@ -913,14 +905,14 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT12x.text);
 			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			$instructions.add(new Instruction12x(opcode, regA, regB));
 		}
 	|	//e.g. goto/16 endloop:
 		^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT20t.text);
-			
+
 			int addressOffset = $offset_or_label.offsetValue;
 
 			$instructions.add(new Instruction20t(opcode, addressOffset));
@@ -930,7 +922,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_FIELD.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 
 			$instructions.add(new Instruction21c(opcode, regA, fieldIdItem));
@@ -940,7 +932,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, $string_literal.value);
 
 			instructions.add(new Instruction21c(opcode, regA, stringIdItem));
@@ -950,9 +942,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			TypeIdItem typeIdItem = $reference_type_descriptor.type;
-			
+
 			$instructions.add(new Instruction21c(opcode, regA, typeIdItem));
 		}
 	|	//e.g. const/high16 v1, 1234
@@ -960,9 +952,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21h.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			short litB = $short_integral_literal.value;
-			
+
 			instructions.add(new Instruction21h(opcode, regA, litB));
 		}
 	|	//e.g. const/16 v1, 1234
@@ -970,9 +962,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21s.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			short litB = $short_integral_literal.value;
-			
+
 			$instructions.add(new Instruction21s(opcode, regA, litB));
 		}
 	|	//e.g. if-eqz v0, endloop:
@@ -980,13 +972,13 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21t.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
-			
+
 			$instructions.add(new Instruction21t(opcode, regA, (short)addressOffset));
 		}
 	|	//e.g. add-int v0, v1, 123
@@ -995,10 +987,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22b.text);
 			short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			short regB = parseRegister_byte($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			short litC = $short_integral_literal.value;
 			literalTools.checkByte(litC);
-			
+
 			$instructions.add(new Instruction22b(opcode, regA, regB, (byte)litC));
 		}
 	|	//e.g. iput-object v1 v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
@@ -1007,9 +999,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD.text);
 			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
-			
+
 			$instructions.add(new Instruction22c(opcode, regA, regB, fieldIdItem));
 		}
 	|	//e.g. instance-of v0, v1, Ljava/lang/String;
@@ -1018,9 +1010,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_TYPE.text);
 			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
-			
+
 			$instructions.add(new Instruction22c(opcode, regA, regB, typeIdItem));
 		}
 	|	//e.g. add-int/lit16 v0, v1, 12345
@@ -1029,9 +1021,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22s.text);
 			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			short litC = $short_integral_literal.value;
-			
+
 			$instructions.add(new Instruction22s(opcode, regA, regB, litC));
 		}
 	|	//e.g. if-eq v0, v1, endloop:
@@ -1040,13 +1032,13 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22t.text);
 			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
 				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
-			
+
 			$instructions.add(new Instruction22t(opcode, regA, regB, (short)addressOffset));
 		}
 	|	//e.g. move/from16 v1, v1234
@@ -1055,7 +1047,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22x.text);
 			short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			$instructions.add(new Instruction22x(opcode, regA, regB));
 		}
 	|	//e.g. add-int v1, v2, v3
@@ -1064,17 +1056,17 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT23x.text);
 			short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			short regB = parseRegister_byte($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			short regC = parseRegister_byte($registerC.text, $totalMethodRegisters, $methodParameterRegisters);			
-			
+			short regC = parseRegister_byte($registerC.text, $totalMethodRegisters, $methodParameterRegisters);
+
 			$instructions.add(new Instruction23x(opcode, regA, regB, regC));
 		}
 	|	//e.g. goto/32 endloop:
 		^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT30t.text);
-			
+
 			int addressOffset = $offset_or_label.offsetValue;
-	
+
 			$instructions.add(new Instruction30t(opcode, addressOffset));
 		}
 	|	//e.g. const-string/jumbo v1 "Hello World!"
@@ -1082,9 +1074,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-					
+
 			StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, $string_literal.value);
-			
+
 			$instructions.add(new Instruction31c(opcode, regA, stringIdItem));
 		}
 	|	//e.g. const v0, 123456
@@ -1092,23 +1084,23 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31i.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			int litB = $fixed_32bit_literal.value;
-			
+
 			$instructions.add(new Instruction31i(opcode, regA, litB));
 		}
 	|	//e.g. fill-array-data v0, ArrayData:
 		^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31t.text);
-			
+
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			int addressOffset = $offset_or_label.offsetValue;
 			if (($method::currentAddress + addressOffset) \% 2 != 0) {
 				addressOffset++;
 			}
-			
+
 			$instructions.add(new Instruction31t(opcode, regA, addressOffset));
 		}
 	|	//e.g. move/16 v5678, v1234
@@ -1117,7 +1109,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT32x.text);
 			int regA = parseRegister_short($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			$instructions.add(new Instruction32x(opcode, regA, regB));
 		}
 	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
@@ -1129,9 +1121,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			byte[] registers = $register_list.registers;
 			byte registerCount = $register_list.registerCount;
 			$outRegisters = registerCount;
-			
+
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
-			
+
 			$instructions.add(new Instruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem));
 		}
 	|	//e.g. filled-new-array {v0,v1}, I
@@ -1143,9 +1135,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			byte[] registers = $register_list.registers;
 			byte registerCount = $register_list.registerCount;
 			$outRegisters = registerCount;
-			
+
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
-			
+
 			$instructions.add(new Instruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeIdItem));
 		}
 	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -1154,7 +1146,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_METHOD.text);
 			int startRegister = $register_range.startRegister;
 			int endRegister = $register_range.endRegister;
-			
+
 			int registerCount = endRegister-startRegister+1;
 			if (registerCount > 256) {
 				throw new SemanticException(input, "A register range can span a maximum of 256 registers");
@@ -1162,9 +1154,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			if (registerCount < 1) {
 				throw new SemanticException(input, "A register range must have the lower register listed first");
 			}
-			
+
 			$outRegisters = registerCount;
-			
+
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 
 			$instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, methodIdItem));
@@ -1175,7 +1167,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_TYPE.text);
 			int startRegister = $register_range.startRegister;
 			int endRegister = $register_range.endRegister;
-			
+
 			int registerCount = endRegister-startRegister+1;
 			if (registerCount > 256) {
 				throw new SemanticException(input, "A register range can span a maximum of 256 registers");
@@ -1183,21 +1175,21 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			if (registerCount < 1) {
 				throw new SemanticException(input, "A register range must have the lower register listed first");
 			}
-			
+
 			$outRegisters = registerCount;
-			
+
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 
 			$instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, typeIdItem));
-		}	
+		}
 	|	//e.g. const-wide v0, 5000000000L
 		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT51l.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
-			
+
 			long litB = $fixed_64bit_literal.value;
-			
+
 			$instructions.add(new Instruction51l(opcode, regA, litB));
 		}
 	|	//e.g. .array-data 4 1000000 .end array-data
@@ -1207,26 +1199,26 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 				$instructions.add(new Instruction10x(Opcode.NOP));
 				$method::currentAddress++;
 			}
-			
+
 			int elementWidth = $short_integral_literal.value;
 			List<byte[]> byteValues = $array_elements.values;
-			
+
 			int length = 0;
 			for (byte[] byteValue: byteValues) {
 				length+=byteValue.length;
 			}
-			
+
 			byte[] encodedValues = new byte[length];
 			int index = 0;
 			for (byte[] byteValue: byteValues) {
 				System.arraycopy(byteValue, 0, encodedValues, index, byteValue.length);
 				index+=byteValue.length;
-			}			
-			
+			}
+
 			$instructions.add(new ArrayDataPseudoInstruction(elementWidth, encodedValues));
 		}
 	|
-		
+
 		^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal)
 			{
 				if (($method::currentAddress \% 2) != 0) {
@@ -1240,14 +1232,14 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			}
 			packed_switch_targets[baseAddress])
 		{
-			
+
 			int startKey = $fixed_32bit_literal.value;
 			int[] targets = $packed_switch_targets.targets;
-			
+
 			$instructions.add(new PackedSwitchDataPseudoInstruction(startKey, targets));
 		}
 	|
-		^(I_STATEMENT_SPARSE_SWITCH sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount] 
+		^(I_STATEMENT_SPARSE_SWITCH sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount]
 			{
 				if (($method::currentAddress \% 2) != 0) {
 					$instructions.add(new Instruction10x(Opcode.NOP));
@@ -1257,23 +1249,23 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 				if (baseAddress == null) {
 					baseAddress = 0;
 				}
-			}		
-		
+			}
+
 			sparse_switch_targets[baseAddress, $sparse_switch_target_count.targetCount])
 		{
 			int[] keys = $sparse_switch_keys.keys;
 			int[] targets = $sparse_switch_targets.targets;
-			
+
 			$instructions.add(new SparseSwitchDataPseudoInstruction(keys, targets));
 		};
 		catch [Exception ex] {
 			reportError(new SemanticException(input, ex));
 			recover(input, null);
 		}
-		
+
 nonvoid_type_descriptor returns [TypeIdItem type]
 	:	(PRIMITIVE_TYPE
-	|	CLASS_DESCRIPTOR	
+	|	CLASS_DESCRIPTOR
 	|	ARRAY_DESCRIPTOR)
 	{
 		$type = TypeIdItem.internTypeIdItem(dexFile, $start.getText());
@@ -1288,9 +1280,9 @@ reference_type_descriptor returns [TypeIdItem type]
 	};
 
 
-	
 
-	
+
+
 
 class_type_descriptor returns [TypeIdItem type]
 	:	CLASS_DESCRIPTOR
@@ -1302,7 +1294,7 @@ type_descriptor returns [TypeIdItem type]
 	:	VOID_TYPE {$type = TypeIdItem.internTypeIdItem(dexFile, "V");}
 	|	nonvoid_type_descriptor {$type = $nonvoid_type_descriptor.type;}
 	;
-	
+
 short_integral_literal returns[short value]
 	:	long_literal
 		{
@@ -1317,7 +1309,7 @@ short_integral_literal returns[short value]
 	|	short_literal {$value = $short_literal.value;}
 	|	char_literal {$value = (short)$char_literal.value;}
 	|	byte_literal {$value = $byte_literal.value;};
-	
+
 integral_literal returns[int value]
 	:	long_literal
 		{
@@ -1327,8 +1319,8 @@ integral_literal returns[int value]
 	|	integer_literal {$value = $integer_literal.value;}
 	|	short_literal {$value = $short_literal.value;}
 	|	byte_literal {$value = $byte_literal.value;};
-		
-	
+
+
 integer_literal returns[int value]
 	:	INTEGER_LITERAL { $value = literalTools.parseInt($INTEGER_LITERAL.text); };
 
@@ -1340,10 +1332,10 @@ short_literal returns[short value]
 
 byte_literal returns[byte value]
 	:	BYTE_LITERAL { $value = literalTools.parseByte($BYTE_LITERAL.text); };
-	
+
 float_literal returns[float value]
 	:	FLOAT_LITERAL { $value = parseFloat($FLOAT_LITERAL.text); };
-	
+
 double_literal returns[double value]
 	:	DOUBLE_LITERAL { $value = parseDouble($DOUBLE_LITERAL.text); };
 
@@ -1377,7 +1369,7 @@ annotations returns[AnnotationSetItem annotationSetItem]
 				$annotationSetItem = AnnotationSetItem.internAnnotationSetItem(dexFile, annotationList);
 			}
 		};
-		
+
 
 annotation returns[AnnotationItem annotationItem]
 	:	^(I_ANNOTATION ANNOTATION_VISIBILITY subannotation)
@@ -1389,9 +1381,9 @@ annotation returns[AnnotationItem annotationItem]
 		};
 
 annotation_element returns[StringIdItem elementName, EncodedValue elementValue]
-	:	^(I_ANNOTATION_ELEMENT MEMBER_NAME literal)
+	:	^(I_ANNOTATION_ELEMENT SIMPLE_NAME literal)
 		{
-			$elementName = StringIdItem.internStringIdItem(dexFile, $MEMBER_NAME.text);
+			$elementName = StringIdItem.internStringIdItem(dexFile, $SIMPLE_NAME.text);
 			$elementValue = $literal.encodedValue;
 		};
 
