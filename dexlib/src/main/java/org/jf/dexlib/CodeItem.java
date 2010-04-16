@@ -28,17 +28,17 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Code.*;
 import org.jf.dexlib.Code.Format.Instruction20t;
-import org.jf.dexlib.Code.Format.Instruction30t;
 import org.jf.dexlib.Code.Format.Instruction21c;
+import org.jf.dexlib.Code.Format.Instruction30t;
 import org.jf.dexlib.Code.Format.Instruction31c;
+import org.jf.dexlib.Code.*;
+import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Debug.DebugOpcode;
 import org.jf.dexlib.Util.*;
-import org.jf.dexlib.Debug.DebugInstructionIterator;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CodeItem extends Item<CodeItem> {
     private int registerCount;

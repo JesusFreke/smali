@@ -29,8 +29,8 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.EncodedValue.ArrayEncodedSubValue;
-import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public class EncodedArrayItem extends Item<EncodedArrayItem> {
     private int hashCode = 0;

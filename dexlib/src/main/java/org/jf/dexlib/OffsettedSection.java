@@ -29,10 +29,6 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.Util.Input;
-import org.jf.dexlib.Util.SparseArray;
-import org.jf.dexlib.Util.Hex;
-
-import junit.framework.Assert;
 
 public class OffsettedSection<T extends Item> extends Section<T> {
     public OffsettedSection(DexFile dexFile, ItemType itemType) {

@@ -29,19 +29,17 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.Util.*;
-import org.jf.dexlib.Item;
-import org.jf.dexlib.StringDataItem;
 
 import java.io.*;
 import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.zip.Adler32;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * <h3>Main use cases</h3>

@@ -28,9 +28,9 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Util.Utf8Utils;
-import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
+import org.jf.dexlib.Util.Utf8Utils;
 
 public class StringIdItem extends Item<StringIdItem> {
     private StringDataItem stringDataItem;

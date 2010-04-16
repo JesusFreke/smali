@@ -28,12 +28,12 @@
 
 package org.jf.dexlib.Debug;
 
-import org.jf.dexlib.Util.Input;
-import org.jf.dexlib.Util.ByteArrayInput;
-import org.jf.dexlib.TypeIdItem;
-import org.jf.dexlib.StringIdItem;
-import org.jf.dexlib.DexFile;
 import org.jf.dexlib.DebugInfoItem;
+import org.jf.dexlib.DexFile;
+import org.jf.dexlib.StringIdItem;
+import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.Util.ByteArrayInput;
+import org.jf.dexlib.Util.Input;
 
 public class DebugInstructionIterator {
     /**

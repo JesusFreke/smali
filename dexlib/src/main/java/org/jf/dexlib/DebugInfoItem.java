@@ -31,9 +31,9 @@ package org.jf.dexlib;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Debug.DebugOpcode;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.ByteArrayInput;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.Leb128Utils;
-import org.jf.dexlib.Util.ByteArrayInput;
 
 import java.util.ArrayList;
 import java.util.List;

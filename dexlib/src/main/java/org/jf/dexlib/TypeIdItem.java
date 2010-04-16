@@ -28,8 +28,8 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
 
 public class TypeIdItem extends Item<TypeIdItem> {
     private StringIdItem typeDescriptor;

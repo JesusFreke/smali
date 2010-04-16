@@ -31,10 +31,13 @@ package org.jf.dexlib.Code.Analysis;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.*;
 import org.jf.dexlib.Code.Format.*;
-import org.jf.dexlib.Util.*;
+import org.jf.dexlib.Util.AccessFlags;
+import org.jf.dexlib.Util.ExceptionWithContext;
+import org.jf.dexlib.Util.SparseArray;
 
-
-import java.util.*;
+import java.util.BitSet;
+import java.util.EnumSet;
+import java.util.List;
 
 /**
  * The MethodAnalyzer performs several functions. It "analyzes" the instructions and infers the register types

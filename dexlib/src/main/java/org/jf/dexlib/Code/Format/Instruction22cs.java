@@ -32,9 +32,9 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.OdexedFieldAccess;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
-import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.NumberUtils;
 
 public class Instruction22cs extends Instruction implements TwoRegisterInstruction, OdexedFieldAccess {
     public static final Instruction.InstructionFactory Factory = new Factory();

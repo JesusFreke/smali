@@ -28,9 +28,9 @@
 
 package org.jf.dexlib.Code;
 
-import org.jf.dexlib.*;
-import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Code.Format.Format;
+import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Util.AnnotatedOutput;
 
 public abstract class Instruction {
     public final Opcode opcode;

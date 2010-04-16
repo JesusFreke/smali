@@ -28,11 +28,14 @@
 
 package org.jf.dexlib;
 
+import org.jf.dexlib.Util.AlignmentUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
-import org.jf.dexlib.Util.AlignmentUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 public abstract class Section<T extends Item> {
     /**

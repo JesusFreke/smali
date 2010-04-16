@@ -28,9 +28,9 @@
 
 package org.jf.dexlib.EncodedValue;
 
-import org.jf.dexlib.Util.Input;
-import org.jf.dexlib.Util.EncodedValueUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.EncodedValueUtils;
+import org.jf.dexlib.Util.Input;
 
 public class LongEncodedValue extends EncodedValue {
     public final long value;

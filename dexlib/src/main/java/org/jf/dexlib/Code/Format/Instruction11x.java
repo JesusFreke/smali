@@ -32,8 +32,8 @@ import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.SingleRegisterInstruction;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.NumberUtils;
 
 public class Instruction11x extends Instruction implements SingleRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();

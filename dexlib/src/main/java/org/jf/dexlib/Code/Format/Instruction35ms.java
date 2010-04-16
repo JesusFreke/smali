@@ -32,9 +32,9 @@ import org.jf.dexlib.Code.FiveRegisterInstruction;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.OdexedInvokeVirtual;
 import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Util.NumberUtils;
-import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.NumberUtils;
 
 
 public class Instruction35ms extends Instruction implements FiveRegisterInstruction, OdexedInvokeVirtual {

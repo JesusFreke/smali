@@ -28,14 +28,17 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Util.Input;
-import org.jf.dexlib.Util.AnnotatedOutput;
-import org.jf.dexlib.Util.AccessFlags;
-import org.jf.dexlib.Util.TypeUtils;
-import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.ArrayEncodedSubValue;
+import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.dexlib.Util.AccessFlags;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
+import org.jf.dexlib.Util.TypeUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 
 public class ClassDefItem extends Item<ClassDefItem> {
     private TypeIdItem classType;

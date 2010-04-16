@@ -31,7 +31,6 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.Input;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 
 public class OdexDependencies {
     public final int modificationTime;

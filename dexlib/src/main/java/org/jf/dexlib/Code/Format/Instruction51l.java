@@ -29,12 +29,12 @@
 package org.jf.dexlib.Code.Format;
 
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.LiteralInstruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.SingleRegisterInstruction;
-import org.jf.dexlib.Code.LiteralInstruction;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.Util.NumberUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.NumberUtils;
 
 public class Instruction51l extends Instruction implements SingleRegisterInstruction, LiteralInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();

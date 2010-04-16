@@ -30,8 +30,8 @@ package org.jf.dexlib;
 
 import org.jf.dexlib.Util.*;
 
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 public class ClassDataItem extends Item<ClassDataItem> {
     private EncodedField[] staticFields;

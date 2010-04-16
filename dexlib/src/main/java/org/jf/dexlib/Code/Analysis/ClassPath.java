@@ -29,9 +29,6 @@
 package org.jf.dexlib.Code.Analysis;
 
 import org.jf.dexlib.*;
-import static org.jf.dexlib.ClassDataItem.EncodedMethod;
-import static org.jf.dexlib.ClassDataItem.EncodedField;
-
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.dexlib.Util.SparseArray;
@@ -40,6 +37,9 @@ import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.jf.dexlib.ClassDataItem.EncodedField;
+import static org.jf.dexlib.ClassDataItem.EncodedMethod;
 
 public class ClassPath {
     private static ClassPath theClassPath = null;

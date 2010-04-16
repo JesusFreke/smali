@@ -28,7 +28,10 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Util.*;
+import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.Input;
+import org.jf.dexlib.Util.Leb128Utils;
+import org.jf.dexlib.Util.Utf8Utils;
 
 public class StringDataItem extends Item<StringDataItem> {
     private int hashCode = 0;

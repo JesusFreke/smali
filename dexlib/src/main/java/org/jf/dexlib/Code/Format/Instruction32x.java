@@ -28,12 +28,12 @@
 
 package org.jf.dexlib.Code.Format;
 
-import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.TwoRegisterInstruction;
-import org.jf.dexlib.Util.NumberUtils;
+import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.AnnotatedOutput;
+import org.jf.dexlib.Util.NumberUtils;
 
 public class Instruction32x extends Instruction implements TwoRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();

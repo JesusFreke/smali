@@ -28,8 +28,6 @@
 
 package org.jf.dexlib;
 
-import org.jf.dexlib.Util.ExceptionWithContext;
-
 public enum AnnotationVisibility {
     BUILD((byte)0, "build"),
     RUNTIME((byte)1, "runtime"),
