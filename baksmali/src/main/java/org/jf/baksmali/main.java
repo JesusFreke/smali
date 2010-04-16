@@ -30,11 +30,12 @@ package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
 import org.jf.dexlib.DexFile;
-import org.jf.util.*;
+import org.jf.util.ConsoleUtil;
+import org.jf.util.smaliHelpFormatter;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;

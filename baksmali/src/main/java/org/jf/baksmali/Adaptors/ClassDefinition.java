@@ -29,11 +29,11 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.IndentingWriter;
-import org.jf.dexlib.Code.Analysis.ValidationException;
-import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.*;
-import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.Code.Format.Instruction21c;
+import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.dexlib.Util.SparseArray;
 

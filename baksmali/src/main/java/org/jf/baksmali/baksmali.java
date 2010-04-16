@@ -29,9 +29,9 @@
 package org.jf.baksmali;
 
 import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.Code.Analysis.ClassPath;
 import org.jf.dexlib.DexFile;
-import org.jf.dexlib.ClassDefItem;
 
 import java.io.*;
 import java.util.regex.Matcher;

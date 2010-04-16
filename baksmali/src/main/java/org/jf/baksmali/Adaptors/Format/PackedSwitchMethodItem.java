@@ -28,12 +28,12 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
+import org.jf.baksmali.Adaptors.LabelMethodItem;
+import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;
-import org.jf.baksmali.Adaptors.LabelMethodItem;
-import org.jf.baksmali.Adaptors.MethodDefinition;
 
 import java.io.IOException;
 import java.util.ArrayList;

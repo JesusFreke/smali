@@ -29,7 +29,10 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.dexlib.Code.Format.*;
+import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.UnresolvedNullReference;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.CodeItem;

@@ -28,16 +28,17 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.Adaptors.Format.*;
+import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
 import org.jf.baksmali.IndentingWriter;
-import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.baksmali.baksmali;
 import org.jf.dexlib.*;
-import org.jf.dexlib.Code.*;
 import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
 import org.jf.dexlib.Code.Analysis.MethodAnalyzer;
 import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.Code.Format.Format;
+import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.OffsetInstruction;
+import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.dexlib.Util.ExceptionWithContext;

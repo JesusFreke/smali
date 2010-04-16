@@ -30,9 +30,10 @@ package org.jf.baksmali;
 
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
-import org.apache.commons.cli.*;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class dump {
     public static void dump(DexFile dexFile, String dumpFileName, String outputDexFileName, boolean sort)

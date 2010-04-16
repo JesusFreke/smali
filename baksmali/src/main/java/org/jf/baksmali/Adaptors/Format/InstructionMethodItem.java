@@ -33,8 +33,9 @@ import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
 import org.jf.baksmali.IndentingWriter;
 import org.jf.baksmali.Renderers.LongRenderer;
-import org.jf.dexlib.*;
 import org.jf.dexlib.Code.*;
+import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.Item;
 
 import java.io.IOException;
 
