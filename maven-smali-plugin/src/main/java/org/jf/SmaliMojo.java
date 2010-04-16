@@ -30,7 +30,7 @@ import java.util.List;
  * Assembles files in the smali assembly language
  *
  * @goal assemble
- * 
+ *
  * @phase compile
  */
 public class SmaliMojo
@@ -75,7 +75,7 @@ public class SmaliMojo
 
 
             if (dumpFile != null) {
-                args.add("-d");
+                args.add("-D");
                 args.add(dumpFile.getAbsolutePath());
             }
 
