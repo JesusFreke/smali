@@ -28,20 +28,21 @@
 
 package org.jf.smali;
 
-import org.apache.commons.cli.*;
-import org.jf.dexlib.DexFile;
-import org.jf.dexlib.CodeItem;
-import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
-import org.jf.util.*;
+import org.apache.commons.cli.*;
+import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
+import org.jf.util.ConsoleUtil;
+import org.jf.util.smaliHelpFormatter;
 
 import java.io.*;
-import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Main class for smali. It recognizes enough options to be able to dispatch
