@@ -31,6 +31,8 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public class AnnotationSetItem extends Item<AnnotationSetItem> {
@@ -87,6 +89,20 @@ public class AnnotationSetItem extends Item<AnnotationSetItem> {
 
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
+        Arrays.sort(annotations, new Comparator<AnnotationItem>() {
+            public int compare(AnnotationItem annotationItem, AnnotationItem annotationItem2) {
+                int annotationItemIndex = annotationItem.getEncodedAnnotation().annotationType.getIndex();
+                int annotationItemIndex2 = annotationItem2.getEncodedAnnotation().annotationType.getIndex();
+                if (annotationItemIndex < annotationItemIndex2) {
+                    return -1;
+                } else if (annotationItemIndex == annotationItemIndex2) {
+                    return 0;
+                }
+                return 1;
+            }
+        });
+
+
         if (out.annotates()) {
             out.annotate(4, "size: 0x" + Integer.toHexString(annotations.length) + " (" + annotations.length + ")");
             for (AnnotationItem annotationItem: annotations) {
