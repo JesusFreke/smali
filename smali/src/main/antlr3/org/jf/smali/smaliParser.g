@@ -538,8 +538,8 @@ line_directive
 		-> ^(I_LINE integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 local_directive
-	:	LOCAL_DIRECTIVE	REGISTER COMMA SIMPLE_NAME COLON nonvoid_type_descriptor (COMMA STRING_LITERAL)?
-		-> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER SIMPLE_NAME nonvoid_type_descriptor STRING_LITERAL? I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+	:	LOCAL_DIRECTIVE	REGISTER COMMA simple_name COLON nonvoid_type_descriptor (COMMA STRING_LITERAL)?
+		-> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER simple_name nonvoid_type_descriptor STRING_LITERAL? I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 end_local_directive
 	:	END_LOCAL_DIRECTIVE REGISTER
