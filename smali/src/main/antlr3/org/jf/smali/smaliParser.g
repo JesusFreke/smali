@@ -285,7 +285,7 @@ access_list
 field
 	@init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
 	:	FIELD_DIRECTIVE access_list simple_name COLON nonvoid_type_descriptor (EQUAL literal)?
-		(	({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation { annotations.add($annotation.tree); } )*
+		(	({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation {annotations.add($annotation.tree);})*
 			(	END_FIELD_DIRECTIVE
 				-> ^(I_FIELD[$start, "I_FIELD"] simple_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*))
 			|	/*epsilon*/ {$smali_file::classAnnotations.addAll(annotations);}
@@ -306,12 +306,14 @@ statements_and_directives
 		boolean hasRegistersDirective;
 		List<CommonTree> packedSwitchDeclarations;
 		List<CommonTree> sparseSwitchDeclarations;
+		List<CommonTree> methodAnnotations;
 	}
 	:	{
 			$method::currentAddress = 0;
 			$statements_and_directives::hasRegistersDirective = false;
 			$statements_and_directives::packedSwitchDeclarations = new ArrayList<CommonTree>();
 			$statements_and_directives::sparseSwitchDeclarations = new ArrayList<CommonTree>();
+			$statements_and_directives::methodAnnotations = new ArrayList<CommonTree>();
 		}
 		(	instruction {$method::currentAddress += $instruction.size/2;}
 		|	{!$statements_and_directives::hasRegistersDirective}?=> registers_directive {$statements_and_directives::hasRegistersDirective = true;}
@@ -320,7 +322,7 @@ statements_and_directives
 		|	catchall_directive
 		|	parameter_directive
 		|	ordered_debug_directive
-		|	annotation
+		|	annotation  {$statements_and_directives::methodAnnotations.add($annotation.tree);}
 		)*
 		->	^(I_REGISTERS registers_directive?)
 			^(I_LABELS label*)
@@ -330,7 +332,7 @@ statements_and_directives
 			^(I_CATCHES catch_directive* catchall_directive*)
 			^(I_PARAMETERS parameter_directive*)
 			^(I_ORDERED_DEBUG_DIRECTIVES ordered_debug_directive*)
-			^(I_ANNOTATIONS annotation*);
+			{buildTree(I_ANNOTATIONS, "I_ANNOTATIONS", $statements_and_directives::methodAnnotations)};
 
 registers_directive
 	:	(REGISTERS_DIRECTIVE | LOCALS_DIRECTIVE) integral_literal
@@ -519,16 +521,15 @@ catchall_directive
 		-> ^(I_CATCHALL[$start, "I_CATCHALL"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] $from $to $using);
 
 parameter_directive
+	@init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
 	:	PARAMETER_DIRECTIVE
-		(	STRING_LITERAL
-			(	(annotation+ END_PARAMETER_DIRECTIVE)=> annotation+ END_PARAMETER_DIRECTIVE
-			|	END_PARAMETER_DIRECTIVE?
-			)
-			-> ^(I_PARAMETER STRING_LITERAL ^(I_ANNOTATIONS annotation*))
-		|	(	(annotation+ END_PARAMETER_DIRECTIVE)=> annotation+ END_PARAMETER_DIRECTIVE
-			|	END_PARAMETER_DIRECTIVE?
-			)
-			-> ^(I_PARAMETER I_PARAMETER_NOT_SPECIFIED ^(I_ANNOTATIONS annotation*))
+		STRING_LITERAL?
+		({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation {annotations.add($annotation.tree);})*
+
+		(	END_PARAMETER_DIRECTIVE
+			-> ^(I_PARAMETER STRING_LITERAL? ^(I_ANNOTATIONS annotation*))
+		|	/*epsilon*/ {$statements_and_directives::methodAnnotations.addAll(annotations);}
+			-> ^(I_PARAMETER STRING_LITERAL? ^(I_ANNOTATIONS))
 		);
 
 ordered_debug_directive

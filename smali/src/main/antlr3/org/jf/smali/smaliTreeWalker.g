@@ -724,7 +724,7 @@ parameters returns[AnnotationSetRefList parameterAnnotations]
 
 parameter returns[AnnotationSetItem parameterAnnotationSet]
 	:	^(I_PARAMETER 	(	string_literal {$method::debugInfo.addParameterName($string_literal.value);}
-				|	I_PARAMETER_NOT_SPECIFIED {$method::debugInfo.addParameterName(null);}
+				|	{$method::debugInfo.addParameterName(null);}
 				)
 				annotations {$parameterAnnotationSet = $annotations.annotationSetItem;}
 		);
