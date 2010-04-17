@@ -625,14 +625,14 @@ labels
 	:	^(I_LABELS label_def*);
 
 label_def
-	:	^(I_LABEL LABEL address)
+	:	^(I_LABEL SIMPLE_NAME address)
 		{
-			if ($method::labels.containsKey($LABEL.text)) {
-				throw new SemanticException(input, "Label " + $LABEL.text + " has multiple defintions.");
+			if ($method::labels.containsKey($SIMPLE_NAME.text)) {
+				throw new SemanticException(input, "Label " + $SIMPLE_NAME.text + " has multiple defintions.");
 			}
 
 
-			$method::labels.put($LABEL.text, $address.address);
+			$method::labels.put($SIMPLE_NAME.text, $address.address);
 		};
 
 packed_switch_declarations
@@ -806,12 +806,12 @@ statements[int totalMethodRegisters, int methodParameterRegisters] returns[List<
 				})*);
 
 label_ref returns[int labelAddress]
-	:	LABEL
+	:	SIMPLE_NAME
 		{
-			Integer labelAdd = $method::labels.get($LABEL.text);
+			Integer labelAdd = $method::labels.get($SIMPLE_NAME.text);
 
 			if (labelAdd == null) {
-				throw new SemanticException(input, "Label \"" + $LABEL.text + "\" is not defined.");
+				throw new SemanticException(input, "Label \"" + $SIMPLE_NAME.text + "\" is not defined.");
 			}
 
 			$labelAddress = labelAdd;

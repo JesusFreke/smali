@@ -489,10 +489,10 @@ fully_qualified_field
 	->	reference_type_descriptor simple_name nonvoid_type_descriptor;
 
 label
-	:	COLON SIMPLE_NAME -> ^(I_LABEL LABEL[$SIMPLE_NAME] I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+	:	COLON simple_name -> ^(I_LABEL simple_name I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 label_ref_or_offset
-	:	COLON SIMPLE_NAME -> LABEL[$SIMPLE_NAME]
+	:	COLON simple_name -> simple_name
 	|	OFFSET
 	|	NEGATIVE_INTEGER_LITERAL -> OFFSET[$NEGATIVE_INTEGER_LITERAL];
 
