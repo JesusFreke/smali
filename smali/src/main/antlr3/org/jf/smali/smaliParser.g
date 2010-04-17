@@ -216,6 +216,13 @@ import org.jf.dexlib.Code.Format.*;
 		}
 		return root;
 	}
+	
+	private void throwOdexedInstructionException(IntStream input, String odexedInstruction)
+			throws OdexedInstructionException {
+		/*this has to be done in a separate method, otherwise java will complain about the
+		auto-generated code in the rule after the throw not being reachable*/
+		throw new OdexedInstructionException(input, odexedInstruction);		
+	}
 }
 
 
@@ -624,7 +631,7 @@ instruction returns [int size]
 	|	//e.g. iget-quick v0, v1, field@0xc
 		INSTRUCTION_FORMAT22cs_FIELD REGISTER COMMA REGISTER COMMA FIELD_OFFSET
 		{
-			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT22cs_FIELD.text);
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT22cs_FIELD.text);
 		}
 	|	//e.g. add-int/lit16 v0, v1, 12345
 		instruction_format22s REGISTER COMMA REGISTER COMMA integral_literal {$size = Format.Format22s.size;}
@@ -677,12 +684,12 @@ instruction returns [int size]
 	|	//e.g. invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 		INSTRUCTION_FORMAT35s_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method
 		{
-			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT35s_METHOD.text);
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35s_METHOD.text);
 		}
 	|	//e.g. invoke-virtual-range {v0, v1}, vtable@0x4
 		INSTRUCTION_FORMAT35ms_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA VTABLE_OFFSET
 		{
-			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT35ms_METHOD.text);
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35ms_METHOD.text);
 		}
 	|	//e.g. invoke-virtual/range {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format3rc.size;}
@@ -693,7 +700,7 @@ instruction returns [int size]
 	|	//e.g. invoke-virtual-quick/range {v0 .. v10}, vtable@0x14
 		INSTRUCTION_FORMAT3rms_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA VTABLE_OFFSET
 		{
-			throw new OdexedInstructionException(input, $INSTRUCTION_FORMAT3rms_METHOD.text);
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rms_METHOD.text);
 		}
 	|	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER COMMA fixed_literal {$size = Format.Format51l.size;}
