@@ -487,7 +487,15 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 					methodParameterRegisters++;
 				}
 			}
-			registers_directive?
+			(	registers_directive
+				{
+					if ($registers_directive.isLocalsDirective) {
+						totalMethodRegisters = $registers_directive.registers + methodParameterRegisters;
+					} else {
+						totalMethodRegisters = $registers_directive.registers;
+					}
+				}
+			)?
 			labels
 			packed_switch_declarations
 			sparse_switch_declarations
@@ -505,7 +513,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);
 
 		CodeItem codeItem;
-		
+
 		boolean isAbstract = false;
 		boolean isNative = false;
 
@@ -519,14 +527,14 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			if (!isAbstract && !isNative) {
 				throw new SemanticException(input, $I_METHOD, "A non-abstract/non-native method must have at least 1 instruction");
 			}
-			
+
 			String methodType;
 			if (isAbstract) {
 				methodType = "an abstract";
 			} else {
 				methodType = "a native";
 			}
-			
+
 		    	if ($registers_directive.start != null) {
 		    		if ($registers_directive.isLocalsDirective) {
 			    		throw new SemanticException(input, $registers_directive.start, "A .locals directive is not valid in \%s method", methodType);
@@ -543,10 +551,10 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		    		throw new SemanticException(input, $I_METHOD, "try/catch blocks cannot be present in \%s method", methodType);
 		    	}
 
-		    	if (debugInfoItem != null) {			    	    		
+		    	if (debugInfoItem != null) {
 		    		throw new SemanticException(input, $I_METHOD, "debug directives cannot be present in \%s method", methodType);
 		    	}
-		    	
+
 		    	codeItem = null;
 		} else {
 			if (isAbstract) {
@@ -555,17 +563,11 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			if (isNative) {
 				throw new SemanticException(input, $I_METHOD, "A native method cannot have any instructions");
 			}
-			
+
 			if ($registers_directive.start == null) {
 				throw new SemanticException(input, $I_METHOD, "A .registers or .locals directive must be present for a non-abstract/non-final method");
 			}
-			
-			if ($registers_directive.isLocalsDirective) {
-				totalMethodRegisters = $registers_directive.registers + methodParameterRegisters;
-			} else {
-				totalMethodRegisters = $registers_directive.registers;
-			}
-			
+
 			if (totalMethodRegisters < methodParameterRegisters) {
 				throw new SemanticException(input, $registers_directive.start, "This method requires at least " +
 								Integer.toString(methodParameterRegisters) +
