@@ -97,6 +97,7 @@ public class main {
         boolean sort = false;
         boolean fixStringConst = true;
         boolean fixGoto = true;
+        boolean verboseErrors = false;
 
         String outputDexFile = "out.dex";
         String dumpFileName = null;
@@ -137,6 +138,9 @@ public class main {
                 case 'G':
                     fixGoto = false;
                     break;
+                case 'V':
+                    verboseErrors = true;
+                    break;
                 default:
                     assert false;
             }
@@ -169,7 +173,7 @@ public class main {
             boolean errors = false;
 
             for (File file: filesToProcess) {
-                if (!assembleSmaliFile(file, dexFile)) {
+                if (!assembleSmaliFile(file, dexFile, verboseErrors)) {
                     errors = true;
                 }
             }
@@ -245,7 +249,7 @@ public class main {
         }
     }
 
-    private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile)
+    private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile, boolean verboseErrors)
             throws Exception {
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(smaliFile), "UTF8");
         input.name = smaliFile.getAbsolutePath();
@@ -254,6 +258,7 @@ public class main {
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         smaliParser parser = new smaliParser(tokens);
+        parser.setVerboseErrors(verboseErrors);
 
         smaliParser.smali_file_return result = parser.smali_file();
 
@@ -346,6 +351,10 @@ public class main {
                 .withDescription("Don't replace goto type instructions with a larger version where appropriate")
                 .create("G");
 
+        Option verboseErrorsOption = OptionBuilder.withLongOpt("verbose-errors")
+                .withDescription("Generate verbose error messages")
+                .create("V");
+
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputOption);
@@ -354,6 +363,7 @@ public class main {
         debugOptions.addOption(sortOption);
         debugOptions.addOption(noFixStringConstOption);
         debugOptions.addOption(noFixGotoOption);
+        debugOptions.addOption(verboseErrorsOption);
 
         for (Object option: basicOptions.getOptions()) {
             options.addOption((Option)option);

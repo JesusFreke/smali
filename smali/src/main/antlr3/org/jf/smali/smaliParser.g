@@ -135,14 +135,23 @@ import org.jf.dexlib.Code.Format.*;
 
 
 @members {
+	private boolean verboseErrors = false;
+
+	public void setVerboseErrors(boolean verboseErrors) {
+		this.verboseErrors = verboseErrors;
+	}
+
 	public String getErrorMessage(RecognitionException e,
-		String[] tokenNames)
-	{
+		String[] tokenNames) {
+		if (!verboseErrors) {
+			return super.getErrorMessage(e, tokenNames);
+		}
+
 		List stack = getRuleInvocationStack(e, this.getClass().getName());
 		String msg = null;
 		if ( e instanceof NoViableAltException ) {
 			NoViableAltException nvae = (NoViableAltException)e;
-			msg = " no viable alt; token="+e.token+
+			msg = " no viable alt; token="+getTokenErrorDisplay(e.token)+
 			" (decision="+nvae.decisionNumber+
 			" state "+nvae.stateNumber+")"+
 			" decision=<<"+nvae.grammarDecisionDescription+">>";
@@ -154,7 +163,38 @@ import org.jf.dexlib.Code.Format.*;
 	}
 
 	public String getTokenErrorDisplay(Token t) {
-		return t.toString();
+		if (!verboseErrors) {
+			String s = t.getText();
+			if ( s==null ) {
+				if ( t.getType()==Token.EOF ) {
+					s = "<EOF>";
+				}
+				else {
+					s = "<"+tokenNames[t.getType()]+">";
+				}
+			}
+			s = s.replaceAll("\n","\\\\n");
+			s = s.replaceAll("\r","\\\\r");
+			s = s.replaceAll("\t","\\\\t");
+			return "'"+s+"'";
+		}
+
+		CommonToken ct = (CommonToken)t;
+
+		String channelStr = "";
+		if (t.getChannel()>0) {
+			channelStr=",channel="+t.getChannel();
+		}
+		String txt = t.getText();
+		if ( txt!=null ) {
+			txt = txt.replaceAll("\n","\\\\n");
+			txt = txt.replaceAll("\r","\\\\r");
+			txt = txt.replaceAll("\t","\\\\t");
+		}
+		else {
+			txt = "<no text>";
+		}
+		return "[@"+t.getTokenIndex()+","+ct.getStartIndex()+":"+ct.getStopIndex()+"='"+txt+"',<"+tokenNames[t.getType()]+">"+channelStr+","+t.getLine()+":"+t.getCharPositionInLine()+"]";
 	}
 
 	public String getErrorHeader(RecognitionException e) {
