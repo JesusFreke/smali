@@ -283,6 +283,10 @@ access_list
 	:	ACCESS_SPEC* -> ^(I_ACCESS_LIST[$start,"I_ACCESS_LIST"] ACCESS_SPEC*);
 
 
+/*When there are annotations immediately after a field definition, we don't know whether they are field annotations
+or class annotations until we determine if there is an .end field directive. In either case, we still "consume" and parse
+the annotations. If it turns out that they are field annotations, we include them in the I_FIELD AST. Otherwise, we
+add them to the $smali_file::classAnnotations list*/
 field
 	@init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
 	:	FIELD_DIRECTIVE access_list simple_name COLON nonvoid_type_descriptor (EQUAL literal)?
@@ -529,6 +533,10 @@ catchall_directive
 	:	CATCHALL_DIRECTIVE OPEN_BRACE from=label_ref_or_offset DOTDOT to=label_ref_or_offset CLOSE_BRACE using=label_ref_or_offset
 		-> ^(I_CATCHALL[$start, "I_CATCHALL"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] $from $to $using);
 
+/*When there are annotations immediately after a parameter definition, we don't know whether they are parameter annotations
+or method annotations until we determine if there is an .end parameter directive. In either case, we still "consume" and parse
+the annotations. If it turns out that they are parameter annotations, we include them in the I_PARAMETER AST. Otherwise, we
+add them to the $statements_and_directives::methodAnnotations list*/
 parameter_directive
 	@init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
 	:	PARAMETER_DIRECTIVE
@@ -536,9 +544,9 @@ parameter_directive
 		({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation {annotations.add($annotation.tree);})*
 
 		(	END_PARAMETER_DIRECTIVE
-			-> ^(I_PARAMETER STRING_LITERAL? ^(I_ANNOTATIONS annotation*))
+			-> ^(I_PARAMETER[$start, "I_PARAMETER"] STRING_LITERAL? ^(I_ANNOTATIONS annotation*))
 		|	/*epsilon*/ {$statements_and_directives::methodAnnotations.addAll(annotations);}
-			-> ^(I_PARAMETER STRING_LITERAL? ^(I_ANNOTATIONS))
+			-> ^(I_PARAMETER[$start, "I_PARAMETER"] STRING_LITERAL? ^(I_ANNOTATIONS))
 		);
 
 ordered_debug_directive

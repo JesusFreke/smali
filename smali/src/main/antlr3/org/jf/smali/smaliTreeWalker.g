@@ -626,7 +626,7 @@ label_def
 	:	^(I_LABEL SIMPLE_NAME address)
 		{
 			if ($method::labels.containsKey($SIMPLE_NAME.text)) {
-				throw new SemanticException(input, "Label " + $SIMPLE_NAME.text + " has multiple defintions.");
+				throw new SemanticException(input, $I_LABEL, "Label " + $SIMPLE_NAME.text + " has multiple defintions.");
 			}
 
 
