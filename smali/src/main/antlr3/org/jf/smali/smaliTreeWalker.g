@@ -487,14 +487,7 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 					methodParameterRegisters++;
 				}
 			}
-			registers_directive
-			{
-				if ($registers_directive.isLocalsDirective) {
-					totalMethodRegisters = $registers_directive.registers + methodParameterRegisters;
-				} else {
-					totalMethodRegisters = $registers_directive.registers;
-				}
-			}
+			registers_directive?
 			labels
 			packed_switch_declarations
 			sparse_switch_declarations
@@ -524,6 +517,12 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			codeItem = null;
 
 		} else {
+			if ($registers_directive.isLocalsDirective) {
+				totalMethodRegisters = $registers_directive.registers + methodParameterRegisters;
+			} else {
+				totalMethodRegisters = $registers_directive.registers;
+			}
+			
 			if (totalMethodRegisters < methodParameterRegisters) {
 				throw new SemanticException(input, "This method requires at least " +
 								Integer.toString(methodParameterRegisters) +
@@ -614,12 +613,11 @@ fully_qualified_field returns[FieldIdItem fieldIdItem]
 
 registers_directive returns[boolean isLocalsDirective, int registers]
 	:	{$registers = 0;}
-		^(I_REGISTERS
-			(	(	REGISTERS_DIRECTIVE {$isLocalsDirective = false;}
-				|	LOCALS_DIRECTIVE {$isLocalsDirective = true;}
-				)
-				short_integral_literal {$registers = $short_integral_literal.value;}
-			)?);
+		^(	(	I_REGISTERS {$isLocalsDirective = false;}
+			|	I_LOCALS {$isLocalsDirective = true;}
+			)
+			short_integral_literal {$registers = $short_integral_literal.value;}
+		);
 
 labels
 	:	^(I_LABELS label_def*);

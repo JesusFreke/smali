@@ -50,6 +50,7 @@ tokens {
 	I_METHOD_PROTOTYPE;
 	I_METHOD_RETURN_TYPE;
 	I_REGISTERS;
+	I_LOCALS;
 	I_LABELS;
 	I_LABEL;
 	I_ANNOTATIONS;
@@ -316,7 +317,7 @@ statements_and_directives
 			$statements_and_directives::methodAnnotations = new ArrayList<CommonTree>();
 		}
 		(	instruction {$method::currentAddress += $instruction.size/2;}
-		|	{!$statements_and_directives::hasRegistersDirective}?=> registers_directive {$statements_and_directives::hasRegistersDirective = true;}
+		|	registers_directive
 		|	label
 		|	catch_directive
 		|	catchall_directive
@@ -324,7 +325,7 @@ statements_and_directives
 		|	ordered_debug_directive
 		|	annotation  {$statements_and_directives::methodAnnotations.add($annotation.tree);}
 		)*
-		->	^(I_REGISTERS registers_directive?)
+		->	registers_directive?
 			^(I_LABELS label*)
 			{buildTree(I_PACKED_SWITCH_DECLARATIONS, "I_PACKED_SWITCH_DECLARATIONS", $statements_and_directives::packedSwitchDeclarations)}
 			{buildTree(I_SPARSE_SWITCH_DECLARATIONS, "I_SPARSE_SWITCH_DECLARATIONS", $statements_and_directives::sparseSwitchDeclarations)}
@@ -335,8 +336,16 @@ statements_and_directives
 			{buildTree(I_ANNOTATIONS, "I_ANNOTATIONS", $statements_and_directives::methodAnnotations)};
 
 registers_directive
-	:	(REGISTERS_DIRECTIVE | LOCALS_DIRECTIVE) integral_literal
-	->	REGISTERS_DIRECTIVE? LOCALS_DIRECTIVE? integral_literal;
+	:	(
+			REGISTERS_DIRECTIVE regCount=integral_literal -> ^(I_REGISTERS[$REGISTERS_DIRECTIVE, "I_REGISTERS"] $regCount)
+		|	LOCALS_DIRECTIVE regCount2=integral_literal -> ^(I_LOCALS[$LOCALS_DIRECTIVE, "I_LOCALS"] $regCount2)
+		)
+		{
+			if ($statements_and_directives::hasRegistersDirective) {
+				throw new SemanticException(input, $registers_directive.tree, "There can only be a single .registers or .locals directive in a method");
+			}
+			$statements_and_directives::hasRegistersDirective=true;
+		};
 
 /*identifiers are much more general than most languages. Any of the below can either be
 the indicated type OR an identifier, depending on the context*/
