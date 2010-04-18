@@ -213,7 +213,7 @@ fragment HEX_DIGITS
 
 /*This can either be floating point numbers, or identifier*/
 fragment BASE_FLOAT_OR_ID
-	:	'-'? ('0'..'9')* DECIMAL_EXPONENT
+	:	'-'? ('0'..'9')+ DECIMAL_EXPONENT
 	|	HEX_PREFIX HEX_DIGIT+ BINARY_EXPONENT
 	|	'-'? ('i' | 'I') ('n' | 'N') ('f' | 'F') ('i' | 'I') ('n' | 'N') ('i' | 'I') ('t' | 'T') ('y' | 'Y')
 	|	('n' | 'N') ('a' | 'A') ('n' | 'N');
