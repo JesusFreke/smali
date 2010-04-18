@@ -502,21 +502,64 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 		List<CodeItem.TryItem> tries = temp.first;
 		List<CodeItem.EncodedCatchHandler> handlers = temp.second;
 
-
 		DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);
 
 		CodeItem codeItem;
+		
+		boolean isAbstract = false;
+		boolean isNative = false;
 
-		if (totalMethodRegisters == 0 &&
-		    $statements.instructions.size() == 0 &&
-		    $method::labels.size()== 0 &&
-		    (tries == null || tries.size() == 0) &&
-		    (handlers == null || handlers.size() == 0) &&
-		    debugInfoItem == null) {
+		if ((accessFlags & AccessFlags.ABSTRACT.getValue()) != 0) {
+			isAbstract = true;
+		} else if ((accessFlags & AccessFlags.NATIVE.getValue()) != 0) {
+			isNative = true;
+		}
 
-			codeItem = null;
+		if ($statements.instructions.size() == 0) {
+			if (!isAbstract && !isNative) {
+				throw new SemanticException(input, $I_METHOD, "A non-abstract/non-native method must have at least 1 instruction");
+			}
+			
+			String methodType;
+			if (isAbstract) {
+				methodType = "an abstract";
+			} else {
+				methodType = "a native";
+			}
+			
+		    	if ($registers_directive.start != null) {
+		    		if ($registers_directive.isLocalsDirective) {
+			    		throw new SemanticException(input, $registers_directive.start, "A .locals directive is not valid in \%s method", methodType);
+		    		} else {
+		    			throw new SemanticException(input, $registers_directive.start, "A  .registers directive is not valid in \%s method", methodType);
+		    		}
+		    	}
 
+		    	if ($method::labels.size() > 0) {
+		    		throw new SemanticException(input, $I_METHOD, "Labels cannot be present in \%s method", methodType);
+		    	}
+
+		    	if ((tries != null && tries.size() > 0) || (handlers != null && handlers.size() > 0)) {
+		    		throw new SemanticException(input, $I_METHOD, "try/catch blocks cannot be present in \%s method", methodType);
+		    	}
+
+		    	if (debugInfoItem != null) {			    	    		
+		    		throw new SemanticException(input, $I_METHOD, "debug directives cannot be present in \%s method", methodType);
+		    	}
+		    	
+		    	codeItem = null;
 		} else {
+			if (isAbstract) {
+				throw new SemanticException(input, $I_METHOD, "An abstract method cannot have any instructions");
+			}
+			if (isNative) {
+				throw new SemanticException(input, $I_METHOD, "A native method cannot have any instructions");
+			}
+			
+			if ($registers_directive.start == null) {
+				throw new SemanticException(input, $I_METHOD, "A .registers or .locals directive must be present for a non-abstract/non-final method");
+			}
+			
 			if ($registers_directive.isLocalsDirective) {
 				totalMethodRegisters = $registers_directive.registers + methodParameterRegisters;
 			} else {
@@ -524,14 +567,14 @@ method returns[	ClassDataItem.EncodedMethod encodedMethod,
 			}
 			
 			if (totalMethodRegisters < methodParameterRegisters) {
-				throw new SemanticException(input, "This method requires at least " +
+				throw new SemanticException(input, $registers_directive.start, "This method requires at least " +
 								Integer.toString(methodParameterRegisters) +
 								" registers, for the method parameters");
 			}
 
 			int methodParameterCount = methodIdItem.getPrototype().getParameterRegisterCount();
 			if ($method::debugInfo.getParameterNameCount() > methodParameterCount) {
-				throw new SemanticException(input, "Too many parameter names specified. This method only has " +
+				throw new SemanticException(input, $I_METHOD, "Too many parameter names specified. This method only has " +
 								Integer.toString(methodParameterCount) +
 								" parameters.");
 			}
@@ -809,7 +852,7 @@ label_ref returns[int labelAddress]
 			Integer labelAdd = $method::labels.get($SIMPLE_NAME.text);
 
 			if (labelAdd == null) {
-				throw new SemanticException(input, "Label \"" + $SIMPLE_NAME.text + "\" is not defined.");
+				throw new SemanticException(input, $SIMPLE_NAME, "Label \"" + $SIMPLE_NAME.text + "\" is not defined.");
 			}
 
 			$labelAddress = labelAdd;
@@ -844,7 +887,7 @@ register_list[int totalMethodRegisters, int methodParameterRegisters] returns[by
 			(REGISTER
 			{
 				if ($registerCount == 5) {
-					throw new SemanticException(input, "A list of registers can only have a maximum of 5 registers. Use the <op>/range alternate opcode instead.");
+					throw new SemanticException(input, $I_REGISTER_LIST, "A list of registers can only have a maximum of 5 registers. Use the <op>/range alternate opcode instead.");
 				}
 				$registers[$registerCount++] = parseRegister_nibble($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 			})*);
@@ -857,6 +900,14 @@ register_range[int totalMethodRegisters, int methodParameterRegisters] returns[i
 				$endRegister = $startRegister;
 			} else {
 				$endRegister = parseRegister_short($endReg.text, $totalMethodRegisters, $methodParameterRegisters);
+			}
+
+			int registerCount = $endRegister-$startRegister+1;
+			if (registerCount > 256) {
+				throw new SemanticException(input, $I_REGISTER_RANGE, "A register range can span a maximum of 256 registers");
+			}
+			if (registerCount < 1) {
+				throw new SemanticException(input, $I_REGISTER_RANGE, "A register range must have the lower register listed first");
 			}
 		}
 	;
@@ -974,7 +1025,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
-				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+				throw new SemanticException(input, $offset_or_label.start, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 
 			$instructions.add(new Instruction21t(opcode, regA, (short)addressOffset));
@@ -1034,7 +1085,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int addressOffset = $offset_or_label.offsetValue;
 
 			if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
-				throw new SemanticException(input, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+				throw new SemanticException(input, $offset_or_label.start, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
 			}
 
 			$instructions.add(new Instruction22t(opcode, regA, regB, (short)addressOffset));
@@ -1146,13 +1197,6 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int endRegister = $register_range.endRegister;
 
 			int registerCount = endRegister-startRegister+1;
-			if (registerCount > 256) {
-				throw new SemanticException(input, "A register range can span a maximum of 256 registers");
-			}
-			if (registerCount < 1) {
-				throw new SemanticException(input, "A register range must have the lower register listed first");
-			}
-
 			$outRegisters = registerCount;
 
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
@@ -1167,13 +1211,6 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int endRegister = $register_range.endRegister;
 
 			int registerCount = endRegister-startRegister+1;
-			if (registerCount > 256) {
-				throw new SemanticException(input, "A register range can span a maximum of 256 registers");
-			}
-			if (registerCount < 1) {
-				throw new SemanticException(input, "A register range must have the lower register listed first");
-			}
-
 			$outRegisters = registerCount;
 
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;

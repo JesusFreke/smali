@@ -511,7 +511,7 @@ fully_qualified_field
 	->	reference_type_descriptor simple_name nonvoid_type_descriptor;
 
 label
-	:	COLON simple_name -> ^(I_LABEL simple_name I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+	:	COLON simple_name -> ^(I_LABEL[$COLON, "I_LABEL"] simple_name I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 label_ref_or_offset
 	:	COLON simple_name -> simple_name
@@ -741,7 +741,8 @@ instruction returns [int size]
 		->	{needsNop}?	^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"])
 					^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
 
-		->	^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
+		->	^(I_STATEMENT_ARRAY_DATA[$start, "I_STATEMENT_ARRAY_DATA"] ^(I_ARRAY_ELEMENT_SIZE integral_literal)
+				^(I_ARRAY_ELEMENTS fixed_literal*))
 	|
 		PACKED_SWITCH_DIRECTIVE
 		{
