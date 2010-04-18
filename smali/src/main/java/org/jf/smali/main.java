@@ -262,7 +262,7 @@ public class main {
 
         smaliParser.smali_file_return result = parser.smali_file();
 
-        if (parser.getNumberOfSyntaxErrors() > 0 || lexer.getNumberOfLexerErrors() > 0) {
+        if (parser.getNumberOfSyntaxErrors() > 0 || lexer.getNumberOfSyntaxErrors() > 0) {
             return false;
         }
 
