@@ -341,12 +341,12 @@ statements_and_directives
 
 registers_directive
 	:	(
-			REGISTERS_DIRECTIVE regCount=integral_literal -> ^(I_REGISTERS[$REGISTERS_DIRECTIVE, "I_REGISTERS"] $regCount)
-		|	LOCALS_DIRECTIVE regCount2=integral_literal -> ^(I_LOCALS[$LOCALS_DIRECTIVE, "I_LOCALS"] $regCount2)
+			directive=REGISTERS_DIRECTIVE regCount=integral_literal -> ^(I_REGISTERS[$REGISTERS_DIRECTIVE, "I_REGISTERS"] $regCount)
+		|	directive=LOCALS_DIRECTIVE regCount2=integral_literal -> ^(I_LOCALS[$LOCALS_DIRECTIVE, "I_LOCALS"] $regCount2)
 		)
 		{
 			if ($statements_and_directives::hasRegistersDirective) {
-				throw new SemanticException(input, $registers_directive.tree, "There can only be a single .registers or .locals directive in a method");
+				throw new SemanticException(input, $directive, "There can only be a single .registers or .locals directive in a method");
 			}
 			$statements_and_directives::hasRegistersDirective=true;
 		};
