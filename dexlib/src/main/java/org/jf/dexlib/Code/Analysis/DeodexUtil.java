@@ -39,7 +39,9 @@ public class DeodexUtil {
     public static final int Direct = 1;
     public static final int Static = 2;
 
-    private InlineMethod[] inlineMethods = new InlineMethod[] {
+    private final InlineMethod[] inlineMethods;
+
+    private final InlineMethod[] inlineMethods_35 = new InlineMethod[] {
             new InlineMethod(Static, "Lorg/apache/harmony/dalvik/NativeTestTarget;", "emptyInlineMethod", "", "V"),
             new InlineMethod(Virtual, "Ljava/lang/String;", "charAt", "I", "C"),
             new InlineMethod(Virtual, "Ljava/lang/String;", "compareTo", "Ljava/lang/String;", "I"),
@@ -56,17 +58,48 @@ public class DeodexUtil {
             new InlineMethod(Static, "Ljava/lang/Math;", "sin", "D", "D")
     };
 
+    private final InlineMethod[] inlineMethods_36 = new InlineMethod[] {
+            new InlineMethod(Static, "Lorg/apache/harmony/dalvik/NativeTestTarget;", "emptyInlineMethod", "", "V"),
+            new InlineMethod(Virtual, "Ljava/lang/String;", "charAt", "I", "C"),
+            new InlineMethod(Virtual, "Ljava/lang/String;", "compareTo", "Ljava/lang/String;", "I"),
+            new InlineMethod(Virtual, "Ljava/lang/String;", "equals", "Ljava/lang/Object;", "Z"),
+            new InlineMethod(Virtual, "Ljava/lang/String;", "indexOf", "I", "I"),
+            new InlineMethod(Virtual, "Ljava/lang/String;", "indexOf", "II", "I"),
+            new InlineMethod(Virtual, "Ljava/lang/String;", "length", "", "I"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "abs", "I", "I"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "abs", "J", "J"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "abs", "F", "F"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "abs", "D", "D"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "min", "II", "I"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "max", "II", "I"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "sqrt", "D", "D"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "cos", "D", "D"),
+            new InlineMethod(Static, "Ljava/lang/Math;", "sin", "D", "D")
+    };
+
     public final DexFile dexFile;
 
     public DeodexUtil(DexFile dexFile) {
         this.dexFile = dexFile;
+        OdexHeader odexHeader = dexFile.getOdexHeader();
+        if (odexHeader == null) {
+            //if there isn't an odex header, why are we creating an DeodexUtil object?
+            assert false;
+            throw new RuntimeException("Cannot create a DeodexUtil object for a dex file without an odex header");
+        } else if (odexHeader.version == 35) {
+            inlineMethods = inlineMethods_35;
+        } else if (odexHeader.version == 36) {
+            inlineMethods = inlineMethods_36;
+        } else {
+            assert false;
+            throw new RuntimeException(String.format("odex version %d isn't supported yet", odexHeader.version));
+        }
     }
 
     public InlineMethod lookupInlineMethod(int inlineMethodIndex) {
         if (inlineMethodIndex >= inlineMethods.length) {
             throw new RuntimeException("Invalid inline method index " + inlineMethodIndex + ".");
         }
-
         return inlineMethods[inlineMethodIndex];
     }
 
