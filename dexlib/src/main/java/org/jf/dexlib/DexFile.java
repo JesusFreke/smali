@@ -175,6 +175,7 @@ public class DexFile
      */
     private boolean isOdex = false;
 
+    private OdexHeader odexHeader;
     private OdexDependencies odexDependencies;
 
     private int dataOffset;
@@ -332,25 +333,21 @@ public class DexFile
             }
 
             byte[] dexMagic, odexMagic;
+            boolean isDex = false;
+            this.isOdex = false;
 
-            dexMagic = org.jf.dexlib.HeaderItem.MAGIC;
-            odexMagic = OdexHeader.MAGIC;
-
-            boolean isDex = true;
-            this.isOdex = true;
-            for (int i=0; i<8; i++) {
-                if (magic[i] != dexMagic[i]) {
-                    isDex = false;
-                }
-                if (magic[i] != odexMagic[i]) {
-                    isOdex = false;
-                }
+            if (Arrays.equals(magic, HeaderItem.MAGIC)) {
+                isDex = true;
+            } else if (Arrays.equals(magic, OdexHeader.MAGIC_35)) {
+                isOdex = true;
+            } else if (Arrays.equals(magic, OdexHeader.MAGIC_36)) {
+                isOdex = true;
             }
 
             if (isOdex) {
                 byte[] odexHeaderBytes = FileUtils.readStream(inputStream, 40);
                 Input odexHeaderIn = new ByteArrayInput(odexHeaderBytes);
-                OdexHeader odexHeader = new OdexHeader(odexHeaderIn);
+                odexHeader = new OdexHeader(odexHeaderIn);
 
                 int dependencySkip = odexHeader.depsOffset - odexHeader.dexOffset - odexHeader.dexLength;
                 if (dependencySkip < 0) {
@@ -534,6 +531,14 @@ public class DexFile
      */
     public OdexDependencies getOdexDependencies() {
         return odexDependencies;
+    }
+
+    /**
+     * @return An OdexHeader object containing the information from the odex header in this dex file, or null if there
+     * is no odex header
+     */
+    public OdexHeader getOdexHeader() {
+        return odexHeader;
     }
 
     /**
