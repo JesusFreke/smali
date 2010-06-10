@@ -3390,13 +3390,13 @@ public class MethodAnalyzer {
         Opcode deodexedOpcode = null;
         switch (inlineMethod.methodType) {
             case DeodexUtil.Direct:
-                deodexedOpcode = Opcode.INVOKE_DIRECT;
+                deodexedOpcode = Opcode.INVOKE_DIRECT_RANGE;
                 break;
             case DeodexUtil.Static:
-                deodexedOpcode = Opcode.INVOKE_STATIC;
+                deodexedOpcode = Opcode.INVOKE_STATIC_RANGE;
                 break;
             case DeodexUtil.Virtual:
-                deodexedOpcode = Opcode.INVOKE_VIRTUAL;
+                deodexedOpcode = Opcode.INVOKE_VIRTUAL_RANGE;
                 break;
             default:
                 assert false;
