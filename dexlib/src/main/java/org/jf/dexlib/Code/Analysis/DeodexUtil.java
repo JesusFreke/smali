@@ -116,6 +116,9 @@ public class DeodexUtil {
 
     public MethodIdItem lookupVirtualMethod(ClassPath.ClassDef classDef, int methodIndex) {
         String method = classDef.getVirtualMethod(methodIndex);
+        if (method == null) {
+            return null;
+        }
 
         Matcher m = shortMethodPattern.matcher(method);
         if (!m.matches()) {
