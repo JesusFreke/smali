@@ -48,7 +48,6 @@ public class OffsetInstructionFormatMethodItem<T extends Instruction & OffsetIns
 
         label = new LabelMethodItem(codeAddress + instruction.getTargetAddressOffset(), getLabelPrefix());
         label = labelCache.internLabel(label);
-        label.setUncommented();
     }
 
     @Override

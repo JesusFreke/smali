@@ -29,49 +29,23 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.IndentingWriter;
-import org.jf.dexlib.Code.Format.UnresolvedNullReference;
+import org.jf.dexlib.Code.Format.UnresolvedOdexInstruction;
 import org.jf.dexlib.CodeItem;
 
 import java.io.IOException;
 
-public class UnresolvedNullReferenceMethodItem extends InstructionMethodItem<UnresolvedNullReference> {
-    public final boolean isLastInstruction;
-
-    public UnresolvedNullReferenceMethodItem(CodeItem codeItem, int codeAddress, UnresolvedNullReference instruction,
-                                             boolean isLastInstruction) {
+public class UnresolvedOdexInstructionMethodItem extends InstructionMethodItem<UnresolvedOdexInstruction> {
+    public UnresolvedOdexInstructionMethodItem(CodeItem codeItem, int codeAddress, UnresolvedOdexInstruction instruction) {
         super(codeItem, codeAddress, instruction);
-        this.isLastInstruction = isLastInstruction;
     }
 
     public boolean writeTo(IndentingWriter writer) throws IOException {
-        switch (instruction.OriginalInstruction.opcode)
-        {
-            case INVOKE_VIRTUAL_QUICK_RANGE:
-            case INVOKE_SUPER_QUICK_RANGE:
-                writeInvokeRangeTo(writer);
-                return true;
-            default:
-                writeThrowTo(writer);
-                return true;
-        }
-    }
-
-    private void writeInvokeRangeTo(IndentingWriter writer) throws IOException {
-        writer.write("#Replaced unresolvable optimized invoke-*-range-quick instruction\n");
-        writer.write("#with a generic method call that will throw a NullPointerException\n");
-        writer.write("invoke-virtual/range {");
-        writeRegister(writer, instruction.ObjectRegisterNum);
-        writer.write(" .. ");
-        writeRegister(writer, instruction.ObjectRegisterNum);
-        writer.write("}, Ljava/lang/Object;->hashCode()I");
-        if (isLastInstruction) {
-            writer.write('\n');
-            writer.write("goto/32 0");
-        }
+        writeThrowTo(writer);
+        return true;
     }
 
     private void writeThrowTo(IndentingWriter writer) throws IOException {
-        writer.write("#Replaced unresolvable optimized instruction with a throw\n");
+        writer.write("#Replaced unresolvable odex instruction with a throw\n");
         writer.write("throw ");
         writeRegister(writer, instruction.ObjectRegisterNum);
     }

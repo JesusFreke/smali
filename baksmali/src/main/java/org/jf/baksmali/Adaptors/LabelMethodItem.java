@@ -36,7 +36,6 @@ import java.io.IOException;
 public class LabelMethodItem extends MethodItem {
     private final String labelPrefix;
     private int labelSequence;
-    private boolean isCommentedOut = true;
 
     public LabelMethodItem(int codeAddress, String labelPrefix) {
         super(codeAddress);
@@ -45,14 +44,6 @@ public class LabelMethodItem extends MethodItem {
 
     public double getSortOrder() {
         return 0;
-    }
-
-    public boolean isCommentedOut() {
-        return isCommentedOut;
-    }
-
-    public void setUncommented() {
-        this.isCommentedOut = false;
     }
 
     public int compareTo(MethodItem methodItem) {

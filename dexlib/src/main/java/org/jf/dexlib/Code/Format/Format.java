@@ -62,7 +62,7 @@ public enum Format {
     ArrayData(null, -1, true),
     PackedSwitchData(null, -1, true),
     SparseSwitchData(null, -1, true),
-    UnresolvedNullReference(null, -1, false),
+    UnresolvedOdexInstruction(null, -1, false),
     ;
 
     public final Instruction.InstructionFactory Factory;

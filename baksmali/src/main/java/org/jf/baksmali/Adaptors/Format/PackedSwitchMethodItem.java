@@ -43,9 +43,8 @@ import java.util.List;
 public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDataPseudoInstruction>
         implements Iterable<LabelMethodItem> {
     private final List<LabelMethodItem> labels;
-    private final boolean dead;
 
-    public PackedSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress, boolean dead,
+    public PackedSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress,
                                   PackedSwitchDataPseudoInstruction instruction) {
         super(codeItem, codeAddress, instruction);
 
@@ -58,36 +57,21 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
             LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, "pswitch_");
             label = methodDefinition.getLabelCache().internLabel(label);
             labels.add(label);
-            label.setUncommented();
         }
-
-        this.dead = dead;
     }
 
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
-        if (dead) {
-            writer.write("#.packed-switch ");
-            IntegerRenderer.writeTo(writer, instruction.getFirstKey());
+        writer.write(".packed-switch ");
+        IntegerRenderer.writeTo(writer, instruction.getFirstKey());
+        writer.indent(4);
+        writer.write('\n');
+        for (LabelMethodItem label: labels) {
+            label.writeTo(writer);
             writer.write('\n');
-            for (LabelMethodItem label: labels) {
-                writer.write("#   ");
-                label.writeTo(writer);
-                writer.write('\n');
-            }
-            writer.write("#.end packed-switch");
-        } else {
-            writer.write(".packed-switch ");
-            IntegerRenderer.writeTo(writer, instruction.getFirstKey());
-            writer.indent(4);
-            writer.write('\n');
-            for (LabelMethodItem label: labels) {
-                label.writeTo(writer);
-                writer.write('\n');
-            }
-            writer.deindent(4);
-            writer.write(".end packed-switch");
         }
+        writer.deindent(4);
+        writer.write(".end packed-switch");
         return true;
     }
 

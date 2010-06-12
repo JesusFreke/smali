@@ -37,55 +37,30 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public class ArrayDataMethodItem extends InstructionMethodItem<ArrayDataPseudoInstruction> {
-    private final boolean dead;
-
-    public ArrayDataMethodItem(CodeItem codeItem, int codeAddress, boolean dead,
-                               ArrayDataPseudoInstruction instruction) {
+    public ArrayDataMethodItem(CodeItem codeItem, int codeAddress, ArrayDataPseudoInstruction instruction) {
         super(codeItem, codeAddress, instruction);
-        this.dead = dead;
     }
 
     public boolean writeTo(IndentingWriter writer) throws IOException {
-        if (dead) {
-            writer.write("#.array-data 0x");
-            writer.printLongAsHex(instruction.getElementWidth());
-            writer.write('\n');
+        writer.write(".array-data 0x");
+        writer.printLongAsHex(instruction.getElementWidth());
+        writer.write('\n');
 
-            Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
-            while (iterator.hasNext()) {
-                ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
+        writer.indent(4);
+        Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
+        while (iterator.hasNext()) {
+            ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
 
-                writer.write("#   ");
-                for (int i=0; i<element.elementWidth; i++) {
-                    if (i!=0) {
-                        writer.write(' ');
-                    }
-                    ByteRenderer.writeUnsignedTo(writer, element.buffer[element.bufferIndex+i]);
+            for (int i=0; i<element.elementWidth; i++) {
+                if (i!=0) {
+                    writer.write(' ');
                 }
-                writer.write('\n');
+                ByteRenderer.writeUnsignedTo(writer, element.buffer[element.bufferIndex+i]);
             }
-            writer.write("#.end array-data");
-        } else {
-            writer.write(".array-data 0x");
-            writer.printLongAsHex(instruction.getElementWidth());
             writer.write('\n');
-
-            writer.indent(4);
-            Iterator<ArrayDataPseudoInstruction.ArrayElement> iterator = instruction.getElements();
-            while (iterator.hasNext()) {
-                ArrayDataPseudoInstruction.ArrayElement element = iterator.next();
-
-                for (int i=0; i<element.elementWidth; i++) {
-                    if (i!=0) {
-                        writer.write(' ');
-                    }
-                    ByteRenderer.writeUnsignedTo(writer, element.buffer[element.bufferIndex+i]);
-                }
-                writer.write('\n');
-            }
-            writer.deindent(4);
-            writer.write(".end array-data");
         }
+        writer.deindent(4);
+        writer.write(".end array-data");
         return true;
     }
 }

@@ -43,9 +43,8 @@ import java.util.List;
 public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDataPseudoInstruction>
         implements Iterable<LabelMethodItem> {
     private final List<SparseSwitchTarget> targets;
-    private final boolean dead;
 
-    public SparseSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress, boolean dead,
+    public SparseSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress,
                                   SparseSwitchDataPseudoInstruction instruction) {
         super(codeItem, codeAddress, instruction);
 
@@ -61,37 +60,23 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDa
             LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, "sswitch_");
             label = methodDefinition.getLabelCache().internLabel(label);
             sparseSwitchTarget.Target = label;
-            label.setUncommented();
 
             targets.add(sparseSwitchTarget);
         }
-
-        this.dead = dead;
     }
 
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
-        if (dead) {
-            writer.write("#.sparse-switch\n");
-            for (SparseSwitchTarget target: targets) {
-                IntegerRenderer.writeTo(writer, target.Key);
-                writer.write(" -> ");
-                target.Target.writeTo(writer);
-                writer.write('\n');
-            }
-            writer.write("#.end sparse-switch");
-        } else {
-            writer.write(".sparse-switch\n");
-            writer.indent(4);
-            for (SparseSwitchTarget target: targets) {
-                IntegerRenderer.writeTo(writer, target.Key);
-                writer.write(" -> ");
-                target.Target.writeTo(writer);
-                writer.write('\n');
-            }
-            writer.deindent(4);
-            writer.write(".end sparse-switch");
+        writer.write(".sparse-switch\n");
+        writer.indent(4);
+        for (SparseSwitchTarget target: targets) {
+            IntegerRenderer.writeTo(writer, target.Key);
+            writer.write(" -> ");
+            target.Target.writeTo(writer);
+            writer.write('\n');
         }
+        writer.deindent(4);
+        writer.write(".end sparse-switch");
         return true;
     }
 

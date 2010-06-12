@@ -36,12 +36,12 @@ import org.jf.dexlib.Util.AnnotatedOutput;
  * can't be determined. Typically, these are replaced by an equivalent instruction that would have the same
  * effect (namely, an NPE)
  */
-public class UnresolvedNullReference extends Instruction {
+public class UnresolvedOdexInstruction extends Instruction {
     public final Instruction OriginalInstruction;
     //the register number that holds the (null) reference type that the instruction operates on
     public final int ObjectRegisterNum;
 
-    public UnresolvedNullReference(Instruction originalInstruction, int objectRegisterNumber) {
+    public UnresolvedOdexInstruction(Instruction originalInstruction, int objectRegisterNumber) {
         super(originalInstruction.opcode);
         this.OriginalInstruction = originalInstruction;
         this.ObjectRegisterNum = objectRegisterNumber;
@@ -57,6 +57,6 @@ public class UnresolvedNullReference extends Instruction {
     }
 
     public Format getFormat() {
-        return Format.UnresolvedNullReference;
+        return Format.UnresolvedOdexInstruction;
     }
 }

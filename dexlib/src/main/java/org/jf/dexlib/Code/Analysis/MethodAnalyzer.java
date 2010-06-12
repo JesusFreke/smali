@@ -184,7 +184,7 @@ public class MethodAnalyzer {
             instructionsToAnalyze.set(successor.instructionIndex);
         }
 
-        BitSet odexedInstructions = new BitSet(instructions.size());
+        BitSet undeodexedInstructions = new BitSet(instructions.size());
 
         do {
             boolean didSomething = false;
@@ -199,15 +199,18 @@ public class MethodAnalyzer {
                     instructionToAnalyze.dead = false;
                     try {
                         if (instructionToAnalyze.originalInstruction.opcode.odexOnly()) {
+                            //if we had deodexed an odex instruction in a previous pass, we might have more specific
+                            //register information now, so let's restore the original odexed instruction and
+                            //re-deodex it
                             instructionToAnalyze.restoreOdexedInstruction();
                         }
 
                         if (!analyzeInstruction(instructionToAnalyze)) {
-                            odexedInstructions.set(i);
+                            undeodexedInstructions.set(i);
                             continue;
                         } else {
                             didSomething = true;
-                            odexedInstructions.clear(i);
+                            undeodexedInstructions.clear(i);
                         }
                     } catch (ValidationException ex) {
                         this.validationException = ex;
@@ -234,32 +237,32 @@ public class MethodAnalyzer {
                 break;
             }
 
-            if (!odexedInstructions.isEmpty()) {
-                for (int i=odexedInstructions.nextSetBit(0); i>=0; i=odexedInstructions.nextSetBit(i+1)) {
+            if (!undeodexedInstructions.isEmpty()) {
+                for (int i=undeodexedInstructions.nextSetBit(0); i>=0; i=undeodexedInstructions.nextSetBit(i+1)) {
                     instructionsToAnalyze.set(i);
                 }
             }
         } while (true);
 
-        for (int i=odexedInstructions.nextSetBit(0); i>=0; i=odexedInstructions.nextSetBit(i+1)) {
+        for (int i=0; i<instructions.size(); i++) {
             AnalyzedInstruction instruction = instructions.valueAt(i);
 
-            Instruction odexedInstruction = instruction.instruction;
             int objectRegisterNumber;
-
-            if (odexedInstruction.getFormat() == Format.Format22cs) {
-                objectRegisterNumber = ((Instruction22cs)odexedInstruction).getRegisterB();
-            } else if (odexedInstruction.getFormat() == Format.Format35ms) {
-                objectRegisterNumber = ((Instruction35ms)odexedInstruction).getRegisterD();
-            } else if (odexedInstruction.getFormat() == Format.Format3rms) {
-                objectRegisterNumber = ((Instruction3rms)odexedInstruction).getStartRegister();
-            } else {
-                    assert false;
-                    throw new ExceptionWithContext(String.format("Unexpected format %s for odexed instruction",
-                            odexedInstruction.getFormat().name()));
+            switch (instruction.getInstruction().getFormat()) {
+                case Format22cs:
+                    objectRegisterNumber = ((Instruction22cs)instruction.instruction).getRegisterB();
+                    break;
+                case Format35ms:
+                    objectRegisterNumber = ((Instruction35ms)instruction.instruction).getRegisterD();
+                    break;
+                case Format3rms:
+                    objectRegisterNumber = ((Instruction3rms)instruction.instruction).getStartRegister();
+                    break;
+                default:
+                    continue;
             }
 
-            instruction.setDeodexedInstruction(new UnresolvedNullReference(odexedInstruction,
+            instruction.setDeodexedInstruction(new UnresolvedOdexInstruction(instruction.instruction,
                     objectRegisterNumber));
         }
 
@@ -392,47 +395,6 @@ public class MethodAnalyzer {
                                                                RegisterType registerType) {
         setPostRegisterTypeAndPropagateChanges(analyzedInstruction, analyzedInstruction.getDestinationRegister(),
                 registerType);
-    }
-
-
-    private void setAndPropagateDeadness(AnalyzedInstruction analyzedInstruction) {
-        BitSet instructionsToProcess = new BitSet(instructions.size());
-
-        analyzedInstruction.dead = true;
-
-        for (AnalyzedInstruction successor: analyzedInstruction.successors) {
-            instructionsToProcess.set(successor.instructionIndex);
-        }
-
-        instructionsToProcess.set(analyzedInstruction.instructionIndex);
-
-        while (!instructionsToProcess.isEmpty()) {
-            for (int i=instructionsToProcess.nextSetBit(0); i>=0; i=instructionsToProcess.nextSetBit(i+1)) {
-                AnalyzedInstruction currentInstruction = instructions.valueAt(i);
-                instructionsToProcess.clear(i);
-
-                if (currentInstruction.dead) {
-                    continue;
-                }
-
-                boolean isDead = true;
-
-                for (AnalyzedInstruction predecessor: currentInstruction.predecessors) {
-                    if (!predecessor.dead) {
-                        isDead = false;
-                        break;
-                    }
-                }
-
-                if (isDead) {
-                    currentInstruction.dead = true;
-
-                    for (AnalyzedInstruction successor: currentInstruction.successors) {
-                        instructionsToProcess.set(successor.instructionIndex);
-                    }
-                }
-            }
-        }
     }
 
     private void setPostRegisterTypeAndPropagateChanges(AnalyzedInstruction analyzedInstruction, int registerNumber,
@@ -658,6 +620,10 @@ public class MethodAnalyzer {
         return exceptionHandlers;
     }
 
+    /**
+     * @return false if analyzedInstruction is an odex instruction that couldn't be deodexed, due to its
+     * object register being null
+     */
     private boolean analyzeInstruction(AnalyzedInstruction analyzedInstruction) {
         Instruction instruction = analyzedInstruction.instruction;
 

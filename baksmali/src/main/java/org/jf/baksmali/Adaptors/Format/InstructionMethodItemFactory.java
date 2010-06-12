@@ -29,10 +29,7 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.UnresolvedNullReference;
+import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.CodeItem;
@@ -52,46 +49,17 @@ public class InstructionMethodItemFactory {
 
         switch (instruction.getFormat()) {
             case ArrayData:
-                return new ArrayDataMethodItem(codeItem, codeAddress, false,
+                return new ArrayDataMethodItem(codeItem, codeAddress,
                         (ArrayDataPseudoInstruction)instruction);
             case PackedSwitchData:
-                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, false,
+                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress,
                         (PackedSwitchDataPseudoInstruction)instruction);
             case SparseSwitchData:
-                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, false,
+                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress,
                         (SparseSwitchDataPseudoInstruction)instruction);
-            case UnresolvedNullReference:
-                assert false;
-                throw new RuntimeException("UnresolvedNullReference not supported, use " +
-                        "makeAnalyzedInstructionFormatMethodItem instead");
-            default:
-                return new InstructionMethodItem(codeItem, codeAddress, instruction);
-        }
-    }
-
-    public static InstructionMethodItem makeAnalyzedInstructionFormatMethodItem(MethodDefinition methodDefinition,
-                                                                              CodeItem codeItem, int codeAddress,
-                                                                              boolean isDead,
-                                                                              Instruction instruction,
-                                                                              boolean isLastInstruction) {
-        if (instruction instanceof OffsetInstruction) {
-            return new OffsetInstructionFormatMethodItem(methodDefinition.getLabelCache(), codeItem, codeAddress,
-                    instruction);
-        }
-
-        switch (instruction.getFormat()) {
-            case ArrayData:
-                return new ArrayDataMethodItem(codeItem, codeAddress, isDead,
-                        (ArrayDataPseudoInstruction)instruction);
-            case PackedSwitchData:
-                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, isDead,
-                        (PackedSwitchDataPseudoInstruction)instruction);
-            case SparseSwitchData:
-                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, isDead,
-                        (SparseSwitchDataPseudoInstruction)instruction);
-            case UnresolvedNullReference:
-                return new UnresolvedNullReferenceMethodItem(codeItem, codeAddress,
-                        (UnresolvedNullReference)instruction, isLastInstruction);
+            case UnresolvedOdexInstruction:
+                return new UnresolvedOdexInstructionMethodItem(codeItem, codeAddress,
+                        (UnresolvedOdexInstruction)instruction);
             default:
                 return new InstructionMethodItem(codeItem, codeAddress, instruction);
         }

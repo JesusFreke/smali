@@ -73,24 +73,10 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
      */
     protected final Instruction originalInstruction;
 
-
     /**
-     * A dead instruction is one that is unreachable because it follows an odexed instruction that can't be deodexed
-     * because it's object register is always null. In the non-odexed code that the odex was generated from, we would
-     * have technically considered this code reachable and could verify it, even though the instruction that ended up
-     * being odexed was always null, because we would assume both "paths" out of the instruction are valid - the one
-     * where execution proceeds normally to the next instruction, and the one where an exception occurs and execution
-     * either goes to a catch block, or out of the method.
-     *
-     * However, in the odexed case, we can't verify the code following an undeodexable instruction because we lack
-     * the register information from the undeodexable instruction - because we don't know the actual method or field
-     * that is being accessed.
-     *
-     * The undeodexable instruction is guaranteed to throw an NPE, so the following code is effectivetly unreachable.
-     * Once we detect an undeodexeable instruction, the following code is marked as dead up until a non-dead execution
-     * path merges in. Additionally, we remove the predecessors/successors of any dead instruction. For example, if
-     * there is a dead goto instruction, then we would remove the target instruction as a successor, and we would
-     * also remove the dead goto instruction as a predecessor to the target.
+     * An analyzed instruction's "deadness" is set during analysis (i.e. MethodAnalyzer.analyzer()). A dead instruction
+     * is one that the analyzer never reaches. This occurs either with natural "dead code" - code that simply has no
+     * code path that can ever reach it, or code that follows an odexed instruction that can't be deodexed.
      */
     protected boolean dead = false;
 

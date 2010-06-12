@@ -46,18 +46,16 @@ public class CatchMethodItem extends MethodItem {
         this.exceptionType = exceptionType;
 
         tryStartLabel = labelCache.internLabel(new LabelMethodItem(startAddress, "try_start_"));
-        tryStartLabel.setUncommented();
+
         //use the address from the last covered instruction, but make the label
         //name refer to the address of the next instruction
         tryEndLabel = labelCache.internLabel(new EndTryLabelMethodItem(codeAddress, endAddress));
-        tryEndLabel.setUncommented();
 
         if (exceptionType == null) {
             handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, "catchall_"));
         } else {
             handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, "catch_"));
         }
-        handlerLabel.setUncommented();
     }
 
     public LabelMethodItem getTryStartLabel() {

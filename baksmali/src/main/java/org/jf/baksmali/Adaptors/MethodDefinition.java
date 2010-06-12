@@ -300,11 +300,7 @@ public class MethodDefinition {
         }
 
         for (LabelMethodItem labelMethodItem: labelCache.getLabels()) {
-            if (labelMethodItem.isCommentedOut()) {
-                methodItems.add(new CommentedOutMethodItem(labelMethodItem));
-            } else {
-                methodItems.add(labelMethodItem);
-            }
+            methodItems.add(labelMethodItem);
         }
 
         Collections.sort(methodItems);
@@ -372,51 +368,19 @@ public class MethodDefinition {
 
         List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
 
-        AnalyzedInstruction lastInstruction = null;
-
-        for (int i=instructions.size()-1; i>=0; i--) {
-            AnalyzedInstruction instruction = instructions.get(i);
-
-            if (!instruction.isDead()) {
-                lastInstruction = instruction;
-                break;
-            }
-        }
-
-        boolean lastIsUnreachable = false;
-
         int currentCodeAddress = 0;
         for (int i=0; i<instructions.size(); i++) {
             AnalyzedInstruction instruction = instructions.get(i);
 
-            MethodItem methodItem = InstructionMethodItemFactory.makeAnalyzedInstructionFormatMethodItem(this,
-                    encodedMethod.codeItem, currentCodeAddress, instruction.isDead(),  instruction.getInstruction(),
-                    instruction == lastInstruction);
+            MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
+                    encodedMethod.codeItem, currentCodeAddress, instruction.getInstruction());
 
-            if (instruction.isDead() && !instruction.getInstruction().getFormat().variableSizeFormat) {
-                methodItems.add(new CommentedOutMethodItem(methodItem));
-                lastIsUnreachable = false;
-            } else if ( instruction.getPredecessorCount() == 0 &&
-                        !instruction.getInstruction().getFormat().variableSizeFormat &&
-                        !isInstructionPaddingNop(instructions, instruction)) {
+            methodItems.add(methodItem);
 
-                if (!lastIsUnreachable) {
-                    methodItems.add(
-                        new CommentMethodItem("Unreachable code", currentCodeAddress, Double.MIN_VALUE));
-                }
-
-                methodItems.add(new CommentedOutMethodItem(methodItem));
-                    lastIsUnreachable = true;
-            } else {
-                methodItems.add(methodItem);
-                lastIsUnreachable = false;
-            }
-
-            if (instruction.getInstruction().getFormat() == Format.UnresolvedNullReference) {
+            if (instruction.getInstruction().getFormat() == Format.UnresolvedOdexInstruction) {
                 methodItems.add(new CommentedOutMethodItem(
-                        InstructionMethodItemFactory.makeAnalyzedInstructionFormatMethodItem(this,
-                                encodedMethod.codeItem, currentCodeAddress, instruction.isDead(),
-                                instruction.getOriginalInstruction(), false)));
+                        InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
+                                encodedMethod.codeItem, currentCodeAddress, instruction.getOriginalInstruction())));
             }
 
             if (i != instructions.size() - 1) {
@@ -651,9 +615,6 @@ public class MethodDefinition {
         public LabelMethodItem internLabel(LabelMethodItem labelMethodItem) {
             LabelMethodItem internedLabelMethodItem = labels.get(labelMethodItem);
             if (internedLabelMethodItem != null) {
-                if (!labelMethodItem.isCommentedOut()) {
-                    internedLabelMethodItem.setUncommented();
-                }
                 return internedLabelMethodItem;
             }
             labels.put(labelMethodItem, labelMethodItem);
