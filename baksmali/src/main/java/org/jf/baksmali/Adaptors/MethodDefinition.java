@@ -49,7 +49,7 @@ import java.util.*;
 
 public class MethodDefinition {
     private final ClassDataItem.EncodedMethod encodedMethod;
-    private final MethodAnalyzer methodAnalyzer;
+    private MethodAnalyzer methodAnalyzer;
 
     private final LabelCache labelCache = new LabelCache();
 
@@ -66,29 +66,28 @@ public class MethodDefinition {
             //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
 
             if (encodedMethod.codeItem != null) {
-                methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex);
-                List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
+                Instruction[] instructions = encodedMethod.codeItem.getInstructions();
 
                 packedSwitchMap = new SparseIntArray(1);
                 sparseSwitchMap = new SparseIntArray(1);
-                instructionMap = new SparseIntArray(instructions.size());
+                instructionMap = new SparseIntArray(instructions.length);
 
                 int currentCodeAddress = 0;
-                for (int i=0; i<instructions.size(); i++) {
-                    AnalyzedInstruction instruction = instructions.get(i);
-                    if (instruction.getInstruction().opcode == Opcode.PACKED_SWITCH) {
+                for (int i=0; i<instructions.length; i++) {
+                    Instruction instruction = instructions[i];
+                    if (instruction.opcode == Opcode.PACKED_SWITCH) {
                         packedSwitchMap.append(
                                 currentCodeAddress +
-                                        ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
+                                        ((OffsetInstruction)instruction).getTargetAddressOffset(),
                                 currentCodeAddress);
-                    } else if (instruction.getInstruction().opcode == Opcode.SPARSE_SWITCH) {
+                    } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
                         sparseSwitchMap.append(
                                 currentCodeAddress +
-                                        ((OffsetInstruction)instruction.getInstruction()).getTargetAddressOffset(),
+                                        ((OffsetInstruction)instruction).getTargetAddressOffset(),
                                 currentCodeAddress);
                     }
                     instructionMap.append(currentCodeAddress, i);
-                    currentCodeAddress += instruction.getInstruction().getSize(currentCodeAddress);
+                    currentCodeAddress += instruction.getSize(currentCodeAddress);
                 }
             } else {
                 packedSwitchMap = null;
@@ -281,31 +280,96 @@ public class MethodDefinition {
     }
 
     private List<MethodItem> getMethodItems() {
-        List<MethodItem> methodItems = new ArrayList<MethodItem>();
+        ArrayList<MethodItem> methodItems = new ArrayList<MethodItem>();
 
         if (encodedMethod.codeItem == null) {
             return methodItems;
         }
 
         if (baksmali.registerInfo != 0 || baksmali.deodex || baksmali.verify) {
-            methodAnalyzer.analyze();
+            addAnalyzedInstructionMethodItems(methodItems);
+        } else {
+            addInstructionMethodItems(methodItems);
+        }
 
-            ValidationException validationException = methodAnalyzer.getValidationException();
+        addTries(methodItems);
+        addDebugInfo(methodItems);
+
+        if (baksmali.useSequentialLabels) {
+            setLabelSequentialNumbers();
+        }
+
+        for (LabelMethodItem labelMethodItem: labelCache.getLabels()) {
+            if (labelMethodItem.isCommentedOut()) {
+                methodItems.add(new CommentedOutMethodItem(labelMethodItem));
+            } else {
+                methodItems.add(labelMethodItem);
+            }
+        }
+
+        Collections.sort(methodItems);
+
+        return methodItems;
+    }
+
+    private void addInstructionMethodItems(List<MethodItem> methodItems) {
+        Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+
+        int currentCodeAddress = 0;
+        for (int i=0; i<instructions.length; i++) {
+            Instruction instruction = instructions[i];
+
+            MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
+                    encodedMethod.codeItem, currentCodeAddress, instruction);
+
+            methodItems.add(methodItem);
+
+            if (i != instructions.length - 1) {
+                methodItems.add(new BlankMethodItem(currentCodeAddress));
+            }
+
+            if (baksmali.addCodeOffsets) {
+                methodItems.add(new MethodItem(currentCodeAddress) {
+
+                    @Override
+                    public double getSortOrder() {
+                        return -1000;
+                    }
+
+                    @Override
+                    public boolean writeTo(IndentingWriter writer) throws IOException {
+                        writer.write("#@");
+                        writer.printLongAsHex(codeAddress & 0xFFFFFFFF);
+                        return true;
+                    }
+                });
+            }
+
+            currentCodeAddress += instruction.getSize(currentCodeAddress);
+        }
+    }
+
+    private void addAnalyzedInstructionMethodItems(List<MethodItem> methodItems) {
+        methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex);
+
+        methodAnalyzer.analyze();
+
+        ValidationException validationException = methodAnalyzer.getValidationException();
+        if (validationException != null) {
+            methodItems.add(new CommentMethodItem(
+                    String.format("ValidationException: %s" ,validationException.getMessage()),
+                    validationException.getCodeAddress(), Integer.MIN_VALUE));
+        } else if (baksmali.verify) {
+            methodAnalyzer.verify();
+
+            validationException = methodAnalyzer.getValidationException();
             if (validationException != null) {
                 methodItems.add(new CommentMethodItem(
                         String.format("ValidationException: %s" ,validationException.getMessage()),
                         validationException.getCodeAddress(), Integer.MIN_VALUE));
-            } else if (baksmali.verify) {
-                methodAnalyzer.verify();
-
-                validationException = methodAnalyzer.getValidationException();
-                if (validationException != null) {
-                    methodItems.add(new CommentMethodItem(
-                            String.format("ValidationException: %s" ,validationException.getMessage()),
-                            validationException.getCodeAddress(), Integer.MIN_VALUE));
-                }
             }
         }
+
         List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
 
         AnalyzedInstruction lastInstruction = null;
@@ -325,8 +389,8 @@ public class MethodDefinition {
         for (int i=0; i<instructions.size(); i++) {
             AnalyzedInstruction instruction = instructions.get(i);
 
-            MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
-                    encodedMethod.codeItem, currentCodeAddress, instruction.isDead(), instruction.getInstruction(),
+            MethodItem methodItem = InstructionMethodItemFactory.makeAnalyzedInstructionFormatMethodItem(this,
+                    encodedMethod.codeItem, currentCodeAddress, instruction.isDead(),  instruction.getInstruction(),
                     instruction == lastInstruction);
 
             if (instruction.isDead() && !instruction.getInstruction().getFormat().variableSizeFormat) {
@@ -350,9 +414,9 @@ public class MethodDefinition {
 
             if (instruction.getInstruction().getFormat() == Format.UnresolvedNullReference) {
                 methodItems.add(new CommentedOutMethodItem(
-                        InstructionMethodItemFactory.makeInstructionFormatMethodItem(this, encodedMethod.codeItem,
-                                currentCodeAddress, instruction.isDead(), instruction.getOriginalInstruction(),
-                                false)));
+                        InstructionMethodItemFactory.makeAnalyzedInstructionFormatMethodItem(this,
+                                encodedMethod.codeItem, currentCodeAddress, instruction.isDead(),
+                                instruction.getOriginalInstruction(), false)));
             }
 
             if (i != instructions.size() - 1) {
@@ -386,26 +450,6 @@ public class MethodDefinition {
 
             currentCodeAddress += instruction.getInstruction().getSize(currentCodeAddress);
         }
-
-        addTries(methodItems);
-        addDebugInfo(methodItems);
-
-        if (baksmali.useSequentialLabels) {
-            setLabelSequentialNumbers();
-        }
-
-
-        for (LabelMethodItem labelMethodItem: labelCache.getLabels()) {
-            if (labelMethodItem.isCommentedOut()) {
-                methodItems.add(new CommentedOutMethodItem(labelMethodItem));
-            } else {
-                methodItems.add(labelMethodItem);
-            }
-        }
-
-        Collections.sort(methodItems);
-
-        return methodItems;
     }
 
     private void addTries(List<MethodItem> methodItems) {

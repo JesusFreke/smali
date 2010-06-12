@@ -43,7 +43,35 @@ public class InstructionMethodItemFactory {
 
     public static InstructionMethodItem makeInstructionFormatMethodItem(MethodDefinition methodDefinition,
                                                                               CodeItem codeItem,
-                                                                              int codeAddress, boolean dead,
+                                                                              int codeAddress,
+                                                                              Instruction instruction) {
+        if (instruction instanceof OffsetInstruction) {
+            return new OffsetInstructionFormatMethodItem(methodDefinition.getLabelCache(), codeItem, codeAddress,
+                    instruction);
+        }
+
+        switch (instruction.getFormat()) {
+            case ArrayData:
+                return new ArrayDataMethodItem(codeItem, codeAddress, false,
+                        (ArrayDataPseudoInstruction)instruction);
+            case PackedSwitchData:
+                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, false,
+                        (PackedSwitchDataPseudoInstruction)instruction);
+            case SparseSwitchData:
+                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, false,
+                        (SparseSwitchDataPseudoInstruction)instruction);
+            case UnresolvedNullReference:
+                assert false;
+                throw new RuntimeException("UnresolvedNullReference not supported, use " +
+                        "makeAnalyzedInstructionFormatMethodItem instead");
+            default:
+                return new InstructionMethodItem(codeItem, codeAddress, instruction);
+        }
+    }
+
+    public static InstructionMethodItem makeAnalyzedInstructionFormatMethodItem(MethodDefinition methodDefinition,
+                                                                              CodeItem codeItem, int codeAddress,
+                                                                              boolean isDead,
                                                                               Instruction instruction,
                                                                               boolean isLastInstruction) {
         if (instruction instanceof OffsetInstruction) {
@@ -53,13 +81,13 @@ public class InstructionMethodItemFactory {
 
         switch (instruction.getFormat()) {
             case ArrayData:
-                return new ArrayDataMethodItem(codeItem, codeAddress, dead,
+                return new ArrayDataMethodItem(codeItem, codeAddress, isDead,
                         (ArrayDataPseudoInstruction)instruction);
             case PackedSwitchData:
-                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, dead,
+                return new PackedSwitchMethodItem(methodDefinition, codeItem, codeAddress, isDead,
                         (PackedSwitchDataPseudoInstruction)instruction);
             case SparseSwitchData:
-                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, dead,
+                return new SparseSwitchMethodItem(methodDefinition, codeItem, codeAddress, isDead,
                         (SparseSwitchDataPseudoInstruction)instruction);
             case UnresolvedNullReference:
                 return new UnresolvedNullReferenceMethodItem(codeItem, codeAddress,
