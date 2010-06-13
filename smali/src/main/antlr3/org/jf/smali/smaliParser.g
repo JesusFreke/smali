@@ -144,23 +144,25 @@ import org.jf.dexlib.Code.Format.*;
 
 	public String getErrorMessage(RecognitionException e,
 		String[] tokenNames) {
-		if (!verboseErrors) {
+
+		if (verboseErrors) {
+			List stack = getRuleInvocationStack(e, this.getClass().getName());
+			String msg = null;
+			
+			if (e instanceof NoViableAltException) {
+				NoViableAltException nvae = (NoViableAltException)e;
+				msg = " no viable alt; token="+getTokenErrorDisplay(e.token)+
+				" (decision="+nvae.decisionNumber+
+				" state "+nvae.stateNumber+")"+
+				" decision=<<"+nvae.grammarDecisionDescription+">>";
+			} else {
+				msg = super.getErrorMessage(e, tokenNames);
+			}
+			
+			return stack + " " + msg;			
+		} else {
 			return super.getErrorMessage(e, tokenNames);
 		}
-
-		List stack = getRuleInvocationStack(e, this.getClass().getName());
-		String msg = null;
-		if ( e instanceof NoViableAltException ) {
-			NoViableAltException nvae = (NoViableAltException)e;
-			msg = " no viable alt; token="+getTokenErrorDisplay(e.token)+
-			" (decision="+nvae.decisionNumber+
-			" state "+nvae.stateNumber+")"+
-			" decision=<<"+nvae.grammarDecisionDescription+">>";
-		}
-		else {
-			msg = super.getErrorMessage(e, tokenNames);
-		}
-		return stack+" "+msg;
 	}
 
 	public String getTokenErrorDisplay(Token t) {
