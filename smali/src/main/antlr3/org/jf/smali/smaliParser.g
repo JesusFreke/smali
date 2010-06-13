@@ -528,7 +528,7 @@ subannotation
 		-> ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*);
 
 enum_literal
-	:	ENUM reference_type_descriptor ARROW simple_name COLON reference_type_descriptor
+	:	ENUM_DIRECTIVE reference_type_descriptor ARROW simple_name COLON reference_type_descriptor
 	->	^(I_ENCODED_ENUM reference_type_descriptor simple_name reference_type_descriptor);
 
 type_field_method_literal
