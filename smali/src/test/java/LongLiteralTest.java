@@ -32,10 +32,8 @@ import org.junit.Test;
 
 public class LongLiteralTest
 {
-
     @Test
     public void SuccessHexTests() {
-
         Assert.assertTrue(literalTools.parseLong("0x0L") == 0x0);
         Assert.assertTrue(literalTools.parseLong("0x00") == 0x0);
         Assert.assertTrue(literalTools.parseLong("0x1L") == 0x1);
@@ -65,9 +63,7 @@ public class LongLiteralTest
         literalTools.parseLong("0x10000000000000000");
     }
 
-
-
-  @Test
+    @Test
     public void SuccessDecTests() {
         Assert.assertTrue(literalTools.parseLong("0L") == 0);
         Assert.assertTrue(literalTools.parseLong("1") == 1);
@@ -75,7 +71,6 @@ public class LongLiteralTest
         Assert.assertTrue(literalTools.parseLong("9223372036854775807") == 9223372036854775807L);
         Assert.assertTrue(literalTools.parseLong("9223372036854775808") == Long.MIN_VALUE);
         Assert.assertTrue(literalTools.parseLong("18446744073709551615L") == -1);
-
 
         Assert.assertTrue(literalTools.parseLong("-0") == 0);
         Assert.assertTrue(literalTools.parseLong("-1") == -1);
@@ -104,7 +99,6 @@ public class LongLiteralTest
         literalTools.parseLong("18446744073709551700");
     }
 
-
     @Test
     public void SuccessOctTests() {
         Assert.assertTrue(literalTools.parseLong("00") == 00);
@@ -113,7 +107,6 @@ public class LongLiteralTest
         Assert.assertTrue(literalTools.parseLong("0777777777777777777777") == Long.MAX_VALUE);
         Assert.assertTrue(literalTools.parseLong("01000000000000000000000") == Long.MIN_VALUE);
         Assert.assertTrue(literalTools.parseLong("01777777777777777777777") == -1);
-
 
         Assert.assertTrue(literalTools.parseLong("-00") == 0);
         Assert.assertTrue(literalTools.parseLong("-01") == -1);
