@@ -17,6 +17,7 @@ import static org.jf.smali.smaliParser.*;
 
 %{
     private StringBuffer sb = new StringBuffer();
+    private String stringOrCharError = null;
     private int stringStartLine;
     private int stringStartCol;
     private int stringStartChar;
@@ -97,10 +98,15 @@ import static org.jf.smali.smaliParser.*;
         stringStartLine = getLine();
         stringStartCol = getColumn();
         stringStartChar = yychar;
+        stringOrCharError = null;
     }
 
     private Token endStringOrChar(int type) {
         yybegin(YYINITIAL);
+
+        if (stringOrCharError != null) {
+            return invalidStringOrChar(stringOrCharError);
+        }
 
         CommonToken token = new CommonToken(type, sb.toString());
         token.setStartIndex(stringStartChar);
@@ -108,6 +114,12 @@ import static org.jf.smali.smaliParser.*;
         token.setLine(stringStartLine);
         token.setCharPositionInLine(stringStartCol);
         return token;
+    }
+
+    private void setStringOrCharError(String message) {
+        if (stringOrCharError == null) {
+            stringOrCharError = message;
+        }
     }
 
     private Token invalidStringOrChar(String message) {
@@ -130,6 +142,7 @@ HexPrefix = 0 [xX]
 
 HexDigit = [0-9a-fA-F]
 HexDigits = [0-9a-fA-F]{4}
+FewerHexDigits = [0-9a-fA-F]{0,3}
 
 Integer1 = 0
 Integer2 = [1-9] [0-9]*
@@ -247,7 +260,15 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "\\\\" { sb.append('\\'); }
     "\\u" {HexDigits} { sb.append((char)Integer.parseInt(yytext().substring(2,6), 16)); }
 
-    /*TODO: Handle embedded newlines. error or non-error?*/
+    "\\u" {FewerHexDigits} {
+        sb.append(yytext());
+        setStringOrCharError("Invalid \\u sequence. \\u must be followed by 4 hex digits");
+    }
+
+    "\\" [^btnfr'\"\\u] {
+        sb.append(yytext());
+        setStringOrCharError("Invalid escape sequence " + yytext());
+    }
 
     <<EOF>> { return invalidStringOrChar("Unterminated string literal"); }
 }
@@ -274,6 +295,16 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "\\\"" { sb.append('"'); }
     "\\\\" { sb.append('\\'); }
     "\\u" {HexDigits} { sb.append((char)Integer.parseInt(yytext().substring(2,6), 16)); }
+
+    "\\u" {HexDigit}* {
+        sb.append(yytext());
+        setStringOrCharError("Invalid \\u sequence. \\u must be followed by exactly 4 hex digits");
+    }
+
+    "\\" [^btnfr'\"\\u] {
+        sb.append(yytext());
+        setStringOrCharError("Invalid escape sequence " + yytext());
+    }
 
     <<EOF>> { return invalidStringOrChar("Unterminated character literal"); }
 }
