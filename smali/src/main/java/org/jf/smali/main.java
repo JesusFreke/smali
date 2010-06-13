@@ -103,6 +103,7 @@ public class main {
         boolean fixGoto = true;
         boolean verboseErrors = false;
         boolean oldLexer = false;
+        boolean printTokens = false;
 
         String outputDexFile = "out.dex";
         String dumpFileName = null;
@@ -149,6 +150,9 @@ public class main {
                 case 'L':
                     oldLexer = true;
                     break;
+                case 'T':
+                    printTokens = true;
+                    break;
                 default:
                     assert false;
             }
@@ -181,7 +185,7 @@ public class main {
             boolean errors = false;
 
             for (File file: filesToProcess) {
-                if (!assembleSmaliFile(file, dexFile, verboseErrors, oldLexer)) {
+                if (!assembleSmaliFile(file, dexFile, verboseErrors, oldLexer, printTokens)) {
                     errors = true;
                 }
             }
@@ -257,7 +261,8 @@ public class main {
         }
     }
 
-    private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile, boolean verboseErrors, boolean oldLexer)
+    private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile, boolean verboseErrors, boolean oldLexer,
+                                             boolean printTokens)
             throws Exception {
         CommonTokenStream tokens;
 
@@ -278,6 +283,19 @@ public class main {
             lexer = new smaliFlexLexer(reader);
             ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
             tokens = new CommonTokenStream((TokenSource)lexer);
+        }
+
+        if (printTokens) {
+            tokens.getTokens();
+            
+            for (int i=0; i<tokens.size(); i++) {
+                Token token = tokens.get(i);
+                if (token.getChannel() == smaliLexer.HIDDEN) {
+                    continue;
+                }
+
+                System.out.println(smaliParser.tokenNames[token.getType()] + ": " + token.getText());
+            }
         }
 
         smaliParser parser = new smaliParser(tokens);
@@ -382,6 +400,9 @@ public class main {
                 .withDescription("Use the old lexer")
                 .create("L");
 
+        Option printTokensOption = OptionBuilder.withLongOpt("print-tokens")
+                .withDescription("Print the name and text of each token")
+                .create("T");
 
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
@@ -393,6 +414,7 @@ public class main {
         debugOptions.addOption(noFixGotoOption);
         debugOptions.addOption(verboseErrorsOption);
         debugOptions.addOption(oldLexerOption);
+        debugOptions.addOption(printTokensOption);
 
         for (Object option: basicOptions.getOptions()) {
             options.addOption((Option)option);
