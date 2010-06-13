@@ -80,7 +80,46 @@ public class LexerTest {
         runTest("FloatLiteralTest");
     }
 
+    @Test
+    public void CharLiteralTest() {
+        runTest("CharLiteralTest");
+    }
+
+    @Test
+    public void StringLiteralTest() {
+        runTest("StringLiteralTest");
+    }
+
+    @Test
+    public void MiscTest() {
+        runTest("MiscTest");
+    }
+
+    @Test
+    public void CommentTest() {
+        runTest("CommentTest", false);
+    }
+
+    @Test
+    public void InstructionTest() {
+        runTest("InstructionTest", true);
+    }
+
+    @Test
+    public void TypeAndIdentifierTest() {
+        runTest("TypeAndIdentifierTest");
+    }
+
+    @Test
+    public void SymbolTest() {
+        runTest("SymbolTest", false);
+    }
+
     public void runTest(String test) {
+        runTest(test, true);
+    }
+
+    public void runTest(String test, boolean discardHiddenTokens) {
         String smaliFile = String.format("LexerTest%s%s.smali", File.separatorChar, test);
         String tokensFile = String.format("LexerTest%s%s.tokens", File.separatorChar, test);
 
@@ -118,7 +157,7 @@ public class LexerTest {
         for (int i=0; i<tokens.size(); i++) {
             token = (CommonToken)tokens.get(i);
 
-            if (token.getChannel() == smaliLexer.HIDDEN) {
+            if (discardHiddenTokens && token.getChannel() == smaliLexer.HIDDEN) {
                 continue;
             }
 
