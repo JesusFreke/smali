@@ -62,6 +62,20 @@
                             </includes>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>expectedTokensTestGrammar</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>antlr</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>src/test/antlr3</sourceDirectory>
+                            <outputDirectory>target/generated-test-sources/antlr3</outputDirectory>
+                            <includes>
+                                <include>org/jf/smali/expectedTokensTestGrammar.g</include>
+                            </includes>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -76,6 +90,25 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                    <id>add generated test sources</id>
+                    <phase>generate-sources</phase>
+                    <goals>
+                        <goal>add-test-source</goal>
+                    </goals>
+                    <configuration>
+                        <sources>
+                            <source>target/generated-test-sources</source>
+                        </sources>
+                    </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <resources>
