@@ -136,7 +136,7 @@ fragment BASE_STRING_LITERAL[StringBuilder sb]
 		'"';
 
 TOKEN_NAME
-	:	(('a'..'z')|('A' .. 'Z')|'_')+;
+	:	(('a'..'z')|('A' .. 'Z')|'_'|('0'..'9'))+;
 	
 WHITE_SPACE
 	:	(' '|'\t'|'\n'|'\r')+ {$channel = HIDDEN;};	
