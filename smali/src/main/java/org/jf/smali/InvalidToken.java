@@ -32,7 +32,7 @@ import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonToken;
 
 public class InvalidToken extends CommonToken {
-    private String message;
+    private final String message;
 
     public InvalidToken(String message) {
         super(smaliParser.INVALID_TOKEN);
@@ -44,5 +44,9 @@ public class InvalidToken extends CommonToken {
         super(smaliParser.INVALID_TOKEN, text);
         this.message = message;
         this.channel = smaliLexer.ERROR_CHANNEL;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }
