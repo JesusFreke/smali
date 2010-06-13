@@ -28,8 +28,7 @@
 
 package org.jf.smali;
 
-import org.antlr.runtime.ANTLRInputStream;
-import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.*;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.apache.commons.cli.*;
@@ -40,6 +39,11 @@ import org.jf.util.ConsoleUtil;
 import org.jf.util.smaliHelpFormatter;
 
 import java.io.*;
+import java.nio.CharBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -98,6 +102,7 @@ public class main {
         boolean fixStringConst = true;
         boolean fixGoto = true;
         boolean verboseErrors = false;
+        boolean oldLexer = false;
 
         String outputDexFile = "out.dex";
         String dumpFileName = null;
@@ -141,6 +146,9 @@ public class main {
                 case 'V':
                     verboseErrors = true;
                     break;
+                case 'L':
+                    oldLexer = true;
+                    break;
                 default:
                     assert false;
             }
@@ -173,7 +181,7 @@ public class main {
             boolean errors = false;
 
             for (File file: filesToProcess) {
-                if (!assembleSmaliFile(file, dexFile, verboseErrors)) {
+                if (!assembleSmaliFile(file, dexFile, verboseErrors, oldLexer)) {
                     errors = true;
                 }
             }
@@ -249,20 +257,32 @@ public class main {
         }
     }
 
-    private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile, boolean verboseErrors)
+    private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile, boolean verboseErrors, boolean oldLexer)
             throws Exception {
-        ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(smaliFile), "UTF8");
-        input.name = smaliFile.getAbsolutePath();
+        CommonTokenStream tokens;
 
-        smaliLexer lexer = new smaliLexer(input);
+        if (oldLexer) {
+            ANTLRFileStream input = new ANTLRFileStream(smaliFile.getAbsolutePath(), "UTF-8");
+            input.name = smaliFile.getAbsolutePath();
 
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
+            smaliLexer lexer = new smaliLexer(input);
+            tokens = new CommonTokenStream(lexer);
+        } else {
+            FileInputStream fis = new FileInputStream(smaliFile.getAbsolutePath());
+            InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
+
+            smaliFlexLexer lexer = new smaliFlexLexer(reader);
+
+            tokens = new CommonTokenStream(lexer);
+        }
+
         smaliParser parser = new smaliParser(tokens);
         parser.setVerboseErrors(verboseErrors);
 
         smaliParser.smali_file_return result = parser.smali_file();
 
-        if (parser.getNumberOfSyntaxErrors() > 0 || lexer.getNumberOfSyntaxErrors() > 0) {
+        //TODO: check for lexer errors
+        if (parser.getNumberOfSyntaxErrors() > 0 /*|| lexer.getNumberOfSyntaxErrors() > 0*/) {
             return false;
         }
 
@@ -355,6 +375,11 @@ public class main {
                 .withDescription("Generate verbose error messages")
                 .create("V");
 
+        Option oldLexerOption = OptionBuilder.withLongOpt("old-lexer")
+                .withDescription("Use the old lexer")
+                .create("L");
+
+
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputOption);
@@ -364,6 +389,7 @@ public class main {
         debugOptions.addOption(noFixStringConstOption);
         debugOptions.addOption(noFixGotoOption);
         debugOptions.addOption(verboseErrorsOption);
+        debugOptions.addOption(oldLexerOption);
 
         for (Object option: basicOptions.getOptions()) {
             options.addOption((Option)option);

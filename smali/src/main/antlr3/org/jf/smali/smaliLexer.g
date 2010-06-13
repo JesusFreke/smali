@@ -79,6 +79,7 @@ lexer grammar smaliLexer;
 }
 
 @lexer::members {
+	public static final int ERROR_CHANNEL = 100;
 	public String getErrorHeader(RecognitionException e) {
 		return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
 	}

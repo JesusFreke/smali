@@ -125,6 +125,7 @@ tokens {
 
 	LABEL;
 	INTEGER_LITERAL;
+	INVALID_TOKEN;
 }
 
 @header {
@@ -209,7 +210,10 @@ import org.jf.dexlib.Code.Format.*;
 		return root;
 	}
 
-	private int getTypeLength(String str, int typeStartIndex) {
+	private CommonToken getParamListSubToken(CommonToken baseToken, String str, int typeStartIndex) {
+		CommonToken token = new CommonToken(baseToken);
+		token.setStartIndex(baseToken.getStartIndex() + typeStartIndex);
+
 		switch (str.charAt(typeStartIndex)) {
 			case 'Z':
 			case 'B':
@@ -219,22 +223,38 @@ import org.jf.dexlib.Code.Format.*;
 			case 'J':
 			case 'F':
 			case 'D':
-				return 1;
+			{
+				token.setType(PRIMITIVE_TYPE);
+				token.setText(str.substring(typeStartIndex, typeStartIndex+1));
+				token.setStopIndex(baseToken.getStartIndex() + typeStartIndex);
+				break;
+			}
 			case 'L':
 			{
 				int i = typeStartIndex;
 				while (str.charAt(++i) != ';');
-				return i-typeStartIndex+1;
+
+				token.setType(CLASS_DESCRIPTOR);
+				token.setText(str.substring(typeStartIndex, i + 1));
+				token.setStopIndex(baseToken.getStartIndex() + i);
+				break;
 			}
 			case '[':
 			{
 				int i = typeStartIndex;
 				while (str.charAt(++i) == '[');
-				return getTypeLength(str, i)+(i-typeStartIndex);
+				while (str.charAt(++i) != ';');
+
+				token.setType(ARRAY_DESCRIPTOR);
+				token.setText(str.substring(typeStartIndex, i + 1));
+				token.setStopIndex(baseToken.getStartIndex() + i);
+				break;
 			}
 			default:
 				throw new RuntimeException(String.format("Invalid character '\%c' in param list \"\%s\" at position \%d", str.charAt(typeStartIndex), str, typeStartIndex));
 		}
+
+		return token;
 	}
 
 	private CommonTree parseParamList(CommonToken paramListToken) {
@@ -245,11 +265,9 @@ import org.jf.dexlib.Code.Format.*;
 
 		int i=0;
 		while (i<paramList.length()) {
-			int typeLength = getTypeLength(paramList, i);
-			root.addChild(new CommonTree(new CommonToken(paramListToken.getInputStream(),
-				PRIMITIVE_TYPE, paramListToken.getChannel(), startIndex+i,
-				startIndex+i+typeLength-1)));
-			i += typeLength;
+			CommonToken token = getParamListSubToken(paramListToken, paramList, i);
+			root.addChild(new CommonTree(token));
+			i += token.getText().length();
 		}
 
 		if (root.getChildCount() == 0) {
@@ -458,7 +476,8 @@ reference_type_descriptor
 
 integer_literal
 	:	POSITIVE_INTEGER_LITERAL -> INTEGER_LITERAL[$POSITIVE_INTEGER_LITERAL]
-	|	NEGATIVE_INTEGER_LITERAL -> INTEGER_LITERAL[$NEGATIVE_INTEGER_LITERAL];
+	|	NEGATIVE_INTEGER_LITERAL -> INTEGER_LITERAL[$NEGATIVE_INTEGER_LITERAL]
+	|	INTEGER_LITERAL;
 
 float_literal
 	:	FLOAT_LITERAL_OR_ID -> FLOAT_LITERAL[$FLOAT_LITERAL_OR_ID]
