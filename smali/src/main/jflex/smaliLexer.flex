@@ -270,6 +270,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         setStringOrCharError("Invalid escape sequence " + yytext());
     }
 
+    [\r\n] { return invalidStringOrChar("Unterminated string literal"); }
     <<EOF>> { return invalidStringOrChar("Unterminated string literal"); }
 }
 
@@ -306,6 +307,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         setStringOrCharError("Invalid escape sequence " + yytext());
     }
 
+    [\r\n] { return invalidStringOrChar("Unterminated character literal"); }
     <<EOF>> { return invalidStringOrChar("Unterminated character literal"); }
 }
 
