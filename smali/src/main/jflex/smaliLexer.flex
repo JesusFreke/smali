@@ -330,7 +330,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
 
     "+" {Integer} { return newToken(OFFSET); }
 
-    # [^\r\n]* ("\r\n" | "\r" | "\n")? { return newToken(LINE_COMMENT, true); }
+    # [^\r\n]* { return newToken(LINE_COMMENT, true); }
 }
 
 /*Instructions*/
