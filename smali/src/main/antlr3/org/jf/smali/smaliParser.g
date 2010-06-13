@@ -242,13 +242,16 @@ import org.jf.dexlib.Code.Format.*;
 			case '[':
 			{
 				int i = typeStartIndex;
-				while (str.charAt(++i) == '[');
-				while (str.charAt(++i) != ';');
+    				while (str.charAt(++i) == '[');
 
-				token.setType(ARRAY_DESCRIPTOR);
-				token.setText(str.substring(typeStartIndex, i + 1));
-				token.setStopIndex(baseToken.getStartIndex() + i);
-				break;
+    				if (str.charAt(i++) == 'L') {
+    				    while (str.charAt(i++) != ';');
+				}
+
+    				token.setType(ARRAY_DESCRIPTOR);
+    				token.setText(str.substring(typeStartIndex, i));
+    				token.setStopIndex(baseToken.getStartIndex() + i - 1);
+    				break;
 			}
 			default:
 				throw new RuntimeException(String.format("Invalid character '\%c' in param list \"\%s\" at position \%d", str.charAt(typeStartIndex), str, typeStartIndex));
