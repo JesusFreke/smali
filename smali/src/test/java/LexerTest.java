@@ -176,8 +176,6 @@ public class LexerTest {
             }
             int expectedTokenType = tokenTypesByName.get(expectedToken.tokenName);
 
-            System.out.println(String.format("%s(%s) - %s(%s)", expectedToken.tokenName, expectedToken.tokenText, getTokenName(token.getType()), token.getText()));
-
             if (token.getType() != expectedTokenType) {
                 Assert.fail(String.format("Invalid token at index %d. Expecting %s, got %s",
                         expectedTokenIndex-1, expectedToken.tokenName, getTokenName(token.getType())));
