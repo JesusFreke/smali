@@ -154,6 +154,8 @@ public class LexerTest {
             Assert.fail("Could not load " + smaliFile);
         }
         smaliFlexLexer lexer = new smaliFlexLexer(smaliStream);
+        lexer.setSourceFile(new File(test + ".smali"));
+        lexer.setSuppressErrors(true);
 
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         List tokens = tokenStream.getTokens();

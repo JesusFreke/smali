@@ -28,10 +28,17 @@ import static org.jf.smali.smaliParser.*;
 
     private File sourceFile;
 
+    private boolean suppressErrors;
+
     public Token nextToken() {
         try {
             Token token = yylex();
             if (token instanceof InvalidToken) {
+                InvalidToken invalidToken = (InvalidToken)token;
+                if (!suppressErrors) {
+                    System.err.println(getErrorHeader(invalidToken) + " Error for input '" +
+                        invalidToken.getText() + "': " + invalidToken.getMessage());
+                }
                 lexerErrors++;
             }
             return token;
@@ -56,6 +63,10 @@ import static org.jf.smali.smaliParser.*;
 
     public int getColumn() {
         return this.yycolumn;
+    }
+
+    public void setSuppressErrors(boolean suppressErrors) {
+        this.suppressErrors = suppressErrors;
     }
 
     public void setSourceFile(File sourceFile) {
@@ -155,8 +166,8 @@ import static org.jf.smali.smaliParser.*;
         return token;
     }
 
-    public String getErrorHeader(RecognitionException e) {
-        return getSourceName()+"["+ e.line+","+e.charPositionInLine+"]";
+    public String getErrorHeader(InvalidToken token) {
+        return getSourceName()+"["+ token.getLine()+","+token.getCharPositionInLine()+"]";
     }
 %}
 
