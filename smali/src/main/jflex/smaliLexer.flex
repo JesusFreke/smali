@@ -9,6 +9,7 @@ import static org.jf.smali.smaliParser.*;
 %public
 %class smaliFlexLexer
 %implements TokenSource
+%implements LexerErrorInterface
 %type Token
 %unicode
 %line
@@ -22,9 +23,15 @@ import static org.jf.smali.smaliParser.*;
     private int stringStartCol;
     private int stringStartChar;
 
+    private int lexerErrors = 0;
+
     public Token nextToken() {
         try {
-            return yylex();
+            Token token = yylex();
+            if (token instanceof InvalidToken) {
+                lexerErrors++;
+            }
+            return token;
         }
         catch (java.io.IOException e) {
             System.err.println("shouldn't happen: " + e.getMessage());
@@ -50,6 +57,10 @@ import static org.jf.smali.smaliParser.*;
 
     public String getSourceName() {
         return "";
+    }
+
+    public int getNumberOfSyntaxErrors() {
+        return lexerErrors;
     }
 
     private Token newToken(int type, String text, boolean hidden) {

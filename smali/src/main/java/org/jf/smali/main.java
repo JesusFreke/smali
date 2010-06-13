@@ -261,19 +261,22 @@ public class main {
             throws Exception {
         CommonTokenStream tokens;
 
+
+        boolean lexerErrors = false;
+        LexerErrorInterface lexer;
+
         if (oldLexer) {
             ANTLRFileStream input = new ANTLRFileStream(smaliFile.getAbsolutePath(), "UTF-8");
             input.name = smaliFile.getAbsolutePath();
 
-            smaliLexer lexer = new smaliLexer(input);
-            tokens = new CommonTokenStream(lexer);
+            lexer = new smaliLexer(input);
+            tokens = new CommonTokenStream((TokenSource)lexer);
         } else {
             FileInputStream fis = new FileInputStream(smaliFile.getAbsolutePath());
             InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
 
-            smaliFlexLexer lexer = new smaliFlexLexer(reader);
-
-            tokens = new CommonTokenStream(lexer);
+            lexer = new smaliFlexLexer(reader);
+            tokens = new CommonTokenStream((TokenSource)lexer);
         }
 
         smaliParser parser = new smaliParser(tokens);
@@ -281,8 +284,7 @@ public class main {
 
         smaliParser.smali_file_return result = parser.smali_file();
 
-        //TODO: check for lexer errors
-        if (parser.getNumberOfSyntaxErrors() > 0 /*|| lexer.getNumberOfSyntaxErrors() > 0*/) {
+        if (parser.getNumberOfSyntaxErrors() > 0 || lexer.getNumberOfSyntaxErrors() > 0) {
             return false;
         }
 

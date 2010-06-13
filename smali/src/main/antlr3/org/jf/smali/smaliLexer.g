@@ -74,8 +74,14 @@
 
 lexer grammar smaliLexer;
 
+options {
+	superClass=ANTLRLexerWithErrorInterface;
+}
+
 @lexer::header {
 	package org.jf.smali;
+	
+	import static org.jf.smali.LexerErrorInterface.ANTLRLexerWithErrorInterface;
 }
 
 @lexer::members {
