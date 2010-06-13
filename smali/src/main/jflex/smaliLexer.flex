@@ -524,7 +524,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT3rc_TYPE);
     }
 
-    "invoke-virtual-quick/range" | "invoke-super-quick/range" {
+    "execute-inline/range" | "invoke-virtual-quick/range" | "invoke-super-quick/range" {
         return newToken(INSTRUCTION_FORMAT3rms_METHOD);
     }
 

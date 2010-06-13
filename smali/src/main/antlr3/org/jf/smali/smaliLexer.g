@@ -648,7 +648,8 @@ INSTRUCTION_FORMAT3rc_TYPE
 	:	'filled-new-array/range';
 
 INSTRUCTION_FORMAT3rms_METHOD
-	:	'invoke-virtual-quick/range'
+	:	'execute-inline/range'
+	|	'invoke-virtual-quick/range'
 	|	'invoke-super-quick/range';
 
 INSTRUCTION_FORMAT51l
