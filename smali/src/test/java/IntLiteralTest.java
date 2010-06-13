@@ -32,7 +32,6 @@ import org.junit.Test;
 
 public class IntLiteralTest
 {
-
     @Test
     public void SuccessHexTests() {
 
@@ -48,6 +47,7 @@ public class IntLiteralTest
         Assert.assertTrue(literalTools.parseInt("-0x01") == -1);
         Assert.assertTrue(literalTools.parseInt("-0x12345678") == -0x12345678);
         Assert.assertTrue(literalTools.parseInt("-0x80000000") == Integer.MIN_VALUE);
+        Assert.assertTrue(literalTools.parseInt("-0x1FFFFFFF") == -0x1FFFFFFF);
     }
 
     @Test(expected=NumberFormatException.class)

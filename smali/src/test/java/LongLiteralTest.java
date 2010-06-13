@@ -46,6 +46,7 @@ public class LongLiteralTest
         Assert.assertTrue(literalTools.parseLong("-0x01L") == -1);
         Assert.assertTrue(literalTools.parseLong("-0x1234567890123456L") == -0x1234567890123456L);
         Assert.assertTrue(literalTools.parseLong("-0x8000000000000000") == Long.MIN_VALUE);
+        Assert.assertTrue(literalTools.parseLong("-0x1fffffffffffffffL") == -0x1fffffffffffffffL);
     }
 
     @Test(expected=NumberFormatException.class)

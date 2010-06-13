@@ -48,6 +48,7 @@ public class ByteLiteralTest
         Assert.assertTrue(literalTools.parseByte("-0x01") == -1);
         Assert.assertTrue(literalTools.parseByte("-0x12") == -0x12);
         Assert.assertTrue(literalTools.parseByte("-0x80") == Byte.MIN_VALUE);
+        Assert.assertTrue(literalTools.parseByte("-0x1f") == -0x1f);
     }
 
     @Test(expected=NumberFormatException.class)

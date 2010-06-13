@@ -48,6 +48,7 @@ public class ShortLiteralTest
         Assert.assertTrue(literalTools.parseShort("-0x01") == -1);
         Assert.assertTrue(literalTools.parseShort("-0x1234") == -0x1234);
         Assert.assertTrue(literalTools.parseShort("-0x8000") == Short.MIN_VALUE);
+        Assert.assertTrue(literalTools.parseShort("-0x1fff") == -0x1fff);
     }
 
     @Test(expected=NumberFormatException.class)
@@ -104,7 +105,7 @@ public class ShortLiteralTest
         literalTools.parseShort("65600");
     }
 
-    
+
     @Test
     public void SuccessOctTests() {
         Assert.assertTrue(literalTools.parseShort("00") == 00);
