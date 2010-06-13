@@ -276,6 +276,7 @@ public class main {
             InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
 
             lexer = new smaliFlexLexer(reader);
+            ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
             tokens = new CommonTokenStream((TokenSource)lexer);
         }
 

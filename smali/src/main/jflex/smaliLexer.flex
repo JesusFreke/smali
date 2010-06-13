@@ -1,7 +1,8 @@
 package org.jf.smali;
 
+import java.io.*;
 import org.antlr.runtime.*;
-
+import org.jf.util.*;
 import static org.jf.smali.smaliParser.*;
 
 %%
@@ -24,6 +25,8 @@ import static org.jf.smali.smaliParser.*;
     private int stringStartChar;
 
     private int lexerErrors = 0;
+
+    private File sourceFile;
 
     public Token nextToken() {
         try {
@@ -55,8 +58,16 @@ import static org.jf.smali.smaliParser.*;
         return this.yycolumn;
     }
 
+    public void setSourceFile(File sourceFile) {
+        this.sourceFile = sourceFile;
+    }
+
     public String getSourceName() {
-        return "";
+        try {
+            return  PathUtil.getRelativeFile(new File("."), sourceFile).getPath();
+        } catch (IOException ex) {
+            return sourceFile.getAbsolutePath();
+        }
     }
 
     public int getNumberOfSyntaxErrors() {
