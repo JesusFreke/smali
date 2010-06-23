@@ -105,6 +105,9 @@ public class ClassDefinition {
 
         for (ClassDataItem.EncodedMethod directMethod: classDataItem.getDirectMethods()) {
             if (directMethod.method.getMethodName().getStringValue().equals("<clinit>")) {
+                if (directMethod.codeItem == null) {
+                    break;
+                }
 
                 for (Instruction instruction: directMethod.codeItem.getInstructions()) {
                     switch (instruction.opcode) {
