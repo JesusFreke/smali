@@ -293,7 +293,9 @@ public class MethodDefinition {
         }
 
         addTries(methodItems);
-        addDebugInfo(methodItems);
+        if (baksmali.outputDebugInfo) {
+            addDebugInfo(methodItems);
+        }
 
         if (baksmali.useSequentialLabels) {
             setLabelSequentialNumbers();
