@@ -66,9 +66,14 @@ public class AnnotationSetItem extends Item<AnnotationSetItem> {
      * @return an <code>AnnotationSetItem</code> for the given annotations
      */
     public static AnnotationSetItem internAnnotationSetItem(DexFile dexFile, List<AnnotationItem> annotations) {
-        AnnotationItem[] annotationsArray = new AnnotationItem[annotations.size()];
-        annotations.toArray(annotationsArray);
-        AnnotationSetItem annotationSetItem = new AnnotationSetItem(dexFile, annotationsArray);
+        AnnotationSetItem annotationSetItem;
+        if (annotations == null) {
+            annotationSetItem = new AnnotationSetItem(dexFile, new AnnotationItem[0]);
+        } else {
+            AnnotationItem[] annotationsArray = new AnnotationItem[annotations.size()];
+            annotations.toArray(annotationsArray);
+            annotationSetItem = new AnnotationSetItem(dexFile, annotationsArray);
+        }
         return dexFile.AnnotationSetsSection.intern(annotationSetItem);
     }
 
