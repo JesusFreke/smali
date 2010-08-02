@@ -88,7 +88,7 @@ public final class Leb128Utils {
      * Writes an unsigned leb128 to the buffer at the specified location
      * @param value the value to write as an unsigned leb128
      * @param buffer the buffer to write to
-     * @param bufferIndex the index to start writing at 
+     * @param bufferIndex the index to start writing at
      */
     public static void writeUnsignedLeb128(int value, byte[] buffer, int bufferIndex) {
         int remaining = value >>> 7;

@@ -77,7 +77,7 @@ public final class Utf8Utils {
      *
      * @param bytes non-null; the bytes to convert
      * @param start the start index of the utf8 string to convert
-     * @param length the length of the utf8 string to convert, not including any null-terminator that might be present  
+     * @param length the length of the utf8 string to convert, not including any null-terminator that might be present
      * @return non-null; the converted string
      */
     public static String utf8BytesToString(byte[] bytes, int start, int length) {

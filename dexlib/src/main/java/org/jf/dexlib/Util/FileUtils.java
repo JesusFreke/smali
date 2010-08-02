@@ -43,7 +43,7 @@ public final class FileUtils {
     /**
      * Reads the named file, translating {@link IOException} to a
      * {@link RuntimeException} of some sort.
-     * 
+     *
      * @param fileName non-null; name of the file to read
      * @return non-null; contents of the file
      */
@@ -56,7 +56,7 @@ public final class FileUtils {
     /**
      * Reads the given file, translating {@link IOException} to a
      * {@link RuntimeException} of some sort.
-     * 
+     *
      * @param file non-null; the file to read
      * @return non-null; contents of the file
      */
@@ -134,7 +134,7 @@ public final class FileUtils {
             at += amt;
             length -= amt;
         }
-        
+
         return result;
     }
 }
