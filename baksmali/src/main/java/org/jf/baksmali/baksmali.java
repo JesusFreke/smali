@@ -34,6 +34,9 @@ import org.jf.dexlib.Code.Analysis.ClassPath;
 import org.jf.dexlib.DexFile;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,7 +118,20 @@ public class baksmali {
             }
         }
 
-        for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
+        //sort the classes, so that if we're on a case-insensitive file system and need to handle classes with file
+        //name collisions, then we'll use the same name for each class, if the dex file goes through multiple
+        //baksmali/smali cycles for some reason. If a class with a colliding name is added or removed, the filenames
+        //may still change of course
+        ArrayList<ClassDefItem> classDefItems = new ArrayList<ClassDefItem>(dexFile.ClassDefsSection.getItems());
+        Collections.sort(classDefItems, new Comparator<ClassDefItem>() {
+            public int compare(ClassDefItem classDefItem1, ClassDefItem classDefItem2) {
+                return classDefItem1.getClassType().getTypeDescriptor().compareTo(classDefItem1.getClassType().getTypeDescriptor());
+            }
+        });
+
+        fileNameHandler fileNameHandler = new fileNameHandler(outputDirectoryFile);
+
+        for (ClassDefItem classDefItem: classDefItems) {
             /**
              * The path for the disassembly file is based on the package name
              * The class descriptor will look something like:
@@ -142,21 +158,7 @@ public class baksmali {
                 continue;
             }
 
-            //trim off the leading L and trailing ;
-            classDescriptor = classDescriptor.substring(1, classDescriptor.length()-1);
-
-            //trim off the leading 'L' and trailing ';', and get the individual package elements
-            String[] pathElements = classDescriptor.split("/");
-
-            //build the path to the smali file to generate for this class
-            StringBuilder smaliPath = new StringBuilder(outputDirectory);
-            for (String pathElement: pathElements) {
-                smaliPath.append(File.separatorChar);
-                smaliPath.append(pathElement);
-            }
-            smaliPath.append(".smali");
-
-            File smaliFile = new File(smaliPath.toString());
+            File smaliFile = fileNameHandler.getUniqueFilenameForClass(classDescriptor);
 
             //create and initialize the top level string template
             ClassDefinition classDefinition = new ClassDefinition(classDefItem);
