@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * As per the Apache license requirements, this file has been modified
+ * from its original state.
+ *
+ * Such modifications are Copyright (C) 2010 Ben Gruver, and are released
+ * under the original license
+ */
+
 package org.jf.dexlib.Util;
 
 /**

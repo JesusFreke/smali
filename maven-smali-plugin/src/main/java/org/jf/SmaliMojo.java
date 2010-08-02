@@ -1,7 +1,4 @@
-package org.jf;
-
 /*
-
  * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +13,16 @@ package org.jf;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * As per the Apache license requirements, this file has been modified
+ * from its original state.
+ *
+ * Such modifications are Copyright (C) 2010 Ben Gruver, and are released
+ * under the original license
+ */
+
+package org.jf;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
