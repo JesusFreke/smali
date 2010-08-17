@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.util;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -38,7 +38,7 @@ public class IndentingWriter extends Writer {
     private boolean beginningOfLine;
     private static final String newLine = System.getProperty("line.separator");
 
-    protected IndentingWriter(Writer writer) {
+    public IndentingWriter(Writer writer) {
         this.writer = writer;
     }
 

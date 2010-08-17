@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.baksmali.IndentingWriter;
+import org.jf.util.IndentingWriter;
 import org.jf.dexlib.EncodedValue.ArrayEncodedValue;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 

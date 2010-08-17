@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingWriter;
+import org.jf.util.IndentingWriter;
 
 //a "spacer" between instructions
 public class BlankMethodItem extends MethodItem {

@@ -30,7 +30,7 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.LabelMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.baksmali.IndentingWriter;
+import org.jf.util.IndentingWriter;
 import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 import org.jf.dexlib.CodeItem;

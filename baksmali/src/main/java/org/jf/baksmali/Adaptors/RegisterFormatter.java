@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.IndentingWriter;
+import org.jf.util.IndentingWriter;
 import org.jf.baksmali.baksmali;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.Util.AccessFlags;

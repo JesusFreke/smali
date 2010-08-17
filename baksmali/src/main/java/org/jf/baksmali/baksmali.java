@@ -33,6 +33,7 @@ import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.Code.Analysis.ClassPath;
 import org.jf.dexlib.DexFile;
 import org.jf.util.ClassFileNameHandler;
+import org.jf.util.IndentingWriter;
 
 import java.io.*;
 import java.util.ArrayList;

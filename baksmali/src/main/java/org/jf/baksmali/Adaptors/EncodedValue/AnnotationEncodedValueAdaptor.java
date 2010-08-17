@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
-import org.jf.baksmali.IndentingWriter;
+import org.jf.util.IndentingWriter;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
 
 import java.io.IOException;

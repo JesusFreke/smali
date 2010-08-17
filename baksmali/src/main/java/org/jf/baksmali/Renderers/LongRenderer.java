@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.baksmali.IndentingWriter;
+import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
 

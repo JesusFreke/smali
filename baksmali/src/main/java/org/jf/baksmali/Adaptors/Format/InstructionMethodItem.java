@@ -31,7 +31,7 @@ package org.jf.baksmali.Adaptors.Format;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
-import org.jf.baksmali.IndentingWriter;
+import org.jf.util.IndentingWriter;
 import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.dexlib.Code.*;
 import org.jf.dexlib.CodeItem;
