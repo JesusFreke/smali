@@ -225,6 +225,16 @@ public class TypeListItem extends Item<TypeListItem> {
     }
 
     /**
+     * Helper method to allow easier "inline" retrieval of of the list of TypeIdItems
+     * @param typeListItem the typeListItem to return the types of (can be null)
+     * @return an array of the <code>TypeIdItems</code> in the specified <code>TypeListItem</code>, or null if the
+     * TypeListItem is null
+     */
+    public static List<TypeIdItem> getTypes(TypeListItem typeListItem) {
+        return typeListItem==null?null:typeListItem.getTypes();
+    }
+
+    /**
      * calculate and cache the hashcode
      */
     private void calcHashCode() {
