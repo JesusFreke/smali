@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.util;
 
 import ds.tree.RadixTree;
 import ds.tree.RadixTreeImpl;
@@ -34,11 +34,18 @@ import ds.tree.RadixTreeImpl;
 import java.io.*;
 import java.nio.CharBuffer;
 
-public class fileNameHandler {
+/**
+ * This class checks for case-insensitive file systems, and generates file names based on a given class name, that are
+ * guaranteed to be unique. When "colliding" class names are found, it appends a numeric identifier to the end of the
+ * class name to distinguish it from another class with a name that differes only by case. i.e. a.smali and a_2.smali
+ */
+public class ClassFileNameHandler {
     private PackageNameEntry top;
+    private String fileExtension;
 
-    public fileNameHandler(File path) {
+    public ClassFileNameHandler(File path, String fileExtension) {
         this.top = new PackageNameEntry(path);
+        this.fileExtension = fileExtension;
     }
 
     public File getUniqueFilenameForClass(String className) {
@@ -84,7 +91,7 @@ public class fileNameHandler {
         return top.addUniqueChild(packageElements, 0);
     }
 
-    private static abstract class FileSystemEntry {
+    private abstract class FileSystemEntry {
         public final File file;
 
         public FileSystemEntry(File file) {
@@ -98,7 +105,7 @@ public class fileNameHandler {
         }
     }
 
-    private static class PackageNameEntry extends FileSystemEntry {
+    private class PackageNameEntry extends FileSystemEntry {
         //this contains the FileSystemEntries for all of this package's children
         //the associated keys are all lowercase
         private RadixTree<FileSystemEntry> children = new RadixTreeImpl<FileSystemEntry>();
@@ -117,7 +124,7 @@ public class fileNameHandler {
             String elementNameLower;
 
             if (pathElementsIndex == pathElements.length - 1) {
-                elementName = pathElements[pathElementsIndex] + ".smali";
+                elementName = pathElements[pathElementsIndex] + fileExtension;
             } else {
                 elementName = pathElements[pathElementsIndex];
             }
@@ -159,7 +166,7 @@ public class fileNameHandler {
     /**
      * A virtual group that groups together file system entries with the same name, differing only in case
      */
-    private static class VirtualGroupEntry extends FileSystemEntry {
+    private class VirtualGroupEntry extends FileSystemEntry {
         //this contains the FileSystemEntries for all of the files/directories in this group
         //the key is the unmodified name of the entry, before it is modified to be made unique (if needed).
         private RadixTree<FileSystemEntry> groupEntries = new RadixTreeImpl<FileSystemEntry>();
@@ -182,7 +189,7 @@ public class fileNameHandler {
             String elementName = pathElements[pathElementsIndex];
 
             if (pathElementsIndex == pathElements.length - 1) {
-                elementName = elementName + ".smali";
+                elementName = elementName + fileExtension;
             }
 
             FileSystemEntry existingEntry = groupEntries.find(elementName);
@@ -198,7 +205,7 @@ public class fileNameHandler {
             if (pathElementsIndex == pathElements.length - 1) {
                 String fileName;
                 if (!isCaseSensitive()) {
-                    fileName = pathElements[pathElementsIndex] + "." + (groupEntries.getSize()+1) + ".smali";
+                    fileName = pathElements[pathElementsIndex] + "." + (groupEntries.getSize()+1) + fileExtension;
                 } else {
                     fileName = elementName;
                 }
@@ -244,7 +251,7 @@ public class fileNameHandler {
             }
         }
 
-        private static boolean testCaseSensitivity(File path) throws IOException {
+        private boolean testCaseSensitivity(File path) throws IOException {
             int num = 1;
             File f, f2;
             do {
@@ -304,7 +311,7 @@ public class fileNameHandler {
         }
     }
 
-    private static class ClassNameEntry extends FileSystemEntry {
+    private class ClassNameEntry extends FileSystemEntry {
         public ClassNameEntry(File parent, String name) {
             super(new File(parent, name));
         }
