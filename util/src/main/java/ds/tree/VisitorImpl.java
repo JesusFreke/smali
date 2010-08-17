@@ -19,12 +19,9 @@ public abstract class VisitorImpl<T, R> implements Visitor<T, R> {
 		this.result = initialValue;
 	}
 
-	@Override
 	public R getResult() {
 		return result;
 	}
 
-	@Override
 	abstract public void visit(String key, RadixTreeNode<T> parent, RadixTreeNode<T> node);
-
 }

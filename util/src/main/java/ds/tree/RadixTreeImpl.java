@@ -414,7 +414,6 @@ public class RadixTreeImpl<T> implements RadixTree<T>, Formattable {
 	 *
      * WARNING! Do not use this for a large Trie, it's for testing purpose only.
 	 */
-	@Override
 	public void formatTo(Formatter formatter, int flags, int width, int precision) {
 		formatNodeTo(formatter, 0, root);
 	}
