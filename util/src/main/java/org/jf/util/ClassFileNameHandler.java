@@ -33,6 +33,7 @@ import ds.tree.RadixTreeImpl;
 
 import java.io.*;
 import java.nio.CharBuffer;
+import java.util.regex.Pattern;
 
 /**
  * This class checks for case-insensitive file systems, and generates file names based on a given class name, that are
@@ -42,10 +43,12 @@ import java.nio.CharBuffer;
 public class ClassFileNameHandler {
     private PackageNameEntry top;
     private String fileExtension;
+    private boolean modifyWindowsReservedFilenames;
 
     public ClassFileNameHandler(File path, String fileExtension) {
         this.top = new PackageNameEntry(path);
         this.fileExtension = fileExtension;
+        this.modifyWindowsReservedFilenames = testForWindowsReservedFileNames(path);
     }
 
     public File getUniqueFilenameForClass(String className) {
@@ -91,6 +94,48 @@ public class ClassFileNameHandler {
         return top.addUniqueChild(packageElements, 0);
     }
 
+    private static boolean testForWindowsReservedFileNames(File path) {
+        File f = new File(path, "aux.smali");
+        if (f.exists()) {
+            return false;
+        }
+
+        try {
+            FileWriter writer = new FileWriter(f);
+            writer.write("test");
+            writer.flush();
+            writer.close();
+            f.delete(); //doesn't throw IOException
+            return false;
+        } catch (IOException ex) {
+            //if an exception occured, it's likely that we're on a windows system.
+        }
+
+        //let's try one more reserved filename
+        f = new File(path, "con.smali");
+        if (f.exists()) {
+            return false;
+        }
+
+        try {
+            FileWriter writer = new FileWriter(f);
+            writer.write("test");
+            writer.flush();
+            writer.close();
+            f.delete(); //doesn't throw IOException
+            return false;
+        } catch (IOException ex) {
+            //yup, looks like we're on a windows system
+            return true;
+        }
+    }
+
+    private static Pattern reservedFileNameRegex = Pattern.compile("^CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]$",
+            Pattern.CASE_INSENSITIVE);
+    private static boolean isReservedFileName(String className) {
+        return reservedFileNameRegex.matcher(className).matches();
+    }
+
     private abstract class FileSystemEntry {
         public final File file;
 
@@ -124,9 +169,16 @@ public class ClassFileNameHandler {
             String elementNameLower;
 
             if (pathElementsIndex == pathElements.length - 1) {
-                elementName = pathElements[pathElementsIndex] + fileExtension;
+                elementName = pathElements[pathElementsIndex];
+                if (modifyWindowsReservedFilenames && isReservedFileName(elementName)) {
+                    elementName += "#";
+                }
+                elementName += fileExtension;
             } else {
                 elementName = pathElements[pathElementsIndex];
+                if (modifyWindowsReservedFilenames && isReservedFileName(elementName)) {
+                    elementName += "#";
+                }
             }
             elementNameLower = elementName.toLowerCase();
 
