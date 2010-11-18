@@ -202,7 +202,13 @@ Float3 = -? {HexPrefix} {HexDigit}+ "." {HexDigit}* {BinaryExponent}
 Float4 = -? {HexPrefix} "." {HexDigit}+ {BinaryExponent}
 Float =  {Float1} | {Float2} | {Float3} | {Float4}
 
-SimpleName = [A-Za-z0-9$\-_\u00a1-\u1fff\u2010-\u2027\u2030-\ud7ff\ue000-\uffef]+
+HighSurrogate = [\ud800-\udbff]
+
+LowSurrogate = [\udc00-\udfff]
+
+SimpleNameCharacter = ({HighSurrogate} {LowSurrogate}) | [A-Za-z0-9$\-_\u00a1-\u1fff\u2010-\u2027\u2030-\ud7ff\ue000-\uffef]
+
+SimpleName = {SimpleNameCharacter}+
 
 PrimitiveType = [ZBSCIJFD]
 
