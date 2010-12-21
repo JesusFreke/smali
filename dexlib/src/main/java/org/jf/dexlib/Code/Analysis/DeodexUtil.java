@@ -288,49 +288,6 @@ public class DeodexUtil {
         return null;
     }
 
-    /**
-     * Compare the inline methods that we have against the given set of inline methods from deodexerant.
-     * We want to make sure that each inline method in inlineMethods matches the method we have at the same
-     * index. We may have more inline methods than we are given in inlineMethods - this shouldn't be a problem.
-     * Newer versions of dalvik add additional inline methods, but (so far) have changed any existing ones.
-     *
-     * If anything doesn't look right, we just throw an exception
-     * @param inlineMethods the inline methods from deodexerant
-     */
-    protected void checkInlineMethods(String[] inlineMethods) {
-        if (inlineMethods.length > this.inlineMethods.length) {
-            throw new ValidationException("Inline method count mismatch");
-        }
-
-        for (int i=0; i<inlineMethods.length; i++) {
-            String inlineMethod = inlineMethods[i];
-            int methodType;
-
-            if (inlineMethod.startsWith("static")) {
-                methodType = Static;
-                inlineMethod = inlineMethod.substring(7);
-            } else if (inlineMethod.startsWith("direct")) {
-                methodType = Direct;
-                inlineMethod = inlineMethod.substring(7);
-            } else if (inlineMethod.startsWith("virtual")) {
-                methodType = Virtual;
-                inlineMethod = inlineMethod.substring(8);
-            } else {
-                throw new ValidationException("Could not parse inline method");
-            }
-
-            if (!inlineMethod.equals(this.inlineMethods[i].getMethodString())) {
-                throw new ValidationException(String.format("Inline method mismatch. %s vs. %s", inlineMethod,
-                        this.inlineMethods[i].getMethodString()));
-            }
-
-            if (methodType != this.inlineMethods[i].methodType) {
-                throw new ValidationException(String.format("Inline method type mismatch. %d vs. %d", methodType,
-                        this.inlineMethods[i].methodType));
-            }
-        }
-    }
-
     public class InlineMethod {
         public final int methodType;
         public final String classType;
