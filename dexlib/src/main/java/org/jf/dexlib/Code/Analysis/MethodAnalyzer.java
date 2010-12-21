@@ -3308,11 +3308,11 @@ public class MethodAnalyzer {
 
         Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;
 
-        int methodIndex = instruction.getMethodIndex();
-        DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(methodIndex);
+        DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(analyzedInstruction);
         MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
         if (inlineMethodIdItem == null) {
-            throw new ValidationException(String.format("Cannot load inline method with index %d", methodIndex));
+            throw new ValidationException(String.format("Cannot load inline method with index %d",
+                    instruction.getMethodIndex()));
         }
 
         Opcode deodexedOpcode = null;
@@ -3346,11 +3346,11 @@ public class MethodAnalyzer {
 
         Instruction3rms instruction = (Instruction3rms)analyzedInstruction.instruction;
 
-        int methodIndex = instruction.getMethodIndex();
-        DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(methodIndex);
+        DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(analyzedInstruction);
         MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
         if (inlineMethodIdItem == null) {
-            throw new ValidationException(String.format("Cannot load inline method with index %d", methodIndex));
+            throw new ValidationException(String.format("Cannot load inline method with index %d",
+                    instruction.getMethodIndex()));
         }
 
         Opcode deodexedOpcode = null;
