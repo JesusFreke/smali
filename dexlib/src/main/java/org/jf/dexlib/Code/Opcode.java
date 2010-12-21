@@ -253,19 +253,33 @@ public enum Opcode
     SHR_INT_LIT8((byte)0xe1, "shr-int/lit8", ReferenceType.none, Format.Format22b, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     USHR_INT_LIT8((byte)0xe2, "ushr-int/lit8", ReferenceType.none, Format.Format22b, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
 
+    IGET_VOLATILE((byte)0xe3, "iget-volatile", ReferenceType.field, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IPUT_VOLATILE((byte)0xe4, "iput-volatile", ReferenceType.field, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SGET_VOLATILE((byte)0xe5, "sget-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SPUT_VOLATILE((byte)0xe6, "sput-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IGET_OBJECT_VOLATILE((byte)0xe7, "iget-object-volatile", ReferenceType.field, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IGET_WIDE_VOLATILE((byte)0xe8, "iget-wide-volatile", ReferenceType.field, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    IPUT_WIDE_VOLATILE((byte)0xe9, "iput-wide-volatile", ReferenceType.field, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SGET_WIDE_VOLATILE((byte)0xea, "sget-wide-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    SPUT_WIDE_VOLATILE((byte)0xeb, "sput-wide-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+
     EXECUTE_INLINE((byte)0xee, "execute-inline", ReferenceType.none,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     EXECUTE_INLINE_RANGE((byte)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rms,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_DIRECT_EMPTY((byte)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35s, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    IGET_QUICK((byte)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_WIDE_QUICK((byte)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    IGET_OBJECT_QUICK((byte)0xf4, "iget-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IPUT_QUICK((byte)0xf5, "iput-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_WIDE_QUICK((byte)0xf6, "iput-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_OBJECT_QUICK((byte)0xf7, "iput-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IGET_QUICK((byte)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IGET_WIDE_QUICK((byte)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    IGET_OBJECT_QUICK((byte)0xf4, "iget-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IPUT_QUICK((byte)0xf5, "iput-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IPUT_WIDE_QUICK((byte)0xf6, "iput-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IPUT_OBJECT_QUICK((byte)0xf7, "iput-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     INVOKE_VIRTUAL_QUICK((byte)0xf8, "invoke-virtual-quick", ReferenceType.none,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_VIRTUAL_QUICK_RANGE((byte)0xf9, "invoke-virtual-quick/range", ReferenceType.none,  Format.Format3rms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_SUPER_QUICK((byte)0xfa, "invoke-super-quick", ReferenceType.none,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_SUPER_QUICK_RANGE((byte)0xfb, "invoke-super-quick/range", ReferenceType.none,  Format.Format3rms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT);
+    INVOKE_SUPER_QUICK_RANGE((byte)0xfb, "invoke-super-quick/range", ReferenceType.none,  Format.Format3rms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+
+    IPUT_OBJECT_VOLATILE((byte)0xfc, "iput-object-volatile", ReferenceType.field, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SGET_OBJECT_VOLATILE((byte)0xfd, "sget-object-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SPUT_OBJECT_VOLATILE((byte)0xfe, "sput-object-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE);
 
 
     private static Opcode[] opcodesByValue;
@@ -283,6 +297,12 @@ public enum Opcode
     public static final int SETS_REGISTER = 0x10;
     //if the instruction sets the value of it's first register to a wide type
     public static final int SETS_WIDE_REGISTER = 0x20;
+    //if the instruction is an odexed iget-quick/iput-quick instruction
+    public static final int ODEXED_INSTANCE_QUICK = 0x40;
+    //if the instruction is an odexed iget-volatile/iput-volatile instruction
+    public static final int ODEXED_INSTANCE_VOLATILE = 0x80;
+    //if the instruction is an odexed sget-volatile/sput-volatile instruction
+    public static final int ODEXED_STATIC_VOLATILE = 0x100;
 
     static {
         opcodesByValue = new Opcode[256];
@@ -342,5 +362,17 @@ public enum Opcode
 
     public final boolean setsWideRegister() {
         return (flags & SETS_WIDE_REGISTER) != 0;
+    }
+
+    public final boolean isOdexedInstanceQuick() {
+        return (flags & ODEXED_INSTANCE_QUICK) != 0;
+    }
+
+    public final boolean isOdexedInstanceVolatile() {
+        return (flags & ODEXED_INSTANCE_VOLATILE) != 0;
+    }
+
+    public final boolean isOdexedStaticVolatile() {
+        return (flags & ODEXED_STATIC_VOLATILE) != 0;
     }
 }

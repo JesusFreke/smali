@@ -999,6 +999,19 @@ public class MethodAnalyzer {
                 analyzeLiteralBinaryOp(analyzedInstruction, getDestTypeForLiteralShiftRight(analyzedInstruction, false),
                         false);
                 return true;
+
+            /*odexed instructions*/
+            case IGET_VOLATILE:
+            case IPUT_VOLATILE:
+            case SGET_VOLATILE:
+            case SPUT_VOLATILE:
+            case IGET_OBJECT_VOLATILE:
+            case IGET_WIDE_VOLATILE:
+            case IPUT_WIDE_VOLATILE:
+            case SGET_WIDE_VOLATILE:
+            case SPUT_WIDE_VOLATILE:
+                analyzePutGetVolatile(analyzedInstruction);
+                return true;
             case EXECUTE_INLINE:
                 analyzeExecuteInline(analyzedInstruction);
                 return true;
@@ -1011,11 +1024,10 @@ public class MethodAnalyzer {
             case IGET_QUICK:
             case IGET_WIDE_QUICK:
             case IGET_OBJECT_QUICK:
-                return analyzeIputIgetQuick(analyzedInstruction, false);
             case IPUT_QUICK:
             case IPUT_WIDE_QUICK:
             case IPUT_OBJECT_QUICK:
-                return analyzeIputIgetQuick(analyzedInstruction, true);
+                return analyzeIputIgetQuick(analyzedInstruction);
             case INVOKE_VIRTUAL_QUICK:
                 return analyzeInvokeVirtualQuick(analyzedInstruction, false, false);
             case INVOKE_SUPER_QUICK:
@@ -1024,6 +1036,11 @@ public class MethodAnalyzer {
                 return analyzeInvokeVirtualQuick(analyzedInstruction, false, true);
             case INVOKE_SUPER_QUICK_RANGE:
                 return analyzeInvokeVirtualQuick(analyzedInstruction, true, true);
+            case IPUT_OBJECT_VOLATILE:
+            case SGET_OBJECT_VOLATILE:
+            case SPUT_OBJECT_VOLATILE:
+                analyzePutGetVolatile(analyzedInstruction);
+                return true;
             default:
                 assert false;
                 return true;
@@ -1486,6 +1503,15 @@ public class MethodAnalyzer {
             case USHR_INT_LIT8:
                 verifyLiteralBinaryOp(analyzedInstruction);
                 return;
+            case IGET_VOLATILE:
+            case IPUT_VOLATILE:
+            case SGET_VOLATILE:
+            case SPUT_VOLATILE:
+            case IGET_OBJECT_VOLATILE:
+            case IGET_WIDE_VOLATILE:
+            case IPUT_WIDE_VOLATILE:
+            case SGET_WIDE_VOLATILE:
+            case SPUT_WIDE_VOLATILE:
             case EXECUTE_INLINE:
             case EXECUTE_INLINE_RANGE:
             case INVOKE_DIRECT_EMPTY:
@@ -1499,6 +1525,9 @@ public class MethodAnalyzer {
             case INVOKE_SUPER_QUICK:
             case INVOKE_VIRTUAL_QUICK_RANGE:
             case INVOKE_SUPER_QUICK_RANGE:
+            case IPUT_OBJECT_VOLATILE:
+            case SGET_OBJECT_VOLATILE:
+            case SPUT_OBJECT_VOLATILE:
                 //TODO: throw validation exception?
             default:
                 assert false;
@@ -3388,7 +3417,7 @@ public class MethodAnalyzer {
         analyzeInstruction(analyzedInstruction);
     }
 
-    private boolean analyzeIputIgetQuick(AnalyzedInstruction analyzedInstruction, boolean isIput) {
+    private boolean analyzeIputIgetQuick(AnalyzedInstruction analyzedInstruction) {
         Instruction22cs instruction = (Instruction22cs)analyzedInstruction.instruction;
 
         int fieldOffset = instruction.getFieldOffset();
@@ -3407,7 +3436,7 @@ public class MethodAnalyzer {
 
         String fieldType = fieldIdItem.getFieldType().getTypeDescriptor();
 
-        Opcode opcode = getAndCheckIgetIputOpcodeForType(fieldType, instruction.opcode, isIput);
+        Opcode opcode = OdexedFieldInstructionMapper.getAndCheckDeodexedOpcodeForOdexedOpcode(fieldType, instruction.opcode);
 
         Instruction22c deodexedInstruction = new Instruction22c(opcode, (byte)instruction.getRegisterA(),
                 (byte)instruction.getRegisterB(), fieldIdItem);
@@ -3499,87 +3528,33 @@ public class MethodAnalyzer {
         return true;
     }
 
-    private static Opcode getAndCheckIgetIputOpcodeForType(String fieldType, Opcode odexedOpcode, boolean isIput) {
-        Opcode opcode;
-        Opcode validOdexedOpcode;
-        switch (fieldType.charAt(0)) {
-            case 'Z':
-                if (isIput) {
-                    validOdexedOpcode = Opcode.IPUT_QUICK;
-                    opcode = Opcode.IPUT_BOOLEAN;
-                } else {
-                    validOdexedOpcode = Opcode.IGET_QUICK;
-                    opcode = Opcode.IGET_BOOLEAN;
-                }
-                break;
-            case 'B':
-                if (isIput) {
-                    validOdexedOpcode = Opcode.IPUT_QUICK;
-                    opcode = Opcode.IPUT_BYTE;
-                } else {
-                    validOdexedOpcode = Opcode.IGET_QUICK;
-                    opcode = Opcode.IGET_BYTE;
-                }
-                break;
-            case 'S':
-                if (isIput) {
-                    validOdexedOpcode = Opcode.IPUT_QUICK;
-                    opcode = Opcode.IPUT_SHORT;
-                } else {
-                    validOdexedOpcode = Opcode.IGET_QUICK;
-                    opcode = Opcode.IGET_SHORT;
-                }
-                break;
-            case 'C':
-                if (isIput) {
-                    validOdexedOpcode = Opcode.IPUT_QUICK;
-                    opcode = Opcode.IPUT_CHAR;
-                } else {
-                    validOdexedOpcode = Opcode.IGET_QUICK;
-                    opcode = Opcode.IGET_CHAR;
-                }
-                break;
-            case 'I':
-            case 'F':
-                if (isIput) {
-                    validOdexedOpcode = Opcode.IPUT_QUICK;
-                    opcode = Opcode.IPUT;
-                } else {
-                    validOdexedOpcode = Opcode.IGET_QUICK;
-                    opcode = Opcode.IGET;
-                }
-                break;
-            case 'J':
-            case 'D':
-                if (isIput) {
-                    validOdexedOpcode = Opcode.IPUT_WIDE_QUICK;
-                    opcode = Opcode.IPUT_WIDE;
-                } else {
-                    validOdexedOpcode = Opcode.IGET_WIDE_QUICK;
-                    opcode = Opcode.IGET_WIDE;
-                }
-                break;
-            case 'L':
-            case '[':
-                if (isIput) {
-                    validOdexedOpcode = Opcode.IPUT_OBJECT_QUICK;
-                    opcode = Opcode.IPUT_OBJECT;
-                } else {
-                    validOdexedOpcode = Opcode.IGET_OBJECT_QUICK;
-                    opcode = Opcode.IGET_OBJECT;
-                }
-                break;
-            default:
-                throw new RuntimeException(String.format("Unexpected field type %s for %s: ", fieldType,
-                        odexedOpcode.name));
+    private boolean analyzePutGetVolatile(AnalyzedInstruction analyzedInstruction) {
+        FieldIdItem fieldIdItem =
+                (FieldIdItem)(((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem());
+
+        String fieldType = fieldIdItem.getFieldType().getTypeDescriptor();
+
+        Opcode opcode = OdexedFieldInstructionMapper.getAndCheckDeodexedOpcodeForOdexedOpcode(fieldType,
+                analyzedInstruction.instruction.opcode);
+
+        Instruction deodexedInstruction;
+
+        if (analyzedInstruction.instruction.opcode.isOdexedStaticVolatile()) {
+            SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
+
+            deodexedInstruction = new Instruction21c(opcode, (byte)instruction.getRegisterA(),
+                fieldIdItem);
+        } else {
+            TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
+
+            deodexedInstruction = new Instruction22c(opcode, (byte)instruction.getRegisterA(),
+                (byte)instruction.getRegisterB(), fieldIdItem);
         }
 
-        if (odexedOpcode != validOdexedOpcode) {
-            throw new ValidationException(String.format("Incorrect field type \"%s\" for %s", fieldType,
-                    odexedOpcode.name));
-        }
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+        analyzeInstruction(analyzedInstruction);
 
-        return opcode;
+        return true;
     }
 
     private static boolean checkArrayFieldAssignment(RegisterType.Category arrayFieldCategory,
