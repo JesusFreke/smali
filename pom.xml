@@ -7,7 +7,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
-        <aversion>1.2.5</aversion>
+        <aversion>1.2.6</aversion>
     </properties>
     <build>
         <plugins>
@@ -25,7 +25,7 @@
         <module>dexlib</module>
         <module>smali</module>
         <module>baksmali</module>
-	<module>util</module>
+        <module>util</module>
         <module>maven-smali-plugin</module>
         <module>smali-integration-tests</module>
     </modules>
