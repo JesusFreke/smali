@@ -108,7 +108,7 @@ abstract class InlineMethodResolver {
             indexOfIIMethod = deodexUtil.new InlineMethod(Virtual, "Ljava/lang/String;", "indexOf", "II", "I");
 
             //gingerbread
-            fastIndexOfMethod = deodexUtil.new InlineMethod(Virtual, "Ljava/lang/String;", "fastIndexOf", "II", "I");
+            fastIndexOfMethod = deodexUtil.new InlineMethod(Direct, "Ljava/lang/String;", "fastIndexOf", "II", "I");
             isEmptyMethod = deodexUtil.new InlineMethod(Virtual, "Ljava/lang/String;", "isEmpty", "", "Z");
 
             inlineMethods = new DeodexUtil.InlineMethod[] {
