@@ -80,7 +80,7 @@ options {
 
 @lexer::header {
 	package org.jf.smali;
-	
+
 	import static org.jf.smali.LexerErrorInterface.ANTLRLexerWithErrorInterface;
 }
 
@@ -453,6 +453,14 @@ INSTRUCTION_FORMAT21c_FIELD
 	|	'sput-char'
 	|	'sput-short';
 
+INSTRUCTION_FORMAT21c_FIELD_ODEX
+	:	'sget-volatile'
+	|	'sget-wide-volatile'
+	|	'sget-object-volatile'
+	|	'sput-volatile'
+	|	'sput-wide-volatile'
+	|	'sput-object-volatile';
+
 INSTRUCTION_FORMAT21c_STRING
 	:	'const-string';
 
@@ -505,6 +513,14 @@ INSTRUCTION_FORMAT22c_FIELD
 	|	'iput-byte'
 	|	'iput-char'
 	|	'iput-short';
+
+INSTRUCTION_FORMAT22c_FIELD_ODEX
+	:	'iget-volatile'
+	|	'iget-wide-volatile'
+	|	'iget-object-volatile'
+	|	'iput-volatile'
+	|	'iput-wide-volatile'
+	|	'iput-object-volatile';
 
 INSTRUCTION_FORMAT22c_TYPE
 	:	'instance-of'

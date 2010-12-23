@@ -416,6 +416,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT21c_FIELD);
     }
 
+    "sget-volatile" | "sget-wide-volatile" | "sget-object-volatile" | "sput-volatile" | "sput-wide-volatile" |
+    "sput-object-volatile" {
+        return newToken(INSTRUCTION_FORMAT21c_FIELD_ODEX);
+    }
+
     "const-string" {
         return newToken(INSTRUCTION_FORMAT21c_STRING);
     }
@@ -444,6 +449,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "iget" | "iget-wide" | "iget-object" | "iget-boolean" | "iget-byte" | "iget-char" | "iget-short" | "iput" |
     "iput-wide" | "iput-object" | "iput-boolean" | "iput-byte" | "iput-char" | "iput-short" {
         return newToken(INSTRUCTION_FORMAT22c_FIELD);
+    }
+
+    "iget-volatile" | "iget-wide-volatile" | "iget-object-volatile" | "iput-volatile" | "iput-wide-volatile" |
+    "iput-object-volatile" {
+        return newToken(INSTRUCTION_FORMAT22c_FIELD_ODEX);
     }
 
     "instance-of" | "new-array" {

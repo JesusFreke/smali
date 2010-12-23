@@ -72,6 +72,12 @@ sput-boolean
 sput-byte
 sput-char
 sput-short
+sget-volatile
+sget-wide-volatile
+sget-object-volatile
+sput-volatile
+sput-wide-volatile
+sput-object-volatile
 const-string
 check-cast
 new-instance
@@ -106,6 +112,12 @@ iput-boolean
 iput-byte
 iput-char
 iput-short
+iget-volatile
+iget-wide-volatile
+iget-object-volatile
+iput-volatile
+iput-wide-volatile
+iput-object-volatile
 instance-of
 new-array
 iget-quick
