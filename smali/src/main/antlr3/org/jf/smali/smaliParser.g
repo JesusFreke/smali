@@ -687,7 +687,7 @@ instruction returns [int size]
 	|	//e.g. goto/16 endloop:
 		INSTRUCTION_FORMAT20t label_ref_or_offset {$size = Format.Format20t.size;}
 		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref_or_offset)
-	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
+	|	//e.g. sget-object v0 java/lang/System/out LJava/io/PrintStream;
 		INSTRUCTION_FORMAT21c_FIELD REGISTER COMMA fully_qualified_field {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
 	|	//e.g. sget-object-volatile v0 java/lang/System/out LJava/io/PrintStream;
