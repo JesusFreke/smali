@@ -66,6 +66,12 @@ sget-byte
 sget-char
 sget-short
 sput
+sput-wide
+sput-object
+sput-boolean
+sput-byte
+sput-char
+sput-short
 const-string
 check-cast
 new-instance
@@ -94,6 +100,12 @@ iget-byte
 iget-char
 iget-short
 iput
+iput-wide
+iput-object
+iput-boolean
+iput-byte
+iput-char
+iput-short
 instance-of
 new-array
 iget-quick
