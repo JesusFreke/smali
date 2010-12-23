@@ -148,7 +148,7 @@ import org.jf.dexlib.Code.Format.*;
 		if (verboseErrors) {
 			List stack = getRuleInvocationStack(e, this.getClass().getName());
 			String msg = null;
-			
+
 			if (e instanceof NoViableAltException) {
 				NoViableAltException nvae = (NoViableAltException)e;
 				msg = " no viable alt; token="+getTokenErrorDisplay(e.token)+
@@ -158,8 +158,8 @@ import org.jf.dexlib.Code.Format.*;
 			} else {
 				msg = super.getErrorMessage(e, tokenNames);
 			}
-			
-			return stack + " " + msg;			
+
+			return stack + " " + msg;
 		} else {
 			return super.getErrorMessage(e, tokenNames);
 		}
@@ -280,12 +280,12 @@ import org.jf.dexlib.Code.Format.*;
 		}
 		return root;
 	}
-	
+
 	private void throwOdexedInstructionException(IntStream input, String odexedInstruction)
 			throws OdexedInstructionException {
 		/*this has to be done in a separate method, otherwise java will complain about the
 		auto-generated code in the rule after the throw not being reachable*/
-		throw new OdexedInstructionException(input, odexedInstruction);		
+		throw new OdexedInstructionException(input, odexedInstruction);
 	}
 }
 
@@ -561,7 +561,7 @@ enum_literal
 
 type_field_method_literal
 	:	reference_type_descriptor
-		(	ARROW 
+		(	ARROW
 			(	simple_name COLON nonvoid_type_descriptor -> ^(I_ENCODED_FIELD reference_type_descriptor simple_name nonvoid_type_descriptor)
 			|	method_name method_prototype -> ^(I_ENCODED_METHOD reference_type_descriptor method_name method_prototype)
 			)
