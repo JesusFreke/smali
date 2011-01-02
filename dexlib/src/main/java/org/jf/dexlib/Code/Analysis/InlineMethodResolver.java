@@ -80,7 +80,7 @@ abstract class InlineMethodResolver {
         public DeodexUtil.InlineMethod resolveExecuteInline(AnalyzedInstruction analyzedInstruction) {
             assert analyzedInstruction.instruction instanceof OdexedInvokeVirtual;
 
-            OdexedInvokeVirtual instruction = (OdexedInvokeVirtual)analyzedInstruction;
+            OdexedInvokeVirtual instruction = (OdexedInvokeVirtual)analyzedInstruction.instruction;
             int methodIndex = instruction.getMethodIndex();
 
             if (methodIndex < 0 || methodIndex >= inlineMethods.length) {
