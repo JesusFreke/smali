@@ -345,7 +345,7 @@ public class MethodDefinition {
                 });
             }
 
-            if (instruction instanceof InstructionWithReference) {
+            if (!baksmali.noAccessorComments && (instruction instanceof InstructionWithReference)) {
                 if (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
                     MethodIdItem methodIdItem =
                             (MethodIdItem)((InstructionWithReference) instruction).getReferencedItem();
