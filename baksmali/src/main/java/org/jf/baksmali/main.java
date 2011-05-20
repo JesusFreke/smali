@@ -103,6 +103,7 @@ public class main {
         boolean useSequentialLabels = false;
         boolean outputDebugInfo = true;
         boolean addCodeOffsets = false;
+        boolean noAccessorComments = false;
         boolean deodex = false;
         boolean verify = false;
         boolean ignoreErrors = false;
@@ -204,6 +205,9 @@ public class main {
                 case 'x':
                     deodex = true;
                     break;
+                case 'm':
+                    noAccessorComments = true;
+                    break;
                 case 'N':
                     disassemble = false;
                     break;
@@ -278,7 +282,7 @@ public class main {
                 baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
                         bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
                         noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
-                        registerInfo, verify, ignoreErrors);
+                        noAccessorComments, registerInfo, verify, ignoreErrors);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -407,7 +411,9 @@ public class main {
                 .withDescription("add comments to the disassembly containing the code offset for each address")
                 .create("f");
 
-
+        Option noAccessorCommentsOption = OptionBuilder.withLongOpt("no-accessor-comments")
+                .withDescription("don't output helper comments for synthetic accessors")
+                .create("m");
 
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
@@ -457,6 +463,7 @@ public class main {
         basicOptions.addOption(classPathOption);
         basicOptions.addOption(classPathDirOption);
         basicOptions.addOption(codeOffsetOption);
+        basicOptions.addOption(noAccessorCommentsOption);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);

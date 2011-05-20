@@ -343,6 +343,60 @@ public class ClassDataItem extends Item<ClassDataItem> {
         return virtualMethods;
     }
 
+    /**
+     * Performs a binary search for the definition of the specified direct method
+     * @param methodIdItem The MethodIdItem of the direct method to search for
+     * @return The EncodedMethod for the specified direct method, or null if not found
+     */
+    public EncodedMethod findDirectMethodByMethodId(MethodIdItem methodIdItem) {
+        return findMethodByMethodIdInternal(methodIdItem.index, directMethods);
+    }
+
+    /**
+     * Performs a binary search for the definition of the specified virtual method
+     * @param methodIdItem The MethodIdItem of the virtual method to search for
+     * @return The EncodedMethod for the specified virtual method, or null if not found
+     */
+    public EncodedMethod findVirtualMethodByMethodId(MethodIdItem methodIdItem) {
+        return findMethodByMethodIdInternal(methodIdItem.index, virtualMethods);
+    }
+
+    /**
+     * Performs a binary search for the definition of the specified method. It can be either direct or virtual
+     * @param methodIdItem The MethodIdItem of the virtual method to search for
+     * @return The EncodedMethod for the specified virtual method, or null if not found
+     */
+    public EncodedMethod findMethodByMethodId(MethodIdItem methodIdItem) {
+        EncodedMethod encodedMethod = findMethodByMethodIdInternal(methodIdItem.index, directMethods);
+        if (encodedMethod != null) {
+            return encodedMethod;
+        }
+
+        return findMethodByMethodIdInternal(methodIdItem.index, virtualMethods);
+    }
+
+    private static EncodedMethod findMethodByMethodIdInternal(int methodIdItemIndex, EncodedMethod[] encodedMethods) {
+        int min = 0;
+        int max = encodedMethods.length;
+
+        while (min<max) {
+            int index = (min+max)>>1;
+
+            EncodedMethod encodedMethod = encodedMethods[index];
+
+            int encodedMethodIndex = encodedMethod.method.getIndex();
+            if (encodedMethodIndex == methodIdItemIndex) {
+                return encodedMethod;
+            } else if (encodedMethodIndex < methodIdItemIndex) {
+                min = index;
+            } else {
+                max = index;
+            }
+        }
+
+        return null;
+    }
+
     public static class EncodedField implements Comparable<EncodedField> {
         /**
          * The <code>FieldIdItem</code> that this <code>EncodedField</code> is associated with

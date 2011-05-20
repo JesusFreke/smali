@@ -31,6 +31,7 @@ package org.jf.baksmali;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.Code.Analysis.ClassPath;
+import org.jf.dexlib.Code.Analysis.SyntheticAccessorResolver;
 import org.jf.dexlib.DexFile;
 import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
@@ -48,22 +49,27 @@ public class baksmali {
     public static boolean useSequentialLabels = false;
     public static boolean outputDebugInfo = true;
     public static boolean addCodeOffsets = false;
+    public static boolean noAccessorComments = false;
     public static boolean deodex = false;
     public static boolean verify = false;
     public static int registerInfo = 0;
     public static String bootClassPath;
 
+    public static SyntheticAccessorResolver syntheticAccessorResolver = null;
+
     public static void disassembleDexFile(String dexFilePath, DexFile dexFile, boolean deodex, String outputDirectory,
                                           String[] classPathDirs, String bootClassPath, String extraBootClassPath,
                                           boolean noParameterRegisters, boolean useLocalsDirective,
                                           boolean useSequentialLabels, boolean outputDebugInfo, boolean addCodeOffsets,
-                                          int registerInfo, boolean verify, boolean ignoreErrors)
+                                          boolean noAccessorComments, int registerInfo, boolean verify,
+                                          boolean ignoreErrors)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
         baksmali.useLocalsDirective = useLocalsDirective;
         baksmali.useSequentialLabels = useSequentialLabels;
         baksmali.outputDebugInfo = outputDebugInfo;
         baksmali.addCodeOffsets = addCodeOffsets;
+        baksmali.noAccessorComments = noAccessorComments;
         baksmali.deodex = deodex;
         baksmali.registerInfo = registerInfo;
         baksmali.bootClassPath = bootClassPath;
@@ -118,6 +124,10 @@ public class baksmali {
                 System.err.println("Can't create the output directory " + outputDirectory);
                 System.exit(1);
             }
+        }
+
+        if (!noAccessorComments) {
+            syntheticAccessorResolver = new SyntheticAccessorResolver(dexFile);
         }
 
         //sort the classes, so that if we're on a case-insensitive file system and need to handle classes with file

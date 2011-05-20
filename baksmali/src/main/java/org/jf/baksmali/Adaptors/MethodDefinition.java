@@ -29,6 +29,8 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
+import org.jf.dexlib.Code.Analysis.SyntheticAccessorResolver;
+import org.jf.dexlib.Code.InstructionWithReference;
 import org.jf.util.IndentingWriter;
 import org.jf.baksmali.baksmali;
 import org.jf.dexlib.*;
@@ -341,6 +343,21 @@ public class MethodDefinition {
                         return true;
                     }
                 });
+            }
+
+            if (instruction instanceof InstructionWithReference) {
+                if (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
+                    MethodIdItem methodIdItem =
+                            (MethodIdItem)((InstructionWithReference) instruction).getReferencedItem();
+
+                    if (SyntheticAccessorResolver.looksLikeSyntheticAccessor(methodIdItem)) {
+                        SyntheticAccessorResolver.AccessedMember accessedMember =
+                                baksmali.syntheticAccessorResolver.getAccessedMember(methodIdItem);
+                        if (accessedMember != null) {
+                            methodItems.add(new SyntheticAccessCommentMethodItem(accessedMember, currentCodeAddress));
+                        }
+                    }
+                }
             }
 
             currentCodeAddress += instruction.getSize(currentCodeAddress);
