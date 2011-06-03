@@ -28,6 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.dexlib.Util.Utf8Utils;
 import org.jf.util.IndentingWriter;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.Analysis.ValidationException;
@@ -164,7 +165,7 @@ public class ClassDefinition {
         StringIdItem sourceFile = classDefItem.getSourceFile();
         if (sourceFile != null) {
             writer.write(".source \"");
-            writer.write(sourceFile.getStringValue());
+            Utf8Utils.writeEscapedString(writer, sourceFile.getStringValue());
             writer.write("\"\n");
         }
     }

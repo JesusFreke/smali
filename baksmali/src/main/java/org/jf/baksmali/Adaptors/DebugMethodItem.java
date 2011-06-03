@@ -28,6 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.dexlib.Util.Utf8Utils;
 import org.jf.util.IndentingWriter;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.StringIdItem;
@@ -116,7 +117,7 @@ public abstract class DebugMethodItem extends MethodItem {
 
     protected static void writeSetFile(IndentingWriter writer, String fileName) throws IOException {
         writer.write(".source \"");
-        writer.write(fileName);
+        Utf8Utils.writeEscapedString(writer, fileName);
         writer.write('"');
     }
 }
