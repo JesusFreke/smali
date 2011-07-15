@@ -79,14 +79,9 @@ public class HeaderItem extends Item<HeaderItem> {
             throw new RuntimeException("The endian tag is not 0x12345678 or 0x78563412");
         }
 
-        //link_size
-        if (in.readInt() != 0) {
-            throw new RuntimeException("This dex file has a link section, which is not supported");
-        }
-
-        //link_off
-        if (in.readInt() != 0) {
-            throw new RuntimeException("This dex file has a link section, which is not supported");
+        //link_size + link_off
+        if ((in.readInt() | in.readInt()) != 0) {
+            System.err.println("This dex file has a link section, which is not supported. Ignoring.");
         }
 
         int sectionSize;
