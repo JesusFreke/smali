@@ -120,7 +120,7 @@ public class MethodDefinition {
             } else {
                 writer.write(".registers ");
             }
-            writer.printIntAsDec(getRegisterCount(encodedMethod));
+            writer.printSignedIntAsDec(getRegisterCount(encodedMethod));
             writer.write('\n');
             writeParameters(writer, codeItem, parameterAnnotations);
             if (annotationSet != null) {
@@ -339,7 +339,7 @@ public class MethodDefinition {
                     @Override
                     public boolean writeTo(IndentingWriter writer) throws IOException {
                         writer.write("#@");
-                        writer.printLongAsHex(codeAddress & 0xFFFFFFFF);
+                        writer.printUnsignedLongAsHex(codeAddress & 0xFFFFFFFF);
                         return true;
                     }
                 });
@@ -417,7 +417,7 @@ public class MethodDefinition {
                     @Override
                     public boolean writeTo(IndentingWriter writer) throws IOException {
                         writer.write("#@");
-                        writer.printLongAsHex(codeAddress & 0xFFFFFFFF);
+                        writer.printUnsignedLongAsHex(codeAddress & 0xFFFFFFFF);
                         return true;
                     }
                 });

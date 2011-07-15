@@ -36,15 +36,15 @@ public class IntegerRenderer {
     public static void writeTo(IndentingWriter writer, int val) throws IOException {
         if (val<0) {
             writer.write("-0x");
-            writer.printLongAsHex(-((long)val));
+            writer.printUnsignedLongAsHex(-((long) val));
         } else {
             writer.write("0x");
-            writer.printLongAsHex(val);
+            writer.printUnsignedLongAsHex(val);
         }
     }
 
     public static void writeUnsignedTo(IndentingWriter writer, int val) throws IOException {
         writer.write("0x");
-        writer.printLongAsHex(val & 0xFFFFFFFF);
+        writer.printUnsignedLongAsHex(val & 0xFFFFFFFF);
     }
 }

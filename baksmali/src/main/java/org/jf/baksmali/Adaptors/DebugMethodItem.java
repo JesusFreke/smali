@@ -50,7 +50,7 @@ public abstract class DebugMethodItem extends MethodItem {
 
     protected static void writeLine(IndentingWriter writer, int line) throws IOException {
         writer.write(".line ");
-        writer.printIntAsDec(line);
+        writer.printSignedIntAsDec(line);
     }
 
     protected static void writeEndPrologue(IndentingWriter writer) throws IOException {

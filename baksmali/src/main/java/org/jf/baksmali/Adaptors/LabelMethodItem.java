@@ -74,9 +74,9 @@ public class LabelMethodItem extends MethodItem {
         writer.write(':');
         writer.write(labelPrefix);
         if (baksmali.useSequentialLabels) {
-            writer.printLongAsHex(labelSequence);
+            writer.printUnsignedLongAsHex(labelSequence);
         } else {
-            writer.printLongAsHex(this.getLabelAddress());
+            writer.printUnsignedLongAsHex(this.getLabelAddress());
         }
         return true;
     }

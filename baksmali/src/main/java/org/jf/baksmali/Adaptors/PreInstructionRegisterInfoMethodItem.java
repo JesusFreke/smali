@@ -219,7 +219,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
                     writer.write("Start:");
                 } else {
                     writer.write("0x");
-                    writer.printLongAsHex(methodAnalyzer.getInstructionAddress(predecessor));
+                    writer.printUnsignedLongAsHex(methodAnalyzer.getInstructionAddress(predecessor));
                     writer.write(':');
                 }
                 predecessorRegisterType.writeTo(writer);

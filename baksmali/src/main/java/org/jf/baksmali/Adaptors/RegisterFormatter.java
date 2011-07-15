@@ -63,17 +63,17 @@ public class RegisterFormatter {
 
             if (startRegister >= registerCount - parameterRegisterCount) {
                 writer.write("{p");
-                writer.printIntAsDec(startRegister - (registerCount - parameterRegisterCount));
+                writer.printSignedIntAsDec(startRegister - (registerCount - parameterRegisterCount));
                 writer.write(" .. p");
-                writer.printIntAsDec(lastRegister - (registerCount - parameterRegisterCount));
+                writer.printSignedIntAsDec(lastRegister - (registerCount - parameterRegisterCount));
                 writer.write('}');
                 return;
             }
         }
         writer.write("{v");
-        writer.printIntAsDec(startRegister);
+        writer.printSignedIntAsDec(startRegister);
         writer.write(" .. v");
-        writer.printIntAsDec(lastRegister);
+        writer.printSignedIntAsDec(lastRegister);
         writer.write('}');
     }
 
@@ -93,11 +93,11 @@ public class RegisterFormatter {
             int registerCount = codeItem.getRegisterCount();
             if (register >= registerCount - parameterRegisterCount) {
                 writer.write('p');
-                writer.printIntAsDec((register - (registerCount - parameterRegisterCount)));
+                writer.printSignedIntAsDec((register - (registerCount - parameterRegisterCount)));
                 return;
             }
         }
         writer.write('v');
-        writer.printIntAsDec(register);
+        writer.printSignedIntAsDec(register);
     }
 }

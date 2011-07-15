@@ -293,12 +293,12 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
     protected void writeFieldOffset(IndentingWriter writer) throws IOException {
         writer.write("field@0x");
-        writer.printLongAsHex(((OdexedFieldAccess)instruction).getFieldOffset());
+        writer.printUnsignedLongAsHex(((OdexedFieldAccess) instruction).getFieldOffset());
     }
 
     protected void writeVtableIndex(IndentingWriter writer) throws IOException {
         writer.write("vtable@0x");
-        writer.printLongAsHex(((OdexedInvokeVirtual)instruction).getMethodIndex());
+        writer.printUnsignedLongAsHex(((OdexedInvokeVirtual) instruction).getMethodIndex());
     }
 
     protected void writeReference(IndentingWriter writer) throws IOException {

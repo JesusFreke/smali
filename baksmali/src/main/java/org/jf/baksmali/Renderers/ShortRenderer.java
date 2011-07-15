@@ -36,11 +36,11 @@ public class ShortRenderer {
     public static void writeTo(IndentingWriter writer, short val) throws IOException {
         if (val < 0) {
             writer.write("-0x");
-            writer.printLongAsHex(-val);
+            writer.printUnsignedLongAsHex(-val);
             writer.write('s');
         } else {
             writer.write("0x");
-            writer.printLongAsHex(val);
+            writer.printUnsignedLongAsHex(val);
             writer.write('s');
         }
     }

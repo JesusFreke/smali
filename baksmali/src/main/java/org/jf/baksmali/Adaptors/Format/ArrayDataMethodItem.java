@@ -43,7 +43,7 @@ public class ArrayDataMethodItem extends InstructionMethodItem<ArrayDataPseudoIn
 
     public boolean writeTo(IndentingWriter writer) throws IOException {
         writer.write(".array-data 0x");
-        writer.printLongAsHex(instruction.getElementWidth());
+        writer.printUnsignedLongAsHex(instruction.getElementWidth());
         writer.write('\n');
 
         writer.indent(4);

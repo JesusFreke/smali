@@ -36,11 +36,11 @@ public class LongRenderer {
     public static void writeTo(IndentingWriter writer, long val) throws IOException {
         if (val<0) {
             writer.write("-0x");
-            writer.printLongAsHex(-val);
+            writer.printUnsignedLongAsHex(-val);
             writer.write('L');
         } else {
             writer.write("0x");
-            writer.printLongAsHex(val);
+            writer.printUnsignedLongAsHex(val);
             writer.write('L');
         }
     }
@@ -48,13 +48,13 @@ public class LongRenderer {
     public static void writeSignedIntOrLongTo(IndentingWriter writer, long val) throws IOException {
         if (val<0) {
             writer.write("-0x");
-            writer.printLongAsHex(-val);
+            writer.printUnsignedLongAsHex(-val);
             if (val < Integer.MIN_VALUE) {
                 writer.write('L');
             }
         } else {
             writer.write("0x");
-            writer.printLongAsHex(val);
+            writer.printUnsignedLongAsHex(val);
             if (val > Integer.MAX_VALUE) {
                 writer.write('L');
             }
