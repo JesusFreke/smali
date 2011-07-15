@@ -45,6 +45,6 @@ public class IntegerRenderer {
 
     public static void writeUnsignedTo(IndentingWriter writer, int val) throws IOException {
         writer.write("0x");
-        writer.printUnsignedLongAsHex(val & 0xFFFFFFFF);
+        writer.printUnsignedLongAsHex(val & 0xFFFFFFFFL);
     }
 }
