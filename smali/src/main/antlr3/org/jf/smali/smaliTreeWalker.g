@@ -361,14 +361,14 @@ literal returns[EncodedValue encodedValue]
 
 //everything but string
 fixed_size_literal returns[byte[\] value]
-	:	integer_literal { $value = literalTools.intToBytes($integer_literal.value); }
-	|	long_literal { $value = literalTools.longToBytes($long_literal.value); }
-	|	short_literal { $value = literalTools.shortToBytes($short_literal.value); }
+	:	integer_literal { $value = LiteralTools.intToBytes($integer_literal.value); }
+	|	long_literal { $value = LiteralTools.longToBytes($long_literal.value); }
+	|	short_literal { $value = LiteralTools.shortToBytes($short_literal.value); }
 	|	byte_literal { $value = new byte[] { $byte_literal.value }; }
-	|	float_literal { $value = literalTools.floatToBytes($float_literal.value); }
-	|	double_literal { $value = literalTools.doubleToBytes($double_literal.value); }
-	|	char_literal { $value = literalTools.charToBytes($char_literal.value); }
-	|	bool_literal { $value = literalTools.boolToBytes($bool_literal.value); };
+	|	float_literal { $value = LiteralTools.floatToBytes($float_literal.value); }
+	|	double_literal { $value = LiteralTools.doubleToBytes($double_literal.value); }
+	|	char_literal { $value = LiteralTools.charToBytes($char_literal.value); }
+	|	bool_literal { $value = LiteralTools.boolToBytes($bool_literal.value); };
 
 //everything but string
 fixed_64bit_literal returns[long value]
@@ -385,7 +385,7 @@ fixed_64bit_literal returns[long value]
 //long is allowed, but it must fit into an int
 fixed_32bit_literal returns[int value]
 	:	integer_literal { $value = $integer_literal.value; }
-	|	long_literal { literalTools.checkInt($long_literal.value); $value = (int)$long_literal.value; }
+	|	long_literal { LiteralTools.checkInt($long_literal.value); $value = (int)$long_literal.value; }
 	|	short_literal { $value = $short_literal.value; }
 	|	byte_literal { $value = $byte_literal.value; }
 	|	float_literal { $value = Float.floatToRawIntBits($float_literal.value); }
@@ -867,7 +867,7 @@ offset	returns[int offsetValue]
 			if (offsetText.charAt(0) == '+') {
 				offsetText = offsetText.substring(1);
 			}
-			$offsetValue = literalTools.parseInt(offsetText);
+			$offsetValue = LiteralTools.parseInt(offsetText);
 		};
 
 offset_or_label_absolute[int baseAddress] returns[int address]
@@ -938,7 +938,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			byte regA = parseRegister_nibble($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			short litB = $short_integral_literal.value;
-			literalTools.checkNibble(litB);
+			LiteralTools.checkNibble(litB);
 
 			$instructions.add(new Instruction11n(opcode, regA, (byte)litB));
 		}
@@ -1040,7 +1040,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			short regB = parseRegister_byte($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			short litC = $short_integral_literal.value;
-			literalTools.checkByte(litC);
+			LiteralTools.checkByte(litC);
 
 			$instructions.add(new Instruction22b(opcode, regA, regB, (byte)litC));
 		}
@@ -1335,12 +1335,12 @@ type_descriptor returns [TypeIdItem type]
 short_integral_literal returns[short value]
 	:	long_literal
 		{
-			literalTools.checkShort($long_literal.value);
+			LiteralTools.checkShort($long_literal.value);
 			$value = (short)$long_literal.value;
 		}
 	|	integer_literal
 		{
-			literalTools.checkShort($integer_literal.value);
+			LiteralTools.checkShort($integer_literal.value);
 			$value = (short)$integer_literal.value;
 		}
 	|	short_literal {$value = $short_literal.value;}
@@ -1350,7 +1350,7 @@ short_integral_literal returns[short value]
 integral_literal returns[int value]
 	:	long_literal
 		{
-			literalTools.checkInt($long_literal.value);
+			LiteralTools.checkInt($long_literal.value);
 			$value = (int)$long_literal.value;
 		}
 	|	integer_literal {$value = $integer_literal.value;}
@@ -1359,16 +1359,16 @@ integral_literal returns[int value]
 
 
 integer_literal returns[int value]
-	:	INTEGER_LITERAL { $value = literalTools.parseInt($INTEGER_LITERAL.text); };
+	:	INTEGER_LITERAL { $value = LiteralTools.parseInt($INTEGER_LITERAL.text); };
 
 long_literal returns[long value]
-	:	LONG_LITERAL { $value = literalTools.parseLong($LONG_LITERAL.text); };
+	:	LONG_LITERAL { $value = LiteralTools.parseLong($LONG_LITERAL.text); };
 
 short_literal returns[short value]
-	:	SHORT_LITERAL { $value = literalTools.parseShort($SHORT_LITERAL.text); };
+	:	SHORT_LITERAL { $value = LiteralTools.parseShort($SHORT_LITERAL.text); };
 
 byte_literal returns[byte value]
-	:	BYTE_LITERAL { $value = literalTools.parseByte($BYTE_LITERAL.text); };
+	:	BYTE_LITERAL { $value = LiteralTools.parseByte($BYTE_LITERAL.text); };
 
 float_literal returns[float value]
 	:	FLOAT_LITERAL { $value = parseFloat($FLOAT_LITERAL.text); };

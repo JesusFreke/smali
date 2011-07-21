@@ -28,7 +28,7 @@
 
 package org.jf.smali;
 
-public class literalTools
+public class LiteralTools
 {
     public static byte parseByte(String byteLiteral)
             throws NumberFormatException {

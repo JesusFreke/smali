@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jf.smali.literalTools;
+import org.jf.smali.LiteralTools;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,105 +36,105 @@ public class ShortLiteralTest
     @Test
     public void SuccessHexTests() {
 
-        Assert.assertTrue(literalTools.parseShort("0x0") == 0x0);
-        Assert.assertTrue(literalTools.parseShort("0x00") == 0x0);
-        Assert.assertTrue(literalTools.parseShort("0x1") == 0x1);
-        Assert.assertTrue(literalTools.parseShort("0x1234") == 0x1234);
-        Assert.assertTrue(literalTools.parseShort("0x7fff") == 0x7fff);
-        Assert.assertTrue(literalTools.parseShort("0x8000") == Short.MIN_VALUE);
-        Assert.assertTrue(literalTools.parseShort("0xFFFF") == -1);
+        Assert.assertTrue(LiteralTools.parseShort("0x0") == 0x0);
+        Assert.assertTrue(LiteralTools.parseShort("0x00") == 0x0);
+        Assert.assertTrue(LiteralTools.parseShort("0x1") == 0x1);
+        Assert.assertTrue(LiteralTools.parseShort("0x1234") == 0x1234);
+        Assert.assertTrue(LiteralTools.parseShort("0x7fff") == 0x7fff);
+        Assert.assertTrue(LiteralTools.parseShort("0x8000") == Short.MIN_VALUE);
+        Assert.assertTrue(LiteralTools.parseShort("0xFFFF") == -1);
 
-        Assert.assertTrue(literalTools.parseShort("-0x00") == 0);
-        Assert.assertTrue(literalTools.parseShort("-0x01") == -1);
-        Assert.assertTrue(literalTools.parseShort("-0x1234") == -0x1234);
-        Assert.assertTrue(literalTools.parseShort("-0x8000") == Short.MIN_VALUE);
-        Assert.assertTrue(literalTools.parseShort("-0x1fff") == -0x1fff);
+        Assert.assertTrue(LiteralTools.parseShort("-0x00") == 0);
+        Assert.assertTrue(LiteralTools.parseShort("-0x01") == -1);
+        Assert.assertTrue(LiteralTools.parseShort("-0x1234") == -0x1234);
+        Assert.assertTrue(LiteralTools.parseShort("-0x8000") == Short.MIN_VALUE);
+        Assert.assertTrue(LiteralTools.parseShort("-0x1fff") == -0x1fff);
     }
 
     @Test(expected=NumberFormatException.class)
     public void FaileHexTest1() {
-        literalTools.parseShort("-0x8001");
+        LiteralTools.parseShort("-0x8001");
     }
 
     @Test(expected=NumberFormatException.class)
     public void FailHexTest2() {
-        literalTools.parseShort("-0xFFFF");
+        LiteralTools.parseShort("-0xFFFF");
     }
 
     @Test(expected=NumberFormatException.class)
     public void FailHexTest3() {
-        literalTools.parseShort("0x100000");
+        LiteralTools.parseShort("0x100000");
     }
 
 
 
   @Test
     public void SuccessDecTests() {
-        Assert.assertTrue(literalTools.parseShort("0") == 0);
-        Assert.assertTrue(literalTools.parseShort("1") == 1);
-        Assert.assertTrue(literalTools.parseShort("12345") == 12345);
-        Assert.assertTrue(literalTools.parseShort("32767") == 32767);
-        Assert.assertTrue(literalTools.parseShort("32768") == Short.MIN_VALUE);
-        Assert.assertTrue(literalTools.parseShort("65535") == -1);
+        Assert.assertTrue(LiteralTools.parseShort("0") == 0);
+        Assert.assertTrue(LiteralTools.parseShort("1") == 1);
+        Assert.assertTrue(LiteralTools.parseShort("12345") == 12345);
+        Assert.assertTrue(LiteralTools.parseShort("32767") == 32767);
+        Assert.assertTrue(LiteralTools.parseShort("32768") == Short.MIN_VALUE);
+        Assert.assertTrue(LiteralTools.parseShort("65535") == -1);
 
 
-        Assert.assertTrue(literalTools.parseShort("-0") == 0);
-        Assert.assertTrue(literalTools.parseShort("-1") == -1);
-        Assert.assertTrue(literalTools.parseShort("-12345") == -12345);
-        Assert.assertTrue(literalTools.parseShort("-32767") == -32767);
-        Assert.assertTrue(literalTools.parseShort("-32768") == Short.MIN_VALUE);
+        Assert.assertTrue(LiteralTools.parseShort("-0") == 0);
+        Assert.assertTrue(LiteralTools.parseShort("-1") == -1);
+        Assert.assertTrue(LiteralTools.parseShort("-12345") == -12345);
+        Assert.assertTrue(LiteralTools.parseShort("-32767") == -32767);
+        Assert.assertTrue(LiteralTools.parseShort("-32768") == Short.MIN_VALUE);
     }
 
     @Test(expected=NumberFormatException.class)
     public void FaileDecTest1() {
-        literalTools.parseShort("-32769");
+        LiteralTools.parseShort("-32769");
     }
 
     @Test(expected=NumberFormatException.class)
     public void FailDecTest2() {
-        literalTools.parseShort("-65535");
+        LiteralTools.parseShort("-65535");
     }
 
     @Test(expected=NumberFormatException.class)
     public void FailDecTest3() {
-        literalTools.parseShort("65536");
+        LiteralTools.parseShort("65536");
     }
 
     @Test(expected=NumberFormatException.class)
     public void FailDecTest4() {
-        literalTools.parseShort("65600");
+        LiteralTools.parseShort("65600");
     }
 
 
     @Test
     public void SuccessOctTests() {
-        Assert.assertTrue(literalTools.parseShort("00") == 00);
-        Assert.assertTrue(literalTools.parseShort("01") == 01);
-        Assert.assertTrue(literalTools.parseShort("012345") == 012345);
-        Assert.assertTrue(literalTools.parseShort("077777") == Short.MAX_VALUE);
-        Assert.assertTrue(literalTools.parseShort("0100000") == Short.MIN_VALUE);
-        Assert.assertTrue(literalTools.parseShort("0177777") == -1);
+        Assert.assertTrue(LiteralTools.parseShort("00") == 00);
+        Assert.assertTrue(LiteralTools.parseShort("01") == 01);
+        Assert.assertTrue(LiteralTools.parseShort("012345") == 012345);
+        Assert.assertTrue(LiteralTools.parseShort("077777") == Short.MAX_VALUE);
+        Assert.assertTrue(LiteralTools.parseShort("0100000") == Short.MIN_VALUE);
+        Assert.assertTrue(LiteralTools.parseShort("0177777") == -1);
 
 
-        Assert.assertTrue(literalTools.parseShort("-00") == 0);
-        Assert.assertTrue(literalTools.parseShort("-01") == -1);
-        Assert.assertTrue(literalTools.parseShort("-012345") == -012345);
-        Assert.assertTrue(literalTools.parseShort("-077777") == -077777);
-        Assert.assertTrue(literalTools.parseShort("-0100000") == Short.MIN_VALUE);
+        Assert.assertTrue(LiteralTools.parseShort("-00") == 0);
+        Assert.assertTrue(LiteralTools.parseShort("-01") == -1);
+        Assert.assertTrue(LiteralTools.parseShort("-012345") == -012345);
+        Assert.assertTrue(LiteralTools.parseShort("-077777") == -077777);
+        Assert.assertTrue(LiteralTools.parseShort("-0100000") == Short.MIN_VALUE);
     }
 
     @Test(expected=NumberFormatException.class)
     public void FaileOctTest1() {
-        literalTools.parseShort("-0100001");
+        LiteralTools.parseShort("-0100001");
     }
 
     @Test(expected=NumberFormatException.class)
     public void FailOctTest2() {
-        literalTools.parseShort("-0177777");
+        LiteralTools.parseShort("-0177777");
     }
 
     @Test(expected=NumberFormatException.class)
     public void FailOctTest3() {
-        literalTools.parseShort("0200000");
+        LiteralTools.parseShort("0200000");
     }
 }
