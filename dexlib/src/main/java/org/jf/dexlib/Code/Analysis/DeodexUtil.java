@@ -30,6 +30,7 @@ package org.jf.dexlib.Code.Analysis;
 
 import org.jf.dexlib.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,7 +60,7 @@ public class DeodexUtil {
     }
 
     public FieldIdItem lookupField(ClassPath.ClassDef classDef, int fieldOffset) {
-        String field = classDef.getInstanceField(fieldOffset);
+        ClassPath.FieldDef field = classDef.getInstanceField(fieldOffset);
         if (field == null) {
             return null;
         }
@@ -204,15 +205,10 @@ public class DeodexUtil {
         return null;
     }
 
-    private FieldIdItem parseAndResolveField(ClassPath.ClassDef classDef, String field) {
-        //expecting a string like someField:Lfield/type;
-        String[] parts = field.split(":");
-        if (parts.length != 2) {
-            throw new RuntimeException("Invalid field descriptor " + field);
-        }
-
-        String fieldName = parts[0];
-        String fieldType = parts[1];
+    private FieldIdItem parseAndResolveField(ClassPath.ClassDef classDef, ClassPath.FieldDef field) {
+        String definingClass = field.definingClass;
+        String fieldName = field.name;
+        String fieldType = field.type;
 
         StringIdItem fieldNameItem = StringIdItem.lookupStringIdItem(dexFile, fieldName);
         if (fieldNameItem == null) {
@@ -226,7 +222,17 @@ public class DeodexUtil {
 
         ClassPath.ClassDef fieldClass = classDef;
 
-        do {
+        ArrayList<ClassPath.ClassDef> parents = new ArrayList<ClassPath.ClassDef>();
+        parents.add(fieldClass);
+
+        while (fieldClass != null && !fieldClass.getClassType().equals(definingClass)) {
+            fieldClass = fieldClass.getSuperclass();
+            parents.add(fieldClass);
+        }
+
+        for (int i=parents.size()-1; i>=0; i--) {
+            fieldClass = parents.get(i);
+
             TypeIdItem classTypeItem = TypeIdItem.lookupTypeIdItem(dexFile, fieldClass.getClassType());
             if (classTypeItem == null) {
                 continue;
@@ -236,10 +242,7 @@ public class DeodexUtil {
             if (fieldIdItem != null) {
                 return fieldIdItem;
             }
-
-            fieldClass = fieldClass.getSuperclass();
-        } while (fieldClass != null);
-
+        }
         return null;
     }
 
