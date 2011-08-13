@@ -584,7 +584,6 @@ public class ClassPath {
         private final HashMap<String, Integer> virtualMethodLookup;
 
         private final SparseArray<String> instanceFields;
-        private final HashMap<String, Integer> instanceFieldLookup;
 
         public final static int ArrayClassDef = 0;
         public final static int PrimitiveClassDef = 1;
@@ -621,7 +620,6 @@ public class ClassPath {
                 virtualMethodLookup = superclass.virtualMethodLookup;
 
                 instanceFields = superclass.instanceFields;
-                instanceFieldLookup = superclass.instanceFieldLookup;
                 classDepth = 1; //1 off from java.lang.Object
 
                 virtualMethods = null;
@@ -637,7 +635,6 @@ public class ClassPath {
                 vtable = null;
                 virtualMethodLookup = null;
                 instanceFields = null;
-                instanceFieldLookup = null;
                 classDepth = 0; //TODO: maybe use -1 to indicate not applicable?
 
                 virtualMethods = null;
@@ -653,7 +650,6 @@ public class ClassPath {
                 virtualMethodLookup = superclass.virtualMethodLookup;
 
                 instanceFields = superclass.instanceFields;
-                instanceFieldLookup = superclass.instanceFieldLookup;
                 classDepth = 1; //1 off from java.lang.Object
 
                 virtualMethods = null;
@@ -684,10 +680,6 @@ public class ClassPath {
             }
 
             instanceFields = loadFields(classInfo);
-            instanceFieldLookup = new HashMap<String, Integer>((int)Math.ceil(instanceFields.size() / .7f), .75f);
-            for (int i=0; i<instanceFields.size(); i++) {
-                instanceFieldLookup.put(instanceFields.get(i), i);
-            }
         }
 
         public String getClassType() {
