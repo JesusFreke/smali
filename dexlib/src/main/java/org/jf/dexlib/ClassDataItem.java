@@ -388,8 +388,14 @@ public class ClassDataItem extends Item<ClassDataItem> {
             if (encodedMethodIndex == methodIdItemIndex) {
                 return encodedMethod;
             } else if (encodedMethodIndex < methodIdItemIndex) {
+                if (min == index) {
+                    break;
+                }
                 min = index;
             } else {
+                if (max == index) {
+                    break;
+                }
                 max = index;
             }
         }
