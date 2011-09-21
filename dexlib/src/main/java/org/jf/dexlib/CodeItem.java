@@ -234,7 +234,7 @@ public class CodeItem extends Item<CodeItem> {
             if (debugInfo == null) {
                 out.annotate(4, "debug_info_off:");
             } else {
-                out.annotate(4, "debug_info_off: 0x" + debugInfo.getOffset());
+                out.annotate(4, "debug_info_off: 0x" + Integer.toHexString(debugInfo.getOffset()));
             }
             out.annotate(4, "insns_size: 0x" + Integer.toHexString(instructionsLength) + " (" +
                     (instructionsLength) + ")");
