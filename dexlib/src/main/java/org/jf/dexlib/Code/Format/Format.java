@@ -36,6 +36,7 @@ public enum Format {
     Format11n(Instruction11n.Factory, 2),
     Format11x(Instruction11x.Factory, 2),
     Format12x(Instruction12x.Factory, 2),
+    Format20bc(Instruction20bc.Factory, 4),
     Format20t(Instruction20t.Factory, 4),
     Format21c(Instruction21c.Factory, 4),
     Format21h(Instruction21h.Factory, 4),

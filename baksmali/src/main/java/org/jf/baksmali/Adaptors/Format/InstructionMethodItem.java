@@ -31,6 +31,7 @@ package org.jf.baksmali.Adaptors.Format;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
+import org.jf.dexlib.Code.Format.Instruction20bc;
 import org.jf.util.IndentingWriter;
 import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.dexlib.Code.*;
@@ -83,6 +84,13 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeFirstRegister(writer);
                 writer.write(", ");
                 writeSecondRegister(writer);
+                return true;
+            case Format20bc:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeVerificationErrorType(writer);
+                writer.write(", ");
+                writeReference(writer);
                 return true;
             case Format20t:
             case Format30t:
@@ -304,5 +312,10 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     protected void writeReference(IndentingWriter writer) throws IOException {
         Item item = ((InstructionWithReference)instruction).getReferencedItem();
         ReferenceFormatter.writeReference(writer, item);
+    }
+
+    protected void writeVerificationErrorType(IndentingWriter writer) throws IOException {
+        VerificationErrorType validationErrorType = ((Instruction20bc)instruction).getValidationErrorType();
+        writer.write(validationErrorType.getName());
     }
 }

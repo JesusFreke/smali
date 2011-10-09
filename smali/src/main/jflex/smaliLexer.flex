@@ -364,6 +364,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(ACCESS_SPEC);
     }
 
+    "no-error" | "generic-error" | "no-such-class" | "no-such-field" | "no-such-method" | "illegal-class-access" |
+    "illegal-field-access" | "illegal-method-access" | "class-change-error" | "instantiation-error" {
+        return newToken(VERIFICATION_ERROR_TYPE);
+    }
+
     "vtable@0x" {HexDigit}+ { return newToken(VTABLE_OFFSET); }
     "field@0x" {HexDigit}+ { return newToken(FIELD_OFFSET); }
 
@@ -405,6 +410,10 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "sub-float/2addr" | "mul-float/2addr" | "div-float/2addr" | "rem-float/2addr" | "add-double/2addr" |
     "sub-double/2addr" | "mul-double/2addr" | "div-double/2addr" | "rem-double/2addr" {
         return newToken(INSTRUCTION_FORMAT12x);
+    }
+
+    "throw-verification-error" {
+        return newToken(INSTRUCTION_FORMAT20bc);
     }
 
     "goto/16" {

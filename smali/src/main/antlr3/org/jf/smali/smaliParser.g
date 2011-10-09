@@ -419,6 +419,7 @@ the indicated type OR an identifier, depending on the context*/
 simple_name
 	:	SIMPLE_NAME
 	|	ACCESS_SPEC -> SIMPLE_NAME[$ACCESS_SPEC]
+	|	VERIFICATION_ERROR_TYPE -> SIMPLE_NAME[$VERIFICATION_ERROR_TYPE]
 	|	POSITIVE_INTEGER_LITERAL -> SIMPLE_NAME[$POSITIVE_INTEGER_LITERAL]
 	|	NEGATIVE_INTEGER_LITERAL -> SIMPLE_NAME[$NEGATIVE_INTEGER_LITERAL]
 	|	INTEGER_LITERAL -> SIMPLE_NAME[$INTEGER_LITERAL]
@@ -684,6 +685,11 @@ instruction returns [int size]
 	|	//e.g. move v1 v2
 		instruction_format12x REGISTER COMMA REGISTER {$size = Format.Format12x.size;}
 		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] instruction_format12x REGISTER REGISTER)
+	|	//e.g. throw-verification-error generic-error, Lsome/class;
+		INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE COMMA (CLASS_DESCRIPTOR | fully_qualified_field | fully_qualified_method)
+		{
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT20bc.text);
+		}
 	|	//e.g. goto/16 endloop:
 		INSTRUCTION_FORMAT20t label_ref_or_offset {$size = Format.Format20t.size;}
 		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref_or_offset)

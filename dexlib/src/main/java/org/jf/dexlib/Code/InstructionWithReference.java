@@ -33,17 +33,27 @@ import org.jf.dexlib.Util.NumberUtils;
 
 public abstract class InstructionWithReference extends Instruction {
     private Item referencedItem;
+    private ReferenceType referenceType;
 
     protected InstructionWithReference(Opcode opcode, Item referencedItem) {
         super(opcode);
         this.referencedItem = referencedItem;
+        this.referenceType = opcode.referenceType;
+        checkReferenceType();
+    }
+
+    protected InstructionWithReference(Opcode opcode, Item referencedItem, ReferenceType referenceType) {
+        super(opcode);
+        this.referencedItem = referencedItem;
+        this.referenceType = referenceType;
         checkReferenceType();
     }
 
     protected InstructionWithReference(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
         super(opcode);
 
-        int itemIndex = getReferencedItemIndex(buffer, bufferIndex); 
+        this.referenceType = readReferenceType(opcode, buffer, bufferIndex);
+        int itemIndex = getReferencedItemIndex(buffer, bufferIndex);
         lookupReferencedItem(dexFile, opcode, itemIndex);
     }
 
@@ -51,12 +61,20 @@ public abstract class InstructionWithReference extends Instruction {
         return NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
     }
 
+    public ReferenceType getReferenceType() {
+        return referenceType;
+    }
+
     public Item getReferencedItem() {
         return referencedItem;
     }
 
+    protected ReferenceType readReferenceType(Opcode opcode, byte[] buffer, int bufferIndex) {
+        return opcode.referenceType;
+    }
+
     private void lookupReferencedItem(DexFile dexFile, Opcode opcode, int itemIndex) {
-        switch (opcode.referenceType) {
+        switch (referenceType) {
             case field:
                 referencedItem = dexFile.FieldIdsSection.getItemByIndex(itemIndex);
                 return;
@@ -73,7 +91,7 @@ public abstract class InstructionWithReference extends Instruction {
 
 
     private void checkReferenceType() {
-        switch (opcode.referenceType) {
+        switch (referenceType) {
             case field:
                 if (!(referencedItem instanceof FieldIdItem)) {
                     throw new RuntimeException(referencedItem.getClass().getSimpleName() +

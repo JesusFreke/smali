@@ -1,6 +1,6 @@
 /*
  * [The "BSD licence"]
- * Copyright (c) 2010 Ben Gruver (JesusFreke)
+ * Copyright (c) 2011 Ben Gruver
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,59 +22,62 @@
  * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package org.jf.dexlib.Code;
 
-import org.jf.dexlib.*;
+public enum VerificationErrorType {
+    None(0, "no-error"),
+    Generic(1, "generic-error"),
+    NoClass(2, "no-such-class"),
+    NoField(3, "no-such-field"),
+    NoMethod(4, "no-such-method"),
+    AccessClass(5, "illegal-class-access"),
+    AccessField(6, "illegal-field-access"),
+    AccessMethod(7, "illegal-method-access"),
+    ClassChange(8, "class-change-error"),
+    Instantiation(9, "instantiation-error");
 
-public enum ReferenceType
-{
-    string(-1),
-    type(0),
-    field(1),
-    method(2),
-    none(-1);
-
-    private int validationErrorReferenceType;
-
-    private ReferenceType(int validationErrorReferenceType) {
-        this.validationErrorReferenceType = validationErrorReferenceType;
+    private int value;
+    private String name;
+    private VerificationErrorType(int value, String name) {
+        this.value = value;
+        this.name = name;
     }
 
-    public boolean checkItem(Item item) {
-        switch (this) {
-            case string:
-                return item instanceof StringIdItem;
-            case type:
-                return item instanceof TypeIdItem;
-            case field:
-                return item instanceof FieldIdItem;
-            case method:
-                return item instanceof MethodIdItem;
-        }
-        return false;
+    public int getValue() {
+        return value;
     }
 
-    public static ReferenceType fromValidationErrorReferenceType(int validationErrorReferenceType) {
-        switch (validationErrorReferenceType) {
+    public String getName() {
+        return name;
+    }
+
+    public static VerificationErrorType getValidationErrorType(int validationErrorType) {
+        switch (validationErrorType) {
             case 0:
-                return type;
+                return None;
             case 1:
-                return field;
+                return Generic;
             case 2:
-                return method;
+                return NoClass;
+            case 3:
+                return NoField;
+            case 4:
+                return NoMethod;
+            case 5:
+                return AccessClass;
+            case 6:
+                return AccessField;
+            case 7:
+                return AccessMethod;
+            case 8:
+                return ClassChange;
+            case 9:
+                return Instantiation;
         }
         return null;
-    }
-
-    public int getValidationErrorReferenceType() {
-        if (validationErrorReferenceType == -1) {
-            throw new RuntimeException("This reference type cannot be referenced from a throw-validation-error" +
-                    " instruction");
-        }
-        return validationErrorReferenceType;
     }
 }

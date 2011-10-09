@@ -331,6 +331,18 @@ ACCESS_SPEC
 	|	'volatile'
 	|	'transient';
 
+VERIFICATION_ERROR_TYPE
+    :   'no-error'
+    |   'generic-error'
+    |   'no-such-class'
+    |   'no-such-field'
+    |   'no-such-method'
+    |   'illegal-class-access'
+    |   'illegal-field-access'
+    |   'illegal-method-access'
+    |   'class-change-error'
+    |   'instantiation-error';
+
 VTABLE_OFFSET
 	:	'vtable@0x' HEX_DIGIT+;
 
@@ -433,6 +445,9 @@ INSTRUCTION_FORMAT12x
 	|	'mul-double/2addr'
 	|	'div-double/2addr'
 	|	'rem-double/2addr';
+
+INSTRUCTION_FORMAT20bc
+    :   'throw-verification-error';
 
 INSTRUCTION_FORMAT20t
 	:	'goto/16';
