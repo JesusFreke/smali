@@ -239,8 +239,12 @@ public class MethodDefinition {
         int packedSwitchBaseAddress = this.packedSwitchMap.get(packedSwitchDataAddress, -1);
 
         if (packedSwitchBaseAddress == -1) {
-            throw new RuntimeException("Could not find the packed switch statement corresponding to the packed " +
-                    "switch data at address " + packedSwitchDataAddress);
+            Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+            int index = instructionMap.get(packedSwitchDataAddress);
+
+            if (instructions[index].opcode == Opcode.NOP) {
+                packedSwitchBaseAddress = this.packedSwitchMap.get(packedSwitchDataAddress+2, -1);
+            }
         }
 
         return packedSwitchBaseAddress;
@@ -250,8 +254,12 @@ public class MethodDefinition {
         int sparseSwitchBaseAddress = this.sparseSwitchMap.get(sparseSwitchDataAddress, -1);
 
         if (sparseSwitchBaseAddress == -1) {
-            throw new RuntimeException("Could not find the sparse switch statement corresponding to the sparse " +
-                    "switch data at address " + sparseSwitchDataAddress);
+            Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+            int index = instructionMap.get(sparseSwitchDataAddress);
+
+            if (instructions[index].opcode == Opcode.NOP) {
+                sparseSwitchBaseAddress = this.packedSwitchMap.get(sparseSwitchDataAddress+2, -1);
+            }
         }
 
         return sparseSwitchBaseAddress;

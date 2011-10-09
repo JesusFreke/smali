@@ -40,9 +40,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDataPseudoInstruction>
-        implements Iterable<LabelMethodItem> {
-    private final List<LabelMethodItem> labels;
+public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDataPseudoInstruction> {
+    private final List<PackedSwitchTarget> targets;
 
     public PackedSwitchMethodItem(MethodDefinition methodDefinition, CodeItem codeItem, int codeAddress,
                                   PackedSwitchDataPseudoInstruction instruction) {
@@ -50,13 +49,29 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
 
         int baseCodeAddress = methodDefinition.getPackedSwitchBaseAddress(codeAddress);
 
-        labels = new ArrayList<LabelMethodItem>();
+        targets = new ArrayList<PackedSwitchTarget>();
         Iterator<PackedSwitchDataPseudoInstruction.PackedSwitchTarget> iterator = instruction.iterateKeysAndTargets();
-        while (iterator.hasNext()) {
-            PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
-            LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, "pswitch_");
-            label = methodDefinition.getLabelCache().internLabel(label);
-            labels.add(label);
+
+        if (baseCodeAddress >= 0) {
+            while (iterator.hasNext()) {
+                PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
+                PackedSwitchLabelTarget packedSwitchLabelTarget = new PackedSwitchLabelTarget();
+
+
+                LabelMethodItem label = new LabelMethodItem(baseCodeAddress + target.targetAddressOffset, "pswitch_");
+                label = methodDefinition.getLabelCache().internLabel(label);
+                packedSwitchLabelTarget.Target = label;
+                targets.add(packedSwitchLabelTarget);
+            }
+        } else {
+            while (iterator.hasNext()) {
+                PackedSwitchDataPseudoInstruction.PackedSwitchTarget target = iterator.next();
+                PackedSwitchOffsetTarget packedSwitchOffsetTarget = new PackedSwitchOffsetTarget();
+
+
+                packedSwitchOffsetTarget.Target = target.targetAddressOffset;
+                targets.add(packedSwitchOffsetTarget);
+            }
         }
     }
 
@@ -66,8 +81,8 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
         IntegerRenderer.writeTo(writer, instruction.getFirstKey());
         writer.indent(4);
         writer.write('\n');
-        for (LabelMethodItem label: labels) {
-            label.writeTo(writer);
+        for (PackedSwitchTarget target: targets) {
+            target.writeTargetTo(writer);
             writer.write('\n');
         }
         writer.deindent(4);
@@ -75,7 +90,24 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchDa
         return true;
     }
 
-    public Iterator<LabelMethodItem> iterator() {
-        return labels.iterator();
+    private static abstract class PackedSwitchTarget {
+        public abstract void writeTargetTo(IndentingWriter writer) throws IOException;
+    }
+
+    private static class PackedSwitchLabelTarget extends PackedSwitchTarget {
+        public LabelMethodItem Target;
+        public void writeTargetTo(IndentingWriter writer) throws IOException {
+            Target.writeTo(writer);
+        }
+    }
+
+    private static class PackedSwitchOffsetTarget extends PackedSwitchTarget {
+        public int Target;
+        public void writeTargetTo(IndentingWriter writer) throws IOException {
+            if (Target >= 0) {
+                writer.write('+');
+            }
+            writer.printSignedIntAsDec(Target);
+        }
     }
 }
