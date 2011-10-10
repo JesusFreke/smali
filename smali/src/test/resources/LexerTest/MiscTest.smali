@@ -34,6 +34,17 @@ annotation
 volatile
 transient
 
+no-error
+generic-error
+no-such-class
+no-such-field
+no-such-method
+illegal-class-access
+illegal-field-access
+illegal-method-access
+class-change-error
+instantiation-error
+
 vtable@0xABCD
 vtable@0x0123
 vtable@0x0123ABCD

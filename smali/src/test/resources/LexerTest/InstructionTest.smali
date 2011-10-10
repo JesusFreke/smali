@@ -57,6 +57,7 @@ mul-float/2addr
 div-float/2addr
 rem-float/2addr
 add-double/2addr
+throw-verification-error
 goto/16
 sget
 sget-wide
