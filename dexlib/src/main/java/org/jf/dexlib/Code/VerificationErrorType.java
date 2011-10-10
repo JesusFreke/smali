@@ -28,6 +28,8 @@
 
 package org.jf.dexlib.Code;
 
+import java.util.HashMap;
+
 public enum VerificationErrorType {
     None(0, "no-error"),
     Generic(1, "generic-error"),
@@ -39,6 +41,16 @@ public enum VerificationErrorType {
     AccessMethod(7, "illegal-method-access"),
     ClassChange(8, "class-change-error"),
     Instantiation(9, "instantiation-error");
+
+    private static HashMap<String, VerificationErrorType> verificationErrorTypesByName;
+
+    static {
+        verificationErrorTypesByName = new HashMap<String, VerificationErrorType>();
+
+        for (VerificationErrorType verificationErrorType: VerificationErrorType.values()) {
+            verificationErrorTypesByName.put(verificationErrorType.getName(), verificationErrorType);
+        }
+    }
 
     private int value;
     private String name;
@@ -53,6 +65,10 @@ public enum VerificationErrorType {
 
     public String getName() {
         return name;
+    }
+
+    public static VerificationErrorType fromString(String validationErrorType) {
+        return verificationErrorTypesByName.get(validationErrorType);
     }
 
     public static VerificationErrorType getValidationErrorType(int validationErrorType) {

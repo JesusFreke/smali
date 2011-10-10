@@ -914,6 +914,26 @@ register_range[int totalMethodRegisters, int methodParameterRegisters] returns[i
 		}
 	;
 
+verification_error_reference returns[Item item]
+	:	CLASS_DESCRIPTOR
+	{
+		$item = TypeIdItem.internTypeIdItem(dexFile, $start.getText());
+	}
+	|	fully_qualified_field
+	{
+		$item = $fully_qualified_field.fieldIdItem;
+	}
+	|	fully_qualified_method
+	{
+		$item = $fully_qualified_method.methodIdItem;
+	};
+
+verification_error_type returns[VerificationErrorType verificationErrorType]
+	:	VERIFICATION_ERROR_TYPE
+	{
+		$verificationErrorType = VerificationErrorType.fromString($VERIFICATION_ERROR_TYPE.text);
+	};
+
 instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
 	:	//e.g. goto endloop:
 		{$outRegisters = 0;}
@@ -958,6 +978,16 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			$instructions.add(new Instruction12x(opcode, regA, regB));
+		}
+	|	//e.g. throw-verification-error generic-error, Lsome/class;
+		^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc verification_error_type verification_error_reference)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT20bc.text);
+
+			VerificationErrorType verificationErrorType = $verification_error_type.verificationErrorType;
+			Item referencedItem = $verification_error_reference.item;
+
+			$instructions.add(new Instruction20bc(opcode, verificationErrorType, referencedItem));
 		}
 	|	//e.g. goto/16 endloop:
 		^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)

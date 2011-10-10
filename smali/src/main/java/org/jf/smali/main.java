@@ -98,6 +98,7 @@ public class main {
             return;
         }
 
+        boolean allowOdex = false;
         boolean sort = false;
         boolean fixStringConst = true;
         boolean fixGoto = true;
@@ -131,6 +132,9 @@ public class main {
                     return;
                 case 'o':
                     outputDexFile = commandLine.getOptionValue("o");
+                    break;
+                case 'x':
+                    allowOdex = true;
                     break;
                 case 'D':
                     dumpFileName = commandLine.getOptionValue("D", outputDexFile + ".dump");
@@ -185,7 +189,7 @@ public class main {
             boolean errors = false;
 
             for (File file: filesToProcess) {
-                if (!assembleSmaliFile(file, dexFile, verboseErrors, oldLexer, printTokens)) {
+                if (!assembleSmaliFile(file, dexFile, verboseErrors, oldLexer, printTokens, allowOdex)) {
                     errors = true;
                 }
             }
@@ -262,7 +266,7 @@ public class main {
     }
 
     private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile, boolean verboseErrors, boolean oldLexer,
-                                             boolean printTokens)
+                                             boolean printTokens, boolean allowOdex)
             throws Exception {
         CommonTokenStream tokens;
 
@@ -300,6 +304,7 @@ public class main {
 
         smaliParser parser = new smaliParser(tokens);
         parser.setVerboseErrors(verboseErrors);
+        parser.setAllowOdex(allowOdex);
 
         smaliParser.smali_file_return result = parser.smali_file();
 
@@ -374,6 +379,10 @@ public class main {
                 .withArgName("FILE")
                 .create("o");
 
+        Option allowOdexOption = OptionBuilder.withLongOpt("allow-odex-instructions")
+                .withDescription("allow odex instructions to be compiled into the dex file")
+                .create("x");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("additionally writes a dump of written dex file to FILE (<dexfile>.dump by default)")
                 .hasOptionalArg()
@@ -407,6 +416,7 @@ public class main {
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputOption);
+        basicOptions.addOption(allowOdexOption);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(sortOption);

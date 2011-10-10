@@ -93,6 +93,7 @@ tokens {
 	I_STATEMENT_FORMAT11n;
 	I_STATEMENT_FORMAT11x;
 	I_STATEMENT_FORMAT12x;
+	I_STATEMENT_FORMAT20bc;
 	I_STATEMENT_FORMAT20t;
 	I_STATEMENT_FORMAT21c_TYPE;
 	I_STATEMENT_FORMAT21c_FIELD;
@@ -137,9 +138,14 @@ import org.jf.dexlib.Code.Format.*;
 
 @members {
 	private boolean verboseErrors = false;
+	private boolean allowOdex = false;
 
 	public void setVerboseErrors(boolean verboseErrors) {
 		this.verboseErrors = verboseErrors;
+	}
+
+	public void setAllowOdex(boolean allowOdex) {
+	    this.allowOdex = allowOdex;
 	}
 
 	public String getErrorMessage(RecognitionException e,
@@ -594,6 +600,9 @@ register_list
 register_range
 	:	REGISTER (DOTDOT REGISTER)? -> ^(I_REGISTER_RANGE[$start, "I_REGISTER_RANGE"] REGISTER REGISTER?);
 
+verification_error_reference
+	:	CLASS_DESCRIPTOR | fully_qualified_field | fully_qualified_method;
+
 catch_directive
 	:	CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE from=label_ref_or_offset DOTDOT to=label_ref_or_offset CLOSE_BRACE using=label_ref_or_offset
 		-> ^(I_CATCH[$start, "I_CATCH"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] nonvoid_type_descriptor $from $to $using);
@@ -686,10 +695,13 @@ instruction returns [int size]
 		instruction_format12x REGISTER COMMA REGISTER {$size = Format.Format12x.size;}
 		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] instruction_format12x REGISTER REGISTER)
 	|	//e.g. throw-verification-error generic-error, Lsome/class;
-		INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE COMMA (CLASS_DESCRIPTOR | fully_qualified_field | fully_qualified_method)
+		INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE COMMA verification_error_reference {$size += Format.Format20bc.size;}
 		{
-			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT20bc.text);
+			if (!allowOdex) {
+				throwOdexedInstructionException(input, $INSTRUCTION_FORMAT20bc.text);
+			}
 		}
+		-> ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE verification_error_reference)
 	|	//e.g. goto/16 endloop:
 		INSTRUCTION_FORMAT20t label_ref_or_offset {$size = Format.Format20t.size;}
 		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref_or_offset)
@@ -704,7 +716,7 @@ instruction returns [int size]
 	|	//e.g. const-string v1 "Hello World!"
 		INSTRUCTION_FORMAT21c_STRING REGISTER COMMA STRING_LITERAL {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL)
-	|	//e.g. const-class v2 org/jf/HelloWorld2/HelloWorld2
+	|	//e.g. const-class v2 Lorg/jf/HelloWorld2/HelloWorld2;
 		INSTRUCTION_FORMAT21c_TYPE REGISTER COMMA reference_type_descriptor {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 	|	//e.g. const/high16 v1, 1234
