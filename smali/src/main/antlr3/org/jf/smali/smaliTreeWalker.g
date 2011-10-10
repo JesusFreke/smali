@@ -1075,9 +1075,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			$instructions.add(new Instruction22b(opcode, regA, regB, (byte)litC));
 		}
 	|	//e.g. iput-object v1 v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-		^(I_STATEMENT_FORMAT22c_FIELD INSTRUCTION_FORMAT22c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
+		^(I_STATEMENT_FORMAT22c_FIELD inst=(INSTRUCTION_FORMAT22c_FIELD | INSTRUCTION_FORMAT22c_FIELD_ODEX) registerA=REGISTER registerB=REGISTER fully_qualified_field)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD.text);
+			Opcode opcode = Opcode.getOpcodeByName($inst.text);
 			byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
