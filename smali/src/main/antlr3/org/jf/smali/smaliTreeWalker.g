@@ -999,9 +999,9 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			$instructions.add(new Instruction20t(opcode, addressOffset));
 		}
 	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
-		^(I_STATEMENT_FORMAT21c_FIELD INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
+		^(I_STATEMENT_FORMAT21c_FIELD inst=(INSTRUCTION_FORMAT21c_FIELD | INSTRUCTION_FORMAT21c_FIELD_ODEX) REGISTER fully_qualified_field)
 		{
-			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_FIELD.text);
+			Opcode opcode = Opcode.getOpcodeByName($inst.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
