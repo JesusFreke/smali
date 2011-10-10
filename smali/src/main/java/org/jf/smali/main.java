@@ -380,7 +380,9 @@ public class main {
                 .create("o");
 
         Option allowOdexOption = OptionBuilder.withLongOpt("allow-odex-instructions")
-                .withDescription("allow odex instructions to be compiled into the dex file")
+                .withDescription("allow odex instructions to be compiled into the dex file. Only a few" +
+                        " instructions are supported - the ones that can exist in a dead code path and not" +
+                        " cause dalvik to reject the class")
                 .create("x");
 
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
