@@ -1,0 +1,6 @@
+/baksmali/target
+/dexlib/target
+/smali/target
+/util/target
+/maven-smali-plugin/target
+/smali-integration-tests/target
