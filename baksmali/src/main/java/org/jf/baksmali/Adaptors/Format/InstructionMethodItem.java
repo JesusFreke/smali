@@ -306,7 +306,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
     protected void writeVtableIndex(IndentingWriter writer) throws IOException {
         writer.write("vtable@0x");
-        writer.printUnsignedLongAsHex(((OdexedInvokeVirtual) instruction).getMethodIndex());
+        writer.printUnsignedLongAsHex(((OdexedInvokeVirtual) instruction).getVtableIndex());
     }
 
     protected void writeReference(IndentingWriter writer) throws IOException {

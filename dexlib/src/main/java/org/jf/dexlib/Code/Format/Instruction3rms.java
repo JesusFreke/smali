@@ -40,9 +40,9 @@ public class Instruction3rms extends Instruction implements RegisterRangeInstruc
  public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regCount;
     private short startReg;
-    private short methodIndex;
+    private short vtableIndex;
 
-    public Instruction3rms(Opcode opcode, short regCount, int startReg, int methodIndex) {
+    public Instruction3rms(Opcode opcode, short regCount, int startReg, int vtableIndex) {
         super(opcode);
 
         if (regCount >= 1 << 8) {
@@ -59,27 +59,27 @@ public class Instruction3rms extends Instruction implements RegisterRangeInstruc
             throw new RuntimeException("The beginning register of the range cannot be negative");
         }
 
-        if (methodIndex >= 1 << 16) {
+        if (vtableIndex >= 1 << 16) {
             throw new RuntimeException("The method index must be less than 65536");
         }
 
         this.regCount = (byte)regCount;
         this.startReg = (short)startReg;
-        this.methodIndex = (short)methodIndex;
+        this.vtableIndex = (short)vtableIndex;
     }
 
     private Instruction3rms(Opcode opcode, byte[] buffer, int bufferIndex) {
         super(opcode);
 
         this.regCount = (byte)NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
-        this.methodIndex = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        this.vtableIndex = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
         this.startReg = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte(regCount);
-        out.writeShort(methodIndex);
+        out.writeShort(vtableIndex);
         out.writeShort(startReg);
     }
 
@@ -95,8 +95,8 @@ public class Instruction3rms extends Instruction implements RegisterRangeInstruc
         return startReg & 0xFFFF;
     }
 
-    public int getMethodIndex() {
-        return methodIndex & 0xFFFF;
+    public int getVtableIndex() {
+        return vtableIndex & 0xFFFF;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

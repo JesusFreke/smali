@@ -3344,7 +3344,7 @@ public class MethodAnalyzer {
         MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
         if (inlineMethodIdItem == null) {
             throw new ValidationException(String.format("Cannot load inline method with index %d",
-                    instruction.getMethodIndex()));
+                    instruction.getVtableIndex()));
         }
 
         Opcode deodexedOpcode = null;
@@ -3382,7 +3382,7 @@ public class MethodAnalyzer {
         MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
         if (inlineMethodIdItem == null) {
             throw new ValidationException(String.format("Cannot load inline method with index %d",
-                    instruction.getMethodIndex()));
+                    instruction.getVtableIndex()));
         }
 
         Opcode deodexedOpcode = null;
@@ -3458,11 +3458,11 @@ public class MethodAnalyzer {
 
         if (isRange) {
             Instruction3rms instruction = (Instruction3rms)analyzedInstruction.instruction;
-            methodIndex = instruction.getMethodIndex();
+            methodIndex = instruction.getVtableIndex();
             objectRegister = instruction.getStartRegister();
         } else {
             Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;
-            methodIndex = instruction.getMethodIndex();
+            methodIndex = instruction.getVtableIndex();
             objectRegister = instruction.getRegisterD();
         }
 

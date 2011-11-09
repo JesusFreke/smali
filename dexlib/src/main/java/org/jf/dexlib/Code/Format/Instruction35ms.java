@@ -45,10 +45,10 @@ public class Instruction35ms extends Instruction implements FiveRegisterInstruct
     private byte regE;
     private byte regF;
     private byte regG;
-    private short methodIndex;
+    private short vtableIndex;
 
     public Instruction35ms(Opcode opcode, int regCount, byte regD, byte regE, byte regF, byte regG,
-                          byte regA, int methodIndex) {
+                          byte regA, int vtableIndex) {
         super(opcode);
         if (regCount > 5) {
             throw new RuntimeException("regCount cannot be greater than 5");
@@ -62,7 +62,7 @@ public class Instruction35ms extends Instruction implements FiveRegisterInstruct
             throw new RuntimeException("All register args must fit in 4 bits");
         }
 
-        if (methodIndex >= 1 << 16) {
+        if (vtableIndex >= 1 << 16) {
             throw new RuntimeException("The method index must be less than 65536");
         }
 
@@ -72,7 +72,7 @@ public class Instruction35ms extends Instruction implements FiveRegisterInstruct
         this.regE = regE;
         this.regF = regF;
         this.regG = regG;
-        this.methodIndex = (short)methodIndex;
+        this.vtableIndex = (short)vtableIndex;
     }
 
     private Instruction35ms(Opcode opcode, byte[] buffer, int bufferIndex) {
@@ -84,13 +84,13 @@ public class Instruction35ms extends Instruction implements FiveRegisterInstruct
         this.regE = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 4]);
         this.regF = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 5]);
         this.regG = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 5]);
-        this.methodIndex = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
+        this.vtableIndex = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         out.writeByte(opcode.value);
         out.writeByte((regCount << 4) | regA);
-        out.writeShort(methodIndex);
+        out.writeShort(vtableIndex);
         out.writeByte((regE << 4) | regD);
         out.writeByte((regG << 4) | regF);
     }
@@ -123,8 +123,8 @@ public class Instruction35ms extends Instruction implements FiveRegisterInstruct
         return regG;
     }
 
-    public int getMethodIndex() {
-        return methodIndex & 0xFFFF;
+    public int getVtableIndex() {
+        return vtableIndex & 0xFFFF;
     }
 
     private static class Factory implements Instruction.InstructionFactory {

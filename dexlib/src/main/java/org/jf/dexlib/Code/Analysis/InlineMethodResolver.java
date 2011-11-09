@@ -81,7 +81,7 @@ abstract class InlineMethodResolver {
             assert analyzedInstruction.instruction instanceof OdexedInvokeVirtual;
 
             OdexedInvokeVirtual instruction = (OdexedInvokeVirtual)analyzedInstruction.instruction;
-            int methodIndex = instruction.getMethodIndex();
+            int methodIndex = instruction.getVtableIndex();
 
             if (methodIndex < 0 || methodIndex >= inlineMethods.length) {
                 throw new RuntimeException("Invalid method index: " + methodIndex);
@@ -146,7 +146,7 @@ abstract class InlineMethodResolver {
             assert analyzedInstruction.instruction instanceof OdexedInvokeVirtual;
 
             OdexedInvokeVirtual instruction = (OdexedInvokeVirtual)analyzedInstruction.instruction;
-            int methodIndex = instruction.getMethodIndex();
+            int methodIndex = instruction.getVtableIndex();
 
             if (methodIndex < 0 || methodIndex >= inlineMethods.length) {
                 throw new RuntimeException("Invalid method index: " + methodIndex);
