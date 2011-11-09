@@ -1012,6 +1012,8 @@ public class MethodAnalyzer {
             case SPUT_WIDE_VOLATILE:
                 analyzePutGetVolatile(analyzedInstruction);
                 return true;
+            case THROW_VERIFICATION_ERROR:
+                return true;
             case EXECUTE_INLINE:
                 analyzeExecuteInline(analyzedInstruction);
                 return true;
@@ -1512,6 +1514,7 @@ public class MethodAnalyzer {
             case IPUT_WIDE_VOLATILE:
             case SGET_WIDE_VOLATILE:
             case SPUT_WIDE_VOLATILE:
+            case THROW_VERIFICATION_ERROR:
             case EXECUTE_INLINE:
             case EXECUTE_INLINE_RANGE:
             case INVOKE_DIRECT_EMPTY:
