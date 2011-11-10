@@ -210,6 +210,7 @@ invoke-static
 invoke-interface
 filled-new-array
 invoke-direct-empty
+throw-verification-error
 execute-inline
 invoke-virtual-quick
 invoke-super-quick
