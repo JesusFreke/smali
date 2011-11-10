@@ -43,7 +43,12 @@ public class InstructionIterator {
         while (insnsPosition < insns.length) {
             try
             {
-                Opcode opcode = Opcode.getOpcodeByValue(insns[insnsPosition]);
+                short opcodeValue = (short)(insns[insnsPosition] & 0xFF);
+                if (opcodeValue == 0xFF) {
+                    opcodeValue = (short)((0xFF << 8) | insns[insnsPosition+1]);
+                }
+
+                Opcode opcode = Opcode.getOpcodeByValue(opcodeValue);
 
                 Instruction instruction = null;
 
