@@ -37,7 +37,7 @@ import org.jf.dexlib.Item;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.NumberUtils;
 
-public class Instruction31c extends InstructionWithReference implements SingleRegisterInstruction {
+public class Instruction31c extends InstructionWithJumboReference implements SingleRegisterInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
 
@@ -61,10 +61,6 @@ public class Instruction31c extends InstructionWithReference implements SingleRe
         out.writeByte(opcode.value);
         out.writeByte(regA);
         out.writeInt(getReferencedItem().getIndex());
-    }
-
-    protected int getReferencedItemIndex(byte[] buffer, int bufferIndex) {
-	    return NumberUtils.decodeInt(buffer, bufferIndex + 2);
     }
 
     public Format getFormat() {
