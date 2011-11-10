@@ -264,8 +264,8 @@ public enum Opcode
     SPUT_WIDE_VOLATILE((byte)0xeb, "sput-wide-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
 
     THROW_VERIFICATION_ERROR((byte)0xed, "throw-verification-error", ReferenceType.none, Format.Format20bc, Opcode.ODEX_ONLY | Opcode.CAN_THROW),
-    EXECUTE_INLINE((byte)0xee, "execute-inline", ReferenceType.none,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    EXECUTE_INLINE_RANGE((byte)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rms,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    EXECUTE_INLINE((byte)0xee, "execute-inline", ReferenceType.none,  Format.Format35mi, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    EXECUTE_INLINE_RANGE((byte)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rmi,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_DIRECT_EMPTY((byte)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35s, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     IGET_QUICK((byte)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     IGET_WIDE_QUICK((byte)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),

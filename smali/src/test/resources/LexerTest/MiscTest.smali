@@ -45,6 +45,10 @@ illegal-method-access
 class-change-error
 instantiation-error
 
+inline@0xABCD
+inline@0x0123
+inline@0x0123ABCD
+
 vtable@0xABCD
 vtable@0x0123
 vtable@0x0123ABCD
@@ -53,6 +57,9 @@ field@0xABCD
 field@0x0123
 field@0x0123ABCD
 
+inline@
+inline@zzz
+inline@abcd
 vtable@
 vtable@zzz
 vtable@abcd

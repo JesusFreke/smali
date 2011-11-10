@@ -343,7 +343,10 @@ VERIFICATION_ERROR_TYPE
     |   'class-change-error'
     |   'instantiation-error';
 
-VTABLE_OFFSET
+INLINE_INDEX
+	:	'inline@0x' HEX_DIGIT+;
+
+VTABLE_INDEX
 	:	'vtable@0x' HEX_DIGIT+;
 
 FIELD_OFFSET
@@ -663,9 +666,11 @@ INSTRUCTION_FORMAT35c_TYPE
 INSTRUCTION_FORMAT35s_METHOD
 	:	'invoke-direct-empty';
 
+INSTRUCTION_FORMAT35mi_METHOD
+	:	'execute-inline';
+
 INSTRUCTION_FORMAT35ms_METHOD
-	:	'execute-inline'
-	|	'invoke-virtual-quick'
+	:	'invoke-virtual-quick'
 	|	'invoke-super-quick';
 
 INSTRUCTION_FORMAT3rc_METHOD
@@ -678,9 +683,11 @@ INSTRUCTION_FORMAT3rc_METHOD
 INSTRUCTION_FORMAT3rc_TYPE
 	:	'filled-new-array/range';
 
+INSTRUCTION_FORMAT3rmi_METHOD
+	:	'execute-inline/range';
+
 INSTRUCTION_FORMAT3rms_METHOD
-	:	'execute-inline/range'
-	|	'invoke-virtual-quick/range'
+	:	'invoke-virtual-quick/range'
 	|	'invoke-super-quick/range';
 
 INSTRUCTION_FORMAT51l

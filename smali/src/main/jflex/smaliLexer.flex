@@ -369,7 +369,8 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(VERIFICATION_ERROR_TYPE);
     }
 
-    "vtable@0x" {HexDigit}+ { return newToken(VTABLE_OFFSET); }
+    "inline@0x" {HexDigit}+ { return newToken(INLINE_INDEX); }
+    "vtable@0x" {HexDigit}+ { return newToken(VTABLE_INDEX); }
     "field@0x" {HexDigit}+ { return newToken(FIELD_OFFSET); }
 
     "+" {Integer} { return newToken(OFFSET); }
@@ -536,7 +537,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT35s_METHOD);
     }
 
-    "execute-inline" | "invoke-virtual-quick" | "invoke-super-quick" {
+    "execute-inline" {
+        return newToken(INSTRUCTION_FORMAT35mi_METHOD);
+    }
+
+    "invoke-virtual-quick" | "invoke-super-quick" {
         return newToken(INSTRUCTION_FORMAT35ms_METHOD);
     }
 
@@ -549,7 +554,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT3rc_TYPE);
     }
 
-    "execute-inline/range" | "invoke-virtual-quick/range" | "invoke-super-quick/range" {
+    "execute-inline/range" {
+        return newToken(INSTRUCTION_FORMAT3rmi_METHOD);
+    }
+
+    "invoke-virtual-quick/range" | "invoke-super-quick/range" {
         return newToken(INSTRUCTION_FORMAT3rms_METHOD);
     }
 

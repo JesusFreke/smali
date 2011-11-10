@@ -219,6 +219,7 @@ invoke-super/range
 invoke-direct/range
 invoke-static/range
 filled-new-array/range
+execute-inline/range
 invoke-virtual-quick/range
 invoke-super-quick/range
 const-wide

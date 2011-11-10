@@ -459,6 +459,7 @@ simple_name
 	|	INSTRUCTION_FORMAT35c_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_METHOD]
 	|	INSTRUCTION_FORMAT35c_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_TYPE]
 	|	INSTRUCTION_FORMAT35s_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35s_METHOD]
+	|	INSTRUCTION_FORMAT35mi_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35mi_METHOD]
 	|	INSTRUCTION_FORMAT35ms_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35ms_METHOD]
 	|	INSTRUCTION_FORMAT51l -> SIMPLE_NAME[$INSTRUCTION_FORMAT51l];
 
@@ -806,8 +807,13 @@ instruction returns [int size]
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35s_METHOD.text);
 		}
-	|	//e.g. invoke-virtual-range {v0, v1}, vtable@0x4
-		INSTRUCTION_FORMAT35ms_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA VTABLE_OFFSET
+	|	//e.g. execute-inline {v0, v1}, inline@0x4
+		INSTRUCTION_FORMAT35mi_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA INLINE_INDEX
+		{
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35mi_METHOD.text);
+		}
+	|	//e.g. invoke-virtual-quick {v0, v1}, vtable@0x4
+		INSTRUCTION_FORMAT35ms_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA VTABLE_INDEX
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35ms_METHOD.text);
 		}
@@ -817,8 +823,13 @@ instruction returns [int size]
 	|	//e.g. filled-new-array/range {v0..v6}, I
 		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACE register_range CLOSE_BRACE COMMA nonvoid_type_descriptor {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
+	|	//e.g. execute-inline/range {v0 .. v10}, inline@0x14
+		INSTRUCTION_FORMAT3rmi_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA INLINE_INDEX
+		{
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rmi_METHOD.text);
+		}
 	|	//e.g. invoke-virtual-quick/range {v0 .. v10}, vtable@0x14
-		INSTRUCTION_FORMAT3rms_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA VTABLE_OFFSET
+		INSTRUCTION_FORMAT3rms_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA VTABLE_INDEX
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rms_METHOD.text);
 		}

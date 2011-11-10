@@ -252,11 +252,13 @@ public class MethodAnalyzer {
                 case Format22cs:
                     objectRegisterNumber = ((Instruction22cs)instruction.instruction).getRegisterB();
                     break;
+                case Format35mi:
                 case Format35ms:
-                    objectRegisterNumber = ((Instruction35ms)instruction.instruction).getRegisterD();
+                    objectRegisterNumber = ((FiveRegisterInstruction)instruction.instruction).getRegisterD();
                     break;
+                case Format3rmi:
                 case Format3rms:
-                    objectRegisterNumber = ((Instruction3rms)instruction.instruction).getStartRegister();
+                    objectRegisterNumber = ((RegisterRangeInstruction)instruction.instruction).getStartRegister();
                     break;
                 default:
                     continue;
@@ -3338,13 +3340,13 @@ public class MethodAnalyzer {
             throw new ValidationException("Cannot analyze an odexed instruction unless we are deodexing");
         }
 
-        Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;
+        Instruction35mi instruction = (Instruction35mi)analyzedInstruction.instruction;
 
         DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(analyzedInstruction);
         MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
         if (inlineMethodIdItem == null) {
             throw new ValidationException(String.format("Cannot load inline method with index %d",
-                    instruction.getVtableIndex()));
+                    instruction.getInlineIndex()));
         }
 
         Opcode deodexedOpcode = null;
@@ -3376,13 +3378,13 @@ public class MethodAnalyzer {
             throw new ValidationException("Cannot analyze an odexed instruction unless we are deodexing");
         }
 
-        Instruction3rms instruction = (Instruction3rms)analyzedInstruction.instruction;
+        Instruction3rmi instruction = (Instruction3rmi)analyzedInstruction.instruction;
 
         DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(analyzedInstruction);
         MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
         if (inlineMethodIdItem == null) {
             throw new ValidationException(String.format("Cannot load inline method with index %d",
-                    instruction.getVtableIndex()));
+                    instruction.getInlineIndex()));
         }
 
         Opcode deodexedOpcode = null;

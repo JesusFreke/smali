@@ -28,10 +28,10 @@
 
 package org.jf.dexlib.Code.Analysis;
 
-import org.jf.dexlib.Code.Format.Instruction35ms;
-import org.jf.dexlib.Code.Format.Instruction3rms;
+import org.jf.dexlib.Code.Format.Instruction35mi;
+import org.jf.dexlib.Code.Format.Instruction3rmi;
+import org.jf.dexlib.Code.OdexedInvokeInline;
 import org.jf.dexlib.Code.OdexedInvokeVirtual;
-import org.jf.dexlib.MethodIdItem;
 
 import static org.jf.dexlib.Code.Analysis.DeodexUtil.Static;
 import static org.jf.dexlib.Code.Analysis.DeodexUtil.Virtual;
@@ -143,16 +143,16 @@ abstract class InlineMethodResolver {
 
         @Override
         public DeodexUtil.InlineMethod resolveExecuteInline(AnalyzedInstruction analyzedInstruction) {
-            assert analyzedInstruction.instruction instanceof OdexedInvokeVirtual;
+            assert analyzedInstruction.instruction instanceof OdexedInvokeInline;
 
-            OdexedInvokeVirtual instruction = (OdexedInvokeVirtual)analyzedInstruction.instruction;
-            int methodIndex = instruction.getVtableIndex();
+            OdexedInvokeInline instruction = (OdexedInvokeInline)analyzedInstruction.instruction;
+            int inlineIndex = instruction.getInlineIndex();
 
-            if (methodIndex < 0 || methodIndex >= inlineMethods.length) {
-                throw new RuntimeException("Invalid method index: " + methodIndex);
+            if (inlineIndex < 0 || inlineIndex >= inlineMethods.length) {
+                throw new RuntimeException("Invalid method index: " + inlineIndex);
             }
 
-            if (methodIndex == 4) {
+            if (inlineIndex == 4) {
                 int parameterCount = getParameterCount(instruction);
                 if (parameterCount == 2) {
                     return indexOfIMethod;
@@ -161,7 +161,7 @@ abstract class InlineMethodResolver {
                 } else {
                     throw new RuntimeException("Could not determine the correct inline method to use");
                 }
-            } else if (methodIndex == 5) {
+            } else if (inlineIndex == 5) {
                 int parameterCount = getParameterCount(instruction);
                 if (parameterCount == 3) {
                     return indexOfIIMethod;
@@ -172,14 +172,14 @@ abstract class InlineMethodResolver {
                 }
             }
 
-            return inlineMethods[methodIndex];
+            return inlineMethods[inlineIndex];
         }
 
-        private int getParameterCount(OdexedInvokeVirtual instruction) {
-            if (instruction instanceof Instruction35ms) {
-                return ((Instruction35ms)instruction).getRegCount();
+        private int getParameterCount(OdexedInvokeInline instruction) {
+            if (instruction instanceof Instruction35mi) {
+                return ((Instruction35mi)instruction).getRegCount();
             } else {
-                return ((Instruction3rms)instruction).getRegCount();
+                return ((Instruction3rmi)instruction).getRegCount();
             }
         }
     };
