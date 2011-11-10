@@ -99,7 +99,7 @@ public class Instruction35mi extends Instruction implements FiveRegisterInstruct
         return Format.Format35ms;
     }
 
-    public byte getRegCount() {
+    public short getRegCount() {
         return regCount;
     }
 

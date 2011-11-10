@@ -31,6 +31,6 @@
 
 package org.jf.dexlib.Code;
 
-public interface OdexedInvokeInline {
+public interface OdexedInvokeInline extends InvokeInstruction {
     int getInlineIndex();
 }

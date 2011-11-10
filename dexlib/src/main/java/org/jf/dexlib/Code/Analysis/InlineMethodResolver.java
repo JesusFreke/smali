@@ -28,8 +28,6 @@
 
 package org.jf.dexlib.Code.Analysis;
 
-import org.jf.dexlib.Code.Format.Instruction35mi;
-import org.jf.dexlib.Code.Format.Instruction3rmi;
 import org.jf.dexlib.Code.OdexedInvokeInline;
 import org.jf.dexlib.Code.OdexedInvokeVirtual;
 
@@ -88,7 +86,7 @@ abstract class InlineMethodResolver {
             }
             return inlineMethods[methodIndex];
         }
-    };
+    }
 
     private static class InlineMethodResolver_version36 extends InlineMethodResolver
     {
@@ -176,11 +174,7 @@ abstract class InlineMethodResolver {
         }
 
         private int getParameterCount(OdexedInvokeInline instruction) {
-            if (instruction instanceof Instruction35mi) {
-                return ((Instruction35mi)instruction).getRegCount();
-            } else {
-                return ((Instruction3rmi)instruction).getRegCount();
-            }
+            return instruction.getRegCount();
         }
-    };
+    }
 }
