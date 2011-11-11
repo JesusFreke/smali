@@ -28,37 +28,76 @@
                             <dumpFile>target/junit-tests/classes.dump</dumpFile>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>jumbo-string-tests</id>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>src/test/smali/jumbo-string-tests</sourceDirectory>
+                            <outputFile>target/jumbo-string-tests/classes.dex</outputFile>
+                            <dumpFile>target/jumbo-string-tests/classes.dump</dumpFile>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>junit-tests</id>
                         <phase>test</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <finalName>junit-tests</finalName>
                             <descriptors>
-                                <descriptor>src/assemble/zip.xml</descriptor>
+                                <descriptor>src/assemble/junit-tests.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jumbo-string-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <finalName>jumbo-string-tests</finalName>
+                            <descriptors>
+                                <descriptor>src/assemble/jumbo-string-tests.xml</descriptor>
                             </descriptors>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.jvending.masa.plugins</groupId>
+                <groupId>com.jayway.maven.plugins.android.generation1.plugins</groupId>
                 <artifactId>maven-adb-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>junit-tests</id>
                         <phase>test</phase>
                         <goals>
                             <goal>push</goal>
                         </goals>
                         <configuration>
-                            <sourceFileOrDirectory>${project.build.directory}/${project.build.finalName}-zip.zip
-                            </sourceFileOrDirectory>
-                            <destinationFileOrDirectory>/data/local/test.zip</destinationFileOrDirectory>
+                            <sourceFileOrDirectory>${project.build.directory}/junit-tests.zip</sourceFileOrDirectory>
+                            <destinationFileOrDirectory>/data/local/junit-tests.zip</destinationFileOrDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jumbo-string-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <sourceFileOrDirectory>${project.build.directory}/jumbo-string-tests.zip</sourceFileOrDirectory>
+                            <destinationFileOrDirectory>/data/local/jumbo-string-tests.zip</destinationFileOrDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -69,23 +108,42 @@
                 <version>1.1</version>
                 <executions>
                     <execution>
+                        <id>junit-tests</id>
                         <phase>test</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
+                        <configuration>
+                            <executable>adb</executable>
+                            <arguments>
+                                <argument>shell</argument>
+                                <argument>dalvikvm</argument>
+                                <argument>-cp</argument>
+                                <argument>/data/local/junit-4.6.zip:/data/local/junit-tests.zip</argument>
+                                <argument>org/junit/runner/JUnitCore</argument>
+                                <argument>AllTests</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jumbo-string-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>adb</executable>
+                            <arguments>
+                                <argument>shell</argument>
+                                <argument>dalvikvm</argument>
+                                <argument>-cp</argument>
+                                <argument>/data/local/junit-4.6.zip:/data/local/jumbo-string-tests.zip</argument>
+                                <argument>org/junit/runner/JUnitCore</argument>
+                                <argument>AllTests</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <executable>adb</executable>
-                    <arguments>
-                        <argument>shell</argument>
-                        <argument>dalvikvm</argument>
-                        <argument>-cp</argument>
-                        <argument>/data/local/junit-4.6.zip:/data/local/test.zip</argument>
-                        <argument>org/junit/runner/JUnitCore</argument>
-                        <argument>AllTests</argument>
-                    </arguments>
-                </configuration>
             </plugin>
         </plugins>
     </build>

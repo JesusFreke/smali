@@ -1,3 +1,31 @@
+# Copyright 2011, Google Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#     * Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above
+# copyright notice, this list of conditions and the following disclaimer
+# in the documentation and/or other materials provided with the
+# distribution.
+#     * Neither the name of Google Inc. nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,           
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY           
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 .class public LFormat31c;
 .super Ljava/lang/Object;
 .source "Format31c.smali"
@@ -9,9 +37,60 @@
 .end method
 
 .method public test_const-string-jumbo()V
-    .registers 2
+    .registers 9
     .annotation runtime Lorg/junit/Test;
     .end annotation
+
+    const-string/jumbo v0, "99999"
+    invoke-virtual {v0}, Ljava/lang/String;->length()I
+    move-result v1
+
+    const v2, 0
+    const-wide v3, '9'
+
+    :loop
+        invoke-virtual {v0, v2}, Ljava/lang/String;->charAt(I)C
+        move-result v5
+
+        int-to-long v6, v5
+
+        invoke-static {v3, v4, v6, v7}, Lorg/junit/Assert;->assertEquals(JJ)V
+
+	add-int/lit8 v2, v2, 1 
+    if-ne v1, v2, :loop
+
+    return-void
+.end method
+
+.method public test_const-string-jumbo-autofix()V
+    .registers 9
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
+
+    const-string v0, "99999"
+    invoke-virtual {v0}, Ljava/lang/String;->length()I
+    move-result v1
+
+    const v2, 0
+    const-wide v3, '9'
+
+    :loop
+        invoke-virtual {v0, v2}, Ljava/lang/String;->charAt(I)C
+        move-result v5
+
+        int-to-long v6, v5
+
+        invoke-static {v3, v4, v6, v7}, Lorg/junit/Assert;->assertEquals(JJ)V
+
+	add-int/lit8 v2, v2, 1 
+    if-ne v1, v2, :loop
+
+    return-void
+.end method
+
+#this method is not directly used in any of the tests. It's purpose is to fill out the type table past 64k entries
+.method public not-used-1()V
+    .registers 1
 
     const-string/jumbo v0, "0"
     const-string/jumbo v0, "1"
@@ -32782,6 +32861,14 @@
     const-string/jumbo v0, "32766"
     const-string/jumbo v0, "32767"
     const-string/jumbo v0, "32768"
+
+    return-void
+.end method
+
+#this method is not directly used in any of the tests. It's purpose is to fill out the type table past 64k entries
+.method public not-used-2()V
+    .registers 1
+
     const-string/jumbo v0, "32769"
     const-string/jumbo v0, "32770"
     const-string/jumbo v0, "32771"
@@ -65550,13 +65637,6 @@
     const-string/jumbo v0, "65534"
     const-string/jumbo v0, "65535"
     const-string/jumbo v0, "65536"
-    const-string/jumbo v0, "65537"
-    const-string/jumbo v0, "65538"
-    const-string/jumbo v0, "65539"
-    const-string/jumbo v0, "65540"
-
-    const-string/jumbo v1, "65535"
-
-    invoke-static {v0, v1}, Lorg/junit/Assert;->assertEquals(Ljava/lang/Object;Ljava/lang/Object;)V
+    
     return-void
 .end method

@@ -1,0 +1,13 @@
+<assembly>
+  <id>zip</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <files>
+    <file>
+        <source>target/junit-tests/classes.dex</source>
+        <outputDirectory>/</outputDirectory>
+    </file>
+  </files>
+</assembly>

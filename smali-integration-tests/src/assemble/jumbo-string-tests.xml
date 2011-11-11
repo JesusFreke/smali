@@ -6,8 +6,8 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <files>
     <file>
-	<source>target/junit-tests/classes.dex</source>
-	<outputDirectory>/</outputDirectory>
+        <source>target/jumbo-string-tests/classes.dex</source>
+        <outputDirectory>/</outputDirectory>
     </file>
   </files>
 </assembly>
