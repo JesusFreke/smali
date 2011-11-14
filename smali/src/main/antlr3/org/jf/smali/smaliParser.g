@@ -117,6 +117,7 @@ tokens {
 	I_STATEMENT_FORMAT35c_TYPE;
 	I_STATEMENT_FORMAT3rc_METHOD;
 	I_STATEMENT_FORMAT3rc_TYPE;
+	I_STATEMENT_FORMAT41c_TYPE;
 	I_STATEMENT_FORMAT51l;
 	I_STATEMENT_ARRAY_DATA;
 	I_STATEMENT_PACKED_SWITCH;
@@ -703,13 +704,14 @@ instruction returns [int size]
 			}
 		}
 		-> ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE verification_error_reference)
+		//TODO: check if dalvik has a jumbo version of throw-verification-error
 	|	//e.g. goto/16 endloop:
 		INSTRUCTION_FORMAT20t label_ref_or_offset {$size = Format.Format20t.size;}
 		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref_or_offset)
-	|	//e.g. sget-object v0 java/lang/System/out LJava/io/PrintStream;
+	|	//e.g. sget-object v0, java/lang/System/out LJava/io/PrintStream;
 		INSTRUCTION_FORMAT21c_FIELD REGISTER COMMA fully_qualified_field {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
-	|	//e.g. sget-object-volatile v0 java/lang/System/out LJava/io/PrintStream;
+	|	//e.g. sget-object-volatile v0, java/lang/System/out LJava/io/PrintStream;
 		INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER COMMA fully_qualified_field {$size = Format.Format21c.size;}
 		{
 			if (!allowOdex) {
@@ -717,10 +719,10 @@ instruction returns [int size]
 			}
 		}
 		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER fully_qualified_field)
-	|	//e.g. const-string v1 "Hello World!"
+	|	//e.g. const-string v1, "Hello World!"
 		INSTRUCTION_FORMAT21c_STRING REGISTER COMMA STRING_LITERAL {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL)
-	|	//e.g. const-class v2 Lorg/jf/HelloWorld2/HelloWorld2;
+	|	//e.g. const-class v2, Lorg/jf/HelloWorld2/HelloWorld2;
 		INSTRUCTION_FORMAT21c_TYPE REGISTER COMMA reference_type_descriptor {$size = Format.Format21c.size;}
 		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 	|	//e.g. const/high16 v1, 1234
@@ -833,6 +835,9 @@ instruction returns [int size]
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rms_METHOD.text);
 		}
+	|	//e.g. const-class/jumbo v2, Lorg/jf/HelloWorld2/HelloWorld2;
+		INSTRUCTION_FORMAT41c_TYPE REGISTER COMMA reference_type_descriptor {$size = Format.Format41c.size;}
+		-> ^(I_STATEMENT_FORMAT41c_TYPE[$start, "I_STATEMENT_FORMAT41c"] INSTRUCTION_FORMAT41c_TYPE REGISTER reference_type_descriptor)
 	|	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER COMMA fixed_literal {$size = Format.Format51l.size;}
 		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)

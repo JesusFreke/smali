@@ -222,4 +222,7 @@ filled-new-array/range
 execute-inline/range
 invoke-virtual-quick/range
 invoke-super-quick/range
+check-cast/jumbo
+new-instance/jumbo
+const-class/jumbo
 const-wide

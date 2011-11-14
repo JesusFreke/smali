@@ -100,6 +100,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 return true;
             case Format21c:
             case Format31c:
+            case Format41c:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeFirstRegister(writer);

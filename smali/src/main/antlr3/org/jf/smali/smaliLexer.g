@@ -690,6 +690,11 @@ INSTRUCTION_FORMAT3rms_METHOD
 	:	'invoke-virtual-quick/range'
 	|	'invoke-super-quick/range';
 
+INSTRUCTION_FORMAT41c_TYPE
+	:	'check-cast/jumbo'
+	|	'new-instance/jumbo'
+	|	'const-class/jumbo';
+
 INSTRUCTION_FORMAT51l
 	:	'const-wide';
 

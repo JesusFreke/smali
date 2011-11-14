@@ -998,7 +998,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			$instructions.add(new Instruction20t(opcode, addressOffset));
 		}
-	|	//e.g. sget_object v0 java/lang/System/out LJava/io/PrintStream;
+	|	//e.g. sget_object v0, java/lang/System/out LJava/io/PrintStream;
 		^(I_STATEMENT_FORMAT21c_FIELD inst=(INSTRUCTION_FORMAT21c_FIELD | INSTRUCTION_FORMAT21c_FIELD_ODEX) REGISTER fully_qualified_field)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($inst.text);
@@ -1008,7 +1008,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			$instructions.add(new Instruction21c(opcode, regA, fieldIdItem));
 		}
-	|	//e.g. const-string v1 "Hello World!"
+	|	//e.g. const-string v1, "Hello World!"
 		^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
@@ -1018,7 +1018,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			instructions.add(new Instruction21c(opcode, regA, stringIdItem));
 		}
-	|	//e.g. const-class v2 org/jf/HelloWorld2/HelloWorld2
+	|	//e.g. const-class v2, org/jf/HelloWorld2/HelloWorld2
 		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
@@ -1074,7 +1074,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			$instructions.add(new Instruction22b(opcode, regA, regB, (byte)litC));
 		}
-	|	//e.g. iput-object v1 v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+	|	//e.g. iput-object v1, v0, org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_FIELD inst=(INSTRUCTION_FORMAT22c_FIELD | INSTRUCTION_FORMAT22c_FIELD_ODEX) registerA=REGISTER registerB=REGISTER fully_qualified_field)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($inst.text);
@@ -1248,6 +1248,16 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 
 			$instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, typeIdItem));
+		}
+	|	//e.g. const-class/jumbo v2, org/jf/HelloWorld2/HelloWorld2
+		^(I_STATEMENT_FORMAT41c_TYPE INSTRUCTION_FORMAT41c_TYPE REGISTER reference_type_descriptor)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT41c_TYPE.text);
+			int regA = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
+
+			TypeIdItem typeIdItem = $reference_type_descriptor.type;
+
+			$instructions.add(new Instruction41c(opcode, regA, typeIdItem));
 		}
 	|	//e.g. const-wide v0, 5000000000L
 		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)

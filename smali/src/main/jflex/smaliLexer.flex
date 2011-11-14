@@ -562,6 +562,10 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT3rms_METHOD);
     }
 
+    "check-cast/jumbo" | "new-instance/jumbo" | "const-class/jumbo" {
+        return newToken(INSTRUCTION_FORMAT41c_TYPE);
+    }
+
     "const-wide" {
         return newToken(INSTRUCTION_FORMAT51l);
     }

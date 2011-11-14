@@ -280,8 +280,11 @@ public enum Opcode
 
     IPUT_OBJECT_VOLATILE((short)0xfc, "iput-object-volatile", ReferenceType.field, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     SGET_OBJECT_VOLATILE((short)0xfd, "sget-object-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE);
+    SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
 
+    CONST_CLASS_JUMBO((short)0xff00, "const-class/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    CHECK_CAST_JUMBO((short)0xff01, "check-cast/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    NEW_INSTANCE_JUMBO((short)0xff03, "new-instance/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER);
 
     private static Opcode[] opcodesByValue;
     private static Opcode[] expandedOpcodesByValue;

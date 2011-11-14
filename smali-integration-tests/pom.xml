@@ -39,6 +39,17 @@
                             <dumpFile>target/jumbo-string-tests/classes.dump</dumpFile>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>jumbo-type-tests</id>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>src/test/smali/jumbo-type-tests</sourceDirectory>
+                            <outputFile>target/jumbo-type-tests/classes.dex</outputFile>
+                            <dumpFile>target/jumbo-type-tests/classes.dump</dumpFile>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -72,6 +83,20 @@
                             </descriptors>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>jumbo-type-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <finalName>jumbo-type-tests</finalName>
+                            <descriptors>
+                                <descriptor>src/assemble/jumbo-type-tests.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -98,6 +123,17 @@
                         <configuration>
                             <sourceFileOrDirectory>${project.build.directory}/jumbo-string-tests.zip</sourceFileOrDirectory>
                             <destinationFileOrDirectory>/data/local/jumbo-string-tests.zip</destinationFileOrDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jumbo-type-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <sourceFileOrDirectory>${project.build.directory}/jumbo-type-tests.zip</sourceFileOrDirectory>
+                            <destinationFileOrDirectory>/data/local/jumbo-type-tests.zip</destinationFileOrDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -138,6 +174,24 @@
                                 <argument>dalvikvm</argument>
                                 <argument>-cp</argument>
                                 <argument>/data/local/junit-4.6.zip:/data/local/jumbo-string-tests.zip</argument>
+                                <argument>org/junit/runner/JUnitCore</argument>
+                                <argument>AllTests</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jumbo-type-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>adb</executable>
+                            <arguments>
+                                <argument>shell</argument>
+                                <argument>dalvikvm</argument>
+                                <argument>-cp</argument>
+                                <argument>/data/local/junit-4.6.zip:/data/local/jumbo-type-tests.zip</argument>
                                 <argument>org/junit/runner/JUnitCore</argument>
                                 <argument>AllTests</argument>
                             </arguments>
