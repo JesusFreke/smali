@@ -118,6 +118,7 @@ tokens {
 	I_STATEMENT_FORMAT3rc_METHOD;
 	I_STATEMENT_FORMAT3rc_TYPE;
 	I_STATEMENT_FORMAT41c_TYPE;
+	I_STATEMENT_FORMAT41c_FIELD;
 	I_STATEMENT_FORMAT51l;
 	I_STATEMENT_ARRAY_DATA;
 	I_STATEMENT_PACKED_SWITCH;
@@ -838,6 +839,9 @@ instruction returns [int size]
 	|	//e.g. const-class/jumbo v2, Lorg/jf/HelloWorld2/HelloWorld2;
 		INSTRUCTION_FORMAT41c_TYPE REGISTER COMMA reference_type_descriptor {$size = Format.Format41c.size;}
 		-> ^(I_STATEMENT_FORMAT41c_TYPE[$start, "I_STATEMENT_FORMAT41c"] INSTRUCTION_FORMAT41c_TYPE REGISTER reference_type_descriptor)
+	|	//e.g. sget-object/jumbo v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+		INSTRUCTION_FORMAT41c_FIELD REGISTER COMMA fully_qualified_field {$size = Format.Format41c.size;}
+		-> ^(I_STATEMENT_FORMAT41c_FIELD[$start, "I_STATEMENT_FORMAT41c_FIELD"] INSTRUCTION_FORMAT41c_FIELD REGISTER fully_qualified_field)
 	|	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER COMMA fixed_literal {$size = Format.Format51l.size;}
 		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)

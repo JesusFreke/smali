@@ -50,6 +50,17 @@
                             <dumpFile>target/jumbo-type-tests/classes.dump</dumpFile>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>jumbo-field-tests</id>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>src/test/smali/jumbo-field-tests</sourceDirectory>
+                            <outputFile>target/jumbo-field-tests/classes.dex</outputFile>
+                            <dumpFile>target/jumbo-field-tests/classes.dump</dumpFile>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -97,6 +108,20 @@
                             </descriptors>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>jumbo-field-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <finalName>jumbo-field-tests</finalName>
+                            <descriptors>
+                                <descriptor>src/assemble/jumbo-field-tests.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -134,6 +159,17 @@
                         <configuration>
                             <sourceFileOrDirectory>${project.build.directory}/jumbo-type-tests.zip</sourceFileOrDirectory>
                             <destinationFileOrDirectory>/data/local/jumbo-type-tests.zip</destinationFileOrDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jumbo-field-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <sourceFileOrDirectory>${project.build.directory}/jumbo-field-tests.zip</sourceFileOrDirectory>
+                            <destinationFileOrDirectory>/data/local/jumbo-field-tests.zip</destinationFileOrDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -192,6 +228,24 @@
                                 <argument>dalvikvm</argument>
                                 <argument>-cp</argument>
                                 <argument>/data/local/junit-4.6.zip:/data/local/jumbo-type-tests.zip</argument>
+                                <argument>org/junit/runner/JUnitCore</argument>
+                                <argument>AllTests</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jumbo-field-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>adb</executable>
+                            <arguments>
+                                <argument>shell</argument>
+                                <argument>dalvikvm</argument>
+                                <argument>-cp</argument>
+                                <argument>/data/local/junit-4.6.zip:/data/local/jumbo-field-tests.zip</argument>
                                 <argument>org/junit/runner/JUnitCore</argument>
                                 <argument>AllTests</argument>
                             </arguments>

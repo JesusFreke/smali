@@ -1259,6 +1259,16 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			$instructions.add(new Instruction41c(opcode, regA, typeIdItem));
 		}
+	|	//e.g. sget-object/jumbo v0, Ljava/lang/System;->out:LJava/io/PrintStream;
+		^(I_STATEMENT_FORMAT41c_FIELD INSTRUCTION_FORMAT41c_FIELD REGISTER fully_qualified_field)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT41c_FIELD.text);
+			int regA = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
+
+			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
+
+			$instructions.add(new Instruction41c(opcode, regA, fieldIdItem));
+		}
 	|	//e.g. const-wide v0, 5000000000L
 		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
 		{

@@ -695,6 +695,22 @@ INSTRUCTION_FORMAT41c_TYPE
 	|	'new-instance/jumbo'
 	|	'const-class/jumbo';
 
+INSTRUCTION_FORMAT41c_FIELD
+	:	'sget/jumbo'
+	|	'sget-wide/jumbo'
+	|	'sget-object/jumbo'
+	|	'sget-boolean/jumbo'
+	|	'sget-byte/jumbo'
+	|	'sget-char/jumbo'
+	|	'sget-short/jumbo'
+	|	'sput/jumbo'
+	|	'sput-wide/jumbo'
+	|	'sput-object/jumbo'
+	|	'sput-boolean/jumbo'
+	|	'sput-byte/jumbo'
+	|	'sput-char/jumbo'
+	|	'sput-short/jumbo';
+
 INSTRUCTION_FORMAT51l
 	:	'const-wide';
 

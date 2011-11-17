@@ -284,7 +284,22 @@ public enum Opcode
 
     CONST_CLASS_JUMBO((short)0xff00, "const-class/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     CHECK_CAST_JUMBO((short)0xff01, "check-cast/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    NEW_INSTANCE_JUMBO((short)0xff03, "new-instance/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER);
+    NEW_INSTANCE_JUMBO((short)0xff03, "new-instance/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+
+    SGET_JUMBO((short)0xff14, "sget/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SGET_WIDE_JUMBO((short)0xff15, "sget-wide/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    SGET_OBJECT_JUMBO((short)0xff16, "sget-object/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SGET_BOOLEAN_JUMBO((short)0xff17, "sget-boolean/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SGET_BYTE_JUMBO((short)0xff18, "sget-byte/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SGET_CHAR_JUMBO((short)0xff19, "sget-char/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SGET_SHORT_JUMBO((short)0xff1a, "sget-short/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SPUT_JUMBO((short)0xff1b, "sput/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SPUT_WIDE_JUMBO((short)0xff1c, "sput-wide/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SPUT_OBJECT_JUMBO((short)0xff1d, "sput-object/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SPUT_BOOLEAN_JUMBO((short)0xff1e, "sput-boolean/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SPUT_BYTE_JUMBO((short)0xff1f, "sput-byte/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SPUT_CHAR_JUMBO((short)0xff20, "sput-char/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SPUT_SHORT_JUMBO((short)0xff21, "sput-short/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE);
 
     private static Opcode[] opcodesByValue;
     private static Opcode[] expandedOpcodesByValue;
