@@ -112,8 +112,20 @@ public class MethodIdItem extends Item<MethodIdItem> {
             out.annotate(4, "method_name: " + methodName.getStringValue());
         }
 
-        out.writeShort(classType.getIndex());
-        out.writeShort(methodPrototype.getIndex());
+        int classIndex = classType.getIndex();
+        if (classIndex > 0xffff) {
+            throw new RuntimeException(String.format("Error writing method_id_item for %s. The type index of " +
+                    "defining class %s is too large", getMethodString(), classType.getTypeDescriptor()));
+        }
+        out.writeShort(classIndex);
+
+        int prototypeIndex = methodPrototype.getIndex();
+        if (prototypeIndex > 0xffff) {
+            throw new RuntimeException(String.format("Error writing method_id_item for %0. The prototype index of " +
+                    "method prototype %s is too large", getMethodString(), methodPrototype.getPrototypeString()));
+        }
+        out.writeShort(prototypeIndex);
+
         out.writeInt(methodName.getIndex());
     }
 

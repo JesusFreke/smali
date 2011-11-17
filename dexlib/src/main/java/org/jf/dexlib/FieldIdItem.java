@@ -117,8 +117,20 @@ public class FieldIdItem extends Item<FieldIdItem> {
             out.annotate(4, "field_name: " + fieldName.getStringValue());
         }
 
-        out.writeShort(classType.getIndex());
-        out.writeShort(fieldType.getIndex());
+        int classIndex = classType.getIndex();
+        if (classIndex > 0xffff) {
+            throw new RuntimeException(String.format("Error writing field_id_item for %s. The type index of " +
+                    "defining class %s is too large", getFieldString(), classType.getTypeDescriptor()));
+        }
+        out.writeShort(classIndex);
+
+        int typeIndex = fieldType.getIndex();
+        if (typeIndex > 0xffff) {
+            throw new RuntimeException(String.format("Error writing field_id_item for %s. The type index of field " +
+                    "type %s is too large", getFieldString(), fieldType.getTypeDescriptor()));
+        }
+        out.writeShort(typeIndex);
+
         out.writeInt(fieldName.getIndex());
     }
 

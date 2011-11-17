@@ -116,7 +116,12 @@ public class TypeListItem extends Item<TypeListItem> {
         }
         out.writeInt(typeList.length);
         for (TypeIdItem typeIdItem: typeList) {
-            out.writeShort(typeIdItem.getIndex());
+            int typeIndex = typeIdItem.getIndex();
+            if (typeIndex > 0xffff) {
+                throw new RuntimeException(String.format("Error writing type_list entry. The type index of " +
+                    "type %s is too large", typeIdItem.getTypeDescriptor()));
+            }
+            out.writeShort(typeIndex);
         }
     }
 
