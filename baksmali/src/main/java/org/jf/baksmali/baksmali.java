@@ -30,8 +30,7 @@ package org.jf.baksmali;
 
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib.ClassDefItem;
-import org.jf.dexlib.Code.Analysis.ClassPath;
-import org.jf.dexlib.Code.Analysis.SyntheticAccessorResolver;
+import org.jf.dexlib.Code.Analysis.*;
 import org.jf.dexlib.DexFile;
 import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
@@ -52,6 +51,7 @@ public class baksmali {
     public static boolean noAccessorComments = false;
     public static boolean deodex = false;
     public static boolean verify = false;
+    public static InlineMethodResolver inlineResolver = null;
     public static int registerInfo = 0;
     public static String bootClassPath;
 
@@ -62,7 +62,7 @@ public class baksmali {
                                           boolean noParameterRegisters, boolean useLocalsDirective,
                                           boolean useSequentialLabels, boolean outputDebugInfo, boolean addCodeOffsets,
                                           boolean noAccessorComments, int registerInfo, boolean verify,
-                                          boolean ignoreErrors)
+                                          boolean ignoreErrors, String inlineTable)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
         baksmali.useLocalsDirective = useLocalsDirective;
@@ -110,6 +110,10 @@ public class baksmali {
                     }
                     ClassPath.InitializeClassPath(classPathDirs, bootClassPathArray, extraBootClassPathArray,
                             dexFilePath, dexFile, classPathErrorHandler);
+                }
+
+                if (inlineTable != null) {
+                    inlineResolver = new CustomInlineMethodResolver(inlineTable);
                 }
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");

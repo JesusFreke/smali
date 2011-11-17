@@ -55,6 +55,11 @@ public class DeodexUtil {
         inlineMethodResolver = InlineMethodResolver.createInlineMethodResolver(this, odexHeader.version);
     }
 
+    public DeodexUtil(DexFile dexFile, InlineMethodResolver inlineMethodResolver) {
+        this.dexFile = dexFile;
+        this.inlineMethodResolver = inlineMethodResolver;
+    }
+
     public InlineMethod lookupInlineMethod(AnalyzedInstruction instruction) {
         return inlineMethodResolver.resolveExecuteInline(instruction);
     }
@@ -246,7 +251,7 @@ public class DeodexUtil {
         return null;
     }
 
-    public class InlineMethod {
+    public static class InlineMethod {
         public final int methodType;
         public final String classType;
         public final String methodName;
@@ -264,17 +269,17 @@ public class DeodexUtil {
             this.returnType = returnType;
         }
 
-        public MethodIdItem getMethodIdItem() {
+        public MethodIdItem getMethodIdItem(DeodexUtil deodexUtil) {
             if (methodIdItem == null) {
-                loadMethod();
+                loadMethod(deodexUtil);
             }
             return methodIdItem;
         }
 
-        private void loadMethod() {
+        private void loadMethod(DeodexUtil deodexUtil) {
             ClassPath.ClassDef classDef = ClassPath.getClassDef(classType);
 
-            this.methodIdItem = parseAndResolveMethod(classDef, methodName, parameters, returnType);
+            this.methodIdItem = deodexUtil.parseAndResolveMethod(classDef, methodName, parameters, returnType);
         }
 
         public String getMethodString() {

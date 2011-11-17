@@ -121,7 +121,7 @@ public class main {
         StringBuffer extraBootClassPathEntries = new StringBuffer();
         List<String> bootClassPathDirs = new ArrayList<String>();
         bootClassPathDirs.add(".");
-
+        String inlineTable = null;
 
         String[] remainingArgs = commandLine.getArgs();
 
@@ -237,6 +237,9 @@ public class main {
                 case 'V':
                     verify = true;
                     break;
+                case 'T':
+                    inlineTable = commandLine.getOptionValue("T");
+                    break;
                 default:
                     assert false;
             }
@@ -290,7 +293,7 @@ public class main {
                 baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
                         bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
                         noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
-                        noAccessorComments, registerInfo, verify, ignoreErrors);
+                        noAccessorComments, registerInfo, verify, ignoreErrors, inlineTable);
             }
 
             if ((doDump || write) && !dexFile.isOdex()) {
@@ -443,6 +446,7 @@ public class main {
                         " behavior is to stop disassembling and exit once an error is encountered")
                 .create("I");
 
+
         Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
                 .withDescription("suppresses the output of the disassembly")
                 .create("N");
@@ -466,6 +470,12 @@ public class main {
                 .withDescription("perform bytecode verification")
                 .create("V");
 
+        Option inlineTableOption = OptionBuilder.withLongOpt("inline-table")
+                .withDescription("specify a file containing a custom inline method table to use for deodexing")
+                .hasArg()
+                .withArgName("FILE")
+                .create("T");
+
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputDirOption);
@@ -488,7 +498,7 @@ public class main {
         debugOptions.addOption(sortOption);
         debugOptions.addOption(fixSignedRegisterOption);
         debugOptions.addOption(verifyDexOption);
-
+        debugOptions.addOption(inlineTableOption);
 
         for (Object option: basicOptions.getOptions()) {
             options.addOption((Option)option);

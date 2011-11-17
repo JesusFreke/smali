@@ -71,7 +71,8 @@ public class MethodAnalyzer {
     //instruction, etc.
     private AnalyzedInstruction startOfMethod;
 
-    public MethodAnalyzer(ClassDataItem.EncodedMethod encodedMethod, boolean deodex) {
+    public MethodAnalyzer(ClassDataItem.EncodedMethod encodedMethod, boolean deodex,
+                          InlineMethodResolver inlineResolver) {
         if (encodedMethod == null) {
             throw new IllegalArgumentException("encodedMethod cannot be null");
         }
@@ -81,7 +82,11 @@ public class MethodAnalyzer {
         this.encodedMethod = encodedMethod;
 
         if (deodex) {
-            this.deodexUtil = new DeodexUtil(encodedMethod.method.getDexFile());
+            if (inlineResolver != null) {
+                this.deodexUtil = new DeodexUtil(encodedMethod.method.getDexFile(), inlineResolver);
+            } else {
+                this.deodexUtil = new DeodexUtil(encodedMethod.method.getDexFile());
+            }
         } else {
             this.deodexUtil = null;
         }
@@ -3386,7 +3391,7 @@ public class MethodAnalyzer {
         Instruction35mi instruction = (Instruction35mi)analyzedInstruction.instruction;
 
         DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(analyzedInstruction);
-        MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
+        MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem(deodexUtil);
         if (inlineMethodIdItem == null) {
             throw new ValidationException(String.format("Cannot load inline method with index %d",
                     instruction.getInlineIndex()));
@@ -3424,7 +3429,7 @@ public class MethodAnalyzer {
         Instruction3rmi instruction = (Instruction3rmi)analyzedInstruction.instruction;
 
         DeodexUtil.InlineMethod inlineMethod = deodexUtil.lookupInlineMethod(analyzedInstruction);
-        MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem();
+        MethodIdItem inlineMethodIdItem = inlineMethod.getMethodIdItem(deodexUtil);
         if (inlineMethodIdItem == null) {
             throw new ValidationException(String.format("Cannot load inline method with index %d",
                     instruction.getInlineIndex()));

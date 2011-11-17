@@ -373,7 +373,7 @@ public class MethodDefinition {
     }
 
     private void addAnalyzedInstructionMethodItems(List<MethodItem> methodItems) {
-        methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex);
+        methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex, baksmali.inlineResolver);
 
         methodAnalyzer.analyze();
 

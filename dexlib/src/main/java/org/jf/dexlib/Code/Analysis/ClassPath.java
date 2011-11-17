@@ -593,7 +593,12 @@ public class ClassPath {
         private final int classDepth;
 
         private final String[] vtable;
-        private final HashMap<String, Integer> virtualMethodLookup;
+
+        //this maps a method name of the form method(III)Ljava/lang/String; to an integer
+        //If the value is non-negative, it is a vtable index
+        //If it is -1, it is a non-static direct method,
+        //If it is -2, it is a static method
+        private final HashMap<String, Integer> methodLookup;
 
         private final SparseArray<FieldDef> instanceFields;
 
@@ -601,6 +606,8 @@ public class ClassPath {
         public final static int PrimitiveClassDef = 1;
         public final static int UnresolvedClassDef = 2;
 
+        private final static int DirectMethod = -1;
+        private final static int StaticMethod = -2;
 
         /**
          * The following fields are used only during the initial loading of classes, and are set to null afterwards
@@ -629,7 +636,7 @@ public class ClassPath {
                 isInterface = false;
 
                 vtable = superclass.vtable;
-                virtualMethodLookup = superclass.virtualMethodLookup;
+                methodLookup = superclass.methodLookup;
 
                 instanceFields = superclass.instanceFields;
                 classDepth = 1; //1 off from java.lang.Object
@@ -645,7 +652,7 @@ public class ClassPath {
                 implementedInterfaces = null;
                 isInterface = false;
                 vtable = null;
-                virtualMethodLookup = null;
+                methodLookup = null;
                 instanceFields = null;
                 classDepth = 0; //TODO: maybe use -1 to indicate not applicable?
 
@@ -659,7 +666,7 @@ public class ClassPath {
                 isInterface = false;
 
                 vtable = superclass.vtable;
-                virtualMethodLookup = superclass.virtualMethodLookup;
+                methodLookup = superclass.methodLookup;
 
                 instanceFields = superclass.instanceFields;
                 classDepth = 1; //1 off from java.lang.Object
@@ -686,9 +693,23 @@ public class ClassPath {
             interfaceTable = loadInterfaceTable(classInfo);
             virtualMethods = classInfo.virtualMethods;
             vtable = loadVtable(classInfo);
-            virtualMethodLookup = new HashMap<String, Integer>((int)Math.ceil(vtable.length / .7f), .75f);
+
+            int directMethodCount = 0;
+            if (classInfo.directMethods != null) {
+                directMethodCount = classInfo.directMethods.length;
+            }
+            methodLookup = new HashMap<String, Integer>((int)Math.ceil(((vtable.length + directMethodCount)/ .7f)), .75f);
             for (int i=0; i<vtable.length; i++) {
-                virtualMethodLookup.put(vtable[i], i);
+                methodLookup.put(vtable[i], i);
+            }
+            if (directMethodCount > 0) {
+                for (int i=0; i<classInfo.directMethods.length; i++) {
+                    if (classInfo.staticMethods[i]) {
+                        methodLookup.put(classInfo.directMethods[i], StaticMethod);
+                    } else {
+                        methodLookup.put(classInfo.directMethods[i], DirectMethod);
+                    }
+                }
             }
 
             instanceFields = loadFields(classInfo);
@@ -745,7 +766,28 @@ public class ClassPath {
         }
 
         public boolean hasVirtualMethod(String method) {
-            return virtualMethodLookup.containsKey(method);
+            Integer val = methodLookup.get(method);
+            if (val == null || val < 0) {
+                return false;
+            }
+            return true;
+        }
+
+        public int getMethodType(String method) {
+            Integer val = methodLookup.get(method);
+            if (val == null) {
+                return -1;
+            }
+            if (val >= 0) {
+                return DeodexUtil.Virtual;
+            }
+            if (val == DirectMethod) {
+                return DeodexUtil.Direct;
+            }
+            if (val == StaticMethod) {
+                return DeodexUtil.Static;
+            }
+            throw new RuntimeException("Unexpected method type");
         }
 
         public FieldDef getInstanceField(int fieldOffset) {
@@ -1141,6 +1183,8 @@ public class ClassPath {
         public final boolean isInterface;
         public final String superclassType;
         public final String[] interfaces;
+        public final boolean[] staticMethods;
+        public final String[] directMethods;
         public final String[] virtualMethods;
         public final String[][] instanceFields;
 
@@ -1162,9 +1206,14 @@ public class ClassPath {
 
             ClassDataItem classDataItem = classDefItem.getClassData();
             if (classDataItem != null) {
+                boolean[][] _staticMethods = new boolean[1][];
+                directMethods = loadDirectMethods(classDataItem, _staticMethods);
+                staticMethods = _staticMethods[0];
                 virtualMethods = loadVirtualMethods(classDataItem);
                 instanceFields = loadInstanceFields(classDataItem);
             } else {
+                staticMethods = null;
+                directMethods = null;
                 virtualMethods = null;
                 instanceFields = null;
             }
@@ -1181,6 +1230,26 @@ public class ClassPath {
                     }
                     return interfaces;
                 }
+            }
+            return null;
+        }
+
+        private String[] loadDirectMethods(ClassDataItem classDataItem, boolean[][] _staticMethods) {
+            EncodedMethod[] encodedMethods = classDataItem.getDirectMethods();
+
+            if (encodedMethods != null && encodedMethods.length > 0) {
+                boolean[] staticMethods = new boolean[encodedMethods.length];
+                String[] directMethods = new String[encodedMethods.length];
+                for (int i=0; i<encodedMethods.length; i++) {
+                    EncodedMethod encodedMethod = encodedMethods[i];
+
+                    if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) != 0) {
+                        staticMethods[i] = true;
+                    }
+                    directMethods[i] = encodedMethods[i].method.getVirtualMethodString();
+                }
+                _staticMethods[0] = staticMethods;
+                return directMethods;
             }
             return null;
         }
