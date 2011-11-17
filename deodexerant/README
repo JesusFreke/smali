@@ -1,0 +1,26 @@
+usage:
+adb push deodexerant /data/local
+adb shell chmod +x /data/local/deodexerant
+adb shell /data/local/deodexerant > inline.txt
+
+deodexerant is a binary that runs on a device and dumps out dalvik's inline
+method table.
+
+This can be used in cases where a particular built of dalvik has a non-standard
+inline method table for whatever reason. The output from this tool is intended
+to be used with the -T option for baksmali
+
+deodexerant is intended to be build within the AOSP build system. Assuming
+you have $MYDROID set to the root of the AOSP source tree, and $SMALI
+set to the root of the smali source tree,
+
+1. mkdir -p $MYDROID/external/deodexerant
+2. cp -r $SMALI/deodexerant $MYDROID/dalvik/deodexerant
+3. cd $MYDROID
+3. source build/envsetup.sh
+4. lunch generic-eng
+5. make deodexerant
+
+If all goes well, you should now have a deodexerant binary at:
+
+$MYDROID/out/target/product/generic/system/bin/deodexerant
