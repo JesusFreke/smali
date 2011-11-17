@@ -51,7 +51,7 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchDa
 
         targets = new ArrayList<SparseSwitchTarget>();
         Iterator<SparseSwitchDataPseudoInstruction.SparseSwitchTarget> iterator = instruction.iterateKeysAndTargets();
-        if (baseCodeAddress != 0) {
+        if (baseCodeAddress >= 0) {
             while (iterator.hasNext()) {
                 SparseSwitchDataPseudoInstruction.SparseSwitchTarget target = iterator.next();
                 SparseSwitchLabelTarget sparseSwitchLabelTarget = new SparseSwitchLabelTarget();
