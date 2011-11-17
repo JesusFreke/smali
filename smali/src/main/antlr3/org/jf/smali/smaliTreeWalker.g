@@ -253,7 +253,7 @@ fields returns[List<ClassDataItem.EncodedField> staticFields, List<ClassDataItem
 	{
 		$staticFields = new LinkedList<ClassDataItem.EncodedField>();
 		$instanceFields = new LinkedList<ClassDataItem.EncodedField>();
-		$staticFieldInitialValues = new LinkedList<ClassDefItem.StaticFieldInitializer>();
+		$staticFieldInitialValues = new ArrayList<ClassDefItem.StaticFieldInitializer>();
 	}
 	:	^(I_FIELDS
 			(field
