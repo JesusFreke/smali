@@ -714,6 +714,10 @@ INSTRUCTION_FORMAT41c_FIELD
 INSTRUCTION_FORMAT51l
 	:	'const-wide';
 
+INSTRUCTION_FORMAT52c_TYPE
+	:	'instance-of/jumbo'
+	|	'new-array/jumbo';
+
 
 /**********************************************************
 * Types

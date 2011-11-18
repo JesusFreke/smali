@@ -136,6 +136,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeLiteral(writer);
                 return true;
             case Format22c:
+            case Format52c:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeFirstRegister(writer);

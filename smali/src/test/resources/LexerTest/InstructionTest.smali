@@ -240,3 +240,5 @@ sput-byte/jumbo
 sput-char/jumbo
 sput-short/jumbo
 const-wide
+instance-of/jumbo
+new-array/jumbo

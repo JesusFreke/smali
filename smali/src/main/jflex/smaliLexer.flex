@@ -575,6 +575,10 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "const-wide" {
         return newToken(INSTRUCTION_FORMAT51l);
     }
+
+    "instance-of/jumbo" | "new-array/jumbo" {
+        return newToken(INSTRUCTION_FORMAT52c_TYPE);
+    }
 }
 
 /*Types*/

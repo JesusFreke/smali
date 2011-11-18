@@ -62,6 +62,10 @@ public class Instruction22c extends InstructionWithReference implements TwoRegis
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        if(getReferencedItem().getIndex() > 0xFFFF) {
+            throw new RuntimeException(String.format("%s index is too large. Use the %s/jumbo instruction instead.", opcode.referenceType.name(), opcode.name));
+        }
+
         out.writeByte(opcode.value);
         out.writeByte((regB << 4) | regA);
         out.writeShort(getReferencedItem().getIndex());

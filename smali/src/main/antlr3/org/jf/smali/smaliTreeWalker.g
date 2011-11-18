@@ -1279,6 +1279,17 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			$instructions.add(new Instruction51l(opcode, regA, litB));
 		}
+	|	//e.g. instance-of/jumbo v0, v1, Ljava/lang/String;
+		^(I_STATEMENT_FORMAT52c_TYPE INSTRUCTION_FORMAT52c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT52c_TYPE.text);
+			int regA = parseRegister_short($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
+
+			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
+
+			$instructions.add(new Instruction52c(opcode, regA, regB, typeIdItem));
+		}
 	|	//e.g. .array-data 4 1000000 .end array-data
 		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
 		{

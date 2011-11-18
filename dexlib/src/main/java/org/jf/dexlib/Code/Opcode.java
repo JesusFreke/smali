@@ -284,7 +284,9 @@ public enum Opcode
 
     CONST_CLASS_JUMBO((short)0xff00, "const-class/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     CHECK_CAST_JUMBO((short)0xff01, "check-cast/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    INSTANCE_OF_JUMBO((short)0xff02, "instance-of/jumbo", ReferenceType.type, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     NEW_INSTANCE_JUMBO((short)0xff03, "new-instance/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    NEW_ARRAY_JUMBO((short)0xff04, "new-array/jumbo", ReferenceType.type, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
 
     SGET_JUMBO((short)0xff14, "sget/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     SGET_WIDE_JUMBO((short)0xff15, "sget-wide/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
