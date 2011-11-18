@@ -1290,6 +1290,17 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			$instructions.add(new Instruction52c(opcode, regA, regB, typeIdItem));
 		}
+	|	//e.g. iput-object/jumbo v1, v0, Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
+		^(I_STATEMENT_FORMAT52c_FIELD INSTRUCTION_FORMAT52c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT52c_FIELD.text);
+			int regA = parseRegister_short($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
+			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
+
+			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
+
+			$instructions.add(new Instruction52c(opcode, regA, regB, fieldIdItem));
+		}
 	|	//e.g. .array-data 4 1000000 .end array-data
 		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
 		{

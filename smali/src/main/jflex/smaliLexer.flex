@@ -579,6 +579,12 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "instance-of/jumbo" | "new-array/jumbo" {
         return newToken(INSTRUCTION_FORMAT52c_TYPE);
     }
+
+    "iget/jumbo" | "iget-wide/jumbo" | "iget-object/jumbo" | "iget-boolean/jumbo" | "iget-byte/jumbo" |
+    "iget-char/jumbo" | "iget-short/jumbo" | "iput/jumbo" | "iput-wide/jumbo" | "iput-object/jumbo" |
+    "iput-boolean/jumbo" | "iput-byte/jumbo" | "iput-char/jumbo" | "iput-short/jumbo" {
+        return newToken(INSTRUCTION_FORMAT52c_FIELD);
+    }
 }
 
 /*Types*/

@@ -718,6 +718,22 @@ INSTRUCTION_FORMAT52c_TYPE
 	:	'instance-of/jumbo'
 	|	'new-array/jumbo';
 
+INSTRUCTION_FORMAT52c_FIELD
+	:	'iget/jumbo'
+	|	'iget-wide/jumbo'
+	|	'iget-object/jumbo'
+	|	'iget-boolean/jumbo'
+	|	'iget-byte/jumbo'
+	|	'iget-char/jumbo'
+	|	'iget-short/jumbo'
+	|	'iput/jumbo'
+	|	'iput-wide/jumbo'
+	|	'iput-object/jumbo'
+	|	'iput-boolean/jumbo'
+	|	'iput-byte/jumbo'
+	|	'iput-char/jumbo'
+	|	'iput-short/jumbo';
+
 
 /**********************************************************
 * Types

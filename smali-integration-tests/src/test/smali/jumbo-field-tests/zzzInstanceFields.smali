@@ -27,15 +27,19 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-.class public LAllTests;
+.class public LzzzInstanceFields;
 .super Ljava/lang/Object;
 
-.annotation runtime Lorg/junit/runner/RunWith;
-    value = Lorg/junit/runners/Suite;
-.end annotation
+.method public constructor <init>()V
+    .registers 1
+    invoke-direct {v0}, Ljava/lang/Object;-><init>()V
+    return-void
+.end method
 
-.annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
-    value = {   LFormat41c;,
-                LFormat52c;
-            }
-.end annotation
+.field public field99999:I
+.field public field99999Wide:J
+.field public field99999Object:Ljava/lang/Object;
+.field public field99999Boolean:Z
+.field public field99999Byte:B
+.field public field99999Char:C
+.field public field99999Short:S

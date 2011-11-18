@@ -121,6 +121,7 @@ tokens {
 	I_STATEMENT_FORMAT41c_FIELD;
 	I_STATEMENT_FORMAT51l;
 	I_STATEMENT_FORMAT52c_TYPE;
+	I_STATEMENT_FORMAT52c_FIELD;
 	I_STATEMENT_ARRAY_DATA;
 	I_STATEMENT_PACKED_SWITCH;
 	I_STATEMENT_SPARSE_SWITCH;
@@ -849,6 +850,9 @@ instruction returns [int size]
 	|	//e.g. instance-of/jumbo v0, v1, Ljava/lang/String;
 		INSTRUCTION_FORMAT52c_TYPE REGISTER COMMA REGISTER COMMA nonvoid_type_descriptor {$size = Format.Format52c.size;}
 		-> ^(I_STATEMENT_FORMAT52c_TYPE[$start, "I_STATEMENT_FORMAT52c_TYPE"] INSTRUCTION_FORMAT52c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
+	|	//e.g. iput-object/jumbo v1, v0 Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
+		INSTRUCTION_FORMAT52c_FIELD REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format52c.size;}
+		-> ^(I_STATEMENT_FORMAT52c_FIELD[$start, "I_STATEMENT_FORMAT52c_FIELD"] INSTRUCTION_FORMAT52c_FIELD REGISTER REGISTER fully_qualified_field)
 	|
 		ARRAY_DATA_DIRECTIVE
 		{
