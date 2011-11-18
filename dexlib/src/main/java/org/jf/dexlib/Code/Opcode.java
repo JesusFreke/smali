@@ -60,18 +60,18 @@ public enum Opcode
     CONST_WIDE_32((short)0x17, "const-wide/32", ReferenceType.none, Format.Format31i, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
     CONST_WIDE((short)0x18, "const-wide", ReferenceType.none, Format.Format51l, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
     CONST_WIDE_HIGH16((short)0x19, "const-wide/high16", ReferenceType.none, Format.Format21h, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    CONST_STRING((short)0x1a, "const-string", ReferenceType.string, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    CONST_STRING((short)0x1a, "const-string", ReferenceType.string, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0x1b),
     CONST_STRING_JUMBO((short)0x1b, "const-string/jumbo", ReferenceType.string, Format.Format31c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    CONST_CLASS((short)0x1c, "const-class", ReferenceType.type, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    CONST_CLASS((short)0x1c, "const-class", ReferenceType.type, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff00),
     MONITOR_ENTER((short)0x1d, "monitor-enter", ReferenceType.none, Format.Format11x, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     MONITOR_EXIT((short)0x1e, "monitor-exit", ReferenceType.none, Format.Format11x, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    CHECK_CAST((short)0x1f, "check-cast", ReferenceType.type, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    INSTANCE_OF((short)0x20, "instance-of", ReferenceType.type, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    CHECK_CAST((short)0x1f, "check-cast", ReferenceType.type, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff01),
+    INSTANCE_OF((short)0x20, "instance-of", ReferenceType.type, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff02),
     ARRAY_LENGTH((short)0x21, "array-length", ReferenceType.none, Format.Format12x, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    NEW_INSTANCE((short)0x22, "new-instance", ReferenceType.type, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    NEW_ARRAY((short)0x23, "new-array", ReferenceType.type, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    NEW_INSTANCE((short)0x22, "new-instance", ReferenceType.type, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff03),
+    NEW_ARRAY((short)0x23, "new-array", ReferenceType.type, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff04),
     FILLED_NEW_ARRAY((short)0x24, "filled-new-array", ReferenceType.type, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    FILLED_NEW_ARRAY_RANGE((short)0x25, "filled-new-array/range", ReferenceType.type, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    FILLED_NEW_ARRAY_RANGE((short)0x25, "filled-new-array/range", ReferenceType.type, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff05),
     FILL_ARRAY_DATA((short)0x26, "fill-array-data", ReferenceType.none, Format.Format31t, Opcode.CAN_CONTINUE),
     THROW((short)0x27, "throw", ReferenceType.none, Format.Format11x, Opcode.CAN_THROW),
     GOTO((short)0x28, "goto", ReferenceType.none, Format.Format10t),
@@ -110,44 +110,44 @@ public enum Opcode
     APUT_BYTE((short)0x4f, "aput-byte", ReferenceType.none, Format.Format23x, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     APUT_CHAR((short)0x50, "aput-char", ReferenceType.none, Format.Format23x, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     APUT_SHORT((short)0x51, "aput-short", ReferenceType.none, Format.Format23x, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IGET((short)0x52, "iget", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_WIDE((short)0x53, "iget-wide", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    IGET_OBJECT((short)0x54, "iget-object", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_BOOLEAN((short)0x55, "iget-boolean", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_BYTE((short)0x56, "iget-byte", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_CHAR((short)0x57, "iget-char", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_SHORT((short)0x58, "iget-short", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IPUT((short)0x59, "iput", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_WIDE((short)0x5a, "iput-wide", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_OBJECT((short)0x5b, "iput-object", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_BOOLEAN((short)0x5c, "iput-boolean", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_BYTE((short)0x5d, "iput-byte", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_CHAR((short)0x5e, "iput-char", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_SHORT((short)0x5f, "iput-short", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SGET((short)0x60, "sget", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_WIDE((short)0x61, "sget-wide", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    SGET_OBJECT((short)0x62, "sget-object", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_BOOLEAN((short)0x63, "sget-boolean", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_BYTE((short)0x64, "sget-byte", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_CHAR((short)0x65, "sget-char", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_SHORT((short)0x66, "sget-short", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SPUT((short)0x67, "sput", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_WIDE((short)0x68, "sput-wide", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_OBJECT((short)0x69, "sput-object", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_BOOLEAN((short)0x6a, "sput-boolean", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_BYTE((short)0x6b, "sput-byte", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_CHAR((short)0x6c, "sput-char", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_SHORT((short)0x6d, "sput-short", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IGET((short)0x52, "iget", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff06),
+    IGET_WIDE((short)0x53, "iget-wide", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER, (short)0xff07),
+    IGET_OBJECT((short)0x54, "iget-object", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff08),
+    IGET_BOOLEAN((short)0x55, "iget-boolean", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff09),
+    IGET_BYTE((short)0x56, "iget-byte", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff0a),
+    IGET_CHAR((short)0x57, "iget-char", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff0b),
+    IGET_SHORT((short)0x58, "iget-short", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff0c),
+    IPUT((short)0x59, "iput", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff0d),
+    IPUT_WIDE((short)0x5a, "iput-wide", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff0e),
+    IPUT_OBJECT((short)0x5b, "iput-object", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff0f),
+    IPUT_BOOLEAN((short)0x5c, "iput-boolean", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff10),
+    IPUT_BYTE((short)0x5d, "iput-byte", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff11),
+    IPUT_CHAR((short)0x5e, "iput-char", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff12),
+    IPUT_SHORT((short)0x5f, "iput-short", ReferenceType.field, Format.Format22c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff13),
+    SGET((short)0x60, "sget", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff14),
+    SGET_WIDE((short)0x61, "sget-wide", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER, (short)0xff15),
+    SGET_OBJECT((short)0x62, "sget-object", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff16),
+    SGET_BOOLEAN((short)0x63, "sget-boolean", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff17),
+    SGET_BYTE((short)0x64, "sget-byte", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff18),
+    SGET_CHAR((short)0x65, "sget-char", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff19),
+    SGET_SHORT((short)0x66, "sget-short", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER, (short)0xff1a),
+    SPUT((short)0x67, "sput", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff1b),
+    SPUT_WIDE((short)0x68, "sput-wide", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff1c),
+    SPUT_OBJECT((short)0x69, "sput-object", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff1d),
+    SPUT_BOOLEAN((short)0x6a, "sput-boolean", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff1e),
+    SPUT_BYTE((short)0x6b, "sput-byte", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff1f),
+    SPUT_CHAR((short)0x6c, "sput-char", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff20),
+    SPUT_SHORT((short)0x6d, "sput-short", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff21),
     INVOKE_VIRTUAL((short)0x6e, "invoke-virtual", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_SUPER((short)0x6f, "invoke-super", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_DIRECT((short)0x70, "invoke-direct", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_STATIC((short)0x71, "invoke-static", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_INTERFACE((short)0x72, "invoke-interface", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_VIRTUAL_RANGE((short)0x74, "invoke-virtual/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_SUPER_RANGE((short)0x75, "invoke-super/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_DIRECT_RANGE((short)0x76, "invoke-direct/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_STATIC_RANGE((short)0x77, "invoke-static/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_INTERFACE_RANGE((short)0x78, "invoke-interface/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_VIRTUAL_RANGE((short)0x74, "invoke-virtual/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff22),
+    INVOKE_SUPER_RANGE((short)0x75, "invoke-super/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff23),
+    INVOKE_DIRECT_RANGE((short)0x76, "invoke-direct/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff24),
+    INVOKE_STATIC_RANGE((short)0x77, "invoke-static/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff25),
+    INVOKE_INTERFACE_RANGE((short)0x78, "invoke-interface/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff26),
     NEG_INT((short)0x7b, "neg-int", ReferenceType.none, Format.Format12x, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     NOT_INT((short)0x7c, "not-int", ReferenceType.none, Format.Format12x, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     NEG_LONG((short)0x7d, "neg-long", ReferenceType.none, Format.Format12x, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
@@ -379,17 +379,23 @@ public enum Opcode
     public final ReferenceType referenceType;
     public final Format format;
     public final int flags;
+    private final short jumboOpcode;
 
     Opcode(short opcodeValue, String opcodeName, ReferenceType referenceType, Format format) {
         this(opcodeValue, opcodeName, referenceType, format, 0);
     }
 
     Opcode(short opcodeValue, String opcodeName, ReferenceType referenceType, Format format, int flags) {
+        this(opcodeValue, opcodeName, referenceType, format, flags, (short)-1);
+    }
+
+    Opcode(short opcodeValue, String opcodeName, ReferenceType referenceType, Format format, int flags, short jumboOpcodeValue) {
         this.value = opcodeValue;
         this.name = opcodeName;
         this.referenceType = referenceType;
         this.format = format;
         this.flags = flags;
+        this.jumboOpcode = jumboOpcodeValue;
     }
 
     public final boolean canThrow() {
@@ -426,5 +432,13 @@ public enum Opcode
 
     public final boolean isOdexedStaticVolatile() {
         return (flags & ODEXED_STATIC_VOLATILE) != 0;
+    }
+
+    public final boolean hasJumboOpcode() {
+        return jumboOpcode != -1;
+    }
+
+    public final Opcode getJumboOpcode() {
+        return Opcode.getOpcodeByValue(jumboOpcode);
     }
 }

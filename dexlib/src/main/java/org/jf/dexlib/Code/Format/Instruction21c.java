@@ -37,7 +37,8 @@ import org.jf.dexlib.Item;
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Util.AnnotatedOutput;
 
-public class Instruction21c extends InstructionWithReference implements SingleRegisterInstruction {
+public class Instruction21c extends InstructionWithReference implements SingleRegisterInstruction,
+        InstructionWithJumboVariant {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
 
@@ -86,6 +87,19 @@ public class Instruction21c extends InstructionWithReference implements SingleRe
 
     public int getRegisterA() {
         return regA & 0xFF;
+    }
+
+    public Instruction makeJumbo() {
+        Opcode jumboOpcode = opcode.getJumboOpcode();
+        if (jumboOpcode == null) {
+            return null;
+        }
+
+        if (jumboOpcode.format == Format.Format31c) {
+            return new Instruction31c(jumboOpcode, (short)getRegisterA(), getReferencedItem());
+        }
+
+        return new Instruction41c(jumboOpcode, getRegisterA(), getReferencedItem());
     }
 
     private static class Factory implements Instruction.InstructionFactory {

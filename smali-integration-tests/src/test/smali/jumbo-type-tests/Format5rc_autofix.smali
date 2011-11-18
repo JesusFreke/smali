@@ -27,17 +27,60 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-.class public LAllTests;
+.class public LFormat5rc_autofix;
 .super Ljava/lang/Object;
+.source "Format5rc_autofix.smali"
 
-.annotation runtime Lorg/junit/runner/RunWith;
-    value = Lorg/junit/runners/Suite;
-.end annotation
+.method public constructor <init>()V
+    .registers 1
+    invoke-direct/range {p0}, Ljava/lang/Object;-><init>()V
+    return-void
+.end method
 
-.annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
-    value = {   LFormat41c;,
-                LFormat41c_autofix;,
-                LFormat52c;,
-                LFormat52c_autofix;
-            }
-.end annotation
+.method public test_filled-new-array-range()V
+    .registers 6
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
+
+    const v0, 1
+    const v1, 2
+    const v2, 3
+    const v3, 4
+    const v4, 5
+    const v5, 6
+
+    filled-new-array/range {v0 .. v5}, [I
+    move-result-object v0
+
+    const v1, 0
+    aget v2, v0, v1
+    const v1, 1
+    invoke-static {v1, v2}, LAssert;->assertEquals(II)V
+
+    const v1, 1
+    aget v2, v0, v1
+    const v1, 2
+    invoke-static {v1, v2}, LAssert;->assertEquals(II)V
+
+    const v1, 2
+    aget v2, v0, v1
+    const v1, 3
+    invoke-static {v1, v2}, LAssert;->assertEquals(II)V
+
+    const v1, 3
+    aget v2, v0, v1
+    const v1, 4
+    invoke-static {v1, v2}, LAssert;->assertEquals(II)V
+
+    const v1, 4
+    aget v2, v0, v1
+    const v1, 5
+    invoke-static {v1, v2}, LAssert;->assertEquals(II)V
+
+    const v1, 5
+    aget v2, v0, v1
+    const v1, 6
+    invoke-static {v1, v2}, LAssert;->assertEquals(II)V
+
+    return-void
+.end method

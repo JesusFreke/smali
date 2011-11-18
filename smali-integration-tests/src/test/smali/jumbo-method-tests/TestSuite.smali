@@ -35,5 +35,6 @@
 .end annotation
 
 .annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
-    value = {   LFormat5rc; }
+    value = {   LFormat5rc;,
+                LFormat5rc_autofix;}
 .end annotation

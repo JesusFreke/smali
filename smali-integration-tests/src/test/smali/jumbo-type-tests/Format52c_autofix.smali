@@ -25,19 +25,65 @@
 #DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 #THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-#OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
-.class public LAllTests;
+.class public LFormat52c_autofix;
 .super Ljava/lang/Object;
+.source "Format52c_autofix.smali"
 
-.annotation runtime Lorg/junit/runner/RunWith;
-    value = Lorg/junit/runners/Suite;
-.end annotation
+.method public constructor <init>()V
+    .registers 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+    return-void
+.end method
 
-.annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
-    value = {   LFormat41c;,
-                LFormat41c_autofix;,
-                LFormat52c;,
-                LFormat52c_autofix;
-            }
-.end annotation
+.method public test-instance-of-jumbo-success()V
+    .registers 2
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
+
+    const-string v0, "test"
+
+    new-instance v1, LStringWrapper;
+    invoke-direct {v1, v0}, LStringWrapper;-><init>(Ljava/lang/String;)V
+
+    instance-of v0, v1, Ljava/lang/Object;
+
+    const v1, 1
+
+    invoke-static/range {v0 .. v1}, LAssert;->assertEquals(II)V
+    return-void
+.end method
+
+.method public test-instance-of-jumbo-failure()V
+    .registers 2
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
+
+    const-string v0, "test"
+
+    new-instance v1, LStringWrapper;
+    invoke-direct {v1, v0}, LStringWrapper;-><init>(Ljava/lang/String;)V
+
+    instance-of v0, v1, Lzzz99999;
+
+    const v1, 0
+
+    invoke-static/range {v0 .. v1}, LAssert;->assertEquals(II)V
+    return-void
+.end method
+
+.method public test-new-array-jumbo()V
+    .registers 3
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
+
+    const v0, 1
+
+    new-array v1, v0, [Lzzz99999;
+
+    array-length v2, v1
+
+    invoke-static {v0, v2}, LAssert;->assertEquals(II)V
+    return-void
+.end method

@@ -36,7 +36,10 @@
 
 .annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
     value = {   LFormat41c;,
+                LFormat41c_autofix;,
                 LFormat52c;,
-                LFormat5rc;
+                LFormat52c_autofix;,
+                LFormat5rc;,
+                LFormat5rc_autofix;
             }
 .end annotation

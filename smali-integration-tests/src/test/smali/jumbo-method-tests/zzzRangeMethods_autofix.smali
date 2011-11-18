@@ -27,17 +27,48 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-.class public LAllTests;
-.super Ljava/lang/Object;
+.class public LzzzRangeMethods_autofix;
+.super LzzzRangeMethodsSuper_autofix;
+.implements LzzzRangeMethodsInterface_autofix;
 
-.annotation runtime Lorg/junit/runner/RunWith;
-    value = Lorg/junit/runners/Suite;
-.end annotation
+.method public constructor <init>()V
+    .registers 1
+    invoke-direct/range {p0}, LzzzRangeMethodsSuper_autofix;-><init>()V
+    return-void
+.end method
 
-.annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
-    value = {   LFormat41c;,
-                LFormat41c_autofix;,
-                LFormat52c;,
-                LFormat52c_autofix;
-            }
-.end annotation
+.method public virtualMethodTest(IIIIII)I
+    .registers 7
+
+    add-int v0, v1, v2
+    add-int v0, v0, v3
+    add-int v0, v0, v4
+    add-int v0, v0, v5
+    add-int v0, v0, v6
+
+    return v0
+.end method
+
+.method public static staticMethodTest(IIIIII)I
+    .registers 7
+
+    add-int v0, v1, v2
+    add-int v0, v0, v3
+    add-int v0, v0, v4
+    add-int v0, v0, v5
+    add-int v0, v0, v6
+
+    return v0
+.end method
+
+.method public interfaceMethodTest(IIIIII)I
+    .registers 7
+
+    add-int v0, v1, v2
+    add-int v0, v0, v3
+    add-int v0, v0, v4
+    add-int v0, v0, v5
+    add-int v0, v0, v6
+
+    return v0
+.end method

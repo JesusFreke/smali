@@ -100,7 +100,7 @@ public class main {
 
         boolean allowOdex = false;
         boolean sort = false;
-        boolean fixStringConst = true;
+        boolean fixJumbo = true;
         boolean fixGoto = true;
         boolean verboseErrors = false;
         boolean oldLexer = false;
@@ -142,8 +142,8 @@ public class main {
                 case 'S':
                     sort = true;
                     break;
-                case 'C':
-                    fixStringConst = false;
+                case 'J':
+                    fixJumbo = false;
                     break;
                 case 'G':
                     fixGoto = false;
@@ -203,8 +203,8 @@ public class main {
                 dexFile.setSortAllItems(true);
             }
 
-            if (fixStringConst || fixGoto) {
-                fixInstructions(dexFile, fixStringConst, fixGoto);
+            if (fixJumbo || fixGoto) {
+                fixInstructions(dexFile, fixJumbo, fixGoto);
             }
 
             dexFile.place();
@@ -255,13 +255,11 @@ public class main {
         }
     }
 
-    private static void fixInstructions(DexFile dexFile, boolean fixStringConst, boolean fixGoto) {
+    private static void fixInstructions(DexFile dexFile, boolean fixJumbo, boolean fixGoto) {
         dexFile.place();
 
-        byte[] newInsns = null;
-
         for (CodeItem codeItem: dexFile.CodeItemsSection.getItems()) {
-            codeItem.fixInstructions(fixStringConst, fixGoto);
+            codeItem.fixInstructions(fixJumbo, fixGoto);
         }
     }
 
@@ -395,9 +393,9 @@ public class main {
                 .withDescription("sort the items in the dex file into a canonical order before writing")
                 .create("S");
 
-        Option noFixStringConstOption = OptionBuilder.withLongOpt("no-fix-string-const")
-                .withDescription("Don't replace string-const instructions with string-const/jumbo where appropriate")
-                .create("C");
+        Option noFixJumboOption = OptionBuilder.withLongOpt("no-fix-jumbo")
+                .withDescription("Don't automatically instructions with the /jumbo variant where appropriate")
+                .create("J");
 
         Option noFixGotoOption = OptionBuilder.withLongOpt("no-fix-goto")
                 .withDescription("Don't replace goto type instructions with a larger version where appropriate")
@@ -422,7 +420,7 @@ public class main {
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(sortOption);
-        debugOptions.addOption(noFixStringConstOption);
+        debugOptions.addOption(noFixJumboOption);
         debugOptions.addOption(noFixGotoOption);
         debugOptions.addOption(verboseErrorsOption);
         debugOptions.addOption(oldLexerOption);
