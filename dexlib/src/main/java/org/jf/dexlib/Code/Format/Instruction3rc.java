@@ -79,6 +79,10 @@ public class Instruction3rc extends InstructionWithReference implements Register
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        if(getReferencedItem().getIndex() > 0xFFFF) {
+            throw new RuntimeException(String.format("%s index is too large. Use the jumbo variant of the instruction instead.", opcode.referenceType.name()));
+        }
+
         out.writeByte(opcode.value);
         out.writeByte(regCount);
         out.writeShort(this.getReferencedItem().getIndex());
@@ -89,7 +93,7 @@ public class Instruction3rc extends InstructionWithReference implements Register
         return Format.Format3rc;
     }
 
-    public short getRegCount() {
+    public int getRegCount() {
         return (short)(regCount & 0xFF);
     }
 

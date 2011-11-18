@@ -105,7 +105,7 @@ public class Instruction35s extends InstructionWithReference implements FiveRegi
         return Format.Format35s;
     }
 
-    public short getRegCount() {
+    public int getRegCount() {
         return regCount;
     }
 

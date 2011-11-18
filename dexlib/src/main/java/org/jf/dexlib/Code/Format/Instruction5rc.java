@@ -31,22 +31,29 @@
 
 package org.jf.dexlib.Code.Format;
 
-import org.jf.dexlib.Code.*;
+import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.InstructionWithReference;
+import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.RegisterRangeInstruction;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.Item;
+import org.jf.dexlib.MethodIdItem;
+import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.NumberUtils;
 
-public class Instruction3rmi extends Instruction implements RegisterRangeInstruction, OdexedInvokeInline {
- public static final InstructionFactory Factory = new Factory();
-    private byte regCount;
+import static org.jf.dexlib.Code.Opcode.*;
+
+public class Instruction5rc extends InstructionWithJumboReference implements RegisterRangeInstruction {
+    public static final InstructionFactory Factory = new Factory();
+    private short regCount;
     private short startReg;
-    private short inlineIndex;
 
-    public Instruction3rmi(Opcode opcode, short regCount, int startReg, int inlineIndex) {
-        super(opcode);
+    public Instruction5rc(Opcode opcode, int regCount, int startReg, Item referencedItem) {
+        super(opcode, referencedItem);
 
-        if (regCount >= 1 << 8) {
-            throw new RuntimeException("regCount must be less than 256");
+        if (regCount >= 1 << 16) {
+            throw new RuntimeException("regCount must be less than 65536");
         }
         if (regCount < 0) {
             throw new RuntimeException("regCount cannot be negative");
@@ -59,49 +66,67 @@ public class Instruction3rmi extends Instruction implements RegisterRangeInstruc
             throw new RuntimeException("The beginning register of the range cannot be negative");
         }
 
-        if (inlineIndex >= 1 << 16) {
-            throw new RuntimeException("The method index must be less than 65536");
-        }
-
-        this.regCount = (byte)regCount;
+        this.regCount = (short)regCount;
         this.startReg = (short)startReg;
-        this.inlineIndex = (short)inlineIndex;
+
+        checkItem(opcode, referencedItem, regCount);
     }
 
-    private Instruction3rmi(Opcode opcode, byte[] buffer, int bufferIndex) {
-        super(opcode);
+    private Instruction5rc(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
+        super(dexFile, opcode, buffer, bufferIndex);
 
-        this.regCount = (byte)NumberUtils.decodeUnsignedByte(buffer[bufferIndex + 1]);
-        this.inlineIndex = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 2);
-        this.startReg = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 4);
+        this.regCount = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 6);
+        this.startReg = (short)NumberUtils.decodeUnsignedShort(buffer, bufferIndex + 8);
+
+        checkItem(opcode, getReferencedItem(), getRegCount());
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        out.writeByte(0xff);
         out.writeByte(opcode.value);
-        out.writeByte(regCount);
-        out.writeShort(inlineIndex);
+        out.writeInt(this.getReferencedItem().getIndex());
+        out.writeShort(regCount);
         out.writeShort(startReg);
     }
 
     public Format getFormat() {
-        return Format.Format3rms;
+        return Format.Format5rc;
     }
 
     public int getRegCount() {
-        return (short)(regCount & 0xFF);
+        return regCount & 0xFFFF;
     }
 
     public int getStartRegister() {
         return startReg & 0xFFFF;
     }
 
-    public int getInlineIndex() {
-        return inlineIndex & 0xFFFF;
+    private static void checkItem(Opcode opcode, Item item, int regCount) {
+        if (opcode == FILLED_NEW_ARRAY_JUMBO) {
+            //check data for filled-new-array/jumbo opcode
+            String type = ((TypeIdItem) item).getTypeDescriptor();
+            if (type.charAt(0) != '[') {
+                throw new RuntimeException("The type must be an array type");
+            }
+            if (type.charAt(1) == 'J' || type.charAt(1) == 'D') {
+                throw new RuntimeException("The type cannot be an array of longs or doubles");
+            }
+        } else if (opcode.value >= INVOKE_VIRTUAL_JUMBO.value && opcode.value <= INVOKE_INTERFACE_JUMBO.value) {
+            //check data for invoke-*/range opcodes
+            MethodIdItem methodIdItem = (MethodIdItem) item;
+            int parameterRegisterCount = methodIdItem.getPrototype().getParameterRegisterCount();
+            if (opcode != INVOKE_STATIC_JUMBO) {
+                parameterRegisterCount++;
+            }
+            if (parameterRegisterCount != regCount) {
+                throw new RuntimeException("regCount does not match the number of arguments of the method");
+            }
+        }
     }
 
     private static class Factory implements InstructionFactory {
         public Instruction makeInstruction(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
-            return new Instruction3rmi(opcode, buffer, bufferIndex);
+            return new Instruction5rc(dexFile, opcode, buffer, bufferIndex);
         }
     }
 }

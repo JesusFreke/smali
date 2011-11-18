@@ -29,5 +29,5 @@
 package org.jf.dexlib.Code;
 
 public interface InvokeInstruction {
-    short getRegCount();
+    int getRegCount();
 }

@@ -1303,6 +1303,34 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			$instructions.add(new Instruction52c(opcode, regA, regB, fieldIdItem));
 		}
+	|	//e.g. invoke-virtual/jumbo {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+		^(I_STATEMENT_FORMAT5rc_METHOD INSTRUCTION_FORMAT5rc_METHOD register_range[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT5rc_METHOD.text);
+			int startRegister = $register_range.startRegister;
+			int endRegister = $register_range.endRegister;
+
+			int registerCount = endRegister-startRegister+1;
+			$outRegisters = registerCount;
+
+			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
+
+			$instructions.add(new Instruction5rc(opcode, registerCount, startRegister, methodIdItem));
+		}
+	|	//e.g. filled-new-array/jumbo {v0..v6} I
+		^(I_STATEMENT_FORMAT5rc_TYPE INSTRUCTION_FORMAT5rc_TYPE register_range[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
+		{
+			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT5rc_TYPE.text);
+			int startRegister = $register_range.startRegister;
+			int endRegister = $register_range.endRegister;
+
+			int registerCount = endRegister-startRegister+1;
+			$outRegisters = registerCount;
+
+			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
+
+			$instructions.add(new Instruction5rc(opcode, registerCount, startRegister, typeIdItem));
+		}
 	|	//e.g. .array-data 4 1000000 .end array-data
 		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
 		{

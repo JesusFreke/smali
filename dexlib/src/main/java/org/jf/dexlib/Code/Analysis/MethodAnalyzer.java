@@ -3402,7 +3402,7 @@ public class MethodAnalyzer {
                 assert false;
         }
 
-        Instruction3rc deodexedInstruction = new Instruction3rc(deodexedOpcode, instruction.getRegCount(),
+        Instruction3rc deodexedInstruction = new Instruction3rc(deodexedOpcode, (short)instruction.getRegCount(),
                 instruction.getStartRegister(), inlineMethodIdItem);
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
@@ -3511,7 +3511,7 @@ public class MethodAnalyzer {
                 opcode = Opcode.INVOKE_VIRTUAL_RANGE;
             }
 
-            deodexedInstruction = new Instruction3rc(opcode, instruction.getRegCount(),
+            deodexedInstruction = new Instruction3rc(opcode, (short)instruction.getRegCount(),
                     instruction.getStartRegister(), methodIdItem);
         } else {
             Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;

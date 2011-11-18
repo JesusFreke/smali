@@ -64,6 +64,7 @@ public enum Format {
     Format41c(Instruction41c.Factory, 8),
     Format51l(Instruction51l.Factory, 10),
     Format52c(Instruction52c.Factory, 10),
+    Format5rc(Instruction5rc.Factory, 10),
     ArrayData(null, -1, true),
     PackedSwitchData(null, -1, true),
     SparseSwitchData(null, -1, true),

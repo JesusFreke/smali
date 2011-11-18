@@ -218,6 +218,7 @@ invoke-virtual/range
 invoke-super/range
 invoke-direct/range
 invoke-static/range
+invoke-interface/range
 filled-new-array/range
 execute-inline/range
 invoke-virtual-quick/range
@@ -256,3 +257,9 @@ iput-boolean/jumbo
 iput-byte/jumbo
 iput-char/jumbo
 iput-short/jumbo
+invoke-virtual/jumbo
+invoke-super/jumbo
+invoke-direct/jumbo
+invoke-static/jumbo
+invoke-interface/jumbo
+filled-new-array/jumbo

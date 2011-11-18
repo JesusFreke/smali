@@ -94,6 +94,10 @@ public class Instruction35c extends InstructionWithReference implements FiveRegi
     }
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
+        if(getReferencedItem().getIndex() > 0xFFFF) {
+            throw new RuntimeException(String.format("%s index is too large. Use the %s/jumbo instruction instead.", opcode.referenceType.name(), opcode.name));
+        }
+
         out.writeByte(opcode.value);
         out.writeByte((regCount << 4) | regA);
         out.writeShort(getReferencedItem().getIndex());
@@ -105,7 +109,7 @@ public class Instruction35c extends InstructionWithReference implements FiveRegi
         return Format.Format35c;
     }
 
-    public short getRegCount() {
+    public int getRegCount() {
         return regCount;
     }
 

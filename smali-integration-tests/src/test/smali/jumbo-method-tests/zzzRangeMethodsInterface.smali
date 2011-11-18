@@ -27,16 +27,8 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-.class public LAllTests;
+.class public abstract interface LzzzRangeMethodsInterface;
 .super Ljava/lang/Object;
 
-.annotation runtime Lorg/junit/runner/RunWith;
-    value = Lorg/junit/runners/Suite;
-.end annotation
-
-.annotation runtime Lorg/junit/runners/Suite$SuiteClasses;
-    value = {   LFormat41c;,
-                LFormat52c;,
-                LFormat5rc;
-            }
-.end annotation
+.method public abstract interfaceMethodTest(IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII)I
+.end method

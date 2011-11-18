@@ -122,6 +122,8 @@ tokens {
 	I_STATEMENT_FORMAT51l;
 	I_STATEMENT_FORMAT52c_TYPE;
 	I_STATEMENT_FORMAT52c_FIELD;
+	I_STATEMENT_FORMAT5rc_METHOD;
+	I_STATEMENT_FORMAT5rc_TYPE;
 	I_STATEMENT_ARRAY_DATA;
 	I_STATEMENT_PACKED_SWITCH;
 	I_STATEMENT_SPARSE_SWITCH;
@@ -853,6 +855,12 @@ instruction returns [int size]
 	|	//e.g. iput-object/jumbo v1, v0 Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
 		INSTRUCTION_FORMAT52c_FIELD REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format52c.size;}
 		-> ^(I_STATEMENT_FORMAT52c_FIELD[$start, "I_STATEMENT_FORMAT52c_FIELD"] INSTRUCTION_FORMAT52c_FIELD REGISTER REGISTER fully_qualified_field)
+	|	//e.g. invoke-virtual/jumbo {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+		INSTRUCTION_FORMAT5rc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format5rc.size;}
+		-> ^(I_STATEMENT_FORMAT5rc_METHOD[$start, "I_STATEMENT_FORMAT5rc_METHOD"] INSTRUCTION_FORMAT5rc_METHOD register_range fully_qualified_method)
+	|	//e.g. filled-new-array/jumbo {v0..v6}, I
+		INSTRUCTION_FORMAT5rc_TYPE OPEN_BRACE register_range CLOSE_BRACE COMMA nonvoid_type_descriptor {$size = Format.Format5rc.size;}
+		-> ^(I_STATEMENT_FORMAT5rc_TYPE[$start, "I_STATEMENT_FORMAT5rc_TYPE"] INSTRUCTION_FORMAT5rc_TYPE register_range nonvoid_type_descriptor)
 	|
 		ARRAY_DATA_DIRECTIVE
 		{

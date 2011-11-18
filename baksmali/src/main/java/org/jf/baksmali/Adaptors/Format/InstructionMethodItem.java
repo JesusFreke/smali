@@ -202,6 +202,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeVtableIndex(writer);
                 return true;
             case Format3rc:
+            case Format5rc:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeInvokeRangeRegisters(writer);

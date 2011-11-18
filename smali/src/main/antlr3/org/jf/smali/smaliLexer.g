@@ -734,6 +734,16 @@ INSTRUCTION_FORMAT52c_FIELD
 	|	'iput-char/jumbo'
 	|	'iput-short/jumbo';
 
+INSTRUCTION_FORMAT5rc_METHOD
+	:	'invoke-virtual/jumbo'
+	|	'invoke-super/jumbo'
+	|	'invoke-direct/jumbo'
+	|	'invoke-static/jumbo'
+	|	'invoke-interface/jumbo';
+
+INSTRUCTION_FORMAT5rc_TYPE
+	:	'filled-new-array/jumbo';
+
 
 /**********************************************************
 * Types

@@ -585,6 +585,15 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "iput-boolean/jumbo" | "iput-byte/jumbo" | "iput-char/jumbo" | "iput-short/jumbo" {
         return newToken(INSTRUCTION_FORMAT52c_FIELD);
     }
+
+    "invoke-virtual/jumbo" | "invoke-super/jumbo" | "invoke-direct/jumbo" | "invoke-static/jumbo" |
+    "invoke-interface/jumbo" {
+        return newToken(INSTRUCTION_FORMAT5rc_METHOD);
+    }
+
+    "filled-new-array/jumbo" {
+        return newToken(INSTRUCTION_FORMAT5rc_TYPE);
+    }
 }
 
 /*Types*/
