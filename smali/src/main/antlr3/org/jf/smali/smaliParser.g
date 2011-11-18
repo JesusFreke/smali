@@ -603,7 +603,7 @@ register_list
 	|	->^(I_REGISTER_LIST[$start, "I_REGISTER_LIST"]);
 
 register_range
-	:	REGISTER (DOTDOT REGISTER)? -> ^(I_REGISTER_RANGE[$start, "I_REGISTER_RANGE"] REGISTER REGISTER?);
+	:	(startreg=REGISTER (DOTDOT endreg=REGISTER)?)? -> ^(I_REGISTER_RANGE[$start, "I_REGISTER_RANGE"] $startreg? $endreg?);
 
 verification_error_reference
 	:	CLASS_DESCRIPTOR | fully_qualified_field | fully_qualified_method;

@@ -895,22 +895,24 @@ register_list[int totalMethodRegisters, int methodParameterRegisters] returns[by
 			})*);
 
 register_range[int totalMethodRegisters, int methodParameterRegisters] returns[int startRegister, int endRegister]
-	:	^(I_REGISTER_RANGE startReg=REGISTER endReg=REGISTER?)
+	:	^(I_REGISTER_RANGE (startReg=REGISTER endReg=REGISTER?)?)
 		{
-			$startRegister  = parseRegister_short($startReg.text, $totalMethodRegisters, $methodParameterRegisters);
-			if ($endReg == null) {
-				$endRegister = $startRegister;
-			} else {
-				$endRegister = parseRegister_short($endReg.text, $totalMethodRegisters, $methodParameterRegisters);
-			}
+		    if ($startReg == null) {
+		        $startRegister = 0;
+		        $endRegister = -1;
+		    } else {
+                $startRegister  = parseRegister_short($startReg.text, $totalMethodRegisters, $methodParameterRegisters);
+                if ($endReg == null) {
+                    $endRegister = $startRegister;
+                } else {
+                    $endRegister = parseRegister_short($endReg.text, $totalMethodRegisters, $methodParameterRegisters);
+                }
 
-			int registerCount = $endRegister-$startRegister+1;
-			if (registerCount > 256) {
-				throw new SemanticException(input, $I_REGISTER_RANGE, "A register range can span a maximum of 256 registers");
-			}
-			if (registerCount < 1) {
-				throw new SemanticException(input, $I_REGISTER_RANGE, "A register range must have the lower register listed first");
-			}
+                int registerCount = $endRegister-$startRegister+1;
+                if (registerCount < 1) {
+                    throw new SemanticException(input, $I_REGISTER_RANGE, "A register range must have the lower register listed first");
+                }
+            }
 		}
 	;
 
