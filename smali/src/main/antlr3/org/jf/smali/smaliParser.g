@@ -827,6 +827,11 @@ instruction returns [int size]
 	|	//e.g. invoke-virtual/range {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
+	|	//e.g. invoke-object-init/range {p0}, Ljava/lang/Object;-><init>()V
+		INSTRUCTION_FORMAT3rc_METHOD_ODEX OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method
+		{
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rc_METHOD_ODEX.text);
+		}
 	|	//e.g. filled-new-array/range {v0..v6}, I
 		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACE register_range CLOSE_BRACE COMMA nonvoid_type_descriptor {$size = Format.Format3rc.size;}
 		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)

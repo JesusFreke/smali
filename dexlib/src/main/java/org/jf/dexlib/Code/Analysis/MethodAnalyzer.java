@@ -1069,6 +1069,9 @@ public class MethodAnalyzer {
             case INVOKE_DIRECT_EMPTY:
                 analyzeInvokeDirectEmpty(analyzedInstruction);
                 return true;
+            case INVOKE_OBJECT_INIT_RANGE:
+                analyzeInvokeObjectInitRange(analyzedInstruction);
+                return true;
             case IGET_QUICK:
             case IGET_WIDE_QUICK:
             case IGET_OBJECT_QUICK:
@@ -1568,6 +1571,7 @@ public class MethodAnalyzer {
             case EXECUTE_INLINE:
             case EXECUTE_INLINE_RANGE:
             case INVOKE_DIRECT_EMPTY:
+            case INVOKE_OBJECT_INIT_RANGE:
             case IGET_QUICK:
             case IGET_WIDE_QUICK:
             case IGET_OBJECT_QUICK:
@@ -3464,6 +3468,17 @@ public class MethodAnalyzer {
         Instruction35c deodexedInstruction = new Instruction35c(Opcode.INVOKE_DIRECT, instruction.getRegCount(),
                 instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),
                 instruction.getRegisterG(), instruction.getRegisterA(), instruction.getReferencedItem());
+
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+
+        analyzeInstruction(analyzedInstruction);
+    }
+
+    private void analyzeInvokeObjectInitRange(AnalyzedInstruction analyzedInstruction) {
+        Instruction3rc instruction = (Instruction3rc)analyzedInstruction.instruction;
+
+        Instruction3rc deodexedInstruction = new Instruction3rc(Opcode.INVOKE_DIRECT_RANGE,
+                (short)instruction.getRegCount(), instruction.getStartRegister(), instruction.getReferencedItem());
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
 

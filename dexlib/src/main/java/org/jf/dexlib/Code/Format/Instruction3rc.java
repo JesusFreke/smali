@@ -117,7 +117,8 @@ public class Instruction3rc extends InstructionWithReference implements Register
             if (type.charAt(1) == 'J' || type.charAt(1) == 'D') {
                 throw new RuntimeException("The type cannot be an array of longs or doubles");
             }
-        } else if (opcode.value >= INVOKE_VIRTUAL_RANGE.value && opcode.value <= INVOKE_INTERFACE_RANGE.value) {
+        } else if (opcode.value >= INVOKE_VIRTUAL_RANGE.value && opcode.value <= INVOKE_INTERFACE_RANGE.value ||
+                opcode == INVOKE_OBJECT_INIT_RANGE) {
             //check data for invoke-*/range opcodes
             MethodIdItem methodIdItem = (MethodIdItem) item;
             int parameterRegisterCount = methodIdItem.getPrototype().getParameterRegisterCount();

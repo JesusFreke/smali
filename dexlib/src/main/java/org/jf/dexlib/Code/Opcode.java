@@ -267,6 +267,7 @@ public enum Opcode
     EXECUTE_INLINE((short)0xee, "execute-inline", ReferenceType.none,  Format.Format35mi, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     EXECUTE_INLINE_RANGE((short)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rmi,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_DIRECT_EMPTY((short)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35s, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_OBJECT_INIT_RANGE((short)0xf0, "invoke-object-init/range", ReferenceType.method,  Format.Format3rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     IGET_QUICK((short)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     IGET_WIDE_QUICK((short)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
     IGET_OBJECT_QUICK((short)0xf4, "iget-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
@@ -351,13 +352,16 @@ public enum Opcode
         opcodesByName = new HashMap<Integer, Opcode>();
 
         for (Opcode opcode: Opcode.values()) {
-            if (((opcode.value >> 8) & 0xFF) == 0x00) {
-                opcodesByValue[opcode.value & 0xFF] = opcode;
-            } else {
-                assert ((opcode.value >> 8) & 0xFF) == 0xFF;
-                expandedOpcodesByValue[opcode.value & 0xFF] = opcode;
+            //INVOKE_DIRECT_EMPTY was changed to INVOKE_OBJECT_INIT_RANGE in ICS
+            if (opcode != INVOKE_DIRECT_EMPTY) {
+                if (((opcode.value >> 8) & 0xFF) == 0x00) {
+                    opcodesByValue[opcode.value & 0xFF] = opcode;
+                } else {
+                    assert ((opcode.value >> 8) & 0xFF) == 0xFF;
+                    expandedOpcodesByValue[opcode.value & 0xFF] = opcode;
+                }
+                opcodesByName.put(opcode.name.hashCode(), opcode);
             }
-            opcodesByName.put(opcode.name.hashCode(), opcode);
         }
     }
 
@@ -386,6 +390,18 @@ public enum Opcode
         }
     }
 
+    private static void addOpcodes(Opcode... toAdd) {
+        for (Opcode opcode: toAdd) {
+            if (((opcode.value >> 8) & 0xFF) == 0x00) {
+                opcodesByValue[opcode.value & 0xFF] = opcode;
+            } else {
+                assert ((opcode.value >> 8) & 0xFF) == 0xFF;
+                expandedOpcodesByValue[opcode.value & 0xFF] = opcode;
+            }
+            opcodesByName.put(opcode.name.hashCode(), opcode);
+        }
+    }
+
     /**
      * This will add/remove/replace various opcodes in the value/name maps as needed,
      * based on the idiosyncrasies of that api level
@@ -411,7 +427,9 @@ public enum Opcode
                     SGET_JUMBO, SGET_WIDE_JUMBO, SGET_OBJECT_JUMBO, SGET_BOOLEAN_JUMBO, SGET_BYTE_JUMBO,
                     SGET_CHAR_JUMBO, SGET_SHORT_JUMBO, SPUT_JUMBO, SPUT_WIDE_JUMBO, SPUT_OBJECT_JUMBO,
                     SPUT_BOOLEAN_JUMBO, SPUT_BYTE_JUMBO, SPUT_CHAR_JUMBO, SPUT_SHORT_JUMBO, INVOKE_VIRTUAL_JUMBO,
-                    INVOKE_SUPER_JUMBO, INVOKE_DIRECT_JUMBO, INVOKE_STATIC_JUMBO, INVOKE_INTERFACE_JUMBO);
+                    INVOKE_SUPER_JUMBO, INVOKE_DIRECT_JUMBO, INVOKE_STATIC_JUMBO, INVOKE_INTERFACE_JUMBO,
+                    INVOKE_OBJECT_INIT_RANGE);
+            addOpcodes(INVOKE_DIRECT_EMPTY);
         }
     }
 

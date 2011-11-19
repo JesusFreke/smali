@@ -680,6 +680,9 @@ INSTRUCTION_FORMAT3rc_METHOD
 	|	'invoke-static/range'
 	|	'invoke-interface/range';
 
+INSTRUCTION_FORMAT3rc_METHOD_ODEX
+	:	'invoke-object-init/range';
+
 INSTRUCTION_FORMAT3rc_TYPE
 	:	'filled-new-array/range';
 

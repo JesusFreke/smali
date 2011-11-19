@@ -550,6 +550,10 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT3rc_METHOD);
     }
 
+    "invoke-object-init/range" {
+        return newToken(INSTRUCTION_FORMAT3rc_METHOD_ODEX);
+    }
+
     "filled-new-array/range" {
         return newToken(INSTRUCTION_FORMAT3rc_TYPE);
     }
