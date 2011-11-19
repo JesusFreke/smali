@@ -458,10 +458,13 @@ public class CodeItem extends Item<CodeItem> {
                                 InstructionWithJumboVariant instructionWithJumboVariant =
                                         (InstructionWithJumboVariant)referenceInstruction;
 
-                                replaceInstructionAtAddress(currentCodeAddress,
-                                        instructionWithJumboVariant.makeJumbo());
-                                didSomething = true;
-                                break;
+                                Instruction jumboInstruction = instructionWithJumboVariant.makeJumbo();
+                                if (jumboInstruction != null) {
+                                    replaceInstructionAtAddress(currentCodeAddress,
+                                            instructionWithJumboVariant.makeJumbo());
+                                    didSomething = true;
+                                    break;
+                                }
                             }
                         }
 

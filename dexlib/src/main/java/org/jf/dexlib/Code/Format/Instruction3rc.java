@@ -81,7 +81,12 @@ public class Instruction3rc extends InstructionWithReference implements Register
 
     protected void writeInstruction(AnnotatedOutput out, int currentCodeAddress) {
         if(getReferencedItem().getIndex() > 0xFFFF) {
-            throw new RuntimeException(String.format("%s index is too large. Use the jumbo variant of the instruction instead.", opcode.referenceType.name()));
+            if (opcode.hasJumboOpcode()) {
+                throw new RuntimeException(String.format("%s index is too large. Use the %s instruction instead.",
+                        opcode.referenceType.name(), opcode.getJumboOpcode().name));
+            } else {
+                throw new RuntimeException(String.format("%s index is too large.", opcode.referenceType.name()));
+            }
         }
 
         out.writeByte(opcode.value);

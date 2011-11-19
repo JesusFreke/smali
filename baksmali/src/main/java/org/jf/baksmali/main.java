@@ -29,6 +29,7 @@
 package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
+import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.smaliHelpFormatter;
@@ -107,6 +108,8 @@ public class main {
         boolean deodex = false;
         boolean verify = false;
         boolean ignoreErrors = false;
+
+        int apiLevel = 14;
 
         int registerInfo = 0;
 
@@ -208,6 +211,9 @@ public class main {
                 case 'm':
                     noAccessorComments = true;
                     break;
+                case 'a':
+                    apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
+                    break;
                 case 'N':
                     disassemble = false;
                     break;
@@ -278,6 +284,8 @@ public class main {
                 for (int i=0; i<bootClassPathDirsArray.length; i++) {
                     bootClassPathDirsArray[i] = bootClassPathDirs.get(i);
                 }
+
+                Opcode.updateMapsForApiLevel(apiLevel);
 
                 baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
                         bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
@@ -415,6 +423,13 @@ public class main {
                 .withDescription("don't output helper comments for synthetic accessors")
                 .create("m");
 
+        Option apiLevelOption = OptionBuilder.withLongOpt("api-level")
+                .withDescription("The numeric api-level of the file being disassembled. If not " +
+                        "specified, it defaults to 14 (ICS).")
+                .hasArg()
+                .withArgName("API_LEVEL")
+                .create("a");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
                         " (<dexfile>.dump by default), along with the normal disassembly")
@@ -464,6 +479,7 @@ public class main {
         basicOptions.addOption(classPathDirOption);
         basicOptions.addOption(codeOffsetOption);
         basicOptions.addOption(noAccessorCommentsOption);
+        basicOptions.addOption(apiLevelOption);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);

@@ -374,6 +374,47 @@ public enum Opcode
         }
     }
 
+    private static void removeOpcodes(Opcode... toRemove) {
+        for (Opcode opcode: toRemove) {
+            opcodesByName.remove(opcode.name.toLowerCase().hashCode());
+
+            if (((opcode.value >> 8) & 0xFF) == 0x00) {
+                opcodesByValue[opcode.value] = null;
+            } else {
+                expandedOpcodesByValue[opcode.value & 0xFF] = null;
+            }
+        }
+    }
+
+    /**
+     * This will add/remove/replace various opcodes in the value/name maps as needed,
+     * based on the idiosyncrasies of that api level
+     * @param apiLevel
+     */
+    public static void updateMapsForApiLevel(int apiLevel) {
+        if (apiLevel < 5) {
+            removeOpcodes(THROW_VERIFICATION_ERROR);
+        }
+        if (apiLevel < 8) {
+            removeOpcodes(EXECUTE_INLINE_RANGE);
+        }
+        if (apiLevel < 9) {
+            removeOpcodes(IGET_VOLATILE, IPUT_VOLATILE, SGET_VOLATILE, SPUT_VOLATILE, IGET_OBJECT_VOLATILE,
+                    IGET_WIDE_VOLATILE, IPUT_WIDE_VOLATILE, SGET_WIDE_VOLATILE, SPUT_WIDE_VOLATILE,
+                    IPUT_OBJECT_VOLATILE, SGET_OBJECT_VOLATILE, SPUT_OBJECT_VOLATILE);
+        }
+        if (apiLevel < 14) {
+            removeOpcodes(CONST_CLASS_JUMBO, CHECK_CAST_JUMBO, INSTANCE_OF_JUMBO, NEW_INSTANCE_JUMBO,
+                    NEW_ARRAY_JUMBO, FILLED_NEW_ARRAY_JUMBO, IGET_JUMBO, IGET_WIDE_JUMBO, IGET_OBJECT_JUMBO,
+                    IGET_BOOLEAN_JUMBO, IGET_BYTE_JUMBO, IGET_CHAR_JUMBO, IGET_SHORT_JUMBO, IPUT_JUMBO, IPUT_WIDE_JUMBO,
+                    IPUT_OBJECT_JUMBO, IPUT_BOOLEAN_JUMBO, IPUT_BYTE_JUMBO, IPUT_CHAR_JUMBO, IPUT_SHORT_JUMBO,
+                    SGET_JUMBO, SGET_WIDE_JUMBO, SGET_OBJECT_JUMBO, SGET_BOOLEAN_JUMBO, SGET_BYTE_JUMBO,
+                    SGET_CHAR_JUMBO, SGET_SHORT_JUMBO, SPUT_JUMBO, SPUT_WIDE_JUMBO, SPUT_OBJECT_JUMBO,
+                    SPUT_BOOLEAN_JUMBO, SPUT_BYTE_JUMBO, SPUT_CHAR_JUMBO, SPUT_SHORT_JUMBO, INVOKE_VIRTUAL_JUMBO,
+                    INVOKE_SUPER_JUMBO, INVOKE_DIRECT_JUMBO, INVOKE_STATIC_JUMBO, INVOKE_INTERFACE_JUMBO);
+        }
+    }
+
     public final short value;
     public final String name;
     public final ReferenceType referenceType;
@@ -435,7 +476,7 @@ public enum Opcode
     }
 
     public final boolean hasJumboOpcode() {
-        return jumboOpcode != -1;
+        return jumboOpcode != -1 && Opcode.getOpcodeByValue(jumboOpcode) != null;
     }
 
     public final Opcode getJumboOpcode() {

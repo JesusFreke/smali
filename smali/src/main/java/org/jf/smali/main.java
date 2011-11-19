@@ -32,6 +32,7 @@ import org.antlr.runtime.*;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.apache.commons.cli.*;
+import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
@@ -106,6 +107,8 @@ public class main {
         boolean oldLexer = false;
         boolean printTokens = false;
 
+        int apiLevel = 14;
+
         String outputDexFile = "out.dex";
         String dumpFileName = null;
 
@@ -135,6 +138,9 @@ public class main {
                     break;
                 case 'x':
                     allowOdex = true;
+                    break;
+                case 'a':
+                    apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
                     break;
                 case 'D':
                     dumpFileName = commandLine.getOptionValue("D", outputDexFile + ".dump");
@@ -183,6 +189,8 @@ public class main {
                         filesToProcess.add(argFile);
                     }
             }
+
+            Opcode.updateMapsForApiLevel(apiLevel);
 
             DexFile dexFile = new DexFile();
 
@@ -383,6 +391,13 @@ public class main {
                         " cause dalvik to reject the class")
                 .create("x");
 
+        Option apiLevelOption = OptionBuilder.withLongOpt("api-level")
+                .withDescription("The numeric api-level of the file to generate, e.g. 14 for ICS. If not " +
+                        "specified, it defaults to 14 (ICS).")
+                .hasArg()
+                .withArgName("API_LEVEL")
+                .create("a");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("additionally writes a dump of written dex file to FILE (<dexfile>.dump by default)")
                 .hasOptionalArg()
@@ -417,6 +432,7 @@ public class main {
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputOption);
         basicOptions.addOption(allowOdexOption);
+        basicOptions.addOption(apiLevelOption);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(sortOption);
