@@ -66,22 +66,18 @@ public class Instruction35c extends InstructionWithReference implements FiveRegi
             throw new RuntimeException("All register args must fit in 4 bits");
         }
 
+        checkItem(opcode, referencedItem, regCount);
+
         this.regCount = (byte)regCount;
         this.regA = regA;
         this.regD = regD;
         this.regE = regE;
         this.regF = regF;
         this.regG = regG;
-
-        checkItem(opcode, referencedItem, regCount);
     }
 
     protected Instruction35c(DexFile dexFile, Opcode opcode, byte[] buffer, int bufferIndex) {
         super(dexFile, opcode, buffer, bufferIndex);
-
-        if (getRegCount() > 5) {
-            throw new RuntimeException("regCount cannot be greater than 5");
-        }
 
         this.regCount = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 1]);
         this.regA = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 1]);
@@ -89,6 +85,10 @@ public class Instruction35c extends InstructionWithReference implements FiveRegi
         this.regE = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 4]);
         this.regF = NumberUtils.decodeLowUnsignedNibble(buffer[bufferIndex + 5]);
         this.regG = NumberUtils.decodeHighUnsignedNibble(buffer[bufferIndex + 5]);
+
+        if (getRegCount() > 5) {
+            throw new RuntimeException("regCount cannot be greater than 5");
+        }
 
         checkItem(opcode, getReferencedItem(), getRegCount());
     }
@@ -148,7 +148,8 @@ public class Instruction35c extends InstructionWithReference implements FiveRegi
             if (type.charAt(1) == 'J' || type.charAt(1) == 'D') {
                 throw new RuntimeException("The type cannot be an array of longs or doubles");
             }
-        } else if (opcode.value >= INVOKE_VIRTUAL.value && opcode.value <= INVOKE_INTERFACE.value) {
+        } else if (opcode.value >= INVOKE_VIRTUAL.value && opcode.value <= INVOKE_INTERFACE.value ||
+                opcode == INVOKE_DIRECT_EMPTY) {
             //check data for invoke-* opcodes
             MethodIdItem methodIdItem = (MethodIdItem) item;
             int parameterRegisterCount = methodIdItem.getPrototype().getParameterRegisterCount();

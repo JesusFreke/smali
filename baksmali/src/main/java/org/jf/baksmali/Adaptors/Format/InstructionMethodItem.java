@@ -181,7 +181,6 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeThirdRegister(writer);
                 return true;
             case Format35c:
-            case Format35s:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeInvokeRegisters(writer);

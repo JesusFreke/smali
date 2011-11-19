@@ -529,12 +529,12 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT35c_METHOD);
     }
 
-    "filled-new-array" {
-        return newToken(INSTRUCTION_FORMAT35c_TYPE);
+    "invoke-direct-empty" {
+        return newToken(INSTRUCTION_FORMAT35c_METHOD_ODEX);
     }
 
-    "invoke-direct-empty" {
-        return newToken(INSTRUCTION_FORMAT35s_METHOD);
+    "filled-new-array" {
+        return newToken(INSTRUCTION_FORMAT35c_TYPE);
     }
 
     "execute-inline" {

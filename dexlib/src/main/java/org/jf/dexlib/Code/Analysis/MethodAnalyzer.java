@@ -3463,7 +3463,7 @@ public class MethodAnalyzer {
     }
 
     private void analyzeInvokeDirectEmpty(AnalyzedInstruction analyzedInstruction) {
-        Instruction35s instruction = (Instruction35s)analyzedInstruction.instruction;
+        Instruction35c instruction = (Instruction35c)analyzedInstruction.instruction;
 
         Instruction35c deodexedInstruction = new Instruction35c(Opcode.INVOKE_DIRECT, instruction.getRegCount(),
                 instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(),

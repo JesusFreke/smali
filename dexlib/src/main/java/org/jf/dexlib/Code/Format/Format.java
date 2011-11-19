@@ -55,7 +55,6 @@ public enum Format {
     Format31t(Instruction31t.Factory, 6),
     Format32x(Instruction32x.Factory, 6),
     Format35c(Instruction35c.Factory, 6),
-    Format35s(Instruction35s.Factory, 6),
     Format35mi(Instruction35mi.Factory, 6),
     Format35ms(Instruction35ms.Factory, 6),
     Format3rc(Instruction3rc.Factory, 6),

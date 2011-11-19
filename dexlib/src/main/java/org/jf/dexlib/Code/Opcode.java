@@ -266,7 +266,7 @@ public enum Opcode
     THROW_VERIFICATION_ERROR((short)0xed, "throw-verification-error", ReferenceType.none, Format.Format20bc, Opcode.ODEX_ONLY | Opcode.CAN_THROW),
     EXECUTE_INLINE((short)0xee, "execute-inline", ReferenceType.none,  Format.Format35mi, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     EXECUTE_INLINE_RANGE((short)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rmi,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_DIRECT_EMPTY((short)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35s, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_DIRECT_EMPTY((short)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35c, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_OBJECT_INIT_RANGE((short)0xf0, "invoke-object-init/range", ReferenceType.method,  Format.Format3rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     IGET_QUICK((short)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     IGET_WIDE_QUICK((short)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),

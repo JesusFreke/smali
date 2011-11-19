@@ -660,11 +660,11 @@ INSTRUCTION_FORMAT35c_METHOD
 	|	'invoke-static'
 	|	'invoke-interface';
 
+INSTRUCTION_FORMAT35c_METHOD_ODEX
+	:	'invoke-direct-empty';
+
 INSTRUCTION_FORMAT35c_TYPE
 	:	'filled-new-array';
-
-INSTRUCTION_FORMAT35s_METHOD
-	:	'invoke-direct-empty';
 
 INSTRUCTION_FORMAT35mi_METHOD
 	:	'execute-inline';
