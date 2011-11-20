@@ -325,6 +325,18 @@ public enum Opcode
     INVOKE_INTERFACE_JUMBO((short)0xff26, "invoke-interface/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
 
     INVOKE_OBJECT_INIT_JUMBO((short)0xfff2, "invoke-object-init/jumbo", ReferenceType.method,  Format.Format5rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
+    IGET_VOLATILE_JUMBO((short)0xfff3, "iget-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    IGET_WIDE_VOLATILE_JUMBO((short)0xfff4, "iget-wide-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER | Opcode.JUMBO_OPCODE),
+    IGET_OBJECT_VOLATILE_JUMBO((short)0xfff5, "iget-object-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    IPUT_VOLATILE_JUMBO((short)0xfff6, "iput-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    IPUT_WIDE_VOLATILE_JUMBO((short)0xfff7, "iput-wide-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    IPUT_OBJECT_VOLATILE_JUMBO((short)0xfff8, "iput-object-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SGET_VOLATILE_JUMBO((short)0xfff9, "sget-volatile/jumbo", ReferenceType.field, Format.Format41c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    SGET_WIDE_VOLATILE_JUMBO((short)0xfffa, "sget-wide-volatile/jumbo", ReferenceType.field, Format.Format41c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER | Opcode.JUMBO_OPCODE),
+    SGET_OBJECT_VOLATILE_JUMBO((short)0xfffb, "sget-object-volatile/jumbo", ReferenceType.field, Format.Format41c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    SPUT_VOLATILE_JUMBO((short)0xfffc, "sput-volatile/jumbo", ReferenceType.field, Format.Format41c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SPUT_WIDE_VOLATILE_JUMBO((short)0xfffd, "sput-wide-volatile/jumbo", ReferenceType.field, Format.Format41c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SPUT_OBJECT_VOLATILE_JUMBO((short)0xfffe, "sput-object-volatile/jumbo", ReferenceType.field, Format.Format41c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE);
 
     private static Opcode[] opcodesByValue;
     private static Opcode[] expandedOpcodesByValue;
@@ -436,7 +448,11 @@ public enum Opcode
                     SGET_CHAR_JUMBO, SGET_SHORT_JUMBO, SPUT_JUMBO, SPUT_WIDE_JUMBO, SPUT_OBJECT_JUMBO,
                     SPUT_BOOLEAN_JUMBO, SPUT_BYTE_JUMBO, SPUT_CHAR_JUMBO, SPUT_SHORT_JUMBO, INVOKE_VIRTUAL_JUMBO,
                     INVOKE_SUPER_JUMBO, INVOKE_DIRECT_JUMBO, INVOKE_STATIC_JUMBO, INVOKE_INTERFACE_JUMBO,
-                    INVOKE_OBJECT_INIT_RANGE, INVOKE_OBJECT_INIT_JUMBO);
+                    INVOKE_OBJECT_INIT_RANGE, INVOKE_OBJECT_INIT_JUMBO, IGET_VOLATILE_JUMBO, IGET_WIDE_VOLATILE_JUMBO,
+                    IGET_OBJECT_VOLATILE_JUMBO, IPUT_VOLATILE_JUMBO, IPUT_WIDE_VOLATILE_JUMBO,
+                    IPUT_OBJECT_VOLATILE_JUMBO, SGET_VOLATILE_JUMBO, SGET_WIDE_VOLATILE_JUMBO,
+                    SGET_OBJECT_VOLATILE_JUMBO, SPUT_VOLATILE_JUMBO, SPUT_WIDE_VOLATILE_JUMBO,
+                    SPUT_OBJECT_VOLATILE_JUMBO);
             addOpcodes(INVOKE_DIRECT_EMPTY);
         }
     }

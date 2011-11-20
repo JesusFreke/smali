@@ -580,6 +580,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT41c_FIELD);
     }
 
+    "sget-volatile/jumbo" | "sget-wide-volatile/jumbo" | "sget-object-volatile/jumbo" | "sput-volatile/jumbo" |
+    "sput-wide-volatile/jumbo" | "sput-object-volatile/jumbo" {
+        return newToken(INSTRUCTION_FORMAT41c_FIELD_ODEX);
+    }
+
     "const-wide" {
         return newToken(INSTRUCTION_FORMAT51l);
     }
@@ -592,6 +597,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "iget-char/jumbo" | "iget-short/jumbo" | "iput/jumbo" | "iput-wide/jumbo" | "iput-object/jumbo" |
     "iput-boolean/jumbo" | "iput-byte/jumbo" | "iput-char/jumbo" | "iput-short/jumbo" {
         return newToken(INSTRUCTION_FORMAT52c_FIELD);
+    }
+
+    "iget-volatile/jumbo" | "iget-wide-volatile/jumbo" | "iget-object-volatile/jumbo" | "iput-volatile/jumbo" |
+    "iput-wide-volatile/jumbo" | "iput-object-volatile/jumbo" {
+        return newToken(INSTRUCTION_FORMAT52c_FIELD_ODEX);
     }
 
     "invoke-virtual/jumbo" | "invoke-super/jumbo" | "invoke-direct/jumbo" | "invoke-static/jumbo" |

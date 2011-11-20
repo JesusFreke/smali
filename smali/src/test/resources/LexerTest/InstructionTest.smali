@@ -266,3 +266,15 @@ invoke-static/jumbo
 invoke-interface/jumbo
 filled-new-array/jumbo
 invoke-object-init/jumbo
+iget-volatile/jumbo
+iget-wide-volatile/jumbo
+iget-object-volatile/jumbo
+iput-volatile/jumbo
+iput-wide-volatile/jumbo
+iput-object-volatile/jumbo
+sget-volatile/jumbo
+sget-wide-volatile/jumbo
+sget-object-volatile/jumbo
+sput-volatile/jumbo
+sput-wide-volatile/jumbo
+sput-object-volatile/jumbo

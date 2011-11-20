@@ -857,6 +857,11 @@ instruction returns [int size]
 	|	//e.g. sget-object/jumbo v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
 		INSTRUCTION_FORMAT41c_FIELD REGISTER COMMA fully_qualified_field {$size = Format.Format41c.size;}
 		-> ^(I_STATEMENT_FORMAT41c_FIELD[$start, "I_STATEMENT_FORMAT41c_FIELD"] INSTRUCTION_FORMAT41c_FIELD REGISTER fully_qualified_field)
+	|	//e.g. sget-object-volatile/jumbo v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+		INSTRUCTION_FORMAT41c_FIELD_ODEX REGISTER COMMA fully_qualified_field {$size = Format.Format41c.size;}
+		{
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT41c_FIELD_ODEX.text);
+		}
 	|	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER COMMA fixed_literal {$size = Format.Format51l.size;}
 		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)
@@ -866,6 +871,11 @@ instruction returns [int size]
 	|	//e.g. iput-object/jumbo v1, v0 Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
 		INSTRUCTION_FORMAT52c_FIELD REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format52c.size;}
 		-> ^(I_STATEMENT_FORMAT52c_FIELD[$start, "I_STATEMENT_FORMAT52c_FIELD"] INSTRUCTION_FORMAT52c_FIELD REGISTER REGISTER fully_qualified_field)
+	|	//e.g. iput-object-volatile/jumbo v1, v0 Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
+		INSTRUCTION_FORMAT52c_FIELD_ODEX REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format52c.size;}
+		{
+			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT52c_FIELD_ODEX.text);
+		}
 	|	//e.g. invoke-virtual/jumbo {v25..v26}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		INSTRUCTION_FORMAT5rc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format5rc.size;}
 		-> ^(I_STATEMENT_FORMAT5rc_METHOD[$start, "I_STATEMENT_FORMAT5rc_METHOD"] INSTRUCTION_FORMAT5rc_METHOD register_range fully_qualified_method)

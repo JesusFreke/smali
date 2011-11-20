@@ -1098,6 +1098,20 @@ public class MethodAnalyzer {
             case INVOKE_OBJECT_INIT_JUMBO:
                 analyzeInvokeObjectInitJumbo(analyzedInstruction);
                 return true;
+            case IGET_VOLATILE_JUMBO:
+            case IGET_WIDE_VOLATILE_JUMBO:
+            case IGET_OBJECT_VOLATILE_JUMBO:
+            case IPUT_VOLATILE_JUMBO:
+            case IPUT_WIDE_VOLATILE_JUMBO:
+            case IPUT_OBJECT_VOLATILE_JUMBO:
+            case SGET_VOLATILE_JUMBO:
+            case SGET_WIDE_VOLATILE_JUMBO:
+            case SGET_OBJECT_VOLATILE_JUMBO:
+            case SPUT_VOLATILE_JUMBO:
+            case SPUT_WIDE_VOLATILE_JUMBO:
+            case SPUT_OBJECT_VOLATILE_JUMBO:
+                analyzePutGetVolatile(analyzedInstruction);
+                return true;
             default:
                 assert false;
                 return true;
@@ -1593,6 +1607,18 @@ public class MethodAnalyzer {
             case SGET_OBJECT_VOLATILE:
             case SPUT_OBJECT_VOLATILE:
             case INVOKE_OBJECT_INIT_JUMBO:
+            case IGET_VOLATILE_JUMBO:
+            case IGET_WIDE_VOLATILE_JUMBO:
+            case IGET_OBJECT_VOLATILE_JUMBO:
+            case IPUT_VOLATILE_JUMBO:
+            case IPUT_WIDE_VOLATILE_JUMBO:
+            case IPUT_OBJECT_VOLATILE_JUMBO:
+            case SGET_VOLATILE_JUMBO:
+            case SGET_WIDE_VOLATILE_JUMBO:
+            case SGET_OBJECT_VOLATILE_JUMBO:
+            case SPUT_VOLATILE_JUMBO:
+            case SPUT_WIDE_VOLATILE_JUMBO:
+            case SPUT_OBJECT_VOLATILE_JUMBO:
                 //TODO: throw validation exception?
             default:
                 assert false;
@@ -3627,14 +3653,23 @@ public class MethodAnalyzer {
 
         if (analyzedInstruction.instruction.opcode.isOdexedStaticVolatile()) {
             SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.instruction;
-
-            deodexedInstruction = new Instruction21c(opcode, (byte)instruction.getRegisterA(),
-                fieldIdItem);
+            if (analyzedInstruction.instruction.opcode.format == Format.Format21c) {
+                deodexedInstruction = new Instruction21c(opcode, (byte)instruction.getRegisterA(), fieldIdItem);
+            } else {
+                assert(analyzedInstruction.instruction.opcode.format == Format.Format41c);
+                deodexedInstruction = new Instruction41c(opcode, (byte)instruction.getRegisterA(), fieldIdItem);
+            }
         } else {
             TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;
 
-            deodexedInstruction = new Instruction22c(opcode, (byte)instruction.getRegisterA(),
-                (byte)instruction.getRegisterB(), fieldIdItem);
+            if (analyzedInstruction.instruction.opcode.format == Format.Format22c) {
+                deodexedInstruction = new Instruction22c(opcode, (byte)instruction.getRegisterA(),
+                    (byte)instruction.getRegisterB(), fieldIdItem);
+            } else {
+                assert(analyzedInstruction.instruction.opcode.format == Format.Format52c);
+                deodexedInstruction = new Instruction52c(opcode, (byte)instruction.getRegisterA(),
+                    (byte)instruction.getRegisterB(), fieldIdItem);
+            }
         }
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);

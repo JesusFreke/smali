@@ -717,6 +717,14 @@ INSTRUCTION_FORMAT41c_FIELD
 	|	'sput-char/jumbo'
 	|	'sput-short/jumbo';
 
+INSTRUCTION_FORMAT41c_FIELD_ODEX
+	:	'sget-volatile/jumbo'
+	|	'sget-wide-volatile/jumbo'
+	|	'sget-object-volatile/jumbo'
+	|	'sput-volatile/jumbo'
+	|	'sput-wide-volatile/jumbo'
+	|	'sput-object-volatile/jumbo';
+
 INSTRUCTION_FORMAT51l
 	:	'const-wide';
 
@@ -739,6 +747,14 @@ INSTRUCTION_FORMAT52c_FIELD
 	|	'iput-byte/jumbo'
 	|	'iput-char/jumbo'
 	|	'iput-short/jumbo';
+
+INSTRUCTION_FORMAT52c_FIELD_ODEX
+	:	'iget-volatile/jumbo'
+	|	'iget-wide-volatile/jumbo'
+	|	'iget-object-volatile/jumbo'
+	|	'iput-volatile/jumbo'
+	|	'iput-wide-volatile/jumbo'
+	|	'iput-object-volatile/jumbo';
 
 INSTRUCTION_FORMAT5rc_METHOD
 	:	'invoke-virtual/jumbo'
