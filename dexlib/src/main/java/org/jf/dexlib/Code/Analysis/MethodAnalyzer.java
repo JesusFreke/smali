@@ -661,6 +661,9 @@ public class MethodAnalyzer {
             case RETURN_WIDE:
             case RETURN_OBJECT:
                 return true;
+            case RETURN_VOID_BARRIER:
+                analyzeReturnVoidBarrier(analyzedInstruction);
+                return true;
             case CONST_4:
             case CONST_16:
             case CONST:
@@ -1099,7 +1102,7 @@ public class MethodAnalyzer {
     }
 
 
-        private void verifyInstruction(AnalyzedInstruction analyzedInstruction) {
+    private void verifyInstruction(AnalyzedInstruction analyzedInstruction) {
         Instruction instruction = analyzedInstruction.instruction;
 
         switch (instruction.opcode) {
@@ -1133,6 +1136,7 @@ public class MethodAnalyzer {
                 verifyMoveException(analyzedInstruction);
                 return;
             case RETURN_VOID:
+            case RETURN_VOID_BARRIER:
                 verifyReturnVoid(analyzedInstruction);
                 return;
             case RETURN:
@@ -1778,6 +1782,16 @@ public class MethodAnalyzer {
             throw new ValidationException(String.format("Exception type %s is not a reference type",
                     exceptionType.toString()));
         }
+    }
+
+    private void analyzeReturnVoidBarrier(AnalyzedInstruction analyzedInstruction) {
+        Instruction10x instruction = (Instruction10x)analyzedInstruction.instruction;
+
+        Instruction10x deodexedInstruction = new Instruction10x(Opcode.RETURN_VOID);
+
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+
+        analyzeInstruction(analyzedInstruction);
     }
 
     private void verifyReturnVoid(AnalyzedInstruction analyzedInstruction) {

@@ -1,6 +1,7 @@
 goto
 return-void
 nop
+return-void-barrier
 const/4
 move-result
 move-result-wide

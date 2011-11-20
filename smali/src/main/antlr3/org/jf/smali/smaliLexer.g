@@ -373,6 +373,9 @@ INSTRUCTION_FORMAT10x
 	:	'return-void'
 	|	'nop';
 
+INSTRUCTION_FORMAT10x_ODEX
+	:	'return-void-barrier';
+
 INSTRUCTION_FORMAT11n
 	:	'const/4';
 

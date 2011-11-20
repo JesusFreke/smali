@@ -268,6 +268,7 @@ public enum Opcode
     EXECUTE_INLINE_RANGE((short)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rmi,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_DIRECT_EMPTY((short)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35c, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_OBJECT_INIT_RANGE((short)0xf0, "invoke-object-init/range", ReferenceType.method,  Format.Format3rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    RETURN_VOID_BARRIER((short)0xf1, "return-void-barrier", ReferenceType.none, Format.Format10x, Opcode.ODEX_ONLY),
     IGET_QUICK((short)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     IGET_WIDE_QUICK((short)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
     IGET_OBJECT_QUICK((short)0xf4, "iget-object-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
@@ -418,6 +419,9 @@ public enum Opcode
             removeOpcodes(IGET_VOLATILE, IPUT_VOLATILE, SGET_VOLATILE, SPUT_VOLATILE, IGET_OBJECT_VOLATILE,
                     IGET_WIDE_VOLATILE, IPUT_WIDE_VOLATILE, SGET_WIDE_VOLATILE, SPUT_WIDE_VOLATILE,
                     IPUT_OBJECT_VOLATILE, SGET_OBJECT_VOLATILE, SPUT_OBJECT_VOLATILE);
+        }
+        if (apiLevel < 11) {
+            removeOpcodes(RETURN_VOID_BARRIER);
         }
         if (apiLevel < 14) {
             removeOpcodes(CONST_CLASS_JUMBO, CHECK_CAST_JUMBO, INSTANCE_OF_JUMBO, NEW_INSTANCE_JUMBO,

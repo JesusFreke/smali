@@ -43,7 +43,7 @@ public class Instruction10x extends Instruction {
     public Instruction10x(Opcode opcode, byte[] buffer, int bufferIndex) {
         super(opcode);
 
-        assert buffer[bufferIndex] == opcode.value;
+        assert (buffer[bufferIndex] & 0xFF) == opcode.value;
         assert buffer[bufferIndex + 1] == 0x00;
     }
 

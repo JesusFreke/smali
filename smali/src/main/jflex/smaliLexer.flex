@@ -388,6 +388,10 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT10x);
     }
 
+    "return-void-barrier" {
+        return newToken(INSTRUCTION_FORMAT10x_ODEX);
+    }
+
     "const/4" {
         return newToken(INSTRUCTION_FORMAT11n);
     }
