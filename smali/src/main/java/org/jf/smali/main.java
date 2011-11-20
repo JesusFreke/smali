@@ -197,7 +197,7 @@ public class main {
             boolean errors = false;
 
             for (File file: filesToProcess) {
-                if (!assembleSmaliFile(file, dexFile, verboseErrors, oldLexer, printTokens, allowOdex)) {
+                if (!assembleSmaliFile(file, dexFile, verboseErrors, oldLexer, printTokens, allowOdex, apiLevel)) {
                     errors = true;
                 }
             }
@@ -272,7 +272,7 @@ public class main {
     }
 
     private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile, boolean verboseErrors, boolean oldLexer,
-                                             boolean printTokens, boolean allowOdex)
+                                             boolean printTokens, boolean allowOdex, int apiLevel)
             throws Exception {
         CommonTokenStream tokens;
 
@@ -311,6 +311,7 @@ public class main {
         smaliParser parser = new smaliParser(tokens);
         parser.setVerboseErrors(verboseErrors);
         parser.setAllowOdex(allowOdex);
+        parser.setApiLevel(apiLevel);
 
         smaliParser.smali_file_return result = parser.smali_file();
 
