@@ -599,6 +599,10 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT5rc_METHOD);
     }
 
+    "invoke-object-init/jumbo" {
+        return newToken(INSTRUCTION_FORMAT5rc_METHOD_ODEX);
+    }
+
     "filled-new-array/jumbo" {
         return newToken(INSTRUCTION_FORMAT5rc_TYPE);
     }

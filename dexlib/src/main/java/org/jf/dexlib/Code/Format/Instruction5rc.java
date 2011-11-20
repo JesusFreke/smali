@@ -111,7 +111,8 @@ public class Instruction5rc extends InstructionWithJumboReference implements Reg
             if (type.charAt(1) == 'J' || type.charAt(1) == 'D') {
                 throw new RuntimeException("The type cannot be an array of longs or doubles");
             }
-        } else if (opcode.value >= INVOKE_VIRTUAL_JUMBO.value && opcode.value <= INVOKE_INTERFACE_JUMBO.value) {
+        } else if (opcode.value >= INVOKE_VIRTUAL_JUMBO.value && opcode.value <= INVOKE_INTERFACE_JUMBO.value ||
+                opcode == INVOKE_OBJECT_INIT_JUMBO) {
             //check data for invoke-*/range opcodes
             MethodIdItem methodIdItem = (MethodIdItem) item;
             int parameterRegisterCount = methodIdItem.getPrototype().getParameterRegisterCount();

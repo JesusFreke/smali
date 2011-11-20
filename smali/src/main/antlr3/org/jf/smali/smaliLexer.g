@@ -747,6 +747,9 @@ INSTRUCTION_FORMAT5rc_METHOD
 	|	'invoke-static/jumbo'
 	|	'invoke-interface/jumbo';
 
+INSTRUCTION_FORMAT5rc_METHOD_ODEX
+	:	'invoke-object-init/jumbo';
+
 INSTRUCTION_FORMAT5rc_TYPE
 	:	'filled-new-array/jumbo';
 

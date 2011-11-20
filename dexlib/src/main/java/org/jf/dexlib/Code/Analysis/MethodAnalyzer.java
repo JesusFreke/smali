@@ -1095,6 +1095,9 @@ public class MethodAnalyzer {
             case SPUT_OBJECT_VOLATILE:
                 analyzePutGetVolatile(analyzedInstruction);
                 return true;
+            case INVOKE_OBJECT_INIT_JUMBO:
+                analyzeInvokeObjectInitJumbo(analyzedInstruction);
+                return true;
             default:
                 assert false;
                 return true;
@@ -1589,6 +1592,7 @@ public class MethodAnalyzer {
             case IPUT_OBJECT_VOLATILE:
             case SGET_OBJECT_VOLATILE:
             case SPUT_OBJECT_VOLATILE:
+            case INVOKE_OBJECT_INIT_JUMBO:
                 //TODO: throw validation exception?
             default:
                 assert false;
@@ -3637,6 +3641,17 @@ public class MethodAnalyzer {
         analyzeInstruction(analyzedInstruction);
 
         return true;
+    }
+
+    private void analyzeInvokeObjectInitJumbo(AnalyzedInstruction analyzedInstruction) {
+        Instruction5rc instruction = (Instruction5rc)analyzedInstruction.instruction;
+
+        Instruction5rc deodexedInstruction = new Instruction5rc(Opcode.INVOKE_DIRECT_JUMBO,
+                instruction.getRegCount(), instruction.getStartRegister(), instruction.getReferencedItem());
+
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
+
+        analyzeInstruction(analyzedInstruction);
     }
 
     private static boolean checkArrayFieldAssignment(RegisterType.Category arrayFieldCategory,

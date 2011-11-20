@@ -322,7 +322,9 @@ public enum Opcode
     INVOKE_SUPER_JUMBO((short)0xff23, "invoke-super/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_DIRECT_JUMBO((short)0xff24, "invoke-direct/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_STATIC_JUMBO((short)0xff25, "invoke-static/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_INTERFACE_JUMBO((short)0xff26, "invoke-interface/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT);
+    INVOKE_INTERFACE_JUMBO((short)0xff26, "invoke-interface/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+
+    INVOKE_OBJECT_INIT_JUMBO((short)0xfff2, "invoke-object-init/jumbo", ReferenceType.method,  Format.Format5rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT);
 
     private static Opcode[] opcodesByValue;
     private static Opcode[] expandedOpcodesByValue;
@@ -432,7 +434,7 @@ public enum Opcode
                     SGET_CHAR_JUMBO, SGET_SHORT_JUMBO, SPUT_JUMBO, SPUT_WIDE_JUMBO, SPUT_OBJECT_JUMBO,
                     SPUT_BOOLEAN_JUMBO, SPUT_BYTE_JUMBO, SPUT_CHAR_JUMBO, SPUT_SHORT_JUMBO, INVOKE_VIRTUAL_JUMBO,
                     INVOKE_SUPER_JUMBO, INVOKE_DIRECT_JUMBO, INVOKE_STATIC_JUMBO, INVOKE_INTERFACE_JUMBO,
-                    INVOKE_OBJECT_INIT_RANGE);
+                    INVOKE_OBJECT_INIT_RANGE, INVOKE_OBJECT_INIT_JUMBO);
             addOpcodes(INVOKE_DIRECT_EMPTY);
         }
     }

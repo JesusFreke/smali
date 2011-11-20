@@ -265,3 +265,4 @@ invoke-direct/jumbo
 invoke-static/jumbo
 invoke-interface/jumbo
 filled-new-array/jumbo
+invoke-object-init/jumbo
