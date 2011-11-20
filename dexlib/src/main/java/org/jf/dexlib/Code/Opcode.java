@@ -284,47 +284,47 @@ public enum Opcode
     SGET_OBJECT_VOLATILE((short)0xfd, "sget-object-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", ReferenceType.field, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
 
-    CONST_CLASS_JUMBO((short)0xff00, "const-class/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    CHECK_CAST_JUMBO((short)0xff01, "check-cast/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    INSTANCE_OF_JUMBO((short)0xff02, "instance-of/jumbo", ReferenceType.type, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    NEW_INSTANCE_JUMBO((short)0xff03, "new-instance/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    NEW_ARRAY_JUMBO((short)0xff04, "new-array/jumbo", ReferenceType.type, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    FILLED_NEW_ARRAY_JUMBO((short)0xff05, "filled-new-array/jumbo", ReferenceType.type, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    IGET_JUMBO((short)0xff06, "iget/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_WIDE_JUMBO((short)0xff07, "iget-wide/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    IGET_OBJECT_JUMBO((short)0xff08, "iget-object/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_BOOLEAN_JUMBO((short)0xff09, "iget-boolean/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_BYTE_JUMBO((short)0xff0a, "iget-byte/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_CHAR_JUMBO((short)0xff0b, "iget-char/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_SHORT_JUMBO((short)0xff0c, "iget-short/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IPUT_JUMBO((short)0xff0d, "iput/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_WIDE_JUMBO((short)0xff0e, "iput-wide/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_OBJECT_JUMBO((short)0xff0f, "iput-object/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_BOOLEAN_JUMBO((short)0xff10, "iput-boolean/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_BYTE_JUMBO((short)0xff11, "iput-byte/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_CHAR_JUMBO((short)0xff12, "iput-char/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IPUT_SHORT_JUMBO((short)0xff13, "iput-short/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SGET_JUMBO((short)0xff14, "sget/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_WIDE_JUMBO((short)0xff15, "sget-wide/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    SGET_OBJECT_JUMBO((short)0xff16, "sget-object/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_BOOLEAN_JUMBO((short)0xff17, "sget-boolean/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_BYTE_JUMBO((short)0xff18, "sget-byte/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_CHAR_JUMBO((short)0xff19, "sget-char/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SGET_SHORT_JUMBO((short)0xff1a, "sget-short/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SPUT_JUMBO((short)0xff1b, "sput/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_WIDE_JUMBO((short)0xff1c, "sput-wide/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_OBJECT_JUMBO((short)0xff1d, "sput-object/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_BOOLEAN_JUMBO((short)0xff1e, "sput-boolean/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_BYTE_JUMBO((short)0xff1f, "sput-byte/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_CHAR_JUMBO((short)0xff20, "sput-char/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SPUT_SHORT_JUMBO((short)0xff21, "sput-short/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    INVOKE_VIRTUAL_JUMBO((short)0xff22, "invoke-virtual/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_SUPER_JUMBO((short)0xff23, "invoke-super/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_DIRECT_JUMBO((short)0xff24, "invoke-direct/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_STATIC_JUMBO((short)0xff25, "invoke-static/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_INTERFACE_JUMBO((short)0xff26, "invoke-interface/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    CONST_CLASS_JUMBO((short)0xff00, "const-class/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    CHECK_CAST_JUMBO((short)0xff01, "check-cast/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    INSTANCE_OF_JUMBO((short)0xff02, "instance-of/jumbo", ReferenceType.type, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    NEW_INSTANCE_JUMBO((short)0xff03, "new-instance/jumbo", ReferenceType.type, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    NEW_ARRAY_JUMBO((short)0xff04, "new-array/jumbo", ReferenceType.type, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    FILLED_NEW_ARRAY_JUMBO((short)0xff05, "filled-new-array/jumbo", ReferenceType.type, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
+    IGET_JUMBO((short)0xff06, "iget/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    IGET_WIDE_JUMBO((short)0xff07, "iget-wide/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER | Opcode.JUMBO_OPCODE),
+    IGET_OBJECT_JUMBO((short)0xff08, "iget-object/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    IGET_BOOLEAN_JUMBO((short)0xff09, "iget-boolean/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    IGET_BYTE_JUMBO((short)0xff0a, "iget-byte/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    IGET_CHAR_JUMBO((short)0xff0b, "iget-char/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    IGET_SHORT_JUMBO((short)0xff0c, "iget-short/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    IPUT_JUMBO((short)0xff0d, "iput/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    IPUT_WIDE_JUMBO((short)0xff0e, "iput-wide/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    IPUT_OBJECT_JUMBO((short)0xff0f, "iput-object/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    IPUT_BOOLEAN_JUMBO((short)0xff10, "iput-boolean/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    IPUT_BYTE_JUMBO((short)0xff11, "iput-byte/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    IPUT_CHAR_JUMBO((short)0xff12, "iput-char/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    IPUT_SHORT_JUMBO((short)0xff13, "iput-short/jumbo", ReferenceType.field, Format.Format52c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SGET_JUMBO((short)0xff14, "sget/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    SGET_WIDE_JUMBO((short)0xff15, "sget-wide/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER | Opcode.JUMBO_OPCODE),
+    SGET_OBJECT_JUMBO((short)0xff16, "sget-object/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    SGET_BOOLEAN_JUMBO((short)0xff17, "sget-boolean/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    SGET_BYTE_JUMBO((short)0xff18, "sget-byte/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    SGET_CHAR_JUMBO((short)0xff19, "sget-char/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    SGET_SHORT_JUMBO((short)0xff1a, "sget-short/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
+    SPUT_JUMBO((short)0xff1b, "sput/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SPUT_WIDE_JUMBO((short)0xff1c, "sput-wide/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SPUT_OBJECT_JUMBO((short)0xff1d, "sput-object/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SPUT_BOOLEAN_JUMBO((short)0xff1e, "sput-boolean/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SPUT_BYTE_JUMBO((short)0xff1f, "sput-byte/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SPUT_CHAR_JUMBO((short)0xff20, "sput-char/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    SPUT_SHORT_JUMBO((short)0xff21, "sput-short/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
+    INVOKE_VIRTUAL_JUMBO((short)0xff22, "invoke-virtual/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
+    INVOKE_SUPER_JUMBO((short)0xff23, "invoke-super/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
+    INVOKE_DIRECT_JUMBO((short)0xff24, "invoke-direct/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
+    INVOKE_STATIC_JUMBO((short)0xff25, "invoke-static/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
+    INVOKE_INTERFACE_JUMBO((short)0xff26, "invoke-interface/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
 
-    INVOKE_OBJECT_INIT_JUMBO((short)0xfff2, "invoke-object-init/jumbo", ReferenceType.method,  Format.Format5rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT);
+    INVOKE_OBJECT_INIT_JUMBO((short)0xfff2, "invoke-object-init/jumbo", ReferenceType.method,  Format.Format5rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
 
     private static Opcode[] opcodesByValue;
     private static Opcode[] expandedOpcodesByValue;
@@ -348,6 +348,8 @@ public enum Opcode
     public static final int ODEXED_INSTANCE_VOLATILE = 0x80;
     //if the instruction is an odexed sget-volatile/sput-volatile instruction
     public static final int ODEXED_STATIC_VOLATILE = 0x100;
+    //if the instruction is a jumbo instruction
+    public static final int JUMBO_OPCODE = 0x200;
 
     static {
         opcodesByValue = new Opcode[256];
@@ -497,6 +499,10 @@ public enum Opcode
 
     public final boolean isOdexedStaticVolatile() {
         return (flags & ODEXED_STATIC_VOLATILE) != 0;
+    }
+
+    public final boolean isJumboOpcode() {
+        return (flags & JUMBO_OPCODE) != 0;
     }
 
     public final boolean hasJumboOpcode() {
