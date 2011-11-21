@@ -96,7 +96,7 @@ public class Instruction35mi extends Instruction implements FiveRegisterInstruct
     }
 
     public Format getFormat() {
-        return Format.Format35ms;
+        return Format.Format35mi;
     }
 
     public int getRegCount() {

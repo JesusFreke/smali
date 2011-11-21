@@ -193,6 +193,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeInvokeRegisters(writer);
                 writer.write(", ");
                 writeInlineIndex(writer);
+                return true;
             case Format35ms:
                 writeOpcode(writer);
                 writer.write(' ');
