@@ -259,6 +259,8 @@ public class main {
                 System.exit(1);
             }
 
+            Opcode.updateMapsForApiLevel(apiLevel);
+
             //Read in and parse the dex file
             DexFile dexFile = new DexFile(dexFileFile, !fixRegisters, false);
 
@@ -287,8 +289,6 @@ public class main {
                 for (int i=0; i<bootClassPathDirsArray.length; i++) {
                     bootClassPathDirsArray[i] = bootClassPathDirs.get(i);
                 }
-
-                Opcode.updateMapsForApiLevel(apiLevel);
 
                 baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
                         bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
