@@ -140,12 +140,12 @@ public enum Opcode
     SPUT_SHORT((short)0x6d, "sput-short", ReferenceType.field, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE, (short)0xff21),
     INVOKE_VIRTUAL((short)0x6e, "invoke-virtual", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_SUPER((short)0x6f, "invoke-super", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_DIRECT((short)0x70, "invoke-direct", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_DIRECT((short)0x70, "invoke-direct", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.CAN_INITIALIZE_REFERENCE),
     INVOKE_STATIC((short)0x71, "invoke-static", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_INTERFACE((short)0x72, "invoke-interface", ReferenceType.method, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_VIRTUAL_RANGE((short)0x74, "invoke-virtual/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff22),
     INVOKE_SUPER_RANGE((short)0x75, "invoke-super/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff23),
-    INVOKE_DIRECT_RANGE((short)0x76, "invoke-direct/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff24),
+    INVOKE_DIRECT_RANGE((short)0x76, "invoke-direct/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.CAN_INITIALIZE_REFERENCE, (short)0xff24),
     INVOKE_STATIC_RANGE((short)0x77, "invoke-static/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff25),
     INVOKE_INTERFACE_RANGE((short)0x78, "invoke-interface/range", ReferenceType.method, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT, (short)0xff26),
     NEG_INT((short)0x7b, "neg-int", ReferenceType.none, Format.Format12x, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
@@ -266,8 +266,8 @@ public enum Opcode
     THROW_VERIFICATION_ERROR((short)0xed, "throw-verification-error", ReferenceType.none, Format.Format20bc, Opcode.ODEX_ONLY | Opcode.CAN_THROW),
     EXECUTE_INLINE((short)0xee, "execute-inline", ReferenceType.none,  Format.Format35mi, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     EXECUTE_INLINE_RANGE((short)0xef, "execute-inline/range", ReferenceType.none,  Format.Format3rmi,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_DIRECT_EMPTY((short)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35c, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_OBJECT_INIT_RANGE((short)0xf0, "invoke-object-init/range", ReferenceType.method,  Format.Format3rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_DIRECT_EMPTY((short)0xf0, "invoke-direct-empty", ReferenceType.method,  Format.Format35c, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.CAN_INITIALIZE_REFERENCE),
+    INVOKE_OBJECT_INIT_RANGE((short)0xf0, "invoke-object-init/range", ReferenceType.method,  Format.Format3rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.CAN_INITIALIZE_REFERENCE),
     RETURN_VOID_BARRIER((short)0xf1, "return-void-barrier", ReferenceType.none, Format.Format10x, Opcode.ODEX_ONLY),
     IGET_QUICK((short)0xf2, "iget-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     IGET_WIDE_QUICK((short)0xf3, "iget-wide-quick", ReferenceType.none,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
@@ -320,11 +320,11 @@ public enum Opcode
     SPUT_SHORT_JUMBO((short)0xff21, "sput-short/jumbo", ReferenceType.field, Format.Format41c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.JUMBO_OPCODE),
     INVOKE_VIRTUAL_JUMBO((short)0xff22, "invoke-virtual/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
     INVOKE_SUPER_JUMBO((short)0xff23, "invoke-super/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
-    INVOKE_DIRECT_JUMBO((short)0xff24, "invoke-direct/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
+    INVOKE_DIRECT_JUMBO((short)0xff24, "invoke-direct/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE | Opcode.CAN_INITIALIZE_REFERENCE),
     INVOKE_STATIC_JUMBO((short)0xff25, "invoke-static/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
     INVOKE_INTERFACE_JUMBO((short)0xff26, "invoke-interface/jumbo", ReferenceType.method, Format.Format5rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
 
-    INVOKE_OBJECT_INIT_JUMBO((short)0xfff2, "invoke-object-init/jumbo", ReferenceType.method,  Format.Format5rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE),
+    INVOKE_OBJECT_INIT_JUMBO((short)0xfff2, "invoke-object-init/jumbo", ReferenceType.method,  Format.Format5rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.JUMBO_OPCODE | Opcode.CAN_INITIALIZE_REFERENCE),
     IGET_VOLATILE_JUMBO((short)0xfff3, "iget-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
     IGET_WIDE_VOLATILE_JUMBO((short)0xfff4, "iget-wide-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER | Opcode.JUMBO_OPCODE),
     IGET_OBJECT_VOLATILE_JUMBO((short)0xfff5, "iget-object-volatile/jumbo", ReferenceType.field, Format.Format52c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.JUMBO_OPCODE),
@@ -362,6 +362,8 @@ public enum Opcode
     public static final int ODEXED_STATIC_VOLATILE = 0x100;
     //if the instruction is a jumbo instruction
     public static final int JUMBO_OPCODE = 0x200;
+    //if the instruction can initialize an uninitialized object reference
+    public static final int CAN_INITIALIZE_REFERENCE = 0x400;
 
     static {
         opcodesByValue = new Opcode[256];
@@ -519,6 +521,10 @@ public enum Opcode
 
     public final boolean isJumboOpcode() {
         return (flags & JUMBO_OPCODE) != 0;
+    }
+
+    public final boolean canInitializeReference() {
+        return (flags & CAN_INITIALIZE_REFERENCE) != 0;
     }
 
     public final boolean hasJumboOpcode() {

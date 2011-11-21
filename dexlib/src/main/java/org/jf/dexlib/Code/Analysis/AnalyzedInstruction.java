@@ -236,9 +236,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
 
 
     protected boolean isInvokeInit() {
-        if (instruction == null ||
-                (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE &&
-                instruction.opcode != Opcode.INVOKE_DIRECT_EMPTY)) {
+        if (instruction == null || !instruction.opcode.canInitializeReference()) {
             return false;
         }
 
