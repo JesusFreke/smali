@@ -76,15 +76,15 @@ public abstract class InlineMethodResolver {
 
         @Override
         public DeodexUtil.InlineMethod resolveExecuteInline(AnalyzedInstruction analyzedInstruction) {
-            assert analyzedInstruction.instruction instanceof OdexedInvokeVirtual;
+            assert analyzedInstruction.instruction instanceof OdexedInvokeInline;
 
-            OdexedInvokeVirtual instruction = (OdexedInvokeVirtual)analyzedInstruction.instruction;
-            int methodIndex = instruction.getVtableIndex();
+            OdexedInvokeInline instruction = (OdexedInvokeInline)analyzedInstruction.instruction;
+            int inlineIndex = instruction.getInlineIndex();
 
-            if (methodIndex < 0 || methodIndex >= inlineMethods.length) {
-                throw new RuntimeException("Invalid method index: " + methodIndex);
+            if (inlineIndex < 0 || inlineIndex >= inlineMethods.length) {
+                throw new RuntimeException("Invalid inline index: " + inlineIndex);
             }
-            return inlineMethods[methodIndex];
+            return inlineMethods[inlineIndex];
         }
     }
 
