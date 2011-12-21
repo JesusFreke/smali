@@ -135,6 +135,7 @@ public class MethodDefinition {
                 }
             }
         } else {
+            writeParameters(writer, codeItem, parameterAnnotations);
             if (annotationSet != null) {
                 AnnotationFormatter.writeTo(writer, annotationSet);
             }
