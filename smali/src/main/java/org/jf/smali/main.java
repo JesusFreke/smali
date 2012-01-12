@@ -107,6 +107,7 @@ public class main {
         boolean oldLexer = false;
         boolean printTokens = false;
 
+        boolean apiSet = false;
         int apiLevel = 14;
 
         String outputDexFile = "out.dex";
@@ -141,6 +142,7 @@ public class main {
                     break;
                 case 'a':
                     apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
+                    apiSet = true;
                     break;
                 case 'D':
                     dumpFileName = commandLine.getOptionValue("D", outputDexFile + ".dump");
@@ -193,6 +195,10 @@ public class main {
             Opcode.updateMapsForApiLevel(apiLevel);
 
             DexFile dexFile = new DexFile();
+
+            if (apiSet && apiLevel >= 14) {
+                dexFile.HeaderItem.setVersion(36);
+            }
 
             boolean errors = false;
 

@@ -37,7 +37,9 @@ public class HeaderItem extends Item<HeaderItem> {
      * the file format magic number, represented as the
      * low-order bytes of a string
      */
-    public static final byte[] MAGIC = new byte[] {0x64, 0x65, 0x78, 0x0A, 0x30, 0x33, 0x35, 0x00};//"dex\n035" + '\0';
+    public static final byte[][] MAGIC_VALUES = new byte[][] {
+            new byte[] {0x64, 0x65, 0x78, 0x0A, 0x30, 0x33, 0x35, 0x00}, //"dex\n035" + '\0';
+            new byte[] {0x64, 0x65, 0x78, 0x0A, 0x30, 0x33, 0x36, 0x00}}; //"dex\n036" + '\0';
 
 
     /** size of this section, in bytes */
@@ -46,6 +48,9 @@ public class HeaderItem extends Item<HeaderItem> {
     /** the endianness constants */
     private static final int LITTLE_ENDIAN = 0x12345678;
     private static final int BIG_ENDIAN = 0x78562312;
+
+    /* Which magic value to use when writing out the header item */
+    private int magic_index = 0;
 
     /**
      * Create a new uninitialized <code>HeaderItem</code>
@@ -59,10 +64,25 @@ public class HeaderItem extends Item<HeaderItem> {
     protected void readItem(Input in, ReadContext readContext) {
         byte[] readMagic = in.readBytes(8);
 
-        for (int i=0; i<8; i++) {
-            if (MAGIC[i] != readMagic[i]) {
-                throw new RuntimeException("The magic value is not the expected value");
+        boolean success = false;
+        for (int i=0; i<MAGIC_VALUES.length; i++) {
+            byte[] magic_value = MAGIC_VALUES[i];
+            boolean matched = true;
+            for (int j=0; j<8; i++) {
+                if (magic_value[j] != readMagic[j]) {
+                    matched = false;
+                    break;
+                }
             }
+            if (matched) {
+                success = true;
+                magic_index = i;
+                break;
+            }
+        }
+
+        if (!success) {
+            throw new RuntimeException("Unrecognized dex magic value");
         }
 
         in.readBytes(20); //checksum
@@ -125,6 +145,26 @@ public class HeaderItem extends Item<HeaderItem> {
         in.readInt(); //data_off
     }
 
+    /**
+     * Sets the dex version number.
+     *
+     * 35 is the default.
+     * 36 is for dex files that use extended opcodes (only works with ICS+)
+     *
+     * @param version - must be either 35 or 36
+     */
+    public void setVersion(int version) {
+        if (version == 35) {
+            magic_index = 0;
+            return;
+        }
+        if (version == 36) {
+            magic_index = 1;
+            return;
+        }
+        throw new RuntimeException("Invalid dex version number passed to setVersion");
+    }
+
     /** {@inheritDoc} */
     protected int placeItem(int offset) {
         return HEADER_SIZE;
@@ -134,11 +174,11 @@ public class HeaderItem extends Item<HeaderItem> {
     protected void writeItem(AnnotatedOutput out) {
         StringBuilder magicBuilder = new StringBuilder();
         for (int i=0; i<8; i++) {
-            magicBuilder.append((char)MAGIC[i]);
+            magicBuilder.append((char)MAGIC_VALUES[magic_index][i]);
         }
 
         out.annotate("magic: " + Utf8Utils.escapeString(magicBuilder.toString()));
-        out.write(MAGIC);
+        out.write(MAGIC_VALUES[magic_index]);
 
         out.annotate("checksum");
         out.writeInt(0);

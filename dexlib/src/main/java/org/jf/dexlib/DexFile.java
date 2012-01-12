@@ -336,12 +336,19 @@ public class DexFile
             boolean isDex = false;
             this.isOdex = false;
 
-            if (Arrays.equals(magic, HeaderItem.MAGIC)) {
-                isDex = true;
-            } else if (Arrays.equals(magic, OdexHeader.MAGIC_35)) {
-                isOdex = true;
-            } else if (Arrays.equals(magic, OdexHeader.MAGIC_36)) {
-                isOdex = true;
+            for (int i=0; i<HeaderItem.MAGIC_VALUES.length; i++) {
+                byte[] magic_value = HeaderItem.MAGIC_VALUES[i];
+                if (Arrays.equals(magic, magic_value)) {
+                    isDex = true;
+                    break;
+                }
+            }
+            if (!isDex) {
+                if (Arrays.equals(magic, OdexHeader.MAGIC_35)) {
+                    isOdex = true;
+                } else if (Arrays.equals(magic, OdexHeader.MAGIC_36)) {
+                    isOdex = true;
+                }
             }
 
             if (isOdex) {
