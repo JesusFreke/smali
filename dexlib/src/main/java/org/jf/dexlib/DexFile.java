@@ -163,13 +163,6 @@ public class DexFile
      */
     private boolean sortAllItems = false;
 
-
-    /**
-     * this is used to access the dex file from within inner classes, when they declare fields or
-     * variable that hide fields on this object
-     */
-    private final DexFile dexFile = this;
-
     /**
      * Is this file an odex file? This is only set when reading in an odex file
      */
@@ -774,7 +767,7 @@ public class DexFile
             new IndexedSection<ClassDefItem>(this, ItemType.TYPE_CLASS_DEF_ITEM) {
 
          public int placeAt(int offset) {
-            if (dexFile.getInplace()) {
+            if (DexFile.this.getInplace()) {
                 return super.placeAt(offset);
             }
 
