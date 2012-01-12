@@ -68,7 +68,7 @@ public class HeaderItem extends Item<HeaderItem> {
         for (int i=0; i<MAGIC_VALUES.length; i++) {
             byte[] magic_value = MAGIC_VALUES[i];
             boolean matched = true;
-            for (int j=0; j<8; i++) {
+            for (int j=0; j<8; j++) {
                 if (magic_value[j] != readMagic[j]) {
                     matched = false;
                     break;
