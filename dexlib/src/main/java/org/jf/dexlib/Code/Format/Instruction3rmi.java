@@ -84,7 +84,7 @@ public class Instruction3rmi extends Instruction implements RegisterRangeInstruc
     }
 
     public Format getFormat() {
-        return Format.Format3rms;
+        return Format.Format3rmi;
     }
 
     public int getRegCount() {
