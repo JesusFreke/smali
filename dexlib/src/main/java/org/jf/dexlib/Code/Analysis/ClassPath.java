@@ -243,7 +243,9 @@ public class ClassPath {
                 //TODO: need to check if the class already exists. (and if so, what to do about it?)
                 TempClassInfo tempClassInfo = new TempClassInfo(dexFilePath, classDefItem);
 
-                tempClasses.put(tempClassInfo.classType, tempClassInfo);
+                if (!tempClasses.containsKey(tempClassInfo.classType)) {
+                    tempClasses.put(tempClassInfo.classType, tempClassInfo);
+                }
             } catch (Exception ex) {
                 throw ExceptionWithContext.withContext(ex, String.format("Error while loading class %s",
                         classDefItem.getClassType().getTypeDescriptor()));
