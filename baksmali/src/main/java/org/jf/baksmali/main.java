@@ -32,7 +32,7 @@ import org.apache.commons.cli.*;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.DexFile;
 import org.jf.util.ConsoleUtil;
-import org.jf.util.smaliHelpFormatter;
+import org.jf.util.SmaliHelpFormatter;
 
 import java.io.File;
 import java.io.IOException;
@@ -320,20 +320,16 @@ public class main {
      * Prints the usage message.
      */
     private static void usage(boolean printDebugOptions) {
-        smaliHelpFormatter formatter = new smaliHelpFormatter();
-        formatter.setWidth(ConsoleUtil.getConsoleWidth());
+        SmaliHelpFormatter formatter = new SmaliHelpFormatter();
+        int consoleWidth = ConsoleUtil.getConsoleWidth();
+        if (consoleWidth <= 0) {
+            consoleWidth = 80;
+        }
+
+        formatter.setWidth(consoleWidth);
 
         formatter.printHelp("java -jar baksmali.jar [options] <dex-file>",
-                "disassembles and/or dumps a dex file", basicOptions, "");
-
-        if (printDebugOptions) {
-            System.out.println();
-            System.out.println("Debug Options:");
-
-            StringBuffer sb = new StringBuffer();
-            formatter.renderOptions(sb, debugOptions);
-            System.out.println(sb.toString());
-        }
+                "disassembles and/or dumps a dex file", basicOptions, printDebugOptions?debugOptions:null);
     }
 
     private static void usage() {

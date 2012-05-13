@@ -37,14 +37,9 @@ import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
 import org.jf.util.ConsoleUtil;
-import org.jf.util.smaliHelpFormatter;
+import org.jf.util.SmaliHelpFormatter;
 
 import java.io.*;
-import java.nio.CharBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -347,20 +342,17 @@ public class main {
      * Prints the usage message.
      */
     private static void usage(boolean printDebugOptions) {
-        smaliHelpFormatter formatter = new smaliHelpFormatter();
-        formatter.setWidth(ConsoleUtil.getConsoleWidth());
+        SmaliHelpFormatter formatter = new SmaliHelpFormatter();
+
+        int consoleWidth = ConsoleUtil.getConsoleWidth();
+        if (consoleWidth <= 0) {
+            consoleWidth = 80;
+        }
+
+        formatter.setWidth(consoleWidth);
 
         formatter.printHelp("java -jar smali.jar [options] [--] [<smali-file>|folder]*",
-                "assembles a set of smali files into a dex file", basicOptions, "");
-
-        if (printDebugOptions) {
-            System.out.println();
-            System.out.println("Debug Options:");
-
-            StringBuffer sb = new StringBuffer();
-            formatter.renderOptions(sb, debugOptions);
-            System.out.println(sb.toString());
-        }
+                "assembles a set of smali files into a dex file", basicOptions, printDebugOptions?debugOptions:null);
     }
 
     private static void usage() {

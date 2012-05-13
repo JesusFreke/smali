@@ -31,12 +31,17 @@ package org.jf.util;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
-public class smaliHelpFormatter extends HelpFormatter {
+import java.io.PrintWriter;
 
-    public void smaliHelpFormatter() {
-    }
-
-    public void renderOptions(StringBuffer sb, Options options) {
-        super.renderOptions(sb, getWidth(), options, getLeftPadding(), this.getDescPadding());
+public class SmaliHelpFormatter extends HelpFormatter {
+    public void printHelp(String cmdLineSyntax, String header, Options options, Options debugOptions) {
+        super.printHelp(cmdLineSyntax, header, options, "");
+        if (debugOptions != null) {
+            System.out.println();
+            System.out.println("Debug Options:");
+            PrintWriter pw = new PrintWriter(System.out);
+            super.printOptions(pw, getWidth(), debugOptions, getLeftPadding(), getDescPadding());
+            pw.flush();
+        }
     }
 }
