@@ -1248,7 +1248,7 @@ public class ClassPath {
                     if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) != 0) {
                         staticMethods[i] = true;
                     }
-                    directMethods[i] = encodedMethod.method.getVirtualMethodString();
+                    directMethods[i] = encodedMethod.method.getShortMethodString();
                 }
                 _staticMethods[0] = staticMethods;
                 return directMethods;
@@ -1261,7 +1261,7 @@ public class ClassPath {
             if (encodedMethods.size() > 0) {
                 String[] virtualMethods = new String[encodedMethods.size()];
                 for (int i=0; i<encodedMethods.size(); i++) {
-                    virtualMethods[i] = encodedMethods.get(i).method.getVirtualMethodString();
+                    virtualMethods[i] = encodedMethods.get(i).method.getShortMethodString();
                 }
                 return virtualMethods;
             }

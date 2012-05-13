@@ -175,21 +175,21 @@ public class MethodIdItem extends Item<MethodIdItem> implements Convertible<Meth
         return cachedMethodString;
     }
 
-    private String cachedVirtualMethodString = null;
+    private String cachedShortMethodString = null;
     /**
      * @return a string formatted like methodName(TTTT..)R
      */
-    public String getVirtualMethodString() {
-        if (cachedVirtualMethodString == null) {
+    public String getShortMethodString() {
+        if (cachedShortMethodString == null) {
             String methodName = this.methodName.getStringValue();
             String prototypeString = methodPrototype.getPrototypeString();
 
             StringBuilder sb = new StringBuilder(methodName.length() + prototypeString.length());
             sb.append(methodName);
             sb.append(prototypeString);
-            cachedVirtualMethodString = sb.toString();
+            cachedShortMethodString = sb.toString();
         }
-        return cachedVirtualMethodString;
+        return cachedShortMethodString;
     }
 
     /**

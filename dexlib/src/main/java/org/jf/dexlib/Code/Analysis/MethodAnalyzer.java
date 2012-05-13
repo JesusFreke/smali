@@ -3141,7 +3141,7 @@ public class MethodAnalyzer {
                         encodedMethod.method.getContainingClass().getTypeDescriptor()));
             }
 
-            if (!currentMethodClassDef.getSuperclass().hasVirtualMethod(methodIdItem.getVirtualMethodString())) {
+            if (!currentMethodClassDef.getSuperclass().hasVirtualMethod(methodIdItem.getShortMethodString())) {
                 throw new ValidationException(String.format("Cannot call method %s with %s. The superclass %s has" +
                         "no such method", methodIdItem.getMethodString(),
                         analyzedInstruction.instruction.opcode.name, methodClassDef.getSuperclass().getClassType()));
