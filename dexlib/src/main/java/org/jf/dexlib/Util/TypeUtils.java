@@ -28,13 +28,12 @@
 
 package org.jf.dexlib.Util;
 
-import org.jf.dexlib.DexFile;
 import org.jf.dexlib.EncodedValue.*;
+import org.jf.dexlib.TypeIdItem;
 
 public class TypeUtils
 {
-    public static EncodedValue makeDefaultValueForType(DexFile dexFile, String type) {
-        EncodedValue subField;
+    public static EncodedValue makeDefaultValueForType(String type) {
         switch (type.charAt(0)) {
             case 'Z':
                 return BooleanEncodedValue.FalseValue;
@@ -57,5 +56,9 @@ public class TypeUtils
                 return NullEncodedValue.NullValue;
         }
         return null;
+    }
+
+    public static EncodedValue makeDefaultValueForType(TypeIdItem type) {
+        return makeDefaultValueForType(type.getTypeDescriptor());
     }
 }

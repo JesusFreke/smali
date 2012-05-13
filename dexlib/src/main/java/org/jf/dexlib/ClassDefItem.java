@@ -359,8 +359,8 @@ public class ClassDefItem extends Item<ClassDefItem> {
             StaticFieldInitializer staticFieldInitializer = staticFieldInitializers.get(i);
 
             if (staticFieldInitializer.value != null &&
-                    (staticFieldInitializer.value.compareTo(TypeUtils.makeDefaultValueForType(dexFile,
-                    staticFieldInitializer.field.field.getFieldType().getTypeDescriptor())) != 0)) {
+                    (staticFieldInitializer.value.compareTo(TypeUtils.makeDefaultValueForType(
+                    staticFieldInitializer.field.field.getFieldType())) != 0)) {
                 lastIndex = i;
                 break;
             }
@@ -377,8 +377,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
             StaticFieldInitializer staticFieldInitializer = staticFieldInitializers.get(i);
             EncodedValue encodedValue = staticFieldInitializer.value;
             if (encodedValue == null) {
-                encodedValue = TypeUtils.makeDefaultValueForType(dexFile,
-                        staticFieldInitializer.field.field.getFieldType().getTypeDescriptor());
+                encodedValue = TypeUtils.makeDefaultValueForType(staticFieldInitializer.field.field.getFieldType());
             }
 
             values[i] = encodedValue;
