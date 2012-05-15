@@ -29,6 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib.Util.Utf8Utils;
+import org.jf.util.CommentingIndentingWriter;
 import org.jf.util.IndentingWriter;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.Analysis.ValidationException;
@@ -208,12 +209,10 @@ public class ClassDefinition {
         writer.write("\n\n");
         writer.write("# static fields\n");
 
-        boolean first = true;
         for (int i=0; i<encodedFields.size(); i++) {
-            if (!first) {
+            if (i > 0) {
                 writer.write('\n');
             }
-            first = false;
 
             ClassDataItem.EncodedField field = encodedFields.get(i);
             EncodedValue encodedValue = null;
@@ -226,10 +225,19 @@ public class ClassDefinition {
                 fieldAnnotations = annotations.getFieldAnnotations(field.field);
             }
 
+            IndentingWriter fieldWriter = writer;
+            // the encoded fields are sorted, so we just have to compare with the previous one to detect duplicates
+            if (i > 0 && field.equals(encodedFields.get(i-1))) {
+                fieldWriter = new CommentingIndentingWriter(writer, "#");
+                fieldWriter.write("Ignoring field with duplicate signature\n");
+                System.err.println(String.format("Warning: class %s has duplicate static field %s, Ignoring.",
+                        classDefItem.getClassType().getTypeDescriptor(), field.field.getShortFieldString()));
+            }
+
             boolean setInStaticConstructor =
                     fieldsSetInStaticConstructor.get(field.field.getIndex()) != null;
 
-            FieldDefinition.writeTo(writer, field, encodedValue, fieldAnnotations, setInStaticConstructor);
+            FieldDefinition.writeTo(fieldWriter, field, encodedValue, fieldAnnotations, setInStaticConstructor);
         }
     }
 
@@ -245,12 +253,12 @@ public class ClassDefinition {
 
         writer.write("\n\n");
         writer.write("# instance fields\n");
-        boolean first = true;
-        for (ClassDataItem.EncodedField field: encodedFields) {
-            if (!first) {
+        for (int i=0; i<encodedFields.size(); i++) {
+            ClassDataItem.EncodedField field = encodedFields.get(i);
+
+            if (i > 0) {
                 writer.write('\n');
             }
-            first = false;
 
             AnnotationSetItem fieldAnnotations = null;
             AnnotationDirectoryItem annotations = classDefItem.getAnnotations();
@@ -258,7 +266,16 @@ public class ClassDefinition {
                 fieldAnnotations = annotations.getFieldAnnotations(field.field);
             }
 
-            FieldDefinition.writeTo(writer, field, null, fieldAnnotations, false);
+            IndentingWriter fieldWriter = writer;
+            // the encoded fields are sorted, so we just have to compare with the previous one to detect duplicates
+            if (i > 0 && field.equals(encodedFields.get(i-1))) {
+                fieldWriter = new CommentingIndentingWriter(writer, "#");
+                fieldWriter.write("Ignoring field with duplicate signature\n");
+                System.err.println(String.format("Warning: class %s has duplicate instance field %s, Ignoring.",
+                        classDefItem.getClassType().getTypeDescriptor(), field.field.getShortFieldString()));
+            }
+
+			FieldDefinition.writeTo(fieldWriter, field, null, fieldAnnotations, false);
         }
     }
 
@@ -294,12 +311,11 @@ public class ClassDefinition {
     }
 
     private void writeMethods(IndentingWriter writer, List<ClassDataItem.EncodedMethod> methods) throws IOException {
-        boolean first = true;
-        for (ClassDataItem.EncodedMethod method: methods) {
-            if (!first) {
+        for (int i=0; i<methods.size(); i++) {
+            ClassDataItem.EncodedMethod method = methods.get(i);
+            if (i > 0) {
                 writer.write('\n');
             }
-            first = false;
 
             AnnotationSetItem methodAnnotations = null;
             AnnotationSetRefList parameterAnnotations = null;
@@ -309,8 +325,17 @@ public class ClassDefinition {
                 parameterAnnotations = annotations.getParameterAnnotations(method.method);
             }
 
+            IndentingWriter methodWriter = writer;
+            // the encoded methods are sorted, so we just have to compare with the previous one to detect duplicates
+            if (i > 0 && method.equals(methods.get(i-1))) {
+                methodWriter = new CommentingIndentingWriter(writer, "#");
+                methodWriter.write("Ignoring method with duplicate signature\n");
+                System.err.println(String.format("Warning: class %s has duplicate method %s, Ignoring.",
+                        classDefItem.getClassType().getTypeDescriptor(), method.method.getShortMethodString()));
+            }
+
             MethodDefinition methodDefinition = new MethodDefinition(method);
-            methodDefinition.writeTo(writer, methodAnnotations, parameterAnnotations);
+            methodDefinition.writeTo(methodWriter, methodAnnotations, parameterAnnotations);
 
             ValidationException validationException = methodDefinition.getValidationException();
             if (validationException != null) {

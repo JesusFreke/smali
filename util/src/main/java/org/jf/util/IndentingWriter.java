@@ -32,27 +32,37 @@ import java.io.IOException;
 import java.io.Writer;
 
 public class IndentingWriter extends Writer {
-    private final Writer writer;
-    private final char[] buffer = new char[16];
-    private int indentLevel = 0;
-    private boolean beginningOfLine;
+    protected final Writer writer;
+    protected final char[] buffer = new char[16];
+    protected int indentLevel = 0;
+    private boolean beginningOfLine = true;
     private static final String newLine = System.getProperty("line.separator");
 
     public IndentingWriter(Writer writer) {
         this.writer = writer;
     }
 
+    protected void writeLineStart() throws IOException {
+    }
+
+    protected void writeIndent() throws IOException {
+        for (int i=0; i<indentLevel; i++) {
+            writer.write(' ');
+        }
+    }
+
     @Override
     public void write(int chr) throws IOException {
         //synchronized(lock) {
+            if (beginningOfLine) {
+                writeLineStart();
+            }
             if (chr == '\n') {
                 writer.write(newLine);
                 beginningOfLine = true;
             } else {
                 if (beginningOfLine) {
-                    for (int i=0; i<indentLevel; i++) {
-                       writer.write(' ');
-                    }
+                    writeIndent();
                 }
                 beginningOfLine = false;
                 writer.write(chr);
