@@ -5,7 +5,6 @@
     <groupId>org.jf</groupId>
     <artifactId>smali-integration-tests</artifactId>
     <version>${aversion}</version>
-    <packaging>pom</packaging>
     <parent>
         <groupId>org.jf</groupId>
         <artifactId>smali-pom</artifactId>
@@ -19,6 +18,7 @@
                 <executions>
                     <execution>
                         <id>junit-tests</id>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>assemble</goal>
                         </goals>
@@ -30,6 +30,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-string-tests</id>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>assemble</goal>
                         </goals>
@@ -41,6 +42,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-type-tests</id>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>assemble</goal>
                         </goals>
@@ -52,6 +54,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-field-tests</id>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>assemble</goal>
                         </goals>
@@ -63,6 +66,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-method-tests</id>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>assemble</goal>
                         </goals>
@@ -79,7 +83,7 @@
                 <executions>
                     <execution>
                         <id>junit-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -93,7 +97,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-string-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -107,7 +111,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-type-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -121,7 +125,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-field-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -135,7 +139,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-method-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -155,7 +159,7 @@
                 <executions>
                     <execution>
                         <id>junit-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>push</goal>
                         </goals>
@@ -166,7 +170,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-string-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>push</goal>
                         </goals>
@@ -177,7 +181,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-type-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>push</goal>
                         </goals>
@@ -188,7 +192,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-field-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>push</goal>
                         </goals>
@@ -199,7 +203,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-method-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>push</goal>
                         </goals>
@@ -217,7 +221,7 @@
                 <executions>
                     <execution>
                         <id>junit-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
@@ -235,7 +239,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-string-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
@@ -253,7 +257,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-type-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
@@ -271,7 +275,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-field-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
@@ -289,7 +293,7 @@
                     </execution>
                     <execution>
                         <id>jumbo-method-tests</id>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>

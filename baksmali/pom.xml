@@ -12,48 +12,6 @@
     </parent>
     <build>
         <plugins>
-            <!--<plugin>
-                <groupId>org.jf</groupId>
-                <artifactId>maven-smali-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>junit-tests</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>assemble</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>src/test/smali</sourceDirectory>
-                            <outputFile>target/test/classes.dex</outputFile>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.1</version>
-                <executions>
-                    <execution>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <executable>java</executable>
-                    <workingDirectory>${basedir}</workingDirectory>
-                    <arguments>
-                        <argument>-classpath</argument>
-                        <classpath/>
-                        <argument>org.jf.baksmali.main</argument>
-                        <argument>-dis</argument>
-                        <argument>${project.build.directory}/test/classes.dex</argument>
-                        <argument>${project.build.directory}/test/out</argument>
-                    </arguments>
-                </configuration>
-            </plugin>-->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -66,6 +24,14 @@
                         </manifest>
                     </archive>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <resources>
