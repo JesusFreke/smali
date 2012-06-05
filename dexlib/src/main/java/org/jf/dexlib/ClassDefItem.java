@@ -324,7 +324,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
         }
 
         private void placeClass(ClassDefItem classDefItem) {
-            if (classDefItem.getOffset() == -1) {
+            if (!classDefItem.isPlaced()) {
                 TypeIdItem superType = classDefItem.superType;
                 ClassDefItem superClassDefItem = unplacedClassDefsByType.get(superType);
 

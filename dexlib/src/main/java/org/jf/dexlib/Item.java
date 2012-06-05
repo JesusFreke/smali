@@ -189,6 +189,7 @@ public abstract class Item<T extends Item> implements Comparable<T> {
 
 
     /**
+     * Note that the item must have been placed before calling this method (See <code>DexFile.place()</code>)
      * @return the offset in the dex file where this item is located
      */
     public int getOffset() {
@@ -198,12 +199,20 @@ public abstract class Item<T extends Item> implements Comparable<T> {
     }
 
     /**
-     * @return the index of this item within the item's containing section
+     * Note that the item must have been placed before calling this method (See <code>DexFile.place()</code>)
+     * @return the index of this item within the item's containing section.
      */
     public int getIndex() {
         Preconditions.checkState(index != -1,
                 "The index is not set until the DexFile containing this item is placed.");
         return index;
+    }
+
+    /**
+     * @return True if this item has been placed, otherwise False
+     */
+    public boolean isPlaced() {
+        return offset != -1;
     }
 
     /**
