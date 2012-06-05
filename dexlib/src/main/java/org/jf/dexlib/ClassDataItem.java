@@ -28,17 +28,26 @@
 
 package org.jf.dexlib;
 
+import com.google.common.base.Preconditions;
 import org.jf.dexlib.Util.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class ClassDataItem extends Item<ClassDataItem> {
-    private EncodedField[] staticFields;
-    private EncodedField[] instanceFields;
-    private EncodedMethod[] directMethods;
-    private EncodedMethod[] virtualMethods;
+    @Nullable
+    private EncodedField[] staticFields = null;
+    @Nullable
+    private EncodedField[] instanceFields = null;
+    @Nullable
+    private EncodedMethod[] directMethods = null;
+    @Nullable
+    private EncodedMethod[] virtualMethods = null;
 
+    @Nullable
     private ClassDefItem parent = null;
 
     /**
@@ -57,13 +66,14 @@ public class ClassDataItem extends Item<ClassDataItem> {
      * @param directMethods The direct methods for this class
      * @param virtualMethods The virtual methods for this class
      */
-    private ClassDataItem(DexFile dexFile, EncodedField[] staticFields, EncodedField[] instanceFields,
-                         EncodedMethod[] directMethods, EncodedMethod[] virtualMethods) {
+    private ClassDataItem(DexFile dexFile, @Nullable EncodedField[] staticFields,
+                          @Nullable EncodedField[] instanceFields, @Nullable EncodedMethod[] directMethods,
+                          @Nullable EncodedMethod[] virtualMethods) {
         super(dexFile);
-        this.staticFields = staticFields==null?new EncodedField[0]:staticFields;
-        this.instanceFields = instanceFields==null?new EncodedField[0]:instanceFields;
-        this.directMethods = directMethods==null?new EncodedMethod[0]:directMethods;
-        this.virtualMethods = virtualMethods==null?new EncodedMethod[0]:virtualMethods;
+        this.staticFields = staticFields;
+        this.instanceFields = instanceFields;
+        this.directMethods = directMethods;
+        this.virtualMethods = virtualMethods;
     }
 
     /**
@@ -75,37 +85,37 @@ public class ClassDataItem extends Item<ClassDataItem> {
      * @param virtualMethods The virtual methods for this class
      * @return a new <code>ClassDataItem</code> with the given values
      */
-    public static ClassDataItem internClassDataItem(DexFile dexFile, List<EncodedField> staticFields,
-                                                         List<EncodedField> instanceFields,
-                                                         List<EncodedMethod> directMethods,
-                                                         List<EncodedMethod> virtualMethods) {
+    public static ClassDataItem internClassDataItem(DexFile dexFile, @Nullable List<EncodedField> staticFields,
+                                                    @Nullable List<EncodedField> instanceFields,
+                                                    @Nullable List<EncodedMethod> directMethods,
+                                                    @Nullable List<EncodedMethod> virtualMethods) {
         EncodedField[] staticFieldsArray = null;
         EncodedField[] instanceFieldsArray = null;
         EncodedMethod[] directMethodsArray = null;
         EncodedMethod[] virtualMethodsArray = null;
 
         if (staticFields != null && staticFields.size() > 0) {
-            Collections.sort(staticFields);
             staticFieldsArray = new EncodedField[staticFields.size()];
-            staticFields.toArray(staticFieldsArray);
+            staticFieldsArray = staticFields.toArray(staticFieldsArray);
+            Arrays.sort(staticFieldsArray);
         }
 
         if (instanceFields != null && instanceFields.size() > 0) {
-            Collections.sort(instanceFields);
             instanceFieldsArray = new EncodedField[instanceFields.size()];
-            instanceFields.toArray(instanceFieldsArray);
+            instanceFieldsArray = instanceFields.toArray(instanceFieldsArray);
+            Arrays.sort(instanceFieldsArray);
         }
 
         if (directMethods != null && directMethods.size() > 0) {
-            Collections.sort(directMethods);
             directMethodsArray = new EncodedMethod[directMethods.size()];
-            directMethods.toArray(directMethodsArray);
+            directMethodsArray = directMethods.toArray(directMethodsArray);
+            Arrays.sort(directMethodsArray);
         }
 
         if (virtualMethods != null && virtualMethods.size() > 0) {
-            Collections.sort(virtualMethods);
             virtualMethodsArray = new EncodedMethod[virtualMethods.size()];
-            virtualMethods.toArray(virtualMethodsArray);
+            virtualMethodsArray = virtualMethods.toArray(virtualMethodsArray);
+            Arrays.sort(virtualMethodsArray);
         }
 
         ClassDataItem classDataItem = new ClassDataItem(dexFile, staticFieldsArray, instanceFieldsArray,
@@ -115,79 +125,99 @@ public class ClassDataItem extends Item<ClassDataItem> {
 
     /** {@inheritDoc} */
     protected void readItem(Input in, ReadContext readContext) {
-        staticFields = new EncodedField[in.readUnsignedLeb128()];
-        instanceFields = new EncodedField[in.readUnsignedLeb128()];
-        directMethods = new EncodedMethod[in.readUnsignedLeb128()];
-        virtualMethods = new EncodedMethod[in.readUnsignedLeb128()];
+        int staticFieldsCount = in.readUnsignedLeb128();
+        int instanceFieldsCount = in.readUnsignedLeb128();
+        int directMethodsCount = in.readUnsignedLeb128();
+        int virtualMethodsCount = in.readUnsignedLeb128();
 
-        EncodedField previousEncodedField = null;
-        for (int i=0; i<staticFields.length; i++) {
-            try {
-                staticFields[i] = previousEncodedField = new EncodedField(dexFile, in, previousEncodedField);
-            } catch (Exception ex) {
-                throw ExceptionWithContext.withContext(ex, "Error while reading static field at index " + i);
+        if (staticFieldsCount > 0) {
+            staticFields = new EncodedField[staticFieldsCount];
+            EncodedField previousEncodedField = null;
+            for (int i=0; i<staticFieldsCount; i++) {
+                try {
+                    staticFields[i] = previousEncodedField = new EncodedField(dexFile, in, previousEncodedField);
+                } catch (Exception ex) {
+                    throw ExceptionWithContext.withContext(ex, "Error while reading static field at index " + i);
+                }
             }
         }
 
-        previousEncodedField = null;
-        for (int i=0; i<instanceFields.length; i++) {
-            try {
-                instanceFields[i] = previousEncodedField = new EncodedField(dexFile, in, previousEncodedField);
-            } catch (Exception ex) {
-                throw ExceptionWithContext.withContext(ex, "Error while reading instance field at index " + i);
+        if (instanceFieldsCount > 0) {
+            instanceFields = new EncodedField[instanceFieldsCount];
+            EncodedField previousEncodedField = null;
+            for (int i=0; i<instanceFieldsCount; i++) {
+                try {
+                    instanceFields[i] = previousEncodedField = new EncodedField(dexFile, in, previousEncodedField);
+                } catch (Exception ex) {
+                    throw ExceptionWithContext.withContext(ex, "Error while reading instance field at index " + i);
+                }
             }
         }
 
-        EncodedMethod previousEncodedMethod = null;
-        for (int i=0; i<directMethods.length; i++) {
-            try {
-                directMethods[i] = previousEncodedMethod = new EncodedMethod(dexFile, readContext, in,
-                        previousEncodedMethod);
-            } catch (Exception ex) {
-                throw ExceptionWithContext.withContext(ex, "Error while reading direct method at index " + i);
+        if (directMethodsCount > 0) {
+            directMethods = new EncodedMethod[directMethodsCount];
+            EncodedMethod previousEncodedMethod = null;
+            for (int i=0; i<directMethodsCount; i++) {
+                try {
+                    directMethods[i] = previousEncodedMethod = new EncodedMethod(dexFile, readContext, in,
+                            previousEncodedMethod);
+                } catch (Exception ex) {
+                    throw ExceptionWithContext.withContext(ex, "Error while reading direct method at index " + i);
+                }
             }
         }
 
-        previousEncodedMethod = null;
-        for (int i=0; i<virtualMethods.length; i++) {
-            try {
-                virtualMethods[i] = previousEncodedMethod = new EncodedMethod(dexFile, readContext, in,
-                        previousEncodedMethod);
-            } catch (Exception ex) {
-                throw ExceptionWithContext.withContext(ex, "Error while reading virtual method at index " + i);
+        if (virtualMethodsCount > 0) {
+            virtualMethods = new EncodedMethod[virtualMethodsCount];
+            EncodedMethod previousEncodedMethod = null;
+            for (int i=0; i<virtualMethodsCount; i++) {
+                try {
+                    virtualMethods[i] = previousEncodedMethod = new EncodedMethod(dexFile, readContext, in,
+                            previousEncodedMethod);
+                } catch (Exception ex) {
+                    throw ExceptionWithContext.withContext(ex, "Error while reading virtual method at index " + i);
+                }
             }
         }
     }
 
     /** {@inheritDoc} */
     protected int placeItem(int offset) {
-        offset += Leb128Utils.unsignedLeb128Size(staticFields.length);
-        offset += Leb128Utils.unsignedLeb128Size(instanceFields.length);
-        offset += Leb128Utils.unsignedLeb128Size(directMethods.length);
-        offset += Leb128Utils.unsignedLeb128Size(virtualMethods.length);
+        offset += Leb128Utils.unsignedLeb128Size(getStaticFieldCount());
+        offset += Leb128Utils.unsignedLeb128Size(getInstanceFieldCount());
+        offset += Leb128Utils.unsignedLeb128Size(getDirectMethodCount());
+        offset += Leb128Utils.unsignedLeb128Size(getVirtualMethodCount());
 
-        EncodedField previousEncodedField = null;
-        for (EncodedField encodedField: staticFields) {
-            offset = encodedField.place(offset, previousEncodedField);
-            previousEncodedField = encodedField;
+        if (staticFields != null) {
+            EncodedField previousEncodedField = null;
+            for (EncodedField encodedField: staticFields) {
+                offset = encodedField.place(offset, previousEncodedField);
+                previousEncodedField = encodedField;
+            }
         }
 
-        previousEncodedField = null;
-        for (EncodedField encodedField: instanceFields) {
-            offset = encodedField.place(offset, previousEncodedField);
-            previousEncodedField = encodedField;
+        if (instanceFields != null) {
+            EncodedField previousEncodedField = null;
+            for (EncodedField encodedField: instanceFields) {
+                offset = encodedField.place(offset, previousEncodedField);
+                previousEncodedField = encodedField;
+            }
         }
 
-        EncodedMethod previousEncodedMethod = null;
-        for (EncodedMethod encodedMethod: directMethods) {
-            offset = encodedMethod.place(offset, previousEncodedMethod);
-            previousEncodedMethod = encodedMethod;
+        if (directMethods != null) {
+            EncodedMethod previousEncodedMethod = null;
+            for (EncodedMethod encodedMethod: directMethods) {
+                offset = encodedMethod.place(offset, previousEncodedMethod);
+                previousEncodedMethod = encodedMethod;
+            }
         }
 
-        previousEncodedMethod = null;
-        for (EncodedMethod encodedMethod: virtualMethods) {
-            offset = encodedMethod.place(offset, previousEncodedMethod);
-            previousEncodedMethod = encodedMethod;
+        if (virtualMethods != null) {
+            EncodedMethod previousEncodedMethod = null;
+            for (EncodedMethod encodedMethod: virtualMethods) {
+                offset = encodedMethod.place(offset, previousEncodedMethod);
+                previousEncodedMethod = encodedMethod;
+            }
         }
 
         return offset;
@@ -196,86 +226,111 @@ public class ClassDataItem extends Item<ClassDataItem> {
     /** {@inheritDoc} */
     protected void writeItem(AnnotatedOutput out) {
         if (out.annotates()) {
-            out.annotate("static_fields_size: 0x" + Integer.toHexString(staticFields.length) + " (" +
-                    staticFields.length + ")");
-            out.writeUnsignedLeb128(staticFields.length);
-            out.annotate("instance_fields_size: 0x" + Integer.toHexString(instanceFields.length) + " (" +
-                    instanceFields.length + ")");
-            out.writeUnsignedLeb128(instanceFields.length);
-            out.annotate("direct_methods_size: 0x" + Integer.toHexString(directMethods.length) + " (" +
-                    directMethods.length + ")");
-            out.writeUnsignedLeb128(directMethods.length);
-            out.annotate("virtual_methods_size: 0x" + Integer.toHexString(virtualMethods.length) + " (" +
-                    virtualMethods.length + ")");
-            out.writeUnsignedLeb128(virtualMethods.length);
+            int staticFieldCount = getStaticFieldCount();
+            out.annotate("static_fields_size: 0x" + Integer.toHexString(staticFieldCount) + " (" +
+                    staticFieldCount + ")");
+            out.writeUnsignedLeb128(staticFieldCount);
 
-            int index = 0;
-            EncodedField previousEncodedField = null;
-            for (EncodedField encodedField: staticFields) {
-                out.annotate("[" + index++ + "] static_field");
-                out.indent();
-                encodedField.writeTo(out, previousEncodedField);
-                out.deindent();
-                previousEncodedField = encodedField;
+            int instanceFieldCount = getInstanceFieldCount();
+            out.annotate("instance_fields_size: 0x" + Integer.toHexString(instanceFieldCount) + " (" +
+                    instanceFieldCount + ")");
+            out.writeUnsignedLeb128(instanceFieldCount);
+
+            int directMethodCount = getDirectMethodCount();
+            out.annotate("direct_methods_size: 0x" + Integer.toHexString(directMethodCount) + " (" +
+                    directMethodCount + ")");
+            out.writeUnsignedLeb128(directMethodCount);
+
+            int virtualMethodCount = getVirtualMethodCount();
+            out.annotate("virtual_methods_size: 0x" + Integer.toHexString(virtualMethodCount) + " (" +
+                    virtualMethodCount + ")");
+            out.writeUnsignedLeb128(virtualMethodCount);
+
+
+            if (staticFields != null) {
+                int index = 0;
+                EncodedField previousEncodedField = null;
+                for (EncodedField encodedField: staticFields) {
+                    out.annotate("[" + index++ + "] static_field");
+                    out.indent();
+                    encodedField.writeTo(out, previousEncodedField);
+                    out.deindent();
+                    previousEncodedField = encodedField;
+                }
             }
 
-            index = 0;
-            previousEncodedField = null;
-            for (EncodedField encodedField: instanceFields) {
-                out.annotate("[" + index++ + "] instance_field");
-                out.indent();
-                encodedField.writeTo(out, previousEncodedField);
-                out.deindent();
-                previousEncodedField = encodedField;
+            if (instanceFields != null) {
+                int index = 0;
+                EncodedField previousEncodedField = null;
+                for (EncodedField encodedField: instanceFields) {
+                    out.annotate("[" + index++ + "] instance_field");
+                    out.indent();
+                    encodedField.writeTo(out, previousEncodedField);
+                    out.deindent();
+                    previousEncodedField = encodedField;
+                }
             }
 
-            index = 0;
-            EncodedMethod previousEncodedMethod = null;
-            for (EncodedMethod encodedMethod: directMethods) {
-                out.annotate("[" + index++ + "] direct_method");
-                out.indent();
-                encodedMethod.writeTo(out, previousEncodedMethod);
-                out.deindent();
-                previousEncodedMethod = encodedMethod;
+            if (directMethods != null) {
+                int index = 0;
+                EncodedMethod previousEncodedMethod = null;
+                for (EncodedMethod encodedMethod: directMethods) {
+                    out.annotate("[" + index++ + "] direct_method");
+                    out.indent();
+                    encodedMethod.writeTo(out, previousEncodedMethod);
+                    out.deindent();
+                    previousEncodedMethod = encodedMethod;
+                }
             }
 
-            index = 0;
-            previousEncodedMethod = null;
-            for (EncodedMethod encodedMethod: virtualMethods) {
-                out.annotate("[" + index++ + "] virtual_method");
-                out.indent();
-                encodedMethod.writeTo(out, previousEncodedMethod);
-                out.deindent();
-                previousEncodedMethod = encodedMethod;
+            if (virtualMethods != null) {
+                int index = 0;
+                EncodedMethod previousEncodedMethod = null;
+                for (EncodedMethod encodedMethod: virtualMethods) {
+                    out.annotate("[" + index++ + "] virtual_method");
+                    out.indent();
+                    encodedMethod.writeTo(out, previousEncodedMethod);
+                    out.deindent();
+                    previousEncodedMethod = encodedMethod;
+                }
             }
         } else {
-            out.writeUnsignedLeb128(staticFields.length);
-            out.writeUnsignedLeb128(instanceFields.length);
-            out.writeUnsignedLeb128(directMethods.length);
-            out.writeUnsignedLeb128(virtualMethods.length);
+            out.writeUnsignedLeb128(getStaticFieldCount());
+            out.writeUnsignedLeb128(getInstanceFieldCount());
+            out.writeUnsignedLeb128(getDirectMethodCount());
+            out.writeUnsignedLeb128(getVirtualMethodCount());
 
-            EncodedField previousEncodedField = null;
-            for (EncodedField encodedField: staticFields) {
-                encodedField.writeTo(out, previousEncodedField);
-                previousEncodedField = encodedField;
+            if (staticFields != null) {
+                EncodedField previousEncodedField = null;
+                for (EncodedField encodedField: staticFields) {
+                    encodedField.writeTo(out, previousEncodedField);
+                    previousEncodedField = encodedField;
+                }
             }
 
-            previousEncodedField = null;
-            for (EncodedField encodedField: instanceFields) {
-                encodedField.writeTo(out, previousEncodedField);
-                previousEncodedField = encodedField;
+
+            if (instanceFields != null) {
+                EncodedField previousEncodedField = null;
+                for (EncodedField encodedField: instanceFields) {
+                    encodedField.writeTo(out, previousEncodedField);
+                    previousEncodedField = encodedField;
+                }
             }
 
-            EncodedMethod previousEncodedMethod = null;
-            for (EncodedMethod encodedMethod: directMethods) {
-                encodedMethod.writeTo(out, previousEncodedMethod);
-                previousEncodedMethod = encodedMethod;
+            if (directMethods != null) {
+                EncodedMethod previousEncodedMethod = null;
+                for (EncodedMethod encodedMethod: directMethods) {
+                    encodedMethod.writeTo(out, previousEncodedMethod);
+                    previousEncodedMethod = encodedMethod;
+                }
             }
 
-            previousEncodedMethod = null;
-            for (EncodedMethod encodedMethod: virtualMethods) {
-                encodedMethod.writeTo(out, previousEncodedMethod);
-                previousEncodedMethod = encodedMethod;
+            if (virtualMethods != null) {
+                EncodedMethod previousEncodedMethod = null;
+                for (EncodedMethod encodedMethod: virtualMethods) {
+                    encodedMethod.writeTo(out, previousEncodedMethod);
+                    previousEncodedMethod = encodedMethod;
+                }
             }
         }
     }
@@ -312,35 +367,92 @@ public class ClassDataItem extends Item<ClassDataItem> {
      * @param classDefItem the <code>ClassDefItem</code> that this <code>ClassDataItem</code> is associated with
      */
     protected void setParent(ClassDefItem classDefItem) {
-        this.parent = classDefItem;
+        Preconditions.checkState(parent == null || parent.compareTo(classDefItem) == 0);
+        parent = classDefItem;
     }
 
     /**
      * @return the static fields for this class
      */
-    public EncodedField[] getStaticFields() {
-        return staticFields;
+    @Nonnull
+    public List<EncodedField> getStaticFields() {
+        if (staticFields == null) {
+            return Collections.emptyList();
+        }
+        return ReadOnlyArrayList.of(staticFields);
     }
 
     /**
      * @return the instance fields for this class
      */
-    public EncodedField[] getInstanceFields() {
-        return instanceFields;
+    @Nonnull
+    public List<EncodedField> getInstanceFields() {
+        if (instanceFields == null) {
+            return Collections.emptyList();
+        }
+        return ReadOnlyArrayList.of(instanceFields);
     }
 
     /**
      * @return the direct methods for this class
      */
-    public EncodedMethod[] getDirectMethods() {
-        return directMethods;
+    @Nonnull
+    public List<EncodedMethod> getDirectMethods() {
+        if (directMethods == null) {
+            return Collections.emptyList();
+        }
+        return ReadOnlyArrayList.of(directMethods);
     }
 
     /**
      * @return the virtual methods for this class
      */
-    public EncodedMethod[] getVirtualMethods() {
-        return virtualMethods;
+    @Nonnull
+    public List<EncodedMethod> getVirtualMethods() {
+        if (virtualMethods == null) {
+            return Collections.emptyList();
+        }
+        return ReadOnlyArrayList.of(virtualMethods);
+    }
+
+    /**
+     * @return The number of static fields in this <code>ClassDataItem</code>
+     */
+    public int getStaticFieldCount() {
+        if (staticFields == null) {
+            return 0;
+        }
+        return staticFields.length;
+    }
+
+    /**
+     * @return The number of instance fields in this <code>ClassDataItem</code>
+     */
+    public int getInstanceFieldCount() {
+        if (instanceFields == null) {
+            return 0;
+        }
+        return instanceFields.length;
+    }
+
+    /**
+     * @return The number of direct methods in this <code>ClassDataItem</code>
+     */
+    public int getDirectMethodCount() {
+        if (directMethods == null) {
+            return 0;
+        }
+        return directMethods.length;
+    }
+
+    /**
+     * @return The number of virtual methods in this <code>ClassDataItem</code>
+     */
+    public int getVirtualMethodCount() {
+        if (virtualMethods == null) {
+            return 0;
+        }
+        return virtualMethods.length;
     }
 
     /**
@@ -431,7 +543,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
          * @param previousEncodedField The previous <code>EncodedField</code> in the list containing this
          * <code>EncodedField</code>.
          */
-        private EncodedField(DexFile dexFile, Input in, EncodedField previousEncodedField) {
+        private EncodedField(DexFile dexFile, Input in, @Nullable EncodedField previousEncodedField) {
             int previousIndex = previousEncodedField==null?0:previousEncodedField.field.getIndex();
             field = dexFile.FieldIdsSection.getItemByIndex(in.readUnsignedLeb128() + previousIndex);
             accessFlags = in.readUnsignedLeb128();

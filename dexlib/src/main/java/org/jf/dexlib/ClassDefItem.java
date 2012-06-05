@@ -122,7 +122,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
         EncodedArrayItem encodedArrayItem = null;
         if(!dexFile.getInplace() && staticFieldInitializers != null && staticFieldInitializers.size() > 0) {
             assert classData != null;
-            assert staticFieldInitializers.size() == classData.getStaticFields().length;
+            assert staticFieldInitializers.size() == classData.getStaticFieldCount();
             encodedArrayItem = makeStaticFieldInitializersItem(dexFile, staticFieldInitializers);
         }
 
@@ -156,7 +156,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
         EncodedArrayItem encodedArrayItem = null;
         if(!dexFile.getInplace() && staticFieldInitializers != null && staticFieldInitializers.size() > 0) {
             assert classData != null;
-            assert staticFieldInitializers.size() == classData.getStaticFields().length;
+            assert staticFieldInitializers.size() == classData.getStaticFieldCount();
             encodedArrayItem = makeStaticFieldInitializersItem(dexFile, staticFieldInitializers);
         }
 

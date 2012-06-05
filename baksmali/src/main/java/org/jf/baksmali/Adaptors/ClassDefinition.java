@@ -198,8 +198,8 @@ public class ClassDefinition {
             staticInitializers = new EncodedValue[0];
         }
 
-        ClassDataItem.EncodedField[] encodedFields = classDataItem.getStaticFields();
-        if (encodedFields == null || encodedFields.length == 0) {
+        List<ClassDataItem.EncodedField> encodedFields = classDataItem.getStaticFields();
+        if (encodedFields.size() == 0) {
             return;
         }
 
@@ -207,13 +207,13 @@ public class ClassDefinition {
         writer.write("# static fields\n");
 
         boolean first = true;
-        for (int i=0; i<encodedFields.length; i++) {
+        for (int i=0; i<encodedFields.size(); i++) {
             if (!first) {
                 writer.write('\n');
             }
             first = false;
 
-            ClassDataItem.EncodedField field = encodedFields[i];
+            ClassDataItem.EncodedField field = encodedFields.get(i);
             EncodedValue encodedValue = null;
             if (i < staticInitializers.length) {
                 encodedValue = staticInitializers[i];
@@ -236,8 +236,8 @@ public class ClassDefinition {
             return;
         }
 
-        ClassDataItem.EncodedField[] encodedFields = classDataItem.getInstanceFields();
-        if (encodedFields == null || encodedFields.length == 0) {
+        List<ClassDataItem.EncodedField> encodedFields = classDataItem.getInstanceFields();
+        if (encodedFields.size() == 0) {
             return;
         }
 
@@ -265,9 +265,8 @@ public class ClassDefinition {
             return;
         }
 
-        ClassDataItem.EncodedMethod[] directMethods = classDataItem.getDirectMethods();
-
-        if (directMethods == null || directMethods.length == 0) {
+        List<ClassDataItem.EncodedMethod> directMethods = classDataItem.getDirectMethods();
+        if (directMethods.size() == 0) {
             return;
         }
 
@@ -281,9 +280,9 @@ public class ClassDefinition {
             return;
         }
 
-        ClassDataItem.EncodedMethod[] virtualMethods = classDataItem.getVirtualMethods();
+        List<ClassDataItem.EncodedMethod> virtualMethods = classDataItem.getVirtualMethods();
 
-        if (virtualMethods == null || virtualMethods.length == 0) {
+        if (virtualMethods.size() == 0) {
             return;
         }
 
@@ -292,7 +291,7 @@ public class ClassDefinition {
         writeMethods(writer, virtualMethods);
     }
 
-    private void writeMethods(IndentingWriter writer, ClassDataItem.EncodedMethod[] methods) throws IOException {
+    private void writeMethods(IndentingWriter writer, List<ClassDataItem.EncodedMethod> methods) throws IOException {
         boolean first = true;
         for (ClassDataItem.EncodedMethod method: methods) {
             if (!first) {

@@ -1237,18 +1237,18 @@ public class ClassPath {
         }
 
         private String[] loadDirectMethods(ClassDataItem classDataItem, boolean[][] _staticMethods) {
-            EncodedMethod[] encodedMethods = classDataItem.getDirectMethods();
+            List<EncodedMethod> encodedMethods = classDataItem.getDirectMethods();
+            if (encodedMethods.size() > 0) {
+                boolean[] staticMethods = new boolean[encodedMethods.size()];
+                String[] directMethods = new String[encodedMethods.size()];
 
-            if (encodedMethods != null && encodedMethods.length > 0) {
-                boolean[] staticMethods = new boolean[encodedMethods.length];
-                String[] directMethods = new String[encodedMethods.length];
-                for (int i=0; i<encodedMethods.length; i++) {
-                    EncodedMethod encodedMethod = encodedMethods[i];
+                for (int i=0; i<encodedMethods.size(); i++) {
+                    EncodedMethod encodedMethod = encodedMethods.get(i);
 
                     if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) != 0) {
                         staticMethods[i] = true;
                     }
-                    directMethods[i] = encodedMethods[i].method.getVirtualMethodString();
+                    directMethods[i] = encodedMethod.method.getVirtualMethodString();
                 }
                 _staticMethods[0] = staticMethods;
                 return directMethods;
@@ -1257,11 +1257,11 @@ public class ClassPath {
         }
 
         private String[] loadVirtualMethods(ClassDataItem classDataItem) {
-            EncodedMethod[] encodedMethods = classDataItem.getVirtualMethods();
-            if (encodedMethods != null && encodedMethods.length > 0) {
-                String[] virtualMethods = new String[encodedMethods.length];
-                for (int i=0; i<encodedMethods.length; i++) {
-                    virtualMethods[i] = encodedMethods[i].method.getVirtualMethodString();
+            List<EncodedMethod> encodedMethods = classDataItem.getVirtualMethods();
+            if (encodedMethods.size() > 0) {
+                String[] virtualMethods = new String[encodedMethods.size()];
+                for (int i=0; i<encodedMethods.size(); i++) {
+                    virtualMethods[i] = encodedMethods.get(i).method.getVirtualMethodString();
                 }
                 return virtualMethods;
             }
@@ -1269,11 +1269,11 @@ public class ClassPath {
         }
 
         private String[][] loadInstanceFields(ClassDataItem classDataItem) {
-            EncodedField[] encodedFields = classDataItem.getInstanceFields();
-            if (encodedFields != null && encodedFields.length > 0) {
-                String[][] instanceFields = new String[encodedFields.length][2];
-                for (int i=0; i<encodedFields.length; i++) {
-                    EncodedField encodedField = encodedFields[i];
+            List<EncodedField> encodedFields = classDataItem.getInstanceFields();
+            if (encodedFields.size() > 0) {
+                String[][] instanceFields = new String[encodedFields.size()][2];
+                for (int i=0; i<encodedFields.size(); i++) {
+                    EncodedField encodedField = encodedFields.get(i);
                     instanceFields[i][0] = encodedField.field.getFieldName().getStringValue();
                     instanceFields[i][1] = encodedField.field.getFieldType().getTypeDescriptor();
                 }
