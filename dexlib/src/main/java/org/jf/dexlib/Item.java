@@ -28,6 +28,7 @@
 
 package org.jf.dexlib;
 
+import com.google.common.base.Preconditions;
 import org.jf.dexlib.Util.AlignmentUtils;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.ExceptionWithContext;
@@ -191,6 +192,8 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @return the offset in the dex file where this item is located
      */
     public int getOffset() {
+        Preconditions.checkState(offset != -1,
+                "The offset is not set until the DexFile containing this item is placed.");
         return offset;
     }
 
@@ -198,6 +201,8 @@ public abstract class Item<T extends Item> implements Comparable<T> {
      * @return the index of this item within the item's containing section
      */
     public int getIndex() {
+        Preconditions.checkState(index != -1,
+                "The index is not set until the DexFile containing this item is placed.");
         return index;
     }
 
