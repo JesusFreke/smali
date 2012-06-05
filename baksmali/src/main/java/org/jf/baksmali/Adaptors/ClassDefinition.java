@@ -31,6 +31,9 @@ package org.jf.baksmali.Adaptors;
 import org.jf.dexlib.Util.Utf8Utils;
 import org.jf.util.IndentingWriter;
 import org.jf.dexlib.*;
+import static org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotation;
+import static org.jf.dexlib.AnnotationDirectoryItem.MethodAnnotation;
+import static org.jf.dexlib.AnnotationDirectoryItem.ParameterAnnotation;
 import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.Code.Format.Instruction21c;
 import org.jf.dexlib.Code.Format.Instruction41c;
@@ -74,28 +77,29 @@ public class ClassDefinition {
             return;
         }
 
-        methodAnnotationsMap = new SparseArray<AnnotationSetItem>(annotationDirectory.getMethodAnnotationCount());
-        annotationDirectory.iterateMethodAnnotations(new AnnotationDirectoryItem.MethodAnnotationIteratorDelegate() {
-            public void processMethodAnnotations(MethodIdItem method, AnnotationSetItem methodAnnotations) {
-                methodAnnotationsMap.put(method.getIndex(), methodAnnotations);
+        int fieldAnnotationCount = annotationDirectory.getFieldAnnotationCount();
+        fieldAnnotationsMap = new SparseArray<AnnotationSetItem>(fieldAnnotationCount);
+        if (fieldAnnotationCount > 0) {
+            for (FieldAnnotation fieldAnnotation: annotationDirectory.getFieldAnnotations()) {
+                fieldAnnotationsMap.put(fieldAnnotation.field.getIndex(), fieldAnnotation.annotationSet);
             }
-        });
+        }
 
-        fieldAnnotationsMap = new SparseArray<AnnotationSetItem>(annotationDirectory.getFieldAnnotationCount());
-        annotationDirectory.iterateFieldAnnotations(new AnnotationDirectoryItem.FieldAnnotationIteratorDelegate() {
-            public void processFieldAnnotations(FieldIdItem field, AnnotationSetItem fieldAnnotations) {
-                fieldAnnotationsMap.put(field.getIndex(), fieldAnnotations);
+        int methodAnnotationCount = annotationDirectory.getMethodAnnotationCount();
+        methodAnnotationsMap = new SparseArray<AnnotationSetItem>(methodAnnotationCount);
+        if (methodAnnotationCount > 0) {
+            for (MethodAnnotation methodAnnotation: annotationDirectory.getMethodAnnotations()) {
+                methodAnnotationsMap.put(methodAnnotation.method.getIndex(), methodAnnotation.annotationSet);
             }
-        });
+        }
 
-        parameterAnnotationsMap = new SparseArray<AnnotationSetRefList>(
-                annotationDirectory.getParameterAnnotationCount());
-        annotationDirectory.iterateParameterAnnotations(
-          new AnnotationDirectoryItem.ParameterAnnotationIteratorDelegate() {
-            public void processParameterAnnotations(MethodIdItem method, AnnotationSetRefList parameterAnnotations) {
-                parameterAnnotationsMap.put(method.getIndex(), parameterAnnotations);
+        int parameterAnnotationCount = annotationDirectory.getParameterAnnotationCount();
+        parameterAnnotationsMap = new SparseArray<AnnotationSetRefList>(parameterAnnotationCount);
+        if (parameterAnnotationCount > 0) {
+            for (ParameterAnnotation parameterAnnotation: annotationDirectory.getParameterAnnotations()) {
+                parameterAnnotationsMap.put(parameterAnnotation.method.getIndex(), parameterAnnotation.annotationSet);
             }
-        });
+        }
     }
 
     private void findFieldsSetInStaticConstructor() {

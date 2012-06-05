@@ -28,32 +28,36 @@
 
 package org.jf.dexlib;
 
+import com.google.common.base.Preconditions;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.dexlib.Util.Input;
+import org.jf.dexlib.Util.ReadOnlyArrayList;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
+    @Nullable
     private AnnotationSetItem classAnnotations;
-
-    private FieldIdItem[] fieldAnnotationFields;
-    private AnnotationSetItem[] fieldAnnotations;
-
-    private MethodIdItem[] methodAnnotationMethods;
-    private AnnotationSetItem[] methodAnnotations;
-
-    private MethodIdItem[] parameterAnnotationMethods;
-    private AnnotationSetRefList[] parameterAnnotations;
+    @Nullable
+    private FieldAnnotation[] fieldAnnotations;
+    @Nullable
+    private MethodAnnotation[] methodAnnotations;
+    @Nullable
+    private ParameterAnnotation[] parameterAnnotations;
 
     /**
      * typically each AnnotationDirectoryItem will have a distinct parent. The only case that isn't true is when
      * the AnnotationDirectoryItem *only* contains class annotations, with no other type of annotation. In that
      * case, the same AnnotationDirectoryItem could be referenced from multiple classes.
-     * This isn't a problem though, because this field is only used in compareTo to determine the sort order,
-     * which handles it as a special case
+     * This isn't a problem though, because this field is only used in compareTo to determine the sort order, which
+     * which knows it should handle a null value as a special case
      */
+    @Nullable
     private ClassDefItem parent = null;
 
     /**
@@ -68,32 +72,43 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
      * Creates a new <code>AnnotationDirectoryItem</code> with the given values
      * @param dexFile The <code>DexFile</code> that this item belongs to
      * @param classAnnotations The annotations associated with the overall class
-     * @param fieldAnnotationFields An array of <code>FieldIdItem</code> objects that the annotations in
-     * <code>fieldAnnotations</code> are associated with
-     * @param fieldAnnotations An array of <code>AnnotationSetItem</code> objects that contain the annotations for the
-     * fields in <code>fieldAnnotationFields</code>
-     * @param methodAnnotationMethods An array of <code>MethodIdItem</code> objects that the annotations in
-     * <code>methodAnnotations</code> are associated with
-     * @param methodAnnotations An array of <code>AnnotationSetItem</code> objects that contain the annotations for the
-     * methods in <code>methodAnnotationMethods</code>
-     * @param parameterAnnotationMethods An array of <code>MethodIdItem</code> objects that the annotations in
-     * <code>parameterAnnotations</code> are associated with
-     * @param parameterAnnotations An array of <code>AnnotationSetRefList</code> objects that contain the parameter
-     * annotations for the methods in <code>parameterAnnotationMethods</code>
+     * @param fieldAnnotations A list of <code>FieldAnnotation</code> objects that contain the field annotations for
+     * this class
+     * @param methodAnnotations A list of <code>MethodAnnotation</code> objects that contain the method annotations for
+     * this class
+     * @param parameterAnnotations A list of <code>ParameterAnnotation</code> objects that contain the parameter
+     * annotations for the methods in this class
      */
-    private AnnotationDirectoryItem(DexFile dexFile, AnnotationSetItem classAnnotations,
-                                    FieldIdItem[] fieldAnnotationFields, AnnotationSetItem[] fieldAnnotations,
-                                    MethodIdItem[] methodAnnotationMethods, AnnotationSetItem[] methodAnnotations,
-                                    MethodIdItem[] parameterAnnotationMethods,
-                                    AnnotationSetRefList[] parameterAnnotations) {
+    private AnnotationDirectoryItem(DexFile dexFile, @Nullable AnnotationSetItem classAnnotations,
+                                    @Nullable List<FieldAnnotation> fieldAnnotations,
+                                    @Nullable List<MethodAnnotation> methodAnnotations,
+                                    @Nullable List<ParameterAnnotation> parameterAnnotations) {
         super(dexFile);
         this.classAnnotations = classAnnotations;
-        this.fieldAnnotationFields = fieldAnnotationFields;
-        this.fieldAnnotations = fieldAnnotations;
-        this.methodAnnotationMethods = methodAnnotationMethods;
-        this.methodAnnotations = methodAnnotations;
-        this.parameterAnnotationMethods = parameterAnnotationMethods;
-        this.parameterAnnotations = parameterAnnotations;
+
+        if (fieldAnnotations == null || fieldAnnotations.size() == 0) {
+            this.fieldAnnotations = null;
+        } else {
+            this.fieldAnnotations = new FieldAnnotation[fieldAnnotations.size()];
+            this.fieldAnnotations = fieldAnnotations.toArray(this.fieldAnnotations);
+            Arrays.sort(this.fieldAnnotations);
+        }
+
+        if (methodAnnotations == null || methodAnnotations.size() == 0) {
+            this.methodAnnotations = null;
+        } else {
+            this.methodAnnotations = new MethodAnnotation[methodAnnotations.size()];
+            this.methodAnnotations = methodAnnotations.toArray(this.methodAnnotations);
+            Arrays.sort(this.methodAnnotations);
+        }
+
+        if (parameterAnnotations == null || parameterAnnotations.size() == 0) {
+            this.parameterAnnotations = null;
+        } else {
+            this.parameterAnnotations = new ParameterAnnotation[parameterAnnotations.size()];
+            this.parameterAnnotations = parameterAnnotations.toArray(this.parameterAnnotations);
+            Arrays.sort(this.parameterAnnotations);
+        }
     }
 
     /**
@@ -113,55 +128,8 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
                                     List<FieldAnnotation> fieldAnnotations,
                                     List<MethodAnnotation> methodAnnotations,
                                     List<ParameterAnnotation> parameterAnnotations) {
-        FieldIdItem[] fieldAnnotationFields = null;
-        AnnotationSetItem[] fieldAnnotationsArray = null;
-        MethodIdItem[] methodAnnotationMethods = null;
-        AnnotationSetItem[] methodAnnotationsArray = null;
-        MethodIdItem[] parameterAnnotationMethods = null;
-        AnnotationSetRefList[] parameterAnnotationsArray = null;
-
-        if (fieldAnnotations != null && fieldAnnotations.size() > 0) {
-            fieldAnnotationFields = new FieldIdItem[fieldAnnotations.size()];
-            fieldAnnotationsArray = new AnnotationSetItem[fieldAnnotations.size()];
-
-            Collections.sort(fieldAnnotations);
-
-            int index = 0;
-            for (FieldAnnotation fieldAnnotation: fieldAnnotations) {
-                fieldAnnotationFields[index] = fieldAnnotation.field;
-                fieldAnnotationsArray[index++] = fieldAnnotation.annotationSet;
-            }
-        }
-
-        if (methodAnnotations != null && methodAnnotations.size() > 0) {
-            methodAnnotationMethods = new MethodIdItem[methodAnnotations.size()];
-            methodAnnotationsArray = new AnnotationSetItem[methodAnnotations.size()];
-
-            Collections.sort(methodAnnotations);
-
-            int index = 0;
-            for (MethodAnnotation methodAnnotation: methodAnnotations) {
-                methodAnnotationMethods[index] = methodAnnotation.method;
-                methodAnnotationsArray[index++] = methodAnnotation.annotationSet;
-            }
-        }
-
-        if (parameterAnnotations != null && parameterAnnotations.size() > 0) {
-            parameterAnnotationMethods = new MethodIdItem[parameterAnnotations.size()];
-            parameterAnnotationsArray = new AnnotationSetRefList[parameterAnnotations.size()];
-
-            Collections.sort(parameterAnnotations);
-
-            int index = 0;
-            for (ParameterAnnotation parameterAnnotation: parameterAnnotations) {
-                parameterAnnotationMethods[index] = parameterAnnotation.method;
-                parameterAnnotationsArray[index++] = parameterAnnotation.annotationSet;
-            }
-        }
-
         AnnotationDirectoryItem annotationDirectoryItem = new AnnotationDirectoryItem(dexFile, classAnnotations,
-                fieldAnnotationFields, fieldAnnotationsArray, methodAnnotationMethods, methodAnnotationsArray,
-                parameterAnnotationMethods, parameterAnnotationsArray);
+                fieldAnnotations, methodAnnotations, parameterAnnotations);
         return dexFile.AnnotationDirectoriesSection.intern(annotationDirectoryItem);
     }
 
@@ -169,45 +137,67 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     protected void readItem(Input in, ReadContext readContext) {
         classAnnotations = (AnnotationSetItem)readContext.getOptionalOffsettedItemByOffset(
                 ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
-        fieldAnnotationFields = new FieldIdItem[in.readInt()];
-        fieldAnnotations = new AnnotationSetItem[fieldAnnotationFields.length];
 
-        methodAnnotationMethods = new MethodIdItem[in.readInt()];
-        methodAnnotations = new AnnotationSetItem[methodAnnotationMethods.length];
+        int fieldAnnotationCount = in.readInt();
+        if (fieldAnnotationCount > 0) {
+            fieldAnnotations = new FieldAnnotation[fieldAnnotationCount];
+        } else {
+            fieldAnnotations = null;
+        }
 
-        parameterAnnotationMethods = new MethodIdItem[in.readInt()];
-        parameterAnnotations = new AnnotationSetRefList[parameterAnnotationMethods.length];
+        int methodAnnotationCount = in.readInt();
+        if (methodAnnotationCount > 0) {
+            methodAnnotations = new MethodAnnotation[methodAnnotationCount];
+        } else {
+            methodAnnotations = null;
+        }
 
-        for (int i=0; i<fieldAnnotations.length; i++) {
-            try {
-                fieldAnnotationFields[i] = dexFile.FieldIdsSection.getItemByIndex(in.readInt());
-                fieldAnnotations[i] = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
-                        ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
-            } catch (Exception ex) {
-                throw ExceptionWithContext.withContext(ex,
-                        "Error occured while reading FieldAnnotation at index " + i);
+        int parameterAnnotationCount = in.readInt();
+        if (parameterAnnotationCount > 0) {
+            parameterAnnotations = new ParameterAnnotation[parameterAnnotationCount];
+        } else {
+            parameterAnnotations = null;
+        }
+
+        if (fieldAnnotations != null) {
+            for (int i=0; i<fieldAnnotations.length; i++) {
+                try {
+                    FieldIdItem fieldIdItem = dexFile.FieldIdsSection.getItemByIndex(in.readInt());
+                    AnnotationSetItem fieldAnnotationSet = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
+                            ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
+                    fieldAnnotations[i] = new FieldAnnotation(fieldIdItem, fieldAnnotationSet);
+                } catch (Exception ex) {
+                    throw ExceptionWithContext.withContext(ex,
+                            "Error occured while reading FieldAnnotation at index " + i);
+                }
             }
         }
 
-        for (int i=0; i<methodAnnotations.length; i++) {
-            try {
-                methodAnnotationMethods[i] = dexFile.MethodIdsSection.getItemByIndex(in.readInt());
-                methodAnnotations[i] = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
-                        ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
-            } catch (Exception ex) {
-                throw ExceptionWithContext.withContext(ex,
-                        "Error occured while reading MethodAnnotation at index " + i);
+        if (methodAnnotations != null) {
+            for (int i=0; i<methodAnnotations.length; i++) {
+                try {
+                    MethodIdItem methodIdItem = dexFile.MethodIdsSection.getItemByIndex(in.readInt());
+                    AnnotationSetItem methodAnnotationSet = (AnnotationSetItem)readContext.getOffsettedItemByOffset(
+                            ItemType.TYPE_ANNOTATION_SET_ITEM, in.readInt());
+                    methodAnnotations[i] = new MethodAnnotation(methodIdItem, methodAnnotationSet);
+                } catch (Exception ex) {
+                    throw ExceptionWithContext.withContext(ex,
+                            "Error occured while reading MethodAnnotation at index " + i);
+                }
             }
         }
 
-        for (int i=0; i<parameterAnnotations.length; i++) {
-            try {
-                parameterAnnotationMethods[i] = dexFile.MethodIdsSection.getItemByIndex(in.readInt());
-                parameterAnnotations[i] = (AnnotationSetRefList)readContext.getOffsettedItemByOffset(
-                        ItemType.TYPE_ANNOTATION_SET_REF_LIST, in.readInt());
-            } catch (Exception ex) {
-                throw ExceptionWithContext.withContext(ex,
-                        "Error occured while reading ParameterAnnotation at index " + i);
+        if (parameterAnnotations != null) {
+            for (int i=0; i<parameterAnnotations.length; i++) {
+                try {
+                    MethodIdItem methodIdItem = dexFile.MethodIdsSection.getItemByIndex(in.readInt());
+                    AnnotationSetRefList paramaterAnnotationSet = (AnnotationSetRefList)readContext.getOffsettedItemByOffset(
+                            ItemType.TYPE_ANNOTATION_SET_REF_LIST, in.readInt());
+                    parameterAnnotations[i] = new ParameterAnnotation(methodIdItem, paramaterAnnotationSet);
+                } catch (Exception ex) {
+                    throw ExceptionWithContext.withContext(ex,
+                            "Error occured while reading ParameterAnnotation at index " + i);
+                }
             }
         }
     }
@@ -245,35 +235,38 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
             int index;
             if (fieldAnnotations != null) {
                index = 0;
-                for (int i=0; i<fieldAnnotations.length; i++) {
+                for (FieldAnnotation fieldAnnotation: fieldAnnotations) {
                     out.annotate(0, "[" + index++ + "] field_annotation");
 
                     out.indent();
-                    out.annotate(4, "field: " + fieldAnnotationFields[i].getFieldName().getStringValue() + ":" +
-                            fieldAnnotationFields[i].getFieldType().getTypeDescriptor());
-                    out.annotate(4, "annotations_off: 0x" + Integer.toHexString(fieldAnnotations[i].getOffset()));
+                    out.annotate(4, "field: " + fieldAnnotation.field.getFieldName().getStringValue() + ":" +
+                            fieldAnnotation.field.getFieldType().getTypeDescriptor());
+                    out.annotate(4, "annotations_off: 0x" +
+                            Integer.toHexString(fieldAnnotation.annotationSet.getOffset()));
                     out.deindent();
                 }
             }
 
             if (methodAnnotations != null) {
                 index = 0;
-                for (int i=0; i<methodAnnotations.length; i++) {
+                for (MethodAnnotation methodAnnotation: methodAnnotations) {
                     out.annotate(0, "[" + index++ + "] method_annotation");
                     out.indent();
-                    out.annotate(4, "method: " + methodAnnotationMethods[i].getMethodString());
-                    out.annotate(4, "annotations_off: 0x" + Integer.toHexString(methodAnnotations[i].getOffset()));
+                    out.annotate(4, "method: " + methodAnnotation.method.getMethodString());
+                    out.annotate(4, "annotations_off: 0x" +
+                            Integer.toHexString(methodAnnotation.annotationSet.getOffset()));
                     out.deindent();
                 }
             }
 
             if (parameterAnnotations != null) {
                 index = 0;
-                for (int i=0; i<parameterAnnotations.length; i++) {
+                for (ParameterAnnotation parameterAnnotation: parameterAnnotations) {
                     out.annotate(0, "[" + index++ + "] parameter_annotation");
                     out.indent();
-                    out.annotate(4, "method: " + parameterAnnotationMethods[i].getMethodString());
-                    out.annotate(4, "annotations_off: 0x" + Integer.toHexString(parameterAnnotations[i].getOffset()));
+                    out.annotate(4, "method: " + parameterAnnotation.method.getMethodString());
+                    out.annotate(4, "annotations_off: 0x" +
+                            Integer.toHexString(parameterAnnotation.annotationSet.getOffset()));
                 }
             }
         }
@@ -284,23 +277,23 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         out.writeInt(parameterAnnotations==null?0:parameterAnnotations.length);
 
         if (fieldAnnotations != null) {
-            for (int i=0; i<fieldAnnotations.length; i++) {
-                out.writeInt(fieldAnnotationFields[i].getIndex());
-                out.writeInt(fieldAnnotations[i].getOffset());
+            for (FieldAnnotation fieldAnnotation: fieldAnnotations) {
+                out.writeInt(fieldAnnotation.field.getIndex());
+                out.writeInt(fieldAnnotation.annotationSet.getOffset());
             }
         }
 
         if (methodAnnotations != null) {
-            for (int i=0; i<methodAnnotations.length; i++) {
-                out.writeInt(methodAnnotationMethods[i].getIndex());
-                out.writeInt(methodAnnotations[i].getOffset());
+            for (MethodAnnotation methodAnnotation: methodAnnotations) {
+                out.writeInt(methodAnnotation.method.getIndex());
+                out.writeInt(methodAnnotation.annotationSet.getOffset());
             }
         }
 
         if (parameterAnnotations != null) {
-            for (int i=0; i<parameterAnnotations.length; i++) {
-                out.writeInt(parameterAnnotationMethods[i].getIndex());
-                out.writeInt(parameterAnnotations[i].getOffset());
+            for (ParameterAnnotation parameterAnnotation: parameterAnnotations) {
+                out.writeInt(parameterAnnotation.method.getIndex());
+                out.writeInt(parameterAnnotation.annotationSet.getOffset());
             }
         }
     }
@@ -320,8 +313,11 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
 
     /** {@inheritDoc} */
     public int compareTo(AnnotationDirectoryItem o) {
+        Preconditions.checkNotNull(o);
         if (!isInternable()) {
             if (!o.isInternable()) {
+                Preconditions.checkState(parent != null && o.parent != null,
+                        "Must call setParent before comparing AnnotationDirectoryItem instances");
                 return parent.compareTo(o.parent);
             }
             return -1;
@@ -335,91 +331,78 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     }
 
     /**
-     * @return The annotations associated with the class
+     * @return An <code>AnnotationSetItem</code> containing the annotations associated with this class, or null
+     * if there are no class annotations
      */
+    @Nullable
     public AnnotationSetItem getClassAnnotations() {
         return classAnnotations;
     }
 
     /**
-     * Iterates over the field annotations, calling delegate.processFieldAnnotations for each
-     * @param delegate the delegate to call
+     * Get a list of the field annotations in this <code>AnnotationDirectoryItem</code>
+     * @return A list of FieldAnnotation objects, or null if there are no field annotations
      */
-    public void iterateFieldAnnotations(FieldAnnotationIteratorDelegate delegate) {
-        for (int i=0; i<fieldAnnotationFields.length; i++) {
-            try {
-                delegate.processFieldAnnotations(fieldAnnotationFields[i], fieldAnnotations[i]);
-            } catch (Exception ex) {
-                throw addExceptionContext(ExceptionWithContext.withContext(ex,
-                        "Error occured while processing field annotations for field: " +
-                                fieldAnnotationFields[i].getFieldString()));
-            }
+    @Nonnull
+    public List<FieldAnnotation> getFieldAnnotations() {
+        if (fieldAnnotations == null) {
+            return Collections.emptyList();
         }
-    }
-
-    public static interface FieldAnnotationIteratorDelegate {
-        void processFieldAnnotations(FieldIdItem field, AnnotationSetItem fieldAnnotations);
+        return ReadOnlyArrayList.of(fieldAnnotations);
     }
 
     /**
-     * @return the number of field annotations in this <code>AnnotationDirectoryItem</code>
+     * Get a list of the method annotations in this <code>AnnotationDirectoryItem</code>
+     * @return A list of MethodAnnotation objects, or null if there are no method annotations
+     */
+    @Nonnull
+    public List<MethodAnnotation> getMethodAnnotations() {
+        if (methodAnnotations == null) {
+            return Collections.emptyList();
+        }
+        return ReadOnlyArrayList.of(methodAnnotations);
+    }
+
+    /**
+     * Get a list of the parameter annotations in this <code>AnnotationDirectoryItem</code>
+     * @return A list of ParameterAnnotation objects, or null if there are no parameter annotations
+     */
+    @Nonnull
+    public List<ParameterAnnotation> getParameterAnnotations() {
+        if (parameterAnnotations == null) {
+            return Collections.emptyList();
+        }
+        return ReadOnlyArrayList.of(parameterAnnotations);
+    }
+
+    /**
+     * @return The number of field annotations in this <code>AnnotationDirectoryItem</code>
      */
     public int getFieldAnnotationCount() {
-        return fieldAnnotationFields.length;
-    }
-
-    /**
-     * Iterates over the method annotations, calling delegate.processMethodAnnotations for each
-     * @param delegate the delegate to call
-     */
-    public void iterateMethodAnnotations(MethodAnnotationIteratorDelegate delegate) {
-        for (int i=0; i<methodAnnotationMethods.length; i++) {
-            try {
-                delegate.processMethodAnnotations(methodAnnotationMethods[i], methodAnnotations[i]);
-            } catch (Exception ex) {
-                throw addExceptionContext(ExceptionWithContext.withContext(ex,
-                        "Error occured while processing method annotations for method: " +
-                                methodAnnotationMethods[i].getMethodString()));
-            }
+        if (fieldAnnotations == null) {
+            return 0;
         }
-    }
-
-    public static interface MethodAnnotationIteratorDelegate {
-        void processMethodAnnotations(MethodIdItem method, AnnotationSetItem methodAnnotations);
+        return fieldAnnotations.length;
     }
 
     /**
-     * @return the number of method annotations in this <code>AnnotationDirectoryItem</code>
+     * @return The number of method annotations in this <code>AnnotationDirectoryItem</code>
      */
     public int getMethodAnnotationCount() {
-        return methodAnnotationMethods.length;
-    }
-
-    /**
-     * Iterates over the parameter annotations, calling delegate.processParameterAnnotations for each
-     * @param delegate the delegate to call
-     */
-    public void iterateParameterAnnotations(ParameterAnnotationIteratorDelegate delegate) {
-        for (int i=0; i<parameterAnnotationMethods.length; i++) {
-            try {
-                delegate.processParameterAnnotations(parameterAnnotationMethods[i], parameterAnnotations[i]);
-            } catch (Exception ex) {
-                throw addExceptionContext(ExceptionWithContext.withContext(ex,
-                        "Error occured while processing parameter annotations for method: " +
-                                parameterAnnotationMethods[i].getMethodString()));
-            }
+        if (methodAnnotations == null) {
+            return 0;
         }
-    }
-
-    public static interface ParameterAnnotationIteratorDelegate {
-        void processParameterAnnotations(MethodIdItem method, AnnotationSetRefList parameterAnnotations);
+        return methodAnnotations.length;
     }
 
     /**
-     * @return the number of parameter annotations in this <code>AnnotationDirectoryItem</code>
+     * @return The number of parameter annotations in this <code>AnnotationDirectoryItem</code>
      */
     public int getParameterAnnotationCount() {
-        return parameterAnnotationMethods.length;
+        if (parameterAnnotations == null) {
+            return 0;
+        }
+        return parameterAnnotations.length;
     }
 
     /**
@@ -435,19 +418,23 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
 
     /**
      * Sets the <code>ClassDefItem</code> that this <code>AnnotationDirectoryItem</code> is associated with.
-     * This is only applicable if this AnnotationDirectoryItem contains only class annotations, and no field, method
-     * or parameter annotations.
+     *
      * @param classDefItem the <code>ClassDefItem</code> that this <code>AnnotationDirectoryItem</code> is associated
-     * with
+     * with.
      */
     protected void setParent(ClassDefItem classDefItem) {
+        // If this AnnotationDirectoryItem is internable, then setParent may be called multiple times, because it is
+        // reused for multiple classes. In this case, the parent field isn't used, so it doesn't matter if we overwrite
+        // it.
+        // If, on the other hand, it is not internable, we want to make sure that only a single parent is set. parent
+        // should either be null, or be equal to the new parent
+        Preconditions.checkState(this.isInternable() || (parent == null || parent.equals(classDefItem)));
         this.parent = classDefItem;
     }
 
     @Override
     public int hashCode() {
-        //an instance is only internable if it has only class annotations, but
-        //no other type of annotation
+        // An instance is internable only if it has only class annotations, but no other type of annotation
         if (!isInternable()) {
             return super.hashCode();
         }
@@ -479,6 +466,19 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         public int compareTo(FieldAnnotation other) {
             return field.compareTo(other.field);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            return compareTo((FieldAnnotation)o) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return field.hashCode() + 31 * annotationSet.hashCode();
+        }
     }
 
     public static class MethodAnnotation implements Comparable<MethodAnnotation> {
@@ -493,6 +493,19 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         public int compareTo(MethodAnnotation other) {
             return method.compareTo(other.method);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            return compareTo((MethodAnnotation)o) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return method.hashCode() + 31 * annotationSet.hashCode();
+        }
     }
 
     public static class ParameterAnnotation implements Comparable<ParameterAnnotation> {
@@ -506,6 +519,19 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
 
         public int compareTo(ParameterAnnotation other) {
             return method.compareTo(other.method);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            return compareTo((ParameterAnnotation)o) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return method.hashCode() + 31 * annotationSet.hashCode();
         }
     }
 }

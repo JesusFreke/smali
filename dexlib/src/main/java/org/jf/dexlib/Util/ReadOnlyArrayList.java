@@ -45,4 +45,8 @@ public class ReadOnlyArrayList<T> extends AbstractList<T> implements RandomAcces
     public T get(int i) {
         return arr[i];
     }
+
+    public static <T> ReadOnlyArrayList<T> of(T... items) {
+        return new ReadOnlyArrayList<T>(items);
+    }
 }
