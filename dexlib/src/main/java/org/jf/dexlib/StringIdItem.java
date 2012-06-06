@@ -32,6 +32,8 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.Utf8Utils;
 
+import javax.annotation.Nullable;
+
 public class StringIdItem extends Item<StringIdItem> {
     private StringDataItem stringDataItem;
 
@@ -131,6 +133,16 @@ public class StringIdItem extends Item<StringIdItem> {
      */
     public String getStringValue() {
         return stringDataItem.getStringValue();
+    }
+
+    /**
+     * Get the <code>String</code> value that the given <code>StringIdItem</code> represents
+     * @param stringIdItem The <code>StringIdItem</code> to get the string value of
+     * @return the <code>String</code> value that the given <code>StringIdItem</code> represents
+     */
+    @Nullable
+    public static String getStringValue(@Nullable StringIdItem stringIdItem) {
+        return stringIdItem==null?null:stringIdItem.getStringValue();
     }
 
     /**

@@ -31,6 +31,8 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 
+import javax.annotation.Nullable;
+
 public class TypeIdItem extends Item<TypeIdItem> {
     private StringIdItem typeDescriptor;
 
@@ -144,6 +146,16 @@ public class TypeIdItem extends Item<TypeIdItem> {
      */
     public String getTypeDescriptor() {
         return typeDescriptor.getStringValue();
+    }
+
+    /**
+     * Returns the type descriptor as a <code>String</code> for the given type
+     * @param typeIdItem The <code>TypeIdItem</code> to get the type descriptor of
+     * @return the type descriptor as a <code>String</code> for the gvien type
+     */
+    @Nullable
+    public static String getTypeDescriptor(@Nullable TypeIdItem typeIdItem) {
+        return typeIdItem==null?null:typeIdItem.getTypeDescriptor();
     }
 
     /**
