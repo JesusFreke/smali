@@ -28,6 +28,7 @@
 
 package org.jf.dexlib;
 
+import com.google.common.base.Preconditions;
 import org.jf.dexlib.EncodedValue.ArrayEncodedSubValue;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.Util.AccessFlags;
@@ -35,6 +36,8 @@ import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.TypeUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -43,12 +46,12 @@ import java.util.List;
 public class ClassDefItem extends Item<ClassDefItem> {
     private TypeIdItem classType;
     private int accessFlags;
-    private TypeIdItem superType;
-    private TypeListItem implementedInterfaces;
-    private StringIdItem sourceFile;
-    private AnnotationDirectoryItem annotations;
-    private ClassDataItem classData;
-    private EncodedArrayItem staticFieldInitializers;
+    private @Nullable TypeIdItem superType;
+    private @Nullable TypeListItem implementedInterfaces;
+    private @Nullable StringIdItem sourceFile;
+    private @Nullable AnnotationDirectoryItem annotations;
+    private @Nullable ClassDataItem classData;
+    private @Nullable EncodedArrayItem staticFieldInitializers;
 
     /**
      * Creates a new uninitialized <code>ClassDefItem</code>
@@ -74,10 +77,10 @@ public class ClassDefItem extends Item<ClassDefItem> {
      * value of null/0. The initial value for any fields that don't specifically have a value can be either the
      * type-appropriate null/0 encoded value, or null.
      */
-    private ClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags, TypeIdItem superType,
-                         TypeListItem implementedInterfaces, StringIdItem sourceFile,
-                         AnnotationDirectoryItem annotations, ClassDataItem classData,
-                         EncodedArrayItem staticFieldInitializers) {
+    private ClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags, @Nullable TypeIdItem superType,
+                         @Nullable TypeListItem implementedInterfaces, @Nullable StringIdItem sourceFile,
+                         @Nullable AnnotationDirectoryItem annotations, @Nullable ClassDataItem classData,
+                         @Nullable EncodedArrayItem staticFieldInitializers) {
         super(dexFile);
         assert classType != null;
         this.classType = classType;
@@ -116,9 +119,10 @@ public class ClassDefItem extends Item<ClassDefItem> {
      * <code>DexFile</code>
      */
     public static ClassDefItem internClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags,
-                         TypeIdItem superType, TypeListItem implementedInterfaces, StringIdItem sourceFile,
-                         AnnotationDirectoryItem annotations, ClassDataItem classData,
-                         List<StaticFieldInitializer> staticFieldInitializers) {
+                         @Nullable TypeIdItem superType, @Nullable TypeListItem implementedInterfaces,
+                         @Nullable StringIdItem sourceFile, @Nullable AnnotationDirectoryItem annotations,
+                         @Nullable ClassDataItem classData,
+                         @Nullable List<StaticFieldInitializer> staticFieldInitializers) {
         EncodedArrayItem encodedArrayItem = null;
         if(!dexFile.getInplace() && staticFieldInitializers != null && staticFieldInitializers.size() > 0) {
             assert classData != null;
@@ -129,40 +133,6 @@ public class ClassDefItem extends Item<ClassDefItem> {
         ClassDefItem classDefItem = new ClassDefItem(dexFile, classType, accessFlags, superType, implementedInterfaces,
                 sourceFile, annotations, classData, encodedArrayItem);
         return dexFile.ClassDefsSection.intern(classDefItem);
-    }
-
-    /**
-     * Looks up a <code>ClassDefItem</code> from the given <code>DexFile</code> for the given
-     * values
-     * @param dexFile The <code>DexFile</code> that the <code>ClassDefItem</code> belongs to
-     * @param classType The type of the class
-     * @param accessFlags The access flags of the class
-     * @param superType The superclass of the class, or null if none (only valid for java.lang.Object)
-     * @param implementedInterfaces A list of the interfaces that the class implements, or null if none
-     * @param sourceFile The main source file that the class is defined in, or null if not available
-     * @param annotations The annotations for the class and its fields, methods and method parameters, or null if none
-     * @param classData The <code>ClassDataItem</code> containing the method and field definitions for the class
-     * @param staticFieldInitializers The initial values for the class's static fields, or null if none. If it is not
-     * null, it must contain the same number of items as the number of static fields in the class. The value in the
-     * <code>StaticFieldInitializer</code> for any field that doesn't have an explicit initial value can either be null
-     * or be the type-appropriate null/0 value.
-     * @return a <code>ClassDefItem</code> from the given <code>DexFile</code> for the given
-     * values, or null if it doesn't exist
-     */
-    public static ClassDefItem lookupClassDefItem(DexFile dexFile, TypeIdItem classType, int accessFlags,
-                         TypeIdItem superType, TypeListItem implementedInterfaces, StringIdItem sourceFile,
-                         AnnotationDirectoryItem annotations, ClassDataItem classData,
-                         List<StaticFieldInitializer> staticFieldInitializers) {
-        EncodedArrayItem encodedArrayItem = null;
-        if(!dexFile.getInplace() && staticFieldInitializers != null && staticFieldInitializers.size() > 0) {
-            assert classData != null;
-            assert staticFieldInitializers.size() == classData.getStaticFieldCount();
-            encodedArrayItem = makeStaticFieldInitializersItem(dexFile, staticFieldInitializers);
-        }
-
-        ClassDefItem classDefItem = new ClassDefItem(dexFile, classType, accessFlags, superType, implementedInterfaces,
-                sourceFile, annotations, classData, encodedArrayItem);
-        return dexFile.ClassDefsSection.getInternedItem(classDefItem);
     }
 
     /** {@inheritDoc} */
@@ -244,26 +214,32 @@ public class ClassDefItem extends Item<ClassDefItem> {
         return accessFlags;
     }
 
+    @Nullable
     public TypeIdItem getSuperclass() {
         return superType;
     }
 
+    @Nullable
     public TypeListItem getInterfaces() {
         return implementedInterfaces;
     }
 
+    @Nullable
     public StringIdItem getSourceFile() {
         return sourceFile;
     }
 
+    @Nullable
     public AnnotationDirectoryItem getAnnotations() {
         return annotations;
     }
 
+    @Nullable
     public ClassDataItem getClassData() {
         return classData;
     }
 
+    @Nullable
     public EncodedArrayItem getStaticFieldInitializers() {
         return staticFieldInitializers;
     }
@@ -370,7 +346,7 @@ public class ClassDefItem extends Item<ClassDefItem> {
      * @return an interned EncodedArrayItem containing the static field initializers
      */
     private static EncodedArrayItem makeStaticFieldInitializersItem(DexFile dexFile,
-                                                               List<StaticFieldInitializer> staticFieldInitializers) {
+            @Nonnull List<StaticFieldInitializer> staticFieldInitializers) {
         if (staticFieldInitializers == null || staticFieldInitializers.size() == 0) {
             return null;
         }

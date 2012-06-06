@@ -39,11 +39,13 @@ import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.Util.AccessFlags;
 import org.jf.dexlib.Util.SparseArray;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 
 public class ClassDefinition {
     private ClassDefItem classDefItem;
+    @Nullable
     private ClassDataItem classDataItem;
 
     private SparseArray<FieldIdItem> fieldsSetInStaticConstructor;

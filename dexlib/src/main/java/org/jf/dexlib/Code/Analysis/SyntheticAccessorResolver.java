@@ -63,7 +63,12 @@ public class SyntheticAccessorResolver {
             return null;
         }
 
-        ClassDataItem.EncodedMethod encodedMethod = classDefItem.getClassData().findDirectMethodByMethodId(methodIdItem);
+        ClassDataItem classDataItem = classDefItem.getClassData();
+        if (classDataItem == null) {
+            return null;
+        }
+
+        ClassDataItem.EncodedMethod encodedMethod = classDataItem.findDirectMethodByMethodId(methodIdItem);
         if (encodedMethod == null) {
             return null;
         }
