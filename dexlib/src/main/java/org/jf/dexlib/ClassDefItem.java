@@ -38,10 +38,7 @@ import org.jf.dexlib.Util.TypeUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class ClassDefItem extends Item<ClassDefItem> {
     private TypeIdItem classType;
@@ -353,6 +350,8 @@ public class ClassDefItem extends Item<ClassDefItem> {
 
         int len = staticFieldInitializers.size();
 
+        // make a copy before sorting. we don't want to modify the list passed to us
+        staticFieldInitializers = new ArrayList<StaticFieldInitializer>(staticFieldInitializers);
         Collections.sort(staticFieldInitializers);
 
         int lastIndex = -1;
