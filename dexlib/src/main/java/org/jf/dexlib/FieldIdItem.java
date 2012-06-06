@@ -31,7 +31,7 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 
-public class FieldIdItem extends Item<FieldIdItem> {
+public class FieldIdItem extends Item<FieldIdItem> implements Convertible<FieldIdItem> {
     private int hashCode = 0;
 
     private TypeIdItem classType;
@@ -236,5 +236,9 @@ public class FieldIdItem extends Item<FieldIdItem> {
         return (classType == other.classType &&
                 fieldType == other.fieldType &&
                 fieldName == other.fieldName);
+    }
+
+    public FieldIdItem convert() {
+        return this;
     }
 }

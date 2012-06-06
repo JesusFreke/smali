@@ -31,9 +31,6 @@ package org.jf.baksmali.Adaptors;
 import org.jf.dexlib.Util.Utf8Utils;
 import org.jf.util.IndentingWriter;
 import org.jf.dexlib.*;
-import static org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotation;
-import static org.jf.dexlib.AnnotationDirectoryItem.MethodAnnotation;
-import static org.jf.dexlib.AnnotationDirectoryItem.ParameterAnnotation;
 import org.jf.dexlib.Code.Analysis.ValidationException;
 import org.jf.dexlib.Code.Format.Instruction21c;
 import org.jf.dexlib.Code.Format.Instruction41c;
@@ -49,10 +46,6 @@ public class ClassDefinition {
     private ClassDefItem classDefItem;
     private ClassDataItem classDataItem;
 
-    private SparseArray<AnnotationSetItem> methodAnnotationsMap;
-    private SparseArray<AnnotationSetItem> fieldAnnotationsMap;
-    private SparseArray<AnnotationSetRefList> parameterAnnotationsMap;
-
     private SparseArray<FieldIdItem> fieldsSetInStaticConstructor;
 
     protected boolean validationErrors;
@@ -60,46 +53,11 @@ public class ClassDefinition {
     public ClassDefinition(ClassDefItem classDefItem) {
         this.classDefItem = classDefItem;
         this.classDataItem = classDefItem.getClassData();
-        buildAnnotationMaps();
         findFieldsSetInStaticConstructor();
     }
 
     public boolean hadValidationErrors() {
         return validationErrors;
-    }
-
-    private void buildAnnotationMaps() {
-        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
-        if (annotationDirectory == null) {
-            methodAnnotationsMap = new SparseArray<AnnotationSetItem>(0);
-            fieldAnnotationsMap = new SparseArray<AnnotationSetItem>(0);
-            parameterAnnotationsMap = new SparseArray<AnnotationSetRefList>(0);
-            return;
-        }
-
-        int fieldAnnotationCount = annotationDirectory.getFieldAnnotationCount();
-        fieldAnnotationsMap = new SparseArray<AnnotationSetItem>(fieldAnnotationCount);
-        if (fieldAnnotationCount > 0) {
-            for (FieldAnnotation fieldAnnotation: annotationDirectory.getFieldAnnotations()) {
-                fieldAnnotationsMap.put(fieldAnnotation.field.getIndex(), fieldAnnotation.annotationSet);
-            }
-        }
-
-        int methodAnnotationCount = annotationDirectory.getMethodAnnotationCount();
-        methodAnnotationsMap = new SparseArray<AnnotationSetItem>(methodAnnotationCount);
-        if (methodAnnotationCount > 0) {
-            for (MethodAnnotation methodAnnotation: annotationDirectory.getMethodAnnotations()) {
-                methodAnnotationsMap.put(methodAnnotation.method.getIndex(), methodAnnotation.annotationSet);
-            }
-        }
-
-        int parameterAnnotationCount = annotationDirectory.getParameterAnnotationCount();
-        parameterAnnotationsMap = new SparseArray<AnnotationSetRefList>(parameterAnnotationCount);
-        if (parameterAnnotationCount > 0) {
-            for (ParameterAnnotation parameterAnnotation: annotationDirectory.getParameterAnnotations()) {
-                parameterAnnotationsMap.put(parameterAnnotation.method.getIndex(), parameterAnnotation.annotationSet);
-            }
-        }
     }
 
     private void findFieldsSetInStaticConstructor() {
@@ -154,7 +112,6 @@ public class ClassDefinition {
         writeInstanceFields(writer);
         writeDirectMethods(writer);
         writeVirtualMethods(writer);
-        return ;
     }
 
     private void writeClass(IndentingWriter writer) throws IOException {
@@ -261,12 +218,16 @@ public class ClassDefinition {
             if (i < staticInitializers.length) {
                 encodedValue = staticInitializers[i];
             }
-            AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
+            AnnotationSetItem fieldAnnotations = null;
+            AnnotationDirectoryItem annotations = classDefItem.getAnnotations();
+            if (annotations != null) {
+                fieldAnnotations = annotations.getFieldAnnotations(field.field);
+            }
 
             boolean setInStaticConstructor =
                     fieldsSetInStaticConstructor.get(field.field.getIndex()) != null;
 
-            FieldDefinition.writeTo(writer, field, encodedValue, annotationSet, setInStaticConstructor);
+            FieldDefinition.writeTo(writer, field, encodedValue, fieldAnnotations, setInStaticConstructor);
         }
     }
 
@@ -283,15 +244,19 @@ public class ClassDefinition {
         writer.write("\n\n");
         writer.write("# instance fields\n");
         boolean first = true;
-        for (ClassDataItem.EncodedField field: classDataItem.getInstanceFields()) {
+        for (ClassDataItem.EncodedField field: encodedFields) {
             if (!first) {
                 writer.write('\n');
             }
             first = false;
 
-            AnnotationSetItem annotationSet = fieldAnnotationsMap.get(field.field.getIndex());
+            AnnotationSetItem fieldAnnotations = null;
+            AnnotationDirectoryItem annotations = classDefItem.getAnnotations();
+            if (annotations != null) {
+                fieldAnnotations = annotations.getFieldAnnotations(field.field);
+            }
 
-            FieldDefinition.writeTo(writer, field, null, annotationSet, false);
+            FieldDefinition.writeTo(writer, field, null, fieldAnnotations, false);
         }
     }
 
@@ -335,11 +300,16 @@ public class ClassDefinition {
             }
             first = false;
 
-            AnnotationSetItem annotationSet = methodAnnotationsMap.get(method.method.getIndex());
-            AnnotationSetRefList parameterAnnotationList = parameterAnnotationsMap.get(method.method.getIndex());
+            AnnotationSetItem methodAnnotations = null;
+            AnnotationSetRefList parameterAnnotations = null;
+            AnnotationDirectoryItem annotations = classDefItem.getAnnotations();
+            if (annotations != null) {
+                methodAnnotations = annotations.getMethodAnnotations(method.method);
+                parameterAnnotations = annotations.getParameterAnnotations(method.method);
+            }
 
             MethodDefinition methodDefinition = new MethodDefinition(method);
-            methodDefinition.writeTo(writer, annotationSet, parameterAnnotationList);
+            methodDefinition.writeTo(writer, methodAnnotations, parameterAnnotations);
 
             ValidationException validationException = methodDefinition.getValidationException();
             if (validationException != null) {

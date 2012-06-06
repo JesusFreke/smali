@@ -36,9 +36,7 @@ import org.jf.dexlib.Util.ReadOnlyArrayList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     @Nullable
@@ -376,6 +374,58 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
     }
 
     /**
+     * Gets the field annotations for the given field, or null if no annotations are defined for that field
+     * @param fieldIdItem The field to get the annotations for
+     * @return An <code>AnnotationSetItem</code> containing the field annotations, or null if none are found
+     */
+    @Nullable
+    public AnnotationSetItem getFieldAnnotations(FieldIdItem fieldIdItem) {
+        if (fieldAnnotations == null) {
+            return null;
+        }
+        int index = Arrays.binarySearch(fieldAnnotations, fieldIdItem);
+        if (index < 0) {
+            return null;
+        }
+        return fieldAnnotations[index].annotationSet;
+    }
+
+    /**
+     * Gets the method annotations for the given method, or null if no annotations are defined for that method
+     * @param methodIdItem The method to get the annotations for
+     * @return An <code>AnnotationSetItem</code> containing the method annotations, or null if none are found
+     */
+    @Nullable
+    public AnnotationSetItem getMethodAnnotations(MethodIdItem methodIdItem) {
+        if (methodAnnotations == null) {
+            return null;
+        }
+        int index = Arrays.binarySearch(methodAnnotations, methodIdItem);
+        if (index < 0) {
+            return null;
+        }
+        return methodAnnotations[index].annotationSet;
+    }
+
+    /**
+     * Gets the parameter annotations for the given method, or null if no parameter annotations are defined for that
+     * method
+     * @param methodIdItem The method to get the parameter annotations for
+     * @return An <code>AnnotationSetRefList</code> containing the parameter annotations, or null if none are found
+     */
+    @Nullable
+    public AnnotationSetRefList getParameterAnnotations(MethodIdItem methodIdItem) {
+        if (parameterAnnotations == null) {
+            return null;
+        }
+        int index = Arrays.binarySearch(parameterAnnotations, methodIdItem);
+        if (index < 0) {
+            return null;
+        }
+        return parameterAnnotations[index].annotationSet;
+    }
+
+    /**
      * @return The number of field annotations in this <code>AnnotationDirectoryItem</code>
      */
     public int getFieldAnnotationCount() {
@@ -454,7 +504,7 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         return (this.compareTo(other) == 0);
     }
 
-    public static class FieldAnnotation implements Comparable<FieldAnnotation> {
+    public static class FieldAnnotation implements Comparable<Convertible<FieldIdItem>>, Convertible<FieldIdItem> {
         public final FieldIdItem field;
         public final AnnotationSetItem annotationSet;
 
@@ -463,8 +513,8 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
             this.annotationSet = annotationSet;
         }
 
-        public int compareTo(FieldAnnotation other) {
-            return field.compareTo(other.field);
+        public int compareTo(Convertible<FieldIdItem> other) {
+            return field.compareTo(other.convert());
         }
 
         @Override
@@ -479,9 +529,13 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         public int hashCode() {
             return field.hashCode() + 31 * annotationSet.hashCode();
         }
+
+        public FieldIdItem convert() {
+            return field;
+        }
     }
 
-    public static class MethodAnnotation implements Comparable<MethodAnnotation> {
+    public static class MethodAnnotation implements Comparable<Convertible<MethodIdItem>>, Convertible<MethodIdItem> {
         public final MethodIdItem method;
         public final AnnotationSetItem annotationSet;
 
@@ -490,8 +544,8 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
             this.annotationSet = annotationSet;
         }
 
-        public int compareTo(MethodAnnotation other) {
-            return method.compareTo(other.method);
+        public int compareTo(Convertible<MethodIdItem> other) {
+            return method.compareTo(other.convert());
         }
 
         @Override
@@ -506,9 +560,14 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         public int hashCode() {
             return method.hashCode() + 31 * annotationSet.hashCode();
         }
+
+        public MethodIdItem convert() {
+            return method;
+        }
     }
 
-    public static class ParameterAnnotation implements Comparable<ParameterAnnotation> {
+    public static class ParameterAnnotation implements Comparable<Convertible<MethodIdItem>>,
+            Convertible<MethodIdItem> {
         public final MethodIdItem method;
         public final AnnotationSetRefList annotationSet;
 
@@ -517,8 +576,8 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
             this.annotationSet = annotationSet;
         }
 
-        public int compareTo(ParameterAnnotation other) {
-            return method.compareTo(other.method);
+        public int compareTo(Convertible<MethodIdItem> other) {
+            return method.compareTo(other.convert());
         }
 
         @Override
@@ -532,6 +591,10 @@ public class AnnotationDirectoryItem extends Item<AnnotationDirectoryItem> {
         @Override
         public int hashCode() {
             return method.hashCode() + 31 * annotationSet.hashCode();
+        }
+
+        public MethodIdItem convert() {
+            return method;
         }
     }
 }

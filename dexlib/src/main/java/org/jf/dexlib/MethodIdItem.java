@@ -31,7 +31,7 @@ package org.jf.dexlib;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 
-public class MethodIdItem extends Item<MethodIdItem> {
+public class MethodIdItem extends Item<MethodIdItem> implements Convertible<MethodIdItem> {
     private int hashCode = 0;
 
     private TypeIdItem classType;
@@ -248,5 +248,9 @@ public class MethodIdItem extends Item<MethodIdItem> {
         return (classType == other.classType &&
                 methodPrototype == other.methodPrototype &&
                 methodName == other.methodName);
+    }
+
+    public MethodIdItem convert() {
+        return this;
     }
 }
