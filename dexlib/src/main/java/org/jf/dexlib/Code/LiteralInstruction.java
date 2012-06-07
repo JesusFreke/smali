@@ -29,5 +29,5 @@
 package org.jf.dexlib.Code;
 
 public interface LiteralInstruction {
-    long getLiteral(); 
+    long getLiteral();
 }

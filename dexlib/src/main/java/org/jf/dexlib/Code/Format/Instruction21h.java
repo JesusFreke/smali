@@ -28,15 +28,15 @@
 
 package org.jf.dexlib.Code.Format;
 
+import org.jf.dexlib.Code.EncodedLiteralInstruction;
 import org.jf.dexlib.Code.Instruction;
-import org.jf.dexlib.Code.LiteralInstruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.SingleRegisterInstruction;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.NumberUtils;
 
-public class Instruction21h extends Instruction implements SingleRegisterInstruction, LiteralInstruction {
+public class Instruction21h extends Instruction implements SingleRegisterInstruction, EncodedLiteralInstruction {
     public static final Instruction.InstructionFactory Factory = new Factory();
     private byte regA;
     private short litB;
@@ -75,6 +75,15 @@ public class Instruction21h extends Instruction implements SingleRegisterInstruc
 
     public long getLiteral() {
         return litB;
+    }
+
+    public long getDecodedLiteral() {
+        if (opcode == Opcode.CONST_HIGH16) {
+            return litB << 16;
+        } else {
+            assert opcode == Opcode.CONST_WIDE_HIGH16;
+            return ((long)litB) << 48;
+        }
     }
 
     private static class Factory implements Instruction.InstructionFactory {
