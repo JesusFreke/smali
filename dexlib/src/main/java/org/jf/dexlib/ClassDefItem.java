@@ -197,9 +197,9 @@ public class ClassDefItem extends Item<ClassDefItem> {
 
     /** {@inheritDoc} */
     public int compareTo(ClassDefItem o) {
-        //The actual sorting for this class is implemented in SortClassDefItemSection.
-        //This method is just used for sorting the associated ClassDataItem items, so
-        //we can just do the comparison based on the offsets of the items
+        //The actual sorting for this class is done during the placement phase, in ClassDefPlacer.
+        //This method is just used for sorting the associated ClassDataItem items after the ClassDefItems have been
+        //placed, so we can just do the comparison based on the offsets
         return this.getOffset() - o.getOffset();
     }
 

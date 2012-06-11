@@ -773,15 +773,14 @@ public class DexFile
 
             int ret = ClassDefItem.placeClassDefItems(this, offset);
 
-            Collections.sort(this.items, new Comparator<ClassDefItem>() {
-
-                public int compare(ClassDefItem a, ClassDefItem b) {
-                    return a.getOffset() - b.getOffset();
-                }
-            });
+            Collections.sort(this.items);
 
             this.offset = items.get(0).getOffset();
             return ret;
+        }
+
+        protected void sortSection() {
+            // Do nothing. Sorting is handled by ClassDefItem.ClassDefPlacer, during placement
         }
     };
 
