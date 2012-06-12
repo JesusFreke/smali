@@ -28,6 +28,7 @@
 
 package org.jf.dexlib;
 
+import com.google.common.base.Preconditions;
 import org.jf.dexlib.Util.AnnotatedOutput;
 import org.jf.dexlib.Util.Input;
 import org.jf.dexlib.Util.Utf8Utils;
@@ -51,6 +52,10 @@ public class HeaderItem extends Item<HeaderItem> {
 
     /* Which magic value to use when writing out the header item */
     private int magic_index = 0;
+
+    private boolean checksumSignatureSet = false;
+    private int checksum;
+    private byte[] signature;
 
     /**
      * Create a new uninitialized <code>HeaderItem</code>
@@ -85,8 +90,10 @@ public class HeaderItem extends Item<HeaderItem> {
             throw new RuntimeException("Unrecognized dex magic value");
         }
 
-        in.readBytes(20); //checksum
-        in.readInt(); //signature
+        checksum = in.readInt(); //checksum
+        signature = in.readBytes(20); //signature
+        checksumSignatureSet = true;
+
         in.readInt(); //filesize
         if (in.readInt() != HEADER_SIZE) {
             throw new RuntimeException("The header size is not the expected value (0x70)");
@@ -264,4 +271,33 @@ public class HeaderItem extends Item<HeaderItem> {
         //there is only 1 header item
         return 0;
     }
+
+    /**
+     * Get the checksum that was originally stored as part of this header item
+     *
+     * Note that this should only be called if this HeaderItem is from a DexFile that was read from disk, as opposed
+     * to one that is created from scratch.
+     *
+     * @return The addler32 checksum (as an integer) of the dex file
+     */
+    public int getChecksum() {
+        Preconditions.checkState(checksumSignatureSet,
+                "This can only be called on a DexFile that was read from disk.");
+        return checksum;
+    }
+
+    /**
+     * Get the signature that was originally stored as part of this header item
+     *
+     * Note that this should only be called if this HeaderItem is from a DexFile that was read from disk, as opposed
+     * to one that is created from scratch.
+     *
+     * @return The sha1 checksum of the dex file, as a 20-element byte array
+     */
+    public byte[] getSignature() {
+        Preconditions.checkState(checksumSignatureSet,
+                "This can only be called on a DexFile that was read from disk.");
+        return signature;
+    }
+
 }
