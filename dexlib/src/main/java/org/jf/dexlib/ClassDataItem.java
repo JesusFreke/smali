@@ -33,9 +33,7 @@ import org.jf.dexlib.Util.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class ClassDataItem extends Item<ClassDataItem> {
     @Nullable
@@ -95,27 +93,71 @@ public class ClassDataItem extends Item<ClassDataItem> {
         EncodedMethod[] virtualMethodsArray = null;
 
         if (staticFields != null && staticFields.size() > 0) {
-            staticFieldsArray = new EncodedField[staticFields.size()];
-            staticFieldsArray = staticFields.toArray(staticFieldsArray);
-            Arrays.sort(staticFieldsArray);
+            SortedSet<EncodedField> staticFieldsSet = new TreeSet<EncodedField>();
+            for (EncodedField staticField: staticFields) {
+                if (staticFieldsSet.contains(staticField)) {
+                    System.err.println(String.format("Ignoring duplicate static field definition: %s",
+                            staticField.field.getFieldString()));
+                    continue;
+                }
+                staticFieldsSet.add(staticField);
+            }
+
+            staticFieldsArray = new EncodedField[staticFieldsSet.size()];
+            staticFieldsArray = staticFieldsSet.toArray(staticFieldsArray);
         }
 
         if (instanceFields != null && instanceFields.size() > 0) {
-            instanceFieldsArray = new EncodedField[instanceFields.size()];
-            instanceFieldsArray = instanceFields.toArray(instanceFieldsArray);
-            Arrays.sort(instanceFieldsArray);
+            SortedSet<EncodedField> instanceFieldsSet = new TreeSet<EncodedField>();
+            for (EncodedField instanceField: instanceFields) {
+                if (instanceFieldsSet.contains(instanceField)) {
+                    System.err.println(String.format("Ignoring duplicate instance field definition: %s",
+                            instanceField.field.getFieldString()));
+                    continue;
+                }
+                instanceFieldsSet.add(instanceField);
+            }
+
+            instanceFieldsArray = new EncodedField[instanceFieldsSet.size()];
+            instanceFieldsArray = instanceFieldsSet.toArray(instanceFieldsArray);
         }
 
+        TreeSet<EncodedMethod> directMethodSet = new TreeSet<EncodedMethod>();
+
         if (directMethods != null && directMethods.size() > 0) {
-            directMethodsArray = new EncodedMethod[directMethods.size()];
-            directMethodsArray = directMethods.toArray(directMethodsArray);
-            Arrays.sort(directMethodsArray);
+            for (EncodedMethod directMethod: directMethods) {
+                if (directMethodSet.contains(directMethod)) {
+                    System.err.println(String.format("Ignoring duplicate direct method definition: %s",
+                            directMethod.method.getMethodString()));
+                    continue;
+                }
+                directMethodSet.add(directMethod);
+            }
+
+            directMethodsArray = new EncodedMethod[directMethodSet.size()];
+            directMethodsArray = directMethodSet.toArray(directMethodsArray);
         }
 
         if (virtualMethods != null && virtualMethods.size() > 0) {
-            virtualMethodsArray = new EncodedMethod[virtualMethods.size()];
-            virtualMethodsArray = virtualMethods.toArray(virtualMethodsArray);
-            Arrays.sort(virtualMethodsArray);
+            TreeSet<EncodedMethod> virtualMethodSet = new TreeSet<EncodedMethod>();
+            for (EncodedMethod virtualMethod: virtualMethods) {
+                if (directMethodSet.contains(virtualMethod)) {
+                    // If both a direct and virtual definition is present, dalvik's behavior seems to be undefined,
+                    // so we can't gracefully handle this case, like we can if the duplicates are all direct or all
+                    // virtual -- in which case, we ignore all but the first definition
+                    throw new RuntimeException(String.format("Duplicate direct+virtual method definition: %s",
+                            virtualMethod.method.getMethodString()));
+                }
+                if (virtualMethodSet.contains(virtualMethod)) {
+                    System.err.println(String.format("Ignoring duplicate virtual method definition: %s",
+                            virtualMethod.method.getMethodString()));
+                    continue;
+                }
+                virtualMethodSet.add(virtualMethod);
+            }
+
+            virtualMethodsArray = new EncodedMethod[virtualMethodSet.size()];
+            virtualMethodsArray = virtualMethodSet.toArray(virtualMethodsArray);
         }
 
         ClassDataItem classDataItem = new ClassDataItem(dexFile, staticFieldsArray, instanceFieldsArray,
@@ -597,6 +639,19 @@ public class ClassDataItem extends Item<ClassDataItem> {
         }
 
         /**
+         * Determines if this <code>EncodedField</code> is equal to other, based on the equality of the associated
+         * <code>FieldIdItem</code>
+         * @param other The <code>EncodedField</code> to test for equality
+         * @return true if other is equal to this instance, otherwise false
+         */
+        public boolean equals(Object other) {
+            if (other instanceof EncodedField) {
+                return compareTo((EncodedField)other) == 0;
+            }
+            return false;
+        }
+
+        /**
          * @return true if this is a static field
          */
         public boolean isStatic() {
@@ -715,6 +770,19 @@ public class ClassDataItem extends Item<ClassDataItem> {
          */
         public int compareTo(EncodedMethod other) {
             return method.compareTo(other.method);
+        }
+
+        /**
+         * Determines if this <code>EncodedMethod</code> is equal to other, based on the equality of the associated
+         * <code>MethodIdItem</code>
+         * @param other The <code>EncodedMethod</code> to test for equality
+         * @return true if other is equal to this instance, otherwise false
+         */
+        public boolean equals(Object other) {
+            if (other instanceof EncodedMethod) {
+                return compareTo((EncodedMethod)other) == 0;
+            }
+            return false;
         }
 
         /**
