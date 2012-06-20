@@ -41,6 +41,7 @@ import org.jf.util.SmaliHelpFormatter;
 
 import java.io.*;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
@@ -84,6 +85,9 @@ public class main {
      * Run!
      */
     public static void main(String[] args) {
+        Locale locale = new Locale("en", "US");
+        Locale.setDefault(locale);
+
         CommandLineParser parser = new PosixParser();
         CommandLine commandLine;
 

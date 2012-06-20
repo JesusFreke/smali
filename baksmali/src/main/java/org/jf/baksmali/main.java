@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 public class main {
@@ -84,6 +85,9 @@ public class main {
      * Run!
      */
     public static void main(String[] args) {
+        Locale locale = new Locale("en", "US");
+        Locale.setDefault(locale);
+
         CommandLineParser parser = new PosixParser();
         CommandLine commandLine;
 
