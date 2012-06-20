@@ -80,7 +80,7 @@ public class EnumEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         EnumEncodedValue other = (EnumEncodedValue)o;
 
-        return value.getIndex() - other.value.getIndex();
+        return value.compareTo(other.value);
     }
 
     /** {@inheritDoc} */

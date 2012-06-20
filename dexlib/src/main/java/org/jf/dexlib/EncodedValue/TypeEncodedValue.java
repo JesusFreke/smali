@@ -80,7 +80,7 @@ public class TypeEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         TypeEncodedValue other = (TypeEncodedValue)o;
 
-        return value.getIndex() - other.value.getIndex();
+        return value.compareTo(other.value);
     }
 
     /** {@inheritDoc} */

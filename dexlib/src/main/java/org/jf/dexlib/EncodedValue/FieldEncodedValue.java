@@ -80,7 +80,7 @@ public class FieldEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         FieldEncodedValue other = (FieldEncodedValue)o;
 
-        return value.getIndex()-other.value.getIndex();
+        return value.compareTo(other.value);
     }
 
     /** {@inheritDoc} */

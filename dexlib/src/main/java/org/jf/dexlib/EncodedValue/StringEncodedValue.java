@@ -81,7 +81,7 @@ public class StringEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         StringEncodedValue other = (StringEncodedValue)o;
 
-        return value.getIndex() - other.value.getIndex();
+        return value.compareTo(other.value);
     }
 
     /** {@inheritDoc} */

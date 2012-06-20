@@ -80,7 +80,7 @@ public class MethodEncodedValue extends EncodedValue {
     protected int compareValue(EncodedValue o) {
         MethodEncodedValue other = (MethodEncodedValue)o;
 
-        return value.getIndex() - other.value.getIndex();
+        return value.compareTo(other.value);
     }
 
     /** {@inheritDoc} */
