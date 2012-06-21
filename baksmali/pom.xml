@@ -60,6 +60,12 @@
                             public static **[] values();
                             public static ** valueOf(java.lang.String);
                         }</option>
+                        <option>-dontwarn junit.**</option>
+                        <option>-dontnote junit.**</option>
+                        <option>-dontwarn org.junit.**</option>
+                        <option>-dontnote org.junit.**</option>
+                        <option>-dontwarn com.google.common.base.**</option>
+                        <option>-dontnote com.google.common.base.**</option>
                     </options>
                     <libs>
                         <lib>${java.home}/lib/rt.jar</lib>
