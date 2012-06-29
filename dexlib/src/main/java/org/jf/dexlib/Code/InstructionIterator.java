@@ -53,35 +53,37 @@ public class InstructionIterator {
                 Instruction instruction = null;
 
                 if (opcode == null) {
-                    throw new RuntimeException("Unknown opcode: " + Hex.u1(insns[insnsPosition]));
-                }
-
-                if (opcode == Opcode.NOP) {
-                    byte secondByte = insns[insnsPosition + 1];
-                    switch (secondByte) {
-                        case 0:
-                        {
-                            instruction = new Instruction10x(Opcode.NOP, insns, insnsPosition);
-                            break;
-                        }
-                        case 1:
-                        {
-                            instruction = new PackedSwitchDataPseudoInstruction(insns, insnsPosition);
-                            break;
-                        }
-                        case 2:
-                        {
-                            instruction = new SparseSwitchDataPseudoInstruction(insns, insnsPosition);
-                            break;
-                        }
-                        case 3:
-                        {
-                            instruction = new ArrayDataPseudoInstruction(insns, insnsPosition);
-                            break;
-                        }
-                    }
+                    System.err.println(String.format("unknown opcode encountered - %x. Treating as nop.",
+                            (opcodeValue & 0xFFFF)));
+                    instruction = new Instruction10x(Opcode.NOP,  insns, insnsPosition);
                 } else {
-                    instruction = opcode.format.Factory.makeInstruction(dexFile, opcode, insns, insnsPosition);
+                    if (opcode == Opcode.NOP) {
+                        byte secondByte = insns[insnsPosition + 1];
+                        switch (secondByte) {
+                            case 0:
+                            {
+                                instruction = new Instruction10x(Opcode.NOP, insns, insnsPosition);
+                                break;
+                            }
+                            case 1:
+                            {
+                                instruction = new PackedSwitchDataPseudoInstruction(insns, insnsPosition);
+                                break;
+                            }
+                            case 2:
+                            {
+                                instruction = new SparseSwitchDataPseudoInstruction(insns, insnsPosition);
+                                break;
+                            }
+                            case 3:
+                            {
+                                instruction = new ArrayDataPseudoInstruction(insns, insnsPosition);
+                                break;
+                            }
+                        }
+                    } else {
+                        instruction = opcode.format.Factory.makeInstruction(dexFile, opcode, insns, insnsPosition);
+                    }
                 }
 
                 assert instruction != null;
