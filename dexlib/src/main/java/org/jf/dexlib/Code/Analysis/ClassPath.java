@@ -240,7 +240,6 @@ public class ClassPath {
     private void loadDexFile(String dexFilePath, DexFile dexFile) {
         for (ClassDefItem classDefItem: dexFile.ClassDefsSection.getItems()) {
             try {
-                //TODO: need to check if the class already exists. (and if so, what to do about it?)
                 TempClassInfo tempClassInfo = new TempClassInfo(dexFilePath, classDefItem);
 
                 if (!tempClasses.containsKey(tempClassInfo.classType)) {
