@@ -28,10 +28,7 @@
 
 package org.jf.dexlib.Code;
 
-import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.Instruction10x;
-import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.Util.ExceptionWithContext;
 import org.jf.dexlib.Util.Hex;
@@ -55,7 +52,7 @@ public class InstructionIterator {
                 if (opcode == null) {
                     System.err.println(String.format("unknown opcode encountered - %x. Treating as nop.",
                             (opcodeValue & 0xFFFF)));
-                    instruction = new Instruction10x(Opcode.NOP,  insns, insnsPosition);
+                    instruction = new UnknownInstruction(opcodeValue);
                 } else {
                     if (opcode == Opcode.NOP) {
                         byte secondByte = insns[insnsPosition + 1];

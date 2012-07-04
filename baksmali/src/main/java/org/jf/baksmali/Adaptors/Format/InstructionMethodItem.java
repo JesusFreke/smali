@@ -32,6 +32,7 @@ import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
 import org.jf.dexlib.Code.Format.Instruction20bc;
+import org.jf.dexlib.Code.Format.UnknownInstruction;
 import org.jf.util.IndentingWriter;
 import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.dexlib.Code.*;
@@ -64,6 +65,11 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeTargetLabel(writer);
                 return true;
             case Format10x:
+                if (instruction instanceof UnknownInstruction) {
+                    writer.write("#unknown opcode: 0x");
+                    writer.printUnsignedLongAsHex(((UnknownInstruction) instruction).getOriginalOpcode() & 0xFFFF);
+                    writer.write('\n');
+                }
                 writeOpcode(writer);
                 return true;
             case Format11n:
