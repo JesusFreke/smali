@@ -91,7 +91,11 @@ public class DeodexUtil {
         String methodParams = m.group(2);
         String methodRet = m.group(3);
 
-        if (classDef.isInterface()) {
+        if (classDef instanceof ClassPath.UnresolvedClassDef) {
+            //if this is an unresolved class, the only way getVirtualMethod could have found a method is if the virtual
+            //method being looked up was a method on java.lang.Object.
+            classDef = ClassPath.getClassDef("Ljava/lang/Object;");
+        } else if (classDef.isInterface()) {
             classDef = classDef.getSuperclass();
             assert classDef != null;
         }

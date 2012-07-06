@@ -75,16 +75,6 @@ public class baksmali {
         baksmali.bootClassPath = bootClassPath;
         baksmali.verify = verify;
 
-        ClassPath.ClassPathErrorHandler classPathErrorHandler = null;
-        if (ignoreErrors) {
-            classPathErrorHandler = new ClassPath.ClassPathErrorHandler() {
-                public void ClassPathError(String className, Exception ex) {
-                    System.err.println(String.format("Skipping %s", className));
-                    ex.printStackTrace(System.err);
-                }
-            };
-        }
-
         if (registerInfo != 0 || deodex || verify) {
             try {
                 String[] extraBootClassPathArray = null;
@@ -101,15 +91,14 @@ public class baksmali {
                     if (extraBootClassPathArray == null && isExtJar(dexFilePath)) {
                         extraBootClassPathArray = new String[] {"framework.jar"};
                     }
-                    ClassPath.InitializeClassPathFromOdex(classPathDirs, extraBootClassPathArray, dexFilePath, dexFile,
-                            classPathErrorHandler);
+                    ClassPath.InitializeClassPathFromOdex(classPathDirs, extraBootClassPathArray, dexFilePath, dexFile);
                 } else {
                     String[] bootClassPathArray = null;
                     if (bootClassPath != null) {
                         bootClassPathArray = bootClassPath.split(":");
                     }
                     ClassPath.InitializeClassPath(classPathDirs, bootClassPathArray, extraBootClassPathArray,
-                            dexFilePath, dexFile, classPathErrorHandler);
+                            dexFilePath, dexFile);
                 }
 
                 if (inlineTable != null) {
@@ -156,15 +145,6 @@ public class baksmali {
              * package name are separated by '/'
              */
 
-            if (registerInfo != 0 || deodex || verify) {
-                //If we are analyzing the bytecode, make sure that this class is loaded into the ClassPath. If it isn't
-                //then there was some error while loading it, and we should skip it
-                ClassPath.ClassDef classDef = ClassPath.getClassDef(classDefItem.getClassType(), false);
-                if (classDef == null || classDef instanceof ClassPath.UnresolvedClassDef) {
-                    continue;
-                }
-            }
-
             String classDescriptor = classDefItem.getClassType().getTypeDescriptor();
 
             //validate that the descriptor is formatted like we expect
@@ -206,6 +186,7 @@ public class baksmali {
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
                 ex.printStackTrace();
+                smaliFile.delete();
             }
             finally
             {

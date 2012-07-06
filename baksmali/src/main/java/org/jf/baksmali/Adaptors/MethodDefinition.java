@@ -290,6 +290,15 @@ public class MethodDefinition {
         return false;
     }
 
+    private boolean needsAnalyzed() {
+        for (Instruction instruction: encodedMethod.codeItem.getInstructions()) {
+            if (instruction.opcode.odexOnly()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private List<MethodItem> getMethodItems() {
         ArrayList<MethodItem> methodItems = new ArrayList<MethodItem>();
 
@@ -297,7 +306,8 @@ public class MethodDefinition {
             return methodItems;
         }
 
-        if (baksmali.registerInfo != 0 || baksmali.deodex || baksmali.verify) {
+        if ((baksmali.registerInfo != 0) || baksmali.verify ||
+            (baksmali.deodex && needsAnalyzed())) {
             addAnalyzedInstructionMethodItems(methodItems);
         } else {
             addInstructionMethodItems(methodItems);

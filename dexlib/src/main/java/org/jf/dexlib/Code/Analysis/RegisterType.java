@@ -272,9 +272,13 @@ public class RegisterType {
 
         ClassDef mergedType = null;
         if (mergedCategory == Category.Reference) {
-            mergedType = ClassPath.getCommonSuperclass(this.type, type.type);
-        }
-        if (mergedCategory == Category.UninitRef || mergedCategory == Category.UninitThis) {
+            if (this.type instanceof ClassPath.UnresolvedClassDef ||
+                type.type instanceof ClassPath.UnresolvedClassDef) {
+                mergedType = ClassPath.getUnresolvedObjectClassDef();
+            } else {
+                mergedType = ClassPath.getCommonSuperclass(this.type, type.type);
+            }
+        } else if (mergedCategory == Category.UninitRef || mergedCategory == Category.UninitThis) {
             if (this.category == Category.Unknown) {
                 return type;
             }
