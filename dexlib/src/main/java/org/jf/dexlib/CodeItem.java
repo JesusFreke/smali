@@ -365,6 +365,20 @@ public class CodeItem extends Item<CodeItem> {
     }
 
     /**
+     * @return the number of 2-byte words that the parameters to the method containing this code take
+     */
+    public int getInWords() {
+        return inWords;
+    }
+
+    /**
+     * @return the maximum number of 2-byte words for the arguments of any method call in this code
+     */
+    public int getOutWords() {
+        return outWords;
+    }
+
+    /**
      * Sets the <code>MethodIdItem</code> of the method that this <code>CodeItem</code> is associated with
      * @param encodedMethod the <code>EncodedMethod</code> of the method that this <code>CodeItem</code> is associated
      * with
