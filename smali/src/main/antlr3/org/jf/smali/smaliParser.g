@@ -690,111 +690,220 @@ instruction_format31i
 	:	INSTRUCTION_FORMAT31i
 	|	INSTRUCTION_FORMAT31i_OR_ID -> INSTRUCTION_FORMAT31i[$INSTRUCTION_FORMAT31i_OR_ID];
 
+
+
 instruction returns [int size]
-	@init {boolean needsNop = false; int targetCount = 0;}
-	:	//e.g. goto endloop:
+	:    insn_format10t { $size = $insn_format10t.size; }
+	|	 insn_format10x { $size = $insn_format10x.size; }
+	|	 insn_format10x_odex { $size = $insn_format10x_odex.size; }
+	|	 insn_format11n { $size = $insn_format11n.size; }
+	|	 insn_format11x { $size = $insn_format11x.size; }
+	|	 insn_format12x { $size = $insn_format12x.size; }
+	|	 insn_format20bc { $size = $insn_format20bc.size; }
+	|	 insn_format20t { $size = $insn_format20t.size; }
+	|	 insn_format21c_field { $size = $insn_format21c_field.size; }
+	|	 insn_format21c_field_odex { $size = $insn_format21c_field_odex.size; }
+	|	 insn_format21c_string { $size = $insn_format21c_string.size; }
+	|	 insn_format21c_type { $size = $insn_format21c_type.size; }
+	|	 insn_format21h { $size = $insn_format21h.size; }
+	|	 insn_format21s { $size = $insn_format21s.size; }
+	|	 insn_format21t { $size = $insn_format21t.size; }
+	|	 insn_format22b { $size = $insn_format22b.size; }
+	|	 insn_format22c_field { $size = $insn_format22c_field.size; }
+	|	 insn_format22c_field_odex { $size = $insn_format22c_field_odex.size; }
+	|	 insn_format22c_type { $size = $insn_format22c_type.size; }
+	|	 insn_format22cs_field { $size = $insn_format22cs_field.size; }
+	|	 insn_format22s { $size = $insn_format22s.size; }
+	|	 insn_format22t { $size = $insn_format22t.size; }
+	|	 insn_format22x { $size = $insn_format22x.size; }
+	|	 insn_format23x { $size = $insn_format23x.size; }
+	|	 insn_format30t { $size = $insn_format30t.size; }
+	|	 insn_format31c { $size = $insn_format31c.size; }
+	|	 insn_format31i { $size = $insn_format31i.size; }
+	|	 insn_format31t { $size = $insn_format31t.size; }
+	|	 insn_format32x { $size = $insn_format32x.size; }
+	|	 insn_format35c_method { $size = $insn_format35c_method.size; }
+	|	 insn_format35c_type { $size = $insn_format35c_type.size; }
+	|	 insn_format35c_method_odex { $size = $insn_format35c_method_odex.size; }
+	|	 insn_format35mi_method { $size = $insn_format35mi_method.size; }
+	|	 insn_format35ms_method { $size = $insn_format35ms_method.size; }
+	|	 insn_format3rc_method { $size = $insn_format3rc_method.size; }
+	|	 insn_format3rc_method_odex { $size = $insn_format3rc_method_odex.size; }
+	|	 insn_format3rc_type { $size = $insn_format3rc_type.size; }
+	|	 insn_format3rmi_method { $size = $insn_format3rmi_method.size; }
+	|	 insn_format3rms_method { $size = $insn_format3rms_method.size; }
+	|	 insn_format41c_type { $size = $insn_format41c_type.size; }
+	|	 insn_format41c_field { $size = $insn_format41c_field.size; }
+	|	 insn_format41c_field_odex { $size = $insn_format41c_field_odex.size; }
+	|	 insn_format51l { $size = $insn_format51l.size; }
+	|	 insn_format52c_type { $size = $insn_format52c_type.size; }
+	|	 insn_format52c_field { $size = $insn_format52c_field.size; }
+	|	 insn_format52c_field_odex { $size = $insn_format52c_field_odex.size; }
+	|	 insn_format5rc_method { $size = $insn_format5rc_method.size; }
+	|	 insn_format5rc_method_odex { $size = $insn_format5rc_method_odex.size; }
+	|	 insn_format5rc_type { $size = $insn_format5rc_type.size; }
+	|	 insn_array_data_directive { $size = $insn_array_data_directive.size; }
+	|	 insn_packed_switch_directive { $size = $insn_packed_switch_directive.size; }
+	|	 insn_sparse_switch_directive { $size = $insn_sparse_switch_directive.size; };
+
+insn_format10t returns [int size]
+    :	//e.g. goto endloop:
 		//e.g. goto +3
 		INSTRUCTION_FORMAT10t label_ref_or_offset {$size = Format.Format10t.size;}
-		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t label_ref_or_offset)
-	|	//e.g. return-void
+		-> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t label_ref_or_offset);
+
+insn_format10x returns [int size]
+	:	//e.g. return-void
 		INSTRUCTION_FORMAT10x {$size = Format.Format10x.size;}
-		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x)
-	|	//e.g. return-void-barrier
+		-> ^(I_STATEMENT_FORMAT10x[$start, "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x);
+
+insn_format10x_odex returns [int size]
+	:	//e.g. return-void-barrier
 		INSTRUCTION_FORMAT10x_ODEX {$size = Format.Format10x.size;}
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT10x_ODEX.text);
-		}
-	|	//e.g. const/4 v0, 5
+		};
+
+insn_format11n returns [int size]
+	:	//e.g. const/4 v0, 5
 		INSTRUCTION_FORMAT11n REGISTER COMMA integral_literal {$size = Format.Format11n.size;}
-		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STATEMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER integral_literal)
-	|	//e.g. move-result-object v1
+		-> ^(I_STATEMENT_FORMAT11n[$start, "I_STATEMENT_FORMAT11n"] INSTRUCTION_FORMAT11n REGISTER integral_literal);
+
+insn_format11x returns [int size]
+	:	//e.g. move-result-object v1
 		INSTRUCTION_FORMAT11x REGISTER {$size = Format.Format11x.size;}
-		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_FORMAT11x REGISTER)
-	|	//e.g. move v1 v2
+		-> ^(I_STATEMENT_FORMAT11x[$start, "I_STATEMENT_FORMAT11x"] INSTRUCTION_FORMAT11x REGISTER);
+
+insn_format12x returns [int size]
+	:	//e.g. move v1 v2
 		instruction_format12x REGISTER COMMA REGISTER {$size = Format.Format12x.size;}
-		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] instruction_format12x REGISTER REGISTER)
-	|	//e.g. throw-verification-error generic-error, Lsome/class;
+		-> ^(I_STATEMENT_FORMAT12x[$start, "I_STATEMENT_FORMAT12x"] instruction_format12x REGISTER REGISTER);
+
+insn_format20bc returns [int size]
+	:	//e.g. throw-verification-error generic-error, Lsome/class;
 		INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE COMMA verification_error_reference {$size += Format.Format20bc.size;}
 		{
 			if (!allowOdex || Opcode.getOpcodeByName($INSTRUCTION_FORMAT20bc.text) == null || apiLevel >= 14) {
 				throwOdexedInstructionException(input, $INSTRUCTION_FORMAT20bc.text);
 			}
 		}
-		-> ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE verification_error_reference)
+		-> ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE verification_error_reference);
 		//TODO: check if dalvik has a jumbo version of throw-verification-error
-	|	//e.g. goto/16 endloop:
+
+insn_format20t returns [int size]
+	:	//e.g. goto/16 endloop:
 		INSTRUCTION_FORMAT20t label_ref_or_offset {$size = Format.Format20t.size;}
-		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref_or_offset)
-	|	//e.g. sget-object v0, java/lang/System/out LJava/io/PrintStream;
+		-> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref_or_offset);
+
+insn_format21c_field returns [int size]
+	:	//e.g. sget-object v0, java/lang/System/out LJava/io/PrintStream;
 		INSTRUCTION_FORMAT21c_FIELD REGISTER COMMA fully_qualified_field {$size = Format.Format21c.size;}
-		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field)
-	|	//e.g. sget-object-volatile v0, java/lang/System/out LJava/io/PrintStream;
+		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD REGISTER fully_qualified_field);
+
+insn_format21c_field_odex returns [int size]
+	:	//e.g. sget-object-volatile v0, java/lang/System/out LJava/io/PrintStream;
 		INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER COMMA fully_qualified_field {$size = Format.Format21c.size;}
 		{
 			if (!allowOdex || Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_FIELD_ODEX.text) == null || apiLevel >= 14) {
 				throwOdexedInstructionException(input, $INSTRUCTION_FORMAT21c_FIELD_ODEX.text);
 			}
 		}
-		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER fully_qualified_field)
-	|	//e.g. const-string v1, "Hello World!"
+		-> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER fully_qualified_field);
+
+insn_format21c_string returns [int size]
+	:	//e.g. const-string v1, "Hello World!"
 		INSTRUCTION_FORMAT21c_STRING REGISTER COMMA STRING_LITERAL {$size = Format.Format21c.size;}
-		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL)
-	|	//e.g. const-class v2, Lorg/jf/HelloWorld2/HelloWorld2;
+		-> ^(I_STATEMENT_FORMAT21c_STRING[$start, "I_STATEMENT_FORMAT21c_STRING"] INSTRUCTION_FORMAT21c_STRING REGISTER STRING_LITERAL);
+
+insn_format21c_type returns [int size]
+	:	//e.g. const-class v2, Lorg/jf/HelloWorld2/HelloWorld2;
 		INSTRUCTION_FORMAT21c_TYPE REGISTER COMMA reference_type_descriptor {$size = Format.Format21c.size;}
-		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
-	|	//e.g. const/high16 v1, 1234
+		-> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor);
+
+insn_format21h returns [int size]
+	:	//e.g. const/high16 v1, 1234
 		INSTRUCTION_FORMAT21h REGISTER COMMA integral_literal {$size = Format.Format21h.size;}
-		-> ^(I_STATEMENT_FORMAT21h[$start, "I_STATEMENT_FORMAT21h"] INSTRUCTION_FORMAT21h REGISTER integral_literal)
-	|	//e.g. const/16 v1, 1234
+		-> ^(I_STATEMENT_FORMAT21h[$start, "I_STATEMENT_FORMAT21h"] INSTRUCTION_FORMAT21h REGISTER integral_literal);
+
+insn_format21s returns [int size]
+	:	//e.g. const/16 v1, 1234
 		INSTRUCTION_FORMAT21s REGISTER COMMA integral_literal {$size = Format.Format21s.size;}
-		-> ^(I_STATEMENT_FORMAT21s[$start, "I_STATEMENT_FORMAT21s"] INSTRUCTION_FORMAT21s REGISTER integral_literal)
-	|	//e.g. if-eqz v0, endloop:
+		-> ^(I_STATEMENT_FORMAT21s[$start, "I_STATEMENT_FORMAT21s"] INSTRUCTION_FORMAT21s REGISTER integral_literal);
+
+insn_format21t returns [int size]
+	:	//e.g. if-eqz v0, endloop:
 		INSTRUCTION_FORMAT21t REGISTER COMMA (label_ref_or_offset) {$size = Format.Format21t.size;}
-		-> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER label_ref_or_offset)
-	|	//e.g. add-int v0, v1, 123
+		-> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER label_ref_or_offset);
+
+insn_format22b returns [int size]
+	:	//e.g. add-int v0, v1, 123
 		INSTRUCTION_FORMAT22b REGISTER COMMA REGISTER COMMA integral_literal {$size = Format.Format22b.size;}
-		-> ^(I_STATEMENT_FORMAT22b[$start, "I_STATEMENT_FORMAT22b"] INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal)
-	|	//e.g. iput-object v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+		-> ^(I_STATEMENT_FORMAT22b[$start, "I_STATEMENT_FORMAT22b"] INSTRUCTION_FORMAT22b REGISTER REGISTER integral_literal);
+
+insn_format22c_field returns [int size]
+	:	//e.g. iput-object v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_FIELD REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format22c.size;}
-		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_STATEMENT_FORMAT22c_FIELD"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field)
-	|	//e.g. iput-object-volatile v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_STATEMENT_FORMAT22c_FIELD"] INSTRUCTION_FORMAT22c_FIELD REGISTER REGISTER fully_qualified_field);
+
+insn_format22c_field_odex returns [int size]
+	:	//e.g. iput-object-volatile v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_FIELD_ODEX REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format22c.size;}
 		{
 			if (!allowOdex || Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD_ODEX.text) == null || apiLevel >= 14) {
 				throwOdexedInstructionException(input, $INSTRUCTION_FORMAT22c_FIELD_ODEX.text);
 			}
 		}
-		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_STATEMENT_FORMAT22c_FIELD"] INSTRUCTION_FORMAT22c_FIELD_ODEX REGISTER REGISTER fully_qualified_field)
-	|	//e.g. instance-of v0, v1, Ljava/lang/String;
+		-> ^(I_STATEMENT_FORMAT22c_FIELD[$start, "I_STATEMENT_FORMAT22c_FIELD"] INSTRUCTION_FORMAT22c_FIELD_ODEX REGISTER REGISTER fully_qualified_field);
+
+insn_format22c_type returns [int size]
+	:	//e.g. instance-of v0, v1, Ljava/lang/String;
 		INSTRUCTION_FORMAT22c_TYPE REGISTER COMMA REGISTER COMMA nonvoid_type_descriptor {$size = Format.Format22c.size;}
-		-> ^(I_STATEMENT_FORMAT22c_TYPE[$start, "I_STATEMENT_FORMAT22c_TYPE"] INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
-	|	//e.g. iget-quick v0, v1, field@0xc
+		-> ^(I_STATEMENT_FORMAT22c_TYPE[$start, "I_STATEMENT_FORMAT22c_TYPE"] INSTRUCTION_FORMAT22c_TYPE REGISTER REGISTER nonvoid_type_descriptor);
+
+insn_format22cs_field returns [int size]
+	:	//e.g. iget-quick v0, v1, field@0xc
 		INSTRUCTION_FORMAT22cs_FIELD REGISTER COMMA REGISTER COMMA FIELD_OFFSET
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT22cs_FIELD.text);
-		}
-	|	//e.g. add-int/lit16 v0, v1, 12345
+		};
+
+insn_format22s returns [int size]
+	:	//e.g. add-int/lit16 v0, v1, 12345
 		instruction_format22s REGISTER COMMA REGISTER COMMA integral_literal {$size = Format.Format22s.size;}
-		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] instruction_format22s REGISTER REGISTER integral_literal)
-	|	//e.g. if-eq v0, v1, endloop:
+		-> ^(I_STATEMENT_FORMAT22s[$start, "I_STATEMENT_FORMAT22s"] instruction_format22s REGISTER REGISTER integral_literal);
+
+insn_format22t returns [int size]
+	:	//e.g. if-eq v0, v1, endloop:
 		INSTRUCTION_FORMAT22t REGISTER COMMA REGISTER COMMA label_ref_or_offset {$size = Format.Format22t.size;}
-		-> ^(I_STATEMENT_FORMAT22t[$start, "I_STATEMENT_FFORMAT22t"] INSTRUCTION_FORMAT22t REGISTER REGISTER label_ref_or_offset)
-	|	//e.g. move/from16 v1, v1234
+		-> ^(I_STATEMENT_FORMAT22t[$start, "I_STATEMENT_FFORMAT22t"] INSTRUCTION_FORMAT22t REGISTER REGISTER label_ref_or_offset);
+
+insn_format22x returns [int size]
+	:	//e.g. move/from16 v1, v1234
 		INSTRUCTION_FORMAT22x REGISTER COMMA REGISTER {$size = Format.Format22x.size;}
-		-> ^(I_STATEMENT_FORMAT22x[$start, "I_STATEMENT_FORMAT22x"] INSTRUCTION_FORMAT22x REGISTER REGISTER)
-	|	//e.g. add-int v1, v2, v3
+		-> ^(I_STATEMENT_FORMAT22x[$start, "I_STATEMENT_FORMAT22x"] INSTRUCTION_FORMAT22x REGISTER REGISTER);
+
+insn_format23x returns [int size]
+	:	//e.g. add-int v1, v2, v3
 		INSTRUCTION_FORMAT23x REGISTER COMMA REGISTER COMMA REGISTER {$size = Format.Format23x.size;}
-		-> ^(I_STATEMENT_FORMAT23x[$start, "I_STATEMENT_FORMAT23x"] INSTRUCTION_FORMAT23x REGISTER REGISTER REGISTER)
-	|	//e.g. goto/32 endloop:
+		-> ^(I_STATEMENT_FORMAT23x[$start, "I_STATEMENT_FORMAT23x"] INSTRUCTION_FORMAT23x REGISTER REGISTER REGISTER);
+
+insn_format30t returns [int size]
+	:	//e.g. goto/32 endloop:
 		INSTRUCTION_FORMAT30t label_ref_or_offset {$size = Format.Format30t.size;}
-		-> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t label_ref_or_offset)
-	|	//e.g. const-string/jumbo v1 "Hello World!"
+		-> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t label_ref_or_offset);
+
+insn_format31c returns [int size]
+	:	//e.g. const-string/jumbo v1 "Hello World!"
 		INSTRUCTION_FORMAT31c REGISTER COMMA STRING_LITERAL {$size = Format.Format31c.size;}
-		->^(I_STATEMENT_FORMAT31c[$start, "I_STATEMENT_FORMAT31c"] INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL)
-	|	//e.g. const v0, 123456
+		->^(I_STATEMENT_FORMAT31c[$start, "I_STATEMENT_FORMAT31c"] INSTRUCTION_FORMAT31c REGISTER STRING_LITERAL);
+
+insn_format31i returns [int size]
+	:	//e.g. const v0, 123456
 		instruction_format31i REGISTER COMMA fixed_32bit_literal {$size = Format.Format31i.size;}
-		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] instruction_format31i REGISTER fixed_32bit_literal)
-	|	//e.g. fill-array-data v0, ArrayData:
+		-> ^(I_STATEMENT_FORMAT31i[$start, "I_STATEMENT_FORMAT31i"] instruction_format31i REGISTER fixed_32bit_literal);
+
+insn_format31t returns [int size]
+	:	//e.g. fill-array-data v0, ArrayData:
 		INSTRUCTION_FORMAT31t REGISTER COMMA label_ref_or_offset {$size = Format.Format31t.size;}
 		{
 			if ($INSTRUCTION_FORMAT31t.text.equals("packed-switch")) {
@@ -811,90 +920,134 @@ instruction returns [int size]
 				$statements_and_directives::sparseSwitchDeclarations.add(root);
 			}
 		}
-		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER label_ref_or_offset)
-	|	//e.g. move/16 v4567, v1234
+		-> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER label_ref_or_offset);
+
+insn_format32x returns [int size]
+	:	//e.g. move/16 v4567, v1234
 		INSTRUCTION_FORMAT32x REGISTER COMMA REGISTER {$size = Format.Format32x.size;}
-		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER)
-	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
+		-> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER);
+
+insn_format35c_method returns [int size]
+	:	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
 		INSTRUCTION_FORMAT35c_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format35c.size;}
-		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
-	|	//e.g. filled-new-array {v0,v1}, I
+		-> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method);
+
+insn_format35c_type returns [int size]
+	:	//e.g. filled-new-array {v0,v1}, I
 		INSTRUCTION_FORMAT35c_TYPE OPEN_BRACE register_list CLOSE_BRACE COMMA nonvoid_type_descriptor {$size = Format.Format35c.size;}
-		-> ^(I_STATEMENT_FORMAT35c_TYPE[$start, "I_STATEMENT_FORMAT35c_TYPE"] INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
-	|	//e.g. invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+		-> ^(I_STATEMENT_FORMAT35c_TYPE[$start, "I_STATEMENT_FORMAT35c_TYPE"] INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor);
+
+insn_format35c_method_odex returns [int size]
+	:	//e.g. invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 		INSTRUCTION_FORMAT35c_METHOD_ODEX OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35c_METHOD_ODEX.text);
-		}
-	|	//e.g. execute-inline {v0, v1}, inline@0x4
+		};
+
+insn_format35mi_method returns [int size]
+	:	//e.g. execute-inline {v0, v1}, inline@0x4
 		INSTRUCTION_FORMAT35mi_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA INLINE_INDEX
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35mi_METHOD.text);
-		}
-	|	//e.g. invoke-virtual-quick {v0, v1}, vtable@0x4
+		};
+
+insn_format35ms_method returns [int size]
+	:	//e.g. invoke-virtual-quick {v0, v1}, vtable@0x4
 		INSTRUCTION_FORMAT35ms_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA VTABLE_INDEX
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35ms_METHOD.text);
-		}
-	|	//e.g. invoke-virtual/range {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+		};
+
+insn_format3rc_method returns [int size]
+	:	//e.g. invoke-virtual/range {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format3rc.size;}
-		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
-	|	//e.g. invoke-object-init/range {p0}, Ljava/lang/Object;-><init>()V
+		-> ^(I_STATEMENT_FORMAT3rc_METHOD[$start, "I_STATEMENT_FORMAT3rc_METHOD"] INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method);
+
+insn_format3rc_method_odex returns [int size]
+	:	//e.g. invoke-object-init/range {p0}, Ljava/lang/Object;-><init>()V
 		INSTRUCTION_FORMAT3rc_METHOD_ODEX OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rc_METHOD_ODEX.text);
-		}
-	|	//e.g. filled-new-array/range {v0..v6}, I
+		};
+
+insn_format3rc_type returns [int size]
+	:	//e.g. filled-new-array/range {v0..v6}, I
 		INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACE register_range CLOSE_BRACE COMMA nonvoid_type_descriptor {$size = Format.Format3rc.size;}
-		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
-	|	//e.g. execute-inline/range {v0 .. v10}, inline@0x14
+		-> ^(I_STATEMENT_FORMAT3rc_TYPE[$start, "I_STATEMENT_FORMAT3rc_TYPE"] INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor);
+
+insn_format3rmi_method returns [int size]
+	:	//e.g. execute-inline/range {v0 .. v10}, inline@0x14
 		INSTRUCTION_FORMAT3rmi_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA INLINE_INDEX
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rmi_METHOD.text);
-		}
-	|	//e.g. invoke-virtual-quick/range {v0 .. v10}, vtable@0x14
+		};
+
+insn_format3rms_method returns [int size]
+	:	//e.g. invoke-virtual-quick/range {v0 .. v10}, vtable@0x14
 		INSTRUCTION_FORMAT3rms_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA VTABLE_INDEX
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rms_METHOD.text);
-		}
-	|	//e.g. const-class/jumbo v2, Lorg/jf/HelloWorld2/HelloWorld2;
+		};
+
+insn_format41c_type returns [int size]
+	:	//e.g. const-class/jumbo v2, Lorg/jf/HelloWorld2/HelloWorld2;
 		INSTRUCTION_FORMAT41c_TYPE REGISTER COMMA reference_type_descriptor {$size = Format.Format41c.size;}
-		-> ^(I_STATEMENT_FORMAT41c_TYPE[$start, "I_STATEMENT_FORMAT41c"] INSTRUCTION_FORMAT41c_TYPE REGISTER reference_type_descriptor)
-	|	//e.g. sget-object/jumbo v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+		-> ^(I_STATEMENT_FORMAT41c_TYPE[$start, "I_STATEMENT_FORMAT41c"] INSTRUCTION_FORMAT41c_TYPE REGISTER reference_type_descriptor);
+
+insn_format41c_field returns [int size]
+	:	//e.g. sget-object/jumbo v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
 		INSTRUCTION_FORMAT41c_FIELD REGISTER COMMA fully_qualified_field {$size = Format.Format41c.size;}
-		-> ^(I_STATEMENT_FORMAT41c_FIELD[$start, "I_STATEMENT_FORMAT41c_FIELD"] INSTRUCTION_FORMAT41c_FIELD REGISTER fully_qualified_field)
-	|	//e.g. sget-object-volatile/jumbo v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+		-> ^(I_STATEMENT_FORMAT41c_FIELD[$start, "I_STATEMENT_FORMAT41c_FIELD"] INSTRUCTION_FORMAT41c_FIELD REGISTER fully_qualified_field);
+
+insn_format41c_field_odex returns [int size]
+	:	//e.g. sget-object-volatile/jumbo v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
 		INSTRUCTION_FORMAT41c_FIELD_ODEX REGISTER COMMA fully_qualified_field {$size = Format.Format41c.size;}
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT41c_FIELD_ODEX.text);
-		}
-	|	//e.g. const-wide v0, 5000000000L
+		};
+
+insn_format51l returns [int size]
+	:	//e.g. const-wide v0, 5000000000L
 		INSTRUCTION_FORMAT51l REGISTER COMMA fixed_literal {$size = Format.Format51l.size;}
-		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal)
-	|	//e.g. instance-of/jumbo v0, v1, Ljava/lang/String;
+		-> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal);
+
+insn_format52c_type returns [int size]
+	:	//e.g. instance-of/jumbo v0, v1, Ljava/lang/String;
 		INSTRUCTION_FORMAT52c_TYPE REGISTER COMMA REGISTER COMMA nonvoid_type_descriptor {$size = Format.Format52c.size;}
-		-> ^(I_STATEMENT_FORMAT52c_TYPE[$start, "I_STATEMENT_FORMAT52c_TYPE"] INSTRUCTION_FORMAT52c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
-	|	//e.g. iput-object/jumbo v1, v0 Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
+		-> ^(I_STATEMENT_FORMAT52c_TYPE[$start, "I_STATEMENT_FORMAT52c_TYPE"] INSTRUCTION_FORMAT52c_TYPE REGISTER REGISTER nonvoid_type_descriptor);
+
+insn_format52c_field returns [int size]
+	:	//e.g. iput-object/jumbo v1, v0 Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
 		INSTRUCTION_FORMAT52c_FIELD REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format52c.size;}
-		-> ^(I_STATEMENT_FORMAT52c_FIELD[$start, "I_STATEMENT_FORMAT52c_FIELD"] INSTRUCTION_FORMAT52c_FIELD REGISTER REGISTER fully_qualified_field)
-	|	//e.g. iput-object-volatile/jumbo v1, v0 Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
+		-> ^(I_STATEMENT_FORMAT52c_FIELD[$start, "I_STATEMENT_FORMAT52c_FIELD"] INSTRUCTION_FORMAT52c_FIELD REGISTER REGISTER fully_qualified_field);
+
+insn_format52c_field_odex returns [int size]
+	:	//e.g. iput-object-volatile/jumbo v1, v0 Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
 		INSTRUCTION_FORMAT52c_FIELD_ODEX REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format52c.size;}
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT52c_FIELD_ODEX.text);
-		}
-	|	//e.g. invoke-virtual/jumbo {v25..v26}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+		};
+
+insn_format5rc_method returns [int size]
+	:	//e.g. invoke-virtual/jumbo {v25..v26}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		INSTRUCTION_FORMAT5rc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format5rc.size;}
-		-> ^(I_STATEMENT_FORMAT5rc_METHOD[$start, "I_STATEMENT_FORMAT5rc_METHOD"] INSTRUCTION_FORMAT5rc_METHOD register_range fully_qualified_method)
-	|	//e.g. invoke-object-init/jumbo {v25}, Ljava/lang/Object-><init>()V
+		-> ^(I_STATEMENT_FORMAT5rc_METHOD[$start, "I_STATEMENT_FORMAT5rc_METHOD"] INSTRUCTION_FORMAT5rc_METHOD register_range fully_qualified_method);
+
+insn_format5rc_method_odex returns [int size]
+	:	//e.g. invoke-object-init/jumbo {v25}, Ljava/lang/Object-><init>()V
 		INSTRUCTION_FORMAT5rc_METHOD_ODEX OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method {$size = Format.Format5rc.size;}
 		{
 			throwOdexedInstructionException(input, $INSTRUCTION_FORMAT5rc_METHOD_ODEX.text);
-		}
-	|	//e.g. filled-new-array/jumbo {v0..v6}, I
+		};
+
+insn_format5rc_type returns [int size]
+	:	//e.g. filled-new-array/jumbo {v0..v6}, I
 		INSTRUCTION_FORMAT5rc_TYPE OPEN_BRACE register_range CLOSE_BRACE COMMA nonvoid_type_descriptor {$size = Format.Format5rc.size;}
-		-> ^(I_STATEMENT_FORMAT5rc_TYPE[$start, "I_STATEMENT_FORMAT5rc_TYPE"] INSTRUCTION_FORMAT5rc_TYPE register_range nonvoid_type_descriptor)
-	|
-		ARRAY_DATA_DIRECTIVE
+		-> ^(I_STATEMENT_FORMAT5rc_TYPE[$start, "I_STATEMENT_FORMAT5rc_TYPE"] INSTRUCTION_FORMAT5rc_TYPE register_range nonvoid_type_descriptor);
+
+insn_array_data_directive returns [int size]
+    @init {boolean needsNop = false;}
+	:   ARRAY_DATA_DIRECTIVE
 		{
 			if (($method::currentAddress \% 2) != 0) {
 				needsNop = true;
@@ -912,9 +1065,11 @@ instruction returns [int size]
 					^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
 
 		->	^(I_STATEMENT_ARRAY_DATA[$start, "I_STATEMENT_ARRAY_DATA"] ^(I_ARRAY_ELEMENT_SIZE integral_literal)
-				^(I_ARRAY_ELEMENTS fixed_literal*))
-	|
-		PACKED_SWITCH_DIRECTIVE
+				^(I_ARRAY_ELEMENTS fixed_literal*));
+
+insn_packed_switch_directive returns [int size]
+    @init {boolean needsNop = false; int targetCount = 0;}
+    :   PACKED_SWITCH_DIRECTIVE
 		{
 			targetCount = 0;
 			if (($method::currentAddress \% 2) != 0) {
@@ -941,10 +1096,11 @@ instruction returns [int size]
 		->	^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"]
 				^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal)
 				^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"] I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
-			)
+			);
 
-	|
-		SPARSE_SWITCH_DIRECTIVE
+insn_sparse_switch_directive returns [int size]
+    @init {boolean needsNop = false; int targetCount = 0;}
+	:   SPARSE_SWITCH_DIRECTIVE
 		{
 			targetCount = 0;
 			if (($method::currentAddress \% 2) != 0) {
