@@ -71,6 +71,24 @@ public class SparseIntArray {
     }
 
     /**
+     * Gets the int mapped from the specified key, or if not present, the
+     * closest key that is less than the specified key.
+     */
+    public int getClosestSmaller(int key) {
+        int i = binarySearch(mKeys, 0, mSize, key);
+
+        if (i < 0) {
+            i = ~i;
+            if (i > 0) {
+                i--;
+            }
+            return mValues[i];
+        } else {
+            return mValues[i];
+        }
+    }
+
+    /**
      * Removes the mapping from the specified key, if there was any.
      */
     public void delete(int key) {

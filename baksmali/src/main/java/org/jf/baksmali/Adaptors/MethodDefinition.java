@@ -460,10 +460,22 @@ public class MethodDefinition {
         }
 
         Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+        int lastInstructionAddress = instructionMap.keyAt(instructionMap.size()-1);
+        int codeSize = lastInstructionAddress + instructions[instructions.length - 1].getSize(lastInstructionAddress);
 
         for (CodeItem.TryItem tryItem: encodedMethod.codeItem.getTries()) {
             int startAddress = tryItem.getStartCodeAddress();
             int endAddress = tryItem.getStartCodeAddress() + tryItem.getTryLength();
+
+            if (startAddress >= codeSize) {
+                throw new RuntimeException(String.format("Try start offset %d is past the end of the code block.",
+                        startAddress));
+            }
+            // Note: not >=. endAddress == codeSize is valid, when the try covers the last instruction
+            if (endAddress > codeSize) {
+                throw new RuntimeException(String.format("Try end offset %d is past the end of the code block.",
+                        endAddress));
+            }
 
             /**
              * The end address points to the address immediately after the end of the last
@@ -472,48 +484,31 @@ public class MethodDefinition {
              * the address for that instruction
              */
 
-            int index = instructionMap.get(endAddress, -1);
-            int lastInstructionAddress;
-
-            /**
-             * If we couldn't find the index, then the try block probably extends to the last instruction in the
-             * method, and so endAddress would be the address immediately after the end of the last instruction.
-             * Check to make sure this is the case, if not, throw an exception.
-             */
-            if (index == -1) {
-                Instruction lastInstruction = instructions[instructions.length - 1];
-                lastInstructionAddress = instructionMap.keyAt(instructionMap.size() - 1);
-
-                if (endAddress != lastInstructionAddress + lastInstruction.getSize(lastInstructionAddress)) {
-                    throw new RuntimeException("Invalid code offset " + endAddress + " for the try block end address");
-                }
-            } else {
-                if (index == 0) {
-                    throw new RuntimeException("Unexpected instruction index");
-                }
-                Instruction lastInstruction = instructions[index - 1];
-
-                if (lastInstruction.getFormat().variableSizeFormat) {
-                    throw new RuntimeException("This try block unexpectedly ends on a switch/array data block.");
-                }
-
-                //getSize for non-variable size formats should return the same size regardless of code address, so just
-                //use a dummy address of "0"
-                lastInstructionAddress = endAddress - lastInstruction.getSize(0);
-            }
+            int lastCoveredIndex = instructionMap.getClosestSmaller(endAddress-1);
+            int lastCoveredAddress = instructionMap.keyAt(lastCoveredIndex);
 
             //add the catch all handler if it exists
             int catchAllAddress = tryItem.encodedCatchHandler.getCatchAllHandlerAddress();
             if (catchAllAddress != -1) {
-                CatchMethodItem catchAllMethodItem = new CatchMethodItem(labelCache, lastInstructionAddress, null,
+                if (catchAllAddress >= codeSize) {
+                    throw new RuntimeException(String.format(
+                            "Catch all handler offset %d is past the end of the code block.", catchAllAddress));
+                }
+
+                CatchMethodItem catchAllMethodItem = new CatchMethodItem(labelCache, lastCoveredAddress, null,
                         startAddress, endAddress, catchAllAddress);
                 methodItems.add(catchAllMethodItem);
             }
 
             //add the rest of the handlers
             for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
+                if (handler.getHandlerAddress() >= codeSize) {
+                    throw new RuntimeException(String.format(
+                            "Exception handler offset %d is past the end of the code block.", catchAllAddress));
+                }
+
                 //use the address from the last covered instruction
-                CatchMethodItem catchMethodItem = new CatchMethodItem(labelCache, lastInstructionAddress,
+                CatchMethodItem catchMethodItem = new CatchMethodItem(labelCache, lastCoveredAddress,
                         handler.exceptionType, startAddress, endAddress, handler.getHandlerAddress());
                 methodItems.add(catchMethodItem);
             }
