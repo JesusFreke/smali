@@ -696,79 +696,8 @@ INSTRUCTION_FORMAT3rms_METHOD
 	:	'invoke-virtual-quick/range'
 	|	'invoke-super-quick/range';
 
-INSTRUCTION_FORMAT41c_TYPE
-	:	'check-cast/jumbo'
-	|	'new-instance/jumbo'
-	|	'const-class/jumbo';
-
-INSTRUCTION_FORMAT41c_FIELD
-	:	'sget/jumbo'
-	|	'sget-wide/jumbo'
-	|	'sget-object/jumbo'
-	|	'sget-boolean/jumbo'
-	|	'sget-byte/jumbo'
-	|	'sget-char/jumbo'
-	|	'sget-short/jumbo'
-	|	'sput/jumbo'
-	|	'sput-wide/jumbo'
-	|	'sput-object/jumbo'
-	|	'sput-boolean/jumbo'
-	|	'sput-byte/jumbo'
-	|	'sput-char/jumbo'
-	|	'sput-short/jumbo';
-
-INSTRUCTION_FORMAT41c_FIELD_ODEX
-	:	'sget-volatile/jumbo'
-	|	'sget-wide-volatile/jumbo'
-	|	'sget-object-volatile/jumbo'
-	|	'sput-volatile/jumbo'
-	|	'sput-wide-volatile/jumbo'
-	|	'sput-object-volatile/jumbo';
-
 INSTRUCTION_FORMAT51l
 	:	'const-wide';
-
-INSTRUCTION_FORMAT52c_TYPE
-	:	'instance-of/jumbo'
-	|	'new-array/jumbo';
-
-INSTRUCTION_FORMAT52c_FIELD
-	:	'iget/jumbo'
-	|	'iget-wide/jumbo'
-	|	'iget-object/jumbo'
-	|	'iget-boolean/jumbo'
-	|	'iget-byte/jumbo'
-	|	'iget-char/jumbo'
-	|	'iget-short/jumbo'
-	|	'iput/jumbo'
-	|	'iput-wide/jumbo'
-	|	'iput-object/jumbo'
-	|	'iput-boolean/jumbo'
-	|	'iput-byte/jumbo'
-	|	'iput-char/jumbo'
-	|	'iput-short/jumbo';
-
-INSTRUCTION_FORMAT52c_FIELD_ODEX
-	:	'iget-volatile/jumbo'
-	|	'iget-wide-volatile/jumbo'
-	|	'iget-object-volatile/jumbo'
-	|	'iput-volatile/jumbo'
-	|	'iput-wide-volatile/jumbo'
-	|	'iput-object-volatile/jumbo';
-
-INSTRUCTION_FORMAT5rc_METHOD
-	:	'invoke-virtual/jumbo'
-	|	'invoke-super/jumbo'
-	|	'invoke-direct/jumbo'
-	|	'invoke-static/jumbo'
-	|	'invoke-interface/jumbo';
-
-INSTRUCTION_FORMAT5rc_METHOD_ODEX
-	:	'invoke-object-init/jumbo';
-
-INSTRUCTION_FORMAT5rc_TYPE
-	:	'filled-new-array/jumbo';
-
 
 /**********************************************************
 * Types
