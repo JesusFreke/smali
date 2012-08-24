@@ -95,9 +95,7 @@ public class HeaderItem extends Item<HeaderItem> {
         checksumSignatureSet = true;
 
         in.readInt(); //filesize
-        if (in.readInt() != HEADER_SIZE) {
-            throw new RuntimeException("The header size is not the expected value (0x70)");
-        }
+        in.readInt(); //header size
 
         int endianTag = in.readInt();
         if (endianTag == BIG_ENDIAN) {
