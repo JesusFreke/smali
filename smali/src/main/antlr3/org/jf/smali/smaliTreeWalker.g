@@ -937,6 +937,46 @@ verification_error_type returns[VerificationErrorType verificationErrorType]
 	};
 
 instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	insn_format10t[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format10t.outRegisters; }
+	|	insn_format10x[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format10x.outRegisters; }
+	|	insn_format11n[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format11n.outRegisters; }
+	|	insn_format11x[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format11x.outRegisters; }
+	|	insn_format12x[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format12x.outRegisters; }
+	|	insn_format20bc[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format20bc.outRegisters; }
+	|	insn_format20t[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format20t.outRegisters; }
+	|	insn_format21c_field[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21c_field.outRegisters; }
+	|	insn_format21c_string[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21c_string.outRegisters; }
+	|	insn_format21c_type[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21c_type.outRegisters; }
+	|	insn_format21h[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21h.outRegisters; }
+	|	insn_format21s[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21s.outRegisters; }
+	|	insn_format21t[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21t.outRegisters; }
+	|	insn_format22b[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format22b.outRegisters; }
+	|	insn_format22c_field[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format22c_field.outRegisters; }
+	|	insn_format22c_type[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format22c_type.outRegisters; }
+	|	insn_format22s[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format22s.outRegisters; }
+	|	insn_format22t[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format22t.outRegisters; }
+	|	insn_format22x[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format22x.outRegisters; }
+	|	insn_format23x[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format23x.outRegisters; }
+	|	insn_format30t[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format30t.outRegisters; }
+	|	insn_format31c[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format31c.outRegisters; }
+	|	insn_format31i[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format31i.outRegisters; }
+	|	insn_format31t[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format31t.outRegisters; }
+	|	insn_format32x[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format32x.outRegisters; }
+	|	insn_format35c_method[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format35c_method.outRegisters; }
+	|	insn_format35c_type[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format35c_type.outRegisters; }
+	|	insn_format3rc_method[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format3rc_method.outRegisters; }
+	|	insn_format3rc_type[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format3rc_type.outRegisters; }
+	|	insn_format51l_type[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format51l_type.outRegisters; }
+	|	insn_array_data_directive[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_array_data_directive.outRegisters; }
+	|	insn_packed_switch_directive[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_packed_switch_directive.outRegisters; }
+	|	insn_sparse_switch_directive[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_sparse_switch_directive.outRegisters; };
+    catch [Exception ex] {
+			reportError(new SemanticException(input, ex));
+			recover(input, null);
+		}
+
+
+insn_format10t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
 	:	//e.g. goto endloop:
 		{$outRegisters = 0;}
 		^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
@@ -946,14 +986,18 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int addressOffset = $offset_or_label.offsetValue;
 
 			$instructions.add(new Instruction10t(opcode, addressOffset));
-		}
-	|	//e.g. return
+		};
+
+insn_format10x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. return
 		^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
 			$instructions.add(new Instruction10x(opcode));
-		}
-	|	//e.g. const/4 v0, 5
+		};
+
+insn_format11n[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. const/4 v0, 5
 		^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11n.text);
@@ -963,16 +1007,20 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			LiteralTools.checkNibble(litB);
 
 			$instructions.add(new Instruction11n(opcode, regA, (byte)litB));
-		}
-	|	//e.g. move-result-object v1
+		};
+
+insn_format11x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. move-result-object v1
 		^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
 			short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			$instructions.add(new Instruction11x(opcode, regA));
-		}
-	|	//e.g. move v1 v2
+		};
+
+insn_format12x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. move v1 v2
 		^(I_STATEMENT_FORMAT12x INSTRUCTION_FORMAT12x registerA=REGISTER registerB=REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT12x.text);
@@ -980,8 +1028,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			$instructions.add(new Instruction12x(opcode, regA, regB));
-		}
-	|	//e.g. throw-verification-error generic-error, Lsome/class;
+		};
+
+insn_format20bc[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. throw-verification-error generic-error, Lsome/class;
 		^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc verification_error_type verification_error_reference)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT20bc.text);
@@ -990,8 +1040,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			Item referencedItem = $verification_error_reference.item;
 
 			$instructions.add(new Instruction20bc(opcode, verificationErrorType, referencedItem));
-		}
-	|	//e.g. goto/16 endloop:
+		};
+
+insn_format20t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. goto/16 endloop:
 		^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT20t.text);
@@ -999,8 +1051,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int addressOffset = $offset_or_label.offsetValue;
 
 			$instructions.add(new Instruction20t(opcode, addressOffset));
-		}
-	|	//e.g. sget_object v0, java/lang/System/out LJava/io/PrintStream;
+		};
+
+insn_format21c_field[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. sget_object v0, java/lang/System/out LJava/io/PrintStream;
 		^(I_STATEMENT_FORMAT21c_FIELD inst=(INSTRUCTION_FORMAT21c_FIELD | INSTRUCTION_FORMAT21c_FIELD_ODEX) REGISTER fully_qualified_field)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($inst.text);
@@ -1009,8 +1063,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 
 			$instructions.add(new Instruction21c(opcode, regA, fieldIdItem));
-		}
-	|	//e.g. const-string v1, "Hello World!"
+		};
+
+insn_format21c_string[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. const-string v1, "Hello World!"
 		^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
@@ -1019,8 +1075,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, $string_literal.value);
 
 			instructions.add(new Instruction21c(opcode, regA, stringIdItem));
-		}
-	|	//e.g. const-class v2, org/jf/HelloWorld2/HelloWorld2
+		};
+
+insn_format21c_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. const-class v2, org/jf/HelloWorld2/HelloWorld2
 		^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
@@ -1029,8 +1087,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			TypeIdItem typeIdItem = $reference_type_descriptor.type;
 
 			$instructions.add(new Instruction21c(opcode, regA, typeIdItem));
-		}
-	|	//e.g. const/high16 v1, 1234
+		};
+
+insn_format21h[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. const/high16 v1, 1234
 		^(I_STATEMENT_FORMAT21h INSTRUCTION_FORMAT21h REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21h.text);
@@ -1039,8 +1099,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			short litB = $short_integral_literal.value;
 
 			instructions.add(new Instruction21h(opcode, regA, litB));
-		}
-	|	//e.g. const/16 v1, 1234
+		};
+
+insn_format21s[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. const/16 v1, 1234
 		^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21s.text);
@@ -1049,8 +1111,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			short litB = $short_integral_literal.value;
 
 			$instructions.add(new Instruction21s(opcode, regA, litB));
-		}
-	|	//e.g. if-eqz v0, endloop:
+		};
+
+insn_format21t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. if-eqz v0, endloop:
 		^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21t.text);
@@ -1063,8 +1127,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			}
 
 			$instructions.add(new Instruction21t(opcode, regA, (short)addressOffset));
-		}
-	|	//e.g. add-int v0, v1, 123
+		};
+
+insn_format22b[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. add-int v0, v1, 123
 		^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22b.text);
@@ -1075,8 +1141,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			LiteralTools.checkByte(litC);
 
 			$instructions.add(new Instruction22b(opcode, regA, regB, (byte)litC));
-		}
-	|	//e.g. iput-object v1, v0, org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
+		};
+
+insn_format22c_field[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. iput-object v1, v0, org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_FIELD inst=(INSTRUCTION_FORMAT22c_FIELD | INSTRUCTION_FORMAT22c_FIELD_ODEX) registerA=REGISTER registerB=REGISTER fully_qualified_field)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($inst.text);
@@ -1086,8 +1154,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
 
 			$instructions.add(new Instruction22c(opcode, regA, regB, fieldIdItem));
-		}
-	|	//e.g. instance-of v0, v1, Ljava/lang/String;
+		};
+
+insn_format22c_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. instance-of v0, v1, Ljava/lang/String;
 		^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_TYPE.text);
@@ -1097,8 +1167,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 
 			$instructions.add(new Instruction22c(opcode, regA, regB, typeIdItem));
-		}
-	|	//e.g. add-int/lit16 v0, v1, 12345
+		};
+
+insn_format22s[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. add-int/lit16 v0, v1, 12345
 		^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER short_integral_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22s.text);
@@ -1108,8 +1180,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			short litC = $short_integral_literal.value;
 
 			$instructions.add(new Instruction22s(opcode, regA, regB, litC));
-		}
-	|	//e.g. if-eq v0, v1, endloop:
+		};
+
+insn_format22t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. if-eq v0, v1, endloop:
 		^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22t.text);
@@ -1123,8 +1197,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			}
 
 			$instructions.add(new Instruction22t(opcode, regA, regB, (short)addressOffset));
-		}
-	|	//e.g. move/from16 v1, v1234
+		};
+
+insn_format22x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. move/from16 v1, v1234
 		^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22x.text);
@@ -1132,8 +1208,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			$instructions.add(new Instruction22x(opcode, regA, regB));
-		}
-	|	//e.g. add-int v1, v2, v3
+		};
+
+insn_format23x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. add-int v1, v2, v3
 		^(I_STATEMENT_FORMAT23x INSTRUCTION_FORMAT23x registerA=REGISTER registerB=REGISTER registerC=REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT23x.text);
@@ -1142,8 +1220,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			short regC = parseRegister_byte($registerC.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			$instructions.add(new Instruction23x(opcode, regA, regB, regC));
-		}
-	|	//e.g. goto/32 endloop:
+		};
+
+insn_format30t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. goto/32 endloop:
 		^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT30t.text);
@@ -1151,8 +1231,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int addressOffset = $offset_or_label.offsetValue;
 
 			$instructions.add(new Instruction30t(opcode, addressOffset));
-		}
-	|	//e.g. const-string/jumbo v1 "Hello World!"
+		};
+
+insn_format31c[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. const-string/jumbo v1 "Hello World!"
 		^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
@@ -1161,8 +1243,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, $string_literal.value);
 
 			$instructions.add(new Instruction31c(opcode, regA, stringIdItem));
-		}
-	|	//e.g. const v0, 123456
+		};
+
+insn_format31i[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. const v0, 123456
 		^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31i.text);
@@ -1171,8 +1255,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int litB = $fixed_32bit_literal.value;
 
 			$instructions.add(new Instruction31i(opcode, regA, litB));
-		}
-	|	//e.g. fill-array-data v0, ArrayData:
+		};
+
+insn_format31t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. fill-array-data v0, ArrayData:
 		^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER offset_or_label)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31t.text);
@@ -1185,8 +1271,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			}
 
 			$instructions.add(new Instruction31t(opcode, regA, addressOffset));
-		}
-	|	//e.g. move/16 v5678, v1234
+		};
+
+insn_format32x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. move/16 v5678, v1234
 		^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT32x.text);
@@ -1194,8 +1282,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
 			$instructions.add(new Instruction32x(opcode, regA, regB));
-		}
-	|	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
+		};
+
+insn_format35c_method[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
 		^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT35c_METHOD.text);
@@ -1208,8 +1298,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 
 			$instructions.add(new Instruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem));
-		}
-	|	//e.g. filled-new-array {v0,v1}, I
+		};
+
+insn_format35c_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. filled-new-array {v0,v1}, I
 		^(I_STATEMENT_FORMAT35c_TYPE INSTRUCTION_FORMAT35c_TYPE register_list[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT35c_TYPE.text);
@@ -1222,8 +1314,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 
 			$instructions.add(new Instruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeIdItem));
-		}
-	|	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+		};
+
+insn_format3rc_method[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 		^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range[$totalMethodRegisters, $methodParameterRegisters] fully_qualified_method)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_METHOD.text);
@@ -1236,8 +1330,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
 
 			$instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, methodIdItem));
-		}
-	|	//e.g. filled-new-array/range {v0..v6} I
+		};
+
+insn_format3rc_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. filled-new-array/range {v0..v6} I
 		^(I_STATEMENT_FORMAT3rc_TYPE INSTRUCTION_FORMAT3rc_TYPE register_range[$totalMethodRegisters, $methodParameterRegisters] nonvoid_type_descriptor)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_TYPE.text);
@@ -1250,8 +1346,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
 
 			$instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, typeIdItem));
-		}
-	|	//e.g. const-wide v0, 5000000000L
+		};
+
+insn_format51l_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. const-wide v0, 5000000000L
 		^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
 		{
 			Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT51l.text);
@@ -1260,8 +1358,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			long litB = $fixed_64bit_literal.value;
 
 			$instructions.add(new Instruction51l(opcode, regA, litB));
-		}
-	|	//e.g. .array-data 4 1000000 .end array-data
+		};
+
+insn_array_data_directive[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:	//e.g. .array-data 4 1000000 .end array-data
 		^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
 		{
 			if (($method::currentAddress \% 2) != 0) {
@@ -1285,9 +1385,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			}
 
 			$instructions.add(new ArrayDataPseudoInstruction(elementWidth, encodedValues));
-		}
-	|
+		};
 
+insn_packed_switch_directive[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:
 		^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal)
 			{
 				if (($method::currentAddress \% 2) != 0) {
@@ -1306,8 +1407,10 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 			int[] targets = $packed_switch_targets.targets;
 
 			$instructions.add(new PackedSwitchDataPseudoInstruction(startKey, targets));
-		}
-	|
+		};
+
+insn_sparse_switch_directive[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+	:
 		^(I_STATEMENT_SPARSE_SWITCH sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount]
 			{
 				if (($method::currentAddress \% 2) != 0) {
@@ -1327,10 +1430,6 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
 
 			$instructions.add(new SparseSwitchDataPseudoInstruction(keys, targets));
 		};
-		catch [Exception ex] {
-			reportError(new SemanticException(input, ex));
-			recover(input, null);
-		}
 
 nonvoid_type_descriptor returns [TypeIdItem type]
 	:	(PRIMITIVE_TYPE
