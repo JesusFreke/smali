@@ -249,28 +249,48 @@ public class MethodAnalyzer {
             }
         } while (true);
 
+        //Now, go through and fix up any unresolvable odex instructions. These are usually odex instructions
+        //that operate on a null register, and thus always throw an NPE. They can also be any sort of odex instruction
+        //that occurs after an unresolvable odex instruction. We deodex if possible, or replace with an
+        //UnresolvableOdexInstruction
         for (int i=0; i<instructions.size(); i++) {
-            AnalyzedInstruction instruction = instructions.valueAt(i);
+            AnalyzedInstruction analyzedInstruction = instructions.valueAt(i);
 
-            int objectRegisterNumber;
-            switch (instruction.getInstruction().getFormat()) {
-                case Format22cs:
-                    objectRegisterNumber = ((Instruction22cs)instruction.instruction).getRegisterB();
-                    break;
-                case Format35mi:
-                case Format35ms:
-                    objectRegisterNumber = ((FiveRegisterInstruction)instruction.instruction).getRegisterD();
-                    break;
-                case Format3rmi:
-                case Format3rms:
-                    objectRegisterNumber = ((RegisterRangeInstruction)instruction.instruction).getStartRegister();
-                    break;
-                default:
-                    continue;
+            Instruction instruction = analyzedInstruction.getInstruction();
+
+            if (instruction.opcode.odexOnly()) {
+                int objectRegisterNumber;
+                switch (instruction.getFormat()) {
+                    case Format10x:
+                        analyzeReturnVoidBarrier(analyzedInstruction, false);
+                        continue;
+                    case Format21c:
+                    case Format22c:
+                        analyzePutGetVolatile(analyzedInstruction, false);
+                        continue;
+                    case Format35c:
+                        analyzeInvokeDirectEmpty(analyzedInstruction, false);
+                        continue;
+                    case Format3rc:
+                        analyzeInvokeObjectInitRange(analyzedInstruction, false);
+                        continue;
+                    case Format22cs:
+                        objectRegisterNumber = ((Instruction22cs)instruction).getRegisterB();
+                        break;
+                    case Format35mi:
+                    case Format35ms:
+                        objectRegisterNumber = ((FiveRegisterInstruction)instruction).getRegisterD();
+                        break;
+                    case Format3rmi:
+                    case Format3rms:
+                        objectRegisterNumber = ((RegisterRangeInstruction)instruction).getStartRegister();
+                        break;
+                    default:
+                        continue;
+                }
+
+                analyzedInstruction.setDeodexedInstruction(new UnresolvedOdexInstruction(instruction, objectRegisterNumber));
             }
-
-            instruction.setDeodexedInstruction(new UnresolvedOdexInstruction(instruction.instruction,
-                    objectRegisterNumber));
         }
 
         analyzerState = ANALYZED;
@@ -1742,13 +1762,19 @@ public class MethodAnalyzer {
     }
 
     private void analyzeReturnVoidBarrier(AnalyzedInstruction analyzedInstruction) {
+        analyzeReturnVoidBarrier(analyzedInstruction, true);
+    }
+
+    private void analyzeReturnVoidBarrier(AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
         Instruction10x instruction = (Instruction10x)analyzedInstruction.instruction;
 
         Instruction10x deodexedInstruction = new Instruction10x(Opcode.RETURN_VOID);
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
 
-        analyzeInstruction(analyzedInstruction);
+        if (analyzeResult) {
+            analyzeInstruction(analyzedInstruction);
+        }
     }
 
     private void verifyReturnVoid(AnalyzedInstruction analyzedInstruction) {
@@ -3434,6 +3460,10 @@ public class MethodAnalyzer {
     }
 
     private void analyzeInvokeDirectEmpty(AnalyzedInstruction analyzedInstruction) {
+        analyzeInvokeDirectEmpty(analyzedInstruction, true);
+    }
+
+    private void analyzeInvokeDirectEmpty(AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
         Instruction35c instruction = (Instruction35c)analyzedInstruction.instruction;
 
         Instruction35c deodexedInstruction = new Instruction35c(Opcode.INVOKE_DIRECT, instruction.getRegCount(),
@@ -3442,10 +3472,16 @@ public class MethodAnalyzer {
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
 
-        analyzeInstruction(analyzedInstruction);
+        if (analyzeResult) {
+            analyzeInstruction(analyzedInstruction);
+        }
     }
 
     private void analyzeInvokeObjectInitRange(AnalyzedInstruction analyzedInstruction) {
+        analyzeInvokeObjectInitRange(analyzedInstruction, true);
+    }
+
+    private void analyzeInvokeObjectInitRange(AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
         Instruction3rc instruction = (Instruction3rc)analyzedInstruction.instruction;
 
         Instruction3rc deodexedInstruction = new Instruction3rc(Opcode.INVOKE_DIRECT_RANGE,
@@ -3453,7 +3489,9 @@ public class MethodAnalyzer {
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
 
-        analyzeInstruction(analyzedInstruction);
+        if (analyzeResult) {
+            analyzeInstruction(analyzedInstruction);
+        }
     }
 
     private boolean analyzeIputIgetQuick(AnalyzedInstruction analyzedInstruction) {
@@ -3568,6 +3606,10 @@ public class MethodAnalyzer {
     }
 
     private boolean analyzePutGetVolatile(AnalyzedInstruction analyzedInstruction) {
+        return analyzePutGetVolatile(analyzedInstruction, true);
+    }
+
+    private boolean analyzePutGetVolatile(AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
         FieldIdItem fieldIdItem =
                 (FieldIdItem)(((InstructionWithReference)analyzedInstruction.instruction).getReferencedItem());
 
@@ -3589,8 +3631,10 @@ public class MethodAnalyzer {
         }
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
-        analyzeInstruction(analyzedInstruction);
 
+        if (analyzeResult) {
+            analyzeInstruction(analyzedInstruction);
+        }
         return true;
     }
 
