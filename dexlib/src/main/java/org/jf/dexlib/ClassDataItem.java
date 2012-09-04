@@ -392,6 +392,17 @@ public class ClassDataItem extends Item<ClassDataItem> {
 
     /** {@inheritDoc} */
     public int compareTo(ClassDataItem other) {
+        // An empty CodeDataItem may be shared by multiple ClassDefItems, so we can't use parent in this case
+        if (isEmpty()) {
+            if (other.isEmpty()) {
+                return 0;
+            }
+            return -1;
+        }
+        if (other.isEmpty()) {
+            return 1;
+        }
+
         if (parent == null) {
             if (other.parent == null) {
                 return 0;
@@ -409,7 +420,7 @@ public class ClassDataItem extends Item<ClassDataItem> {
      * @param classDefItem the <code>ClassDefItem</code> that this <code>ClassDataItem</code> is associated with
      */
     protected void setParent(ClassDefItem classDefItem) {
-        Preconditions.checkState(parent == null || parent.compareTo(classDefItem) == 0);
+        Preconditions.checkState(parent == null || parent.compareTo(classDefItem) == 0 || isEmpty());
         parent = classDefItem;
     }
 
@@ -495,6 +506,14 @@ public class ClassDataItem extends Item<ClassDataItem> {
             return 0;
         }
         return virtualMethods.length;
+    }
+
+    /**
+     * @return true if this is an empty ClassDataItem
+     */
+    public boolean isEmpty() {
+        return (getStaticFieldCount() + getInstanceFieldCount() +
+                getDirectMethodCount() + getVirtualMethodCount()) == 0;
     }
 
     /**
