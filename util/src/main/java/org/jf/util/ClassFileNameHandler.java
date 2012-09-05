@@ -121,23 +121,6 @@ public class ClassFileNameHandler {
             return false;
         } catch (IOException ex) {
             //if an exception occured, it's likely that we're on a windows system.
-        }
-
-        //let's try one more reserved filename
-        f = new File(path, "con.smali");
-        if (f.exists()) {
-            return false;
-        }
-
-        try {
-            FileWriter writer = new FileWriter(f);
-            writer.write("test");
-            writer.flush();
-            writer.close();
-            f.delete(); //doesn't throw IOException
-            return false;
-        } catch (IOException ex) {
-            //yup, looks like we're on a windows system
             return true;
         }
     }
