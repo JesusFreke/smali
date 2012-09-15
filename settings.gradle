@@ -1,1 +1,1 @@
-include 'util', 'dexlib', 'baksmali'
+include 'util', 'dexlib', 'baksmali', 'smali'

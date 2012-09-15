@@ -1,0 +1,78 @@
+configurations {
+    antlr3
+    jflex
+}
+
+ext.antlrSource = 'src/main/antlr3'
+ext.antlrOutput =  file(new File(buildDir, '/generated-sources/antlr3'))
+
+ext.jflexSource = "src/main/jflex"
+ext.jflexOutput = file(new File(buildDir, '/generated-sources/jflex'))
+
+ext.testAntlrSource = 'src/test/antlr3'
+ext.testAntlrOutput = file(new File(buildDir, '/generated-test-sources/antlr3'))
+
+sourceSets.main.java.srcDir antlrOutput
+sourceSets.main.java.srcDir jflexOutput
+
+sourceSets.test.java.srcDir testAntlrOutput
+
+dependencies {
+    compile project(':util')
+    compile project(':dexlib')
+    compile 'org.antlr:antlr-runtime:3.2'
+    compile 'commons-cli:commons-cli:1.2'
+
+    testCompile 'junit:junit:4.6'
+    
+    antlr3 'org.antlr:antlr:3.2'
+    jflex 'de.jflex:jflex:1.4.3'
+}
+
+task generateAntlrSource {
+    inputs.dir file(antlrSource)
+    outputs.dir file(antlrOutput)
+    doLast {
+        mkdir(antlrOutput)
+
+        def grammars = fileTree(antlrSource).include('**/*.g')
+
+        ant.java(classname: 'org.antlr.Tool', classpath: configurations.antlr3.asPath, fork: true) {
+            arg(line: '-fo ' + antlrOutput + '/org/jf/smali')
+            arg(line: grammars.files.join(" "))
+        }
+    }
+}
+
+task generateTestAntlrSource {
+    inputs.dir file(testAntlrSource)
+    outputs.dir file(testAntlrOutput)
+    doLast {
+        mkdir(testAntlrOutput)
+
+        def grammars = fileTree(testAntlrSource).include('**/*.g')
+
+        ant.java(classname: 'org.antlr.Tool', classpath: configurations.antlr3.asPath, fork: true) {
+            arg(line: '-fo ' + testAntlrOutput + '/org/jf/smali')
+            arg(line: grammars.files.join(" "))
+        }
+    }
+}
+
+task generateJflexSource {
+    inputs.dir file(jflexSource)
+    outputs.dir file(jflexOutput)
+    doLast {
+        mkdir(jflexOutput)
+
+        def grammars = fileTree(jflexSource).include('**/*.flex')
+
+        ant.java(classname: 'JFlex.Main', classpath: configurations.jflex.asPath, fork: true) {
+            arg(line: '-d ' + jflexOutput + '/org/jf/smali')
+            arg(line: grammars.files.join(" "))
+        }
+    }
+}
+
+compileJava.dependsOn generateAntlrSource, generateJflexSource
+compileTestJava.dependsOn generateTestAntlrSource

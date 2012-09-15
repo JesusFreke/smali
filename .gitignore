@@ -1,7 +1,7 @@
 /.gradle
 /baksmali/build
 /dexlib/build
-/smali/target
+/smali/build
 /util/build
 /maven-smali-plugin/target
 /smali-integration-tests/target
