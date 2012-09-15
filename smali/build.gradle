@@ -1,5 +1,6 @@
 configurations {
     antlr3
+
     jflex
 }
 
@@ -24,7 +25,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.2'
 
     testCompile 'junit:junit:4.6'
-    
+
     antlr3 'org.antlr:antlr:3.2'
     jflex 'de.jflex:jflex:1.4.3'
 }
@@ -76,3 +77,6 @@ task generateJflexSource {
 
 compileJava.dependsOn generateAntlrSource, generateJflexSource
 compileTestJava.dependsOn generateTestAntlrSource
+
+processResources.inputs.properties('version': { -> version})
+processResources.expand('version': { -> version})

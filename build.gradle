@@ -1,7 +1,47 @@
 subprojects {
     apply plugin: 'java'
 
+    version = "1.3.4"
+
+    // For non-release builds, we want to append the commit and
+    // dirty status to the version
+    gradle.taskGraph.whenReady {
+        if (!it.hasTask(release)) {
+            def versionSuffix
+            try {
+                def git = org.eclipse.jgit.api.Git.open(file('.'))
+                def head = git.getRepository().getRef("HEAD")
+                versionSuffix = head.getObjectId().abbreviate(8).name()
+
+                if (!git.status().call().clean) {
+                    versionSuffix += '-dirty'
+                }
+            } catch (Exception) {
+                // In case we can't get the commit for some reason,
+                // just use -dev
+                versionSuffix = 'dev'
+            }
+
+            version += '-' + versionSuffix
+        }
+    }
+
     repositories {
         mavenCentral()
+    }
+
+    // Note: please don't use this. This is strictly for the official releases
+    // that are posted on the googlecode download page.
+    task release {
+    }
+}
+
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.eclipse.jgit:org.eclipse.jgit:2.0.0.201206130900-r'
     }
 }
