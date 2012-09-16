@@ -1,7 +1,8 @@
 subprojects {
     apply plugin: 'java'
 
-    version = "1.3.4"
+    ext.baseVersion = '1.3.4'
+    ext.jarVersion = baseVersion
 
     // For non-release builds, we want to append the commit and
     // dirty status to the version
@@ -22,7 +23,15 @@ subprojects {
                 versionSuffix = 'dev'
             }
 
-            version += '-' + versionSuffix
+            version = baseVersion + '-' + versionSuffix
+
+            // use <version>-dev for the jar name, rather than the
+            // full commit+dirty string
+            jarVersion = baseVersion + '-dev'
+        }
+
+        jar {
+            version = jarVersion
         }
     }
 

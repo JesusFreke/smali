@@ -80,3 +80,16 @@ compileTestJava.dependsOn generateTestAntlrSource
 
 processResources.inputs.properties('version': { -> version})
 processResources.expand('version': { -> version})
+
+// We have to do this in taskGraph.whenReady, so that we use the correct
+// version to resolve the project dependencies
+gradle.taskGraph.whenReady {
+	// build a jar containing all dependencies
+	jar {
+	    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+	    manifest {
+	        attributes("Main-Class": "org.jf.smali.main")
+	    }
+	}
+}
