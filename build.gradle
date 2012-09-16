@@ -35,7 +35,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
 
-    ext.baseVersion = '1.4.0'
+    ext.baseVersion = '1.4.1'
     ext.jarVersion = baseVersion
 
     // For non-release builds, we want to append the commit and
