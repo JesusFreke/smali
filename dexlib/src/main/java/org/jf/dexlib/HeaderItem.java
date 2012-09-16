@@ -48,7 +48,7 @@ public class HeaderItem extends Item<HeaderItem> {
 
     /** the endianness constants */
     private static final int LITTLE_ENDIAN = 0x12345678;
-    private static final int BIG_ENDIAN = 0x78562312;
+    private static final int BIG_ENDIAN = 0x78563412;
 
     /* Which magic value to use when writing out the header item */
     private int magic_index = 0;
