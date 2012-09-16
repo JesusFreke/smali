@@ -1,7 +1,7 @@
 configurations {
     antlr3
-
     jflex
+    proguard
 }
 
 ext.antlrSource = 'src/main/antlr3'
@@ -28,6 +28,7 @@ dependencies {
 
     antlr3 'org.antlr:antlr:3.2'
     jflex 'de.jflex:jflex:1.4.3'
+    proguard 'net.sf.proguard:proguard-base:4.8'
 }
 
 task generateAntlrSource {
@@ -78,18 +79,44 @@ task generateJflexSource {
 compileJava.dependsOn generateAntlrSource, generateJflexSource
 compileTestJava.dependsOn generateTestAntlrSource
 
-processResources.inputs.properties('version': { -> version})
-processResources.expand('version': { -> version})
-
 // We have to do this in taskGraph.whenReady, so that we use the correct
 // version to resolve the project dependencies
 gradle.taskGraph.whenReady {
-	// build a jar containing all dependencies
-	jar {
-	    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    // build a jar containing all dependencies
+    jar {
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
-	    manifest {
-	        attributes("Main-Class": "org.jf.smali.main")
-	    }
-	}
+        manifest {
+            attributes("Main-Class": "org.jf.smali.main")
+        }
+    }
+
+    processResources.inputs.properties('version': version)
+	processResources.expand('version': version)
+
+    proguard {
+        def outFile = relativePath(buildDir) + '/libs/' + jar.baseName + '-' + jar.version + '-small' + '.' + jar.extension
+
+        inputs.file jar.archivePath
+        outputs.file outFile
+
+        args '-injars ' + jar.archivePath + '(!**/TestStringTemplate*.class)'
+        args '-outjars ' + outFile
+    }
 }
+
+task proguard(type: JavaExec, dependsOn: jar) {
+    setStandardOutput(java.lang.System.out);
+    setErrorOutput(java.lang.System.err);
+    classpath = files(configurations.proguard.asPath)
+    main = 'proguard.ProGuard'
+    args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
+    args '-dontobfuscate'
+    args '-dontoptimize'
+    args '-keep public class org.jf.smali.main { public static void main(java.lang.String[]); }'
+    args '-keepclassmembers enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
+    args '-dontwarn com.google.common.base.**'
+    args '-dontnote com.google.common.base.**'
+}
+
+release.dependsOn(proguard)

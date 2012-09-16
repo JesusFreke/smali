@@ -1,22 +1,54 @@
+configurations {
+    proguard
+}
+
 dependencies {
     compile project(':util')
     compile project(':dexlib')
     compile 'commons-cli:commons-cli:1.2'
     compile 'com.google.code.findbugs:jsr305:1.3.9'
-}
 
-processResources.inputs.properties('version': { -> version})
-processResources.expand('version': { -> version})
+    proguard 'net.sf.proguard:proguard-base:4.8'
+}
 
 // We have to do this in taskGraph.whenReady, so that we use the correct
 // version to resolve the project dependencies
 gradle.taskGraph.whenReady {
-	// build a jar containing all dependencies
-	jar {
-	    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    // build a jar containing all dependencies
+    jar {
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
-	    manifest {
-	        attributes("Main-Class": "org.jf.baksmali.main")
-	    }
-	}
+        manifest {
+            attributes("Main-Class": "org.jf.baksmali.main")
+        }
+    }
+
+    proguard {
+        def outFile = relativePath(buildDir) + '/libs/' + jar.baseName + '-' + jar.version + '-small' + '.' + jar.extension
+
+        inputs.file jar.archivePath
+        outputs.file outFile
+
+        args '-injars ' + jar.archivePath
+        args '-outjars ' + outFile
+    }
+
+    processResources.inputs.properties('version': { -> version})
+	processResources.expand('version': { -> version})
 }
+
+task proguard(type: JavaExec, dependsOn: jar) {
+    setStandardOutput(java.lang.System.out);
+    setErrorOutput(java.lang.System.err);
+    classpath = files(configurations.proguard.asPath)
+    main = 'proguard.ProGuard'
+    args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
+    args '-dontobfuscate'
+    args '-dontoptimize'
+    args '-keep public class org.jf.baksmali.main { public static void main(java.lang.String[]); }'
+    args '-keepclassmembers enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
+    args '-dontwarn com.google.common.base.**'
+    args '-dontnote com.google.common.base.**'
+}
+
+release.dependsOn(proguard)

@@ -28,6 +28,8 @@ subprojects {
             // use <version>-dev for the jar name, rather than the
             // full commit+dirty string
             jarVersion = baseVersion + '-dev'
+        } else {
+            version = baseVersion
         }
 
         jar {
