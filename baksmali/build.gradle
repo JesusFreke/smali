@@ -34,12 +34,10 @@ gradle.taskGraph.whenReady {
     }
 
     processResources.inputs.properties('version': { -> version})
-	processResources.expand('version': { -> version})
+    processResources.expand('version': { -> version})
 }
 
 task proguard(type: JavaExec, dependsOn: jar) {
-    setStandardOutput(java.lang.System.out);
-    setErrorOutput(java.lang.System.err);
     classpath = files(configurations.proguard.asPath)
     main = 'proguard.ProGuard'
     args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
