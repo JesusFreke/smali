@@ -4,6 +4,11 @@ smali/baksmali is an assembler/disassembler for the dex format used by dalvik, A
 
 The primary webpage is http://smali.googlecode.com, and the source is also mirrored at https://github.com/jesusfreke/smali. If you are interested in submitting a patch, feel free to send me a pull request on either site.
 
+#### Support
+- [googlecode Issue tracker](https://code.google.com/p/smali/issues/list) - For any bugs/issues/feature requests
+- [#smali on freenode](http://webchat.freenode.net/?channels=smali) - Free free to drop by and ask a question. Don't expect an instant response, but if you hang around someone will respond. Think of it more in terms of.. multi-player notepad.
+
+
 #### Some useful links for getting started with smali
 
 - [Official dex bytecode reference](http://s.android.com/tech/dalvik/dalvik-bytecode.html)
