@@ -69,7 +69,7 @@ task generateAntlrSource(type: JavaExec) {
     mkdir(antlrOutput)
     def grammars = fileTree(antlrSource).include('**/*.g')
 
-    classpath = files(configurations.antlr3.asPath)
+    classpath = configurations.antlr3
     main = 'org.antlr.Tool'
     args '-fo', relativePath(new File(antlrOutput, 'org/jf/smali'))
     args grammars.files
@@ -82,7 +82,7 @@ task generateTestAntlrSource(type: JavaExec) {
     mkdir(testAntlrOutput)
     def grammars = fileTree(testAntlrSource).include('**/*.g')
 
-    classpath = files(configurations.antlr3.asPath)
+    classpath = configurations.antlr3
     main = 'org.antlr.Tool'
     args '-fo', relativePath(new File(testAntlrOutput, 'org/jf/smali'))
     args grammars.files.join(' ')
@@ -95,7 +95,7 @@ task generateJflexSource(type: JavaExec) {
     mkdir(jflexOutput)
     def grammars = fileTree(jflexSource).include('**/*.flex')
 
-    classpath = files(configurations.jflex.asPath)
+    classpath = configurations.jflex
     main = 'JFlex.Main'
     args '-q'
     args '-d', relativePath(new File(jflexOutput, 'org/jf/smali'))
@@ -133,7 +133,7 @@ gradle.taskGraph.whenReady {
 }
 
 task proguard(type: JavaExec, dependsOn: jar) {
-    classpath = files(configurations.proguard.asPath)
+    classpath = configurations.proguard
     main = 'proguard.ProGuard'
     args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
     args '-dontobfuscate'

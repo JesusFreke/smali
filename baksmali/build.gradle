@@ -69,7 +69,7 @@ gradle.taskGraph.whenReady {
 }
 
 task proguard(type: JavaExec, dependsOn: jar) {
-    classpath = files(configurations.proguard.asPath)
+    classpath = configurations.proguard
     main = 'proguard.ProGuard'
     args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
     args '-dontobfuscate'
