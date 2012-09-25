@@ -96,42 +96,6 @@ import org.jf.dexlib.Code.Format.*;
     return val;
   }
 
-  private static Pattern specialFloatRegex = Pattern.compile("((-)?infinityf)|(nanf)", Pattern.CASE_INSENSITIVE);
-  private float parseFloat(String floatString) {
-    Matcher m = specialFloatRegex.matcher(floatString);
-    if (m.matches()) {
-      //got an infinity
-      if (m.start(1) != -1) {
-        if (m.start(2) != -1) {
-          return Float.NEGATIVE_INFINITY;
-        } else {
-          return Float.POSITIVE_INFINITY;
-        }
-      } else {
-        return Float.NaN;
-      }
-    }
-    return Float.parseFloat(floatString);
-  }
-
-  private static Pattern specialDoubleRegex = Pattern.compile("((-)?infinityd?)|(nand?)", Pattern.CASE_INSENSITIVE);
-  private double parseDouble(String doubleString) {
-    Matcher m = specialDoubleRegex.matcher(doubleString);
-    if (m.matches()) {
-      //got an infinity
-      if (m.start(1) != -1) {
-        if (m.start(2) != -1) {
-          return Double.NEGATIVE_INFINITY;
-        } else {
-          return Double.POSITIVE_INFINITY;
-        }
-      } else {
-        return Double.NaN;
-      }
-    }
-    return Double.parseDouble(doubleString);
-  }
-
   public String getErrorMessage(RecognitionException e, String[] tokenNames) {
     if ( e instanceof SemanticException ) {
       return e.getMessage();
@@ -1503,10 +1467,10 @@ byte_literal returns[byte value]
   : BYTE_LITERAL { $value = LiteralTools.parseByte($BYTE_LITERAL.text); };
 
 float_literal returns[float value]
-  : FLOAT_LITERAL { $value = parseFloat($FLOAT_LITERAL.text); };
+  : FLOAT_LITERAL { $value = LiteralTools.parseFloat($FLOAT_LITERAL.text); };
 
 double_literal returns[double value]
-  : DOUBLE_LITERAL { $value = parseDouble($DOUBLE_LITERAL.text); };
+  : DOUBLE_LITERAL { $value = LiteralTools.parseDouble($DOUBLE_LITERAL.text); };
 
 char_literal returns[char value]
   : CHAR_LITERAL { $value = $CHAR_LITERAL.text.charAt(1); };
