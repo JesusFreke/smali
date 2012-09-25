@@ -74,6 +74,9 @@ import static org.jf.smali.smaliParser.*;
     }
 
     public String getSourceName() {
+        if (sourceFile == null) {
+            return "";
+        }
         try {
             return  PathUtil.getRelativeFile(new File("."), sourceFile).getPath();
         } catch (IOException ex) {
