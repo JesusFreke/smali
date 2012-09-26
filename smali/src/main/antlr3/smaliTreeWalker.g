@@ -52,6 +52,11 @@ import org.jf.dexlib.Code.Format.*;
 @members {
   public DexFile dexFile;
   public TypeIdItem classType;
+  private boolean verboseErrors = false;
+
+  public void setVerboseErrors(boolean verboseErrors) {
+    this.verboseErrors = verboseErrors;
+  }
 
   private byte parseRegister_nibble(String register, int totalMethodRegisters, int methodParameterRegisters)
     throws SemanticException {
@@ -141,9 +146,11 @@ smali_file
         classDataItem, $fields.staticFieldInitialValues);
   };
   catch [Exception ex] {
+    if (verboseErrors) {
+      ex.printStackTrace(System.err);
+    }
     reportError(new SemanticException(input, ex));
   }
-
 
 
 header returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem sourceSpec]

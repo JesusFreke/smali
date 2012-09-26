@@ -318,7 +318,7 @@ public class main {
         treeStream.setTokenStream(tokens);
 
         smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
-
+        dexGen.setVerboseErrors(verboseErrors);
         dexGen.dexFile = dexFile;
         dexGen.smali_file();
 
