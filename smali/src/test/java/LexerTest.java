@@ -30,6 +30,7 @@ import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
+import org.jf.dexlib.Util.Utf8Utils;
 import org.jf.smali.*;
 import static org.jf.smali.expectedTokensTestGrammarParser.ExpectedToken;
 import org.junit.Assert;
@@ -42,20 +43,11 @@ import java.util.List;
 public class LexerTest {
     private static final HashMap<String, Integer> tokenTypesByName;
 
-    private static final String newlineReplacement;
-
     static {
         tokenTypesByName = new HashMap<String, Integer>();
 
         for (int i=0; i<smaliParser.tokenNames.length; i++) {
             tokenTypesByName.put(smaliParser.tokenNames[i], i);
-        }
-
-        String newLine = System.getProperty("line.separator");
-        if (!"\n".equals(newLine)) {
-            newlineReplacement = newLine;
-        } else {
-            newlineReplacement = null;
         }
     }
 
@@ -198,13 +190,9 @@ public class LexerTest {
             }
 
             if (expectedToken.tokenText != null) {
-                String expectedTokenText = expectedToken.tokenText;
-                if (newlineReplacement != null) {
-                    expectedTokenText = expectedTokenText.replace("\n", newlineReplacement);
-                }
-
-                if (!expectedTokenText.equals(token.getText())) {
-                    Assert.fail(String.format("Invalid token text at index %d. Expecting text \"%s\", got \"%s\"",
+                if (!expectedToken.tokenText.equals(token.getText())) {
+                    Assert.fail(
+                            String.format("Invalid token text at index %d. Expecting text \"%s\", got \"%s\"",
                                     expectedTokenIndex - 1, expectedToken.tokenText, token.getText()));
                 }
             }
