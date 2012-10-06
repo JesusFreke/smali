@@ -109,7 +109,6 @@ public class ClassPath {
      * @param bootClassPath A list of the boot class path entries to search for and load
      * @param dexFilePath The path of the dex file (used for error reporting purposes only)
      * @param dexFile the DexFile to load
-     * @param errorHandler a ClassPathErrorHandler object to receive and handle any errors that occur while loading
      * classes
      */
     public static void InitializeClassPath(String[] classPathDirs, String[] bootClassPath,
