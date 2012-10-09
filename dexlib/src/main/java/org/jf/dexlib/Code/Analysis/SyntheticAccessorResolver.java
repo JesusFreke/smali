@@ -90,7 +90,11 @@ public class SyntheticAccessorResolver {
                     return null;
                 }
                 InstructionWithReference instruction = (InstructionWithReference)instructions[0];
-                MethodIdItem referencedMethodIdItem = (MethodIdItem)instruction.getReferencedItem();
+                Item referencedItem = instruction.getReferencedItem();
+                if (!(referencedItem instanceof  MethodIdItem)) {
+                    return null;
+                }
+                MethodIdItem referencedMethodIdItem = (MethodIdItem)referencedItem;
 
                 accessedMember = new AccessedMember(METHOD, referencedMethodIdItem);
                 resolvedAccessors.put(methodIdItem, accessedMember);
@@ -102,7 +106,11 @@ public class SyntheticAccessorResolver {
                     return null;
                 }
                 Instruction22c instruction = (Instruction22c)instructions[0];
-                FieldIdItem referencedFieldIdItem = (FieldIdItem)instruction.getReferencedItem();
+                Item referencedItem = instruction.getReferencedItem();
+                if (!(referencedItem instanceof FieldIdItem)) {
+                    return null;
+                }
+                FieldIdItem referencedFieldIdItem = (FieldIdItem)referencedItem;
 
                 if (instruction.opcode.setsRegister() || instruction.opcode.setsWideRegister()) {
                     accessedMember = new AccessedMember(GETTER, referencedFieldIdItem);
