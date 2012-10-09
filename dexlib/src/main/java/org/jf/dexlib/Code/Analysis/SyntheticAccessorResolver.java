@@ -113,6 +113,8 @@ public class SyntheticAccessorResolver {
                 FieldIdItem referencedFieldIdItem = (FieldIdItem)referencedItem;
 
                 if (instruction.opcode.setsRegister() || instruction.opcode.setsWideRegister()) {
+                    //If the instruction sets a register, that means it is a getter - it gets the field value and
+                    //stores it in the register
                     accessedMember = new AccessedMember(GETTER, referencedFieldIdItem);
                 } else {
                     accessedMember = new AccessedMember(SETTER, referencedFieldIdItem);
@@ -127,20 +129,12 @@ public class SyntheticAccessorResolver {
     }
 
     public static class AccessedMember {
-        private final int accessedMemberType;
-        private final Item accessedMember;
+        public final int accessedMemberType;
+        public final Item accessedMember;
 
         public AccessedMember(int accessedMemberType, Item accessedMember) {
             this.accessedMemberType = accessedMemberType;
             this.accessedMember = accessedMember;
-        }
-
-        public int getAccessedMemberType() {
-            return accessedMemberType;
-        }
-
-        public Item getAccessedMember() {
-            return accessedMember;
         }
     }
 }
