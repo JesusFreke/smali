@@ -46,6 +46,13 @@ import static org.jf.dexlib.ClassDataItem.EncodedMethod;
 public class ClassPath {
     private static ClassPath theClassPath = null;
 
+    /**
+     * The current version of dalvik in master(AOSP) has a slight change to the way the
+     * virtual tables are computed. This should be set to true to use the new logic.
+     * TODO: set this based on api level, once it's present in a released version of Android
+     */
+    private boolean checkPackagePrivateAccess;
+
     private final HashMap<String, ClassDef> classDefs;
     protected ClassDef javaLangObjectClassDef; //cached ClassDef for Ljava/lang/Object;
 
@@ -63,7 +70,8 @@ public class ClassPath {
      * @param dexFile The DexFile to load - it must represents an odex file
      */
     public static void InitializeClassPathFromOdex(String[] classPathDirs, String[] extraBootClassPathEntries,
-                                                   String dexFilePath, DexFile dexFile) {
+                                                   String dexFilePath, DexFile dexFile,
+                                                   boolean checkPackagePrivateAccess) {
         if (!dexFile.isOdex()) {
             throw new ExceptionWithContext("Cannot use InitialiazeClassPathFromOdex with a non-odex DexFile");
         }
@@ -100,7 +108,8 @@ public class ClassPath {
         }
 
         theClassPath = new ClassPath();
-        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile);
+        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile,
+                checkPackagePrivateAccess);
     }
 
     /**
@@ -112,13 +121,15 @@ public class ClassPath {
      * classes
      */
     public static void InitializeClassPath(String[] classPathDirs, String[] bootClassPath,
-                                           String[] extraBootClassPathEntries, String dexFilePath, DexFile dexFile) {
+                                           String[] extraBootClassPathEntries, String dexFilePath, DexFile dexFile,
+                                           boolean checkPackagePrivateAccess) {
         if (theClassPath != null) {
             throw new ExceptionWithContext("Cannot initialize ClassPath multiple times");
         }
 
         theClassPath = new ClassPath();
-        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile);
+        theClassPath.initClassPath(classPathDirs, bootClassPath, extraBootClassPathEntries, dexFilePath, dexFile,
+                checkPackagePrivateAccess);
     }
 
     private ClassPath() {
@@ -126,7 +137,8 @@ public class ClassPath {
     }
 
     private void initClassPath(String[] classPathDirs, String[] bootClassPath, String[] extraBootClassPathEntries,
-                               String dexFilePath, DexFile dexFile) {
+                               String dexFilePath, DexFile dexFile, boolean checkPackagePrivateAccess) {
+        this.checkPackagePrivateAccess = checkPackagePrivateAccess;
         unloadedClasses = new LinkedHashMap<String, UnresolvedClassInfo>();
 
         if (bootClassPath != null) {
@@ -581,7 +593,7 @@ public class ClassPath {
 
         private final int classDepth;
 
-        private final String[] vtable;
+        private final VirtualMethod[] vtable;
 
         //this maps a method name of the form method(III)Ljava/lang/String; to an integer
         //If the value is non-negative, it is a vtable index
@@ -604,7 +616,7 @@ public class ClassPath {
          */
 
         //This is only the virtual methods that this class declares itself.
-        private String[] virtualMethods;
+        private VirtualMethod[] virtualMethods;
         //this is a list of all the interfaces that the class implements directory, or any super interfaces of those
         //interfaces. It is generated in such a way that it is ordered in the same way as dalvik's ClassObject.iftable,
         private LinkedHashMap<String, ClassDef> interfaceTable;
@@ -689,7 +701,7 @@ public class ClassPath {
             }
             methodLookup = new HashMap<String, Integer>((int)Math.ceil(((vtable.length + directMethodCount)/ .7f)), .75f);
             for (int i=0; i<vtable.length; i++) {
-                methodLookup.put(vtable[i], i);
+                methodLookup.put(vtable[i].method, i);
             }
             if (directMethodCount > 0) {
                 for (int i=0; i<classInfo.directMethods.length; i++) {
@@ -787,7 +799,7 @@ public class ClassPath {
             if (vtableIndex < 0 || vtableIndex >= vtable.length) {
                 return null;
             }
-            return this.vtable[vtableIndex];
+            return this.vtable[vtableIndex].method;
         }
 
         private void swap(byte[] fieldTypes, FieldDef[] fields, int position1, int position2) {
@@ -905,19 +917,16 @@ public class ClassPath {
             return interfaceTable;
         }
 
-        private String[] loadVtable(UnresolvedClassInfo classInfo) {
+        //TODO: check the case when we have a package private method that overrides an interface method
+        private VirtualMethod[] loadVtable(UnresolvedClassInfo classInfo) {
             //TODO: it might be useful to keep track of which class's implementation is used for each virtual method. In other words, associate the implementing class type with each vtable entry
-            List<String> virtualMethodList = new LinkedList<String>();
-            //use a temp hash table, so that we can construct the final lookup with an appropriate
-            //capacity, based on the number of virtual methods
-            HashMap<String, Integer> tempVirtualMethodLookup = new HashMap<String, Integer>();
+            List<VirtualMethod> virtualMethodList = new LinkedList<VirtualMethod>();
 
             //copy the virtual methods from the superclass
             int methodIndex = 0;
             if (superclass != null) {
-                for (String method: superclass.vtable) {
-                    virtualMethodList.add(method);
-                    tempVirtualMethodLookup.put(method, methodIndex++);
+                for (int i=0; i<superclass.vtable.length; i++) {
+                    virtualMethodList.add(superclass.vtable[i]);
                 }
 
                 assert superclass.instanceFields != null;
@@ -928,12 +937,7 @@ public class ClassPath {
             //method (i.e. if it was implemented by the superclass)
             if (!this.isInterface) {
                 if (classInfo.virtualMethods != null) {
-                    for (String virtualMethod: classInfo.virtualMethods) {
-                        if (tempVirtualMethodLookup.get(virtualMethod) == null) {
-                            virtualMethodList.add(virtualMethod);
-                            tempVirtualMethodLookup.put(virtualMethod, methodIndex++);
-                        }
-                    }
+                    addToVtable(classInfo.virtualMethods, virtualMethodList);
                 }
 
                 if (interfaceTable != null) {
@@ -942,22 +946,54 @@ public class ClassPath {
                             continue;
                         }
 
-                        for (String virtualMethod: interfaceDef.virtualMethods) {
-                            if (tempVirtualMethodLookup.get(virtualMethod) == null) {
-                                virtualMethodList.add(virtualMethod);
-                                tempVirtualMethodLookup.put(virtualMethod, methodIndex++);
-                            }
-                        }
+                        addToVtable(interfaceDef.virtualMethods, virtualMethodList);
                     }
                 }
             }
 
-            String[] vtable = new String[virtualMethodList.size()];
+            VirtualMethod[] vtable = new VirtualMethod[virtualMethodList.size()];
             for (int i=0; i<virtualMethodList.size(); i++) {
                 vtable[i] = virtualMethodList.get(i);
             }
 
             return vtable;
+        }
+
+        private void addToVtable(VirtualMethod[] localMethods, List<VirtualMethod> vtable) {
+            for (VirtualMethod virtualMethod: localMethods) {
+                boolean found = false;
+                for (int i=0; i<vtable.size(); i++) {
+                    VirtualMethod superMethod = vtable.get(i);
+                    if (superMethod.method.equals(virtualMethod.method)) {
+                        if (!ClassPath.theClassPath.checkPackagePrivateAccess || this.canAccess(superMethod)) {
+                            found = true;
+                            vtable.set(i, virtualMethod);
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    vtable.add(virtualMethod);
+                }
+            }
+        }
+
+        private boolean canAccess(VirtualMethod virtualMethod) {
+            if (!virtualMethod.isPackagePrivate) {
+                return true;
+            }
+
+            String otherPackage = getPackage(virtualMethod.containingClass);
+            String ourPackage = getPackage(this.classType);
+            return otherPackage.equals(ourPackage);
+        }
+
+        private String getPackage(String classType) {
+            int lastSlash = classType.lastIndexOf('/');
+            if (lastSlash < 0) {
+                return "";
+            }
+            return classType.substring(1, lastSlash);
         }
 
         private int getNextFieldOffset() {
@@ -1171,6 +1207,12 @@ public class ClassPath {
         }
     }
 
+    private static class VirtualMethod {
+        public String containingClass;
+        public String method;
+        public boolean isPackagePrivate;
+    }
+
     /**
      * This aggregates the basic information about a class in an easy-to-use format, without requiring references
      * to any other class.
@@ -1183,7 +1225,7 @@ public class ClassPath {
         public final String[] interfaces;
         public final boolean[] staticMethods;
         public final String[] directMethods;
-        public final String[] virtualMethods;
+        public final VirtualMethod[] virtualMethods;
         public final String[][] instanceFields;
 
         public UnresolvedClassInfo(String dexFilePath, ClassDefItem classDefItem) {
@@ -1252,16 +1294,27 @@ public class ClassPath {
             return null;
         }
 
-        private String[] loadVirtualMethods(ClassDataItem classDataItem) {
+        private VirtualMethod[] loadVirtualMethods(ClassDataItem classDataItem) {
             List<EncodedMethod> encodedMethods = classDataItem.getVirtualMethods();
             if (encodedMethods.size() > 0) {
-                String[] virtualMethods = new String[encodedMethods.size()];
+                VirtualMethod[] virtualMethods = new VirtualMethod[encodedMethods.size()];
                 for (int i=0; i<encodedMethods.size(); i++) {
-                    virtualMethods[i] = encodedMethods.get(i).method.getShortMethodString();
+                    virtualMethods[i] = new VirtualMethod();
+                    EncodedMethod encodedMethod = encodedMethods.get(i);
+
+                    virtualMethods[i].isPackagePrivate = methodIsPackagePrivate(encodedMethod.accessFlags);
+                    virtualMethods[i].containingClass = classDataItem.getParentType().getTypeDescriptor();
+                    virtualMethods[i].method = encodedMethods.get(i).method.getShortMethodString();
                 }
                 return virtualMethods;
             }
             return null;
+        }
+
+        private static boolean methodIsPackagePrivate(int accessFlags) {
+            return (accessFlags & (AccessFlags.PRIVATE.getValue() |
+                                   AccessFlags.PROTECTED.getValue() |
+                                   AccessFlags.PUBLIC.getValue())) == 0;
         }
 
         private String[][] loadInstanceFields(ClassDataItem classDataItem) {
