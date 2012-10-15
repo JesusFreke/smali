@@ -84,11 +84,6 @@ public class DexBackedField implements Field {
     }
 
     /**
-     *  This returns the field index
-     * @param dexFileReader The reader to skip
-     */
-
-    /**
      * Skips the reader over a single encoded_field structure.
      * @param dexFileReader The {@code DexFileReader} to skip
      * @param previousFieldIndex The field index of the previous field, or 0 if this is the first
@@ -102,8 +97,6 @@ public class DexBackedField implements Field {
 
     /**
      * Skips the reader over the specified number of encoded_field structures
-     *
-     * This is intended to be used for
      *
      * @param dexFileReader The reader to skip
      * @param count The number of encoded_field structures to skip over
