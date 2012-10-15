@@ -66,7 +66,7 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
 
     public abstract class Iterator extends AbstractListIterator<T> {
         private int index = 0;
-        private final DexFileReader reader;
+        @Nonnull private final DexFileReader reader;
 
         public Iterator(DexFile dexFile, int offset) {
             this.reader = dexFile.readerAt(offset);

@@ -35,6 +35,7 @@ import org.jf.dexlib2.DexFile;
 import org.jf.dexlib2.DexFileReader;
 import org.jf.util.AbstractListIterator;
 
+import javax.annotation.Nonnull;
 import java.util.AbstractSequentialList;
 import java.util.NoSuchElementException;
 
@@ -43,20 +44,22 @@ import java.util.NoSuchElementException;
  * @param <T> The type of the item that this list contains
  */
 public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
-    private final DexFile dexFile;
+    @Nonnull private final DexFile dexFile;
     private final int offset;
 
-    public VariableSizeList(DexFile dexFile, int offset) {
+    public VariableSizeList(@Nonnull DexFile dexFile, int offset) {
         this.dexFile = dexFile;
         this.offset = offset;
     }
 
+    @Nonnull
     protected abstract T readItem(DexFileReader dexFileReader, int index);
 
     protected void skipItem(DexFileReader dexFileReader, int index) {
         readItem(dexFileReader, index);
     }
 
+    @Nonnull
     @Override
     public Iterator listIterator(int startIndex) {
         Iterator iterator = listIterator();
@@ -69,6 +72,7 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
         return iterator;
     }
 
+    @Nonnull
     @Override
     public Iterator listIterator() {
         return new Iterator();
@@ -76,11 +80,12 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
 
     public class Iterator extends AbstractListIterator<T> {
         private int index = 0;
-        private final DexFileReader dexFileReader = dexFile.readerAt(offset);
+        @Nonnull private final DexFileReader dexFileReader = dexFile.readerAt(offset);
 
         @Override public boolean hasNext() { return index < size(); }
         @Override public int nextIndex() { return index; }
 
+        @Nonnull
         @Override
         public T next() {
             if (index >= size()) {

@@ -36,6 +36,7 @@ import org.jf.dexlib2.DexFileReader;
 import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class StaticInitialValueIterator {
     public static final StaticInitialValueIterator EMPTY = new StaticInitialValueIterator() {
@@ -43,9 +44,10 @@ public abstract class StaticInitialValueIterator {
         @Override public void skipNext() {}
     };
 
-    public abstract DexBackedEncodedValue getNextOrNull();
+    @Nullable public abstract DexBackedEncodedValue getNextOrNull();
     public abstract void skipNext();
 
+    @Nonnull
     public static StaticInitialValueIterator newOrEmpty(@Nonnull DexFile dexFile, int offset) {
         if (offset == 0) {
             return EMPTY;
@@ -63,6 +65,7 @@ public abstract class StaticInitialValueIterator {
             this.size = reader.readSmallUleb128();
         }
 
+        @Nullable
         public DexBackedEncodedValue getNextOrNull() {
             if (index < size) {
                 index++;

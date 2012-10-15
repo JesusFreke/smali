@@ -65,7 +65,7 @@ public class DexBackedClassDef implements ClassDef {
     private static final int CLASS_DATA_OFFSET = 24;
     private static final int STATIC_INITIAL_VALUES_OFFSET = 28;
 
-    public DexBackedClassDef(DexFile dexFile,
+    public DexBackedClassDef(@Nonnull DexFile dexFile,
                              int classDefOffset) {
         this.dexFile = dexFile;
 

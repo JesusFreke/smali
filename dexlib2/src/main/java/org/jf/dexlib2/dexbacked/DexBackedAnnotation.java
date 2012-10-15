@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedAnnotation implements Annotation {
-    public final DexFile dexFile;
+    @Nonnull public final DexFile dexFile;
 
     public final int visibility;
     @Nonnull public final String type;
@@ -67,6 +67,7 @@ public class DexBackedAnnotation implements Annotation {
         final int size = reader.readSmallUleb128();
 
         return new VariableSizeList<AnnotationElement>(dexFile, reader.getOffset()) {
+            @Nonnull
             @Override
             protected AnnotationElement readItem(DexFileReader dexFileReader, int index) {
                 return new DexBackedAnnotationElement(dexFileReader);

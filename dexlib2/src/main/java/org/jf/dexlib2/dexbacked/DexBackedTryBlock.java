@@ -69,6 +69,7 @@ public class DexBackedTryBlock implements TryBlock {
         if (encodedSize > 0) {
             //no catch-all
             return new VariableSizeList<ExceptionHandler>(dexFile, reader.getOffset()) {
+                @Nonnull
                 @Override
                 protected ExceptionHandler readItem(DexFileReader dexFileReader, int index) {
                     return new DexBackedExceptionHandler(dexFileReader);
@@ -79,6 +80,7 @@ public class DexBackedTryBlock implements TryBlock {
             //with catch-all
             final int sizeWithCatchAll = (-1 * encodedSize) + 1;
             return new VariableSizeList<ExceptionHandler>(dexFile, reader.getOffset()) {
+                @Nonnull
                 @Override
                 protected ExceptionHandler readItem(DexFileReader dexFileReader, int index) {
                     if (index == sizeWithCatchAll-1) {
