@@ -1,5 +1,6 @@
 /.gradle
 /baksmali/build
 /dexlib/build
+/dexlib2/build
 /smali/build
 /util/build
