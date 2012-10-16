@@ -32,22 +32,119 @@
 package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.DexFileReader;
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.immutable.value.*;
+import org.jf.dexlib2.util.Preconditions;
+import org.jf.util.ExceptionWithContext;
 
-public class DexBackedEncodedValue implements EncodedValue {
-    public DexBackedEncodedValue(DexFileReader dexFileReader) {
+public abstract class DexBackedEncodedValue {
+    public static EncodedValue readFrom(DexFileReader reader) {
+        int startOffset = reader.getOffset();
+
+        try {
+            int b = reader.readUbyte();
+            int valueType = b & 0x1f;
+            int valueArg = b >>> 5;
+
+            switch (valueType) {
+                case ValueType.BYTE:
+                    Preconditions.checkValueArg(valueArg, 0);
+                    return new ImmutableByteEncodedValue((byte)reader.readByte());
+                case ValueType.SHORT:
+                    Preconditions.checkValueArg(valueArg, 1);
+                    return new ImmutableShortEncodedValue((short)reader.readSizedInt(valueArg + 1));
+                case ValueType.CHAR:
+                    Preconditions.checkValueArg(valueArg, 1);
+                    return new ImmutableCharEncodedValue((char)reader.readSizedSmallUint(valueArg + 1));
+                case ValueType.INT:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new ImmutableIntEncodedValue(reader.readSizedInt(valueArg + 1));
+                case ValueType.LONG:
+                    Preconditions.checkValueArg(valueArg, 7);
+                    return new ImmutableLongEncodedValue(reader.readSizedLong(valueArg + 1));
+                case ValueType.FLOAT:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new ImmutableFloatEncodedValue(Float.intBitsToFloat(
+                            reader.readSizedRightExtendedUint(valueArg + 1)));
+                case ValueType.DOUBLE:
+                    Preconditions.checkValueArg(valueArg, 7);
+                    return new ImmutableDoubleEncodedValue(Double.longBitsToDouble(
+                            reader.readSizedRightExtendedUlong(valueArg + 1)));
+                case ValueType.STRING:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new ImmutableStringEncodedValue(reader.getString(reader.readSizedSmallUint(valueArg + 1)));
+                case ValueType.TYPE:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new ImmutableTypeEncodedValue(reader.getType(reader.readSizedSmallUint(valueArg + 1)));
+                case ValueType.FIELD:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new ImmutableFieldEncodedValue(reader.getField(reader.readSizedSmallUint(valueArg + 1)));
+                case ValueType.METHOD:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new ImmutableMethodEncodedValue(reader.getMethod(reader.readSizedSmallUint(valueArg + 1)));
+                case ValueType.ENUM:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new ImmutableEnumEncodedValue(reader.getField(reader.readSizedSmallUint(valueArg + 1)));
+                case ValueType.ARRAY:
+                    Preconditions.checkValueArg(valueArg, 0);
+                    return new DexBackedArrayEncodedValue(reader);
+                case ValueType.ANNOTATION:
+                    Preconditions.checkValueArg(valueArg, 0);
+                    return new DexBackedAnnotationEncodedValue(reader);
+                case ValueType.NULL:
+                    return ImmutableNullEncodedValue.INSTANCE;
+                case ValueType.BOOLEAN:
+                    Preconditions.checkValueArg(valueArg, 1);
+                    return new ImmutableBooleanEncodedValue(valueArg == 1);
+                default:
+                    throw new ExceptionWithContext("Invalid encoded_value type: 0x%x", valueType);
+            }
+        } catch (Exception ex) {
+            throw ExceptionWithContext.withContext(ex, "Error while reading encoded value at offset 0x%x", startOffset);
+        }
     }
 
-    public static DexBackedEncodedValue readFrom(DexFileReader reader) {
-        return null;
-    }
+    public static void skipFrom(DexFileReader reader) {
+        int startOffset = reader.getOffset();
 
-    public static DexBackedEncodedValue skipFrom(DexFileReader reader) {
-        return null;
-    }
+        try {
+            int b = reader.readUbyte();
+            int valueType = b & 0x1f;
 
-    @Override
-    public int getValueType() {
-        return 0;
+            switch (valueType) {
+                case ValueType.BYTE:
+                    reader.skipByte();
+                    break;
+                case ValueType.SHORT:
+                case ValueType.CHAR:
+                case ValueType.INT:
+                case ValueType.LONG:
+                case ValueType.FLOAT:
+                case ValueType.DOUBLE:
+                case ValueType.STRING:
+                case ValueType.TYPE:
+                case ValueType.FIELD:
+                case ValueType.METHOD:
+                case ValueType.ENUM:
+                    int valueArg = b >>> 5;
+                    reader.skipBytes(valueArg+1);
+                    break;
+                case ValueType.ARRAY:
+                    DexBackedArrayEncodedValue.skipFrom(reader);
+                    break;
+                case ValueType.ANNOTATION:
+                    DexBackedAnnotationEncodedValue.skipFrom(reader);
+                    break;
+                case ValueType.NULL:
+                case ValueType.BOOLEAN:
+                    break;
+                default:
+                    throw new ExceptionWithContext("Invalid encoded_value type: 0x%x", valueType);
+            }
+        } catch (Exception ex) {
+            throw ExceptionWithContext.withContext(ex, "Error while skipping encoded value at offset 0x%x",
+                    startOffset);
+        }
     }
 }

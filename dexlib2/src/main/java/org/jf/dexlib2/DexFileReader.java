@@ -58,6 +58,14 @@ public class DexFileReader {
         return null;
     }
 
+    public String getField(int fieldIndex) {
+        return null;
+    }
+
+    public String getMethod(int fieldIndex) {
+        return null;
+    }
+
     public int readSleb128() {
         return 0;
     }
@@ -82,7 +90,48 @@ public class DexFileReader {
         return 0;
     }
 
+    public int readByte() {
+        // returns an int between -128 and 127
+        return 0;
+    }
+
     public int readUshort(int offset) {
+        return 0;
+    }
+
+    public int readShort() {
+        return 0;
+    }
+
+    public int readSizedInt(int bytes) {
+        // bytes must be from 1 to 4. reads and interprets that many bytes as a little-endian sign-extended integer
+        return 0;
+    }
+
+    public int readSizedSmallUint(int bytes) {
+        // bytes must be from 1 to 4. reads and interprets that many bytes as a little-endian zero-extended integer
+        return 0;
+    }
+
+    public int readSizedRightExtendedUint(int bytes) {
+        // bytes must be from 1 to 4. reads and interprets that many bytes as a little-endian zero-right-extended
+        // integer
+        return 0;
+    }
+
+    public int readSizedRightExtendedUlong(int bytes) {
+        // bytes must be from 1 to 8. reads and interprets that many bytes as a little-endian zero-right-extended
+        // long
+        return 0;
+    }
+
+    public long readSizedLong(int bytes) {
+        // bytes must be from 1 to 8. reads and interprets that many bytes as a little-endian sign-extended long
+        return 0;
+    }
+
+    public long readSizedUlong(int bytes) {
+        // bytes must be from 1 to 8. reads and interprets that many bytes as a little-endian zero-extended long
         return 0;
     }
 
@@ -101,5 +150,11 @@ public class DexFileReader {
     @Nonnull
     public DexFileReader copy() {
         return null;
+    }
+
+    public void skipByte() {
+    }
+
+    public void skipBytes(int i) {
     }
 }

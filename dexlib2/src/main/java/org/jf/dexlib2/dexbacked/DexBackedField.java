@@ -35,8 +35,8 @@ import org.jf.dexlib2.DexFile;
 import org.jf.dexlib2.DexFileReader;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
-import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
 import org.jf.dexlib2.iface.Field;
+import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,7 +48,7 @@ public class DexBackedField implements Field {
     @Nonnull public final String name;
     @Nonnull public final String type;
     public final int accessFlags;
-    @Nullable public final DexBackedEncodedValue initialValue;
+    @Nullable public final EncodedValue initialValue;
     public final int annotationSetOffset;
 
     public final int fieldIndex;
@@ -75,7 +75,7 @@ public class DexBackedField implements Field {
     @Nonnull @Override public String getName() { return name; }
     @Nonnull @Override public String getType() { return type; }
     @Override public int getAccessFlags() { return accessFlags; }
-    @Nullable @Override public DexBackedEncodedValue getInitialValue() { return initialValue; }
+    @Nullable @Override public EncodedValue getInitialValue() { return initialValue; }
 
     @Nonnull
     @Override

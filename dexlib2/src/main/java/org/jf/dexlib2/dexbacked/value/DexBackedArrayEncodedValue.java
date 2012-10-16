@@ -29,57 +29,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.dexbacked.util;
+package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.DexFile;
 import org.jf.dexlib2.DexFileReader;
-import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
+import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.dexbacked.util.VariableSizeList;
+import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.List;
 
-public abstract class StaticInitialValueIterator {
-    public static final StaticInitialValueIterator EMPTY = new StaticInitialValueIterator() {
-        @Override public EncodedValue getNextOrNull() { return null; }
-        @Override public void skipNext() {}
-    };
+public class DexBackedArrayEncodedValue implements ArrayEncodedValue {
+    @Nonnull public final DexFile dexFile;
+    private final int encodedArrayOffset;
 
-    @Nullable public abstract EncodedValue getNextOrNull();
-    public abstract void skipNext();
-
-    @Nonnull
-    public static StaticInitialValueIterator newOrEmpty(@Nonnull DexFile dexFile, int offset) {
-        if (offset == 0) {
-            return EMPTY;
-        }
-        return new StaticInitialValueIteratorImpl(dexFile, offset);
+    public DexBackedArrayEncodedValue(@Nonnull DexFileReader dexFileReader) {
+        this.dexFile = dexFileReader.getDexFile();
+        this.encodedArrayOffset = dexFileReader.getOffset();
+        skipFrom(dexFileReader);
     }
 
-    private static class StaticInitialValueIteratorImpl extends StaticInitialValueIterator {
-        @Nonnull private final DexFileReader reader;
-        private final int size;
-        private int index = 0;
-
-        public StaticInitialValueIteratorImpl(@Nonnull DexFile dexFile, int offset) {
-            this.reader = dexFile.readerAt(offset);
-            this.size = reader.readSmallUleb128();
+    public static void skipFrom(@Nonnull DexFileReader reader) {
+        int elementCount = reader.readSmallUleb128();
+        for (int i=0; i<elementCount; i++) {
+            DexBackedEncodedValue.skipFrom(reader);
         }
+    }
 
-        @Nullable
-        public EncodedValue getNextOrNull() {
-            if (index < size) {
-                index++;
-                return DexBackedEncodedValue.readFrom(reader);
+    @Override public int getValueType() { return ValueType.ARRAY; }
+
+    @Nonnull
+    @Override
+    public List<? extends EncodedValue> getValue() {
+        DexFileReader reader = dexFile.readerAt(encodedArrayOffset);
+        final int size = reader.readSmallUleb128();
+
+        return new VariableSizeList<EncodedValue>(dexFile, reader.getOffset()) {
+            @Nonnull
+            @Override
+            protected EncodedValue readItem(@Nonnull DexFileReader dexFileReader, int index) {
+                return DexBackedEncodedValue.readFrom(dexFileReader);
             }
-            return null;
-        }
 
-        public void skipNext() {
-            if (index < size) {
-                index++;
-                DexBackedEncodedValue.skipFrom(reader);
-            }
-        }
+            @Override public int size() { return size;}
+        };
     }
 }

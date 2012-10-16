@@ -40,11 +40,11 @@ import javax.annotation.Nonnull;
 
 public class DexBackedAnnotationElement implements AnnotationElement {
     @Nonnull public final String name;
-    @Nonnull public final DexBackedEncodedValue value;
+    @Nonnull public final EncodedValue value;
 
     public DexBackedAnnotationElement(DexFileReader dexFileReader) {
         this.name = dexFileReader.getString(dexFileReader.readSmallUleb128());
-        this.value = new DexBackedEncodedValue(dexFileReader);
+        this.value = DexBackedEncodedValue.readFrom(dexFileReader);
     }
 
     @Nonnull @Override public String getName() { return name; }
