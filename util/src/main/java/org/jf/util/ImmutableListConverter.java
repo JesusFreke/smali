@@ -33,6 +33,7 @@ package org.jf.util;
 
 import com.google.common.collect.ImmutableList;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
@@ -48,14 +49,15 @@ public abstract class ImmutableListConverter<ImmutableItem, Item> {
      * Converts a {@code List} of {@code Item}s to an {@code ImmutableList} of {@code ImmutableItem}s.
      *
      * If the provided list is already an ImmutableList of ImmutableItems, then the list is not copied and is returned
-     * as-is
+     * as-is. If the list is null, an empty ImmutableList will be returned
      *
-     * @param list The list of items to convert
-     * @return An ImmutableList of ImmutableItem
+     * @param list The list of items to convert.
+     * @return An ImmutableList of ImmutableItem. If list is null, an empty list will be returned.
      */
+    @Nonnull
     public ImmutableList<ImmutableItem> convert(@Nullable final List<? extends Item> list) {
         if (list == null) {
-            return null;
+            return ImmutableList.of();
         }
 
         boolean needsCopy = false;
