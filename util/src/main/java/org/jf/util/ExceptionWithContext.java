@@ -45,7 +45,7 @@ public class ExceptionWithContext
      * @param str non-null; context to add
      * @return non-null; an appropriate instance
      */
-    public static ExceptionWithContext withContext(Throwable ex, String str) {
+    public static ExceptionWithContext withContext(Throwable ex, String str, Object... formatArgs) {
         ExceptionWithContext ewc;
 
         if (ex instanceof ExceptionWithContext) {
@@ -54,7 +54,7 @@ public class ExceptionWithContext
             ewc = new ExceptionWithContext(ex);
         }
 
-        ewc.addContext(str);
+        ewc.addContext(String.format(str, formatArgs));
         return ewc;
     }
 
@@ -63,8 +63,8 @@ public class ExceptionWithContext
      *
      * @param message human-oriented message
      */
-    public ExceptionWithContext(String message) {
-        this(message, null);
+    public ExceptionWithContext(String message, Object... formatArgs) {
+        this(null, message, formatArgs);
     }
 
     /**
@@ -73,7 +73,7 @@ public class ExceptionWithContext
      * @param cause null-ok; exception that caused this one
      */
     public ExceptionWithContext(Throwable cause) {
-        this(null, cause);
+        this(cause, null);
     }
 
     /**
@@ -82,8 +82,8 @@ public class ExceptionWithContext
      * @param message human-oriented message
      * @param cause null-ok; exception that caused this one
      */
-    public ExceptionWithContext(String message, Throwable cause) {
-        super((message != null) ? message :
+    public ExceptionWithContext(Throwable cause, String message, Object... formatArgs) {
+        super((message != null) ? formatMessage(message, formatArgs) :
               (cause != null) ? cause.getMessage() : null,
               cause);
 
@@ -94,6 +94,13 @@ public class ExceptionWithContext
         } else {
             context = new StringBuffer(200);
         }
+    }
+
+    private static String formatMessage(String message, Object... formatArgs) {
+        if (message == null) {
+            return null;
+        }
+        return String.format(message, formatArgs);
     }
 
     /** {@inheritDoc} */
