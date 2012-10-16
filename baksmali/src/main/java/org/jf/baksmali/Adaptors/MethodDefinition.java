@@ -43,7 +43,7 @@ import org.jf.dexlib.Code.OffsetInstruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Util.AccessFlags;
-import org.jf.dexlib.Util.ExceptionWithContext;
+import org.jf.util.ExceptionWithContext;
 import org.jf.dexlib.Util.SparseIntArray;
 
 import java.io.IOException;

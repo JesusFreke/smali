@@ -30,7 +30,7 @@ package org.jf.dexlib.Code.Analysis;
 
 import org.jf.dexlib.*;
 import org.jf.dexlib.Util.AccessFlags;
-import org.jf.dexlib.Util.ExceptionWithContext;
+import org.jf.util.ExceptionWithContext;
 import org.jf.dexlib.Util.SparseArray;
 
 import javax.annotation.Nonnull;

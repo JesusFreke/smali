@@ -24,6 +24,8 @@
 
 package org.jf.dexlib.Util;
 
+import org.jf.util.ExceptionWithContext;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;

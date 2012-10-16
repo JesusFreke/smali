@@ -29,6 +29,7 @@
 package org.jf.dexlib;
 
 import org.jf.dexlib.Util.*;
+import org.jf.util.ExceptionWithContext;
 
 import java.io.*;
 import java.security.DigestException;

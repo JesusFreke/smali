@@ -22,7 +22,7 @@
  * under the original license
  */
 
-package org.jf.dexlib.Util;
+package org.jf.util;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;

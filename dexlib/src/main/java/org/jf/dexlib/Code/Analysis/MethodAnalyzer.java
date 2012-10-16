@@ -32,7 +32,7 @@ import org.jf.dexlib.*;
 import org.jf.dexlib.Code.*;
 import org.jf.dexlib.Code.Format.*;
 import org.jf.dexlib.Util.AccessFlags;
-import org.jf.dexlib.Util.ExceptionWithContext;
+import org.jf.util.ExceptionWithContext;
 import org.jf.dexlib.Util.SparseArray;
 
 import java.util.BitSet;

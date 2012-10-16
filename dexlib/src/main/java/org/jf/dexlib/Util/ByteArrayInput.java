@@ -24,6 +24,8 @@
 
 package org.jf.dexlib.Util;
 
+import org.jf.util.ExceptionWithContext;
+
 /**
  * Implementation of {@link Input} which reads the data from a
  * <code>byte[]</code> instance.
