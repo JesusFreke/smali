@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.immutable.value;
 
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.ImmutableBaseAnnotation;
 import org.jf.dexlib2.iface.BaseAnnotation;
@@ -43,12 +44,12 @@ public class ImmutableAnnotationEncodedValue extends ImmutableEncodedValue imple
     public final ImmutableBaseAnnotation value;
 
     public ImmutableAnnotationEncodedValue(@Nonnull BaseAnnotation value) {
-        super(EncodedValue.ANNOTATION);
+        super(ValueType.ANNOTATION);
         this.value = ImmutableBaseAnnotation.of(value);
     }
 
     public ImmutableAnnotationEncodedValue(@Nonnull ImmutableBaseAnnotation value) {
-        super(EncodedValue.ANNOTATION);
+        super(ValueType.ANNOTATION);
         this.value = value;
     }
 

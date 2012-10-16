@@ -32,6 +32,7 @@
 package org.jf.dexlib2.immutable.value;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
@@ -43,12 +44,12 @@ public class ImmutableArrayEncodedValue extends ImmutableEncodedValue implements
     public final ImmutableList<? extends ImmutableEncodedValue> value;
 
     public ImmutableArrayEncodedValue(@Nonnull List<? extends EncodedValue> value) {
-        super(EncodedValue.ARRAY);
+        super(ValueType.ARRAY);
         this.value = ImmutableEncodedValue.immutableListOf(value);
     }
 
     public ImmutableArrayEncodedValue(@Nonnull ImmutableList<ImmutableEncodedValue> value) {
-        super(EncodedValue.ARRAY);
+        super(ValueType.ARRAY);
         this.value = value;
     }
 

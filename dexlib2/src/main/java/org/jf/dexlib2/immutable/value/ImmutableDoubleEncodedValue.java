@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.DoubleEncodedValue;
-import org.jf.dexlib2.iface.value.EncodedValue;
 
 public class ImmutableDoubleEncodedValue extends ImmutableEncodedValue implements DoubleEncodedValue {
     public final double value;
 
     public ImmutableDoubleEncodedValue(double value) {
-        super(EncodedValue.DOUBLE);
+        super(ValueType.DOUBLE);
         this.value = value;
     }
 

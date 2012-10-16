@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.TypeEncodedValue;
 
 import javax.annotation.Nonnull;
@@ -41,7 +41,7 @@ public class ImmutableTypeEncodedValue extends ImmutableEncodedValue implements 
     public final String value;
 
     public ImmutableTypeEncodedValue(@Nonnull String value) {
-        super(EncodedValue.TYPE);
+        super(ValueType.TYPE);
         this.value = value;
     }
 

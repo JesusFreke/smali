@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.BooleanEncodedValue;
-import org.jf.dexlib2.iface.value.EncodedValue;
 
 public class ImmutableBooleanEncodedValue extends ImmutableEncodedValue implements BooleanEncodedValue {
     public final boolean value;
 
     public ImmutableBooleanEncodedValue(boolean value) {
-        super(EncodedValue.BOOLEAN);
+        super(ValueType.BOOLEAN);
         this.value = value;
     }
 

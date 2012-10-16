@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.ByteEncodedValue;
-import org.jf.dexlib2.iface.value.EncodedValue;
 
 public class ImmutableByteEncodedValue extends ImmutableEncodedValue implements ByteEncodedValue {
     public final byte value;
 
     public ImmutableByteEncodedValue(byte value) {
-        super(EncodedValue.BYTE);
+        super(ValueType.BYTE);
         this.value = value;
     }
 

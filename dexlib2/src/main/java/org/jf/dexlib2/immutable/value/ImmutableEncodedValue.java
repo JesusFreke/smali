@@ -33,6 +33,7 @@ package org.jf.dexlib2.immutable.value;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.util.ImmutableListConverter;
 
@@ -48,37 +49,37 @@ public class ImmutableEncodedValue implements EncodedValue {
 
     public static ImmutableEncodedValue of(EncodedValue encodedValue) {
         switch (encodedValue.getType()) {
-            case BYTE:
+            case ValueType.BYTE:
                 return ImmutableByteEncodedValue.of((ByteEncodedValue)encodedValue);
-            case SHORT:
+            case ValueType.SHORT:
                 return ImmutableShortEncodedValue.of((ShortEncodedValue)encodedValue);
-            case CHAR:
+            case ValueType.CHAR:
                 return ImmutableCharEncodedValue.of((CharEncodedValue)encodedValue);
-            case INT:
+            case ValueType.INT:
                 return ImmutableIntEncodedValue.of((IntEncodedValue)encodedValue);
-            case LONG:
+            case ValueType.LONG:
                 return ImmutableLongEncodedValue.of((LongEncodedValue)encodedValue);
-            case FLOAT:
+            case ValueType.FLOAT:
                 return ImmutableFloatEncodedValue.of((FloatEncodedValue)encodedValue);
-            case DOUBLE:
+            case ValueType.DOUBLE:
                 return ImmutableDoubleEncodedValue.of((DoubleEncodedValue)encodedValue);
-            case STRING:
+            case ValueType.STRING:
                 return ImmutableStringEncodedValue.of((StringEncodedValue)encodedValue);
-            case TYPE:
+            case ValueType.TYPE:
                 return ImmutableTypeEncodedValue.of((TypeEncodedValue)encodedValue);
-            case FIELD:
+            case ValueType.FIELD:
                 return ImmutableFieldEncodedValue.of((FieldEncodedValue)encodedValue);
-            case METHOD:
+            case ValueType.METHOD:
                 return ImmutableMethodEncodedValue.of((MethodEncodedValue)encodedValue);
-            case ENUM:
+            case ValueType.ENUM:
                 return ImmutableEnumEncodedValue.of((EnumEncodedValue)encodedValue);
-            case ARRAY:
+            case ValueType.ARRAY:
                 return ImmutableArrayEncodedValue.of((ArrayEncodedValue)encodedValue);
-            case ANNOTATION:
+            case ValueType.ANNOTATION:
                 return ImmutableAnnotationEncodedValue.of((AnnotationEncodedValue)encodedValue);
-            case NULL:
+            case ValueType.NULL:
                 return ImmutableNullEncodedValue.INSTANCE;
-            case BOOLEAN:
+            case ValueType.BOOLEAN:
                 return ImmutableBooleanEncodedValue.of((BooleanEncodedValue)encodedValue);
             default:
                 Preconditions.checkArgument(false);

@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.EnumEncodedValue;
 
 import javax.annotation.Nonnull;
@@ -40,7 +40,7 @@ public class ImmutableEnumEncodedValue extends ImmutableEncodedValue implements 
     @Nonnull public final String value;
 
     public ImmutableEnumEncodedValue(@Nonnull String value) {
-        super(EncodedValue.ENUM);
+        super(ValueType.ENUM);
         this.value = value;
     }
 

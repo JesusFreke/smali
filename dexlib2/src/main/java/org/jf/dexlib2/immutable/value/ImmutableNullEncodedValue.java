@@ -31,13 +31,13 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.NullEncodedValue;
 
 public class ImmutableNullEncodedValue extends ImmutableEncodedValue implements NullEncodedValue {
     public static final ImmutableNullEncodedValue INSTANCE = new ImmutableNullEncodedValue();
 
     public ImmutableNullEncodedValue() {
-        super(EncodedValue.NULL);
+        super(ValueType.NULL);
     }
 }
