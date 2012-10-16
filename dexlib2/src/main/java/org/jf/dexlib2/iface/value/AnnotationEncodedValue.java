@@ -35,6 +35,5 @@ import org.jf.dexlib2.iface.BaseAnnotation;
 
 import javax.annotation.Nonnull;
 
-public interface AnnotationEncodedValue extends EncodedValue {
-    @Nonnull BaseAnnotation getValue();
+public interface AnnotationEncodedValue extends EncodedValue, BaseAnnotation {
 }

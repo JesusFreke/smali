@@ -31,37 +31,44 @@
 
 package org.jf.dexlib2.immutable.value;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.ValueType;
-import org.jf.dexlib2.iface.value.EncodedValue;
-import org.jf.dexlib2.immutable.ImmutableBaseAnnotation;
-import org.jf.dexlib2.iface.BaseAnnotation;
+import org.jf.dexlib2.iface.AnnotationElement;
+import org.jf.dexlib2.immutable.ImmutableAnnotationElement;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
 
 public class ImmutableAnnotationEncodedValue extends ImmutableEncodedValue implements AnnotationEncodedValue {
-    @Nonnull
-    public final ImmutableBaseAnnotation value;
+    @Nonnull public final String type;
+    @Nonnull public final ImmutableList<? extends ImmutableAnnotationElement> elements;
 
-    public ImmutableAnnotationEncodedValue(@Nonnull BaseAnnotation value) {
+    public ImmutableAnnotationEncodedValue(@Nonnull String type,
+                                           @Nullable List<? extends AnnotationElement> elements) {
         super(ValueType.ANNOTATION);
-        this.value = ImmutableBaseAnnotation.of(value);
+        this.type = type;
+        this.elements = ImmutableAnnotationElement.immutableListOf(elements);
     }
 
-    public ImmutableAnnotationEncodedValue(@Nonnull ImmutableBaseAnnotation value) {
+    public ImmutableAnnotationEncodedValue(@Nonnull String type,
+                                           @Nullable ImmutableList<? extends ImmutableAnnotationElement> elements) {
         super(ValueType.ANNOTATION);
-        this.value = value;
+        this.type = type;
+        this.elements = Objects.firstNonNull(elements, ImmutableList.<ImmutableAnnotationElement>of());
     }
 
-    public static ImmutableAnnotationEncodedValue of(@Nonnull AnnotationEncodedValue annotationEncodedValue) {
+    public static ImmutableAnnotationEncodedValue of(AnnotationEncodedValue annotationEncodedValue) {
         if (annotationEncodedValue instanceof ImmutableAnnotationEncodedValue) {
             return (ImmutableAnnotationEncodedValue)annotationEncodedValue;
         }
-        return new ImmutableAnnotationEncodedValue(annotationEncodedValue.getValue());
+        return new ImmutableAnnotationEncodedValue(
+                annotationEncodedValue.getType(),
+                annotationEncodedValue.getElements());
     }
 
-    @Nonnull
-    public ImmutableBaseAnnotation getValue() {
-        return value;
-    }
+    @Nonnull @Override public String getType() { return type; }
+    @Nonnull @Override public ImmutableList<? extends ImmutableAnnotationElement> getElements() { return elements; }
 }

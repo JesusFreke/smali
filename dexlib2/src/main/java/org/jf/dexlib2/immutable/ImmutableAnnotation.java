@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.immutable;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.AnnotationElement;
@@ -40,21 +41,25 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ImmutableAnnotation extends ImmutableBaseAnnotation implements Annotation {
+public class ImmutableAnnotation implements Annotation {
     public final int visibility;
+    @Nonnull public final String type;
+    @Nonnull public final ImmutableList<? extends ImmutableAnnotationElement> elements;
 
     public ImmutableAnnotation(int visibility,
                                @Nonnull String type,
                                @Nullable List<? extends AnnotationElement> elements) {
-        super(type, elements);
         this.visibility = visibility;
+        this.type = type;
+        this.elements = ImmutableAnnotationElement.immutableListOf(elements);
     }
 
     public ImmutableAnnotation(int visibility,
                                @Nonnull String type,
                                @Nullable ImmutableList<? extends ImmutableAnnotationElement> elements) {
-        super(type, elements);
         this.visibility = visibility;
+        this.type = type;
+        this.elements = Objects.firstNonNull(elements, ImmutableList.<ImmutableAnnotationElement>of());
     }
 
     public static ImmutableAnnotation of(Annotation annotation) {
@@ -67,10 +72,9 @@ public class ImmutableAnnotation extends ImmutableBaseAnnotation implements Anno
                 annotation.getElements());
     }
 
-    @Override
-    public int getVisibility() {
-        return visibility;
-    }
+    @Override public int getVisibility() { return visibility; }
+    @Nonnull @Override public String getType() { return type; }
+    @Nonnull @Override public ImmutableList<? extends ImmutableAnnotationElement> getElements() { return elements; }
 
     @Nonnull
     public static ImmutableList<ImmutableAnnotation> immutableListOf(List<? extends Annotation> list) {

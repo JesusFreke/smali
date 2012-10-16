@@ -48,7 +48,7 @@ public class ImmutableEncodedValue implements EncodedValue {
     }
 
     public static ImmutableEncodedValue of(EncodedValue encodedValue) {
-        switch (encodedValue.getType()) {
+        switch (encodedValue.getValueType()) {
             case ValueType.BYTE:
                 return ImmutableByteEncodedValue.of((ByteEncodedValue)encodedValue);
             case ValueType.SHORT:
@@ -87,7 +87,7 @@ public class ImmutableEncodedValue implements EncodedValue {
         }
     }
 
-    public int getType() { return type; }
+    public int getValueType() { return type; }
 
     @Nonnull
     public static ImmutableList<ImmutableEncodedValue> immutableListOf(List<? extends EncodedValue> list) {

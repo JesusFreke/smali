@@ -47,7 +47,7 @@ public class DexBackedEncodedValue implements EncodedValue {
     }
 
     @Override
-    public int getType() {
+    public int getValueType() {
         return 0;
     }
 }
