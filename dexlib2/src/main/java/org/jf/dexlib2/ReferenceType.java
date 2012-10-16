@@ -32,9 +32,9 @@
 package org.jf.dexlib2;
 
 public abstract class ReferenceType {
-    public static final int String = 0;
-    public static final int Type = 1;
-    public static final int Field = 2;
-    public static final int Method = 3;
-    public static final int None = 4;
+    public static final int STRING = 0;
+    public static final int TYPE = 1;
+    public static final int FIELD = 2;
+    public static final int METHOD = 3;
+    public static final int NONE = 4;
 }
