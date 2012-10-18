@@ -286,7 +286,6 @@ public enum Opcode
     SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE);
 
     private static Opcode[] opcodesByValue;
-    private static Opcode[] expandedOpcodesByValue;
     private static HashMap<Integer, Opcode> opcodesByName;
 
     //if the instruction can throw an exception
@@ -314,18 +313,12 @@ public enum Opcode
 
     static {
         opcodesByValue = new Opcode[256];
-        expandedOpcodesByValue = new Opcode[256];
         opcodesByName = new HashMap<Integer, Opcode>();
 
         for (Opcode opcode: Opcode.values()) {
             //INVOKE_DIRECT_EMPTY was changed to INVOKE_OBJECT_INIT_RANGE in ICS
             if (opcode != INVOKE_DIRECT_EMPTY) {
-                if (((opcode.value >> 8) & 0xFF) == 0x00) {
-                    opcodesByValue[opcode.value & 0xFF] = opcode;
-                } else {
-                    assert ((opcode.value >> 8) & 0xFF) == 0xFF;
-                    expandedOpcodesByValue[opcode.value & 0xFF] = opcode;
-                }
+                opcodesByValue[opcode.value] = opcode;
                 opcodesByName.put(opcode.name.hashCode(), opcode);
             }
         }
@@ -336,34 +329,19 @@ public enum Opcode
     }
 
     public static Opcode getOpcodeByValue(short opcodeValue) {
-        if (((opcodeValue >> 8) & 0xFF) == 0x00) {
-            return opcodesByValue[opcodeValue & 0xFF];
-        } else {
-            assert ((opcodeValue >> 8) & 0xFF) == 0xFF;
-            return expandedOpcodesByValue[opcodeValue & 0xFF];
-        }
+        return opcodesByValue[opcodeValue];
     }
 
     private static void removeOpcodes(Opcode... toRemove) {
         for (Opcode opcode: toRemove) {
             opcodesByName.remove(opcode.name.toLowerCase().hashCode());
-
-            if (((opcode.value >> 8) & 0xFF) == 0x00) {
-                opcodesByValue[opcode.value] = null;
-            } else {
-                expandedOpcodesByValue[opcode.value & 0xFF] = null;
-            }
+            opcodesByValue[opcode.value] = null;
         }
     }
 
     private static void addOpcodes(Opcode... toAdd) {
         for (Opcode opcode: toAdd) {
-            if (((opcode.value >> 8) & 0xFF) == 0x00) {
-                opcodesByValue[opcode.value & 0xFF] = opcode;
-            } else {
-                assert ((opcode.value >> 8) & 0xFF) == 0xFF;
-                expandedOpcodesByValue[opcode.value & 0xFF] = opcode;
-            }
+            opcodesByValue[opcode.value] = opcode;
             opcodesByName.put(opcode.name.hashCode(), opcode);
         }
     }
