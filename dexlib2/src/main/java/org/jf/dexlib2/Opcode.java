@@ -328,7 +328,7 @@ public enum Opcode
         return opcodesByName.get(opcodeName.toLowerCase().hashCode());
     }
 
-    public static Opcode getOpcodeByValue(short opcodeValue) {
+    public static Opcode getOpcodeByValue(int opcodeValue) {
         return opcodesByValue[opcodeValue];
     }
 
