@@ -163,6 +163,52 @@ public class DexBackedClassDef implements ClassDef {
     @Nonnull
     @Override
     public List<? extends Method> getMethods() {
-        return null;
+        if (classDataOffset > 0) {
+            DexFileReader reader = dexFile.readerAt(classDataOffset);
+            int staticFieldCount = reader.readSmallUleb128();
+            int instanceFieldCount = reader.readSmallUleb128();
+            int directMethodCount = reader.readSmallUleb128();
+            int virtualMethodCount = reader.readSmallUleb128();
+            final int methodCount = directMethodCount + virtualMethodCount;
+            if (methodCount > 0) {
+                DexBackedField.skipAllFields(reader, staticFieldCount + instanceFieldCount);
+
+                final int methodsStartOffset = reader.getOffset();
+
+                return new VariableSizeListWithContext<DexBackedMethod>() {
+                    @Nonnull
+                    @Override
+                    public Iterator listIterator() {
+                        return new Iterator(dexFile, methodsStartOffset) {
+                            private int previousMethodIndex = 0;
+                            @Nonnull private final AnnotationsDirectory.AnnotationIterator methodAnnotationIterator =
+                                    annotationsDirectory.getMethodAnnotationIterator();
+                            @Nonnull private final AnnotationsDirectory.AnnotationIterator parameterAnnotationIterator =
+                                    annotationsDirectory.getParameterAnnotationIterator();
+                            @Nonnull private final StaticInitialValueIterator staticInitialValueIterator =
+                                    StaticInitialValueIterator.newOrEmpty(dexFile, staticInitialValuesOffset);
+
+                            @Nonnull
+                            @Override
+                            protected DexBackedMethod readItem(DexFileReader reader, int index) {
+                                DexBackedMethod item = new DexBackedMethod(reader, previousMethodIndex,
+                                        methodAnnotationIterator, parameterAnnotationIterator);
+                                previousMethodIndex = item.methodIndex;
+                                return item;
+                            }
+
+                            @Override
+                            protected void skipItem(DexFileReader reader, int index) {
+                                previousMethodIndex = DexBackedMethod.skipEncodedMethod(reader, previousMethodIndex);
+                                staticInitialValueIterator.skipNext();
+                            }
+                        };
+                    }
+
+                    @Override public int size() { return methodCount; }
+                };
+            }
+        }
+        return ImmutableList.of();
     }
 }

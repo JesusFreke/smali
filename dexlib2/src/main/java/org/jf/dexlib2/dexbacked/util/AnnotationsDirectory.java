@@ -43,11 +43,15 @@ public abstract class AnnotationsDirectory {
         @Override public int getFieldAnnotationCount() { return 0; }
         @Nonnull @Override public List<? extends DexBackedAnnotation> getClassAnnotations() {return ImmutableList.of();}
         @Nonnull @Override public AnnotationIterator getFieldAnnotationIterator() { return AnnotationIterator.EMPTY; }
+        @Nonnull @Override public AnnotationIterator getMethodAnnotationIterator() { return AnnotationIterator.EMPTY; }
+        @Nonnull @Override public AnnotationIterator getParameterAnnotationIterator() {return AnnotationIterator.EMPTY;}
     };
 
     public abstract int getFieldAnnotationCount();
     @Nonnull public abstract List<? extends DexBackedAnnotation> getClassAnnotations();
     @Nonnull public abstract AnnotationIterator getFieldAnnotationIterator();
+    @Nonnull public abstract AnnotationIterator getMethodAnnotationIterator();
+    @Nonnull public abstract AnnotationIterator getParameterAnnotationIterator();
 
     public static AnnotationsDirectory newOrEmpty(@Nonnull DexFile dexFile,
                                                   int directoryAnnotationsOffset) {
@@ -85,13 +89,37 @@ public abstract class AnnotationsDirectory {
         return ImmutableList.of();
     }
 
+    public static List<List<? extends DexBackedAnnotation>> getParameterAnnotations(@Nonnull final DexFile dexFile,
+                                                                                    final int annotationSetListOffset) {
+        if (annotationSetListOffset > 0) {
+            final int size = dexFile.readSmallUint(annotationSetListOffset);
+
+            return new FixedSizeList<List<? extends DexBackedAnnotation>>() {
+                @Override
+                public List<? extends DexBackedAnnotation> readItem(int index) {
+                    int annotationSetOffset = dexFile.readSmallUint(annotationSetListOffset + 4 + index * 4);
+                    return getAnnotations(dexFile, annotationSetOffset);
+                }
+
+                @Override public int size() { return size; }
+            };
+        }
+        return ImmutableList.of();
+    }
 
     private static class AnnotationsDirectoryImpl extends AnnotationsDirectory {
         @Nonnull public final DexFile dexFile;
         private final int directoryOffset;
 
         private static final int FIELD_COUNT_OFFSET = 4;
+        private static final int METHOD_COUNT_OFFSET = 8;
+        private static final int PARAMETER_COUNT_OFFSET = 12;
         private static final int ANNOTATIONS_START_OFFSET = 16;
+
+        /** The size of a field_annotation structure */
+        private static final int FIELD_ANNOTATION_SIZE = 8;
+        /** The size of a method_annotation structure */
+        private static final int METHOD_ANNOTATION_SIZE = 8;
 
         public AnnotationsDirectoryImpl(@Nonnull DexFile dexFile,
                                         int directoryOffset) {
@@ -101,6 +129,14 @@ public abstract class AnnotationsDirectory {
 
         public int getFieldAnnotationCount() {
             return dexFile.readSmallUint(directoryOffset + FIELD_COUNT_OFFSET);
+        }
+
+        public int getMethodAnnotationCount() {
+            return dexFile.readSmallUint(directoryOffset + METHOD_COUNT_OFFSET);
+        }
+
+        public int getParameterAnnotationCount() {
+            return dexFile.readSmallUint(directoryOffset + PARAMETER_COUNT_OFFSET);
         }
 
         @Nonnull
@@ -113,31 +149,49 @@ public abstract class AnnotationsDirectory {
             return new AnnotationIteratorImpl(directoryOffset + ANNOTATIONS_START_OFFSET, getFieldAnnotationCount());
         }
 
+        @Nonnull
+        public AnnotationIterator getMethodAnnotationIterator() {
+            int fieldCount = getFieldAnnotationCount();
+            int methodAnnotationsOffset = directoryOffset + ANNOTATIONS_START_OFFSET +
+                    fieldCount * FIELD_ANNOTATION_SIZE;
+            return new AnnotationIteratorImpl(methodAnnotationsOffset, getMethodAnnotationCount());
+        }
+
+        @Nonnull
+        public AnnotationIterator getParameterAnnotationIterator() {
+            int fieldCount = getFieldAnnotationCount();
+            int methodCount = getMethodAnnotationCount();
+            int parameterAnnotationsOffset = directoryOffset + ANNOTATIONS_START_OFFSET +
+                    fieldCount * FIELD_ANNOTATION_SIZE +
+                    methodCount + METHOD_ANNOTATION_SIZE;
+            return new AnnotationIteratorImpl(parameterAnnotationsOffset, getParameterAnnotationCount());
+        }
+
         private class AnnotationIteratorImpl implements AnnotationIterator {
             private final int startOffset;
             private final int size;
             private int currentIndex;
-            private int currentFieldIndex;
+            private int currentItemIndex;
 
             public AnnotationIteratorImpl(int startOffset, int size) {
                 this.startOffset = startOffset;
                 this.size = size;
                 if (size > 0) {
-                    currentFieldIndex = dexFile.readSmallUint(startOffset);
+                    currentItemIndex = dexFile.readSmallUint(startOffset);
                     this.currentIndex = 0;
                 } else {
-                    currentFieldIndex = -1;
+                    currentItemIndex = -1;
                     this.currentIndex = -1;
                 }
             }
 
-            public int seekTo(int fieldIndex) {
-                while (currentFieldIndex < fieldIndex && (currentIndex+1) < size) {
+            public int seekTo(int itemIndex) {
+                while (currentItemIndex < itemIndex && (currentIndex+1) < size) {
                     currentIndex++;
-                    currentFieldIndex = dexFile.readSmallUint(startOffset + (currentIndex*8));
+                    currentItemIndex = dexFile.readSmallUint(startOffset + (currentIndex*8));
                 }
 
-                if (currentFieldIndex == fieldIndex) {
+                if (currentItemIndex == itemIndex) {
                     return dexFile.readSmallUint(startOffset + (currentIndex*8)+4);
                 }
                 return 0;

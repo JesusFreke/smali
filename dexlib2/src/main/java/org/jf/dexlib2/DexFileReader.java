@@ -54,6 +54,14 @@ public class DexFileReader {
         return 0;
     }
 
+    public int getMethodIdItemOffset(int methodIndex) {
+        return 0;
+    }
+
+    public int getProtoIdItemOffset(int methodIndex) {
+        return 0;
+    }
+
     public String getType(int typeIndex) {
         return null;
     }
