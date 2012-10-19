@@ -53,6 +53,10 @@ public class DexBackedField implements Field {
 
     public final int fieldIndex;
 
+    // offsets for field_id_item
+    private static final int TYPE_OFFSET = 2;
+    private static final int NAME_OFFSET = 4;
+
     public DexBackedField(@Nonnull DexFileReader dexFileReader,
                           int previousFieldIndex,
                           @Nonnull StaticInitialValueIterator staticInitialValueIterator,
@@ -67,8 +71,8 @@ public class DexBackedField implements Field {
         this.initialValue = staticInitialValueIterator.getNextOrNull();
 
         int fieldIdItemOffset = dexFileReader.getFieldIdItemOffset(fieldIndex);
-        this.type = dexFileReader.getType(dexFileReader.readUshort(fieldIdItemOffset+2));
-        this.name = dexFileReader.getString(dexFileReader.readSmallUint(fieldIdItemOffset+2));
+        this.type = dexFileReader.getType(dexFileReader.readUshort(fieldIdItemOffset + TYPE_OFFSET));
+        this.name = dexFileReader.getString(dexFileReader.readSmallUint(fieldIdItemOffset + NAME_OFFSET));
     }
 
 
