@@ -66,6 +66,10 @@ public class DexFileReader {
         return null;
     }
 
+    public String getReference(int referenceType, int referenceIndex) {
+        return null;
+    }
+
     public int readSleb128() {
         return 0;
     }
@@ -136,6 +140,14 @@ public class DexFileReader {
     }
 
     public int readSmallUint(int offset) {
+        return 0;
+    }
+
+    public int readInt() {
+        return 0;
+    }
+
+    public long readLong() {
         return 0;
     }
 
