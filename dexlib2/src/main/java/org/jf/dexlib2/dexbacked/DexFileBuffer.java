@@ -59,6 +59,14 @@ public class DexFileBuffer {
         return 0;
     }
 
+    public int getClassCount() {
+        return 0;
+    }
+
+    public int getClassDefOffset(int classIndex) {
+        return 0;
+    }
+
     public String getType(int typeIndex) {
         return null;
     }

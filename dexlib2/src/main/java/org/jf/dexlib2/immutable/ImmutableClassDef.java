@@ -37,6 +37,7 @@ import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
+import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -111,4 +112,22 @@ public class ImmutableClassDef implements ClassDef {
     @Nonnull @Override public ImmutableList<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
     @Nonnull @Override public ImmutableList<? extends ImmutableField> getFields() { return fields; }
     @Nonnull @Override public ImmutableList<? extends ImmutableMethod> getMethods() { return methods; }
+
+    @Nonnull
+    public static ImmutableList<ImmutableClassDef> immutableListOf(List<? extends ClassDef> list) {
+        return CONVERTER.convert(list);
+    }
+
+    private static final ImmutableListConverter<ImmutableClassDef, ClassDef> CONVERTER =
+            new ImmutableListConverter<ImmutableClassDef, ClassDef>() {
+                @Override
+                protected boolean isImmutable(ClassDef item) {
+                    return item instanceof ImmutableClassDef;
+                }
+
+                @Override
+                protected ImmutableClassDef makeImmutable(ClassDef item) {
+                    return ImmutableClassDef.of(item);
+                }
+            };
 }
