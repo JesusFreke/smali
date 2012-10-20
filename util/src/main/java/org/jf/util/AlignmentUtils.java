@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib.Util;
+package org.jf.util;
 
 public abstract class AlignmentUtils {
     public static int alignOffset(int offset, int alignment) {
