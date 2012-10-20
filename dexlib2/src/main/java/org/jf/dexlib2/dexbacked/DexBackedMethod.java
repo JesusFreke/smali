@@ -32,8 +32,6 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.DexFile;
-import org.jf.dexlib2.DexFileReader;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.iface.Annotation;

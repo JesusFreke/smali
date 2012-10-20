@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.DexFileReader;
 import org.jf.dexlib2.dexbacked.util.InstructionOffsetMap;
 import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
 

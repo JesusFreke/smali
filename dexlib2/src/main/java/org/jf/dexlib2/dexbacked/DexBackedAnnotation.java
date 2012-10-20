@@ -31,8 +31,6 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.DexFile;
-import org.jf.dexlib2.DexFileReader;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.AnnotationElement;

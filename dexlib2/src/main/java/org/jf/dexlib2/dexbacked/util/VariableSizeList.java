@@ -31,8 +31,8 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.DexFile;
-import org.jf.dexlib2.DexFileReader;
+import org.jf.dexlib2.dexbacked.DexFile;
+import org.jf.dexlib2.dexbacked.DexFileReader;
 import org.jf.util.AbstractListIterator;
 
 import javax.annotation.Nonnull;

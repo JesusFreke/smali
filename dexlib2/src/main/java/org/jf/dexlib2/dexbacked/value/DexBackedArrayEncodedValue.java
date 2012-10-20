@@ -31,8 +31,8 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.DexFile;
-import org.jf.dexlib2.DexFileReader;
+import org.jf.dexlib2.dexbacked.DexFile;
+import org.jf.dexlib2.dexbacked.DexFileReader;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;

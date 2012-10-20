@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.DexFile;
+import org.jf.dexlib2.dexbacked.DexFile;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotation;
 
 import javax.annotation.Nonnull;
