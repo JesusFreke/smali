@@ -32,13 +32,15 @@
 package org.jf.dexlib2.dexbacked;
 
 import org.jf.dexlib2.DexFileReader;
+import org.jf.dexlib2.dexbacked.util.InstructionOffsetMap;
 import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedCatchAllExceptionHandler extends ImmutableExceptionHandler {
-    public DexBackedCatchAllExceptionHandler(@Nonnull DexFileReader dexFileReader) {
+    public DexBackedCatchAllExceptionHandler(@Nonnull DexFileReader dexFileReader,
+                                             @Nonnull InstructionOffsetMap instructionOffsetMap) {
         super(null,
-              dexFileReader.readSmallUleb128());
+              instructionOffsetMap.getInstructionIndexAtOffsetExact(dexFileReader.readSmallUleb128()));
     }
 }

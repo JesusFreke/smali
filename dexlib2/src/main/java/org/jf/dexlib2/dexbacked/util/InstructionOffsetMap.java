@@ -29,19 +29,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.dexbacked;
+package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.DexFileReader;
-import org.jf.dexlib2.dexbacked.util.InstructionOffsetMap;
-import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
+import org.jf.util.ExceptionWithContext;
 
-import javax.annotation.Nonnull;
+import java.util.Arrays;
 
-public class DexBackedExceptionHandler extends ImmutableExceptionHandler {
-    public DexBackedExceptionHandler(@Nonnull DexFileReader dexFileReader,
-                                     @Nonnull InstructionOffsetMap instructionOffsetMap) {
-        // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
-        super(dexFileReader.getType(dexFileReader.readSmallUleb128()),
-              instructionOffsetMap.getInstructionIndexAtOffsetExact(dexFileReader.readSmallUleb128()));
+public class InstructionOffsetMap {
+    private final int[] instructionOffsets;
+
+    public InstructionOffsetMap(int[] instructionOffsets) {
+        this.instructionOffsets = instructionOffsets;
+    }
+
+    public int getInstructionIndexAtOffsetExact(int offset) {
+        int index = Arrays.binarySearch(instructionOffsets, offset);
+        if (index < 0) {
+            throw new ExceptionWithContext("No instruction at offset %d", offset);
+        }
+        return index;
+    }
+
+    public int getInstructionIndexAtOffset(int offset) {
+        int index = Arrays.binarySearch(instructionOffsets, offset);
+        if (index < 0) {
+            // This would fail if index was -1 (i.e. insertion point of 0). Luckily, we can ignore this case, because
+            // offset will always be non-negative, and the offset of the first instruction will always be 0.
+            return (~index) - 1;
+        }
+        return index;
     }
 }

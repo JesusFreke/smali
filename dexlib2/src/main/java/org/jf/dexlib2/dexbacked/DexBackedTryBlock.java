@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked;
 
 import org.jf.dexlib2.DexFile;
 import org.jf.dexlib2.DexFileReader;
+import org.jf.dexlib2.dexbacked.util.InstructionOffsetMap;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
@@ -42,19 +43,38 @@ import java.util.List;
 
 public class DexBackedTryBlock implements TryBlock {
     public final DexFile dexFile;
+    private final InstructionOffsetMap instructionOffsetMap;
 
     public final int startIndex;
     public final int instructionCount;
 
     private final int exceptionHandlersOffset;
 
+    private static final int START_ADDRESS_OFFSET = 0;
+    private static final int CODE_UNIT_COUNT_OFFSET = 4;
+    private static final int HANDLER_OFFSET_OFFSET = 6;
+
     public DexBackedTryBlock(DexFile dexFile,
-                             int offset,
-                             int handlersStartOffset) {
+                             int tryItemOffset,
+                             int handlersStartOffset,
+                             InstructionOffsetMap instructionOffsetMap) {
         this.dexFile = dexFile;
-        this.startIndex = dexFile.readSmallUint(offset);
-        this.instructionCount = dexFile.readUshort(offset+4);
-        this.exceptionHandlersOffset = handlersStartOffset + dexFile.readUshort(6);
+        this.instructionOffsetMap = instructionOffsetMap;
+
+        int startOffset = dexFile.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET);
+        // map the code unit offset to the instruction index
+        this.startIndex = instructionOffsetMap.getInstructionIndexAtOffsetExact(startOffset);
+
+        int codeUnitCount = dexFile.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET);
+        // TODO: check if dalivk accepts insns_size = 0
+        if (codeUnitCount == 0) {
+            this.instructionCount = 0;
+        } else {
+            int lastIndex = instructionOffsetMap.getInstructionIndexAtOffset(startOffset + codeUnitCount - 1);
+            this.instructionCount = lastIndex - startIndex + 1;
+        }
+
+        this.exceptionHandlersOffset = handlersStartOffset + dexFile.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET);
     }
 
     @Override public int getStartIndex() { return startIndex; }
@@ -72,7 +92,7 @@ public class DexBackedTryBlock implements TryBlock {
                 @Nonnull
                 @Override
                 protected ExceptionHandler readItem(DexFileReader dexFileReader, int index) {
-                    return new DexBackedExceptionHandler(dexFileReader);
+                    return new DexBackedExceptionHandler(dexFileReader, instructionOffsetMap);
                 }
                 @Override public int size() { return encodedSize; }
             };
@@ -84,9 +104,9 @@ public class DexBackedTryBlock implements TryBlock {
                 @Override
                 protected ExceptionHandler readItem(DexFileReader dexFileReader, int index) {
                     if (index == sizeWithCatchAll-1) {
-                        return new DexBackedCatchAllExceptionHandler(dexFileReader);
+                        return new DexBackedCatchAllExceptionHandler(dexFileReader, instructionOffsetMap);
                     } else {
-                        return new DexBackedExceptionHandler(dexFileReader);
+                        return new DexBackedExceptionHandler(dexFileReader, instructionOffsetMap);
                     }
                 }
                 @Override public int size() { return sizeWithCatchAll; }
