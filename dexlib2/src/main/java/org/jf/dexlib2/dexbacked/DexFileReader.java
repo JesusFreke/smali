@@ -36,15 +36,15 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 
 public class DexFileReader {
-    @Nonnull private final DexFile dexFile;
+    @Nonnull private final DexFileBuffer dexFile;
     private int offset;
 
-    public DexFileReader(@Nonnull DexFile dexFile, int offset) {
+    public DexFileReader(@Nonnull DexFileBuffer dexFile, int offset) {
         this.dexFile = dexFile;
         this.offset = offset;
     }
 
-    @Nonnull public DexFile getDexFile() { return dexFile; }
+    @Nonnull public DexFileBuffer getDexFile() { return dexFile; }
     public int getOffset() { return offset; }
 
     public String getString(int stringIndex) { return dexFile.getString(stringIndex); }

@@ -45,7 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DexBackedMethodImplementation implements MethodImplementation {
-    @Nonnull public final DexFile dexFile;
+    @Nonnull public final DexFileBuffer dexFile;
     private final int codeOffset;
 
     public final int registerCount;
@@ -59,7 +59,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     private static final int TRY_ITEM_SIZE = 8;
 
-    public DexBackedMethodImplementation(@Nonnull DexFile dexFile,
+    public DexBackedMethodImplementation(@Nonnull DexFileBuffer dexFile,
                                          int codeOffset) {
         this.dexFile = dexFile;
         this.codeOffset = codeOffset;

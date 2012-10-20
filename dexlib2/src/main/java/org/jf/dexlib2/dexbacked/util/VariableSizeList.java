@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.dexbacked.DexFile;
+import org.jf.dexlib2.dexbacked.DexFileBuffer;
 import org.jf.dexlib2.dexbacked.DexFileReader;
 import org.jf.util.AbstractListIterator;
 
@@ -44,10 +44,10 @@ import java.util.NoSuchElementException;
  * @param <T> The type of the item that this list contains
  */
 public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
-    @Nonnull private final DexFile dexFile;
+    @Nonnull private final DexFileBuffer dexFile;
     private final int offset;
 
-    public VariableSizeList(@Nonnull DexFile dexFile, int offset) {
+    public VariableSizeList(@Nonnull DexFileBuffer dexFile, int offset) {
         this.dexFile = dexFile;
         this.offset = offset;
     }

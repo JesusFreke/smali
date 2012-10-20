@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.dexbacked.DexFile;
+import org.jf.dexlib2.dexbacked.DexFileBuffer;
 import org.jf.dexlib2.dexbacked.DexFileReader;
 import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
@@ -49,7 +49,7 @@ public abstract class StaticInitialValueIterator {
     public abstract void skipNext();
 
     @Nonnull
-    public static StaticInitialValueIterator newOrEmpty(@Nonnull DexFile dexFile, int offset) {
+    public static StaticInitialValueIterator newOrEmpty(@Nonnull DexFileBuffer dexFile, int offset) {
         if (offset == 0) {
             return EMPTY;
         }
@@ -61,7 +61,7 @@ public abstract class StaticInitialValueIterator {
         private final int size;
         private int index = 0;
 
-        public StaticInitialValueIteratorImpl(@Nonnull DexFile dexFile, int offset) {
+        public StaticInitialValueIteratorImpl(@Nonnull DexFileBuffer dexFile, int offset) {
             this.reader = dexFile.readerAt(offset);
             this.size = reader.readSmallUleb128();
         }

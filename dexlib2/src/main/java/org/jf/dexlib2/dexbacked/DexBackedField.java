@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class DexBackedField implements Field {
-    @Nonnull public final DexFile dexFile;
+    @Nonnull public final DexFileBuffer dexFile;
 
     @Nonnull public final String name;
     @Nonnull public final String type;

@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.dexbacked.DexFile;
+import org.jf.dexlib2.dexbacked.DexFileBuffer;
 import org.jf.dexlib2.dexbacked.DexFileReader;
 import org.jf.util.AbstractListIterator;
 
@@ -68,7 +68,7 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
         private int index = 0;
         @Nonnull private final DexFileReader reader;
 
-        public Iterator(DexFile dexFile, int offset) {
+        public Iterator(DexFileBuffer dexFile, int offset) {
             this.reader = dexFile.readerAt(offset);
         }
 

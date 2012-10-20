@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.dexbacked.DexFile;
+import org.jf.dexlib2.dexbacked.DexFileBuffer;
 import org.jf.dexlib2.dexbacked.DexFileReader;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotationElement;
@@ -43,7 +43,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedAnnotationEncodedValue implements AnnotationEncodedValue {
-    @Nonnull public final DexFile dexFile;
+    @Nonnull public final DexFileBuffer dexFile;
     public final String type;
     private final int elementsOffset;
 

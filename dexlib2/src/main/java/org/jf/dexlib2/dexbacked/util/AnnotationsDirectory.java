@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.dexbacked.DexFile;
+import org.jf.dexlib2.dexbacked.DexFileBuffer;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotation;
 
 import javax.annotation.Nonnull;
@@ -53,7 +53,7 @@ public abstract class AnnotationsDirectory {
     @Nonnull public abstract AnnotationIterator getMethodAnnotationIterator();
     @Nonnull public abstract AnnotationIterator getParameterAnnotationIterator();
 
-    public static AnnotationsDirectory newOrEmpty(@Nonnull DexFile dexFile,
+    public static AnnotationsDirectory newOrEmpty(@Nonnull DexFileBuffer dexFile,
                                                   int directoryAnnotationsOffset) {
         if (directoryAnnotationsOffset == 0) {
             return EMPTY;
@@ -71,7 +71,7 @@ public abstract class AnnotationsDirectory {
     }
 
     @Nonnull
-    public static List<? extends DexBackedAnnotation> getAnnotations(@Nonnull final DexFile dexFile,
+    public static List<? extends DexBackedAnnotation> getAnnotations(@Nonnull final DexFileBuffer dexFile,
                                                                      final int annotationSetOffset) {
         if (annotationSetOffset != 0) {
             final int size = dexFile.readSmallUint(annotationSetOffset);
@@ -89,7 +89,7 @@ public abstract class AnnotationsDirectory {
         return ImmutableList.of();
     }
 
-    public static List<List<? extends DexBackedAnnotation>> getParameterAnnotations(@Nonnull final DexFile dexFile,
+    public static List<List<? extends DexBackedAnnotation>> getParameterAnnotations(@Nonnull final DexFileBuffer dexFile,
                                                                                     final int annotationSetListOffset) {
         if (annotationSetListOffset > 0) {
             final int size = dexFile.readSmallUint(annotationSetListOffset);
@@ -108,7 +108,7 @@ public abstract class AnnotationsDirectory {
     }
 
     private static class AnnotationsDirectoryImpl extends AnnotationsDirectory {
-        @Nonnull public final DexFile dexFile;
+        @Nonnull public final DexFileBuffer dexFile;
         private final int directoryOffset;
 
         private static final int FIELD_COUNT_OFFSET = 4;
@@ -121,7 +121,7 @@ public abstract class AnnotationsDirectory {
         /** The size of a method_annotation structure */
         private static final int METHOD_ANNOTATION_SIZE = 8;
 
-        public AnnotationsDirectoryImpl(@Nonnull DexFile dexFile,
+        public AnnotationsDirectoryImpl(@Nonnull DexFileBuffer dexFile,
                                         int directoryOffset) {
             this.dexFile = dexFile;
             this.directoryOffset = directoryOffset;

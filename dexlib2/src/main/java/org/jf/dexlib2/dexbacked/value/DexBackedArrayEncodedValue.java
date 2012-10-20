@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.dexbacked.DexFile;
+import org.jf.dexlib2.dexbacked.DexFileBuffer;
 import org.jf.dexlib2.dexbacked.DexFileReader;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
@@ -42,7 +42,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedArrayEncodedValue implements ArrayEncodedValue {
-    @Nonnull public final DexFile dexFile;
+    @Nonnull public final DexFileBuffer dexFile;
     private final int encodedArrayOffset;
 
     public DexBackedArrayEncodedValue(@Nonnull DexFileReader dexFileReader) {

@@ -39,13 +39,13 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedAnnotation implements Annotation {
-    @Nonnull public final DexFile dexFile;
+    @Nonnull public final DexFileBuffer dexFile;
 
     public final int visibility;
     @Nonnull public final String type;
     private final int elementsOffset;
 
-    public DexBackedAnnotation(@Nonnull DexFile dexFile,
+    public DexBackedAnnotation(@Nonnull DexFileBuffer dexFile,
                                int annotationOffset) {
         this.dexFile = dexFile;
 

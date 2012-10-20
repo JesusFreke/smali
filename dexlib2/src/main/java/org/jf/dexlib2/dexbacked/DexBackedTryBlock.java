@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedTryBlock implements TryBlock {
-    public final DexFile dexFile;
+    public final DexFileBuffer dexFile;
     private final InstructionOffsetMap instructionOffsetMap;
 
     public final int startIndex;
@@ -52,7 +52,7 @@ public class DexBackedTryBlock implements TryBlock {
     private static final int CODE_UNIT_COUNT_OFFSET = 4;
     private static final int HANDLER_OFFSET_OFFSET = 6;
 
-    public DexBackedTryBlock(DexFile dexFile,
+    public DexBackedTryBlock(DexFileBuffer dexFile,
                              int tryItemOffset,
                              int handlersStartOffset,
                              InstructionOffsetMap instructionOffsetMap) {

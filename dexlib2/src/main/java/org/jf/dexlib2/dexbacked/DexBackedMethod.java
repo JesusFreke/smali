@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class DexBackedMethod implements Method {
-    @Nonnull public final DexFile dexFile;
+    @Nonnull public final DexFileBuffer dexFile;
 
     @Nonnull public final String name;
     public final int accessFlags;
