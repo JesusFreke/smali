@@ -31,14 +31,43 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.util.ExceptionWithContext;
+
 import javax.annotation.Nullable;
 
 public class DexFile {
+    // TODO: consider using a direct ByteBuffer instead
+    protected final byte[] buf;
+
+    public DexFile(byte[] buf) {
+        this.buf = buf;
+    }
+
+    public String getString(int stringIndex) {
+        return null;
+    }
+
+    public int getFieldIdItemOffset(int fieldIndex) {
+        return 0;
+    }
+
+    public int getMethodIdItemOffset(int methodIndex) {
+        return 0;
+    }
+
+    public int getProtoIdItemOffset(int methodIndex) {
+        return 0;
+    }
+
     public String getType(int typeIndex) {
         return null;
     }
 
-    public String getString(int stringIndex) {
+    public String getField(int fieldIndex) {
+        return null;
+    }
+
+    public String getMethod(int methodIndex) {
         return null;
     }
 
@@ -47,20 +76,61 @@ public class DexFile {
         return null;
     }
 
-    public int getFieldIdItemOffset(int fieldIndex) {
-        return 0;
-    }
-
-    public int readSmallUleb128(int offset) {
-        return 0;
+    public String getReference(int referenceType, int referenceIndex) {
+        return null;
     }
 
     public int readSmallUint(int offset) {
-        return 0;
+        byte[] buf = this.buf;
+        int result = (buf[offset] & 0xff) |
+                     ((buf[offset+1] & 0xff) << 8) |
+                     ((buf[offset+2] & 0xff) << 16) |
+                     ((buf[offset+3] & 0xff) << 24);  // TODO: can get rid of last & 0xff?
+        if (result < 0) {
+            throw new ExceptionWithContext("Encountered uint that is out of range at offset 0x%x", offset);
+        }
+        return result;
     }
 
     public int readUshort(int offset) {
-        return 0;
+        byte[] buf = this.buf;
+        return (buf[offset] & 0xff) |
+               ((buf[offset+1] & 0xff) << 8);
+    }
+
+    public int readUbyte(int offset) {
+        return buf[offset] & 0xff;
+    }
+
+    public long readLong(int offset) {
+        // TODO: use | or +?
+        byte[] buf = this.buf;
+        return (buf[offset] & 0xffL) |
+               ((buf[offset+1] & 0xff) << 8) |
+               ((buf[offset+2] & 0xff) << 16) |
+               ((buf[offset+3] & 0xff) << 24) |
+               ((buf[offset+4] & 0xffL) << 32) |
+               ((buf[offset+5] & 0xffL) << 40) |
+               ((buf[offset+6] & 0xffL) << 48) |
+               (((long)buf[offset+7]) << 56);
+    }
+
+    public int readInt(int offset) {
+        byte[] buf = this.buf;
+        return (buf[offset] & 0xff) |
+               ((buf[offset+1] & 0xff) << 8) |
+               ((buf[offset+2] & 0xff) << 16) |
+               (buf[offset+3] << 24);
+    }
+
+    public int readShort(int offset) {
+        byte[] buf = this.buf;
+        return (buf[offset] & 0xff) |
+               (buf[offset+1] << 8);
+    }
+
+    public int readByte(int offset) {
+        return buf[offset];
     }
 
     public DexFileReader readerAt(int offset) {

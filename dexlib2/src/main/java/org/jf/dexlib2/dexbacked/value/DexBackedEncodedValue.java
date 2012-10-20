@@ -66,11 +66,11 @@ public abstract class DexBackedEncodedValue {
                 case ValueType.FLOAT:
                     Preconditions.checkValueArg(valueArg, 3);
                     return new ImmutableFloatEncodedValue(Float.intBitsToFloat(
-                            reader.readSizedRightExtendedUint(valueArg + 1)));
+                            reader.readSizedRightExtendedInt(valueArg + 1)));
                 case ValueType.DOUBLE:
                     Preconditions.checkValueArg(valueArg, 7);
                     return new ImmutableDoubleEncodedValue(Double.longBitsToDouble(
-                            reader.readSizedRightExtendedUlong(valueArg + 1)));
+                            reader.readSizedRightExtendedLong(valueArg + 1)));
                 case ValueType.STRING:
                     Preconditions.checkValueArg(valueArg, 3);
                     return new ImmutableStringEncodedValue(reader.getString(reader.readSizedSmallUint(valueArg + 1)));
