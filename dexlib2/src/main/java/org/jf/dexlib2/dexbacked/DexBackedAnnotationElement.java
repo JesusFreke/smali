@@ -46,6 +46,11 @@ public class DexBackedAnnotationElement implements AnnotationElement {
         this.value = DexBackedEncodedValue.readFrom(reader);
     }
 
+    public static void skipFrom(DexReader reader) {
+        reader.skipUleb128();
+        DexBackedEncodedValue.skipFrom(reader);
+    }
+
     @Nonnull @Override public String getName() { return name; }
     @Nonnull @Override public EncodedValue getValue() { return value; }
 }

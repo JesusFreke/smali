@@ -83,6 +83,11 @@ public class DexBackedAnnotationEncodedValue implements AnnotationEncodedValue {
                 return new DexBackedAnnotationElement(dexReader);
             }
 
+            @Override
+            protected void skipItem(DexReader reader, int index) {
+                DexBackedAnnotationElement.skipFrom(reader);
+            }
+
             @Override public int size() { return size;}
         };
     }

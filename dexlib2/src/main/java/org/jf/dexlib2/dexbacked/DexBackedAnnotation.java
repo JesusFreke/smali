@@ -71,6 +71,11 @@ public class DexBackedAnnotation implements Annotation {
                 return new DexBackedAnnotationElement(reader);
             }
 
+            @Override
+            protected void skipItem(DexReader reader, int index) {
+                DexBackedAnnotationElement.skipFrom(reader);
+            }
+
             @Override public int size() { return size;}
         };
     }

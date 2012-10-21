@@ -92,6 +92,12 @@ public class DexBackedTryBlock implements TryBlock {
                 protected ExceptionHandler readItem(DexReader reader, int index) {
                     return new DexBackedExceptionHandler(reader, instructionOffsetMap);
                 }
+
+                @Override
+                protected void skipItem(DexReader dexReader, int index) {
+                    DexBackedExceptionHandler.skipFrom(dexReader);
+                }
+
                 @Override public int size() { return encodedSize; }
             };
         } else {
@@ -107,6 +113,17 @@ public class DexBackedTryBlock implements TryBlock {
                         return new DexBackedExceptionHandler(dexReader, instructionOffsetMap);
                     }
                 }
+
+                @Override
+                protected void skipItem(DexReader dexReader, int index) {
+                    if (index == sizeWithCatchAll-1) {
+                        DexBackedCatchAllExceptionHandler.skipFrom(dexReader);
+                    } else {
+                        DexBackedExceptionHandler.skipFrom(dexReader);
+                    }
+
+                }
+
                 @Override public int size() { return sizeWithCatchAll; }
             };
         }

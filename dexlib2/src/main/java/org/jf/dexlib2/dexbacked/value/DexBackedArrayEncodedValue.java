@@ -73,6 +73,11 @@ public class DexBackedArrayEncodedValue implements ArrayEncodedValue {
                 return DexBackedEncodedValue.readFrom(dexReader);
             }
 
+            @Override
+            protected void skipItem(DexReader reader, int index) {
+                DexBackedEncodedValue.skipFrom(reader);
+            }
+
             @Override public int size() { return size;}
         };
     }

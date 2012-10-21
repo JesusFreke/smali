@@ -42,4 +42,8 @@ public class DexBackedCatchAllExceptionHandler extends ImmutableExceptionHandler
         super(null,
               instructionOffsetMap.getInstructionIndexAtOffsetExact(reader.readSmallUleb128()));
     }
+
+    public static void skipFrom(DexReader reader) {
+        reader.skipUleb128();
+    }
 }
