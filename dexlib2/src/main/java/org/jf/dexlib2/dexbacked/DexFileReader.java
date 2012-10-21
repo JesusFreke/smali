@@ -83,7 +83,7 @@ public class DexFileReader {
                         result = (result << 4) >> 4;
                     } else {
                         currentByteValue = buf[end++] & 0xff;
-                        if (currentByteValue > 0x0f) {
+                        if (currentByteValue > 0x7f) {
                             throw new ExceptionWithContext(
                                     "Invalid sleb128 integer encountered at offset 0x%x", offset);
                         }
@@ -114,15 +114,17 @@ public class DexFileReader {
                     currentByteValue = buf[end++] & 0xff;
                     result |= (currentByteValue & 0x7f) << 21;
                     if (currentByteValue > 0x7f) {
-                        currentByteValue = buf[end++] & 0xff;
-                        // we assume the most significant bit will never be set
-                        if (currentByteValue > 0x07) {
-                            if (currentByteValue <= 0x0f) {
-                                throw new ExceptionWithContext(
-                                        "Encountered valid uleb128 that is out of range at offset 0x%x", offset);
-                            }
+                        currentByteValue = buf[end++];
+
+                        // MSB shouldn't be set on last byte
+                        if (currentByteValue < 0) {
                             throw new ExceptionWithContext(
                                     "Invalid uleb128 integer encountered at offset 0x%x", offset);
+                        } else if ((currentByteValue & 0xf) > 0x07) {
+                            // we assume most significant bit of the result will not be set, so that it can fit into
+                            // a signed integer without wrapping
+                            throw new ExceptionWithContext(
+                                    "Encountered valid uleb128 that is out of range at offset 0x%x", offset);
                         }
                         result |= currentByteValue << 28;
                     }
@@ -148,9 +150,14 @@ public class DexFileReader {
                     currentByteValue = buf[end++];
                     if (currentByteValue < 0) { // if the MSB is set
                         currentByteValue = buf[end++];
-                        if (currentByteValue < 0 || currentByteValue > 0x0f) {
+                        if (currentByteValue < 0) {
                             throw new ExceptionWithContext(
                                     "Invalid uleb128 integer encountered at offset 0x%x", offset);
+                        } else if ((currentByteValue & 0xf) > 0x07) {
+                            // we assume most significant bit of the result will not be set, so that it can fit into
+                            // a signed integer without wrapping
+                            throw new ExceptionWithContext(
+                                    "Encountered valid uleb128 that is out of range at offset 0x%x", offset);
                         }
                     }
                 }
