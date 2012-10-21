@@ -33,13 +33,14 @@ package org.jf.dexlib2.dexbacked;
 
 import org.jf.util.ExceptionWithContext;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class DexBuffer {
     // TODO: consider using a direct ByteBuffer instead
-    protected final byte[] buf;
+    @Nonnull protected final byte[] buf;
 
-    public DexBuffer(byte[] buf) {
+    public DexBuffer(@Nonnull byte[] buf) {
         this.buf = buf;
     }
 

@@ -227,7 +227,6 @@ public class DexReader {
     public int readShort(int offset) { return dexBuf.readShort(offset); }
     public int readByte(int offset) { return dexBuf.readByte(offset); }
 
-
     public int readSizedInt(int bytes) {
         int o = offset;
         byte[] buf = dexBuf.buf;
