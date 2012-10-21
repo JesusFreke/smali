@@ -45,7 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DexBackedMethodImplementation implements MethodImplementation {
-    @Nonnull public final DexFileBuffer dexFile;
+    @Nonnull public final DexBuffer dexBuf;
     private final int codeOffset;
 
     public final int registerCount;
@@ -59,11 +59,11 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     private static final int TRY_ITEM_SIZE = 8;
 
-    public DexBackedMethodImplementation(@Nonnull DexFileBuffer dexFile,
+    public DexBackedMethodImplementation(@Nonnull DexBuffer dexBuf,
                                          int codeOffset) {
-        this.dexFile = dexFile;
+        this.dexBuf = dexBuf;
         this.codeOffset = codeOffset;
-        this.registerCount = dexFile.readUshort(codeOffset);
+        this.registerCount = dexBuf.readUshort(codeOffset);
 
         instructions = buildInstructionList();
         instructionOffsetMap = buildInstructionOffsetMap();
@@ -75,9 +75,9 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull
     @Override
     public List<? extends TryBlock> getTryBlocks() {
-        final int triesSize = dexFile.readUshort(codeOffset + TRIES_SIZE_OFFSET);
+        final int triesSize = dexBuf.readUshort(codeOffset + TRIES_SIZE_OFFSET);
         if (triesSize > 0) {
-            int instructionsSize = dexFile.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
+            int instructionsSize = dexBuf.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
             final int triesStartOffset = AlignmentUtils.alignOffset(
                     codeOffset + INSTRUCTIONS_START_OFFSET + (instructionsSize*2), 4);
             final int handlersStartOffset = triesStartOffset + triesSize*TRY_ITEM_SIZE;
@@ -85,7 +85,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
             return new FixedSizeList<TryBlock>() {
                 @Override
                 public TryBlock readItem(int index) {
-                    return new DexBackedTryBlock(dexFile,
+                    return new DexBackedTryBlock(dexBuf,
                             triesStartOffset + index*TRY_ITEM_SIZE,
                             handlersStartOffset,
                             instructionOffsetMap);
@@ -102,12 +102,12 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     private ImmutableList<? extends Instruction> buildInstructionList() {
         // instructionsSize is the number of 16-bit code units in the instruction list, not the number of instructions
-        int instructionsSize = dexFile.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
+        int instructionsSize = dexBuf.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
 
         // we can use instructionsSize as an upper bound on the number of instructions there will be
         ArrayList<Instruction> instructions = new ArrayList<Instruction>(instructionsSize);
         int instructionsStartOffset = codeOffset + INSTRUCTIONS_START_OFFSET;
-        DexFileReader reader = dexFile.readerAt(instructionsStartOffset);
+        DexReader reader = dexBuf.readerAt(instructionsStartOffset);
         int endOffset = instructionsStartOffset + (instructionsSize*2);
 
         while (reader.getOffset() < endOffset) {

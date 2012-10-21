@@ -39,24 +39,24 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedDexFile implements DexFile {
-    @Nonnull public final DexFileBuffer dexFile;
+    @Nonnull public final DexBuffer dexBuf;
 
     private static final int CLASS_DEF_SIZE = 32;
 
-    public DexBackedDexFile(DexFileBuffer dexFile) {
-        this.dexFile = dexFile;
+    public DexBackedDexFile(DexBuffer dexBuf) {
+        this.dexBuf = dexBuf;
     }
 
     @Nonnull
     @Override
     public List<? extends ClassDef> getClasses() {
-        final int classCount = dexFile.getClassCount();
+        final int classCount = dexBuf.getClassCount();
 
         return new FixedSizeList<ClassDef>() {
             @Override
             public ClassDef readItem(int index) {
-                int classOffset = dexFile.getClassDefOffset(index);
-                return new DexBackedClassDef(dexFile, classOffset);
+                int classOffset = dexBuf.getClassDefOffset(index);
+                return new DexBackedClassDef(dexBuf, classOffset);
             }
 
             @Override

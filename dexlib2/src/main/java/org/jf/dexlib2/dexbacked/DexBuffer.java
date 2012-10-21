@@ -35,11 +35,11 @@ import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nullable;
 
-public class DexFileBuffer {
+public class DexBuffer {
     // TODO: consider using a direct ByteBuffer instead
     protected final byte[] buf;
 
-    public DexFileBuffer(byte[] buf) {
+    public DexBuffer(byte[] buf) {
         this.buf = buf;
     }
 
@@ -141,7 +141,7 @@ public class DexFileBuffer {
         return buf[offset];
     }
 
-    public DexFileReader readerAt(int offset) {
-        return new DexFileReader(this, offset);
+    public DexReader readerAt(int offset) {
+        return new DexReader(this, offset);
     }
 }

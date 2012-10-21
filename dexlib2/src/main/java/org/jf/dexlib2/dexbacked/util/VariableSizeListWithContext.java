@@ -31,8 +31,8 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.dexbacked.DexFileBuffer;
-import org.jf.dexlib2.dexbacked.DexFileReader;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.util.AbstractListIterator;
 
 import javax.annotation.Nonnull;
@@ -66,10 +66,10 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
 
     public abstract class Iterator extends AbstractListIterator<T> {
         private int index = 0;
-        @Nonnull private final DexFileReader reader;
+        @Nonnull private final DexReader reader;
 
-        public Iterator(DexFileBuffer dexFile, int offset) {
-            this.reader = dexFile.readerAt(offset);
+        public Iterator(DexBuffer dexBuf, int offset) {
+            this.reader = dexBuf.readerAt(offset);
         }
 
         /**
@@ -79,7 +79,7 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
          *
          * @return The next item that was read from {@code reader}
          */
-        @Nonnull protected abstract T readItem(DexFileReader reader, int index);
+        @Nonnull protected abstract T readItem(DexReader reader, int index);
 
         /**
          * Skip the next item in {@code reader}.
@@ -88,7 +88,7 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
          * can be overridden if skipping an item can be implemented more efficiently than reading
          * the same item.
          */
-        protected void skipItem(DexFileReader reader, int index) {
+        protected void skipItem(DexReader reader, int index) {
             readItem(reader, index);
         }
 

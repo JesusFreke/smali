@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class DexBackedField implements Field {
-    @Nonnull public final DexFileBuffer dexFile;
+    @Nonnull public final DexBuffer dexBuf;
 
     @Nonnull public final String name;
     @Nonnull public final String type;
@@ -55,22 +55,22 @@ public class DexBackedField implements Field {
     private static final int TYPE_OFFSET = 2;
     private static final int NAME_OFFSET = 4;
 
-    public DexBackedField(@Nonnull DexFileReader dexFileReader,
+    public DexBackedField(@Nonnull DexReader reader,
                           int previousFieldIndex,
                           @Nonnull StaticInitialValueIterator staticInitialValueIterator,
                           @Nonnull AnnotationsDirectory.AnnotationIterator annotationIterator) {
-        this.dexFile = dexFileReader.getDexFile();
+        this.dexBuf = reader.getDexBuffer();
 
-        int fieldIndexDiff = dexFileReader.readSmallUleb128();
+        int fieldIndexDiff = reader.readSmallUleb128();
         this.fieldIndex = fieldIndexDiff + previousFieldIndex;
-        this.accessFlags = dexFileReader.readSmallUleb128();
+        this.accessFlags = reader.readSmallUleb128();
 
         this.annotationSetOffset = annotationIterator.seekTo(fieldIndex);
         this.initialValue = staticInitialValueIterator.getNextOrNull();
 
-        int fieldIdItemOffset = dexFileReader.getFieldIdItemOffset(fieldIndex);
-        this.type = dexFileReader.getType(dexFileReader.readUshort(fieldIdItemOffset + TYPE_OFFSET));
-        this.name = dexFileReader.getString(dexFileReader.readSmallUint(fieldIdItemOffset + NAME_OFFSET));
+        int fieldIdItemOffset = reader.getFieldIdItemOffset(fieldIndex);
+        this.type = reader.getType(reader.readUshort(fieldIdItemOffset + TYPE_OFFSET));
+        this.name = reader.getString(reader.readSmallUint(fieldIdItemOffset + NAME_OFFSET));
     }
 
 
@@ -82,31 +82,31 @@ public class DexBackedField implements Field {
     @Nonnull
     @Override
     public List<? extends DexBackedAnnotation> getAnnotations() {
-        return AnnotationsDirectory.getAnnotations(dexFile, annotationSetOffset);
+        return AnnotationsDirectory.getAnnotations(dexBuf, annotationSetOffset);
     }
 
     /**
      * Skips the reader over a single encoded_field structure.
-     * @param dexFileReader The {@code DexFileReader} to skip
+     * @param reader The {@code DexFileReader} to skip
      * @param previousFieldIndex The field index of the previous field, or 0 if this is the first
      * @return The field index of the field that was skipped
      */
-    public static int skipEncodedField(@Nonnull DexFileReader dexFileReader, int previousFieldIndex) {
-        int idxDiff = dexFileReader.readSmallUleb128();
-        dexFileReader.skipUleb128();
+    public static int skipEncodedField(@Nonnull DexReader reader, int previousFieldIndex) {
+        int idxDiff = reader.readSmallUleb128();
+        reader.skipUleb128();
         return previousFieldIndex + idxDiff;
     }
 
     /**
      * Skips the reader over the specified number of encoded_field structures
      *
-     * @param dexFileReader The reader to skip
+     * @param reader The reader to skip
      * @param count The number of encoded_field structures to skip over
      */
-    public static void skipAllFields(@Nonnull DexFileReader dexFileReader, int count) {
+    public static void skipAllFields(@Nonnull DexReader reader, int count) {
         for (int i=0; i<count; i++) {
-            dexFileReader.skipUleb128();
-            dexFileReader.skipUleb128();
+            reader.skipUleb128();
+            reader.skipUleb128();
         }
     }
 }

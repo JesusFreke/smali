@@ -37,9 +37,9 @@ import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
 import javax.annotation.Nonnull;
 
 public class DexBackedCatchAllExceptionHandler extends ImmutableExceptionHandler {
-    public DexBackedCatchAllExceptionHandler(@Nonnull DexFileReader dexFileReader,
+    public DexBackedCatchAllExceptionHandler(@Nonnull DexReader reader,
                                              @Nonnull InstructionOffsetMap instructionOffsetMap) {
         super(null,
-              instructionOffsetMap.getInstructionIndexAtOffsetExact(dexFileReader.readSmallUleb128()));
+              instructionOffsetMap.getInstructionIndexAtOffsetExact(reader.readSmallUleb128()));
     }
 }

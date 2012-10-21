@@ -31,8 +31,8 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.dexbacked.DexFileBuffer;
-import org.jf.dexlib2.dexbacked.DexFileReader;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
@@ -42,16 +42,16 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedArrayEncodedValue implements ArrayEncodedValue {
-    @Nonnull public final DexFileBuffer dexFile;
+    @Nonnull public final DexBuffer dexBuf;
     private final int encodedArrayOffset;
 
-    public DexBackedArrayEncodedValue(@Nonnull DexFileReader dexFileReader) {
-        this.dexFile = dexFileReader.getDexFile();
-        this.encodedArrayOffset = dexFileReader.getOffset();
-        skipFrom(dexFileReader);
+    public DexBackedArrayEncodedValue(@Nonnull DexReader reader) {
+        this.dexBuf = reader.getDexBuffer();
+        this.encodedArrayOffset = reader.getOffset();
+        skipFrom(reader);
     }
 
-    public static void skipFrom(@Nonnull DexFileReader reader) {
+    public static void skipFrom(@Nonnull DexReader reader) {
         int elementCount = reader.readSmallUleb128();
         for (int i=0; i<elementCount; i++) {
             DexBackedEncodedValue.skipFrom(reader);
@@ -63,14 +63,14 @@ public class DexBackedArrayEncodedValue implements ArrayEncodedValue {
     @Nonnull
     @Override
     public List<? extends EncodedValue> getValue() {
-        DexFileReader reader = dexFile.readerAt(encodedArrayOffset);
+        DexReader reader = dexBuf.readerAt(encodedArrayOffset);
         final int size = reader.readSmallUleb128();
 
-        return new VariableSizeList<EncodedValue>(dexFile, reader.getOffset()) {
+        return new VariableSizeList<EncodedValue>(dexBuf, reader.getOffset()) {
             @Nonnull
             @Override
-            protected EncodedValue readItem(@Nonnull DexFileReader dexFileReader, int index) {
-                return DexBackedEncodedValue.readFrom(dexFileReader);
+            protected EncodedValue readItem(@Nonnull DexReader dexReader, int index) {
+                return DexBackedEncodedValue.readFrom(dexReader);
             }
 
             @Override public int size() { return size;}

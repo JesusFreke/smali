@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.dexbacked.DexFileBuffer;
+import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotation;
 
 import javax.annotation.Nonnull;
@@ -53,12 +53,12 @@ public abstract class AnnotationsDirectory {
     @Nonnull public abstract AnnotationIterator getMethodAnnotationIterator();
     @Nonnull public abstract AnnotationIterator getParameterAnnotationIterator();
 
-    public static AnnotationsDirectory newOrEmpty(@Nonnull DexFileBuffer dexFile,
+    public static AnnotationsDirectory newOrEmpty(@Nonnull DexBuffer dexBuf,
                                                   int directoryAnnotationsOffset) {
         if (directoryAnnotationsOffset == 0) {
             return EMPTY;
         }
-        return new AnnotationsDirectoryImpl(dexFile, directoryAnnotationsOffset);
+        return new AnnotationsDirectoryImpl(dexBuf, directoryAnnotationsOffset);
     }
 
 
@@ -71,15 +71,15 @@ public abstract class AnnotationsDirectory {
     }
 
     @Nonnull
-    public static List<? extends DexBackedAnnotation> getAnnotations(@Nonnull final DexFileBuffer dexFile,
+    public static List<? extends DexBackedAnnotation> getAnnotations(@Nonnull final DexBuffer dexBuf,
                                                                      final int annotationSetOffset) {
         if (annotationSetOffset != 0) {
-            final int size = dexFile.readSmallUint(annotationSetOffset);
+            final int size = dexBuf.readSmallUint(annotationSetOffset);
             return new FixedSizeList<DexBackedAnnotation>() {
                 @Override
                 public DexBackedAnnotation readItem(int index) {
-                    int annotationOffset = dexFile.readSmallUint(annotationSetOffset + 4 + (4*index));
-                    return new DexBackedAnnotation(dexFile, annotationOffset);
+                    int annotationOffset = dexBuf.readSmallUint(annotationSetOffset + 4 + (4*index));
+                    return new DexBackedAnnotation(dexBuf, annotationOffset);
                 }
 
                 @Override public int size() { return size; }
@@ -89,16 +89,16 @@ public abstract class AnnotationsDirectory {
         return ImmutableList.of();
     }
 
-    public static List<List<? extends DexBackedAnnotation>> getParameterAnnotations(@Nonnull final DexFileBuffer dexFile,
+    public static List<List<? extends DexBackedAnnotation>> getParameterAnnotations(@Nonnull final DexBuffer dexBuf,
                                                                                     final int annotationSetListOffset) {
         if (annotationSetListOffset > 0) {
-            final int size = dexFile.readSmallUint(annotationSetListOffset);
+            final int size = dexBuf.readSmallUint(annotationSetListOffset);
 
             return new FixedSizeList<List<? extends DexBackedAnnotation>>() {
                 @Override
                 public List<? extends DexBackedAnnotation> readItem(int index) {
-                    int annotationSetOffset = dexFile.readSmallUint(annotationSetListOffset + 4 + index * 4);
-                    return getAnnotations(dexFile, annotationSetOffset);
+                    int annotationSetOffset = dexBuf.readSmallUint(annotationSetListOffset + 4 + index * 4);
+                    return getAnnotations(dexBuf, annotationSetOffset);
                 }
 
                 @Override public int size() { return size; }
@@ -108,7 +108,7 @@ public abstract class AnnotationsDirectory {
     }
 
     private static class AnnotationsDirectoryImpl extends AnnotationsDirectory {
-        @Nonnull public final DexFileBuffer dexFile;
+        @Nonnull public final DexBuffer dexBuf;
         private final int directoryOffset;
 
         private static final int FIELD_COUNT_OFFSET = 4;
@@ -121,27 +121,27 @@ public abstract class AnnotationsDirectory {
         /** The size of a method_annotation structure */
         private static final int METHOD_ANNOTATION_SIZE = 8;
 
-        public AnnotationsDirectoryImpl(@Nonnull DexFileBuffer dexFile,
+        public AnnotationsDirectoryImpl(@Nonnull DexBuffer dexBuf,
                                         int directoryOffset) {
-            this.dexFile = dexFile;
+            this.dexBuf = dexBuf;
             this.directoryOffset = directoryOffset;
         }
 
         public int getFieldAnnotationCount() {
-            return dexFile.readSmallUint(directoryOffset + FIELD_COUNT_OFFSET);
+            return dexBuf.readSmallUint(directoryOffset + FIELD_COUNT_OFFSET);
         }
 
         public int getMethodAnnotationCount() {
-            return dexFile.readSmallUint(directoryOffset + METHOD_COUNT_OFFSET);
+            return dexBuf.readSmallUint(directoryOffset + METHOD_COUNT_OFFSET);
         }
 
         public int getParameterAnnotationCount() {
-            return dexFile.readSmallUint(directoryOffset + PARAMETER_COUNT_OFFSET);
+            return dexBuf.readSmallUint(directoryOffset + PARAMETER_COUNT_OFFSET);
         }
 
         @Nonnull
         public List<? extends DexBackedAnnotation> getClassAnnotations() {
-            return getAnnotations(dexFile, dexFile.readSmallUint(directoryOffset));
+            return getAnnotations(dexBuf, dexBuf.readSmallUint(directoryOffset));
         }
 
         @Nonnull
@@ -177,7 +177,7 @@ public abstract class AnnotationsDirectory {
                 this.startOffset = startOffset;
                 this.size = size;
                 if (size > 0) {
-                    currentItemIndex = dexFile.readSmallUint(startOffset);
+                    currentItemIndex = dexBuf.readSmallUint(startOffset);
                     this.currentIndex = 0;
                 } else {
                     currentItemIndex = -1;
@@ -188,11 +188,11 @@ public abstract class AnnotationsDirectory {
             public int seekTo(int itemIndex) {
                 while (currentItemIndex < itemIndex && (currentIndex+1) < size) {
                     currentIndex++;
-                    currentItemIndex = dexFile.readSmallUint(startOffset + (currentIndex*8));
+                    currentItemIndex = dexBuf.readSmallUint(startOffset + (currentIndex*8));
                 }
 
                 if (currentItemIndex == itemIndex) {
-                    return dexFile.readSmallUint(startOffset + (currentIndex*8)+4);
+                    return dexBuf.readSmallUint(startOffset + (currentIndex*8)+4);
                 }
                 return 0;
             }

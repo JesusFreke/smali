@@ -31,8 +31,8 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.dexbacked.DexFileBuffer;
-import org.jf.dexlib2.dexbacked.DexFileReader;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.util.AbstractListIterator;
 
 import javax.annotation.Nonnull;
@@ -44,19 +44,19 @@ import java.util.NoSuchElementException;
  * @param <T> The type of the item that this list contains
  */
 public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
-    @Nonnull private final DexFileBuffer dexFile;
+    @Nonnull private final DexBuffer dexBuf;
     private final int offset;
 
-    public VariableSizeList(@Nonnull DexFileBuffer dexFile, int offset) {
-        this.dexFile = dexFile;
+    public VariableSizeList(@Nonnull DexBuffer dexBuf, int offset) {
+        this.dexBuf = dexBuf;
         this.offset = offset;
     }
 
     @Nonnull
-    protected abstract T readItem(DexFileReader dexFileReader, int index);
+    protected abstract T readItem(DexReader reader, int index);
 
-    protected void skipItem(DexFileReader dexFileReader, int index) {
-        readItem(dexFileReader, index);
+    protected void skipItem(DexReader reader, int index) {
+        readItem(reader, index);
     }
 
     @Nonnull
@@ -80,7 +80,7 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
 
     public class Iterator extends AbstractListIterator<T> {
         private int index = 0;
-        @Nonnull private final DexFileReader dexFileReader = dexFile.readerAt(offset);
+        @Nonnull private final DexReader reader = dexBuf.readerAt(offset);
 
         @Override public boolean hasNext() { return index < size(); }
         @Override public int nextIndex() { return index; }
@@ -91,14 +91,14 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
             if (index >= size()) {
                 throw new NoSuchElementException();
             }
-            return readItem(dexFileReader, index++);
+            return readItem(reader, index++);
         }
 
         public void skip() {
             if (index >= size()) {
                 throw new NoSuchElementException();
             }
-            skipItem(dexFileReader, index++);
+            skipItem(reader, index++);
         }
     }
 }

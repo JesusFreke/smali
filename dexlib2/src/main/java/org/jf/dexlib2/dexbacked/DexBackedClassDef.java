@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class DexBackedClassDef implements ClassDef {
-    @Nonnull public final DexFileBuffer dexFile;
+    @Nonnull public final DexBuffer dexBuf;
 
     @Nonnull public final String name;
     public final int accessFlags;
@@ -63,21 +63,21 @@ public class DexBackedClassDef implements ClassDef {
     private static final int CLASS_DATA_OFFSET = 24;
     private static final int STATIC_INITIAL_VALUES_OFFSET = 28;
 
-    public DexBackedClassDef(@Nonnull DexFileBuffer dexFile,
+    public DexBackedClassDef(@Nonnull DexBuffer dexBuf,
                              int classDefOffset) {
-        this.dexFile = dexFile;
+        this.dexBuf = dexBuf;
 
-        this.name = dexFile.getType(dexFile.readSmallUint(classDefOffset));
-        this.accessFlags = dexFile.readSmallUint(classDefOffset + ACCESS_FLAGS_OFFSET);
-        this.superclass = dexFile.getOptionalString(dexFile.readSmallUint(classDefOffset + SUPERCLASS_OFFSET));
-        this.interfacesOffset = dexFile.readSmallUint(classDefOffset + INTERFACES_OFFSET);
-        this.sourceFile = dexFile.getOptionalString(dexFile.readSmallUint(classDefOffset + SOURCE_FILE_OFFSET));
+        this.name = dexBuf.getType(dexBuf.readSmallUint(classDefOffset));
+        this.accessFlags = dexBuf.readSmallUint(classDefOffset + ACCESS_FLAGS_OFFSET);
+        this.superclass = dexBuf.getOptionalString(dexBuf.readSmallUint(classDefOffset + SUPERCLASS_OFFSET));
+        this.interfacesOffset = dexBuf.readSmallUint(classDefOffset + INTERFACES_OFFSET);
+        this.sourceFile = dexBuf.getOptionalString(dexBuf.readSmallUint(classDefOffset + SOURCE_FILE_OFFSET));
 
-        int annotationsDirectoryOffset = dexFile.readSmallUint(classDefOffset + ANNOTATIONS_OFFSET);
-        this.annotationsDirectory = AnnotationsDirectory.newOrEmpty(dexFile, annotationsDirectoryOffset);
+        int annotationsDirectoryOffset = dexBuf.readSmallUint(classDefOffset + ANNOTATIONS_OFFSET);
+        this.annotationsDirectory = AnnotationsDirectory.newOrEmpty(dexBuf, annotationsDirectoryOffset);
 
-        this.classDataOffset = dexFile.readSmallUint(CLASS_DATA_OFFSET);
-        this.staticInitialValuesOffset = dexFile.readSmallUint(classDefOffset + STATIC_INITIAL_VALUES_OFFSET);
+        this.classDataOffset = dexBuf.readSmallUint(CLASS_DATA_OFFSET);
+        this.staticInitialValuesOffset = dexBuf.readSmallUint(classDefOffset + STATIC_INITIAL_VALUES_OFFSET);
     }
 
 
@@ -90,11 +90,11 @@ public class DexBackedClassDef implements ClassDef {
     @Override
     public List<String> getInterfaces() {
         if (interfacesOffset > 0) {
-            final int size = dexFile.readSmallUint(interfacesOffset);
+            final int size = dexBuf.readSmallUint(interfacesOffset);
             return new FixedSizeList<String>() {
                 @Override
                 public String readItem(int index) {
-                    return dexFile.getString(dexFile.readSmallUint(interfacesOffset + 4 + (2*index)));
+                    return dexBuf.getString(dexBuf.readSmallUint(interfacesOffset + 4 + (2*index)));
                 }
 
                 @Override public int size() { return size; }
@@ -113,7 +113,7 @@ public class DexBackedClassDef implements ClassDef {
     @Override
     public List<? extends DexBackedField> getFields() {
         if (classDataOffset != 0) {
-            DexFileReader reader = dexFile.readerAt(classDataOffset);
+            DexReader reader = dexBuf.readerAt(classDataOffset);
             int staticFieldCount = reader.readSmallUleb128();
             int instanceFieldCount = reader.readSmallUleb128();
             final int fieldCount = staticFieldCount + instanceFieldCount;
@@ -127,16 +127,16 @@ public class DexBackedClassDef implements ClassDef {
                     @Nonnull
                     @Override
                     public Iterator listIterator() {
-                        return new Iterator(dexFile, fieldsStartOffset) {
+                        return new Iterator(dexBuf, fieldsStartOffset) {
                             private int previousFieldIndex = 0;
                             @Nonnull private final AnnotationsDirectory.AnnotationIterator annotationIterator =
                                     annotationsDirectory.getFieldAnnotationIterator();
                             @Nonnull private final StaticInitialValueIterator staticInitialValueIterator =
-                                    StaticInitialValueIterator.newOrEmpty(dexFile, staticInitialValuesOffset);
+                                    StaticInitialValueIterator.newOrEmpty(dexBuf, staticInitialValuesOffset);
 
                             @Nonnull
                             @Override
-                            protected DexBackedField readItem(DexFileReader reader, int index) {
+                            protected DexBackedField readItem(DexReader reader, int index) {
                                 DexBackedField item = new DexBackedField(reader, previousFieldIndex,
                                         staticInitialValueIterator, annotationIterator);
                                 previousFieldIndex = item.fieldIndex;
@@ -144,7 +144,7 @@ public class DexBackedClassDef implements ClassDef {
                             }
 
                             @Override
-                            protected void skipItem(DexFileReader reader, int index) {
+                            protected void skipItem(DexReader reader, int index) {
                                 previousFieldIndex = DexBackedField.skipEncodedField(reader, previousFieldIndex);
                                 staticInitialValueIterator.skipNext();
                             }
@@ -162,7 +162,7 @@ public class DexBackedClassDef implements ClassDef {
     @Override
     public List<? extends Method> getMethods() {
         if (classDataOffset > 0) {
-            DexFileReader reader = dexFile.readerAt(classDataOffset);
+            DexReader reader = dexBuf.readerAt(classDataOffset);
             int staticFieldCount = reader.readSmallUleb128();
             int instanceFieldCount = reader.readSmallUleb128();
             int directMethodCount = reader.readSmallUleb128();
@@ -177,18 +177,18 @@ public class DexBackedClassDef implements ClassDef {
                     @Nonnull
                     @Override
                     public Iterator listIterator() {
-                        return new Iterator(dexFile, methodsStartOffset) {
+                        return new Iterator(dexBuf, methodsStartOffset) {
                             private int previousMethodIndex = 0;
                             @Nonnull private final AnnotationsDirectory.AnnotationIterator methodAnnotationIterator =
                                     annotationsDirectory.getMethodAnnotationIterator();
                             @Nonnull private final AnnotationsDirectory.AnnotationIterator parameterAnnotationIterator =
                                     annotationsDirectory.getParameterAnnotationIterator();
                             @Nonnull private final StaticInitialValueIterator staticInitialValueIterator =
-                                    StaticInitialValueIterator.newOrEmpty(dexFile, staticInitialValuesOffset);
+                                    StaticInitialValueIterator.newOrEmpty(dexBuf, staticInitialValuesOffset);
 
                             @Nonnull
                             @Override
-                            protected DexBackedMethod readItem(DexFileReader reader, int index) {
+                            protected DexBackedMethod readItem(DexReader reader, int index) {
                                 DexBackedMethod item = new DexBackedMethod(reader, previousMethodIndex,
                                         methodAnnotationIterator, parameterAnnotationIterator);
                                 previousMethodIndex = item.methodIndex;
@@ -196,7 +196,7 @@ public class DexBackedClassDef implements ClassDef {
                             }
 
                             @Override
-                            protected void skipItem(DexFileReader reader, int index) {
+                            protected void skipItem(DexReader reader, int index) {
                                 previousMethodIndex = DexBackedMethod.skipEncodedMethod(reader, previousMethodIndex);
                                 staticInitialValueIterator.skipNext();
                             }

@@ -35,7 +35,7 @@ import junit.framework.Assert;
 import org.jf.util.ExceptionWithContext;
 import org.junit.Test;
 
-public class DexFileReaderSleb128Test {
+public class DexReaderSleb128Test {
     @Test
     public void testSleb128() {
         performTest(0x0, new byte[]{0x0, 0x11}, 1);
@@ -253,15 +253,15 @@ public class DexFileReaderSleb128Test {
     }
 
     private void performTest(int expectedValue, byte[] buf, int expectedLength) {
-        DexFileBuffer dexFile = new DexFileBuffer(buf);
-        DexFileReader reader = dexFile.readerAt(0);
+        DexBuffer dexBuf = new DexBuffer(buf);
+        DexReader reader = dexBuf.readerAt(0);
         Assert.assertEquals(expectedValue, reader.readSleb128());
         Assert.assertEquals(expectedLength, reader.getOffset());
     }
 
     private void performFailureTest(byte[] buf) {
-        DexFileBuffer dexFile = new DexFileBuffer(buf);
-        DexFileReader reader = dexFile.readerAt(0);
+        DexBuffer dexBuf = new DexBuffer(buf);
+        DexReader reader = dexBuf.readerAt(0);
         try {
             reader.readSleb128();
             Assert.fail();

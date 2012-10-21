@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.dexbacked.DexFileReader;
+import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.*;
@@ -39,7 +39,7 @@ import org.jf.dexlib2.util.Preconditions;
 import org.jf.util.ExceptionWithContext;
 
 public abstract class DexBackedEncodedValue {
-    public static EncodedValue readFrom(DexFileReader reader) {
+    public static EncodedValue readFrom(DexReader reader) {
         int startOffset = reader.getOffset();
 
         try {
@@ -105,7 +105,7 @@ public abstract class DexBackedEncodedValue {
         }
     }
 
-    public static void skipFrom(DexFileReader reader) {
+    public static void skipFrom(DexReader reader) {
         int startOffset = reader.getOffset();
 
         try {

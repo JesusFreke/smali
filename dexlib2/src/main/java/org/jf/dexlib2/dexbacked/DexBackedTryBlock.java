@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedTryBlock implements TryBlock {
-    public final DexFileBuffer dexFile;
+    public final DexBuffer dexBuf;
     private final InstructionOffsetMap instructionOffsetMap;
 
     public final int startIndex;
@@ -52,18 +52,18 @@ public class DexBackedTryBlock implements TryBlock {
     private static final int CODE_UNIT_COUNT_OFFSET = 4;
     private static final int HANDLER_OFFSET_OFFSET = 6;
 
-    public DexBackedTryBlock(DexFileBuffer dexFile,
+    public DexBackedTryBlock(DexBuffer dexBuf,
                              int tryItemOffset,
                              int handlersStartOffset,
                              InstructionOffsetMap instructionOffsetMap) {
-        this.dexFile = dexFile;
+        this.dexBuf = dexBuf;
         this.instructionOffsetMap = instructionOffsetMap;
 
-        int startOffset = dexFile.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET);
+        int startOffset = dexBuf.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET);
         // map the code unit offset to the instruction index
         this.startIndex = instructionOffsetMap.getInstructionIndexAtOffsetExact(startOffset);
 
-        int codeUnitCount = dexFile.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET);
+        int codeUnitCount = dexBuf.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET);
         // TODO: check if dalivk accepts insns_size = 0
         if (codeUnitCount == 0) {
             this.instructionCount = 0;
@@ -72,7 +72,7 @@ public class DexBackedTryBlock implements TryBlock {
             this.instructionCount = lastIndex - startIndex + 1;
         }
 
-        this.exceptionHandlersOffset = handlersStartOffset + dexFile.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET);
+        this.exceptionHandlersOffset = handlersStartOffset + dexBuf.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET);
     }
 
     @Override public int getStartIndex() { return startIndex; }
@@ -81,30 +81,30 @@ public class DexBackedTryBlock implements TryBlock {
     @Nonnull
     @Override
     public List<? extends ExceptionHandler> getExceptionHandlers() {
-        DexFileReader reader = dexFile.readerAt(exceptionHandlersOffset);
+        DexReader reader = dexBuf.readerAt(exceptionHandlersOffset);
         final int encodedSize = reader.readSleb128();
 
         if (encodedSize > 0) {
             //no catch-all
-            return new VariableSizeList<ExceptionHandler>(dexFile, reader.getOffset()) {
+            return new VariableSizeList<ExceptionHandler>(dexBuf, reader.getOffset()) {
                 @Nonnull
                 @Override
-                protected ExceptionHandler readItem(DexFileReader dexFileReader, int index) {
-                    return new DexBackedExceptionHandler(dexFileReader, instructionOffsetMap);
+                protected ExceptionHandler readItem(DexReader reader, int index) {
+                    return new DexBackedExceptionHandler(reader, instructionOffsetMap);
                 }
                 @Override public int size() { return encodedSize; }
             };
         } else {
             //with catch-all
             final int sizeWithCatchAll = (-1 * encodedSize) + 1;
-            return new VariableSizeList<ExceptionHandler>(dexFile, reader.getOffset()) {
+            return new VariableSizeList<ExceptionHandler>(dexBuf, reader.getOffset()) {
                 @Nonnull
                 @Override
-                protected ExceptionHandler readItem(DexFileReader dexFileReader, int index) {
+                protected ExceptionHandler readItem(DexReader dexReader, int index) {
                     if (index == sizeWithCatchAll-1) {
-                        return new DexBackedCatchAllExceptionHandler(dexFileReader, instructionOffsetMap);
+                        return new DexBackedCatchAllExceptionHandler(dexReader, instructionOffsetMap);
                     } else {
-                        return new DexBackedExceptionHandler(dexFileReader, instructionOffsetMap);
+                        return new DexBackedExceptionHandler(dexReader, instructionOffsetMap);
                     }
                 }
                 @Override public int size() { return sizeWithCatchAll; }

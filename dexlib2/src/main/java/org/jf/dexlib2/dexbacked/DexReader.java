@@ -35,33 +35,33 @@ import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 
-public class DexFileReader {
-    @Nonnull private final DexFileBuffer dexFile;
+public class DexReader {
+    @Nonnull private final DexBuffer dexBuf;
     private int offset;
 
-    public DexFileReader(@Nonnull DexFileBuffer dexFile, int offset) {
-        this.dexFile = dexFile;
+    public DexReader(@Nonnull DexBuffer dexBuf, int offset) {
+        this.dexBuf = dexBuf;
         this.offset = offset;
     }
 
-    @Nonnull public DexFileBuffer getDexFile() { return dexFile; }
+    @Nonnull public DexBuffer getDexBuffer() { return dexBuf; }
     public int getOffset() { return offset; }
 
-    public String getString(int stringIndex) { return dexFile.getString(stringIndex); }
-    public int getFieldIdItemOffset(int fieldIndex) { return dexFile.getFieldIdItemOffset(fieldIndex); }
-    public int getMethodIdItemOffset(int methodIndex) { return dexFile.getMethodIdItemOffset(methodIndex); }
-    public int getProtoIdItemOffset(int methodIndex) { return dexFile.getProtoIdItemOffset(methodIndex); }
-    public String getType(int typeIndex) { return dexFile.getType(typeIndex); }
-    public String getField(int fieldIndex) { return dexFile.getField(fieldIndex); }
-    public String getMethod(int methodIndex) { return dexFile.getMethod(methodIndex); }
-    public String getReference(int type, int index) { return dexFile.getReference(type, index); }
+    public String getString(int stringIndex) { return dexBuf.getString(stringIndex); }
+    public int getFieldIdItemOffset(int fieldIndex) { return dexBuf.getFieldIdItemOffset(fieldIndex); }
+    public int getMethodIdItemOffset(int methodIndex) { return dexBuf.getMethodIdItemOffset(methodIndex); }
+    public int getProtoIdItemOffset(int methodIndex) { return dexBuf.getProtoIdItemOffset(methodIndex); }
+    public String getType(int typeIndex) { return dexBuf.getType(typeIndex); }
+    public String getField(int fieldIndex) { return dexBuf.getField(fieldIndex); }
+    public String getMethod(int methodIndex) { return dexBuf.getMethod(methodIndex); }
+    public String getReference(int type, int index) { return dexBuf.getReference(type, index); }
 
     /** {@inheritDoc} */
     public int readSleb128() {
         int end = offset;
         int currentByteValue;
         int result;
-        byte[] buf = dexFile.buf;
+        byte[] buf = dexBuf.buf;
 
         result = buf[end++] & 0xff;
         if (result <= 0x7f) {
@@ -101,7 +101,7 @@ public class DexFileReader {
         int end = offset;
         int currentByteValue;
         int result;
-        byte[] buf = dexFile.buf;
+        byte[] buf = dexBuf.buf;
 
         result = buf[end++] & 0xff;
         if (result > 0x7f) {
@@ -139,7 +139,7 @@ public class DexFileReader {
     public void skipUleb128() {
         int end = offset;
         byte currentByteValue;
-        byte[] buf = dexFile.buf;
+        byte[] buf = dexBuf.buf;
 
         currentByteValue = buf[end++];
         if (currentByteValue < 0) { // if the MSB is set
@@ -169,49 +169,49 @@ public class DexFileReader {
 
     public int readSmallUint() {
         int o = offset;
-        int result = dexFile.readSmallUint(o);
+        int result = dexBuf.readSmallUint(o);
         offset = o + 4;
         return result;
     }
 
     public int readUshort() {
         int o = offset;
-        int result = dexFile.readUshort(offset);
+        int result = dexBuf.readUshort(offset);
         offset = o + 2;
         return result;
     }
 
     public int readUbyte() {
         int o = offset;
-        int result = dexFile.readUbyte(offset);
+        int result = dexBuf.readUbyte(offset);
         offset = o + 1;
         return result;
     }
 
     public long readLong() {
         int o = offset;
-        long result = dexFile.readLong(offset);
+        long result = dexBuf.readLong(offset);
         offset = o + 2;
         return result;
     }
 
     public int readInt() {
         int o = offset;
-        int result = dexFile.readInt(offset);
+        int result = dexBuf.readInt(offset);
         offset = o + 4;
         return result;
     }
 
     public int readShort() {
         int o = offset;
-        int result = dexFile.readShort(offset);
+        int result = dexBuf.readShort(offset);
         offset = o + 2;
         return result;
     }
 
     public int readByte() {
         int o = offset;
-        int result = dexFile.readByte(offset);
+        int result = dexBuf.readByte(offset);
         offset = o + 1;
         return result;
     }
@@ -219,18 +219,18 @@ public class DexFileReader {
     public void skipByte() { offset++; }
     public void skipBytes(int i) { offset += i; }
 
-    public int readSmallUint(int offset) { return dexFile.readSmallUint(offset); }
-    public int readUshort(int offset) { return dexFile.readUshort(offset); }
-    public int readUbyte(int offset) { return dexFile.readUbyte(offset); }
-    public long readLong(int offset) { return dexFile.readLong(offset); }
-    public int readInt(int offset) { return dexFile.readInt(offset); }
-    public int readShort(int offset) { return dexFile.readShort(offset); }
-    public int readByte(int offset) { return dexFile.readByte(offset); }
+    public int readSmallUint(int offset) { return dexBuf.readSmallUint(offset); }
+    public int readUshort(int offset) { return dexBuf.readUshort(offset); }
+    public int readUbyte(int offset) { return dexBuf.readUbyte(offset); }
+    public long readLong(int offset) { return dexBuf.readLong(offset); }
+    public int readInt(int offset) { return dexBuf.readInt(offset); }
+    public int readShort(int offset) { return dexBuf.readShort(offset); }
+    public int readByte(int offset) { return dexBuf.readByte(offset); }
 
 
     public int readSizedInt(int bytes) {
         int o = offset;
-        byte[] buf = dexFile.buf;
+        byte[] buf = dexBuf.buf;
 
         int result;
         switch (bytes) {
@@ -261,7 +261,7 @@ public class DexFileReader {
 
     public int readSizedSmallUint(int bytes) {
         int o = offset;
-        byte[] buf = dexFile.buf;
+        byte[] buf = dexBuf.buf;
 
         int result = 0;
         switch (bytes) {
@@ -291,7 +291,7 @@ public class DexFileReader {
 
     public int readSizedRightExtendedInt(int bytes) {
         int o = offset;
-        byte[] buf = dexFile.buf;
+        byte[] buf = dexBuf.buf;
 
         int result = 0;
         switch (bytes) {
@@ -323,7 +323,7 @@ public class DexFileReader {
 
     public long readSizedRightExtendedLong(int bytes) {
         int o = offset;
-        byte[] buf = dexFile.buf;
+        byte[] buf = dexBuf.buf;
 
         long result = 0;
         switch (bytes) {
@@ -389,7 +389,7 @@ public class DexFileReader {
 
     public long readSizedLong(int bytes) {
         int o = offset;
-        byte[] buf = dexFile.buf;
+        byte[] buf = dexBuf.buf;
 
         long result = 0;
         switch (bytes) {

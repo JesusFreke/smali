@@ -41,9 +41,9 @@ public class DexBackedAnnotationElement implements AnnotationElement {
     @Nonnull public final String name;
     @Nonnull public final EncodedValue value;
 
-    public DexBackedAnnotationElement(DexFileReader dexFileReader) {
-        this.name = dexFileReader.getString(dexFileReader.readSmallUleb128());
-        this.value = DexBackedEncodedValue.readFrom(dexFileReader);
+    public DexBackedAnnotationElement(DexReader reader) {
+        this.name = reader.getString(reader.readSmallUleb128());
+        this.value = DexBackedEncodedValue.readFrom(reader);
     }
 
     @Nonnull @Override public String getName() { return name; }

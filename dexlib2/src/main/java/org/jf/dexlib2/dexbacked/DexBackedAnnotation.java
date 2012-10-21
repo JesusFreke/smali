@@ -39,17 +39,17 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedAnnotation implements Annotation {
-    @Nonnull public final DexFileBuffer dexFile;
+    @Nonnull public final DexBuffer dexBuf;
 
     public final int visibility;
     @Nonnull public final String type;
     private final int elementsOffset;
 
-    public DexBackedAnnotation(@Nonnull DexFileBuffer dexFile,
+    public DexBackedAnnotation(@Nonnull DexBuffer dexBuf,
                                int annotationOffset) {
-        this.dexFile = dexFile;
+        this.dexBuf = dexBuf;
 
-        DexFileReader reader = dexFile.readerAt(annotationOffset);
+        DexReader reader = dexBuf.readerAt(annotationOffset);
         this.visibility = reader.readUbyte();
         this.type = reader.getType(reader.readSmallUleb128());
         this.elementsOffset = reader.getOffset();
@@ -61,14 +61,14 @@ public class DexBackedAnnotation implements Annotation {
     @Nonnull
     @Override
     public List<? extends AnnotationElement> getElements() {
-        DexFileReader reader = dexFile.readerAt(elementsOffset);
+        DexReader reader = dexBuf.readerAt(elementsOffset);
         final int size = reader.readSmallUleb128();
 
-        return new VariableSizeList<AnnotationElement>(dexFile, reader.getOffset()) {
+        return new VariableSizeList<AnnotationElement>(dexBuf, reader.getOffset()) {
             @Nonnull
             @Override
-            protected AnnotationElement readItem(DexFileReader dexFileReader, int index) {
-                return new DexBackedAnnotationElement(dexFileReader);
+            protected AnnotationElement readItem(DexReader reader, int index) {
+                return new DexBackedAnnotationElement(reader);
             }
 
             @Override public int size() { return size;}

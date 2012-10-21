@@ -246,19 +246,19 @@ public class DexFileReaderLeb128Test {
     }
 
     private void performTest(int expectedValue, byte[] buf, int expectedLength) {
-        DexFileBuffer dexFile = new DexFileBuffer(buf);
-        DexFileReader reader = dexFile.readerAt(0);
+        DexBuffer dexBuf = new DexBuffer(buf);
+        DexReader reader = dexBuf.readerAt(0);
         Assert.assertEquals(expectedValue, reader.readSmallUleb128());
         Assert.assertEquals(expectedLength, reader.getOffset());
 
-        reader = dexFile.readerAt(0);
+        reader = dexBuf.readerAt(0);
         reader.skipUleb128();
         Assert.assertEquals(expectedLength, reader.getOffset());
     }
 
     private void performFailureTest(byte[] buf) {
-        DexFileBuffer dexFile = new DexFileBuffer(buf);
-        DexFileReader reader = dexFile.readerAt(0);
+        DexBuffer dexBuf = new DexBuffer(buf);
+        DexReader reader = dexBuf.readerAt(0);
         try {
             reader.readSmallUleb128();
             Assert.fail();

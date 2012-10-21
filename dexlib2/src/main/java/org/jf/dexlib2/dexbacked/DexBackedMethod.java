@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class DexBackedMethod implements Method {
-    @Nonnull public final DexFileBuffer dexFile;
+    @Nonnull public final DexBuffer dexBuf;
 
     @Nonnull public final String name;
     public final int accessFlags;
@@ -65,30 +65,30 @@ public class DexBackedMethod implements Method {
     private static final int RETURN_TYPE_OFFSET = 4;
     private static final int PARAMETERS_OFFSET = 8;
 
-    public DexBackedMethod(@Nonnull DexFileReader dexFileReader,
+    public DexBackedMethod(@Nonnull DexReader reader,
                           int previousMethodIndex,
                           @Nonnull AnnotationsDirectory.AnnotationIterator methodAnnotationIterator,
                           @Nonnull AnnotationsDirectory.AnnotationIterator paramaterAnnotationIterator) {
-        this.dexFile = dexFileReader.getDexFile();
+        this.dexBuf = reader.getDexBuffer();
 
-        int methodIndexDiff = dexFileReader.readSmallUleb128();
+        int methodIndexDiff = reader.readSmallUleb128();
         this.methodIndex = methodIndexDiff + previousMethodIndex;
-        this.accessFlags = dexFileReader.readSmallUleb128();
-        this.codeOffset = dexFileReader.readSmallUleb128();
+        this.accessFlags = reader.readSmallUleb128();
+        this.codeOffset = reader.readSmallUleb128();
 
         this.methodAnnotationSetOffset = methodAnnotationIterator.seekTo(methodIndex);
         int parameterAnnotationSetListOffset = paramaterAnnotationIterator.seekTo(methodIndex);
         this.parameterAnnotations =
-                AnnotationsDirectory.getParameterAnnotations(dexFile, parameterAnnotationSetListOffset);
+                AnnotationsDirectory.getParameterAnnotations(dexBuf, parameterAnnotationSetListOffset);
 
-        int methodIdItemOffset = dexFileReader.getMethodIdItemOffset(methodIndex);
-        int protoIndex = dexFileReader.readUshort(methodIdItemOffset + PROTO_OFFSET);
-        int protoIdItemOffset = dexFileReader.getProtoIdItemOffset(protoIndex);
+        int methodIdItemOffset = reader.getMethodIdItemOffset(methodIndex);
+        int protoIndex = reader.readUshort(methodIdItemOffset + PROTO_OFFSET);
+        int protoIdItemOffset = reader.getProtoIdItemOffset(protoIndex);
 
-        this.name = dexFileReader.getString(dexFileReader.readSmallUint(methodIdItemOffset + NAME_OFFSET));
+        this.name = reader.getString(reader.readSmallUint(methodIdItemOffset + NAME_OFFSET));
 
-        this.returnType = dexFileReader.getString(dexFileReader.readSmallUint(protoIdItemOffset + RETURN_TYPE_OFFSET));
-        this.parametersOffset = dexFileReader.readSmallUint(protoIdItemOffset + PARAMETERS_OFFSET);
+        this.returnType = reader.getString(reader.readSmallUint(protoIdItemOffset + RETURN_TYPE_OFFSET));
+        this.parametersOffset = reader.readSmallUint(protoIdItemOffset + PARAMETERS_OFFSET);
     }
 
 
@@ -100,7 +100,7 @@ public class DexBackedMethod implements Method {
     @Override
     public List<? extends MethodParameter> getParameters() {
         if (parametersOffset > 0) {
-            final int size = dexFile.readSmallUint(parametersOffset);
+            final int size = dexBuf.readSmallUint(parametersOffset);
 
             return new FixedSizeList<MethodParameter>() {
                 @Override
@@ -109,8 +109,8 @@ public class DexBackedMethod implements Method {
                         @Nonnull
                         @Override
                         public String getType() {
-                            int typeIndex = dexFile.readUshort(parametersOffset + 4 + (index * 2));
-                            return dexFile.getType(typeIndex);
+                            int typeIndex = dexBuf.readUshort(parametersOffset + 4 + (index * 2));
+                            return dexBuf.getType(typeIndex);
                         }
 
                         @Nonnull
@@ -134,28 +134,28 @@ public class DexBackedMethod implements Method {
     @Nonnull
     @Override
     public List<? extends Annotation> getAnnotations() {
-        return AnnotationsDirectory.getAnnotations(dexFile, methodAnnotationSetOffset);
+        return AnnotationsDirectory.getAnnotations(dexBuf, methodAnnotationSetOffset);
     }
 
     @Nullable
     @Override
     public MethodImplementation getImplementation() {
         if (codeOffset > 0) {
-            return new DexBackedMethodImplementation(dexFile, codeOffset);
+            return new DexBackedMethodImplementation(dexBuf, codeOffset);
         }
         return null;
     }
 
     /**
      * Skips the reader over a single encoded_method structure.
-     * @param dexFileReader The {@code DexFileReader} to skip
+     * @param reader The {@code DexFileReader} to skip
      * @param previousMethodIndex The method index of the previous field, or 0 if this is the first
      * @return The method index of the field that was skipped
      */
-    public static int skipEncodedMethod(@Nonnull DexFileReader dexFileReader, int previousMethodIndex) {
-        int idxDiff = dexFileReader.readSmallUleb128();
-        dexFileReader.skipUleb128();
-        dexFileReader.skipUleb128();
+    public static int skipEncodedMethod(@Nonnull DexReader reader, int previousMethodIndex) {
+        int idxDiff = reader.readSmallUleb128();
+        reader.skipUleb128();
+        reader.skipUleb128();
         return previousMethodIndex + idxDiff;
     }
 }
