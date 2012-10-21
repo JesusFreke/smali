@@ -41,12 +41,12 @@ public class DexBackedAnnotationElement implements AnnotationElement {
     @Nonnull public final String name;
     @Nonnull public final EncodedValue value;
 
-    public DexBackedAnnotationElement(DexReader reader) {
+    public DexBackedAnnotationElement(@Nonnull DexReader reader) {
         this.name = reader.getString(reader.readSmallUleb128());
         this.value = DexBackedEncodedValue.readFrom(reader);
     }
 
-    public static void skipFrom(DexReader reader) {
+    public static void skipFrom(@Nonnull DexReader reader) {
         reader.skipUleb128();
         DexBackedEncodedValue.skipFrom(reader);
     }

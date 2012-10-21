@@ -54,12 +54,12 @@ public class DexBackedAnnotationEncodedValue implements AnnotationEncodedValue {
         skipElements(reader);
     }
 
-    public static void skipFrom(DexReader reader) {
+    public static void skipFrom(@Nonnull DexReader reader) {
         reader.skipUleb128();
         skipElements(reader);
     }
 
-    private static void skipElements(DexReader reader) {
+    private static void skipElements(@Nonnull DexReader reader) {
         int elementCount = reader.readSmallUleb128();
         for (int i=0; i<elementCount; i++) {
             reader.skipUleb128();
@@ -79,12 +79,12 @@ public class DexBackedAnnotationEncodedValue implements AnnotationEncodedValue {
         return new VariableSizeList<AnnotationElement>(dexBuf, reader.getOffset()) {
             @Nonnull
             @Override
-            protected AnnotationElement readItem(DexReader dexReader, int index) {
+            protected AnnotationElement readItem(@Nonnull DexReader dexReader, int index) {
                 return new DexBackedAnnotationElement(dexReader);
             }
 
             @Override
-            protected void skipItem(DexReader reader, int index) {
+            protected void skipItem(@Nonnull DexReader reader, int index) {
                 DexBackedAnnotationElement.skipFrom(reader);
             }
 

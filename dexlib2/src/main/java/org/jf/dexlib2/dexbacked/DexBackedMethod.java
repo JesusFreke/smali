@@ -103,6 +103,7 @@ public class DexBackedMethod implements Method {
             final int size = dexBuf.readSmallUint(parametersOffset);
 
             return new FixedSizeList<MethodParameter>() {
+                @Nonnull
                 @Override
                 public MethodParameter readItem(final int index) {
                     return new MethodParameter() {

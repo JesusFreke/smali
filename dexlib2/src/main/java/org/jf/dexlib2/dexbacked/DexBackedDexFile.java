@@ -41,9 +41,7 @@ import java.util.List;
 public class DexBackedDexFile implements DexFile {
     @Nonnull public final DexBuffer dexBuf;
 
-    private static final int CLASS_DEF_SIZE = 32;
-
-    public DexBackedDexFile(DexBuffer dexBuf) {
+    public DexBackedDexFile(@Nonnull DexBuffer dexBuf) {
         this.dexBuf = dexBuf;
     }
 
@@ -53,6 +51,7 @@ public class DexBackedDexFile implements DexFile {
         final int classCount = dexBuf.getClassCount();
 
         return new FixedSizeList<ClassDef>() {
+            @Nonnull
             @Override
             public ClassDef readItem(int index) {
                 int classOffset = dexBuf.getClassDefOffset(index);

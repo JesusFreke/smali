@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
+import javax.annotation.Nonnull;
 import java.util.AbstractList;
 
 /**
@@ -51,5 +52,6 @@ public abstract class FixedSizeList<T> extends AbstractList<T> {
      * @param index The index of the item. This is guaranteed to be in [0, size)
      * @return The item at the given index
      */
+    @Nonnull
     public abstract T readItem(int index);
 }

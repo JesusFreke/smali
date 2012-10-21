@@ -293,7 +293,7 @@ public class DexReader {
         int o = offset;
         byte[] buf = dexBuf.buf;
 
-        int result = 0;
+        int result;
         switch (bytes) {
             case 4:
                 result = (buf[o] & 0xff) |
@@ -325,7 +325,7 @@ public class DexReader {
         int o = offset;
         byte[] buf = dexBuf.buf;
 
-        long result = 0;
+        long result;
         switch (bytes) {
             case 8:
                 result = (buf[o] & 0xff) |
@@ -391,7 +391,7 @@ public class DexReader {
         int o = offset;
         byte[] buf = dexBuf.buf;
 
-        long result = 0;
+        long result;
         switch (bytes) {
             case 8:
                 result = (buf[o] & 0xff) |

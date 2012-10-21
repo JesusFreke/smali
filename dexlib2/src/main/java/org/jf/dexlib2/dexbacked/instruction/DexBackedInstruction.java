@@ -42,7 +42,8 @@ import org.jf.util.NibbleUtils;
 import javax.annotation.Nonnull;
 
 public abstract class DexBackedInstruction {
-    public static Instruction readFrom(DexReader reader) {
+    @Nonnull
+    public static Instruction readFrom(@Nonnull DexReader reader) {
         int opcodeValue = reader.readUbyte();
 
         Opcode opcode = Opcode.getOpcodeByValue(opcodeValue);
@@ -106,19 +107,19 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction10t instruction10t(Opcode opcode, DexReader reader) {
+    private static Instruction10t instruction10t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int offset = reader.readByte();
         return new ImmutableInstruction10t(opcode, offset);
     }
 
     @Nonnull
-    private static Instruction10x instruction10x(Opcode opcode, DexReader reader) {
+    private static Instruction10x instruction10x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         reader.skipByte();
         return new ImmutableInstruction10x(opcode);
     }
 
     @Nonnull
-    private static Instruction11n instruction11n(Opcode opcode, DexReader reader) {
+    private static Instruction11n instruction11n(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int b = reader.readUbyte();
         int registerA = NibbleUtils.extractLowUnsignedNibble(b);
         int literal = NibbleUtils.extractHighSignedNibble(b);
@@ -126,13 +127,13 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction11x instruction11x(Opcode opcode, DexReader reader) {
+    private static Instruction11x instruction11x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         return new ImmutableInstruction11x(opcode, registerA);
     }
 
     @Nonnull
-    private static Instruction12x instruction12x(Opcode opcode, DexReader reader) {
+    private static Instruction12x instruction12x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int b = reader.readUbyte();
         int registerA = NibbleUtils.extractLowUnsignedNibble(b);
         int registerB = NibbleUtils.extractHighUnsignedNibble(b);
@@ -140,14 +141,14 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction20t instruction20t(Opcode opcode, DexReader reader) {
+    private static Instruction20t instruction20t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         reader.skipByte();
         int offset = reader.readShort();
         return new ImmutableInstruction20t(opcode, offset);
     }
 
     @Nonnull
-    private static Instruction21c instruction21c(Opcode opcode, DexReader reader) {
+    private static Instruction21c instruction21c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int referenceIndex = reader.readUshort();
         String reference = reader.getReference(opcode.referenceType, referenceIndex);
@@ -155,35 +156,35 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction21ih instruction21ih(Opcode opcode, DexReader reader) {
+    private static Instruction21ih instruction21ih(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int literalHat = reader.readShort();
         return new ImmutableInstruction21ih(opcode, registerA, literalHat << 16);
     }
 
     @Nonnull
-    private static Instruction21lh instruction21lh(Opcode opcode, DexReader reader) {
+    private static Instruction21lh instruction21lh(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int literalHat = reader.readShort();
         return new ImmutableInstruction21lh(opcode, registerA, ((long)literalHat) << 48);
     }
 
     @Nonnull
-    private static Instruction21s instruction21s(Opcode opcode, DexReader reader) {
+    private static Instruction21s instruction21s(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int literal = reader.readShort();
         return new ImmutableInstruction21s(opcode, registerA, literal);
     }
 
     @Nonnull
-    private static Instruction21t instruction21t(Opcode opcode, DexReader reader) {
+    private static Instruction21t instruction21t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int offset = reader.readShort();
         return new ImmutableInstruction21t(opcode, registerA, offset);
     }
 
     @Nonnull
-    private static Instruction22b instruction22b(Opcode opcode, DexReader reader) {
+    private static Instruction22b instruction22b(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int registerB = reader.readUbyte();
         int literal = reader.readByte();
@@ -191,7 +192,7 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction22c instruction22c(Opcode opcode, DexReader reader) {
+    private static Instruction22c instruction22c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int b = reader.readUbyte();
         int registerA = NibbleUtils.extractLowUnsignedNibble(b);
         int registerB = NibbleUtils.extractHighUnsignedNibble(b);
@@ -202,7 +203,7 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction22s instruction22s(Opcode opcode, DexReader reader) {
+    private static Instruction22s instruction22s(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int b = reader.readUbyte();
         int registerA = NibbleUtils.extractLowUnsignedNibble(b);
         int registerB = NibbleUtils.extractHighUnsignedNibble(b);
@@ -211,7 +212,7 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction22t instruction22t(Opcode opcode, DexReader reader) {
+    private static Instruction22t instruction22t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int b = reader.readUbyte();
         int registerA = NibbleUtils.extractLowUnsignedNibble(b);
         int registerB = NibbleUtils.extractHighUnsignedNibble(b);
@@ -220,14 +221,14 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction22x instruction22x(Opcode opcode, DexReader reader) {
+    private static Instruction22x instruction22x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int registerB = reader.readUshort();
         return new ImmutableInstruction22x(opcode, registerA, registerB);
     }
 
     @Nonnull
-    private static Instruction23x instruction23x(Opcode opcode, DexReader reader) {
+    private static Instruction23x instruction23x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int registerB = reader.readUbyte();
         int registerC = reader.readUbyte();
@@ -235,14 +236,14 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction30t instruction30t(Opcode opcode, DexReader reader) {
+    private static Instruction30t instruction30t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         reader.skipByte();
         int offset = reader.readInt();
         return new ImmutableInstruction30t(opcode, offset);
     }
 
     @Nonnull
-    private static Instruction31c instruction31c(Opcode opcode, DexReader reader) {
+    private static Instruction31c instruction31c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int referenceIndex = reader.readSmallUint();
         String reference = reader.getReference(opcode.referenceType, referenceIndex);
@@ -250,21 +251,21 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction31i instruction31i(Opcode opcode, DexReader reader) {
+    private static Instruction31i instruction31i(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int literal = reader.readInt();
         return new ImmutableInstruction31i(opcode, registerA, literal);
     }
 
     @Nonnull
-    private static Instruction31t instruction31t(Opcode opcode, DexReader reader) {
+    private static Instruction31t instruction31t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         int offset = reader.readInt();
         return new ImmutableInstruction31t(opcode, registerA, offset);
     }
 
     @Nonnull
-    private static Instruction32x instruction32x(Opcode opcode, DexReader reader) {
+    private static Instruction32x instruction32x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         reader.skipByte();
         int registerA = reader.readUshort();
         int registerB = reader.readUshort();
@@ -272,7 +273,7 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction35c instruction35c(Opcode opcode, DexReader reader) {
+    private static Instruction35c instruction35c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int b = reader.readUbyte();
         int registerCount = NibbleUtils.extractHighUnsignedNibble(b);
         int registerG = NibbleUtils.extractLowUnsignedNibble(b);
@@ -293,7 +294,7 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction3rc instruction3rc(Opcode opcode, DexReader reader) {
+    private static Instruction3rc instruction3rc(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerCount = reader.readUbyte();
         int referenceIndex = reader.readUshort();
         String reference = reader.getReference(opcode.referenceType, referenceIndex);
@@ -302,7 +303,7 @@ public abstract class DexBackedInstruction {
     }
 
     @Nonnull
-    private static Instruction51l instruction51l(Opcode opcode, DexReader reader) {
+    private static Instruction51l instruction51l(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
         int registerA = reader.readUbyte();
         long literal = reader.readLong();
         return new ImmutableInstruction51l(opcode, registerA, literal);

@@ -73,7 +73,6 @@ public class DexBackedField implements Field {
         this.name = reader.getString(reader.readSmallUint(fieldIdItemOffset + NAME_OFFSET));
     }
 
-
     @Nonnull @Override public String getName() { return name; }
     @Nonnull @Override public String getType() { return type; }
     @Override public int getAccessFlags() { return accessFlags; }

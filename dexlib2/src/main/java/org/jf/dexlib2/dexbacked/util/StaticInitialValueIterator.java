@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 
 public abstract class StaticInitialValueIterator {
     public static final StaticInitialValueIterator EMPTY = new StaticInitialValueIterator() {
-        @Override public EncodedValue getNextOrNull() { return null; }
+        @Nullable @Override public EncodedValue getNextOrNull() { return null; }
         @Override public void skipNext() {}
     };
 

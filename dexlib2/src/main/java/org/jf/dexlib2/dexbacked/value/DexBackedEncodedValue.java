@@ -38,8 +38,11 @@ import org.jf.dexlib2.immutable.value.*;
 import org.jf.dexlib2.util.Preconditions;
 import org.jf.util.ExceptionWithContext;
 
+import javax.annotation.Nonnull;
+
 public abstract class DexBackedEncodedValue {
-    public static EncodedValue readFrom(DexReader reader) {
+    @Nonnull
+    public static EncodedValue readFrom(@Nonnull DexReader reader) {
         int startOffset = reader.getOffset();
 
         try {
@@ -105,7 +108,7 @@ public abstract class DexBackedEncodedValue {
         }
     }
 
-    public static void skipFrom(DexReader reader) {
+    public static void skipFrom(@Nonnull DexReader reader) {
         int startOffset = reader.getOffset();
 
         try {

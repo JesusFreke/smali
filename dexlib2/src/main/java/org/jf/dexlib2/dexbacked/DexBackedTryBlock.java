@@ -40,8 +40,8 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedTryBlock implements TryBlock {
-    public final DexBuffer dexBuf;
-    private final InstructionOffsetMap instructionOffsetMap;
+    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull private final InstructionOffsetMap instructionOffsetMap;
 
     public final int startIndex;
     public final int instructionCount;
@@ -52,10 +52,10 @@ public class DexBackedTryBlock implements TryBlock {
     private static final int CODE_UNIT_COUNT_OFFSET = 4;
     private static final int HANDLER_OFFSET_OFFSET = 6;
 
-    public DexBackedTryBlock(DexBuffer dexBuf,
+    public DexBackedTryBlock(@Nonnull DexBuffer dexBuf,
                              int tryItemOffset,
                              int handlersStartOffset,
-                             InstructionOffsetMap instructionOffsetMap) {
+                             @Nonnull InstructionOffsetMap instructionOffsetMap) {
         this.dexBuf = dexBuf;
         this.instructionOffsetMap = instructionOffsetMap;
 
@@ -89,12 +89,12 @@ public class DexBackedTryBlock implements TryBlock {
             return new VariableSizeList<ExceptionHandler>(dexBuf, reader.getOffset()) {
                 @Nonnull
                 @Override
-                protected ExceptionHandler readItem(DexReader reader, int index) {
+                protected ExceptionHandler readItem(@Nonnull DexReader reader, int index) {
                     return new DexBackedExceptionHandler(reader, instructionOffsetMap);
                 }
 
                 @Override
-                protected void skipItem(DexReader dexReader, int index) {
+                protected void skipItem(@Nonnull DexReader dexReader, int index) {
                     DexBackedExceptionHandler.skipFrom(dexReader);
                 }
 
@@ -106,7 +106,7 @@ public class DexBackedTryBlock implements TryBlock {
             return new VariableSizeList<ExceptionHandler>(dexBuf, reader.getOffset()) {
                 @Nonnull
                 @Override
-                protected ExceptionHandler readItem(DexReader dexReader, int index) {
+                protected ExceptionHandler readItem(@Nonnull DexReader dexReader, int index) {
                     if (index == sizeWithCatchAll-1) {
                         return new DexBackedCatchAllExceptionHandler(dexReader, instructionOffsetMap);
                     } else {
@@ -115,7 +115,7 @@ public class DexBackedTryBlock implements TryBlock {
                 }
 
                 @Override
-                protected void skipItem(DexReader dexReader, int index) {
+                protected void skipItem(@Nonnull DexReader dexReader, int index) {
                     if (index == sizeWithCatchAll-1) {
                         DexBackedCatchAllExceptionHandler.skipFrom(dexReader);
                     } else {

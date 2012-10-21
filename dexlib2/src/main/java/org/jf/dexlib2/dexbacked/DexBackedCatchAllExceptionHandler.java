@@ -43,7 +43,7 @@ public class DexBackedCatchAllExceptionHandler extends ImmutableExceptionHandler
               instructionOffsetMap.getInstructionIndexAtOffsetExact(reader.readSmallUleb128()));
     }
 
-    public static void skipFrom(DexReader reader) {
+    public static void skipFrom(@Nonnull DexReader reader) {
         reader.skipUleb128();
     }
 }

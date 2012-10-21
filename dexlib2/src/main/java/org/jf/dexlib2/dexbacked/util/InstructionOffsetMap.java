@@ -33,12 +33,13 @@ package org.jf.dexlib2.dexbacked.util;
 
 import org.jf.util.ExceptionWithContext;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 public class InstructionOffsetMap {
-    private final int[] instructionOffsets;
+    @Nonnull private final int[] instructionOffsets;
 
-    public InstructionOffsetMap(int[] instructionOffsets) {
+    public InstructionOffsetMap(@Nonnull int[] instructionOffsets) {
         this.instructionOffsets = instructionOffsets;
     }
 

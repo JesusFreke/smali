@@ -68,7 +68,7 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
         private int index = 0;
         @Nonnull private final DexReader reader;
 
-        public Iterator(DexBuffer dexBuf, int offset) {
+        public Iterator(@Nonnull DexBuffer dexBuf, int offset) {
             this.reader = dexBuf.readerAt(offset);
         }
 
@@ -79,7 +79,7 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
          *
          * @return The next item that was read from {@code reader}
          */
-        @Nonnull protected abstract T readItem(DexReader reader, int index);
+        @Nonnull protected abstract T readItem(@Nonnull DexReader reader, int index);
 
         /**
          * Skip the next item in {@code reader}.
@@ -88,7 +88,7 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
          * can be overridden if skipping an item can be implemented more efficiently than reading
          * the same item.
          */
-        protected void skipItem(DexReader reader, int index) {
+        protected void skipItem(@Nonnull DexReader reader, int index) {
             readItem(reader, index);
         }
 

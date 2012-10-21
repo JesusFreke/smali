@@ -285,8 +285,8 @@ public enum Opcode
     SGET_OBJECT_VOLATILE((short)0xfd, "sget-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE);
 
-    private static Opcode[] opcodesByValue;
-    private static HashMap<Integer, Opcode> opcodesByName;
+    private static final Opcode[] opcodesByValue;
+    private static final HashMap<Integer, Opcode> opcodesByName;
 
     //if the instruction can throw an exception
     public static final int CAN_THROW = 0x1;

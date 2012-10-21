@@ -83,6 +83,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
             final int handlersStartOffset = triesStartOffset + triesSize*TRY_ITEM_SIZE;
 
             return new FixedSizeList<TryBlock>() {
+                @Nonnull
                 @Override
                 public TryBlock readItem(int index) {
                     return new DexBackedTryBlock(dexBuf,
@@ -100,6 +101,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         return ImmutableList.of();
     }
 
+    @Nonnull
     private ImmutableList<? extends Instruction> buildInstructionList() {
         // instructionsSize is the number of 16-bit code units in the instruction list, not the number of instructions
         int instructionsSize = dexBuf.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
@@ -124,6 +126,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
      *
      * @return An InstructionOffsetMap object
      */
+    @Nonnull
     private InstructionOffsetMap buildInstructionOffsetMap() {
         int[] offsets = new int[instructions.size()];
         int currentOffset = 0;

@@ -67,12 +67,12 @@ public class DexBackedAnnotation implements Annotation {
         return new VariableSizeList<AnnotationElement>(dexBuf, reader.getOffset()) {
             @Nonnull
             @Override
-            protected AnnotationElement readItem(DexReader reader, int index) {
+            protected AnnotationElement readItem(@Nonnull DexReader reader, int index) {
                 return new DexBackedAnnotationElement(reader);
             }
 
             @Override
-            protected void skipItem(DexReader reader, int index) {
+            protected void skipItem(@Nonnull DexReader reader, int index) {
                 DexBackedAnnotationElement.skipFrom(reader);
             }
 

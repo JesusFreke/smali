@@ -53,6 +53,7 @@ public abstract class AnnotationsDirectory {
     @Nonnull public abstract AnnotationIterator getMethodAnnotationIterator();
     @Nonnull public abstract AnnotationIterator getParameterAnnotationIterator();
 
+    @Nonnull
     public static AnnotationsDirectory newOrEmpty(@Nonnull DexBuffer dexBuf,
                                                   int directoryAnnotationsOffset) {
         if (directoryAnnotationsOffset == 0) {
@@ -76,6 +77,7 @@ public abstract class AnnotationsDirectory {
         if (annotationSetOffset != 0) {
             final int size = dexBuf.readSmallUint(annotationSetOffset);
             return new FixedSizeList<DexBackedAnnotation>() {
+                @Nonnull
                 @Override
                 public DexBackedAnnotation readItem(int index) {
                     int annotationOffset = dexBuf.readSmallUint(annotationSetOffset + 4 + (4*index));
@@ -89,12 +91,14 @@ public abstract class AnnotationsDirectory {
         return ImmutableList.of();
     }
 
+    @Nonnull
     public static List<List<? extends DexBackedAnnotation>> getParameterAnnotations(@Nonnull final DexBuffer dexBuf,
                                                                                     final int annotationSetListOffset) {
         if (annotationSetListOffset > 0) {
             final int size = dexBuf.readSmallUint(annotationSetListOffset);
 
             return new FixedSizeList<List<? extends DexBackedAnnotation>>() {
+                @Nonnull
                 @Override
                 public List<? extends DexBackedAnnotation> readItem(int index) {
                     int annotationSetOffset = dexBuf.readSmallUint(annotationSetListOffset + 4 + index * 4);

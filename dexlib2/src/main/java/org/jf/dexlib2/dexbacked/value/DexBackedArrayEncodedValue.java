@@ -74,7 +74,7 @@ public class DexBackedArrayEncodedValue implements ArrayEncodedValue {
             }
 
             @Override
-            protected void skipItem(DexReader reader, int index) {
+            protected void skipItem(@Nonnull DexReader reader, int index) {
                 DexBackedEncodedValue.skipFrom(reader);
             }
 

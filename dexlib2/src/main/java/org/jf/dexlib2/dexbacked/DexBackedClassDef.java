@@ -92,6 +92,7 @@ public class DexBackedClassDef implements ClassDef {
         if (interfacesOffset > 0) {
             final int size = dexBuf.readSmallUint(interfacesOffset);
             return new FixedSizeList<String>() {
+                @Nonnull
                 @Override
                 public String readItem(int index) {
                     return dexBuf.getString(dexBuf.readSmallUint(interfacesOffset + 4 + (2*index)));
@@ -136,7 +137,7 @@ public class DexBackedClassDef implements ClassDef {
 
                             @Nonnull
                             @Override
-                            protected DexBackedField readItem(DexReader reader, int index) {
+                            protected DexBackedField readItem(@Nonnull DexReader reader, int index) {
                                 DexBackedField item = new DexBackedField(reader, previousFieldIndex,
                                         staticInitialValueIterator, annotationIterator);
                                 previousFieldIndex = item.fieldIndex;
@@ -144,7 +145,7 @@ public class DexBackedClassDef implements ClassDef {
                             }
 
                             @Override
-                            protected void skipItem(DexReader reader, int index) {
+                            protected void skipItem(@Nonnull DexReader reader, int index) {
                                 previousFieldIndex = DexBackedField.skipEncodedField(reader, previousFieldIndex);
                                 staticInitialValueIterator.skipNext();
                             }
@@ -188,7 +189,7 @@ public class DexBackedClassDef implements ClassDef {
 
                             @Nonnull
                             @Override
-                            protected DexBackedMethod readItem(DexReader reader, int index) {
+                            protected DexBackedMethod readItem(@Nonnull DexReader reader, int index) {
                                 DexBackedMethod item = new DexBackedMethod(reader, previousMethodIndex,
                                         methodAnnotationIterator, parameterAnnotationIterator);
                                 previousMethodIndex = item.methodIndex;
@@ -196,7 +197,7 @@ public class DexBackedClassDef implements ClassDef {
                             }
 
                             @Override
-                            protected void skipItem(DexReader reader, int index) {
+                            protected void skipItem(@Nonnull DexReader reader, int index) {
                                 previousMethodIndex = DexBackedMethod.skipEncodedMethod(reader, previousMethodIndex);
                                 staticInitialValueIterator.skipNext();
                             }

@@ -53,9 +53,9 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
     }
 
     @Nonnull
-    protected abstract T readItem(DexReader reader, int index);
+    protected abstract T readItem(@Nonnull DexReader reader, int index);
 
-    protected void skipItem(DexReader reader, int index) {
+    protected void skipItem(@Nonnull DexReader reader, int index) {
         readItem(reader, index);
     }
 
