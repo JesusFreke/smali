@@ -43,10 +43,6 @@ public class DexFileBuffer {
         this.buf = buf;
     }
 
-    public String getString(int stringIndex) {
-        return null;
-    }
-
     public int getFieldIdItemOffset(int fieldIndex) {
         return 0;
     }
@@ -59,12 +55,21 @@ public class DexFileBuffer {
         return 0;
     }
 
+    public int getClassDefOffset(int classIndex) {
+        return 0;
+    }
+
     public int getClassCount() {
         return 0;
     }
 
-    public int getClassDefOffset(int classIndex) {
-        return 0;
+    public String getString(int stringIndex) {
+        return null;
+    }
+
+    @Nullable
+    public String getOptionalString(int stringIndex) {
+        return null;
     }
 
     public String getType(int typeIndex) {
@@ -76,11 +81,6 @@ public class DexFileBuffer {
     }
 
     public String getMethod(int methodIndex) {
-        return null;
-    }
-
-    @Nullable
-    public String getOptionalString(int stringIndex) {
         return null;
     }
 
