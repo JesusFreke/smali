@@ -271,7 +271,7 @@ public class DexReader {
                     throw new ExceptionWithContext(
                             "Encountered valid sized uint that is out of range at offset 0x%x", offset);
                 }
-                result = (b & 0xff) << 24;
+                result = b << 24;
                 // fall-through
             case 3:
                 result |= (buf[o+2] & 0xff) << 16;
@@ -331,7 +331,7 @@ public class DexReader {
                 result = (buf[o] & 0xff) |
                          ((buf[o+1] & 0xff) << 8) |
                          ((buf[o+2] & 0xff) << 16) |
-                         ((buf[o+3] & 0xff) << 24) |
+                         ((buf[o+3] & 0xffL) << 24) |
                          ((buf[o+4] & 0xffL) << 32) |
                          ((buf[o+5] & 0xffL) << 40) |
                          ((buf[o+6] & 0xffL) << 48) |
@@ -340,7 +340,7 @@ public class DexReader {
             case 7:
                 result = ((buf[o] & 0xff)) << 8 |
                          ((buf[o+1] & 0xff) << 16) |
-                         ((buf[o+2] & 0xff) << 24) |
+                         ((buf[o+2] & 0xffL) << 24) |
                          ((buf[o+3] & 0xffL) << 32) |
                          ((buf[o+4] & 0xffL) << 40) |
                          ((buf[o+5] & 0xffL) << 48) |
@@ -348,14 +348,14 @@ public class DexReader {
                 break;
             case 6:
                 result = ((buf[o] & 0xff)) << 16 |
-                         ((buf[o+1] & 0xff) << 24) |
+                         ((buf[o+1] & 0xffL) << 24) |
                          ((buf[o+2] & 0xffL) << 32) |
                          ((buf[o+3] & 0xffL) << 40) |
                          ((buf[o+4] & 0xffL) << 48) |
                          (((long)buf[o+5]) << 56);
                 break;
             case 5:
-                result = ((buf[o] & 0xff)) << 24 |
+                result = ((buf[o] & 0xffL)) << 24 |
                          ((buf[o+1] & 0xffL) << 32) |
                          ((buf[o+2] & 0xffL) << 40) |
                          ((buf[o+3] & 0xffL) << 48) |
@@ -397,7 +397,7 @@ public class DexReader {
                 result = (buf[o] & 0xff) |
                          ((buf[o+1] & 0xff) << 8) |
                          ((buf[o+2] & 0xff) << 16) |
-                         ((buf[o+3] & 0xff) << 24) |
+                         ((buf[o+3] & 0xffL) << 24) |
                          ((buf[o+4] & 0xffL) << 32) |
                          ((buf[o+5] & 0xffL) << 40) |
                          ((buf[o+6] & 0xffL) << 48) |
@@ -407,7 +407,7 @@ public class DexReader {
                 result = (buf[o] & 0xff) |
                          ((buf[o+1] & 0xff) << 8) |
                          ((buf[o+2] & 0xff) << 16) |
-                         ((buf[o+3] & 0xff) << 24) |
+                         ((buf[o+3] & 0xffL) << 24) |
                          ((buf[o+4] & 0xffL) << 32) |
                          ((buf[o+5] & 0xffL) << 40) |
                          ((long)(buf[o+6]) << 48);
@@ -416,7 +416,7 @@ public class DexReader {
                 result = (buf[o] & 0xff) |
                          ((buf[o+1] & 0xff) << 8) |
                          ((buf[o+2] & 0xff) << 16) |
-                         ((buf[o+3] & 0xff) << 24) |
+                         ((buf[o+3] & 0xffL) << 24) |
                          ((buf[o+4] & 0xffL) << 32) |
                          ((long)(buf[o+5]) << 40);
                 break;
@@ -424,26 +424,26 @@ public class DexReader {
                 result = (buf[o] & 0xff) |
                          ((buf[o+1] & 0xff) << 8) |
                          ((buf[o+2] & 0xff) << 16) |
-                         ((buf[o+3] & 0xff) << 24) |
+                         ((buf[o+3] & 0xffL) << 24) |
                          ((long)(buf[o+4]) << 32);
                 break;
             case 4:
                 result = (buf[o] & 0xff) |
                         ((buf[o+1] & 0xff) << 8) |
                         ((buf[o+2] & 0xff) << 16) |
-                        (buf[o+3] << 24);
+                        (((long)buf[o+3]) << 24);
                 break;
             case 3:
-                result = (buf[o] & 0xff) << 8 |
-                        ((buf[o+1] & 0xff) << 16) |
-                        (buf[o+2] << 24);
+                result = (buf[o] & 0xff) |
+                        ((buf[o+1] & 0xff) << 8) |
+                        (buf[o+2] << 16);
                 break;
             case 2:
-                result = (buf[o] & 0xff) << 16 |
-                        (buf[o+1] << 24);
+                result = (buf[o] & 0xff) |
+                        (buf[o+1] << 8);
                 break;
             case 1:
-                result = buf[o] << 24;
+                result = buf[o];
                 break;
             default:
                 throw new ExceptionWithContext("Invalid size %d for sized long at offset 0x%x", bytes, offset);
