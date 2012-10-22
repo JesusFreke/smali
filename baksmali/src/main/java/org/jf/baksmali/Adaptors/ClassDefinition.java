@@ -28,68 +28,67 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
 import org.jf.util.StringUtils;
 import org.jf.util.CommentingIndentingWriter;
 import org.jf.util.IndentingWriter;
 import org.jf.dexlib.*;
 import org.jf.dexlib.Code.Analysis.ValidationException;
-import org.jf.dexlib.Code.Format.Instruction21c;
-import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.Util.AccessFlags;
-import org.jf.dexlib.Util.SparseArray;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 
 public class ClassDefinition {
-    private ClassDefItem classDefItem;
-    @Nullable
-    private ClassDataItem classDataItem;
-
-    private SparseArray<FieldIdItem> fieldsSetInStaticConstructor;
+    @Nonnull private final ClassDef classDef;
+    @Nonnull private final HashSet<String> fieldsSetInStaticConstructor;
 
     protected boolean validationErrors;
 
-    public ClassDefinition(ClassDefItem classDefItem) {
-        this.classDefItem = classDefItem;
-        this.classDataItem = classDefItem.getClassData();
-        findFieldsSetInStaticConstructor();
+    public ClassDefinition(ClassDef classDef) {
+        this.classDef = classDef;
+        fieldsSetInStaticConstructor = findFieldsSetInStaticConstructor();
     }
 
     public boolean hadValidationErrors() {
         return validationErrors;
     }
 
-    private void findFieldsSetInStaticConstructor() {
-        fieldsSetInStaticConstructor = new SparseArray<FieldIdItem>();
+    @Nonnull
+    private HashSet<String> findFieldsSetInStaticConstructor() {
+        HashSet<String> fieldsSetInStaticConstructor = new HashSet<String>();
 
-        if (classDataItem == null) {
-            return;
-        }
-
-        for (ClassDataItem.EncodedMethod directMethod: classDataItem.getDirectMethods()) {
-            if (directMethod.method.getMethodName().getStringValue().equals("<clinit>") &&
-                    directMethod.codeItem != null) {
-                for (Instruction instruction: directMethod.codeItem.getInstructions()) {
-                    switch (instruction.opcode) {
-                        case SPUT:
-                        case SPUT_BOOLEAN:
-                        case SPUT_BYTE:
-                        case SPUT_CHAR:
-                        case SPUT_OBJECT:
-                        case SPUT_SHORT:
-                        case SPUT_WIDE: {
-                            Instruction21c ins = (Instruction21c)instruction;
-                            FieldIdItem fieldIdItem = (FieldIdItem)ins.getReferencedItem();
-                            fieldsSetInStaticConstructor.put(fieldIdItem.getIndex(), fieldIdItem);
-                            break;
+        for (Method method: classDef.getMethods()) {
+            if (method.getName().equals("<clinit>")) {
+                MethodImplementation impl = method.getImplementation();
+                if (impl != null) {
+                    for (Instruction instruction: impl.getInstructions()) {
+                        switch (instruction.getOpcode()) {
+                            case SPUT:
+                            case SPUT_BOOLEAN:
+                            case SPUT_BYTE:
+                            case SPUT_CHAR:
+                            case SPUT_OBJECT:
+                            case SPUT_SHORT:
+                            case SPUT_WIDE: {
+                                Instruction21c ins = (Instruction21c)instruction;
+                                String field = ins.getReference();
+                                if (field.startsWith(classDef.getName())) {
+                                    fieldsSetInStaticConstructor.add(field);
+                                }
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
+        return fieldsSetInStaticConstructor;
     }
 
     public void writeTo(IndentingWriter writer) throws IOException {
@@ -98,175 +97,100 @@ public class ClassDefinition {
         writeSourceFile(writer);
         writeInterfaces(writer);
         writeAnnotations(writer);
-        writeStaticFields(writer);
-        writeInstanceFields(writer);
-        writeDirectMethods(writer);
-        writeVirtualMethods(writer);
+        writeFields(writer);
+        /*writeDirectMethods(writer);
+        writeVirtualMethods(writer);*/
     }
 
     private void writeClass(IndentingWriter writer) throws IOException {
         writer.write(".class ");
         writeAccessFlags(writer);
-        writer.write(classDefItem.getClassType().getTypeDescriptor());
+        writer.write(classDef.getName());
         writer.write('\n');
     }
 
     private void writeAccessFlags(IndentingWriter writer) throws IOException {
-        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForClass(classDefItem.getAccessFlags())) {
+        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForClass(classDef.getAccessFlags())) {
             writer.write(accessFlag.toString());
             writer.write(' ');
         }
     }
 
     private void writeSuper(IndentingWriter writer) throws IOException {
-        TypeIdItem superClass = classDefItem.getSuperclass();
+        String superClass = classDef.getSuperclass();
         if (superClass != null) {
             writer.write(".super ");
-            writer.write(superClass.getTypeDescriptor());
+            writer.write(superClass);
             writer.write('\n');
         }
     }
 
     private void writeSourceFile(IndentingWriter writer) throws IOException {
-        StringIdItem sourceFile = classDefItem.getSourceFile();
+        String sourceFile = classDef.getSourceFile();
         if (sourceFile != null) {
             writer.write(".source \"");
-            StringUtils.writeEscapedString(writer, sourceFile.getStringValue());
+            StringUtils.writeEscapedString(writer, sourceFile);
             writer.write("\"\n");
         }
     }
 
     private void writeInterfaces(IndentingWriter writer) throws IOException {
-        TypeListItem interfaceList = classDefItem.getInterfaces();
-        if (interfaceList == null) {
-            return;
-        }
-
-        List<TypeIdItem> interfaces = interfaceList.getTypes();
-        if (interfaces == null || interfaces.size() == 0) {
-            return;
-        }
-
-        writer.write('\n');
-        writer.write("# interfaces\n");
-        for (TypeIdItem typeIdItem: interfaceList.getTypes()) {
-            writer.write(".implements ");
-            writer.write(typeIdItem.getTypeDescriptor());
+        List<String> interfaces = classDef.getInterfaces();
+        if (interfaces.size() != 0) {
             writer.write('\n');
+            writer.write("# interfaces\n");
+            for (String interfaceName: interfaces) {
+                writer.write(".implements ");
+                writer.write(interfaceName);
+                writer.write('\n');
+            }
         }
     }
 
     private void writeAnnotations(IndentingWriter writer) throws IOException {
-        AnnotationDirectoryItem annotationDirectory = classDefItem.getAnnotations();
-        if (annotationDirectory == null) {
-            return;
-        }
-
-        AnnotationSetItem annotationSet = annotationDirectory.getClassAnnotations();
-        if (annotationSet == null) {
-            return;
-        }
-
-        writer.write("\n\n");
-        writer.write("# annotations\n");
-        AnnotationFormatter.writeTo(writer, annotationSet);
-    }
-
-    private void writeStaticFields(IndentingWriter writer) throws IOException {
-        if (classDataItem == null) {
-            return;
-        }
-        //if classDataItem is not null, then classDefItem won't be null either
-        assert(classDefItem != null);
-
-        EncodedArrayItem encodedStaticInitializers = classDefItem.getStaticFieldInitializers();
-
-        EncodedValue[] staticInitializers;
-        if (encodedStaticInitializers != null) {
-            staticInitializers = encodedStaticInitializers.getEncodedArray().values;
-        } else {
-            staticInitializers = new EncodedValue[0];
-        }
-
-        List<ClassDataItem.EncodedField> encodedFields = classDataItem.getStaticFields();
-        if (encodedFields.size() == 0) {
-            return;
-        }
-
-        writer.write("\n\n");
-        writer.write("# static fields\n");
-
-        for (int i=0; i<encodedFields.size(); i++) {
-            if (i > 0) {
-                writer.write('\n');
-            }
-
-            ClassDataItem.EncodedField field = encodedFields.get(i);
-            EncodedValue encodedValue = null;
-            if (i < staticInitializers.length) {
-                encodedValue = staticInitializers[i];
-            }
-            AnnotationSetItem fieldAnnotations = null;
-            AnnotationDirectoryItem annotations = classDefItem.getAnnotations();
-            if (annotations != null) {
-                fieldAnnotations = annotations.getFieldAnnotations(field.field);
-            }
-
-            IndentingWriter fieldWriter = writer;
-            // the encoded fields are sorted, so we just have to compare with the previous one to detect duplicates
-            if (i > 0 && field.equals(encodedFields.get(i-1))) {
-                fieldWriter = new CommentingIndentingWriter(writer, "#");
-                fieldWriter.write("Ignoring field with duplicate signature\n");
-                System.err.println(String.format("Warning: class %s has duplicate static field %s, Ignoring.",
-                        classDefItem.getClassType().getTypeDescriptor(), field.field.getShortFieldString()));
-            }
-
-            boolean setInStaticConstructor =
-                    fieldsSetInStaticConstructor.get(field.field.getIndex()) != null;
-
-            FieldDefinition.writeTo(fieldWriter, field, encodedValue, fieldAnnotations, setInStaticConstructor);
+        List<? extends Annotation> classAnnotations = classDef.getAnnotations();
+        if (classAnnotations.size() != 0) {
+            writer.write("\n\n");
+            writer.write("# annotations\n");
+            //TODO: uncomment
+            //AnnotationFormatter.writeTo(writer, annotationSet);
         }
     }
 
-    private void writeInstanceFields(IndentingWriter writer) throws IOException {
-        if (classDataItem == null) {
-            return;
-        }
+    private void writeFields(IndentingWriter writer) throws IOException {
+        List<? extends Field> fields = classDef.getFields();
 
-        List<ClassDataItem.EncodedField> encodedFields = classDataItem.getInstanceFields();
-        if (encodedFields.size() == 0) {
-            return;
-        }
+        boolean wroteStaticFieldHeader = false;
+        boolean wroteInstanceFieldHeader = false;
+        for (Field field: fields) {
+            //TODO: add an isStatic field to field? or somehow make this better
+            boolean isStatic = (field.getAccessFlags() & AccessFlags.STATIC.getValue()) != 0;
 
-        writer.write("\n\n");
-        writer.write("# instance fields\n");
-        for (int i=0; i<encodedFields.size(); i++) {
-            ClassDataItem.EncodedField field = encodedFields.get(i);
-
-            if (i > 0) {
-                writer.write('\n');
+            if (isStatic) {
+                if (!wroteStaticFieldHeader) {
+                    writer.write("\n\n");
+                    writer.write("# static fields");
+                    wroteStaticFieldHeader = true;
+                }
+            } else {
+                if (!wroteInstanceFieldHeader) {
+                    writer.write("\n\n");
+                    writer.write("# instance fields");
+                    wroteInstanceFieldHeader = true;
+                }
             }
 
-            AnnotationSetItem fieldAnnotations = null;
-            AnnotationDirectoryItem annotations = classDefItem.getAnnotations();
-            if (annotations != null) {
-                fieldAnnotations = annotations.getFieldAnnotations(field.field);
-            }
+            writer.write('\n');
 
-            IndentingWriter fieldWriter = writer;
-            // the encoded fields are sorted, so we just have to compare with the previous one to detect duplicates
-            if (i > 0 && field.equals(encodedFields.get(i-1))) {
-                fieldWriter = new CommentingIndentingWriter(writer, "#");
-                fieldWriter.write("Ignoring field with duplicate signature\n");
-                System.err.println(String.format("Warning: class %s has duplicate instance field %s, Ignoring.",
-                        classDefItem.getClassType().getTypeDescriptor(), field.field.getShortFieldString()));
-            }
+            // TODO: detect duplicate fields.
+            // TODO: check if field is set in static constructor
 
-            FieldDefinition.writeTo(fieldWriter, field, null, fieldAnnotations, false);
+            FieldDefinition.writeTo(writer, field, false);
         }
     }
 
-    private void writeDirectMethods(IndentingWriter writer) throws IOException {
+    //TODO: uncomment
+    /*private void writeDirectMethods(IndentingWriter writer) throws IOException {
         if (classDataItem == null) {
             return;
         }
@@ -332,5 +256,5 @@ public class ClassDefinition {
                 this.validationErrors = true;
             }
         }
-    }
+    }*/
 }

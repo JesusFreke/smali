@@ -31,7 +31,8 @@ package org.jf.baksmali;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.Code.Analysis.*;
-import org.jf.dexlib.DexFile;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
 
@@ -75,7 +76,8 @@ public class baksmali {
         baksmali.bootClassPath = bootClassPath;
         baksmali.verify = verify;
 
-        if (registerInfo != 0 || deodex || verify) {
+        //TODO: uncomment
+        /*if (registerInfo != 0 || deodex || verify) {
             try {
                 String[] extraBootClassPathArray = null;
                 if (extraBootClassPath != null && extraBootClassPath.length() > 0) {
@@ -110,7 +112,7 @@ public class baksmali {
                 ex.printStackTrace(System.err);
                 System.exit(1);
             }
-        }
+        }*/
 
         File outputDirectoryFile = new File(outputDirectory);
         if (!outputDirectoryFile.exists()) {
@@ -120,24 +122,26 @@ public class baksmali {
             }
         }
 
-        if (!noAccessorComments) {
+        //TODO: uncomment
+        /*if (!noAccessorComments) {
             syntheticAccessorResolver = new SyntheticAccessorResolver(dexFile);
-        }
+        }*/
 
         //sort the classes, so that if we're on a case-insensitive file system and need to handle classes with file
         //name collisions, then we'll use the same name for each class, if the dex file goes through multiple
         //baksmali/smali cycles for some reason. If a class with a colliding name is added or removed, the filenames
         //may still change of course
-        ArrayList<ClassDefItem> classDefItems = new ArrayList<ClassDefItem>(dexFile.ClassDefsSection.getItems());
+        // TODO: aren't classes already sorted? Why do we need to sort here?
+        /*ArrayList<ClassDefItem> classDefItems = new ArrayList<ClassDefItem>(dexFile.ClassDefsSection.getItems());
         Collections.sort(classDefItems, new Comparator<ClassDefItem>() {
             public int compare(ClassDefItem classDefItem1, ClassDefItem classDefItem2) {
                 return classDefItem1.getClassType().getTypeDescriptor().compareTo(classDefItem1.getClassType().getTypeDescriptor());
             }
-        });
+        });*/
 
         ClassFileNameHandler fileNameHandler = new ClassFileNameHandler(outputDirectoryFile, ".smali");
 
-        for (ClassDefItem classDefItem: classDefItems) {
+        for (ClassDef classDef: dexFile.getClasses()) {
             /**
              * The path for the disassembly file is based on the package name
              * The class descriptor will look something like:
@@ -146,7 +150,7 @@ public class baksmali {
              * package name are separated by '/'
              */
 
-            String classDescriptor = classDefItem.getClassType().getTypeDescriptor();
+            String classDescriptor = classDef.getName();
 
             //validate that the descriptor is formatted like we expect
             if (classDescriptor.charAt(0) != 'L' ||
@@ -158,7 +162,7 @@ public class baksmali {
             File smaliFile = fileNameHandler.getUniqueFilenameForClass(classDescriptor);
 
             //create and initialize the top level string template
-            ClassDefinition classDefinition = new ClassDefinition(classDefItem);
+            ClassDefinition classDefinition = new ClassDefinition(classDef);
 
             //write the disassembly
             Writer writer = null;

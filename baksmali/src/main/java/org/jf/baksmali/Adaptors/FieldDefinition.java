@@ -29,29 +29,27 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
+import org.jf.dexlib2.iface.Field;
+import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.util.IndentingWriter;
-import org.jf.dexlib.AnnotationSetItem;
 import org.jf.dexlib.ClassDataItem;
-import org.jf.dexlib.EncodedValue.EncodedValue;
 import org.jf.dexlib.EncodedValue.NullEncodedValue;
 import org.jf.dexlib.Util.AccessFlags;
 
 import java.io.IOException;
 
 public class FieldDefinition {
-    public static void writeTo(IndentingWriter writer, ClassDataItem.EncodedField encodedField,
-                                                EncodedValue initialValue, AnnotationSetItem annotationSet,
-                                                boolean setInStaticConstructor) throws IOException {
+    public static void writeTo(IndentingWriter writer, Field field, boolean setInStaticConstructor) throws IOException {
 
-        String fieldTypeDescriptor = encodedField.field.getFieldType().getTypeDescriptor();
+        EncodedValue initialValue = field.getInitialValue();
 
         if (setInStaticConstructor &&
-            encodedField.isStatic() &&
-            (encodedField.accessFlags & AccessFlags.FINAL.getValue()) != 0 &&
-            initialValue != null &&
+            ((field.getAccessFlags() & AccessFlags.STATIC.getValue()) != 0) &&
+            ((field.getAccessFlags() & AccessFlags.FINAL.getValue()) != 0) &&
+            field.getInitialValue() != null &&
             (
                 //it's a primitive type, or it's an array/reference type and the initial value isn't null
-                fieldTypeDescriptor.length() == 1 ||
+                field.getType().length() == 1 ||
                 initialValue != NullEncodedValue.NullValue
             )) {
 
@@ -59,28 +57,29 @@ public class FieldDefinition {
         }
 
         writer.write(".field ");
-        writeAccessFlags(writer, encodedField);
-        writer.write(encodedField.field.getFieldName().getStringValue());
+        writeAccessFlags(writer, field.getAccessFlags());
+        writer.write(field.getName());
         writer.write(':');
-        writer.write(encodedField.field.getFieldType().getTypeDescriptor());
-        if (initialValue != null) {
+        writer.write(field.getType());
+        //TODO: uncomment
+        /*if (initialValue != null) {
             writer.write(" = ");
             EncodedValueAdaptor.writeTo(writer, initialValue);
-        }
+        }*/
 
         writer.write('\n');
 
-        if (annotationSet != null) {
+        //TODO: uncomment
+        /*if (annotationSet != null) {
             writer.indent(4);
             AnnotationFormatter.writeTo(writer, annotationSet);
             writer.deindent(4);
             writer.write(".end field\n");
-        }
+        }*/
     }
 
-    private static void writeAccessFlags(IndentingWriter writer, ClassDataItem.EncodedField encodedField)
-                                                                                                 throws IOException {
-        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(encodedField.accessFlags)) {
+    private static void writeAccessFlags(IndentingWriter writer, int accessFlags) throws IOException {
+        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(accessFlags)) {
             writer.write(accessFlag.toString());
             writer.write(' ');
         }

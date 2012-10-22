@@ -29,8 +29,9 @@
 package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
-import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.DexFile;
+import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
@@ -270,9 +271,11 @@ public class main {
             Opcode.updateMapsForApiLevel(apiLevel);
 
             //Read in and parse the dex file
-            DexFile dexFile = new DexFile(dexFileFile, !fixRegisters, false);
+            //TODO: add "fix registers" functionality?
+            DexFile dexFile = DexFileFactory.loadDexFile(dexFileFile);
 
-            if (dexFile.isOdex()) {
+            //TODO: uncomment
+            /*if (dexFile.isOdex()) {
                 if (doDump) {
                     System.err.println("-D cannot be used with on odex file. Ignoring -D");
                 }
@@ -284,13 +287,13 @@ public class main {
                     System.err.println("won't be able to re-assemble the results unless you deodex it with the -x");
                     System.err.println("option");
                 }
-            } else {
+            } else {*/
                 deodex = false;
 
                 if (bootClassPath == null) {
                     bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
                 }
-            }
+            //}
 
             if (disassemble) {
                 String[] bootClassPathDirsArray = new String[bootClassPathDirs.size()];
@@ -304,7 +307,8 @@ public class main {
                         noAccessorComments, registerInfo, verify, ignoreErrors, inlineTable, checkPackagePrivateAccess);
             }
 
-            if ((doDump || write) && !dexFile.isOdex()) {
+            //TODO: uncomment
+            /*if ((doDump || write) && !dexFile.isOdex()) {
                 try
                 {
                     dump.dump(dexFile, dumpFileName, outputDexFileName, sort);
@@ -312,7 +316,7 @@ public class main {
                     System.err.println("Error occured while writing dump file");
                     ex.printStackTrace();
                 }
-            }
+            }*/
         } catch (RuntimeException ex) {
             System.err.println("\n\nUNEXPECTED TOP-LEVEL EXCEPTION:");
             ex.printStackTrace();
