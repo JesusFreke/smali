@@ -142,6 +142,90 @@ public final class Utf8Utils {
                         return throwBadUtf8(v2, at + 2);
                     }
                     int value = ((v0 & 0x0f) << 12) | ((v1 & 0x3f) << 6) |
+                            (v2 & 0x3f);
+                    if (value < 0x800) {
+                        /*
+                         * This should have been represented with one- or
+                         * two-byte encoding.
+                         */
+                        return throwBadUtf8(v2, at + 2);
+                    }
+                    out = (char) value;
+                    at += 3;
+                    break;
+                }
+                default: {
+                    // 10XXXXXX, 1111XXXX -- illegal
+                    return throwBadUtf8(v0, at);
+                }
+            }
+            chars[outAt] = out;
+            outAt++;
+        }
+
+        return new String(chars, 0, outAt);
+    }
+
+    /**
+     * Converts an array of UTF-8 bytes into a string.
+     *
+     * @param bytes non-null; the bytes to convert
+     * @param start the start index of the utf8 string to convert
+     * @param utf16Length the number of utf16 characters in the string to decode
+     * @return non-null; the converted string
+     */
+    public static String utf8BytesWithUtf16LengthToString(byte[] bytes, int start, int utf16Length) {
+        char[] chars = localBuffer.get();
+        if (chars == null || chars.length < utf16Length) {
+            chars = new char[utf16Length];
+            localBuffer.set(chars);
+        }
+        int outAt = 0;
+
+        for (int at = start; utf16Length > 0; utf16Length--) {
+            int v0 = bytes[at] & 0xFF;
+            char out;
+            switch (v0 >> 4) {
+                case 0x00: case 0x01: case 0x02: case 0x03:
+                case 0x04: case 0x05: case 0x06: case 0x07: {
+                    // 0XXXXXXX -- single-byte encoding
+                    if (v0 == 0) {
+                        // A single zero byte is illegal.
+                        return throwBadUtf8(v0, at);
+                    }
+                    out = (char) v0;
+                    at++;
+                    break;
+                }
+                case 0x0c: case 0x0d: {
+                    // 110XXXXX -- two-byte encoding
+                    int v1 = bytes[at + 1] & 0xFF;
+                    if ((v1 & 0xc0) != 0x80) {
+                        return throwBadUtf8(v1, at + 1);
+                    }
+                    int value = ((v0 & 0x1f) << 6) | (v1 & 0x3f);
+                    if ((value != 0) && (value < 0x80)) {
+                        /*
+                         * This should have been represented with
+                         * one-byte encoding.
+                         */
+                        return throwBadUtf8(v1, at + 1);
+                    }
+                    out = (char) value;
+                    at += 2;
+                    break;
+                }
+                case 0x0e: {
+                    // 1110XXXX -- three-byte encoding
+                    int v1 = bytes[at + 1] & 0xFF;
+                    if ((v1 & 0xc0) != 0x80) {
+                        return throwBadUtf8(v1, at + 1);
+                    }
+                    int v2 = bytes[at + 2] & 0xFF;
+                    if ((v2 & 0xc0) != 0x80) {
+                        return throwBadUtf8(v2, at + 2);
+                    }
+                    int value = ((v0 & 0x0f) << 12) | ((v1 & 0x3f) << 6) |
                         (v2 & 0x3f);
                     if (value < 0x800) {
                         /*
