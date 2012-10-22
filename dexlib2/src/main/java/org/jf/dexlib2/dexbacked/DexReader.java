@@ -174,6 +174,13 @@ public class DexReader {
         return result;
     }
 
+    public int readOptionalUint() {
+        int o = offset;
+        int result = dexBuf.readOptionalUint(o);
+        offset = o + 4;
+        return result;
+    }
+
     public int readUshort() {
         int o = offset;
         int result = dexBuf.readUshort(offset);

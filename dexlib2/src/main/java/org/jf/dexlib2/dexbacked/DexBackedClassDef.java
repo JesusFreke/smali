@@ -69,9 +69,9 @@ public class DexBackedClassDef implements ClassDef {
 
         this.name = dexBuf.getType(dexBuf.readSmallUint(classDefOffset));
         this.accessFlags = dexBuf.readSmallUint(classDefOffset + ACCESS_FLAGS_OFFSET);
-        this.superclass = dexBuf.getOptionalString(dexBuf.readSmallUint(classDefOffset + SUPERCLASS_OFFSET));
+        this.superclass = dexBuf.getOptionalString(dexBuf.readOptionalUint(classDefOffset + SUPERCLASS_OFFSET));
         this.interfacesOffset = dexBuf.readSmallUint(classDefOffset + INTERFACES_OFFSET);
-        this.sourceFile = dexBuf.getOptionalString(dexBuf.readSmallUint(classDefOffset + SOURCE_FILE_OFFSET));
+        this.sourceFile = dexBuf.getOptionalString(dexBuf.readOptionalUint(classDefOffset + SOURCE_FILE_OFFSET));
 
         int annotationsDirectoryOffset = dexBuf.readSmallUint(classDefOffset + ANNOTATIONS_OFFSET);
         this.annotationsDirectory = AnnotationsDirectory.newOrEmpty(dexBuf, annotationsDirectoryOffset);

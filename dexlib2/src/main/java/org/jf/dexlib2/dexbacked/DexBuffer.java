@@ -104,7 +104,19 @@ public class DexBuffer {
                      ((buf[offset+2] & 0xff) << 16) |
                      ((buf[offset+3]) << 24);
         if (result < 0) {
-            throw new ExceptionWithContext("Encountered uint that is out of range at offset 0x%x", offset);
+            throw new ExceptionWithContext("Encountered small uint that is out of range at offset 0x%x", offset);
+        }
+        return result;
+    }
+
+    public int readOptionalUint(int offset) {
+        byte[] buf = this.buf;
+        int result = (buf[offset] & 0xff) |
+                ((buf[offset+1] & 0xff) << 8) |
+                ((buf[offset+2] & 0xff) << 16) |
+                ((buf[offset+3]) << 24);
+        if (result < -1) {
+            throw new ExceptionWithContext("Encountered optional uint that is out of range at offset 0x%x", offset);
         }
         return result;
     }

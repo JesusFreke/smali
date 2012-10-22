@@ -71,6 +71,39 @@ public class DexBufferTest {
     }
 
     @Test
+    public void testReadOptionalUintSuccess() {
+        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x11, 0x22, 0x33, 0x44});
+        Assert.assertEquals(0x44332211, dexBuf.readSmallUint(0));
+
+        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00});
+        Assert.assertEquals(0, dexBuf.readSmallUint(0));
+
+        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, 0x7f});
+        Assert.assertEquals(0x7fffffff, dexBuf.readSmallUint(0));
+
+        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
+        Assert.assertEquals(-1, dexBuf.readOptionalUint(0));
+    }
+
+    @Test(expected=ExceptionWithContext.class)
+    public void testReadOptionalUintTooLarge1() {
+        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, (byte)0x80});
+        dexBuf.readSmallUint(0);
+    }
+
+    @Test(expected=ExceptionWithContext.class)
+    public void testReadOptionalUintTooLarge2() {
+        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0x80});
+        dexBuf.readSmallUint(0);
+    }
+
+    @Test(expected=ExceptionWithContext.class)
+    public void testReadOptionalUintTooLarge3() {
+        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {(byte)0xfe, (byte)0xff, (byte)0xff, (byte)0xff});
+        dexBuf.readSmallUint(0);
+    }
+
+    @Test
     public void testReadUshort() {
         BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x11, 0x22});
         Assert.assertEquals(dexBuf.readUshort(0), 0x2211);
