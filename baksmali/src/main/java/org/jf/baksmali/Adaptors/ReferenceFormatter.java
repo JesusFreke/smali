@@ -30,7 +30,7 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.util.IndentingWriter;
 import org.jf.dexlib.*;
-import org.jf.dexlib.Util.Utf8Utils;
+import org.jf.util.StringUtils;
 
 import java.io.IOException;
 
@@ -69,7 +69,7 @@ public class ReferenceFormatter {
 
     public static void writeStringReference(IndentingWriter writer, StringIdItem item) throws IOException {
         writer.write('"');
-        Utf8Utils.writeEscapedString(writer, item.getStringValue());
+        StringUtils.writeEscapedString(writer, item.getStringValue());
         writer.write('"');
     }
 

@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.dexlib.Util.Utf8Utils;
+import org.jf.util.StringUtils;
 import org.jf.util.CommentingIndentingWriter;
 import org.jf.util.IndentingWriter;
 import org.jf.dexlib.*;
@@ -131,7 +131,7 @@ public class ClassDefinition {
         StringIdItem sourceFile = classDefItem.getSourceFile();
         if (sourceFile != null) {
             writer.write(".source \"");
-            Utf8Utils.writeEscapedString(writer, sourceFile.getStringValue());
+            StringUtils.writeEscapedString(writer, sourceFile.getStringValue());
             writer.write("\"\n");
         }
     }

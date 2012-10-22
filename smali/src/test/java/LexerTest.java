@@ -30,7 +30,6 @@ import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
-import org.jf.dexlib.Util.Utf8Utils;
 import org.jf.smali.*;
 import static org.jf.smali.expectedTokensTestGrammarParser.ExpectedToken;
 import org.junit.Assert;

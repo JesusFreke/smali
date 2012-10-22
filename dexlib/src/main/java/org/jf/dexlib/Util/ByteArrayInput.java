@@ -26,6 +26,7 @@ package org.jf.dexlib.Util;
 
 import org.jf.util.AlignmentUtils;
 import org.jf.util.ExceptionWithContext;
+import org.jf.util.Utf8Utils;
 
 /**
  * Implementation of {@link Input} which reads the data from a
