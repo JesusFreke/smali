@@ -40,8 +40,16 @@ public class DexBuffer {
     // TODO: consider using a direct ByteBuffer instead
     @Nonnull protected final byte[] buf;
 
-    public DexBuffer(@Nonnull byte[] buf) {
+    protected DexBuffer(@Nonnull byte[] buf, boolean bare) {
         this.buf = buf;
+
+        if (!bare) {
+            // read header, verify magic, etc. etc.
+        }
+    }
+
+    public DexBuffer(@Nonnull byte[] buf) {
+        this(buf, false);
     }
 
     public int getFieldIdItemOffset(int fieldIndex) {
