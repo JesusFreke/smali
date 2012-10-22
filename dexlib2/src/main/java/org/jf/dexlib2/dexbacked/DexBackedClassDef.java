@@ -161,7 +161,7 @@ public class DexBackedClassDef implements ClassDef {
 
     @Nonnull
     @Override
-    public List<? extends Method> getMethods() {
+    public List<? extends DexBackedMethod> getMethods() {
         if (classDataOffset > 0) {
             DexReader reader = dexBuf.readerAt(classDataOffset);
             int staticFieldCount = reader.readSmallUleb128();

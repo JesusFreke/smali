@@ -47,14 +47,14 @@ public class DexBackedDexFile implements DexFile {
 
     @Nonnull
     @Override
-    public List<? extends ClassDef> getClasses() {
+    public List<? extends DexBackedClassDef> getClasses() {
         final int classCount = dexBuf.getClassCount();
 
-        return new FixedSizeList<ClassDef>() {
+        return new FixedSizeList<DexBackedClassDef>() {
             @Nonnull
             @Override
-            public ClassDef readItem(int index) {
-                int classOffset = dexBuf.getClassDefOffset(index);
+            public DexBackedClassDef readItem(int index) {
+                int classOffset = dexBuf.getClassDefItemOffset(index);
                 return new DexBackedClassDef(dexBuf, classOffset);
             }
 
