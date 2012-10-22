@@ -76,7 +76,7 @@ public class DexBackedClassDef implements ClassDef {
         int annotationsDirectoryOffset = dexBuf.readSmallUint(classDefOffset + ANNOTATIONS_OFFSET);
         this.annotationsDirectory = AnnotationsDirectory.newOrEmpty(dexBuf, annotationsDirectoryOffset);
 
-        this.classDataOffset = dexBuf.readSmallUint(CLASS_DATA_OFFSET);
+        this.classDataOffset = dexBuf.readSmallUint(classDefOffset + CLASS_DATA_OFFSET);
         this.staticInitialValuesOffset = dexBuf.readSmallUint(classDefOffset + STATIC_INITIAL_VALUES_OFFSET);
     }
 
