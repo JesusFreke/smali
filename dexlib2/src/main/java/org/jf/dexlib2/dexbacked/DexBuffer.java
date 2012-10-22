@@ -31,20 +31,103 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.dexlib2.ReferenceType;
 import org.jf.util.ExceptionWithContext;
+import org.jf.util.Utf8Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class DexBuffer {
     // TODO: consider using a direct ByteBuffer instead
-    @Nonnull protected final byte[] buf;
+    @Nonnull /* package private */ final byte[] buf;
+    private final int stringCount;
+    private final int stringStartOffset;
+    private final int typeCount;
+    private final int typeStartOffset;
+    private final int protoCount;
+    private final int protoStartOffset;
+    private final int fieldCount;
+    private final int fieldStartOffset;
+    private final int methodCount;
+    private final int methodStartOffset;
+    private final int classCount;
+    private final int classStartOffset;
+
+    private static final byte[][] MAGIC_VALUES= new byte[][] {
+            new byte[]{0x64, 0x65, 0x78, 0x0a, 0x30, 0x33, 0x35, 0x00},
+            new byte[]{0x64, 0x65, 0x78, 0x0a, 0x30, 0x33, 0x36, 0x00}};
+
+    private static final int LITTLE_ENDIAN_TAG = 0x12345678;
+    private static final int BIG_ENDIAN_TAG = 0x78563412;
+
+    private static final int ENDIAN_TAG_OFFSET = 40;
+    private static final int STRING_COUNT_OFFSET = 56;
+    private static final int STRING_START_OFFSET = 60;
+    private static final int TYPE_COUNT_OFFSET = 64;
+    private static final int TYPE_START_OFFSET = 68;
+    private static final int PROTO_COUNT_OFFSET = 72;
+    private static final int PROTO_START_OFFSET = 76;
+    private static final int FIELD_COUNT_OFFSET = 80;
+    private static final int FIELD_START_OFFSET = 84;
+    private static final int METHOD_COUNT_OFFSET = 88;
+    private static final int METHOD_START_OFFSET = 92;
+    private static final int CLASS_COUNT_OFFSET = 96;
+    private static final int CLASS_START_OFFSET = 100;
+
+    private static final int STRING_ID_ITEM_SIZE = 4;
+    private static final int TYPE_ID_ITEM_SIZE = 4;
+    private static final int PROTO_ID_ITEM_SIZE = 12;
+    private static final int FIELD_ID_ITEM_SIZE = 8;
+    private static final int METHOD_ID_ITEM_SIZE = 8;
+    private static final int CLASS_DEF_ITEM_SIZE = 32;
+
+    private static final int FIELD_CLASS_IDX_OFFSET = 0;
+    private static final int FIELD_TYPE_IDX_OFFSET = 2;
+    private static final int FIELD_NAME_IDX_OFFSET = 4;
+
+    private static final int METHOD_CLASS_IDX_OFFSET = 0;
+    private static final int METHOD_PROTO_IDX_OFFSET = 2;
+    private static final int METHOD_NAME_IDX_OFFSET = 4;
+
+    private static final int PROTO_RETURN_TYPE_IDX_OFFSET = 4;
+    private static final int PROTO_PARAM_LIST_OFF_OFFSET = 8;
+
+    private static final int TYPE_LIST_SIZE_OFFSET = 0;
+    private static final int TYPE_LIST_LIST_OFFSET = 4;
+
 
     protected DexBuffer(@Nonnull byte[] buf, boolean bare) {
         this.buf = buf;
 
         if (!bare) {
-            // read header, verify magic, etc. etc.
+            verifyMagic();
+            verifyEndian();
+            stringCount = readSmallUint(STRING_COUNT_OFFSET);
+            stringStartOffset = readSmallUint(STRING_START_OFFSET);
+            typeCount = readSmallUint(TYPE_COUNT_OFFSET);
+            typeStartOffset = readSmallUint(TYPE_START_OFFSET);
+            protoCount = readSmallUint(PROTO_COUNT_OFFSET);
+            protoStartOffset = readSmallUint(PROTO_START_OFFSET);
+            fieldCount = readSmallUint(FIELD_COUNT_OFFSET);
+            fieldStartOffset = readSmallUint(FIELD_START_OFFSET);
+            methodCount = readSmallUint(METHOD_COUNT_OFFSET);
+            methodStartOffset = readSmallUint(METHOD_START_OFFSET);
+            classCount = readSmallUint(CLASS_COUNT_OFFSET);
+            classStartOffset = readSmallUint(CLASS_START_OFFSET);
+        } else {
+            stringCount = 0;
+            stringStartOffset = 0;
+            typeCount = 0;
+            typeStartOffset = 0;
+            protoCount = 0;
+            protoStartOffset = 0;
+            fieldCount = 0;
+            fieldStartOffset = 0;
+            methodCount = 0;
+            methodStartOffset = 0;
+            classCount = 0;
+            classStartOffset = 0;
         }
     }
 
@@ -52,49 +135,167 @@ public class DexBuffer {
         this(buf, false);
     }
 
+    private void verifyMagic() {
+        outer: for (byte[] magic: MAGIC_VALUES) {
+            for (int i=0; i<magic.length; i++) {
+                if (buf[i] != magic[i]) {
+                    continue outer;
+                }
+            }
+            return;
+        }
+        StringBuilder sb = new StringBuilder("Invalid magic value:");
+        for (int i=0; i<8; i++) {
+            sb.append(String.format(" %02x", buf[i]));
+        }
+        throw new ExceptionWithContext(sb.toString());
+    }
+
+    private void verifyEndian() {
+        int endian = readInt(ENDIAN_TAG_OFFSET);
+        if (endian == BIG_ENDIAN_TAG) {
+            throw new ExceptionWithContext("dexlib does not currently support big endian dex files.");
+        } else if (endian != LITTLE_ENDIAN_TAG) {
+            StringBuilder sb = new StringBuilder("Invalid endian tag:");
+            for (int i=0; i<4; i++) {
+                sb.append(String.format(" %02x", buf[ENDIAN_TAG_OFFSET+i]));
+            }
+            throw new ExceptionWithContext(sb.toString());
+        }
+    }
+
+    public int getStringIdItemOffset(int stringIndex) {
+        if (stringIndex < 0 || stringIndex >= stringCount) {
+            throw new ExceptionWithContext("String index out of bounds: %d", stringIndex);
+        }
+        return stringStartOffset + stringIndex*STRING_ID_ITEM_SIZE;
+    }
+
+    public int getTypeIdItemOffset(int typeIndex) {
+        if (typeIndex < 0 || typeIndex >= typeCount) {
+            throw new ExceptionWithContext("Type index out of bounds: %d", typeIndex);
+        }
+        return typeStartOffset + typeIndex*TYPE_ID_ITEM_SIZE;
+    }
+
     public int getFieldIdItemOffset(int fieldIndex) {
-        return 0;
+        if (fieldIndex < 0 || fieldIndex >= fieldCount) {
+            throw new ExceptionWithContext("Field index out of bounds: %d", fieldIndex);
+        }
+        return fieldStartOffset + fieldIndex*FIELD_ID_ITEM_SIZE;
     }
 
     public int getMethodIdItemOffset(int methodIndex) {
-        return 0;
+        if (methodIndex < 0 || methodIndex >= methodCount) {
+            throw new ExceptionWithContext("Method index out of bounds: %d", methodIndex);
+        }
+        return methodStartOffset + methodIndex*METHOD_ID_ITEM_SIZE;
     }
 
-    public int getProtoIdItemOffset(int methodIndex) {
-        return 0;
+    public int getProtoIdItemOffset(int protoIndex) {
+        if (protoIndex < 0 || protoIndex >= protoCount) {
+            throw new ExceptionWithContext("Proto index out of bounds: %d", protoIndex);
+        }
+        return protoStartOffset + protoIndex*PROTO_ID_ITEM_SIZE;
     }
 
-    public int getClassDefOffset(int classIndex) {
-        return 0;
+    public int getClassDefItemOffset(int classIndex) {
+        if (classIndex < 0 || classIndex >= classCount) {
+            throw new ExceptionWithContext("Class index out of bounds: %d", classIndex);
+        }
+        return classStartOffset + classIndex*CLASS_DEF_ITEM_SIZE;
     }
 
     public int getClassCount() {
-        return 0;
+        return classCount;
     }
 
+    @Nonnull
     public String getString(int stringIndex) {
-        return null;
+        int stringOffset = getStringIdItemOffset(stringIndex);
+        int stringDataOffset = readSmallUint(stringOffset);
+        DexReader reader = readerAt(stringDataOffset);
+        int utf16Length = reader.readSmallUleb128();
+        return Utf8Utils.utf8BytesToString(buf, reader.getOffset(), utf16Length);
     }
 
     @Nullable
     public String getOptionalString(int stringIndex) {
-        return null;
+        if (stringIndex == -1) {
+            return null;
+        }
+        return getString(stringIndex);
     }
 
+    @Nonnull
     public String getType(int typeIndex) {
-        return null;
+        int typeOffset = getTypeIdItemOffset(typeIndex);
+        int stringIndex = readSmallUint(typeOffset);
+        return getString(stringIndex);
     }
 
+    @Nonnull
     public String getField(int fieldIndex) {
-        return null;
+        int fieldOffset = getFieldIdItemOffset(fieldIndex);
+        String className = getType(readUshort(fieldOffset + FIELD_CLASS_IDX_OFFSET));
+        String fieldType = getType(readUshort(fieldOffset + FIELD_TYPE_IDX_OFFSET));
+        String fieldName = getString(readUshort(fieldOffset + FIELD_NAME_IDX_OFFSET));
+
+        StringBuilder sb = localStringBuilder.get();
+        sb.setLength(0);
+        sb.append(className);
+        sb.append("->");
+        sb.append(fieldName);
+        sb.append(":");
+        sb.append(fieldType);
+        return sb.toString();
     }
 
+    @Nonnull
     public String getMethod(int methodIndex) {
-        return null;
+        int methodOffset = getMethodIdItemOffset(methodIndex);
+        String className = getType(readUshort(methodOffset + METHOD_CLASS_IDX_OFFSET));
+        String methodName = getString(readSmallUint(methodOffset + METHOD_NAME_IDX_OFFSET));
+
+        int protoOffset = getProtoIdItemOffset(readUshort(methodOffset + METHOD_PROTO_IDX_OFFSET));
+        String returnType = getType(readSmallUint(protoOffset + PROTO_RETURN_TYPE_IDX_OFFSET));
+        int parametersOffset = readSmallUint(protoOffset + PROTO_PARAM_LIST_OFF_OFFSET);
+
+        StringBuilder sb = localStringBuilder.get();
+        sb.setLength(0);
+        sb.append(className);
+        sb.append("->");
+        sb.append(methodName);
+        sb.append("(");
+
+        if (parametersOffset > 0) {
+            int parameterCount = readSmallUint(parametersOffset + TYPE_LIST_SIZE_OFFSET);
+            int endOffset = parametersOffset + TYPE_LIST_LIST_OFFSET + parameterCount*2;
+
+            for (int off=parametersOffset+TYPE_LIST_LIST_OFFSET; off<endOffset; off+=2) {
+                int parameterTypeIndex = readUshort(off);
+                sb.append(getType(parameterTypeIndex));
+            }
+        }
+
+        sb.append(")");
+        return sb.toString();
     }
 
+    @Nonnull
     public String getReference(int referenceType, int referenceIndex) {
-        return null;
+        switch (referenceType) {
+            case ReferenceType.STRING:
+                return getString(referenceIndex);
+            case ReferenceType.TYPE:
+                return getType(referenceIndex);
+            case ReferenceType.FIELD:
+                return getField(referenceIndex);
+            case ReferenceType.METHOD:
+                return getMethod(referenceIndex);
+            default:
+                throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
+        }
     }
 
     public int readSmallUint(int offset) {
@@ -162,7 +363,12 @@ public class DexBuffer {
         return buf[offset];
     }
 
+    @Nonnull
     public DexReader readerAt(int offset) {
         return new DexReader(this, offset);
     }
+
+    private final ThreadLocal<StringBuilder> localStringBuilder = new ThreadLocal<StringBuilder>() {
+        @Override protected StringBuilder initialValue() { return new StringBuilder(256); }
+    };
 }

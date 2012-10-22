@@ -47,10 +47,14 @@ public class DexReader {
     @Nonnull public DexBuffer getDexBuffer() { return dexBuf; }
     public int getOffset() { return offset; }
 
-    public String getString(int stringIndex) { return dexBuf.getString(stringIndex); }
+    public int getStringIdItemOffset(int stringIndex) { return dexBuf.getStringIdItemOffset(stringIndex); }
+    public int getTypeIdItemOffset(int typeIndex) { return dexBuf.getTypeIdItemOffset(typeIndex); }
     public int getFieldIdItemOffset(int fieldIndex) { return dexBuf.getFieldIdItemOffset(fieldIndex); }
     public int getMethodIdItemOffset(int methodIndex) { return dexBuf.getMethodIdItemOffset(methodIndex); }
     public int getProtoIdItemOffset(int methodIndex) { return dexBuf.getProtoIdItemOffset(methodIndex); }
+    public int getClassDefItemOffset(int classIndex) { return dexBuf.getClassDefItemOffset(classIndex); }
+    public String getString(int stringIndex) { return dexBuf.getString(stringIndex); }
+    public String getOptionalString(int stringIndex) { return dexBuf.getOptionalString(stringIndex); }
     public String getType(int typeIndex) { return dexBuf.getType(typeIndex); }
     public String getField(int fieldIndex) { return dexBuf.getField(fieldIndex); }
     public String getMethod(int methodIndex) { return dexBuf.getMethod(methodIndex); }
