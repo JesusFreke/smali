@@ -65,12 +65,16 @@ public final class Utf8Utils {
         return result;
     }
 
-    private static char[] tempBuffer = null;
+    private static final ThreadLocal<char[]> localBuffer =
+            new ThreadLocal<char[]> () {
+                @Override protected char[] initialValue() {
+                    // A reasonably sized initial value
+                    return new char[256];
+                }
+            };
 
     /**
      * Converts an array of UTF-8 bytes into a string.
-     *
-     * This method uses a global buffer to avoid having to allocate one every time, so it is *not* thread-safe
      *
      * @param bytes non-null; the bytes to convert
      * @param start the start index of the utf8 string to convert
@@ -78,10 +82,11 @@ public final class Utf8Utils {
      * @return non-null; the converted string
      */
     public static String utf8BytesToString(byte[] bytes, int start, int length) {
-        if (tempBuffer == null || tempBuffer.length < length) {
-            tempBuffer = new char[length];
+        char[] chars = localBuffer.get();
+        if (chars == null || chars.length < length) {
+            chars = new char[length];
+            localBuffer.set(chars);
         }
-        char[] chars = tempBuffer;
         int outAt = 0;
 
         for (int at = start; length > 0; /*at*/) {
