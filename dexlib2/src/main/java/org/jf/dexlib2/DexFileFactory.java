@@ -31,25 +31,73 @@
 
 package org.jf.dexlib2;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.iface.DexFile;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public abstract class DexFileFactory {
     @Nonnull
-    public static DexFile readDexFile(String path) throws IOException {
-        return readDexFile(new File(path));
+    public static DexFile loadDexFile(String path) throws IOException {
+        return loadDexFile(new File(path));
     }
 
     @Nonnull
-    public static DexFile readDexFile(File dexFile) throws IOException {
-        byte[] buffer = Files.toByteArray(dexFile);
-        DexBuffer dexBuf = new DexBuffer(buffer);
+    public static DexFile loadDexFile(File dexFile) throws IOException {
+        boolean isZipFile = false;
+        byte[] dexBytes = null;
+        ZipFile zipFile = null;
+        boolean zipSuccess = false;
+        try {
+            zipFile = new ZipFile(dexFile);
+            // if we get here, it's safe to assume we have a zip file
+            isZipFile = true;
+
+            ZipEntry zipEntry = zipFile.getEntry("classes.dex");
+            if (zipEntry == null) {
+                throw new ExceptionWithContext("zip file %s does not contain a classes.dex file", dexFile.getName());
+            }
+            long fileLength = zipEntry.getSize();
+            if (fileLength < 40) {
+                throw new ExceptionWithContext(
+                        "The classes.dex file in %s is too small to be a valid dex file", dexFile.getName());
+            } else if (fileLength > Integer.MAX_VALUE) {
+                throw new ExceptionWithContext("The classes.dex file in %s is too large to read in", dexFile.getName());
+            }
+            dexBytes = new byte[(int)fileLength];
+            ByteStreams.readFully(zipFile.getInputStream(zipEntry), dexBytes);
+            zipSuccess = true;
+        } catch (IOException ex) {
+            if (isZipFile) {
+                throw ex;
+            }
+        } finally {
+            if (zipFile != null) {
+                try {
+                    zipFile.close();
+                } catch (IOException ex) {
+                    // just eat it
+                }
+            }
+        }
+
+        if (!zipSuccess) {
+            // nope, it doesn't looks like a zip file. Let's see if it's a dex file
+            dexBytes = Files.toByteArray(dexFile);
+        }
+
+        DexBuffer dexBuf = new DexBuffer(dexBytes);
         return new DexBackedDexFile(dexBuf);
     }
 }
