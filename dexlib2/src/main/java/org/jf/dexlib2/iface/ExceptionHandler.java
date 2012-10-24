@@ -35,5 +35,5 @@ import javax.annotation.Nullable;
 
 public interface ExceptionHandler {
     @Nullable String getExceptionType();
-    int getHandlerIndex();
+    int getHandlerCodeOffset();
 }

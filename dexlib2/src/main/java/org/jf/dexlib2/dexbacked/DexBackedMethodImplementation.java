@@ -34,7 +34,6 @@ package org.jf.dexlib2.dexbacked;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.dexbacked.util.InstructionOffsetMap;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -50,7 +49,6 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     public final int registerCount;
     @Nonnull public final ImmutableList<? extends Instruction> instructions;
-    @Nonnull private final InstructionOffsetMap instructionOffsetMap;
 
     // code_item offsets
     private static final int TRIES_SIZE_OFFSET = 6;
@@ -66,7 +64,6 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         this.registerCount = dexBuf.readUshort(codeOffset);
 
         instructions = buildInstructionList();
-        instructionOffsetMap = buildInstructionOffsetMap();
     }
 
     @Override public int getRegisterCount() { return registerCount; }
@@ -88,8 +85,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
                 public TryBlock readItem(int index) {
                     return new DexBackedTryBlock(dexBuf,
                             triesStartOffset + index*TRY_ITEM_SIZE,
-                            handlersStartOffset,
-                            instructionOffsetMap);
+                            handlersStartOffset);
                 }
 
                 @Override
@@ -117,24 +113,5 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         }
 
         return ImmutableList.copyOf(instructions);
-    }
-
-    /**
-     * Builds an InstructionOffsetMap that maps an instruction offset to its index.
-     *
-     * This must be called after the instructions field has been set
-     *
-     * @return An InstructionOffsetMap object
-     */
-    @Nonnull
-    private InstructionOffsetMap buildInstructionOffsetMap() {
-        int[] offsets = new int[instructions.size()];
-        int currentOffset = 0;
-        for (int i=0; i<offsets.length; i++) {
-            offsets[i] = currentOffset;
-            // TODO: need to handle variable size instructions
-            currentOffset += instructions.get(i).getOpcode().format.size;
-        }
-        return new InstructionOffsetMap(offsets);
     }
 }

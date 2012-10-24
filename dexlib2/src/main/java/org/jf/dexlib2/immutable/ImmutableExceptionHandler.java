@@ -41,12 +41,12 @@ import java.util.List;
 
 public class ImmutableExceptionHandler implements ExceptionHandler {
     @Nullable public final String exceptionType;
-    public final int handlerIndex;
+    public final int handlerCodeOffset;
 
     public ImmutableExceptionHandler(@Nullable String exceptionType,
-                                     int handlerIndex) {
+                                     int handlerCodeOffset) {
         this.exceptionType = exceptionType;
-        this.handlerIndex = handlerIndex;
+        this.handlerCodeOffset = handlerCodeOffset;
     }
 
     public static ImmutableExceptionHandler of(ExceptionHandler exceptionHandler) {
@@ -55,11 +55,11 @@ public class ImmutableExceptionHandler implements ExceptionHandler {
         }
         return new ImmutableExceptionHandler(
                 exceptionHandler.getExceptionType(),
-                exceptionHandler.getHandlerIndex());
+                exceptionHandler.getHandlerCodeOffset());
     }
 
     @Nullable @Override public String getExceptionType() { return exceptionType; }
-    @Override public int getHandlerIndex() { return handlerIndex; }
+    @Override public int getHandlerCodeOffset() { return handlerCodeOffset; }
 
     @Nonnull
     public static ImmutableList<ImmutableExceptionHandler> immutableListOf(List<? extends ExceptionHandler> list) {

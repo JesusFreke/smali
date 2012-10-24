@@ -42,23 +42,23 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableTryBlock implements TryBlock {
-    public final int startIndex;
-    public final int instructionCount;
+    public final int startCodeOffset;
+    public final int codeUnitCount;
     @Nonnull public final ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers;
 
-    public ImmutableTryBlock(int startIndex,
-                             int instructionCount,
+    public ImmutableTryBlock(int startCodeOffset,
+                             int codeUnitCount,
                              @Nullable List<? extends ExceptionHandler> exceptionHandlers) {
-        this.startIndex = startIndex;
-        this.instructionCount = instructionCount;
+        this.startCodeOffset = startCodeOffset;
+        this.codeUnitCount = codeUnitCount;
         this.exceptionHandlers = ImmutableExceptionHandler.immutableListOf(exceptionHandlers);
     }
 
-    public ImmutableTryBlock(int startIndex,
-                             int instructionCount,
+    public ImmutableTryBlock(int startCodeOffset,
+                             int codeUnitCount,
                              @Nullable ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers) {
-        this.startIndex = startIndex;
-        this.instructionCount = instructionCount;
+        this.startCodeOffset = startCodeOffset;
+        this.codeUnitCount = codeUnitCount;
         this.exceptionHandlers = Objects.firstNonNull(exceptionHandlers, ImmutableList.<ImmutableExceptionHandler>of());
     }
 
@@ -67,13 +67,13 @@ public class ImmutableTryBlock implements TryBlock {
             return (ImmutableTryBlock)tryBlock;
         }
         return new ImmutableTryBlock(
-                tryBlock.getStartIndex(),
-                tryBlock.getInstructionCount(),
+                tryBlock.getStartCodeOffset(),
+                tryBlock.getCodeUnitCount(),
                 tryBlock.getExceptionHandlers());
     }
 
-    @Override public int getStartIndex() { return startIndex; }
-    @Override public int getInstructionCount() { return instructionCount; }
+    @Override public int getStartCodeOffset() { return startCodeOffset; }
+    @Override public int getCodeUnitCount() { return codeUnitCount; }
 
     @Nonnull @Override public ImmutableList<? extends ImmutableExceptionHandler> getExceptionHandlers() {
         return exceptionHandlers;

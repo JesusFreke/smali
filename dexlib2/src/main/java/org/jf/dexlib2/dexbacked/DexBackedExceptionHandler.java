@@ -31,17 +31,14 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.util.InstructionOffsetMap;
 import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedExceptionHandler extends ImmutableExceptionHandler {
-    public DexBackedExceptionHandler(@Nonnull DexReader reader,
-                                     @Nonnull InstructionOffsetMap instructionOffsetMap) {
+    public DexBackedExceptionHandler(@Nonnull DexReader reader) {
         // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
-        super(reader.getType(reader.readSmallUleb128()),
-              instructionOffsetMap.getInstructionIndexAtOffsetExact(reader.readSmallUleb128()));
+        super(reader.getType(reader.readSmallUleb128()), reader.readSmallUleb128());
     }
 
     public static void skipFrom(@Nonnull DexReader reader) {

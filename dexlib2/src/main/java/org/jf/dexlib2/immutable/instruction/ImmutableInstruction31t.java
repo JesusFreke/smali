@@ -42,15 +42,15 @@ public class ImmutableInstruction31t extends ImmutableInstruction implements Ins
     public static final Format FORMAT = Format.Format31t;
 
     public final int registerA;
-    public final int offset;
+    public final int codeOffset;
 
     public ImmutableInstruction31t(@Nonnull Opcode opcode,
                                    int registerA,
-                                   int offset) {
+                                   int codeOffset) {
         super(opcode);
         Preconditions.checkFormat(opcode, FORMAT);
         this.registerA = Preconditions.checkByteRegister(registerA);
-        this.offset = offset;
+        this.codeOffset = codeOffset;
     }
 
     public static ImmutableInstruction31t of(Instruction31t instruction) {
@@ -60,11 +60,11 @@ public class ImmutableInstruction31t extends ImmutableInstruction implements Ins
         return new ImmutableInstruction31t(
                 instruction.getOpcode(),
                 instruction.getRegisterA(),
-                instruction.getOffset());
+                instruction.getCodeOffset());
     }
 
     @Override public int getRegisterA() { return registerA; }
-    @Override public int getOffset() { return offset; }
+    @Override public int getCodeOffset() { return codeOffset; }
 
     @Override public Format getFormat() { return FORMAT; }
 }

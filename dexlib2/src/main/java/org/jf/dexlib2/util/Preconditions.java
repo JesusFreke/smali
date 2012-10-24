@@ -107,7 +107,7 @@ public class Preconditions {
         return literal;
     }
 
-    public static int checkByteOffset(int register) {
+    public static int checkByteCodeOffset(int register) {
         if ((register & 0xFFFFFF00) != 0) {
             throw new IllegalArgumentException(
                     String.format("Invalid code offset: %d. Must be between -8 and 7, inclusive.", register));
@@ -115,7 +115,7 @@ public class Preconditions {
         return register;
     }
 
-    public static int checkShortOffset(int register) {
+    public static int checkShortCodeOffset(int register) {
         if ((register & 0xFFFF0000) != 0) {
             throw new IllegalArgumentException(
                     String.format("Invalid code offset: %d. Must be between -32768 and 32767, inclusive.", register));

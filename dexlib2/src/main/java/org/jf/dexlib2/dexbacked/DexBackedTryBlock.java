@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.util.InstructionOffsetMap;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
@@ -41,10 +40,9 @@ import java.util.List;
 
 public class DexBackedTryBlock implements TryBlock {
     @Nonnull public final DexBuffer dexBuf;
-    @Nonnull private final InstructionOffsetMap instructionOffsetMap;
 
-    public final int startIndex;
-    public final int instructionCount;
+    public final int startCodeOffset;
+    public final int codeUnitCount;
 
     private final int exceptionHandlersOffset;
 
@@ -54,29 +52,15 @@ public class DexBackedTryBlock implements TryBlock {
 
     public DexBackedTryBlock(@Nonnull DexBuffer dexBuf,
                              int tryItemOffset,
-                             int handlersStartOffset,
-                             @Nonnull InstructionOffsetMap instructionOffsetMap) {
+                             int handlersStartOffset) {
         this.dexBuf = dexBuf;
-        this.instructionOffsetMap = instructionOffsetMap;
-
-        int startOffset = dexBuf.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET);
-        // map the code unit offset to the instruction index
-        this.startIndex = instructionOffsetMap.getInstructionIndexAtOffsetExact(startOffset);
-
-        int codeUnitCount = dexBuf.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET);
-        // TODO: check if dalivk accepts insns_size = 0
-        if (codeUnitCount == 0) {
-            this.instructionCount = 0;
-        } else {
-            int lastIndex = instructionOffsetMap.getInstructionIndexAtOffset(startOffset + codeUnitCount - 1);
-            this.instructionCount = lastIndex - startIndex + 1;
-        }
-
+        this.startCodeOffset = dexBuf.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET);
+        this.codeUnitCount = dexBuf.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET);
         this.exceptionHandlersOffset = handlersStartOffset + dexBuf.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET);
     }
 
-    @Override public int getStartIndex() { return startIndex; }
-    @Override public int getInstructionCount() { return instructionCount; }
+    @Override public int getStartCodeOffset() { return startCodeOffset; }
+    @Override public int getCodeUnitCount() { return codeUnitCount; }
 
     @Nonnull
     @Override
@@ -90,7 +74,7 @@ public class DexBackedTryBlock implements TryBlock {
                 @Nonnull
                 @Override
                 protected ExceptionHandler readItem(@Nonnull DexReader reader, int index) {
-                    return new DexBackedExceptionHandler(reader, instructionOffsetMap);
+                    return new DexBackedExceptionHandler(reader);
                 }
 
                 @Override
@@ -108,9 +92,9 @@ public class DexBackedTryBlock implements TryBlock {
                 @Override
                 protected ExceptionHandler readItem(@Nonnull DexReader dexReader, int index) {
                     if (index == sizeWithCatchAll-1) {
-                        return new DexBackedCatchAllExceptionHandler(dexReader, instructionOffsetMap);
+                        return new DexBackedCatchAllExceptionHandler(dexReader);
                     } else {
-                        return new DexBackedExceptionHandler(dexReader, instructionOffsetMap);
+                        return new DexBackedExceptionHandler(dexReader);
                     }
                 }
 

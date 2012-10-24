@@ -41,13 +41,13 @@ import javax.annotation.Nonnull;
 public class ImmutableInstruction20t extends ImmutableInstruction implements Instruction20t {
     public static final Format FORMAT = Format.Format12x;
 
-    public final int offset;
+    public final int codeOffset;
 
     public ImmutableInstruction20t(@Nonnull Opcode opcode,
-                                   int offset) {
+                                   int codeOffset) {
         super(opcode);
         Preconditions.checkFormat(opcode, FORMAT);
-        this.offset = Preconditions.checkShortOffset(offset);
+        this.codeOffset = Preconditions.checkShortCodeOffset(codeOffset);
     }
 
     public static ImmutableInstruction20t of(Instruction20t instruction) {
@@ -56,9 +56,9 @@ public class ImmutableInstruction20t extends ImmutableInstruction implements Ins
         }
         return new ImmutableInstruction20t(
                 instruction.getOpcode(),
-                (byte)instruction.getOffset());
+                (byte)instruction.getCodeOffset());
     }
 
-    @Override public int getOffset() { return offset; }
+    @Override public int getCodeOffset() { return codeOffset; }
     @Override public Format getFormat() { return FORMAT; }
 }
