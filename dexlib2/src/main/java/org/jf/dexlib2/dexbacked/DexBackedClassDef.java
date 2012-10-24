@@ -34,7 +34,6 @@ package org.jf.dexlib2.dexbacked;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.dexbacked.util.*;
 import org.jf.dexlib2.iface.ClassDef;
-import org.jf.dexlib2.iface.Method;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

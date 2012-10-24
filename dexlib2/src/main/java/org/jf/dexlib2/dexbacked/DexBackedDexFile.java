@@ -32,7 +32,6 @@
 package org.jf.dexlib2.dexbacked;
 
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 
 import javax.annotation.Nonnull;

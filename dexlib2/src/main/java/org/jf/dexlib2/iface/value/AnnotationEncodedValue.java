@@ -33,7 +33,5 @@ package org.jf.dexlib2.iface.value;
 
 import org.jf.dexlib2.iface.BaseAnnotation;
 
-import javax.annotation.Nonnull;
-
 public interface AnnotationEncodedValue extends EncodedValue, BaseAnnotation {
 }
