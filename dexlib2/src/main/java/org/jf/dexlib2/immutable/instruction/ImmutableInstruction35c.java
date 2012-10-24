@@ -58,7 +58,7 @@ public class ImmutableInstruction35c extends ImmutableInstruction implements Ins
                                    int registerG,
                                    @Nonnull String reference) {
         super(opcode);
-        Preconditions.checkFormat(opcode, Format.Format35c);
+        Preconditions.checkFormat(opcode, FORMAT);
         this.registerCount = Preconditions.check35cRegisterCount(registerCount);
         this.registerC = (registerCount>0) ? Preconditions.checkNibbleRegister(registerC) : 0;
         this.registerD = (registerCount>1) ? Preconditions.checkNibbleRegister(registerD) : 0;

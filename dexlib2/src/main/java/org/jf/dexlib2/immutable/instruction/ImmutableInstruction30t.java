@@ -39,7 +39,7 @@ import org.jf.dexlib2.util.Preconditions;
 import javax.annotation.Nonnull;
 
 public class ImmutableInstruction30t extends ImmutableInstruction implements Instruction30t {
-    public static final Format FORMAT = Format.Format12x;
+    public static final Format FORMAT = Format.Format30t;
 
     public final int codeOffset;
 
