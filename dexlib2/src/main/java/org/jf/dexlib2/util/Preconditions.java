@@ -136,7 +136,7 @@ public class Preconditions {
     }
 
     public static int check3rcRegisterCount(int registerCount) {
-        if ((registerCount & 0xFFFFFF00) == 0) {
+        if ((registerCount & 0xFFFFFF00) != 0) {
             throw new IllegalArgumentException(
                     String.format("Invalid register count: %d. Must be between 0 and 255, inclusive.", registerCount));
         }
