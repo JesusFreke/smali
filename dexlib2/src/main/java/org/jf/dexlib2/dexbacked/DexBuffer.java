@@ -279,6 +279,7 @@ public class DexBuffer {
         }
 
         sb.append(")");
+        sb.append(returnType);
         return sb.toString();
     }
 
