@@ -29,18 +29,18 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
+import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.util.IndentingWriter;
-import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.EncodedValue.NullEncodedValue;
 import org.jf.dexlib.Util.AccessFlags;
 
 import java.io.IOException;
+import java.util.List;
 
 public class FieldDefinition {
     public static void writeTo(IndentingWriter writer, Field field, boolean setInStaticConstructor) throws IOException {
-
         EncodedValue initialValue = field.getInitialValue();
 
         if (setInStaticConstructor &&
@@ -61,21 +61,20 @@ public class FieldDefinition {
         writer.write(field.getName());
         writer.write(':');
         writer.write(field.getType());
-        //TODO: uncomment
-        /*if (initialValue != null) {
+        if (initialValue != null) {
             writer.write(" = ");
             EncodedValueAdaptor.writeTo(writer, initialValue);
-        }*/
+        }
 
         writer.write('\n');
 
-        //TODO: uncomment
-        /*if (annotationSet != null) {
+        List<? extends Annotation> annotations = field.getAnnotations();
+        if (annotations.size() > 0) {
             writer.indent(4);
-            AnnotationFormatter.writeTo(writer, annotationSet);
+            AnnotationFormatter.writeTo(writer, annotations);
             writer.deindent(4);
             writer.write(".end field\n");
-        }*/
+        }
     }
 
     private static void writeAccessFlags(IndentingWriter writer, int accessFlags) throws IOException {

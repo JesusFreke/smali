@@ -44,7 +44,7 @@ public class ReferenceFormatter {
                 writeFieldReference(writer, (FieldIdItem)item);
                 return;
             case TYPE_STRING_ID_ITEM:
-                writeStringReference(writer, (StringIdItem)item);
+                writeStringReference(writer, ((StringIdItem)item).getStringValue());
                 return;
             case TYPE_TYPE_ID_ITEM:
                 writeTypeReference(writer, (TypeIdItem)item);
@@ -67,9 +67,9 @@ public class ReferenceFormatter {
         writer.write(item.getFieldType().getTypeDescriptor());
     }
 
-    public static void writeStringReference(IndentingWriter writer, StringIdItem item) throws IOException {
+    public static void writeStringReference(IndentingWriter writer, String item) throws IOException {
         writer.write('"');
-        StringUtils.writeEscapedString(writer, item.getStringValue());
+        StringUtils.writeEscapedString(writer, item);
         writer.write('"');
     }
 

@@ -152,8 +152,7 @@ public class ClassDefinition {
         if (classAnnotations.size() != 0) {
             writer.write("\n\n");
             writer.write("# annotations\n");
-            //TODO: uncomment
-            //AnnotationFormatter.writeTo(writer, annotationSet);
+            AnnotationFormatter.writeTo(writer, classAnnotations);
         }
     }
 

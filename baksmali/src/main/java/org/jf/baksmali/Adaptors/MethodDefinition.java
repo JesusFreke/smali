@@ -123,9 +123,10 @@ public class MethodDefinition {
             writer.printSignedIntAsDec(getRegisterCount(encodedMethod));
             writer.write('\n');
             writeParameters(writer, codeItem, parameterAnnotations);
-            if (annotationSet != null) {
+            //TODO: uncomment
+            /*if (annotationSet != null) {
                 AnnotationFormatter.writeTo(writer, annotationSet);
-            }
+            }*/
 
             writer.write('\n');
 
@@ -136,9 +137,10 @@ public class MethodDefinition {
             }
         } else {
             writeParameters(writer, codeItem, parameterAnnotations);
-            if (annotationSet != null) {
+            //TODO: uncomment
+            /*if (annotationSet != null) {
                 AnnotationFormatter.writeTo(writer, annotationSet);
-            }
+            }*/
         }
         writer.deindent(4);
         writer.write(".end method\n");
@@ -214,13 +216,14 @@ public class MethodDefinition {
             }
 
             writer.write('\n');
-            if (annotationSet != null) {
+            //TODO: uncomment
+            /*if (annotationSet != null) {
                 writer.indent(4);
                 AnnotationFormatter.writeTo(writer, annotationSet);
                 writer.deindent(4);
 
                 writer.write(".end parameter\n");
-            }
+            }*/
         }
     }
 
