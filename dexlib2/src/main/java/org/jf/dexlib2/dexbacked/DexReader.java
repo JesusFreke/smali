@@ -56,6 +56,7 @@ public class DexReader {
     public String getString(int stringIndex) { return dexBuf.getString(stringIndex); }
     public String getOptionalString(int stringIndex) { return dexBuf.getOptionalString(stringIndex); }
     public String getType(int typeIndex) { return dexBuf.getType(typeIndex); }
+    public String getOptionalType(int typeIndex) { return dexBuf.getOptionalType(typeIndex); }
     public String getField(int fieldIndex) { return dexBuf.getField(fieldIndex); }
     public String getMethod(int methodIndex) { return dexBuf.getMethod(methodIndex); }
     public String getReference(int type, int index) { return dexBuf.getReference(type, index); }

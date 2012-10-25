@@ -68,7 +68,7 @@ public class DexBackedClassDef implements ClassDef {
 
         this.name = dexBuf.getType(dexBuf.readSmallUint(classDefOffset));
         this.accessFlags = dexBuf.readSmallUint(classDefOffset + ACCESS_FLAGS_OFFSET);
-        this.superclass = dexBuf.getOptionalString(dexBuf.readOptionalUint(classDefOffset + SUPERCLASS_OFFSET));
+        this.superclass = dexBuf.getOptionalType(dexBuf.readOptionalUint(classDefOffset + SUPERCLASS_OFFSET));
         this.interfacesOffset = dexBuf.readSmallUint(classDefOffset + INTERFACES_OFFSET);
         this.sourceFile = dexBuf.getOptionalString(dexBuf.readOptionalUint(classDefOffset + SOURCE_FILE_OFFSET));
 
@@ -94,7 +94,7 @@ public class DexBackedClassDef implements ClassDef {
                 @Nonnull
                 @Override
                 public String readItem(int index) {
-                    return dexBuf.getString(dexBuf.readSmallUint(interfacesOffset + 4 + (2*index)));
+                    return dexBuf.getType(dexBuf.readSmallUint(interfacesOffset + 4 + (2*index)));
                 }
 
                 @Override public int size() { return size; }

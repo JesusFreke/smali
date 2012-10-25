@@ -220,6 +220,14 @@ public class DexBuffer {
     }
 
     @Nullable
+    public String getOptionalType(int typeIndex) {
+        if (typeIndex == -1) {
+            return null;
+        }
+        return getType(typeIndex);
+    }
+
+    @Nullable
     public String getOptionalString(int stringIndex) {
         if (stringIndex == -1) {
             return null;
