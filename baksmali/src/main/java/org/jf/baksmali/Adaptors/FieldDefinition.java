@@ -29,12 +29,12 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
+import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.util.IndentingWriter;
-import org.jf.dexlib.EncodedValue.NullEncodedValue;
-import org.jf.dexlib.Util.AccessFlags;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,15 +42,15 @@ import java.util.List;
 public class FieldDefinition {
     public static void writeTo(IndentingWriter writer, Field field, boolean setInStaticConstructor) throws IOException {
         EncodedValue initialValue = field.getInitialValue();
+        int accessFlags = field.getAccessFlags();
 
         if (setInStaticConstructor &&
-            ((field.getAccessFlags() & AccessFlags.STATIC.getValue()) != 0) &&
-            ((field.getAccessFlags() & AccessFlags.FINAL.getValue()) != 0) &&
-            field.getInitialValue() != null &&
-            (
-                //it's a primitive type, or it's an array/reference type and the initial value isn't null
+            AccessFlags.STATIC.isSet(accessFlags) &&
+            AccessFlags.FINAL.isSet(accessFlags) &&
+            initialValue != null &&
+            (   //it's a primitive type, or it's an array/reference type and the initial value isn't null
                 field.getType().length() == 1 ||
-                initialValue != NullEncodedValue.NullValue
+                initialValue.getValueType() != ValueType.NULL
             )) {
 
             writer.write("#the value of this static final field might be set in the static constructor\n");

@@ -28,16 +28,12 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
 import org.jf.util.StringUtils;
-import org.jf.util.CommentingIndentingWriter;
 import org.jf.util.IndentingWriter;
-import org.jf.dexlib.*;
-import org.jf.dexlib.Code.Analysis.ValidationException;
-import org.jf.dexlib.EncodedValue.EncodedValue;
-import org.jf.dexlib.Util.AccessFlags;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -97,7 +93,8 @@ public class ClassDefinition {
         writeSourceFile(writer);
         writeInterfaces(writer);
         writeAnnotations(writer);
-        writeFields(writer);
+        writeStaticFields(writer);
+        writeInstanceFields(writer);
         /*writeDirectMethods(writer);
         writeVirtualMethods(writer);*/
     }
@@ -156,35 +153,39 @@ public class ClassDefinition {
         }
     }
 
-    private void writeFields(IndentingWriter writer) throws IOException {
-        List<? extends Field> fields = classDef.getFields();
-
-        boolean wroteStaticFieldHeader = false;
-        boolean wroteInstanceFieldHeader = false;
-        for (Field field: fields) {
-            //TODO: add an isStatic field to field? or somehow make this better
-            boolean isStatic = (field.getAccessFlags() & AccessFlags.STATIC.getValue()) != 0;
-
-            if (isStatic) {
-                if (!wroteStaticFieldHeader) {
+    private void writeStaticFields(IndentingWriter writer) throws IOException {
+        boolean wroteHeader = false;
+        for (Field field: classDef.getFields()) {
+            if (AccessFlags.STATIC.isSet(field.getAccessFlags())) {
+                if (!wroteHeader) {
                     writer.write("\n\n");
                     writer.write("# static fields");
-                    wroteStaticFieldHeader = true;
+                    wroteHeader = true;
                 }
-            } else {
-                if (!wroteInstanceFieldHeader) {
+                writer.write('\n');
+                // TODO: detect duplicate fields.
+                // TODO: check if field is set in static constructor
+
+                FieldDefinition.writeTo(writer, field, false);
+            }
+        }
+    }
+
+    private void writeInstanceFields(IndentingWriter writer) throws IOException {
+        boolean wroteHeader = false;
+        for (Field field: classDef.getFields()) {
+            if (!AccessFlags.STATIC.isSet(field.getAccessFlags())) {
+                if (!wroteHeader) {
                     writer.write("\n\n");
                     writer.write("# instance fields");
-                    wroteInstanceFieldHeader = true;
+                    wroteHeader = true;
                 }
+                writer.write('\n');
+                // TODO: detect duplicate fields.
+                // TODO: check if field is set in static constructor
+
+                FieldDefinition.writeTo(writer, field, false);
             }
-
-            writer.write('\n');
-
-            // TODO: detect duplicate fields.
-            // TODO: check if field is set in static constructor
-
-            FieldDefinition.writeTo(writer, field, false);
         }
     }
 
