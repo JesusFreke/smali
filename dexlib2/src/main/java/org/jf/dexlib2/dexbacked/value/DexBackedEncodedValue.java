@@ -131,7 +131,7 @@ public abstract class DexBackedEncodedValue {
                 case ValueType.METHOD:
                 case ValueType.ENUM:
                     int valueArg = b >>> 5;
-                    reader.skipBytes(valueArg+1);
+                    reader.moveRelative(valueArg+1);
                     break;
                 case ValueType.ARRAY:
                     DexBackedArrayEncodedValue.skipFrom(reader);

@@ -46,6 +46,7 @@ public class DexReader {
 
     @Nonnull public DexBuffer getDexBuffer() { return dexBuf; }
     public int getOffset() { return offset; }
+    public void setOffset(int offset) { this.offset = offset; }
 
     public int getStringIdItemOffset(int stringIndex) { return dexBuf.getStringIdItemOffset(stringIndex); }
     public int getTypeIdItemOffset(int typeIndex) { return dexBuf.getTypeIdItemOffset(typeIndex); }
@@ -229,7 +230,7 @@ public class DexReader {
     }
 
     public void skipByte() { offset++; }
-    public void skipBytes(int i) { offset += i; }
+    public void moveRelative(int i) { offset += i; }
 
     public int readSmallUint(int offset) { return dexBuf.readSmallUint(offset); }
     public int readUshort(int offset) { return dexBuf.readUshort(offset); }
