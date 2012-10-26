@@ -43,7 +43,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public abstract class ImmutableInstruction implements Instruction {
-    public final Opcode opcode;
+    @Nonnull public final Opcode opcode;
 
     protected ImmutableInstruction(@Nonnull Opcode opcode) {
         this.opcode = opcode;
@@ -51,6 +51,7 @@ public abstract class ImmutableInstruction implements Instruction {
         Preconditions.checkFormat(opcode, getFormat());
     }
 
+    @Nonnull
     public static ImmutableInstruction of(Instruction instruction) {
         if (instruction instanceof ImmutableInstruction) {
             return (ImmutableInstruction)instruction;
@@ -107,9 +108,16 @@ public abstract class ImmutableInstruction implements Instruction {
                 return ImmutableInstruction3rc.of((Instruction3rc)instruction);
             case Format51l:
                 return ImmutableInstruction51l.of((Instruction51l)instruction);
+            case PackedSwitchPayload:
+                return ImmutablePackedSwitchPayload.of((PackedSwitchPayload) instruction);
+            case SparseSwitchPayload:
+                return ImmutableSparseSwitchPayload.of((SparseSwitchPayload) instruction);
+            case ArrayPayload:
+                return ImmutableArrayPayload.of((ArrayPayload) instruction);
+            //TODO: temporary, until we get all instructions implemented
+            default:
+                throw new RuntimeException("Unexpected instruction type");
         }
-        //TODO: temporary, until we get all instructions implemented
-        throw new RuntimeException("Unexpected instruction type");
     }
 
     public Opcode getOpcode() {
@@ -117,6 +125,10 @@ public abstract class ImmutableInstruction implements Instruction {
     }
 
     public abstract Format getFormat();
+
+    public int getCodeUnits() {
+        return getFormat().size * 2;
+    }
 
     @Nonnull
     public static ImmutableList<ImmutableInstruction> immutableListOf(List<? extends Instruction> list) {
@@ -130,6 +142,7 @@ public abstract class ImmutableInstruction implements Instruction {
                     return item instanceof ImmutableInstruction;
                 }
 
+                @Nonnull
                 @Override
                 protected ImmutableInstruction makeImmutable(Instruction item) {
                     return ImmutableInstruction.of(item);

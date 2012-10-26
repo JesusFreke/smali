@@ -45,6 +45,10 @@ public abstract class DexBackedInstruction {
     @Nonnull
     public static Instruction readFrom(@Nonnull DexReader reader) {
         int opcodeValue = reader.readUbyte();
+        if (opcodeValue == 0) {
+            reader.moveRelative(-1);
+            opcodeValue = reader.readUshort();
+        }
 
         Opcode opcode = Opcode.getOpcodeByValue(opcodeValue);
 
@@ -101,6 +105,13 @@ public abstract class DexBackedInstruction {
                 return instruction3rc(opcode, reader);
             case Format51l:
                 return instruction51l(opcode, reader);
+            case PackedSwitchPayload:
+                return packedSwitchPayload(reader);
+            case SparseSwitchPayload:
+                return sparseSwitchPayload(reader);
+            case ArrayPayload:
+                return arrayPayload(reader);
+            //TODO: temporary, until we get all instructions implemented
             default:
                 throw new ExceptionWithContext("Unexpected opcode format: %s", opcode.format.toString());
         }
@@ -307,5 +318,34 @@ public abstract class DexBackedInstruction {
         int registerA = reader.readUbyte();
         long literal = reader.readLong();
         return new ImmutableInstruction51l(opcode, registerA, literal);
+    }
+
+    @Nonnull
+    private static DexBackedPackedSwitchPayload packedSwitchPayload(@Nonnull DexReader reader) {
+        // the reader is currently positioned after the 2-byte "opcode"
+        int instructionStartOffset = reader.getOffset() - 2;
+        DexBackedPackedSwitchPayload instruction =
+                new DexBackedPackedSwitchPayload(reader.getDexBuffer(), instructionStartOffset);
+        reader.moveRelative(instruction.getCodeUnits() * 2);
+        return instruction;
+    }
+
+    @Nonnull
+    private static DexBackedSparseSwitchPayload sparseSwitchPayload(@Nonnull DexReader reader) {
+        // the reader is currently positioned after the 2-byte "opcode"
+        int instructionStartOffset = reader.getOffset() - 2;
+        DexBackedSparseSwitchPayload instruction =
+                new DexBackedSparseSwitchPayload(reader.getDexBuffer(), instructionStartOffset);
+        reader.moveRelative(instruction.getCodeUnits() * 2);
+        return instruction;
+    }
+
+    @Nonnull
+    private static DexBackedArrayPayload arrayPayload(@Nonnull DexReader reader) {
+        // the reader is currently positioned after the 2-byte "opcode"
+        int instructionStartOffset = reader.getOffset() - 2;
+        DexBackedArrayPayload instruction = new DexBackedArrayPayload(reader.getDexBuffer(), instructionStartOffset);
+        reader.moveRelative(instruction.getCodeUnits() * 2);
+        return instruction;
     }
 }

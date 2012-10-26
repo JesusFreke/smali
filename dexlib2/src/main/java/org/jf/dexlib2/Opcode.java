@@ -283,7 +283,11 @@ public enum Opcode
 
     IPUT_OBJECT_VOLATILE((short)0xfc, "iput-object-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     SGET_OBJECT_VOLATILE((short)0xfd, "sget-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE);
+    SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+
+    PACKED_SWITCH_PAYLOAD((short)0x100, "packed-switch-payload", ReferenceType.NONE, Format.PackedSwitchPayload, 0),
+    SPARSE_SWITCH_PAYLOAD((short)0x200, "sparse-switch-payload", ReferenceType.NONE, Format.SparseSwitchPayload, 0),
+    ARRAY_PAYLOAD((short)0x300, "array-payload", ReferenceType.NONE, Format.ArrayPayload, 0);
 
     private static final Opcode[] opcodesByValue;
     private static final HashMap<Integer, Opcode> opcodesByName;
@@ -316,10 +320,12 @@ public enum Opcode
         opcodesByName = new HashMap<Integer, Opcode>();
 
         for (Opcode opcode: Opcode.values()) {
-            //INVOKE_DIRECT_EMPTY was changed to INVOKE_OBJECT_INIT_RANGE in ICS
-            if (opcode != INVOKE_DIRECT_EMPTY) {
-                opcodesByValue[opcode.value] = opcode;
-                opcodesByName.put(opcode.name.hashCode(), opcode);
+            if (!opcode.format.payloadFormat) {
+                //INVOKE_DIRECT_EMPTY was changed to INVOKE_OBJECT_INIT_RANGE in ICS
+                if (opcode != INVOKE_DIRECT_EMPTY) {
+                    opcodesByValue[opcode.value] = opcode;
+                    opcodesByName.put(opcode.name.hashCode(), opcode);
+                }
             }
         }
     }
@@ -329,7 +335,16 @@ public enum Opcode
     }
 
     public static Opcode getOpcodeByValue(int opcodeValue) {
-        return opcodesByValue[opcodeValue];
+        switch (opcodeValue) {
+            case 0x100:
+                return SPARSE_SWITCH_PAYLOAD;
+            case 0x200:
+                return PACKED_SWITCH_PAYLOAD;
+            case 0x300:
+                return ARRAY_PAYLOAD;
+            default:
+                return opcodesByValue[opcodeValue];
+        }
     }
 
     private static void removeOpcodes(Opcode... toRemove) {

@@ -35,4 +35,5 @@ import org.jf.dexlib2.Opcode;
 
 public interface Instruction {
     Opcode getOpcode();
+    int getCodeUnits();
 }
