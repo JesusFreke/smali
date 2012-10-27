@@ -36,18 +36,31 @@ configurations {
 }
 
 ext.antlrSource = 'src/main/antlr3'
-ext.antlrOutput =  file(new File(buildDir, '/generated-sources/antlr3'))
+ext.antlrOutput = file("${buildDir}/generated-sources/antlr3")
 
 ext.jflexSource = "src/main/jflex"
-ext.jflexOutput = file(new File(buildDir, '/generated-sources/jflex'))
+ext.jflexOutput = file("${buildDir}/generated-sources/jflex")
 
 ext.testAntlrSource = 'src/test/antlr3'
-ext.testAntlrOutput = file(new File(buildDir, '/generated-test-sources/antlr3'))
+ext.testAntlrOutput = file("${buildDir}/generated-test-sources/antlr3")
 
 sourceSets.main.java.srcDir antlrOutput
 sourceSets.main.java.srcDir jflexOutput
 
 sourceSets.test.java.srcDir testAntlrOutput
+
+idea {
+    module {
+        excludeDirs -= buildDir
+        excludeDirs.addAll(buildDir.listFiles())
+        for (sourceDir in (sourceDirs + testSourceDirs)) {
+            excludeDirs.remove(sourceDir);
+            while ((sourceDir = sourceDir.getParentFile()) != null) {
+                excludeDirs.remove(sourceDir);
+            }
+        }
+    }
+}
 
 dependencies {
     compile project(':util')
@@ -71,7 +84,7 @@ task generateAntlrSource(type: JavaExec) {
 
     classpath = configurations.antlr3
     main = 'org.antlr.Tool'
-    args '-fo', relativePath(new File(antlrOutput, 'org/jf/smali'))
+    args '-fo', relativePath("${antlrOutput}/org/jf/smali")
     args grammars.files
 }
 
@@ -84,7 +97,7 @@ task generateTestAntlrSource(type: JavaExec) {
 
     classpath = configurations.antlr3
     main = 'org.antlr.Tool'
-    args '-fo', relativePath(new File(testAntlrOutput, 'org/jf/smali'))
+    args '-fo', relativePath("${testAntlrOutput}/org/jf/smali")
     args grammars.files.join(' ')
 }
 
@@ -98,7 +111,7 @@ task generateJflexSource(type: JavaExec) {
     classpath = configurations.jflex
     main = 'JFlex.Main'
     args '-q'
-    args '-d', relativePath(new File(jflexOutput, 'org/jf/smali'))
+    args '-d', relativePath("${jflexOutput}/org/jf/smali")
     args grammars.files.join(' ')
 }
 
@@ -122,20 +135,20 @@ gradle.taskGraph.whenReady {
     processResources.expand('version': version)
 
     proguard {
-        def outFile = relativePath(buildDir) + '/libs/' + jar.baseName + '-' + jar.version + '-small' + '.' + jar.extension
+        def outFile = relativePath("${buildDir}/libs/${jar.baseName}-${jar.version}-smali.${jar.extension}")
 
         inputs.file jar.archivePath
         outputs.file outFile
 
-        args '-injars ' + jar.archivePath + '(!**/TestStringTemplate*.class)'
-        args '-outjars ' + outFile
+        args "-injars ${jar.archivePath}(!**/TestStringTemplate*.class)"
+        args "-outjars ${outFile}"
     }
 }
 
 task proguard(type: JavaExec, dependsOn: jar) {
     classpath = configurations.proguard
     main = 'proguard.ProGuard'
-    args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
+    args "-libraryjars ${System.properties['java.home']}/lib/rt.jar"
     args '-dontobfuscate'
     args '-dontoptimize'
     args '-keep public class org.jf.smali.main { public static void main(java.lang.String[]); }'
