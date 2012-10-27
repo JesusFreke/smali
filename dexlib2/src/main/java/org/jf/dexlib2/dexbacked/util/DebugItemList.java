@@ -46,7 +46,6 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 public class DebugItemList extends VariableSizeListWithContext<DebugItem> {
@@ -86,24 +85,17 @@ public class DebugItemList extends VariableSizeListWithContext<DebugItem> {
         final LocalInfo[] locals = new LocalInfo[registerCount];
         Arrays.fill(locals, EMPTY_LOCAL_INFO);
 
-        List<? extends MethodParameter> parameters = method.getParameters();
+        // getParameters returns a VariableSizeList when a method implementation is present. Since we're reading debug
+        // information, the method obviously has an implementation.
+        VariableSizeList<? extends MethodParameter> parameters =
+                (VariableSizeList<? extends MethodParameter>)method.getParameters();
+        VariableSizeList<? extends MethodParameter>.Iterator parameterIterator = parameters.listIterator();
 
-        //TODO: need to add parameter info to MethodParameter. Is there some way we could use the same reader for that?
-        int debugParametersSize = initialReader.readSmallUleb128();
-        if (debugParametersSize > parameters.size()) {
-            //TODO: make sure that dalvik doesn't allow this
-            throw new ExceptionWithContext("DebugInfoItem has more parameters than the method itself does. WTF?");
-        }
-        for (int i=0; i<parameters.size(); i++) {
-            // TODO: look for a signature annotation on the... method? parameter?, and get the parameter signature
-            final MethodParameter methodParameter = parameters.get(i);
-            final String parameterName = dexBuf.getOptionalString(initialReader.readSmallUleb128() - 1);
-
-            locals[i] = new LocalInfo() {
-                @Nullable @Override public String getName() { return parameterName; }
-                @Nullable @Override public String getType() { return methodParameter.getType(); }
-                @Nullable @Override public String getSignature() { return null; }
-            };
+        { // local scope for i
+            int i=0;
+            while (parameterIterator.hasNext()) {
+                locals[i++] = parameterIterator.next();
+            }
         }
 
         if (parameters.size() < registerCount) {
@@ -121,7 +113,7 @@ public class DebugItemList extends VariableSizeListWithContext<DebugItem> {
             }
         }
 
-        return new Iterator(dexBuf, initialReader.getOffset()) {
+        return new Iterator(dexBuf, parameterIterator.getReaderOffset()) {
             private boolean finished = false;
             private int codeAddress = 0;
             private int lineNumber = lineNumberStart;

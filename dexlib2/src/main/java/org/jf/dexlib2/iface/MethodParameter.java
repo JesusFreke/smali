@@ -31,10 +31,15 @@
 
 package org.jf.dexlib2.iface;
 
+import org.jf.dexlib2.iface.debug.LocalInfo;
+
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
-public interface MethodParameter {
+public interface MethodParameter extends LocalInfo {
     @Nonnull String getType();
     @Nonnull List<? extends Annotation> getAnnotations();
+    @Nullable String getName();
+    @Nullable String getSignature();
 }

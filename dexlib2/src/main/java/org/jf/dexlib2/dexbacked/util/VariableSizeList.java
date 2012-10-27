@@ -102,5 +102,9 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
             checkBounds(index);
             skipItem(reader, index++);
         }
+
+        public int getReaderOffset() {
+            return reader.getOffset();
+        }
     }
 }

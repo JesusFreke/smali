@@ -36,7 +36,6 @@ import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Method;
-import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
 
 import javax.annotation.Nonnull;
@@ -100,6 +99,18 @@ public class DexBackedMethod implements Method {
     @Override
     public List<? extends MethodParameter> getParameters() {
         if (parametersOffset > 0) {
+            DexBackedMethodImplementation methodImpl = getImplementation();
+            if (methodImpl != null) {
+                return methodImpl.getParametersWithNames();
+            }
+            return getParametersWithoutNames();
+        }
+        return ImmutableList.of();
+    }
+
+    @Nonnull
+    public List<? extends MethodParameter> getParametersWithoutNames() {
+        if (parametersOffset > 0) {
             final int size = dexBuf.readSmallUint(parametersOffset);
 
             return new FixedSizeList<MethodParameter>() {
@@ -122,6 +133,10 @@ public class DexBackedMethod implements Method {
                             }
                             return ImmutableList.of();
                         }
+
+                        @Nullable @Override public String getName() { return null; }
+                        //TODO: iterate over the annotations to get the signature
+                        @Nullable @Override public String getSignature() { return null; }
                     };
                 }
 
@@ -140,7 +155,7 @@ public class DexBackedMethod implements Method {
 
     @Nullable
     @Override
-    public MethodImplementation getImplementation() {
+    public DexBackedMethodImplementation getImplementation() {
         if (codeOffset > 0) {
             return new DexBackedMethodImplementation(dexBuf, this, codeOffset);
         }

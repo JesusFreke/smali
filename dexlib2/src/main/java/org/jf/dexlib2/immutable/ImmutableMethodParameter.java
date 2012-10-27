@@ -44,17 +44,22 @@ import java.util.List;
 public class ImmutableMethodParameter implements MethodParameter {
     @Nonnull public final String type;
     @Nonnull public final ImmutableList<? extends ImmutableAnnotation> annotations;
+    @Nullable public final String name;
 
     public ImmutableMethodParameter(@Nonnull String type,
-                                    @Nullable List<? extends Annotation> annotations) {
+                                    @Nullable List<? extends Annotation> annotations,
+                                    @Nullable String name) {
         this.type = type;
         this.annotations = ImmutableAnnotation.immutableListOf(annotations);
+        this.name = name;
     }
 
     public ImmutableMethodParameter(@Nonnull String type,
-                                    @Nullable ImmutableList<? extends ImmutableAnnotation> annotations) {
+                                    @Nullable ImmutableList<? extends ImmutableAnnotation> annotations,
+                                    @Nullable String name) {
         this.type = type;
         this.annotations = Objects.firstNonNull(annotations, ImmutableList.<ImmutableAnnotation>of());
+        this.name = name;
     }
 
     public static ImmutableMethodParameter of(MethodParameter methodParameter) {
@@ -63,11 +68,16 @@ public class ImmutableMethodParameter implements MethodParameter {
         }
         return new ImmutableMethodParameter(
                 methodParameter.getType(),
-                methodParameter.getAnnotations());
+                methodParameter.getAnnotations(),
+                methodParameter.getName());
     }
 
     @Nonnull @Override public String getType() { return type; }
     @Nonnull @Override public List<? extends Annotation> getAnnotations() { return annotations; }
+    @Nullable @Override public String getName() { return name; }
+
+    //TODO: iterate over the annotations to get the signature
+    @Nullable @Override public String getSignature() { return null; }
 
     @Nonnull
     public static ImmutableList<ImmutableMethodParameter> immutableListOf(List<? extends MethodParameter> list) {

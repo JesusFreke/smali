@@ -35,17 +35,20 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
 import org.jf.dexlib2.dexbacked.util.DebugItemList;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
+import org.jf.dexlib2.dexbacked.util.VariableSizeList;
+import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.MethodImplementation;
+import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.AlignmentUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO: consider making this extends DexBackedMethod, rather than passing in the associated DexBackedMethod
 public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull public final DexBuffer dexBuf;
     @Nonnull public final DexBackedMethod method;
@@ -130,5 +133,41 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         }
 
         return ImmutableList.copyOf(instructions);
+    }
+
+    public List<MethodParameter> getParametersWithNames() {
+        final int debugInfoOffset = dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET);
+        if (debugInfoOffset > 0) {
+            DexReader reader = dexBuf.readerAt(debugInfoOffset);
+            reader.skipUleb128();
+            final int parameterNameCount = reader.readSmallUleb128();
+            final List<? extends MethodParameter> methodParametersWithoutNames = method.getParametersWithoutNames();
+            //TODO: make sure dalvik doesn't allow more parameter names than we have parameters
+
+            return new VariableSizeList<MethodParameter>(dexBuf, reader.getOffset()) {
+                @Nonnull
+                @Override
+                protected MethodParameter readItem(@Nonnull DexReader reader, int index) {
+                    final MethodParameter methodParameter = methodParametersWithoutNames.get(index);
+                    String _name = null;
+                    if (index < parameterNameCount) {
+                        _name = reader.getOptionalString(reader.readSmallUleb128() - 1);
+                    }
+                    final String name = _name;
+
+                    return new MethodParameter() {
+                        @Nonnull @Override public String getType() { return methodParameter.getType(); }
+                        @Nullable @Override public String getName() { return name; }
+                        @Nullable @Override public String getSignature() { return methodParameter.getSignature();}
+                        @Nonnull @Override public List<? extends Annotation> getAnnotations() {
+                            return methodParameter.getAnnotations();
+                        }
+                    };
+                }
+
+                @Override public int size() { return methodParametersWithoutNames.size(); }
+            };
+        }
+        return ImmutableList.of();
     }
 }
