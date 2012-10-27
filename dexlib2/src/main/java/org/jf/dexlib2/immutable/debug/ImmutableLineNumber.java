@@ -29,17 +29,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.immutable.debug;
 
-import org.jf.dexlib2.iface.debug.DebugItem;
-import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.iface.debug.LineNumber;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
-public interface MethodImplementation {
-    int getRegisterCount();
-    @Nonnull List<? extends Instruction> getInstructions();
-    @Nonnull List<? extends TryBlock> getTryBlocks();
-    @Nonnull List<? extends DebugItem> getDebugItems();
+public class ImmutableLineNumber extends ImmutableDebugItem implements LineNumber {
+    public final int lineNumber;
+
+    public ImmutableLineNumber(int codeAddress,
+                               int lineNumber) {
+        super(codeAddress);
+        this.lineNumber = lineNumber;
+    }
+
+    @Nonnull
+    public static ImmutableLineNumber of(@Nonnull LineNumber lineNumber) {
+        if (lineNumber instanceof ImmutableLineNumber) {
+            return (ImmutableLineNumber)lineNumber;
+        }
+        return new ImmutableLineNumber(
+                lineNumber.getCodeAddress(),
+                lineNumber.getLineNumber());
+    }
+
+    @Override public int getLineNumber() { return lineNumber; }
+
+    @Override public int getDebugItemType() { return DebugItemType.LINE_NUMBER; }
 }

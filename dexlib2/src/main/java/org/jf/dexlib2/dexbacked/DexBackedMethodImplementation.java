@@ -33,9 +33,11 @@ package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
+import org.jf.dexlib2.dexbacked.util.DebugItemList;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.TryBlock;
+import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.AlignmentUtils;
 
@@ -43,8 +45,10 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
+//TODO: consider making this extends DexBackedMethod, rather than passing in the associated DexBackedMethod
 public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedMethod method;
     private final int codeOffset;
 
     public final int registerCount;
@@ -52,14 +56,17 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     // code_item offsets
     private static final int TRIES_SIZE_OFFSET = 6;
+    private static final int DEBUG_OFFSET_OFFSET = 8;
     private static final int INSTRUCTIONS_SIZE_OFFSET = 12;
     private static final int INSTRUCTIONS_START_OFFSET = 16;
 
     private static final int TRY_ITEM_SIZE = 8;
 
     public DexBackedMethodImplementation(@Nonnull DexBuffer dexBuf,
+                                         @Nonnull DexBackedMethod method,
                                          int codeOffset) {
         this.dexBuf = dexBuf;
+        this.method = method;
         this.codeOffset = codeOffset;
         this.registerCount = dexBuf.readUshort(codeOffset);
 
@@ -93,6 +100,16 @@ public class DexBackedMethodImplementation implements MethodImplementation {
                     return triesSize;
                 }
             };
+        }
+        return ImmutableList.of();
+    }
+
+    @Nonnull
+    @Override
+    public List<? extends DebugItem> getDebugItems() {
+        final int debugInfoOffset = dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET);
+        if (debugInfoOffset > 0) {
+            return new DebugItemList(dexBuf, debugInfoOffset, method);
         }
         return ImmutableList.of();
     }

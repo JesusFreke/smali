@@ -142,7 +142,7 @@ public class DexBackedMethod implements Method {
     @Override
     public MethodImplementation getImplementation() {
         if (codeOffset > 0) {
-            return new DexBackedMethodImplementation(dexBuf, codeOffset);
+            return new DexBackedMethodImplementation(dexBuf, this, codeOffset);
         }
         return null;
     }

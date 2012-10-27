@@ -29,17 +29,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.iface.debug;
 
-import org.jf.dexlib2.iface.debug.DebugItem;
-import org.jf.dexlib2.iface.instruction.Instruction;
+import javax.annotation.Nullable;
 
-import javax.annotation.Nonnull;
-import java.util.List;
-
-public interface MethodImplementation {
-    int getRegisterCount();
-    @Nonnull List<? extends Instruction> getInstructions();
-    @Nonnull List<? extends TryBlock> getTryBlocks();
-    @Nonnull List<? extends DebugItem> getDebugItems();
+public interface LocalInfo {
+    @Nullable String getName();
+    @Nullable String getType();
+    @Nullable String getSignature();
 }

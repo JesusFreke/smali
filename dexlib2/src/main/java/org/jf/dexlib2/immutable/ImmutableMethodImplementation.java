@@ -35,7 +35,9 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.TryBlock;
+import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.immutable.debug.ImmutableDebugItem;
 import org.jf.dexlib2.immutable.instruction.ImmutableInstruction;
 
 import javax.annotation.Nonnull;
@@ -46,21 +48,26 @@ public class ImmutableMethodImplementation implements MethodImplementation {
     public final int registerCount;
     @Nonnull public final ImmutableList<? extends ImmutableInstruction> instructions;
     @Nonnull public final ImmutableList<? extends ImmutableTryBlock> tryBlocks;
+    @Nonnull public final ImmutableList<? extends ImmutableDebugItem> debugItems;
 
     public ImmutableMethodImplementation(int registerCount,
                                          @Nullable List<? extends Instruction> instructions,
-                                         @Nullable List<? extends TryBlock> tryBlocks) {
+                                         @Nullable List<? extends TryBlock> tryBlocks,
+                                         @Nullable List<? extends DebugItem> debugItems) {
         this.registerCount = registerCount;
         this.instructions = ImmutableInstruction.immutableListOf(instructions);
         this.tryBlocks = ImmutableTryBlock.immutableListOf(tryBlocks);
+        this.debugItems = ImmutableDebugItem.immutableListOf(debugItems);
     }
 
     public ImmutableMethodImplementation(int registerCount,
                                          @Nullable ImmutableList<? extends ImmutableInstruction> instructions,
-                                         @Nullable ImmutableList<? extends ImmutableTryBlock> tryBlocks) {
+                                         @Nullable ImmutableList<? extends ImmutableTryBlock> tryBlocks,
+                                         @Nullable ImmutableList<? extends ImmutableDebugItem> debugItems) {
         this.registerCount = registerCount;
         this.instructions = Objects.firstNonNull(instructions, ImmutableList.<ImmutableInstruction>of());
         this.tryBlocks = Objects.firstNonNull(tryBlocks, ImmutableList.<ImmutableTryBlock>of());
+        this.debugItems = Objects.firstNonNull(debugItems, ImmutableList.<ImmutableDebugItem>of());
     }
 
     public static ImmutableMethodImplementation of(MethodImplementation methodImplementation) {
@@ -70,10 +77,12 @@ public class ImmutableMethodImplementation implements MethodImplementation {
         return new ImmutableMethodImplementation(
                 methodImplementation.getRegisterCount(),
                 methodImplementation.getInstructions(),
-                methodImplementation.getTryBlocks());
+                methodImplementation.getTryBlocks(),
+                methodImplementation.getDebugItems());
     }
 
     @Override public int getRegisterCount() { return 0; }
     @Nonnull @Override public ImmutableList<? extends ImmutableInstruction> getInstructions() { return instructions; }
     @Nonnull @Override public ImmutableList<? extends ImmutableTryBlock> getTryBlocks() { return tryBlocks; }
+    @Nonnull @Override public ImmutableList<? extends ImmutableDebugItem> getDebugItems() { return debugItems; }
 }

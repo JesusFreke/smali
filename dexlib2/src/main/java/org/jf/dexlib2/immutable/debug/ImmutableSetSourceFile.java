@@ -29,17 +29,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.immutable.debug;
 
-import org.jf.dexlib2.iface.debug.DebugItem;
-import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.iface.debug.SetSourceFile;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import javax.annotation.Nullable;
 
-public interface MethodImplementation {
-    int getRegisterCount();
-    @Nonnull List<? extends Instruction> getInstructions();
-    @Nonnull List<? extends TryBlock> getTryBlocks();
-    @Nonnull List<? extends DebugItem> getDebugItems();
+public class ImmutableSetSourceFile extends ImmutableDebugItem implements SetSourceFile {
+    @Nullable public final String sourceFile;
+
+    public ImmutableSetSourceFile(int codeAddress,
+                                  @Nullable String sourceFile) {
+        super(codeAddress);
+        this.sourceFile = sourceFile;
+    }
+
+    @Nonnull
+    public static ImmutableSetSourceFile of (@Nonnull SetSourceFile setSourceFile) {
+        if (setSourceFile instanceof ImmutableSetSourceFile) {
+            return (ImmutableSetSourceFile)setSourceFile;
+        }
+        return new ImmutableSetSourceFile(
+                setSourceFile.getCodeAddress(),
+                setSourceFile.getSourceFile());
+    }
+
+    @Nullable @Override public String getSourceFile() { return sourceFile; }
+
+    @Override public int getDebugItemType() { return DebugItemType.SET_SOURCE_FILE; }
 }

@@ -29,17 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.immutable.debug;
 
-import org.jf.dexlib2.iface.debug.DebugItem;
-import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.iface.debug.PrologueEnd;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
-public interface MethodImplementation {
-    int getRegisterCount();
-    @Nonnull List<? extends Instruction> getInstructions();
-    @Nonnull List<? extends TryBlock> getTryBlocks();
-    @Nonnull List<? extends DebugItem> getDebugItems();
+public class ImmutablePrologueEnd extends ImmutableDebugItem implements PrologueEnd {
+    public ImmutablePrologueEnd(int codeAddress) {
+        super(codeAddress);
+    }
+
+    @Nonnull
+    public static ImmutablePrologueEnd of(@Nonnull PrologueEnd prologueEnd) {
+        if (prologueEnd instanceof ImmutablePrologueEnd) {
+            return (ImmutablePrologueEnd)prologueEnd;
+        }
+        return new ImmutablePrologueEnd(prologueEnd.getCodeAddress());
+    }
+
+    @Override public int getDebugItemType() { return DebugItemType.PROLOGUE_END; }
 }

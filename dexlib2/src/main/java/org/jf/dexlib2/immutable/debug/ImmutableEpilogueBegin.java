@@ -29,17 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.immutable.debug;
 
-import org.jf.dexlib2.iface.debug.DebugItem;
-import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.iface.debug.EpilogueBegin;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
-public interface MethodImplementation {
-    int getRegisterCount();
-    @Nonnull List<? extends Instruction> getInstructions();
-    @Nonnull List<? extends TryBlock> getTryBlocks();
-    @Nonnull List<? extends DebugItem> getDebugItems();
+public class ImmutableEpilogueBegin extends ImmutableDebugItem implements EpilogueBegin {
+    public ImmutableEpilogueBegin(int codeAddress) {
+        super(codeAddress);
+    }
+
+    @Nonnull
+    public static ImmutableEpilogueBegin of(@Nonnull EpilogueBegin epilogueBegin) {
+        if (epilogueBegin instanceof ImmutableEpilogueBegin) {
+            return (ImmutableEpilogueBegin)epilogueBegin;
+        }
+        return new ImmutableEpilogueBegin(epilogueBegin.getCodeAddress());
+    }
+
+    @Override public int getDebugItemType() { return DebugItemType.EPILOGUE_BEGIN; }
 }

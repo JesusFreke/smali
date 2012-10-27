@@ -70,7 +70,7 @@ public class InstructionOffsetMapTest {
                 /*24: 0x32*/ new ImmutableInstruction51l(Opcode.CONST_WIDE, 32, 33),
                 /*25: 0x37*/ new ImmutableInstruction10t(Opcode.GOTO, 1)
         );
-        ImmutableMethodImplementation impl = new ImmutableMethodImplementation(33, instructions, null);
+        ImmutableMethodImplementation impl = new ImmutableMethodImplementation(33, instructions, null, null);
         InstructionOffsetMap instructionOffsetMap = new InstructionOffsetMap(impl);
 
         int[] expectedOffsets = new int[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x07, 0x09, 0x0b, 0x0d, 0x0f, 0x11,

@@ -85,19 +85,21 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
         @Override public boolean hasNext() { return index < size(); }
         @Override public int nextIndex() { return index; }
 
-        @Nonnull
-        @Override
-        public T next() {
+        protected void checkBounds(int index) {
             if (index >= size()) {
                 throw new NoSuchElementException();
             }
+        }
+
+        @Nonnull
+        @Override
+        public T next() {
+            checkBounds(index);
             return readItem(reader, index++);
         }
 
         public void skip() {
-            if (index >= size()) {
-                throw new NoSuchElementException();
-            }
+            checkBounds(index);
             skipItem(reader, index++);
         }
     }
