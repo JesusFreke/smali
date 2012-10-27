@@ -74,7 +74,7 @@ public class DexBackedTryBlock implements TryBlock {
                 @Nonnull
                 @Override
                 protected ExceptionHandler readItem(@Nonnull DexReader reader, int index) {
-                    return new DexBackedExceptionHandler(reader);
+                    return DexBackedExceptionHandler.createNew(reader);
                 }
 
                 @Override
@@ -94,7 +94,7 @@ public class DexBackedTryBlock implements TryBlock {
                     if (index == sizeWithCatchAll-1) {
                         return new DexBackedCatchAllExceptionHandler(dexReader);
                     } else {
-                        return new DexBackedExceptionHandler(dexReader);
+                        return DexBackedExceptionHandler.createNew(dexReader);
                     }
                 }
 

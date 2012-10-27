@@ -36,9 +36,18 @@ import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
 import javax.annotation.Nonnull;
 
 public class DexBackedExceptionHandler extends ImmutableExceptionHandler {
-    public DexBackedExceptionHandler(@Nonnull DexReader reader) {
+    private DexBackedExceptionHandler(String exceptionType, int handlerCodeOffset) {
         // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
-        super(reader.getType(reader.readSmallUleb128()), reader.readSmallUleb128());
+        super(exceptionType, handlerCodeOffset);
+    }
+
+    // static factory method, because we can't read from the reader in the correct order while calling super() in the
+    // constructor. ugh.
+    public static DexBackedExceptionHandler createNew(@Nonnull DexReader reader) {
+        int typeId = reader.readSmallUleb128();
+        String exceptionType = reader.getType(typeId);
+        int handlerCodeOffset = reader.readSmallUleb128();
+        return new DexBackedExceptionHandler(exceptionType, handlerCodeOffset);
     }
 
     public static void skipFrom(@Nonnull DexReader reader) {
