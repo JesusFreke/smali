@@ -112,7 +112,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     public Iterable<? extends DebugItem> getDebugItems() {
         final int debugInfoOffset = dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET);
         if (debugInfoOffset > 0) {
-            return new DebugItemList(dexBuf, debugInfoOffset, method);
+            return new DebugItemList(dexBuf, debugInfoOffset, this);
         }
         return ImmutableList.of();
     }
@@ -135,7 +135,9 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         return ImmutableList.copyOf(instructions);
     }
 
-    public List<MethodParameter> getParametersWithNames() {
+    //TODO: reading the method params from the debug_info_item should probably be centralized with other debug stuff
+    @Nullable
+    public VariableSizeList<MethodParameter> getParametersWithNamesOrNull() {
         final int debugInfoOffset = dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET);
         if (debugInfoOffset > 0) {
             DexReader reader = dexBuf.readerAt(debugInfoOffset);
@@ -168,6 +170,14 @@ public class DexBackedMethodImplementation implements MethodImplementation {
                 @Override public int size() { return methodParametersWithoutNames.size(); }
             };
         }
-        return ImmutableList.of();
+        return null;
+    }
+
+    public List<? extends MethodParameter> getParametersWithNames() {
+        List<MethodParameter> parameters = getParametersWithNamesOrNull();
+        if (parameters != null) {
+            return parameters;
+        }
+        return method.getParametersWithoutNames();
     }
 }

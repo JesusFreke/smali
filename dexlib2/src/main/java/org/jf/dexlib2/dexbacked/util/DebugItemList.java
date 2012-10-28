@@ -32,16 +32,14 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.dexbacked.DexBackedMethodImplementation;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.iface.Method;
-import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.debug.EndLocal;
 import org.jf.dexlib2.iface.debug.LocalInfo;
 import org.jf.dexlib2.immutable.debug.*;
-import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,19 +50,13 @@ import java.util.NoSuchElementException;
 public class DebugItemList implements Iterable<DebugItem> {
     @Nonnull public final DexBuffer dexBuf;
     private final int debugInfoOffset;
-    @Nonnull private final Method method;
-    @Nonnull private final MethodImplementation methodImpl;
+    @Nonnull private final DexBackedMethodImplementation methodImpl;
 
     public DebugItemList(@Nonnull DexBuffer dexBuf,
                          int debugInfoOffset,
-                         @Nonnull Method method) {
+                         @Nonnull DexBackedMethodImplementation methodImpl) {
         this.dexBuf = dexBuf;
         this.debugInfoOffset = debugInfoOffset;
-        this.method = method;
-        MethodImplementation methodImpl = method.getImplementation();
-        if (methodImpl == null) {
-            throw new ExceptionWithContext("Creating a DebugItemList for a method with no implementation. WTF?");
-        }
         this.methodImpl = methodImpl;
     }
 
@@ -86,10 +78,9 @@ public class DebugItemList implements Iterable<DebugItem> {
         final LocalInfo[] locals = new LocalInfo[registerCount];
         Arrays.fill(locals, EMPTY_LOCAL_INFO);
 
-        // getParameters returns a VariableSizeList when a method implementation is present. Since we're reading debug
-        // information, the method obviously has an implementation.
-        VariableSizeList<? extends MethodParameter> parameters =
-                (VariableSizeList<? extends MethodParameter>)method.getParameters();
+        // getParametersWithNames returns a VariableSizeList when debug info is present
+        VariableSizeList<? extends MethodParameter> parameters = methodImpl.getParametersWithNamesOrNull();
+        assert parameters != null;
         final VariableSizeList<? extends MethodParameter>.Iterator parameterIterator = parameters.listIterator();
 
         { // local scope for i
