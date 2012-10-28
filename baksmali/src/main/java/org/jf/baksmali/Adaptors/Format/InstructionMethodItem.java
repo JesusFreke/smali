@@ -28,26 +28,25 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
+import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
-import org.jf.baksmali.Adaptors.RegisterFormatter;
-import org.jf.dexlib.Code.Format.Instruction20bc;
 import org.jf.dexlib.Code.Format.UnknownInstruction;
+import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.iface.instruction.*;
 import org.jf.util.IndentingWriter;
 import org.jf.baksmali.Renderers.LongRenderer;
-import org.jf.dexlib.Code.*;
-import org.jf.dexlib.CodeItem;
-import org.jf.dexlib.Item;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public class InstructionMethodItem<T extends Instruction> extends MethodItem {
-    protected final CodeItem codeItem;
-    protected final T instruction;
+    @Nonnull protected final MethodDefinition methodDef;
+    @Nonnull protected final T instruction;
 
-    public InstructionMethodItem(CodeItem codeItem, int codeAddress, T instruction) {
+    public InstructionMethodItem(@Nonnull MethodDefinition methodDef, int codeAddress, @Nonnull T instruction) {
         super(codeAddress);
-        this.codeItem = codeItem;
+        this.methodDef = methodDef;
         this.instruction = instruction;
     }
 
@@ -58,7 +57,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
-        switch (instruction.getFormat()) {
+        switch (instruction.getOpcode().format) {
             case Format10t:
                 writeOpcode(writer);
                 writer.write(' ');
@@ -91,13 +90,14 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeSecondRegister(writer);
                 return true;
-            case Format20bc:
+            //TODO: uncomment
+            /*case Format20bc:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeVerificationErrorType(writer);
                 writer.write(", ");
                 writeReference(writer);
-                return true;
+                return true;*/
             case Format20t:
             case Format30t:
                 writeOpcode(writer);
@@ -112,7 +112,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeReference(writer);
                 return true;
-            case Format21h:
+            case Format21ih:
+            case Format21lh:
             case Format21s:
             case Format31i:
             case Format51l:
@@ -149,7 +150,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeReference(writer);
                 return true;
-            case Format22cs:
+            //TODO: uncomment
+            /*case Format22cs:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeFirstRegister(writer);
@@ -157,7 +159,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeSecondRegister(writer);
                 writer.write(", ");
                 writeFieldOffset(writer);
-                return true;
+                return true;*/
             case Format22t:
                 writeOpcode(writer);
                 writer.write(' ');
@@ -191,7 +193,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeReference(writer);
                 return true;
-            case Format35mi:
+            //TODO: uncomment
+            /*case Format35mi:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeInvokeRegisters(writer);
@@ -204,7 +207,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeInvokeRegisters(writer);
                 writer.write(", ");
                 writeVtableIndex(writer);
-                return true;
+                return true;*/
             case Format3rc:
                 writeOpcode(writer);
                 writer.write(' ');
@@ -212,7 +215,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeReference(writer);
                 return true;
-            case Format3rmi:
+            //TODO: uncomment
+            /*case Format3rmi:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeInvokeRangeRegisters(writer);
@@ -225,14 +229,14 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeInvokeRangeRegisters(writer);
                 writer.write(", ");
                 writeVtableIndex(writer);
-                return true;
+                return true;*/
         }
         assert false;
         return false;
     }
 
     protected void writeOpcode(IndentingWriter writer) throws IOException {
-        writer.write(instruction.opcode.name);
+        writer.write(instruction.getOpcode().name);
     }
 
     protected void writeTargetLabel(IndentingWriter writer) throws IOException {
@@ -242,11 +246,11 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeRegister(IndentingWriter writer, int registerNumber) throws IOException {
-        RegisterFormatter.writeTo(writer, codeItem, registerNumber);
+        methodDef.registerFormatter.writeTo(writer, registerNumber);
     }
 
     protected void writeFirstRegister(IndentingWriter writer) throws IOException {
-        writeRegister(writer, ((SingleRegisterInstruction)instruction).getRegisterA());
+        writeRegister(writer, ((OneRegisterInstruction)instruction).getRegisterA());
     }
 
     protected void writeSecondRegister(IndentingWriter writer) throws IOException {
@@ -254,40 +258,42 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeThirdRegister(IndentingWriter writer) throws IOException {
-        writeRegister(writer, ((ThreeRegisterInstruction)instruction).getRegisterC());
+        writeRegister(writer, ((ThreeRegisterInstruction) instruction).getRegisterC());
     }
 
     protected void writeInvokeRegisters(IndentingWriter writer) throws IOException {
         FiveRegisterInstruction instruction = (FiveRegisterInstruction)this.instruction;
-        final int regCount = instruction.getRegCount();
+        final int regCount = instruction.getRegisterCount();
 
         writer.write('{');
         switch (regCount) {
             case 1:
-                writeRegister(writer, instruction.getRegisterD());
+                writeRegister(writer, instruction.getRegisterC());
                 break;
             case 2:
-                writeRegister(writer, instruction.getRegisterD());
+                writeRegister(writer, instruction.getRegisterC());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterE());
+                writeRegister(writer, instruction.getRegisterD());
                 break;
             case 3:
+                writeRegister(writer, instruction.getRegisterC());
+                writer.write(", ");
                 writeRegister(writer, instruction.getRegisterD());
                 writer.write(", ");
                 writeRegister(writer, instruction.getRegisterE());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterF());
                 break;
             case 4:
+                writeRegister(writer, instruction.getRegisterC());
+                writer.write(", ");
                 writeRegister(writer, instruction.getRegisterD());
                 writer.write(", ");
                 writeRegister(writer, instruction.getRegisterE());
                 writer.write(", ");
                 writeRegister(writer, instruction.getRegisterF());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterG());
                 break;
             case 5:
+                writeRegister(writer, instruction.getRegisterC());
+                writer.write(", ");
                 writeRegister(writer, instruction.getRegisterD());
                 writer.write(", ");
                 writeRegister(writer, instruction.getRegisterE());
@@ -295,8 +301,6 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeRegister(writer, instruction.getRegisterF());
                 writer.write(", ");
                 writeRegister(writer, instruction.getRegisterG());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterA());
                 break;
         }
         writer.write('}');
@@ -305,20 +309,21 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     protected void writeInvokeRangeRegisters(IndentingWriter writer) throws IOException {
         RegisterRangeInstruction instruction = (RegisterRangeInstruction)this.instruction;
 
-        int regCount = instruction.getRegCount();
+        int regCount = instruction.getRegisterCount();
         if (regCount == 0) {
             writer.write("{}");
         } else {
             int startRegister = instruction.getStartRegister();
-            RegisterFormatter.writeRegisterRange(writer, codeItem, startRegister, startRegister+regCount-1);
+            methodDef.registerFormatter.writeRegisterRange(writer, startRegister, startRegister+regCount-1);
         }
     }
 
     protected void writeLiteral(IndentingWriter writer) throws IOException {
-        LongRenderer.writeSignedIntOrLongTo(writer, ((LiteralInstruction)instruction).getLiteral());
+        LongRenderer.writeSignedIntOrLongTo(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
     }
 
-    protected void writeFieldOffset(IndentingWriter writer) throws IOException {
+    //TODO: uncomment
+    /*protected void writeFieldOffset(IndentingWriter writer) throws IOException {
         writer.write("field@0x");
         writer.printUnsignedLongAsHex(((OdexedFieldAccess) instruction).getFieldOffset());
     }
@@ -331,15 +336,20 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     protected void writeVtableIndex(IndentingWriter writer) throws IOException {
         writer.write("vtable@0x");
         writer.printUnsignedLongAsHex(((OdexedInvokeVirtual) instruction).getVtableIndex());
-    }
+    }*/
 
     protected void writeReference(IndentingWriter writer) throws IOException {
-        Item item = ((InstructionWithReference)instruction).getReferencedItem();
-        ReferenceFormatter.writeReference(writer, item);
+        String reference = ((ReferenceInstruction)instruction).getReference();
+        if (instruction.getOpcode().referenceType == ReferenceType.STRING) {
+            ReferenceFormatter.writeStringReference(writer, reference);
+        } else {
+            writer.write(reference);
+        }
     }
 
-    protected void writeVerificationErrorType(IndentingWriter writer) throws IOException {
+    //TODO: uncomment
+    /*protected void writeVerificationErrorType(IndentingWriter writer) throws IOException {
         VerificationErrorType validationErrorType = ((Instruction20bc)instruction).getValidationErrorType();
         writer.write(validationErrorType.getName());
-    }
+    }*/
 }

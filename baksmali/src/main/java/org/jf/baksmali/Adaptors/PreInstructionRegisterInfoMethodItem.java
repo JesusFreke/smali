@@ -41,7 +41,8 @@ import org.jf.dexlib.Util.AccessFlags;
 import java.io.IOException;
 import java.util.BitSet;
 
-public class PreInstructionRegisterInfoMethodItem extends MethodItem {
+//TODO: uncomment
+/*public class PreInstructionRegisterInfoMethodItem extends MethodItem {
     private final AnalyzedInstruction analyzedInstruction;
     private final MethodAnalyzer methodAnalyzer;
 
@@ -262,4 +263,4 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
         }
         return true;
     }
-}
+}*/

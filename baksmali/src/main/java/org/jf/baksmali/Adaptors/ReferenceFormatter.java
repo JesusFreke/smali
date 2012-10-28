@@ -35,45 +35,9 @@ import org.jf.util.StringUtils;
 import java.io.IOException;
 
 public class ReferenceFormatter {
-    public static void writeReference(IndentingWriter writer, Item item) throws IOException {
-        switch (item.getItemType()) {
-            case TYPE_METHOD_ID_ITEM:
-                writeMethodReference(writer, (MethodIdItem)item);
-                return;
-            case TYPE_FIELD_ID_ITEM:
-                writeFieldReference(writer, (FieldIdItem)item);
-                return;
-            case TYPE_STRING_ID_ITEM:
-                writeStringReference(writer, ((StringIdItem)item).getStringValue());
-                return;
-            case TYPE_TYPE_ID_ITEM:
-                writeTypeReference(writer, (TypeIdItem)item);
-                return;
-        }
-    }
-
-    public static void writeMethodReference(IndentingWriter writer, MethodIdItem item) throws IOException {
-        writer.write(item.getContainingClass().getTypeDescriptor());
-        writer.write("->");
-        writer.write(item.getMethodName().getStringValue());
-        writer.write(item.getPrototype().getPrototypeString());
-    }
-
-    public static void writeFieldReference(IndentingWriter writer, FieldIdItem item) throws IOException {
-        writer.write(item.getContainingClass().getTypeDescriptor());
-        writer.write("->");
-        writer.write(item.getFieldName().getStringValue());
-        writer.write(':');
-        writer.write(item.getFieldType().getTypeDescriptor());
-    }
-
     public static void writeStringReference(IndentingWriter writer, String item) throws IOException {
         writer.write('"');
         StringUtils.writeEscapedString(writer, item);
         writer.write('"');
-    }
-
-    public static void writeTypeReference(IndentingWriter writer, TypeIdItem item) throws IOException {
-        writer.write(item.getTypeDescriptor());
     }
 }

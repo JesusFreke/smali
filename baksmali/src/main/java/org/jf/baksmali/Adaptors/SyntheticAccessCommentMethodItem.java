@@ -34,7 +34,8 @@ import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
 
-public class SyntheticAccessCommentMethodItem extends MethodItem {
+//TODO: uncomment
+/*public class SyntheticAccessCommentMethodItem extends MethodItem {
     private final AccessedMember accessedMember;
 
     public SyntheticAccessCommentMethodItem(AccessedMember accessedMember, int codeAddress) {
@@ -59,4 +60,4 @@ public class SyntheticAccessCommentMethodItem extends MethodItem {
         ReferenceFormatter.writeReference(writer, accessedMember.accessedMember);
         return true;
     }
-}
+}*/

@@ -34,13 +34,13 @@ import org.jf.dexlib.TypeIdItem;
 import java.io.IOException;
 
 public class CatchMethodItem extends MethodItem {
-    private final TypeIdItem exceptionType;
+    private final String exceptionType;
 
     private final LabelMethodItem tryStartLabel;
     private final LabelMethodItem tryEndLabel;
     private final LabelMethodItem handlerLabel;
 
-    public CatchMethodItem(MethodDefinition.LabelCache labelCache, int codeAddress, TypeIdItem exceptionType,
+    public CatchMethodItem(MethodDefinition.LabelCache labelCache, int codeAddress, String exceptionType,
                            int startAddress, int endAddress, int handlerAddress) {
         super(codeAddress);
         this.exceptionType = exceptionType;
@@ -81,7 +81,7 @@ public class CatchMethodItem extends MethodItem {
             writer.write(".catchall");
         } else {
             writer.write(".catch ");
-            ReferenceFormatter.writeTypeReference(writer, exceptionType);
+            writer.write(exceptionType);
         }
         writer.write(" {");
         tryStartLabel.writeTo(writer);

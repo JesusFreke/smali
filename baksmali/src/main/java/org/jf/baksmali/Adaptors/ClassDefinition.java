@@ -41,7 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class ClassDefinition {
-    @Nonnull private final ClassDef classDef;
+    @Nonnull public final ClassDef classDef;
     @Nonnull private final HashSet<String> fieldsSetInStaticConstructor;
 
     protected boolean validationErrors;
@@ -95,8 +95,8 @@ public class ClassDefinition {
         writeAnnotations(writer);
         writeStaticFields(writer);
         writeInstanceFields(writer);
-        /*writeDirectMethods(writer);
-        writeVirtualMethods(writer);*/
+        writeDirectMethods(writer);
+        writeVirtualMethods(writer);
     }
 
     private void writeClass(IndentingWriter writer) throws IOException {
@@ -185,6 +185,62 @@ public class ClassDefinition {
                 // TODO: check if field is set in static constructor
 
                 FieldDefinition.writeTo(writer, field, false);
+            }
+        }
+    }
+
+    private void writeDirectMethods(IndentingWriter writer) throws IOException {
+        boolean wroteHeader = false;
+        for (Method method: classDef.getMethods()) {
+            int accessFlags = method.getAccessFlags();
+
+            if (AccessFlags.STATIC.isSet(accessFlags) ||
+                    AccessFlags.PRIVATE.isSet(accessFlags) ||
+                    AccessFlags.CONSTRUCTOR.isSet(accessFlags)) {
+                if (!wroteHeader) {
+                    writer.write("\n\n");
+                    writer.write("# direct methods");
+                    wroteHeader = true;
+                }
+                writer.write('\n');
+                // TODO: detect duplicate methods.
+                // TODO: check for method validation errors
+
+                MethodImplementation methodImpl = method.getImplementation();
+                if (methodImpl == null) {
+                    MethodDefinition.writeEmptyMethodTo(writer, method);
+                } else {
+                    MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
+                    methodDefinition.writeTo(writer);
+                }
+            }
+        }
+    }
+
+    private void writeVirtualMethods(IndentingWriter writer) throws IOException {
+        boolean wroteHeader = false;
+        for (Method method: classDef.getMethods()) {
+            int accessFlags = method.getAccessFlags();
+
+            if (!AccessFlags.STATIC.isSet(accessFlags) &&
+                    !AccessFlags.PRIVATE.isSet(accessFlags) &&
+                    !AccessFlags.CONSTRUCTOR.isSet(accessFlags)) {
+                if (!wroteHeader) {
+                    writer.write("\n\n");
+                    writer.write("# virtual methods");
+                    wroteHeader = true;
+                }
+                writer.write('\n');
+                // TODO: detect duplicate methods.
+                // TODO: check for method validation errors
+
+                MethodImplementation methodImpl = method.getImplementation();
+                if (methodImpl == null) {
+                    MethodDefinition.writeEmptyMethodTo(writer, method);
+                } else {
+                    MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
+                    methodDefinition.writeTo(writer);
+                }
             }
         }
     }

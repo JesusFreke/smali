@@ -34,7 +34,8 @@ import org.jf.dexlib.CodeItem;
 
 import java.io.IOException;
 
-public class UnresolvedOdexInstructionMethodItem extends InstructionMethodItem<UnresolvedOdexInstruction> {
+//TODO: uncomment
+/*public class UnresolvedOdexInstructionMethodItem extends InstructionMethodItem<UnresolvedOdexInstruction> {
     public UnresolvedOdexInstructionMethodItem(CodeItem codeItem, int codeAddress, UnresolvedOdexInstruction instruction) {
         super(codeItem, codeAddress, instruction);
     }
@@ -49,4 +50,4 @@ public class UnresolvedOdexInstructionMethodItem extends InstructionMethodItem<U
         writer.write("throw ");
         writeRegister(writer, instruction.ObjectRegisterNum);
     }
-}
+}*/

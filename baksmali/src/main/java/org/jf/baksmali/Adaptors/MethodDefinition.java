@@ -28,293 +28,228 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
-import org.jf.dexlib.Code.Analysis.SyntheticAccessorResolver;
-import org.jf.dexlib.Code.InstructionWithReference;
+import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.debug.DebugItem;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.OffsetInstruction;
+import org.jf.dexlib2.util.InstructionOffsetMap;
+import org.jf.dexlib2.util.MethodUtil;
+import org.jf.dexlib2.util.TypeUtils;
 import org.jf.util.IndentingWriter;
 import org.jf.baksmali.baksmali;
-import org.jf.dexlib.*;
-import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
-import org.jf.dexlib.Code.Analysis.MethodAnalyzer;
-import org.jf.dexlib.Code.Analysis.ValidationException;
-import org.jf.dexlib.Code.Format.Format;
-import org.jf.dexlib.Code.Instruction;
-import org.jf.dexlib.Code.OffsetInstruction;
-import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.Debug.DebugInstructionIterator;
-import org.jf.dexlib.Util.AccessFlags;
 import org.jf.util.ExceptionWithContext;
 import org.jf.dexlib.Util.SparseIntArray;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
 
 public class MethodDefinition {
-    private final ClassDataItem.EncodedMethod encodedMethod;
-    private MethodAnalyzer methodAnalyzer;
+    @Nonnull public final ClassDefinition classDef;
+    @Nonnull public final Method method;
+    @Nonnull public final MethodImplementation methodImpl;
+    public RegisterFormatter registerFormatter;
 
-    private final LabelCache labelCache = new LabelCache();
+    @Nonnull private final String methodString;
 
-    private final SparseIntArray packedSwitchMap;
-    private final SparseIntArray sparseSwitchMap;
-    private final SparseIntArray instructionMap;
+    @Nonnull private final LabelCache labelCache = new LabelCache();
 
-    public MethodDefinition(ClassDataItem.EncodedMethod encodedMethod) {
+    @Nonnull private final SparseIntArray packedSwitchMap;
+    @Nonnull private final SparseIntArray sparseSwitchMap;
+    @Nonnull private final InstructionOffsetMap instructionOffsetMap;
 
+    public MethodDefinition(@Nonnull ClassDefinition classDef, @Nonnull Method method,
+                            @Nonnull MethodImplementation methodImpl) {
+        this.classDef = classDef;
+        this.method = method;
+        this.methodImpl = methodImpl;
+
+        this.methodString = MethodUtil.buildFullMethodString(classDef.classDef, method);
 
         try {
-            this.encodedMethod = encodedMethod;
-
             //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
 
-            if (encodedMethod.codeItem != null) {
-                Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+            List<? extends Instruction> instructions = methodImpl.getInstructions();
 
-                packedSwitchMap = new SparseIntArray(1);
-                sparseSwitchMap = new SparseIntArray(1);
-                instructionMap = new SparseIntArray(instructions.length);
+            packedSwitchMap = new SparseIntArray(0);
+            sparseSwitchMap = new SparseIntArray(0);
+            instructionOffsetMap = new InstructionOffsetMap(methodImpl);
 
-                int currentCodeAddress = 0;
-                for (int i=0; i<instructions.length; i++) {
-                    Instruction instruction = instructions[i];
-                    if (instruction.opcode == Opcode.PACKED_SWITCH) {
-                        packedSwitchMap.append(
-                                currentCodeAddress +
-                                        ((OffsetInstruction)instruction).getTargetAddressOffset(),
-                                currentCodeAddress);
-                    } else if (instruction.opcode == Opcode.SPARSE_SWITCH) {
-                        sparseSwitchMap.append(
-                                currentCodeAddress +
-                                        ((OffsetInstruction)instruction).getTargetAddressOffset(),
-                                currentCodeAddress);
-                    }
-                    instructionMap.append(currentCodeAddress, i);
-                    currentCodeAddress += instruction.getSize(currentCodeAddress);
+            for (int i=0; i<instructions.size(); i++) {
+                Instruction instruction = instructions.get(i);
+
+                Opcode opcode = instruction.getOpcode();
+                if (opcode == Opcode.PACKED_SWITCH) {
+                    int codeOffset = instructionOffsetMap.getInstructionCodeOffset(i);
+                    int targetOffset = codeOffset + ((OffsetInstruction)instruction).getCodeOffset();
+                    targetOffset = findSwitchPayload(targetOffset, Opcode.PACKED_SWITCH_PAYLOAD);
+                    packedSwitchMap.append(codeOffset, targetOffset);
+                } else if (opcode == Opcode.SPARSE_SWITCH) {
+                    int codeOffset = instructionOffsetMap.getInstructionCodeOffset(i);
+                    int targetOffset = codeOffset + ((OffsetInstruction)instruction).getCodeOffset();
+                    targetOffset = findSwitchPayload(targetOffset, Opcode.SPARSE_SWITCH_PAYLOAD);
+                    sparseSwitchMap.append(codeOffset, targetOffset);
                 }
-            } else {
-                packedSwitchMap = null;
-                sparseSwitchMap = null;
-                instructionMap = null;
-                methodAnalyzer = null;
             }
         }catch (Exception ex) {
-            throw ExceptionWithContext.withContext(ex, String.format("Error while processing method %s",
-                    encodedMethod.method.getMethodString()));
+            throw ExceptionWithContext.withContext(ex, "Error while processing method %s", methodString);
         }
     }
 
-    public void writeTo(IndentingWriter writer, AnnotationSetItem annotationSet,
-                        AnnotationSetRefList parameterAnnotations) throws IOException {
-        final CodeItem codeItem = encodedMethod.codeItem;
-
+    public static void writeEmptyMethodTo(IndentingWriter writer, Method method) throws IOException {
         writer.write(".method ");
-        writeAccessFlags(writer, encodedMethod);
-        writer.write(encodedMethod.method.getMethodName().getStringValue());
-        writer.write(encodedMethod.method.getPrototype().getPrototypeString());
+        writeAccessFlags(writer, method.getAccessFlags());
+        writer.write(method.getName());
+        writer.write("(");
+        for (MethodParameter parameter: method.getParameters()) {
+            writer.write(parameter.getType());
+        }
+        writer.write(")");
+        writer.write(method.getReturnType());
         writer.write('\n');
 
         writer.indent(4);
-        if (codeItem != null) {
-            if (baksmali.useLocalsDirective) {
-                writer.write(".locals ");
-            } else {
-                writer.write(".registers ");
-            }
-            writer.printSignedIntAsDec(getRegisterCount(encodedMethod));
-            writer.write('\n');
-            writeParameters(writer, codeItem, parameterAnnotations);
-            //TODO: uncomment
-            /*if (annotationSet != null) {
-                AnnotationFormatter.writeTo(writer, annotationSet);
-            }*/
+        writeParameters(writer, method.getParameters());
+        AnnotationFormatter.writeTo(writer, method.getAnnotations());
+        writer.deindent(4);
+        writer.write(".end method\n");
+    }
 
-            writer.write('\n');
+    public void writeTo(IndentingWriter writer) throws IOException {
+        int parameterRegisterCount = 0;
+        if (!AccessFlags.STATIC.isSet(method.getAccessFlags())) {
+            parameterRegisterCount++;
+        }
 
-            for (MethodItem methodItem: getMethodItems()) {
-                if (methodItem.writeTo(writer)) {
-                    writer.write('\n');
-                }
+        writer.write(".method ");
+        writeAccessFlags(writer, method.getAccessFlags());
+        writer.write(method.getName());
+        writer.write("(");
+        for (MethodParameter parameter: method.getParameters()) {
+            String type = parameter.getType();
+            writer.write(type);
+            parameterRegisterCount++;
+            if (TypeUtils.isWideType(type)) {
+                parameterRegisterCount++;
             }
+        }
+        writer.write(")");
+        writer.write(method.getReturnType());
+        writer.write('\n');
+
+        writer.indent(4);
+        if (baksmali.useLocalsDirective) {
+            writer.write(".locals ");
+            writer.printSignedIntAsDec(methodImpl.getRegisterCount() - parameterRegisterCount);
         } else {
-            writeParameters(writer, codeItem, parameterAnnotations);
-            //TODO: uncomment
-            /*if (annotationSet != null) {
-                AnnotationFormatter.writeTo(writer, annotationSet);
-            }*/
+            writer.write(".registers ");
+            writer.printSignedIntAsDec(methodImpl.getRegisterCount());
+        }
+        writer.write('\n');
+        writeParameters(writer, method.getParameters());
+
+        if (registerFormatter == null) {
+            registerFormatter = new RegisterFormatter(methodImpl.getRegisterCount(), parameterRegisterCount);
+        }
+
+        AnnotationFormatter.writeTo(writer, method.getAnnotations());
+
+        writer.write('\n');
+
+        for (MethodItem methodItem: getMethodItems()) {
+            if (methodItem.writeTo(writer)) {
+                writer.write('\n');
+            }
         }
         writer.deindent(4);
         writer.write(".end method\n");
     }
 
-    private static int getRegisterCount(ClassDataItem.EncodedMethod encodedMethod)
-    {
-        int totalRegisters = encodedMethod.codeItem.getRegisterCount();
-        if (baksmali.useLocalsDirective) {
-            int parameterRegisters = encodedMethod.method.getPrototype().getParameterRegisterCount();
-            if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) == 0) {
-                parameterRegisters++;
+    private int findSwitchPayload(int targetOffset, Opcode type) {
+        int targetIndex = instructionOffsetMap.getInstructionIndexAtCodeOffset(targetOffset);
+
+        //TODO: does dalvik let you pad with multiple nops?
+        //TODO: does dalvik let a switch instruction point to a non-payload instruction?
+
+        List<? extends Instruction> instructions = methodImpl.getInstructions();
+        Instruction instruction = instructions.get(targetIndex);
+        if (instruction.getOpcode() != type) {
+            // maybe it's pointing to a NOP padding instruction. Look at the next instruction
+            if (instruction.getOpcode() == Opcode.NOP) {
+                targetIndex += 1;
+                if (targetIndex < instructions.size()) {
+                    instruction = instructions.get(targetIndex);
+                    if (instruction.getOpcode() == type) {
+                        return instructionOffsetMap.getInstructionCodeOffset(targetIndex);
+                    }
+                }
             }
-            return totalRegisters - parameterRegisters;
+            throw new ExceptionWithContext("No switch payload at offset 0x%x", targetOffset);
+        } else {
+            return targetOffset;
         }
-        return totalRegisters;
     }
 
-    private static void writeAccessFlags(IndentingWriter writer, ClassDataItem.EncodedMethod encodedMethod)
-                                                                                            throws IOException {
-        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(encodedMethod.accessFlags)) {
+    private static void writeAccessFlags(IndentingWriter writer, int accessFlags)
+            throws IOException {
+        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(accessFlags)) {
             writer.write(accessFlag.toString());
             writer.write(' ');
         }
     }
 
-    private static void writeParameters(IndentingWriter writer, CodeItem codeItem,
-                                        AnnotationSetRefList parameterAnnotations) throws IOException {
-        DebugInfoItem debugInfoItem = null;
-        if (baksmali.outputDebugInfo && codeItem != null) {
-            debugInfoItem = codeItem.getDebugInfo();
-        }
-
-        int parameterCount = 0;
-        AnnotationSetItem[] annotations;
-        StringIdItem[] parameterNames = null;
-
-        if (parameterAnnotations != null) {
-            annotations = parameterAnnotations.getAnnotationSets();
-            parameterCount = annotations.length;
-        } else {
-            annotations = new AnnotationSetItem[0];
-        }
-
-        if (debugInfoItem != null) {
-            parameterNames = debugInfoItem.getParameterNames();
-        }
-        if (parameterNames == null) {
-            parameterNames = new StringIdItem[0];
-        }
-
-        if (parameterCount < parameterNames.length) {
-            parameterCount = parameterNames.length;
-        }
-
-        for (int i=0; i<parameterCount; i++) {
-            AnnotationSetItem annotationSet = null;
-            if (i < annotations.length) {
-                annotationSet = annotations[i];
+    private static void writeParameters(IndentingWriter writer,
+                                       List<? extends MethodParameter> parameters) throws IOException {
+        int registerNumber = 0;
+        for (MethodParameter parameter: parameters) {
+            String parameterType = parameter.getType();
+            String parameterName = parameter.getName();
+            List<? extends Annotation> annotations = parameter.getAnnotations();
+            if (parameterName != null || annotations.size() != 0) {
+                writer.write(".parameter p");
+                writer.printSignedIntAsDec(registerNumber);
+                if (parameterName != null) {
+                    writer.write(" ");
+                    writer.write(parameterName);
+                }
+                if (annotations.size() > 0) {
+                    writer.indent(4);
+                    AnnotationFormatter.writeTo(writer, annotations);
+                    writer.deindent(4);
+                    writer.write(".end parameter\n");
+                } else {
+                    writer.write("\n");
+                }
             }
 
-            StringIdItem parameterName = null;
-            if (i < parameterNames.length) {
-                parameterName = parameterNames[i];
+            registerNumber++;
+            if (TypeUtils.isWideType(parameterType)) {
+                registerNumber++;
             }
-
-            writer.write(".parameter");
-
-            if (parameterName != null) {
-                writer.write(" \"");
-                writer.write(parameterName.getStringValue());
-                writer.write('"');
-            }
-
-            writer.write('\n');
-            //TODO: uncomment
-            /*if (annotationSet != null) {
-                writer.indent(4);
-                AnnotationFormatter.writeTo(writer, annotationSet);
-                writer.deindent(4);
-
-                writer.write(".end parameter\n");
-            }*/
         }
     }
 
-    public LabelCache getLabelCache() {
+    @Nonnull public LabelCache getLabelCache() {
         return labelCache;
     }
 
-    public ValidationException getValidationException() {
-        if (methodAnalyzer == null) {
-            return null;
-        }
-
-        return methodAnalyzer.getValidationException();
+    public int getPackedSwitchBaseAddress(int packedSwitchPayloadCodeOffset) {
+        return packedSwitchMap.get(packedSwitchPayloadCodeOffset, -1);
     }
 
-    public int getPackedSwitchBaseAddress(int packedSwitchDataAddress) {
-        int packedSwitchBaseAddress = this.packedSwitchMap.get(packedSwitchDataAddress, -1);
-
-        if (packedSwitchBaseAddress == -1) {
-            Instruction[] instructions = encodedMethod.codeItem.getInstructions();
-            int index = instructionMap.get(packedSwitchDataAddress);
-
-            if (instructions[index].opcode == Opcode.NOP) {
-                packedSwitchBaseAddress = this.packedSwitchMap.get(packedSwitchDataAddress+2, -1);
-            }
-        }
-
-        return packedSwitchBaseAddress;
-    }
-
-    public int getSparseSwitchBaseAddress(int sparseSwitchDataAddress) {
-        int sparseSwitchBaseAddress = this.sparseSwitchMap.get(sparseSwitchDataAddress, -1);
-
-        if (sparseSwitchBaseAddress == -1) {
-            Instruction[] instructions = encodedMethod.codeItem.getInstructions();
-            int index = instructionMap.get(sparseSwitchDataAddress);
-
-            if (instructions[index].opcode == Opcode.NOP) {
-                sparseSwitchBaseAddress = this.packedSwitchMap.get(sparseSwitchDataAddress+2, -1);
-            }
-        }
-
-        return sparseSwitchBaseAddress;
-    }
-
-    /**
-     * @param instructions The instructions array for this method
-     * @param instruction The instruction
-     * @return true if the specified instruction is a NOP, and the next instruction is one of the variable sized
-     * switch/array data structures
-     */
-    private boolean isInstructionPaddingNop(List<AnalyzedInstruction> instructions, AnalyzedInstruction instruction) {
-        if (instruction.getInstruction().opcode != Opcode.NOP ||
-            instruction.getInstruction().getFormat().variableSizeFormat) {
-
-            return false;
-        }
-
-        if (instruction.getInstructionIndex() == instructions.size()-1) {
-            return false;
-        }
-
-        AnalyzedInstruction nextInstruction = instructions.get(instruction.getInstructionIndex()+1);
-        if (nextInstruction.getInstruction().getFormat().variableSizeFormat) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean needsAnalyzed() {
-        for (Instruction instruction: encodedMethod.codeItem.getInstructions()) {
-            if (instruction.opcode.odexOnly()) {
-                return true;
-            }
-        }
-        return false;
+    public int getSparseSwitchBaseAddress(int sparseSwitchPayloadCodeOffset) {
+        return sparseSwitchMap.get(sparseSwitchPayloadCodeOffset, -1);
     }
 
     private List<MethodItem> getMethodItems() {
         ArrayList<MethodItem> methodItems = new ArrayList<MethodItem>();
 
-        if (encodedMethod.codeItem == null) {
-            return methodItems;
-        }
-
-        if ((baksmali.registerInfo != 0) || baksmali.verify ||
-            (baksmali.deodex && needsAnalyzed())) {
-            addAnalyzedInstructionMethodItems(methodItems);
-        } else {
-            addInstructionMethodItems(methodItems);
-        }
+        //TODO: addAnalyzedInstructionMethodItems
+        addInstructionMethodItems(methodItems);
 
         addTries(methodItems);
         if (baksmali.outputDebugInfo) {
@@ -335,18 +270,18 @@ public class MethodDefinition {
     }
 
     private void addInstructionMethodItems(List<MethodItem> methodItems) {
-        Instruction[] instructions = encodedMethod.codeItem.getInstructions();
+        List<? extends Instruction> instructions = methodImpl.getInstructions();
 
         int currentCodeAddress = 0;
-        for (int i=0; i<instructions.length; i++) {
-            Instruction instruction = instructions[i];
+        for (int i=0; i<instructions.size(); i++) {
+            Instruction instruction = instructions.get(i);
 
             MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
-                    encodedMethod.codeItem, currentCodeAddress, instruction);
+                    currentCodeAddress, instruction);
 
             methodItems.add(methodItem);
 
-            if (i != instructions.length - 1) {
+            if (i != instructions.size() - 1) {
                 methodItems.add(new BlankMethodItem(currentCodeAddress));
             }
 
@@ -361,14 +296,16 @@ public class MethodDefinition {
                     @Override
                     public boolean writeTo(IndentingWriter writer) throws IOException {
                         writer.write("#@");
-                        writer.printUnsignedLongAsHex(codeAddress & 0xFFFFFFFF);
+                        writer.printUnsignedLongAsHex(codeAddress & 0xFFFFFFFFL);
                         return true;
                     }
                 });
             }
 
-            if (!baksmali.noAccessorComments && (instruction instanceof InstructionWithReference)) {
-                if (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
+            //TODO: uncomment
+            /*if (!baksmali.noAccessorComments && (instruction instanceof InstructionWithReference)) {
+                Opcode opcode = instruction.getOpcode();
+                if (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) {
                     MethodIdItem methodIdItem =
                             (MethodIdItem)((InstructionWithReference) instruction).getReferencedItem();
 
@@ -380,13 +317,14 @@ public class MethodDefinition {
                         }
                     }
                 }
-            }
+            }*/
 
-            currentCodeAddress += instruction.getSize(currentCodeAddress);
+            currentCodeAddress += instruction.getCodeUnits();
         }
     }
 
-    private void addAnalyzedInstructionMethodItems(List<MethodItem> methodItems) {
+    //TODO: uncomment
+    /*private void addAnalyzedInstructionMethodItems(List<MethodItem> methodItems) {
         methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex, baksmali.inlineResolver);
 
         methodAnalyzer.analyze();
@@ -455,20 +393,21 @@ public class MethodDefinition {
 
             currentCodeAddress += instruction.getInstruction().getSize(currentCodeAddress);
         }
-    }
+    }*/
 
     private void addTries(List<MethodItem> methodItems) {
-        if (encodedMethod.codeItem == null || encodedMethod.codeItem.getTries() == null) {
+        List<? extends TryBlock> tryBlocks = methodImpl.getTryBlocks();
+        if (tryBlocks.size() == 0) {
             return;
         }
 
-        Instruction[] instructions = encodedMethod.codeItem.getInstructions();
-        int lastInstructionAddress = instructionMap.keyAt(instructionMap.size()-1);
-        int codeSize = lastInstructionAddress + instructions[instructions.length - 1].getSize(lastInstructionAddress);
+        List<? extends Instruction> instructions = methodImpl.getInstructions();
+        int lastInstructionAddress = instructionOffsetMap.getInstructionCodeOffset(instructions.size() - 1);
+        int codeSize = lastInstructionAddress + instructions.get(instructions.size() - 1).getCodeUnits();
 
-        for (CodeItem.TryItem tryItem: encodedMethod.codeItem.getTries()) {
-            int startAddress = tryItem.getStartCodeAddress();
-            int endAddress = tryItem.getStartCodeAddress() + tryItem.getTryLength();
+        for (TryBlock tryBlock: tryBlocks) {
+            int startAddress = tryBlock.getStartCodeOffset();
+            int endAddress = startAddress + tryBlock.getCodeUnitCount();
 
             if (startAddress >= codeSize) {
                 throw new RuntimeException(String.format("Try start offset %d is past the end of the code block.",
@@ -487,142 +426,28 @@ public class MethodDefinition {
              * the address for that instruction
              */
 
-            int lastCoveredIndex = instructionMap.getClosestSmaller(endAddress-1);
-            int lastCoveredAddress = instructionMap.keyAt(lastCoveredIndex);
+            int lastCoveredIndex = instructionOffsetMap.getInstructionIndexAtCodeOffset(endAddress - 1, false);
+            int lastCoveredAddress = instructionOffsetMap.getInstructionCodeOffset(lastCoveredIndex);
 
-            //add the catch all handler if it exists
-            int catchAllAddress = tryItem.encodedCatchHandler.getCatchAllHandlerAddress();
-            if (catchAllAddress != -1) {
-                if (catchAllAddress >= codeSize) {
-                    throw new RuntimeException(String.format(
-                            "Catch all handler offset %d is past the end of the code block.", catchAllAddress));
-                }
-
-                CatchMethodItem catchAllMethodItem = new CatchMethodItem(labelCache, lastCoveredAddress, null,
-                        startAddress, endAddress, catchAllAddress);
-                methodItems.add(catchAllMethodItem);
-            }
-
-            //add the rest of the handlers
-            for (CodeItem.EncodedTypeAddrPair handler: tryItem.encodedCatchHandler.handlers) {
-                if (handler.getHandlerAddress() >= codeSize) {
-                    throw new RuntimeException(String.format(
-                            "Exception handler offset %d is past the end of the code block.", catchAllAddress));
+            for (ExceptionHandler handler: tryBlock.getExceptionHandlers()) {
+                int handlerOffset = handler.getHandlerCodeOffset();
+                if (handlerOffset >= codeSize) {
+                    throw new ExceptionWithContext(
+                            "Exception handler offset %d is past the end of the code block.", handlerOffset);
                 }
 
                 //use the address from the last covered instruction
                 CatchMethodItem catchMethodItem = new CatchMethodItem(labelCache, lastCoveredAddress,
-                        handler.exceptionType, startAddress, endAddress, handler.getHandlerAddress());
+                        handler.getExceptionType(), startAddress, endAddress, handlerOffset);
                 methodItems.add(catchMethodItem);
             }
         }
     }
 
     private void addDebugInfo(final List<MethodItem> methodItems) {
-        if (encodedMethod.codeItem == null || encodedMethod.codeItem.getDebugInfo() == null) {
-            return;
+        for (DebugItem debugItem: methodImpl.getDebugItems()) {
+            methodItems.add(DebugMethodItem.build(registerFormatter, debugItem));
         }
-
-        final CodeItem codeItem = encodedMethod.codeItem;
-        DebugInfoItem debugInfoItem = codeItem.getDebugInfo();
-
-        DebugInstructionIterator.DecodeInstructions(debugInfoItem, codeItem.getRegisterCount(),
-                new DebugInstructionIterator.ProcessDecodedDebugInstructionDelegate() {
-                    @Override
-                    public void ProcessStartLocal(final int codeAddress, final int length, final int registerNum,
-                                                  final StringIdItem name, final TypeIdItem type) {
-                        methodItems.add(new DebugMethodItem(codeAddress, -1) {
-                            @Override
-                            public boolean writeTo(IndentingWriter writer) throws IOException {
-                                writeStartLocal(writer, codeItem, registerNum, name, type, null);
-                                return true;
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void ProcessStartLocalExtended(final int codeAddress, final int length,
-                                                          final int registerNum, final StringIdItem name,
-                                                          final TypeIdItem type, final StringIdItem signature) {
-                        methodItems.add(new DebugMethodItem(codeAddress, -1) {
-                            @Override
-                            public boolean writeTo(IndentingWriter writer) throws IOException {
-                                writeStartLocal(writer, codeItem, registerNum, name, type, signature);
-                                return true;
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void ProcessEndLocal(final int codeAddress, final int length, final int registerNum,
-                                                final StringIdItem name, final TypeIdItem type,
-                                                final StringIdItem signature) {
-                        methodItems.add(new DebugMethodItem(codeAddress, -1) {
-                            @Override
-                            public boolean writeTo(IndentingWriter writer) throws IOException {
-                                writeEndLocal(writer, codeItem, registerNum, name, type, signature);
-                                return true;
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void ProcessRestartLocal(final int codeAddress, final int length, final int registerNum,
-                                                final StringIdItem name, final TypeIdItem type,
-                                                final StringIdItem signature) {
-                        methodItems.add(new DebugMethodItem(codeAddress, -1) {
-                            @Override
-                            public boolean writeTo(IndentingWriter writer) throws IOException {
-                                writeRestartLocal(writer, codeItem, registerNum, name, type, signature);
-                                return true;
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void ProcessSetPrologueEnd(int codeAddress) {
-                        methodItems.add(new DebugMethodItem(codeAddress, -4) {
-                            @Override
-                            public boolean writeTo(IndentingWriter writer) throws IOException {
-                                writeEndPrologue(writer);
-                                return true;
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void ProcessSetEpilogueBegin(int codeAddress) {
-                        methodItems.add(new DebugMethodItem(codeAddress, -4) {
-                            @Override
-                            public boolean writeTo(IndentingWriter writer) throws IOException {
-                                writeBeginEpilogue(writer);
-                                return true;
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void ProcessSetFile(int codeAddress, int length, final StringIdItem name) {
-                        methodItems.add(new DebugMethodItem(codeAddress, -3) {
-                            @Override
-                            public boolean writeTo(IndentingWriter writer) throws IOException {
-                                writeSetFile(writer, name.getStringValue());
-                                return true;
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void ProcessLineEmit(int codeAddress, final int line) {
-                        methodItems.add(new DebugMethodItem(codeAddress, -2) {
-                            @Override
-                            public boolean writeTo(IndentingWriter writer) throws IOException {
-                                writeLine(writer, line);
-                                return true;
-                            }
-                         });
-                    }
-                });
     }
 
     private void setLabelSequentialNumbers() {

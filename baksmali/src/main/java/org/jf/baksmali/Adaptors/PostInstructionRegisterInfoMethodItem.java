@@ -39,7 +39,8 @@ import org.jf.dexlib.Code.Analysis.RegisterType;
 import java.io.IOException;
 import java.util.BitSet;
 
-public class PostInstructionRegisterInfoMethodItem extends MethodItem {
+//TODO: uncomment
+/*public class PostInstructionRegisterInfoMethodItem extends MethodItem {
     private final AnalyzedInstruction analyzedInstruction;
     private final MethodAnalyzer methodAnalyzer;
 
@@ -108,4 +109,4 @@ public class PostInstructionRegisterInfoMethodItem extends MethodItem {
         }
         return true;
     }
-}
+}*/
