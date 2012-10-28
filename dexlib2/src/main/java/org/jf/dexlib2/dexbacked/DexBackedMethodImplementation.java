@@ -33,7 +33,7 @@ package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
-import org.jf.dexlib2.dexbacked.util.DebugItemList;
+import org.jf.dexlib2.dexbacked.util.DebugInfo;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 import org.jf.dexlib2.iface.Annotation;
@@ -56,6 +56,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     public final int registerCount;
     @Nonnull public final ImmutableList<? extends Instruction> instructions;
+    @Nonnull public final DebugInfo debugInfo;
 
     // code_item offsets
     private static final int TRIES_SIZE_OFFSET = 6;
@@ -72,8 +73,8 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         this.method = method;
         this.codeOffset = codeOffset;
         this.registerCount = dexBuf.readUshort(codeOffset);
-
-        instructions = buildInstructionList();
+        this.instructions = buildInstructionList();
+        this.debugInfo = DebugInfo.newOrEmpty(dexBuf, dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET), this);
     }
 
     @Override public int getRegisterCount() { return registerCount; }
@@ -110,11 +111,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull
     @Override
     public Iterable<? extends DebugItem> getDebugItems() {
-        final int debugInfoOffset = dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET);
-        if (debugInfoOffset > 0) {
-            return new DebugItemList(dexBuf, debugInfoOffset, this);
-        }
-        return ImmutableList.of();
+        return debugInfo;
     }
 
     @Nonnull
@@ -135,49 +132,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         return ImmutableList.copyOf(instructions);
     }
 
-    //TODO: reading the method params from the debug_info_item should probably be centralized with other debug stuff
-    @Nullable
-    public VariableSizeList<MethodParameter> getParametersWithNamesOrNull() {
-        final int debugInfoOffset = dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET);
-        if (debugInfoOffset > 0) {
-            DexReader reader = dexBuf.readerAt(debugInfoOffset);
-            reader.skipUleb128();
-            final int parameterNameCount = reader.readSmallUleb128();
-            final List<? extends MethodParameter> methodParametersWithoutNames = method.getParametersWithoutNames();
-            //TODO: make sure dalvik doesn't allow more parameter names than we have parameters
-
-            return new VariableSizeList<MethodParameter>(dexBuf, reader.getOffset()) {
-                @Nonnull
-                @Override
-                protected MethodParameter readItem(@Nonnull DexReader reader, int index) {
-                    final MethodParameter methodParameter = methodParametersWithoutNames.get(index);
-                    String _name = null;
-                    if (index < parameterNameCount) {
-                        _name = reader.getOptionalString(reader.readSmallUleb128() - 1);
-                    }
-                    final String name = _name;
-
-                    return new MethodParameter() {
-                        @Nonnull @Override public String getType() { return methodParameter.getType(); }
-                        @Nullable @Override public String getName() { return name; }
-                        @Nullable @Override public String getSignature() { return methodParameter.getSignature();}
-                        @Nonnull @Override public List<? extends Annotation> getAnnotations() {
-                            return methodParameter.getAnnotations();
-                        }
-                    };
-                }
-
-                @Override public int size() { return methodParametersWithoutNames.size(); }
-            };
-        }
-        return null;
-    }
-
     public List<? extends MethodParameter> getParametersWithNames() {
-        List<MethodParameter> parameters = getParametersWithNamesOrNull();
-        if (parameters != null) {
-            return parameters;
-        }
-        return method.getParametersWithoutNames();
+        return debugInfo.getParametersWithNames();
     }
 }
