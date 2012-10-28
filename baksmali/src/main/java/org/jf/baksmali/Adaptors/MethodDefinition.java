@@ -210,17 +210,19 @@ public class MethodDefinition {
             String parameterName = parameter.getName();
             List<? extends Annotation> annotations = parameter.getAnnotations();
             if (parameterName != null || annotations.size() != 0) {
-                writer.write(".parameter p");
+                writer.write(".param p");
                 writer.printSignedIntAsDec(registerNumber);
                 if (parameterName != null) {
-                    writer.write(" ");
+                    writer.write(", ");
                     writer.write(parameterName);
                 }
+                writer.write("    #");
+                writer.write(parameterType);
                 if (annotations.size() > 0) {
                     writer.indent(4);
                     AnnotationFormatter.writeTo(writer, annotations);
                     writer.deindent(4);
-                    writer.write(".end parameter\n");
+                    writer.write(".end param\n");
                 } else {
                     writer.write("\n");
                 }

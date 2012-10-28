@@ -57,7 +57,7 @@ public class EndLocalMethodItem extends DebugMethodItem {
         //TODO: what if name is null, but there is a type?
         String name = endLocal.getName();
         if (name != null) {
-            writer.write("           #");
+            writer.write("    #");
             writer.write(name);
             writer.write(':');
             writer.write(endLocal.getType());
