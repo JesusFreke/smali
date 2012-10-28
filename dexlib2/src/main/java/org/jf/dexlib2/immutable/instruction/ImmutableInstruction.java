@@ -127,7 +127,7 @@ public abstract class ImmutableInstruction implements Instruction {
     public abstract Format getFormat();
 
     public int getCodeUnits() {
-        return getFormat().size * 2;
+        return getFormat().size / 2;
     }
 
     @Nonnull
