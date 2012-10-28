@@ -215,9 +215,9 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                                 return new ImmutableSetSourceFile(codeAddress, sourceFile);
                             }
                             default: {
-                                int base = ((next & 0xFF) - 0x0A);
-                                codeAddress += base / 15;
-                                lineNumber += (base % 15) - 4;
+                                int adjusted = next - 0x0A;
+                                codeAddress += adjusted / 15;
+                                lineNumber += (adjusted % 15) - 4;
                                 return new ImmutableLineNumber(codeAddress, lineNumber);
                             }
                         }
