@@ -41,5 +41,5 @@ public interface MethodImplementation {
     int getRegisterCount();
     @Nonnull List<? extends Instruction> getInstructions();
     @Nonnull List<? extends TryBlock> getTryBlocks();
-    @Nonnull List<? extends DebugItem> getDebugItems();
+    @Nonnull Iterable<? extends DebugItem> getDebugItems();
 }

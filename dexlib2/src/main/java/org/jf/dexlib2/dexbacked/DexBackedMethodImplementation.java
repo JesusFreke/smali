@@ -109,7 +109,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     @Nonnull
     @Override
-    public List<? extends DebugItem> getDebugItems() {
+    public Iterable<? extends DebugItem> getDebugItems() {
         final int debugInfoOffset = dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET);
         if (debugInfoOffset > 0) {
             return new DebugItemList(dexBuf, debugInfoOffset, method);

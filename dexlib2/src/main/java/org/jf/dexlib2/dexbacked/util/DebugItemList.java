@@ -46,9 +46,10 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class DebugItemList extends VariableSizeListWithContext<DebugItem> {
+public class DebugItemList implements Iterable<DebugItem> {
     @Nonnull public final DexBuffer dexBuf;
     private final int debugInfoOffset;
     @Nonnull private final Method method;
@@ -75,7 +76,7 @@ public class DebugItemList extends VariableSizeListWithContext<DebugItem> {
 
     @Nonnull
     @Override
-    public Iterator listIterator() {
+    public Iterator<DebugItem> iterator() {
         DexReader initialReader = dexBuf.readerAt(debugInfoOffset);
         // TODO: this unsigned value could legitimally be > MAX_INT
         final int lineNumberStart = initialReader.readSmallUleb128();
@@ -89,7 +90,7 @@ public class DebugItemList extends VariableSizeListWithContext<DebugItem> {
         // information, the method obviously has an implementation.
         VariableSizeList<? extends MethodParameter> parameters =
                 (VariableSizeList<? extends MethodParameter>)method.getParameters();
-        VariableSizeList<? extends MethodParameter>.Iterator parameterIterator = parameters.listIterator();
+        final VariableSizeList<? extends MethodParameter>.Iterator parameterIterator = parameters.listIterator();
 
         { // local scope for i
             int i=0;
@@ -113,23 +114,25 @@ public class DebugItemList extends VariableSizeListWithContext<DebugItem> {
             }
         }
 
-        return new Iterator(dexBuf, parameterIterator.getReaderOffset()) {
+        return new Iterator<DebugItem>() {
+            @Nonnull private DexReader reader = dexBuf.readerAt(parameterIterator.getReaderOffset());
             private boolean finished = false;
             private int codeAddress = 0;
             private int lineNumber = lineNumberStart;
 
-            @Nonnull
-            @Override
-            protected DebugItem readItem(@Nonnull DexReader reader, int index) {
+            @Nullable private DebugItem nextItem;
+
+            @Nullable
+            protected DebugItem readItem() {
                 if (finished) {
-                    throw new NoSuchElementException();
+                    return null;
                 }
                 while (true) {
                     int next = reader.readUbyte();
                     switch (next) {
                         case DebugItemType.END_SEQUENCE: {
                             finished = true;
-                            throw new NoSuchElementException();
+                            return null;
                         }
                         case DebugItemType.ADVANCE_PC: {
                             int addressDiff = reader.readSmallUleb128();
@@ -209,19 +212,36 @@ public class DebugItemList extends VariableSizeListWithContext<DebugItem> {
             }
 
             @Override
-            protected void skipItem(@Nonnull DexReader reader, int index) {
-                super.skipItem(reader, index);
+            public boolean hasNext() {
+                if (finished || nextItem != null) {
+                    return false;
+                }
+                nextItem = readItem();
+                return nextItem != null;
+            }
+
+            @Nonnull
+            @Override
+            public DebugItem next() {
+                if (finished) {
+                    throw new NoSuchElementException();
+                }
+                if (nextItem == null) {
+                    DebugItem ret = readItem();
+                    if (ret == null) {
+                        throw new NoSuchElementException();
+                    }
+                    return ret;
+                }
+                DebugItem ret = nextItem;
+                nextItem = null;
+                return ret;
             }
 
             @Override
-            protected void checkBounds(int index) {
-                // skip the bounds check here. We'll throw NoSuchElementException directly from readItem
+            public void remove() {
+                throw new UnsupportedOperationException();
             }
         };
-    }
-
-    @Override
-    public int size() {
-        throw new UnsupportedOperationException();
     }
 }

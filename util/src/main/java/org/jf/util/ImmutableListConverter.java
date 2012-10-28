@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * This class converts a list of items to an immutable list of immutable items
@@ -51,18 +50,18 @@ public abstract class ImmutableListConverter<ImmutableItem, Item> {
      * If the provided list is already an ImmutableList of ImmutableItems, then the list is not copied and is returned
      * as-is. If the list is null, an empty ImmutableList will be returned
      *
-     * @param list The list of items to convert.
+     * @param iterable The iterable of items to convert.
      * @return An ImmutableList of ImmutableItem. If list is null, an empty list will be returned.
      */
     @Nonnull
-    public ImmutableList<ImmutableItem> convert(@Nullable final List<? extends Item> list) {
-        if (list == null) {
+    public ImmutableList<ImmutableItem> convert(@Nullable final Iterable<? extends Item> iterable) {
+        if (iterable == null) {
             return ImmutableList.of();
         }
 
         boolean needsCopy = false;
-        if (list instanceof ImmutableList) {
-            for (Item element: list) {
+        if (iterable instanceof ImmutableList) {
+            for (Item element: iterable) {
                 if (isImmutable(element)) {
                     needsCopy = true;
                     break;
@@ -73,28 +72,15 @@ public abstract class ImmutableListConverter<ImmutableItem, Item> {
         }
 
         if (!needsCopy) {
-            return (ImmutableList<ImmutableItem>)list;
+            return (ImmutableList<ImmutableItem>)iterable;
         }
 
+        final Iterator<? extends Item> iter = iterable.iterator();
+
         return ImmutableList.copyOf(new Iterator<ImmutableItem>() {
-            protected int index = 0;
-
-            @Override
-            public boolean hasNext() {
-                return index < list.size();
-            }
-
-            @Override
-            public ImmutableItem next() {
-                ImmutableItem item = makeImmutable(list.get(index));
-                index++;
-                return item;
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
+            @Override public boolean hasNext() { return iter.hasNext(); }
+            @Override public ImmutableItem next() { return makeImmutable(iter.next()); }
+            @Override public void remove() { iter.remove(); }
         });
     }
 
