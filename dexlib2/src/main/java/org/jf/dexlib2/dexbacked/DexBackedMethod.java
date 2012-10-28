@@ -86,7 +86,7 @@ public class DexBackedMethod implements Method {
 
         this.name = reader.getString(reader.readSmallUint(methodIdItemOffset + NAME_OFFSET));
 
-        this.returnType = reader.getString(reader.readSmallUint(protoIdItemOffset + RETURN_TYPE_OFFSET));
+        this.returnType = reader.getType(reader.readSmallUint(protoIdItemOffset + RETURN_TYPE_OFFSET));
         this.parametersOffset = reader.readSmallUint(protoIdItemOffset + PARAMETERS_OFFSET);
     }
 
