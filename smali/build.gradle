@@ -52,7 +52,9 @@ sourceSets.test.java.srcDir testAntlrOutput
 idea {
     module {
         excludeDirs -= buildDir
-        excludeDirs.addAll(buildDir.listFiles())
+        if (buildDir.exists()) {
+            excludeDirs.addAll(buildDir.listFiles())
+        }
         for (sourceDir in (sourceDirs + testSourceDirs)) {
             excludeDirs.remove(sourceDir);
             while ((sourceDir = sourceDir.getParentFile()) != null) {
