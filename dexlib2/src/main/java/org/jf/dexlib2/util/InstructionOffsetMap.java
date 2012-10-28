@@ -56,6 +56,10 @@ public class InstructionOffsetMap {
         this.instructionCodeOffsets = instructionCodeOffsets;
     }
 
+    public int getInstructionIndexAtCodeOffset(int codeOffset) {
+        return getInstructionIndexAtCodeOffset(codeOffset, true);
+    }
+
     public int getInstructionIndexAtCodeOffset(int codeOffset, boolean exact) {
         int index = Arrays.binarySearch(instructionCodeOffsets, codeOffset);
         if (index < 0) {
