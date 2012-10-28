@@ -114,7 +114,7 @@ public class DexBackedClassDef implements ClassDef {
     public List<? extends DexBackedField> getFields() {
         if (classDataOffset != 0) {
             DexReader reader = dexBuf.readerAt(classDataOffset);
-            int staticFieldCount = reader.readSmallUleb128();
+            final int staticFieldCount = reader.readSmallUleb128();
             int instanceFieldCount = reader.readSmallUleb128();
             final int fieldCount = staticFieldCount + instanceFieldCount;
             if (fieldCount > 0) {
@@ -137,6 +137,11 @@ public class DexBackedClassDef implements ClassDef {
                             @Nonnull
                             @Override
                             protected DexBackedField readItem(@Nonnull DexReader reader, int index) {
+                                if (index == staticFieldCount) {
+                                    // We reached the end of the static field, restart the numbering for
+                                    // instance fields
+                                    previousFieldIndex = 0;
+                                }
                                 DexBackedField item = new DexBackedField(reader, previousFieldIndex,
                                         staticInitialValueIterator, annotationIterator);
                                 previousFieldIndex = item.fieldIndex;
@@ -145,6 +150,11 @@ public class DexBackedClassDef implements ClassDef {
 
                             @Override
                             protected void skipItem(@Nonnull DexReader reader, int index) {
+                                if (index == staticFieldCount) {
+                                    // We reached the end of the static field, restart the numbering for
+                                    // instance fields
+                                    previousFieldIndex = 0;
+                                }
                                 previousFieldIndex = DexBackedField.skipEncodedField(reader, previousFieldIndex);
                                 staticInitialValueIterator.skipNext();
                             }
@@ -165,7 +175,7 @@ public class DexBackedClassDef implements ClassDef {
             DexReader reader = dexBuf.readerAt(classDataOffset);
             int staticFieldCount = reader.readSmallUleb128();
             int instanceFieldCount = reader.readSmallUleb128();
-            int directMethodCount = reader.readSmallUleb128();
+            final int directMethodCount = reader.readSmallUleb128();
             int virtualMethodCount = reader.readSmallUleb128();
             final int methodCount = directMethodCount + virtualMethodCount;
             if (methodCount > 0) {
@@ -183,12 +193,15 @@ public class DexBackedClassDef implements ClassDef {
                                     annotationsDirectory.getMethodAnnotationIterator();
                             @Nonnull private final AnnotationsDirectory.AnnotationIterator parameterAnnotationIterator =
                                     annotationsDirectory.getParameterAnnotationIterator();
-                            @Nonnull private final StaticInitialValueIterator staticInitialValueIterator =
-                                    StaticInitialValueIterator.newOrEmpty(dexBuf, staticInitialValuesOffset);
 
                             @Nonnull
                             @Override
                             protected DexBackedMethod readItem(@Nonnull DexReader reader, int index) {
+                                if (index == directMethodCount) {
+                                    // We reached the end of the direct methods, restart the numbering for
+                                    // virtual methods
+                                    previousMethodIndex = 0;
+                                }
                                 DexBackedMethod item = new DexBackedMethod(reader, previousMethodIndex,
                                         methodAnnotationIterator, parameterAnnotationIterator);
                                 previousMethodIndex = item.methodIndex;
@@ -197,8 +210,12 @@ public class DexBackedClassDef implements ClassDef {
 
                             @Override
                             protected void skipItem(@Nonnull DexReader reader, int index) {
+                                if (index == directMethodCount) {
+                                    // We reached the end of the direct methods, restart the numbering for
+                                    // virtual methods
+                                    previousMethodIndex = 0;
+                                }
                                 previousMethodIndex = DexBackedMethod.skipEncodedMethod(reader, previousMethodIndex);
-                                staticInitialValueIterator.skipNext();
                             }
                         };
                     }
