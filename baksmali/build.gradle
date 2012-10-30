@@ -43,35 +43,27 @@ dependencies {
     proguard 'net.sf.proguard:proguard-base:4.8'
 }
 
-// We have to do this in taskGraph.whenReady, so that we use the correct
-// version to resolve the project dependencies
-gradle.taskGraph.whenReady {
-    // build a jar containing all dependencies
-    jar {
-        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+processResources.inputs.property('version', version)
+processResources.expand('version': version)
 
-        manifest {
-            attributes("Main-Class": "org.jf.baksmali.main")
-        }
+// build a jar containing all dependencies
+jar {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+    manifest {
+        attributes("Main-Class": "org.jf.baksmali.main")
     }
-
-    proguard {
-        def outFile = relativePath(buildDir) + '/libs/' + jar.baseName + '-' + jar.version + '-small' + '.' + jar.extension
-
-        inputs.file jar.archivePath
-        outputs.file outFile
-
-        args '-injars ' + jar.archivePath
-        args '-outjars ' + outFile
-    }
-
-    processResources.inputs.properties('version': { -> version})
-    processResources.expand('version': { -> version})
 }
 
 task proguard(type: JavaExec, dependsOn: jar) {
+    def outFile = jar.destinationDir.getPath() + '/' + jar.baseName + '-' + jar.version + '-small' + '.' + jar.extension
+    inputs.file jar.archivePath
+    outputs.file outFile
+
     classpath = configurations.proguard
     main = 'proguard.ProGuard'
+    args '-injars ' + jar.archivePath
+    args '-outjars ' + outFile
     args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
     args '-dontobfuscate'
     args '-dontoptimize'
@@ -81,4 +73,4 @@ task proguard(type: JavaExec, dependsOn: jar) {
     args '-dontnote com.google.common.base.**'
 }
 
-release.dependsOn(proguard)
+tasks.getByPath(':release').dependsOn(proguard)
