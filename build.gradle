@@ -31,56 +31,55 @@
 
 apply plugin: 'idea'
 
+version = '1.4.1'
+
+def jarVersion = version
+
+if (!('release' in gradle.startParameter.taskNames)) {
+    def versionSuffix
+    try {
+        def git = org.eclipse.jgit.api.Git.open(file('.'))
+        def head = git.getRepository().getRef("HEAD")
+        versionSuffix = head.getObjectId().abbreviate(8).name()
+
+        if (!git.status().call().clean) {
+            versionSuffix += '-dirty'
+        }
+    } catch (Exception) {
+        // In case we can't get the commit for some reason,
+        // just use -dev
+        versionSuffix = 'dev'
+    }
+
+    def baseVersion = version
+    version = baseVersion + '-' + versionSuffix
+
+    // use something like module-1.2.3-dev.jar for the jar name, rather than the full
+    // module-1.2.3-001afe02-dirty.jar
+    jarVersion = baseVersion + '-dev'
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
 
-    ext.baseVersion = '1.4.1'
-    ext.jarVersion = baseVersion
+    version = parent.version
 
-    // For non-release builds, we want to append the commit and
-    // dirty status to the version
-    gradle.taskGraph.whenReady {
-        if (!it.hasTask(release)) {
-            def versionSuffix
-            try {
-                def git = org.eclipse.jgit.api.Git.open(file('.'))
-                def head = git.getRepository().getRef("HEAD")
-                versionSuffix = head.getObjectId().abbreviate(8).name()
-
-                if (!git.status().call().clean) {
-                    versionSuffix += '-dirty'
-                }
-            } catch (Exception) {
-                // In case we can't get the commit for some reason,
-                // just use -dev
-                versionSuffix = 'dev'
-            }
-
-            version = baseVersion + '-' + versionSuffix
-
-            // use <version>-dev for the jar name, rather than the
-            // full commit+dirty string
-            jarVersion = baseVersion + '-dev'
-        } else {
-            version = baseVersion
-        }
-
-        jar {
-            version = jarVersion
-        }
+    jar {
+        version = jarVersion
     }
 
     repositories {
         mavenCentral()
     }
 
-    // Note: please don't use this. This is strictly for the official releases
-    // that are posted on the googlecode download page.
-    task release {
-    }
+
 }
 
+// Note: please don't use this. This is strictly for the official releases
+// that are posted on the googlecode download page.
+task release {
+}
 
 buildscript {
     repositories {
