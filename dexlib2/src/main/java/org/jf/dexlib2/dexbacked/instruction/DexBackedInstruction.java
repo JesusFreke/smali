@@ -48,6 +48,11 @@ public abstract class DexBackedInstruction {
         if (opcodeValue == 0) {
             reader.moveRelative(-1);
             opcodeValue = reader.readUshort();
+            if (opcodeValue == 0) {
+                // if we've got a real nop, and not a payload instruction, back up a byte,
+                // so that the reader is positioned just after the single opcode byte, for consistency
+                reader.moveRelative(-1);
+            }
         }
 
         Opcode opcode = Opcode.getOpcodeByValue(opcodeValue);
