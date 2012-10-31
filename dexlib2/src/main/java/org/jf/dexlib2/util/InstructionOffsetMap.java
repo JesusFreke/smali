@@ -49,8 +49,7 @@ public class InstructionOffsetMap {
         int codeOffset = 0;
         for (int i=0; i<instructions.size(); i++) {
             instructionCodeOffsets[i] = codeOffset;
-            //TODO: handle variable size instructions
-            codeOffset += instructions.get(i).getOpcode().format.size / 2;
+            codeOffset += instructions.get(i).getCodeUnits();
         }
 
         this.instructionCodeOffsets = instructionCodeOffsets;
