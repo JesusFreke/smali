@@ -337,9 +337,9 @@ public enum Opcode
     public static Opcode getOpcodeByValue(int opcodeValue) {
         switch (opcodeValue) {
             case 0x100:
-                return SPARSE_SWITCH_PAYLOAD;
-            case 0x200:
                 return PACKED_SWITCH_PAYLOAD;
+            case 0x200:
+                return SPARSE_SWITCH_PAYLOAD;
             case 0x300:
                 return ARRAY_PAYLOAD;
             default:
