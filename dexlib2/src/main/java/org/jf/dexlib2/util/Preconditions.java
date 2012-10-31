@@ -67,7 +67,7 @@ public class Preconditions {
     }
 
     public static int checkNibbleLiteral(int literal) {
-        if ((literal & 0xFFFFFFF0) != 0) {
+        if (literal < -8 || literal > 7) {
             throw new IllegalArgumentException(
                     String.format("Invalid literal value: %d. Must be between -8 and 7, inclusive.", literal));
         }
@@ -75,7 +75,7 @@ public class Preconditions {
     }
 
     public static int checkByteLiteral(int literal) {
-        if ((literal & 0xFFFFFF00) != 0) {
+        if (literal < -128 || literal > 127) {
             throw new IllegalArgumentException(
                     String.format("Invalid literal value: %d. Must be between -128 and 127, inclusive.", literal));
         }
@@ -83,7 +83,7 @@ public class Preconditions {
     }
 
     public static int checkShortLiteral(int literal) {
-        if ((literal & 0xFFFF0000) != 0) {
+        if (literal < -32768 || literal > 32767) {
             throw new IllegalArgumentException(
                     String.format("Invalid literal value: %d. Must be between -32768 and 32767, inclusive.", literal));
         }
@@ -101,21 +101,21 @@ public class Preconditions {
     public static long checkLongHatLiteral(long literal) {
         if ((literal & 0xFFFFFFFFFFFFL) != 0) {
             throw new IllegalArgumentException(
-                    String.format("Invalid literal value: %d. Low 16 bits must be zeroed out.", literal));
+                    String.format("Invalid literal value: %d. Low 48 bits must be zeroed out.", literal));
         }
         return literal;
     }
 
     public static int checkByteCodeOffset(int register) {
-        if ((register & 0xFFFFFF00) != 0) {
+        if (register < -128 || register > 127) {
             throw new IllegalArgumentException(
-                    String.format("Invalid code offset: %d. Must be between -8 and 7, inclusive.", register));
+                    String.format("Invalid code offset: %d. Must be between -128 and 127, inclusive.", register));
         }
         return register;
     }
 
     public static int checkShortCodeOffset(int register) {
-        if ((register & 0xFFFF0000) != 0) {
+        if (register < -32768 || register > 32768) {
             throw new IllegalArgumentException(
                     String.format("Invalid code offset: %d. Must be between -32768 and 32767, inclusive.", register));
         }
