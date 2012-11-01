@@ -461,7 +461,7 @@ public class DexReader {
                 throw new ExceptionWithContext("Invalid size %d for sized long at offset 0x%x", bytes, offset);
         }
 
-        o += bytes;
+        offset = o + bytes;
         return result;
     }
 }
