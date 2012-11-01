@@ -214,6 +214,7 @@ public class MethodDefinition {
                 writer.printSignedIntAsDec(registerNumber);
                 if (parameterName != null) {
                     writer.write(", ");
+                    // TODO: does dalvik allow non-identifier parameter and/or local names?
                     writer.write(parameterName);
                 }
                 writer.write("    #");
