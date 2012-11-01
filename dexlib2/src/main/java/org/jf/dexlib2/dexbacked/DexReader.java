@@ -204,7 +204,7 @@ public class DexReader {
     public long readLong() {
         int o = offset;
         long result = dexBuf.readLong(offset);
-        offset = o + 2;
+        offset = o + 8;
         return result;
     }
 
