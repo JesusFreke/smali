@@ -206,8 +206,8 @@ public class DexBackedClassDef implements ClassDef {
                                     methodAnnotationIterator.reset();
                                     parameterAnnotationIterator.reset();
                                 }
-                                DexBackedMethod item = new DexBackedMethod(reader, previousMethodIndex,
-                                        methodAnnotationIterator, parameterAnnotationIterator);
+                                DexBackedMethod item = new DexBackedMethod(reader, DexBackedClassDef.this,
+                                        previousMethodIndex, methodAnnotationIterator, parameterAnnotationIterator);
                                 previousMethodIndex = item.methodIndex;
                                 return item;
                             }

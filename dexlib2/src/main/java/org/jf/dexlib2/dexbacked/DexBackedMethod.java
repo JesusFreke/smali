@@ -44,6 +44,7 @@ import java.util.List;
 
 public class DexBackedMethod implements Method {
     @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedClassDef classDef;
 
     @Nonnull public final String name;
     public final int accessFlags;
@@ -65,10 +66,12 @@ public class DexBackedMethod implements Method {
     private static final int PARAMETERS_OFFSET = 8;
 
     public DexBackedMethod(@Nonnull DexReader reader,
-                          int previousMethodIndex,
-                          @Nonnull AnnotationsDirectory.AnnotationIterator methodAnnotationIterator,
-                          @Nonnull AnnotationsDirectory.AnnotationIterator paramaterAnnotationIterator) {
+                           @Nonnull DexBackedClassDef classDef,
+                           int previousMethodIndex,
+                           @Nonnull AnnotationsDirectory.AnnotationIterator methodAnnotationIterator,
+                           @Nonnull AnnotationsDirectory.AnnotationIterator paramaterAnnotationIterator) {
         this.dexBuf = reader.getDexBuffer();
+        this.classDef = classDef;
 
         int methodIndexDiff = reader.readSmallUleb128();
         this.methodIndex = methodIndexDiff + previousMethodIndex;

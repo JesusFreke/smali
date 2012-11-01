@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import com.google.common.collect.Iterators;
+import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.dexbacked.DexBackedMethod;
 import org.jf.dexlib2.dexbacked.DexBackedMethodImplementation;
@@ -117,13 +118,21 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                 int localIndex = registerCount-1;
                 for (int i=parameters.size()-1; i>-1; i--) {
                     LocalInfo currentLocal = locals[i];
-                    locals[localIndex] = currentLocal;
-                    locals[i] = EMPTY_LOCAL_INFO;
                     String type = currentLocal.getType();
-                    localIndex--;
                     if (type != null && (type.equals("J") || type.equals("D"))) {
                         localIndex--;
                     }
+                    locals[localIndex] = currentLocal;
+                    locals[i] = EMPTY_LOCAL_INFO;
+                    localIndex--;
+                }
+                if (!AccessFlags.STATIC.isSet(methodImpl.method.getAccessFlags())) {
+                    // add the local info for the "this" parameter
+                    locals[localIndex] = new LocalInfo() {
+                        @Override public String getName() { return "this"; }
+                        @Override public String getType() { return methodImpl.method.classDef.getName(); }
+                        @Override public String getSignature() { return null; }
+                    };
                 }
             }
 
