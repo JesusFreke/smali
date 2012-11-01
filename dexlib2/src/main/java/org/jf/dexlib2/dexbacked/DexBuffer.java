@@ -247,7 +247,7 @@ public class DexBuffer {
         int fieldOffset = getFieldIdItemOffset(fieldIndex);
         String className = getType(readUshort(fieldOffset + FIELD_CLASS_IDX_OFFSET));
         String fieldType = getType(readUshort(fieldOffset + FIELD_TYPE_IDX_OFFSET));
-        String fieldName = getString(readUshort(fieldOffset + FIELD_NAME_IDX_OFFSET));
+        String fieldName = getString(readSmallUint(fieldOffset + FIELD_NAME_IDX_OFFSET));
 
         StringBuilder sb = localStringBuilder.get();
         sb.setLength(0);
