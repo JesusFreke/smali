@@ -216,7 +216,7 @@ public class DexBuffer {
         int stringDataOffset = readSmallUint(stringOffset);
         DexReader reader = readerAt(stringDataOffset);
         int utf16Length = reader.readSmallUleb128();
-        return Utf8Utils.utf8BytesToString(buf, reader.getOffset(), utf16Length);
+        return Utf8Utils.utf8BytesWithUtf16LengthToString(buf, reader.getOffset(), utf16Length);
     }
 
     @Nullable
