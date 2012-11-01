@@ -141,6 +141,7 @@ public class DexBackedClassDef implements ClassDef {
                                     // We reached the end of the static field, restart the numbering for
                                     // instance fields
                                     previousFieldIndex = 0;
+                                    annotationIterator.reset();
                                 }
                                 DexBackedField item = new DexBackedField(reader, previousFieldIndex,
                                         staticInitialValueIterator, annotationIterator);
@@ -154,6 +155,7 @@ public class DexBackedClassDef implements ClassDef {
                                     // We reached the end of the static field, restart the numbering for
                                     // instance fields
                                     previousFieldIndex = 0;
+                                    annotationIterator.reset();
                                 }
                                 previousFieldIndex = DexBackedField.skipEncodedField(reader, previousFieldIndex);
                                 staticInitialValueIterator.skipNext();
@@ -201,6 +203,8 @@ public class DexBackedClassDef implements ClassDef {
                                     // We reached the end of the direct methods, restart the numbering for
                                     // virtual methods
                                     previousMethodIndex = 0;
+                                    methodAnnotationIterator.reset();
+                                    parameterAnnotationIterator.reset();
                                 }
                                 DexBackedMethod item = new DexBackedMethod(reader, previousMethodIndex,
                                         methodAnnotationIterator, parameterAnnotationIterator);
@@ -214,6 +218,8 @@ public class DexBackedClassDef implements ClassDef {
                                     // We reached the end of the direct methods, restart the numbering for
                                     // virtual methods
                                     previousMethodIndex = 0;
+                                    methodAnnotationIterator.reset();
+                                    parameterAnnotationIterator.reset();
                                 }
                                 previousMethodIndex = DexBackedMethod.skipEncodedMethod(reader, previousMethodIndex);
                             }

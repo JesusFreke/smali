@@ -66,9 +66,11 @@ public abstract class AnnotationsDirectory {
     public interface AnnotationIterator {
         public static final AnnotationIterator EMPTY = new AnnotationIterator() {
             @Override public int seekTo(int fieldIndex) { return 0; }
+            public void reset() {}
         };
 
         public int seekTo(int fieldIndex);
+        public void reset();
     }
 
     @Nonnull
@@ -150,25 +152,37 @@ public abstract class AnnotationsDirectory {
 
         @Nonnull
         public AnnotationIterator getFieldAnnotationIterator() {
-            return new AnnotationIteratorImpl(directoryOffset + ANNOTATIONS_START_OFFSET, getFieldAnnotationCount());
+            int fieldAnnotationCount = getFieldAnnotationCount();
+            if (fieldAnnotationCount == 0) {
+                return AnnotationIterator.EMPTY;
+            }
+            return new AnnotationIteratorImpl(directoryOffset + ANNOTATIONS_START_OFFSET, fieldAnnotationCount);
         }
 
         @Nonnull
         public AnnotationIterator getMethodAnnotationIterator() {
+            int methodCount = getMethodAnnotationCount();
+            if (methodCount == 0) {
+                return AnnotationIterator.EMPTY;
+            }
             int fieldCount = getFieldAnnotationCount();
             int methodAnnotationsOffset = directoryOffset + ANNOTATIONS_START_OFFSET +
                     fieldCount * FIELD_ANNOTATION_SIZE;
-            return new AnnotationIteratorImpl(methodAnnotationsOffset, getMethodAnnotationCount());
+            return new AnnotationIteratorImpl(methodAnnotationsOffset, methodCount);
         }
 
         @Nonnull
         public AnnotationIterator getParameterAnnotationIterator() {
+            int parameterAnnotationCount = getParameterAnnotationCount();
+            if (parameterAnnotationCount == 0) {
+                return AnnotationIterator.EMPTY;
+            }
             int fieldCount = getFieldAnnotationCount();
             int methodCount = getMethodAnnotationCount();
             int parameterAnnotationsOffset = directoryOffset + ANNOTATIONS_START_OFFSET +
                     fieldCount * FIELD_ANNOTATION_SIZE +
                     methodCount + METHOD_ANNOTATION_SIZE;
-            return new AnnotationIteratorImpl(parameterAnnotationsOffset, getParameterAnnotationCount());
+            return new AnnotationIteratorImpl(parameterAnnotationsOffset, parameterAnnotationCount);
         }
 
         private class AnnotationIteratorImpl implements AnnotationIterator {
@@ -180,13 +194,8 @@ public abstract class AnnotationsDirectory {
             public AnnotationIteratorImpl(int startOffset, int size) {
                 this.startOffset = startOffset;
                 this.size = size;
-                if (size > 0) {
-                    currentItemIndex = dexBuf.readSmallUint(startOffset);
-                    this.currentIndex = 0;
-                } else {
-                    currentItemIndex = -1;
-                    this.currentIndex = -1;
-                }
+                this.currentItemIndex = dexBuf.readSmallUint(startOffset);
+                this.currentIndex = 0;
             }
 
             public int seekTo(int itemIndex) {
@@ -199,6 +208,11 @@ public abstract class AnnotationsDirectory {
                     return dexBuf.readSmallUint(startOffset + (currentIndex*8)+4);
                 }
                 return 0;
+            }
+
+            public void reset() {
+                this.currentItemIndex = dexBuf.readSmallUint(startOffset);
+                this.currentIndex = 0;
             }
         }
     }
