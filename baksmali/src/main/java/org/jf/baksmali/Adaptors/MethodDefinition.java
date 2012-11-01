@@ -113,7 +113,7 @@ public class MethodDefinition {
         writer.write('\n');
 
         writer.indent(4);
-        writeParameters(writer, method.getParameters());
+        writeParameters(writer, method);
         AnnotationFormatter.writeTo(writer, method.getAnnotations());
         writer.deindent(4);
         writer.write(".end method\n");
@@ -150,7 +150,7 @@ public class MethodDefinition {
             writer.printSignedIntAsDec(methodImpl.getRegisterCount());
         }
         writer.write('\n');
-        writeParameters(writer, method.getParameters());
+        writeParameters(writer, method);
 
         if (registerFormatter == null) {
             registerFormatter = new RegisterFormatter(methodImpl.getRegisterCount(), parameterRegisterCount);
@@ -202,10 +202,10 @@ public class MethodDefinition {
         }
     }
 
-    private static void writeParameters(IndentingWriter writer,
-                                       List<? extends MethodParameter> parameters) throws IOException {
-        int registerNumber = 0;
-        for (MethodParameter parameter: parameters) {
+    private static void writeParameters(IndentingWriter writer, Method method) throws IOException {
+        boolean isStatic = AccessFlags.STATIC.isSet(method.getAccessFlags());
+        int registerNumber = isStatic?0:1;
+        for (MethodParameter parameter: method.getParameters()) {
             String parameterType = parameter.getType();
             String parameterName = parameter.getName();
             List<? extends Annotation> annotations = parameter.getAnnotations();
@@ -217,7 +217,7 @@ public class MethodDefinition {
                     // TODO: does dalvik allow non-identifier parameter and/or local names?
                     writer.write(parameterName);
                 }
-                writer.write("    #");
+                writer.write("    # ");
                 writer.write(parameterType);
                 if (annotations.size() > 0) {
                     writer.indent(4);
