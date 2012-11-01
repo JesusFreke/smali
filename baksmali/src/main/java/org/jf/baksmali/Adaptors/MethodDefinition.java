@@ -87,12 +87,12 @@ public class MethodDefinition {
                     int codeOffset = instructionOffsetMap.getInstructionCodeOffset(i);
                     int targetOffset = codeOffset + ((OffsetInstruction)instruction).getCodeOffset();
                     targetOffset = findSwitchPayload(targetOffset, Opcode.PACKED_SWITCH_PAYLOAD);
-                    packedSwitchMap.append(codeOffset, targetOffset);
+                    packedSwitchMap.append(targetOffset, codeOffset);
                 } else if (opcode == Opcode.SPARSE_SWITCH) {
                     int codeOffset = instructionOffsetMap.getInstructionCodeOffset(i);
                     int targetOffset = codeOffset + ((OffsetInstruction)instruction).getCodeOffset();
                     targetOffset = findSwitchPayload(targetOffset, Opcode.SPARSE_SWITCH_PAYLOAD);
-                    sparseSwitchMap.append(codeOffset, targetOffset);
+                    sparseSwitchMap.append(targetOffset, codeOffset);
                 }
             }
         }catch (Exception ex) {
