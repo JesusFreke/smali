@@ -94,7 +94,7 @@ public class DexBackedClassDef implements ClassDef {
                 @Nonnull
                 @Override
                 public String readItem(int index) {
-                    return dexBuf.getType(dexBuf.readSmallUint(interfacesOffset + 4 + (2*index)));
+                    return dexBuf.getType(dexBuf.readUshort(interfacesOffset + 4 + (2*index)));
                 }
 
                 @Override public int size() { return size; }
