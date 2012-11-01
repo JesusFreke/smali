@@ -49,7 +49,7 @@ public class DexBackedAnnotationEncodedValue implements AnnotationEncodedValue {
 
     public DexBackedAnnotationEncodedValue(@Nonnull DexReader reader) {
         this.dexBuf = reader.getDexBuffer();
-        this.type = reader.getString(reader.readSmallUleb128());
+        this.type = reader.getType(reader.readSmallUleb128());
         this.elementsOffset = reader.getOffset();
         skipElements(reader);
     }
