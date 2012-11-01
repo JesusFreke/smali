@@ -57,7 +57,7 @@ public class DexBackedPackedSwitchPayload implements PackedSwitchPayload {
         this.dexBuf = dexBuf;
         this.instructionOffset = instructionOffset;
 
-        this.elementCount = dexBuf.readByte(instructionOffset + ELEMENT_COUNT_OFFSET);
+        this.elementCount = dexBuf.readUshort(instructionOffset + ELEMENT_COUNT_OFFSET);
     }
 
     @Nonnull
