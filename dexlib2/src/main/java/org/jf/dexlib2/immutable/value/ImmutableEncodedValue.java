@@ -38,6 +38,7 @@ import org.jf.dexlib2.iface.value.*;
 import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableEncodedValue implements EncodedValue {
@@ -47,7 +48,11 @@ public class ImmutableEncodedValue implements EncodedValue {
         this.type = type;
     }
 
-    public static ImmutableEncodedValue of(EncodedValue encodedValue) {
+    @Nullable
+    public static ImmutableEncodedValue of(@Nullable EncodedValue encodedValue) {
+        if (encodedValue == null) {
+            return null;
+        }
         switch (encodedValue.getValueType()) {
             case ValueType.BYTE:
                 return ImmutableByteEncodedValue.of((ByteEncodedValue)encodedValue);

@@ -70,7 +70,11 @@ public class ImmutableMethodImplementation implements MethodImplementation {
         this.debugItems = Objects.firstNonNull(debugItems, ImmutableList.<ImmutableDebugItem>of());
     }
 
-    public static ImmutableMethodImplementation of(MethodImplementation methodImplementation) {
+    @Nullable
+    public static ImmutableMethodImplementation of(@Nullable MethodImplementation methodImplementation) {
+        if (methodImplementation == null) {
+            return null;
+        }
         if (methodImplementation instanceof ImmutableMethodImplementation) {
             return (ImmutableMethodImplementation)methodImplementation;
         }
