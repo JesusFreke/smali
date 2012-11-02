@@ -160,7 +160,10 @@ public class MethodDefinition {
 
         writer.write('\n');
 
-        for (MethodItem methodItem: getMethodItems()) {
+        List<MethodItem> methodItems = getMethodItems();
+        int size = methodItems.size();
+        for (int i=0; i<size; i++) {
+            MethodItem methodItem = methodItems.get(i);
             if (methodItem.writeTo(writer)) {
                 writer.write('\n');
             }
