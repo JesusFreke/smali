@@ -106,33 +106,37 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
             VariableSizeList<? extends MethodParameter> parameters = getParametersWithNames();
             final VariableSizeList<? extends MethodParameter>.Iterator parameterIterator = parameters.listIterator();
 
-            { // local scope for i
-                int i=0;
-                while (parameterIterator.hasNext()) {
-                    locals[i++] = parameterIterator.next();
-                }
+            // first, we grab all the parameters and temporarily store them at the beginning of locals,
+            // disregarding any wide types
+            int parameterIndex = 0;
+            if (!AccessFlags.STATIC.isSet(methodImpl.method.getAccessFlags())) {
+                // add the local info for the "this" parameter
+                locals[parameterIndex++] = new LocalInfo() {
+                    @Override public String getName() { return "this"; }
+                    @Override public String getType() { return methodImpl.method.classDef.getName(); }
+                    @Override public String getSignature() { return null; }
+                };
+            }
+            while (parameterIterator.hasNext()) {
+                locals[parameterIndex++] = parameterIterator.next();
             }
 
-            if (parameters.size() < registerCount) {
-                // we need to push the parameter locals back to their appropriate register
+            if (parameterIndex < registerCount) {
+                // now, we push the parameter locals back to their appropriate register, starting from the end
                 int localIndex = registerCount-1;
-                for (int i=parameters.size()-1; i>-1; i--) {
-                    LocalInfo currentLocal = locals[i];
+                while(--parameterIndex > -1) {
+                    LocalInfo currentLocal = locals[parameterIndex];
                     String type = currentLocal.getType();
                     if (type != null && (type.equals("J") || type.equals("D"))) {
                         localIndex--;
+                        if (localIndex == parameterIndex) {
+                            // there's no more room to push, the remaining registers are already in the correct place
+                            break;
+                        }
                     }
                     locals[localIndex] = currentLocal;
-                    locals[i] = EMPTY_LOCAL_INFO;
+                    locals[parameterIndex] = EMPTY_LOCAL_INFO;
                     localIndex--;
-                }
-                if (!AccessFlags.STATIC.isSet(methodImpl.method.getAccessFlags())) {
-                    // add the local info for the "this" parameter
-                    locals[localIndex] = new LocalInfo() {
-                        @Override public String getName() { return "this"; }
-                        @Override public String getType() { return methodImpl.method.classDef.getName(); }
-                        @Override public String getSignature() { return null; }
-                    };
                 }
             }
 
