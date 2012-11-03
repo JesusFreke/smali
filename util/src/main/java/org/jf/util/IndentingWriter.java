@@ -31,6 +31,7 @@ package org.jf.util;
 import java.io.IOException;
 import java.io.Writer;
 
+// TODO: add a write(String) method that doesn't scan for embedded newlines?
 public class IndentingWriter extends Writer {
     protected final Writer writer;
     protected final char[] buffer = new char[16];
@@ -53,59 +54,50 @@ public class IndentingWriter extends Writer {
 
     @Override
     public void write(int chr) throws IOException {
-        //synchronized(lock) {
+        if (beginningOfLine) {
+            writeLineStart();
+        }
+        if (chr == '\n') {
+            writer.write(newLine);
+            beginningOfLine = true;
+        } else {
             if (beginningOfLine) {
-                writeLineStart();
+                writeIndent();
             }
-            if (chr == '\n') {
-                writer.write(newLine);
-                beginningOfLine = true;
-            } else {
-                if (beginningOfLine) {
-                    writeIndent();
-                }
-                beginningOfLine = false;
-                writer.write(chr);
-            }
-        //}
+            beginningOfLine = false;
+            writer.write(chr);
+        }
     }
 
     @Override
     public void write(char[] chars) throws IOException {
-        //synchronized(lock) {
-            for (char chr: chars) {
-                write(chr);
-            }
-        //}
+        for (char chr: chars) {
+            write(chr);
+        }
     }
 
     @Override
     public void write(char[] chars, int start, int len) throws IOException {
-        //synchronized(lock) {
-            len = start+len;
-            while (start < len) {
-                write(chars[start++]);
-            }
-        //}
+        // TODO: it might improve performance to scan until we reach a newline, and then submit a full chunk of chars at once
+        len = start+len;
+        while (start < len) {
+            write(chars[start++]);
+        }
     }
 
     @Override
     public void write(String s) throws IOException {
-        //synchronized (lock) {
-            for (int i=0; i<s.length(); i++) {
-                write(s.charAt(i));
-            }
-        //}
+        for (int i=0; i<s.length(); i++) {
+            write(s.charAt(i));
+        }
     }
 
     @Override
     public void write(String str, int start, int len) throws IOException {
-        //synchronized(lock) {
-            len = start+len;
-            while (start < len) {
-                write(str.charAt(start++));
-            }
-        //}
+        len = start+len;
+        while (start < len) {
+            write(str.charAt(start++));
+        }
     }
 
     @Override
@@ -128,34 +120,26 @@ public class IndentingWriter extends Writer {
 
     @Override
     public void flush() throws IOException {
-        //synchronized(lock) {
-            writer.flush();
-        //}
+        writer.flush();
     }
 
     @Override
     public void close() throws IOException {
-        //synchronized(lock) {
-            writer.close();
-        //}
+        writer.close();
     }
 
     public void indent(int indentAmount) {
-        //synchronized(lock) {
-            this.indentLevel += indentAmount;
-            if (indentLevel < 0) {
-                indentLevel = 0;
-            }
-        //}
+        this.indentLevel += indentAmount;
+        if (indentLevel < 0) {
+            indentLevel = 0;
+        }
     }
 
     public void deindent(int indentAmount) {
-        //synchronized(lock) {
-            this.indentLevel -= indentAmount;
-            if (indentLevel < 0) {
-                indentLevel = 0;
-            }
-        //}
+        this.indentLevel -= indentAmount;
+        if (indentLevel < 0) {
+            indentLevel = 0;
+        }
     }
 
     public void printUnsignedLongAsHex(long value) throws IOException {
