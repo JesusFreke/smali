@@ -56,8 +56,6 @@ public class MethodDefinition {
     @Nonnull public final ImmutableList<Instruction> instructions;
     public RegisterFormatter registerFormatter;
 
-    @Nonnull private final String methodString;
-
     @Nonnull private final LabelCache labelCache = new LabelCache();
 
     @Nonnull private final SparseIntArray packedSwitchMap;
@@ -69,8 +67,6 @@ public class MethodDefinition {
         this.classDef = classDef;
         this.method = method;
         this.methodImpl = methodImpl;
-
-        this.methodString = MethodUtil.buildFullMethodString(classDef.classDef, method);
 
         try {
             //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
@@ -98,6 +94,12 @@ public class MethodDefinition {
                 }
             }
         }catch (Exception ex) {
+            String methodString;
+            try {
+                methodString = MethodUtil.buildFullMethodString(classDef.classDef, method);
+            } catch (Exception ex2) {
+                throw ExceptionWithContext.withContext(ex, "Error while processing method");
+            }
             throw ExceptionWithContext.withContext(ex, "Error while processing method %s", methodString);
         }
     }
