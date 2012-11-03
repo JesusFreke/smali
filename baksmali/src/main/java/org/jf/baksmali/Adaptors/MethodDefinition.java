@@ -54,6 +54,7 @@ public class MethodDefinition {
     @Nonnull public final Method method;
     @Nonnull public final MethodImplementation methodImpl;
     @Nonnull public final ImmutableList<Instruction> instructions;
+    @Nonnull public final ImmutableList<MethodParameter> methodParameters;
     public RegisterFormatter registerFormatter;
 
     @Nonnull private final LabelCache labelCache = new LabelCache();
@@ -68,10 +69,12 @@ public class MethodDefinition {
         this.method = method;
         this.methodImpl = methodImpl;
 
+
         try {
             //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
 
             instructions = ImmutableList.copyOf(methodImpl.getInstructions());
+            methodParameters = ImmutableList.copyOf(method.getParameters());
 
             packedSwitchMap = new SparseIntArray(0);
             sparseSwitchMap = new SparseIntArray(0);
@@ -109,7 +112,8 @@ public class MethodDefinition {
         writeAccessFlags(writer, method.getAccessFlags());
         writer.write(method.getName());
         writer.write("(");
-        for (MethodParameter parameter: method.getParameters()) {
+        ImmutableList<MethodParameter> methodParameters = ImmutableList.copyOf(method.getParameters());
+        for (MethodParameter parameter: methodParameters) {
             writer.write(parameter.getType());
         }
         writer.write(")");
@@ -117,7 +121,7 @@ public class MethodDefinition {
         writer.write('\n');
 
         writer.indent(4);
-        writeParameters(writer, method);
+        writeParameters(writer, method, methodParameters);
         AnnotationFormatter.writeTo(writer, method.getAnnotations());
         writer.deindent(4);
         writer.write(".end method\n");
@@ -133,7 +137,7 @@ public class MethodDefinition {
         writeAccessFlags(writer, method.getAccessFlags());
         writer.write(method.getName());
         writer.write("(");
-        for (MethodParameter parameter: method.getParameters()) {
+        for (MethodParameter parameter: methodParameters) {
             String type = parameter.getType();
             writer.write(type);
             parameterRegisterCount++;
@@ -154,7 +158,7 @@ public class MethodDefinition {
             writer.printSignedIntAsDec(methodImpl.getRegisterCount());
         }
         writer.write('\n');
-        writeParameters(writer, method);
+        writeParameters(writer, method, methodParameters);
 
         if (registerFormatter == null) {
             registerFormatter = new RegisterFormatter(methodImpl.getRegisterCount(), parameterRegisterCount);
@@ -208,10 +212,11 @@ public class MethodDefinition {
         }
     }
 
-    private static void writeParameters(IndentingWriter writer, Method method) throws IOException {
+    private static void writeParameters(IndentingWriter writer, Method method,
+                                        List<? extends MethodParameter> parameters) throws IOException {
         boolean isStatic = AccessFlags.STATIC.isSet(method.getAccessFlags());
         int registerNumber = isStatic?0:1;
-        for (MethodParameter parameter: method.getParameters()) {
+        for (MethodParameter parameter: parameters) {
             String parameterType = parameter.getType();
             String parameterName = parameter.getName();
             List<? extends Annotation> annotations = parameter.getAnnotations();
