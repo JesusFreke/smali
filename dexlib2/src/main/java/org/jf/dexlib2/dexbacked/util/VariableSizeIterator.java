@@ -29,22 +29,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.dexbacked;
+package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.iface.ExceptionHandler;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
 
-public class DexBackedCatchAllExceptionHandler implements ExceptionHandler {
-    private final int handlerCodeOffset;
+public abstract class VariableSizeIterator<T> implements Iterator<T> {
+    private final DexReader reader;
 
-    public DexBackedCatchAllExceptionHandler(@Nonnull DexReader reader) {
-        this.handlerCodeOffset = reader.readSmallUleb128();
+    private int index = 0;
+    private T cachedItem = null;
+
+    protected VariableSizeIterator(DexBuffer dexBuf, int offset) {
+        this.reader = dexBuf.readerAt(offset);
+        cachedItem = readItem(reader, index++);
     }
 
-    @Nullable @Override public String getExceptionType() { return null; }
-    @Override public int getHandlerCodeOffset() { return handlerCodeOffset; }
+    /**
+     * Reads the next item from reader. If the end of the list has been reached, it should return null.
+     *
+     * @param reader The {@code DexReader} to read from
+     * @param index The index of the item that is being read
+     * @return The item that was read, or null if the end of the list has been reached.
+     */
+    @Nullable protected abstract T readItem(@Nonnull DexReader reader, int index);
 
-    public static void skipFrom(@Nonnull DexReader reader) { reader.skipUleb128(); }
+    @Override
+    public boolean hasNext() {
+        return cachedItem != null;
+    }
+
+    @Override
+    public T next() {
+        T ret = cachedItem;
+        cachedItem = readItem(reader, index++);
+        return ret;
+    }
+
+    @Override public void remove() { throw new UnsupportedOperationException(); }
 }

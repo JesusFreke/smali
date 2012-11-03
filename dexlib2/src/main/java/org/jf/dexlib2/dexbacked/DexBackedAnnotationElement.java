@@ -38,11 +38,13 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 import javax.annotation.Nonnull;
 
 public class DexBackedAnnotationElement implements AnnotationElement {
-    @Nonnull public final String name;
+    @Nonnull private final DexBuffer dexBuffer;
+    public final int nameIndex;
     @Nonnull public final EncodedValue value;
 
     public DexBackedAnnotationElement(@Nonnull DexReader reader) {
-        this.name = reader.getString(reader.readSmallUleb128());
+        this.dexBuffer = reader.getDexBuffer();
+        this.nameIndex = reader.readSmallUleb128();
         this.value = DexBackedEncodedValue.readFrom(reader);
     }
 
@@ -51,6 +53,6 @@ public class DexBackedAnnotationElement implements AnnotationElement {
         DexBackedEncodedValue.skipFrom(reader);
     }
 
-    @Nonnull @Override public String getName() { return name; }
+    @Nonnull @Override public String getName() { return dexBuffer.getString(nameIndex); }
     @Nonnull @Override public EncodedValue getValue() { return value; }
 }

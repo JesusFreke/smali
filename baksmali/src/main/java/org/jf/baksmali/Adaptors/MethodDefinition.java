@@ -28,6 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
+import com.google.common.collect.ImmutableList;
 import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
 import org.jf.dexlib2.AccessFlags;
@@ -52,6 +53,7 @@ public class MethodDefinition {
     @Nonnull public final ClassDefinition classDef;
     @Nonnull public final Method method;
     @Nonnull public final MethodImplementation methodImpl;
+    @Nonnull public final ImmutableList<Instruction> instructions;
     public RegisterFormatter registerFormatter;
 
     @Nonnull private final String methodString;
@@ -73,11 +75,11 @@ public class MethodDefinition {
         try {
             //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
 
-            List<? extends Instruction> instructions = methodImpl.getInstructions();
+            instructions = ImmutableList.copyOf(methodImpl.getInstructions());
 
             packedSwitchMap = new SparseIntArray(0);
             sparseSwitchMap = new SparseIntArray(0);
-            instructionOffsetMap = new InstructionOffsetMap(methodImpl);
+            instructionOffsetMap = new InstructionOffsetMap(instructions);
 
             for (int i=0; i<instructions.size(); i++) {
                 Instruction instruction = instructions.get(i);
@@ -178,7 +180,6 @@ public class MethodDefinition {
         //TODO: does dalvik let you pad with multiple nops?
         //TODO: does dalvik let a switch instruction point to a non-payload instruction?
 
-        List<? extends Instruction> instructions = methodImpl.getInstructions();
         Instruction instruction = instructions.get(targetIndex);
         if (instruction.getOpcode() != type) {
             // maybe it's pointing to a NOP padding instruction. Look at the next instruction
@@ -276,8 +277,6 @@ public class MethodDefinition {
     }
 
     private void addInstructionMethodItems(List<MethodItem> methodItems) {
-        List<? extends Instruction> instructions = methodImpl.getInstructions();
-
         int currentCodeAddress = 0;
         for (int i=0; i<instructions.size(); i++) {
             Instruction instruction = instructions.get(i);
@@ -407,7 +406,6 @@ public class MethodDefinition {
             return;
         }
 
-        List<? extends Instruction> instructions = methodImpl.getInstructions();
         int lastInstructionAddress = instructionOffsetMap.getInstructionCodeOffset(instructions.size() - 1);
         int codeSize = lastInstructionAddress + instructions.get(instructions.size() - 1).getCodeUnits();
 

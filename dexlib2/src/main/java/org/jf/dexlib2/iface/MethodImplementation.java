@@ -39,7 +39,7 @@ import java.util.List;
 
 public interface MethodImplementation {
     int getRegisterCount();
-    @Nonnull List<? extends Instruction> getInstructions();
+    @Nonnull Iterable<? extends Instruction> getInstructions();
     @Nonnull List<? extends TryBlock> getTryBlocks();
     @Nonnull Iterable<? extends DebugItem> getDebugItems();
 }

@@ -51,7 +51,7 @@ public class ImmutableMethodImplementation implements MethodImplementation {
     @Nonnull public final ImmutableList<? extends ImmutableDebugItem> debugItems;
 
     public ImmutableMethodImplementation(int registerCount,
-                                         @Nullable List<? extends Instruction> instructions,
+                                         @Nullable Iterable<? extends Instruction> instructions,
                                          @Nullable List<? extends TryBlock> tryBlocks,
                                          @Nullable Iterable<? extends DebugItem> debugItems) {
         this.registerCount = registerCount;

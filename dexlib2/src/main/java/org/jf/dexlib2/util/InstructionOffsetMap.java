@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.util;
 
-import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.ExceptionWithContext;
 
@@ -42,17 +41,14 @@ import java.util.List;
 public class InstructionOffsetMap {
     @Nonnull private final int[] instructionCodeOffsets;
 
-    public InstructionOffsetMap(@Nonnull MethodImplementation methodImpl) {
-        List<? extends Instruction> instructions = methodImpl.getInstructions();
-        int[] instructionCodeOffsets = new int[instructions.size()];
+    public InstructionOffsetMap(@Nonnull List<? extends Instruction> instructions) {
+        this.instructionCodeOffsets = new int[instructions.size()];
 
         int codeOffset = 0;
         for (int i=0; i<instructions.size(); i++) {
             instructionCodeOffsets[i] = codeOffset;
             codeOffset += instructions.get(i).getCodeUnits();
         }
-
-        this.instructionCodeOffsets = instructionCodeOffsets;
     }
 
     public int getInstructionIndexAtCodeOffset(int codeOffset) {

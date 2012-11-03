@@ -35,8 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
 import org.jf.dexlib2.dexbacked.util.DebugInfo;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.dexbacked.util.VariableSizeList;
-import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.dexbacked.util.VariableSizeIterator;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.dexlib2.iface.TryBlock;
@@ -45,18 +44,13 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.AlignmentUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull public final DexBuffer dexBuf;
     @Nonnull public final DexBackedMethod method;
     private final int codeOffset;
-
-    public final int registerCount;
-    @Nonnull public final ImmutableList<? extends Instruction> instructions;
-    @Nonnull public final DebugInfo debugInfo;
 
     // code_item offsets
     private static final int TRIES_SIZE_OFFSET = 6;
@@ -72,13 +66,31 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         this.dexBuf = dexBuf;
         this.method = method;
         this.codeOffset = codeOffset;
-        this.registerCount = dexBuf.readUshort(codeOffset);
-        this.instructions = buildInstructionList();
-        this.debugInfo = DebugInfo.newOrEmpty(dexBuf, dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET), this);
     }
 
-    @Override public int getRegisterCount() { return registerCount; }
-    @Nonnull @Override public ImmutableList<? extends Instruction> getInstructions() { return instructions; }
+    @Override public int getRegisterCount() { return dexBuf.readUshort(codeOffset); }
+
+    @Nonnull @Override public Iterable<? extends Instruction> getInstructions() {
+        // instructionsSize is the number of 16-bit code units in the instruction list, not the number of instructions
+        int instructionsSize = dexBuf.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
+
+        final int instructionsStartOffset = codeOffset + INSTRUCTIONS_START_OFFSET;
+        final int endOffset = instructionsStartOffset + (instructionsSize*2);
+        return new Iterable<Instruction>() {
+            @Override
+            public Iterator<Instruction> iterator() {
+                return new VariableSizeIterator<Instruction>(dexBuf, instructionsStartOffset) {
+                    @Override
+                    protected Instruction readItem(@Nonnull DexReader reader, int index) {
+                        if (reader.getOffset() >= endOffset) {
+                            return null;
+                        }
+                        return DexBackedInstruction.readFrom(reader);
+                    }
+                };
+            }
+        };
+    }
 
     @Nonnull
     @Override
@@ -109,30 +121,17 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull
-    @Override
+    private DebugInfo getDebugInfo() {
+        return DebugInfo.newOrEmpty(dexBuf, dexBuf.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET), this);
+    }
+
+    @Nonnull @Override
     public Iterable<? extends DebugItem> getDebugItems() {
-        return debugInfo;
+        return getDebugInfo();
     }
 
     @Nonnull
-    private ImmutableList<? extends Instruction> buildInstructionList() {
-        // instructionsSize is the number of 16-bit code units in the instruction list, not the number of instructions
-        int instructionsSize = dexBuf.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
-
-        // we can use instructionsSize as an upper bound on the number of instructions there will be
-        ArrayList<Instruction> instructions = new ArrayList<Instruction>(instructionsSize);
-        int instructionsStartOffset = codeOffset + INSTRUCTIONS_START_OFFSET;
-        DexReader reader = dexBuf.readerAt(instructionsStartOffset);
-        int endOffset = instructionsStartOffset + (instructionsSize*2);
-
-        while (reader.getOffset() < endOffset) {
-            instructions.add(DexBackedInstruction.readFrom(reader));
-        }
-
-        return ImmutableList.copyOf(instructions);
-    }
-
     public List<? extends MethodParameter> getParametersWithNames() {
-        return debugInfo.getParametersWithNames();
+        return getDebugInfo().getParametersWithNames();
     }
 }

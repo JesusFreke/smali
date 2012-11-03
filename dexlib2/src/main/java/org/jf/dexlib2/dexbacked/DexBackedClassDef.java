@@ -41,19 +41,14 @@ import java.util.List;
 
 public class DexBackedClassDef implements ClassDef {
     @Nonnull public final DexBuffer dexBuf;
+    private final int classDefOffset;
 
-    @Nonnull public final String name;
-    public final int accessFlags;
-    @Nullable public final String superclass;
-    @Nullable public final String sourceFile;
+    private int classDataOffset = -1;
 
-    @Nonnull private final AnnotationsDirectory annotationsDirectory;
-    private final int staticInitialValuesOffset;
-
-    private final int interfacesOffset;
-    private final int classDataOffset;
+    @Nullable private AnnotationsDirectory annotationsDirectory;
 
     //class_def_item offsets
+    private static final int CLASS_NAME_OFFSET = 0;
     private static final int ACCESS_FLAGS_OFFSET = 4;
     private static final int SUPERCLASS_OFFSET = 8;
     private static final int INTERFACES_OFFSET = 12;
@@ -65,29 +60,36 @@ public class DexBackedClassDef implements ClassDef {
     public DexBackedClassDef(@Nonnull DexBuffer dexBuf,
                              int classDefOffset) {
         this.dexBuf = dexBuf;
-
-        this.name = dexBuf.getType(dexBuf.readSmallUint(classDefOffset));
-        this.accessFlags = dexBuf.readSmallUint(classDefOffset + ACCESS_FLAGS_OFFSET);
-        this.superclass = dexBuf.getOptionalType(dexBuf.readOptionalUint(classDefOffset + SUPERCLASS_OFFSET));
-        this.interfacesOffset = dexBuf.readSmallUint(classDefOffset + INTERFACES_OFFSET);
-        this.sourceFile = dexBuf.getOptionalString(dexBuf.readOptionalUint(classDefOffset + SOURCE_FILE_OFFSET));
-
-        int annotationsDirectoryOffset = dexBuf.readSmallUint(classDefOffset + ANNOTATIONS_OFFSET);
-        this.annotationsDirectory = AnnotationsDirectory.newOrEmpty(dexBuf, annotationsDirectoryOffset);
-
-        this.classDataOffset = dexBuf.readSmallUint(classDefOffset + CLASS_DATA_OFFSET);
-        this.staticInitialValuesOffset = dexBuf.readSmallUint(classDefOffset + STATIC_INITIAL_VALUES_OFFSET);
+        this.classDefOffset = classDefOffset;
     }
 
+    @Nonnull
+    @Override
+    public String getName() {
+        return dexBuf.getType(dexBuf.readSmallUint(classDefOffset + CLASS_NAME_OFFSET));
+    }
 
-    @Nonnull @Override public String getName() { return name; }
-    @Override public int getAccessFlags() { return accessFlags; }
-    @Nullable @Override public String getSuperclass() { return superclass; }
-    @Nullable @Override public String getSourceFile() { return sourceFile; }
+    @Nullable
+    @Override
+    public String getSuperclass() {
+        return dexBuf.getOptionalType(dexBuf.readOptionalUint(classDefOffset + SUPERCLASS_OFFSET));
+    }
+
+    @Override
+    public int getAccessFlags() {
+        return dexBuf.readSmallUint(classDefOffset + ACCESS_FLAGS_OFFSET);
+    }
+
+    @Nullable
+    @Override
+    public String getSourceFile() {
+        return dexBuf.getOptionalString(dexBuf.readOptionalUint(classDefOffset + SOURCE_FILE_OFFSET));
+    }
 
     @Nonnull
     @Override
     public List<String> getInterfaces() {
+        final int interfacesOffset = dexBuf.readSmallUint(classDefOffset + INTERFACES_OFFSET);
         if (interfacesOffset > 0) {
             final int size = dexBuf.readSmallUint(interfacesOffset);
             return new FixedSizeList<String>() {
@@ -106,13 +108,14 @@ public class DexBackedClassDef implements ClassDef {
     @Nonnull
     @Override
     public List<? extends DexBackedAnnotation> getAnnotations() {
-        return annotationsDirectory.getClassAnnotations();
+        return getAnnotationsDirectory().getClassAnnotations();
     }
 
     @Nonnull
     @Override
     public List<? extends DexBackedField> getFields() {
-        if (classDataOffset != 0) {
+        int classDataOffset = getClassDataOffset();
+        if (getClassDataOffset() != 0) {
             DexReader reader = dexBuf.readerAt(classDataOffset);
             final int staticFieldCount = reader.readSmallUleb128();
             int instanceFieldCount = reader.readSmallUleb128();
@@ -121,13 +124,16 @@ public class DexBackedClassDef implements ClassDef {
                 reader.skipUleb128(); //direct_methods_size
                 reader.skipUleb128(); //virtual_methods_size
 
+                final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
+                final int staticInitialValuesOffset =
+                        dexBuf.readSmallUint(classDefOffset + STATIC_INITIAL_VALUES_OFFSET);
                 final int fieldsStartOffset = reader.getOffset();
 
                 return new VariableSizeListWithContext<DexBackedField>() {
                     @Nonnull
                     @Override
-                    public Iterator listIterator() {
-                        return new Iterator(dexBuf, fieldsStartOffset) {
+                    public VariableSizeListIterator listIterator() {
+                        return new VariableSizeListIterator(dexBuf, fieldsStartOffset) {
                             private int previousFieldIndex = 0;
                             @Nonnull private final AnnotationsDirectory.AnnotationIterator annotationIterator =
                                     annotationsDirectory.getFieldAnnotationIterator();
@@ -173,6 +179,7 @@ public class DexBackedClassDef implements ClassDef {
     @Nonnull
     @Override
     public List<? extends DexBackedMethod> getMethods() {
+        int classDataOffset = getClassDataOffset();
         if (classDataOffset > 0) {
             DexReader reader = dexBuf.readerAt(classDataOffset);
             int staticFieldCount = reader.readSmallUleb128();
@@ -183,13 +190,14 @@ public class DexBackedClassDef implements ClassDef {
             if (methodCount > 0) {
                 DexBackedField.skipAllFields(reader, staticFieldCount + instanceFieldCount);
 
+                final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
                 final int methodsStartOffset = reader.getOffset();
 
                 return new VariableSizeListWithContext<DexBackedMethod>() {
                     @Nonnull
                     @Override
-                    public Iterator listIterator() {
-                        return new Iterator(dexBuf, methodsStartOffset) {
+                    public VariableSizeListIterator listIterator() {
+                        return new VariableSizeListIterator(dexBuf, methodsStartOffset) {
                             private int previousMethodIndex = 0;
                             @Nonnull private final AnnotationsDirectory.AnnotationIterator methodAnnotationIterator =
                                     annotationsDirectory.getMethodAnnotationIterator();
@@ -231,5 +239,20 @@ public class DexBackedClassDef implements ClassDef {
             }
         }
         return ImmutableList.of();
+    }
+
+    private int getClassDataOffset() {
+        if (classDataOffset == -1) {
+            classDataOffset = dexBuf.readSmallUint(classDefOffset + CLASS_DATA_OFFSET);
+        }
+        return classDataOffset;
+    }
+
+    private AnnotationsDirectory getAnnotationsDirectory() {
+        if (annotationsDirectory == null) {
+            int annotationsDirectoryOffset = dexBuf.readSmallUint(classDefOffset + ANNOTATIONS_OFFSET);
+            annotationsDirectory = AnnotationsDirectory.newOrEmpty(dexBuf, annotationsDirectoryOffset);
+        }
+        return annotationsDirectory;
     }
 }

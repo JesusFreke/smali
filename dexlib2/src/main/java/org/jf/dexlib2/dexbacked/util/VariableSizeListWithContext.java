@@ -51,8 +51,8 @@ import java.util.NoSuchElementException;
 public abstract class VariableSizeListWithContext<T> extends AbstractSequentialList<T> {
     @Nonnull
     @Override
-    public Iterator listIterator(int startIndex) {
-        Iterator iterator = listIterator();
+    public VariableSizeListIterator listIterator(int startIndex) {
+        VariableSizeListIterator iterator = listIterator();
         if (startIndex < 0 || startIndex >= size()) {
             throw new IndexOutOfBoundsException();
         }
@@ -62,13 +62,13 @@ public abstract class VariableSizeListWithContext<T> extends AbstractSequentialL
         return iterator;
     }
 
-    @Nonnull @Override public abstract Iterator listIterator();
+    @Nonnull @Override public abstract VariableSizeListIterator listIterator();
 
-    public abstract class Iterator extends AbstractListIterator<T> {
+    public abstract class VariableSizeListIterator extends AbstractListIterator<T> {
         private int index = 0;
         @Nonnull private final DexReader reader;
 
-        public Iterator(@Nonnull DexBuffer dexBuf, int offset) {
+        public VariableSizeListIterator(@Nonnull DexBuffer dexBuf, int offset) {
             this.reader = dexBuf.readerAt(offset);
         }
 

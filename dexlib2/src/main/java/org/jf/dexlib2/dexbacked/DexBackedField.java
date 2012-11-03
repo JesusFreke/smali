@@ -43,13 +43,13 @@ import java.util.List;
 public class DexBackedField implements Field {
     @Nonnull public final DexBuffer dexBuf;
 
-    @Nonnull public final String name;
-    @Nonnull public final String type;
     public final int accessFlags;
     @Nullable public final EncodedValue initialValue;
     public final int annotationSetOffset;
 
     public final int fieldIndex;
+
+    private int fieldIdItemOffset;
 
     // offsets for field_id_item
     private static final int TYPE_OFFSET = 2;
@@ -67,14 +67,20 @@ public class DexBackedField implements Field {
 
         this.annotationSetOffset = annotationIterator.seekTo(fieldIndex);
         this.initialValue = staticInitialValueIterator.getNextOrNull();
-
-        int fieldIdItemOffset = reader.getFieldIdItemOffset(fieldIndex);
-        this.type = reader.getType(reader.readUshort(fieldIdItemOffset + TYPE_OFFSET));
-        this.name = reader.getString(reader.readSmallUint(fieldIdItemOffset + NAME_OFFSET));
     }
 
-    @Nonnull @Override public String getName() { return name; }
-    @Nonnull @Override public String getType() { return type; }
+    @Nonnull
+    @Override
+    public String getName() {
+        return dexBuf.getString(dexBuf.readSmallUint(getFieldIdItemOffset() + NAME_OFFSET));
+    }
+
+    @Nonnull
+    @Override
+    public String getType() {
+        return dexBuf.getType(dexBuf.readUshort(getFieldIdItemOffset() + TYPE_OFFSET));
+    }
+
     @Override public int getAccessFlags() { return accessFlags; }
     @Nullable @Override public EncodedValue getInitialValue() { return initialValue; }
 
@@ -107,5 +113,12 @@ public class DexBackedField implements Field {
             reader.skipUleb128();
             reader.skipUleb128();
         }
+    }
+
+    private int getFieldIdItemOffset() {
+        if (fieldIdItemOffset == 0) {
+            fieldIdItemOffset = dexBuf.getFieldIdItemOffset(fieldIndex);
+        }
+        return fieldIdItemOffset;
     }
 }

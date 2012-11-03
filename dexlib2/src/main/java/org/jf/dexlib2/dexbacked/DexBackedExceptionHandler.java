@@ -31,24 +31,24 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
+import org.jf.dexlib2.iface.ExceptionHandler;
 
 import javax.annotation.Nonnull;
 
-public class DexBackedExceptionHandler extends ImmutableExceptionHandler {
-    private DexBackedExceptionHandler(String exceptionType, int handlerCodeOffset) {
+public class DexBackedExceptionHandler implements ExceptionHandler {
+    @Nonnull private final DexBuffer dexBuf;
+    private final int typeId;
+    private final int handlerCodeOffset;
+
+    public DexBackedExceptionHandler(@Nonnull DexReader reader) {
         // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
-        super(exceptionType, handlerCodeOffset);
+        this.dexBuf = reader.getDexBuffer();
+        this.typeId = reader.readSmallUleb128();
+        this.handlerCodeOffset = reader.readSmallUleb128();
     }
 
-    // static factory method, because we can't read from the reader in the correct order while calling super() in the
-    // constructor. ugh.
-    public static DexBackedExceptionHandler createNew(@Nonnull DexReader reader) {
-        int typeId = reader.readSmallUleb128();
-        String exceptionType = reader.getType(typeId);
-        int handlerCodeOffset = reader.readSmallUleb128();
-        return new DexBackedExceptionHandler(exceptionType, handlerCodeOffset);
-    }
+    @Nonnull @Override public String getExceptionType() { return dexBuf.getType(typeId); }
+    @Override public int getHandlerCodeOffset() { return handlerCodeOffset; }
 
     public static void skipFrom(@Nonnull DexReader reader) {
         reader.skipUleb128();

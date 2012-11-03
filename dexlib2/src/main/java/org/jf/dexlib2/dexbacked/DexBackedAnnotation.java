@@ -42,7 +42,7 @@ public class DexBackedAnnotation implements Annotation {
     @Nonnull public final DexBuffer dexBuf;
 
     public final int visibility;
-    @Nonnull public final String type;
+    public final int typeIndex;
     private final int elementsOffset;
 
     public DexBackedAnnotation(@Nonnull DexBuffer dexBuf,
@@ -51,12 +51,12 @@ public class DexBackedAnnotation implements Annotation {
 
         DexReader reader = dexBuf.readerAt(annotationOffset);
         this.visibility = reader.readUbyte();
-        this.type = reader.getType(reader.readSmallUleb128());
+        this.typeIndex = reader.readSmallUleb128();
         this.elementsOffset = reader.getOffset();
     }
 
     @Override public int getVisibility() { return visibility; }
-    @Nonnull @Override public String getType() { return type; }
+    @Nonnull @Override public String getType() { return dexBuf.getType(typeIndex); }
 
     @Nonnull
     @Override

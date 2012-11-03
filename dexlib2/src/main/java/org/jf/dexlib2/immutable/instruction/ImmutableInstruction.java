@@ -131,7 +131,7 @@ public abstract class ImmutableInstruction implements Instruction {
     }
 
     @Nonnull
-    public static ImmutableList<ImmutableInstruction> immutableListOf(List<? extends Instruction> list) {
+    public static ImmutableList<ImmutableInstruction> immutableListOf(Iterable<? extends Instruction> list) {
         return CONVERTER.convert(list);
     }
 
