@@ -28,8 +28,10 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.IndentingWriter;
-import org.jf.dexlib.*;
 import org.jf.util.StringUtils;
 
 import java.io.IOException;
@@ -39,5 +41,22 @@ public class ReferenceFormatter {
         writer.write('"');
         StringUtils.writeEscapedString(writer, item);
         writer.write('"');
+    }
+
+    public static void writeReference(IndentingWriter writer, int referenceType,
+                                      Reference reference) throws IOException {
+        switch (referenceType) {
+            case ReferenceType.STRING:
+                writeStringReference(writer, ((StringReference)reference).getString());
+                return;
+            case ReferenceType.TYPE:
+                writer.write(((TypeReference)reference).getType());
+                return;
+            case ReferenceType.METHOD:
+                ReferenceUtil.writeMethodDescriptor(writer, (MethodReference)reference);
+                return;
+            case ReferenceType.FIELD:
+                ReferenceUtil.writeFieldDescriptor(writer, (FieldReference)reference);
+        }
     }
 }

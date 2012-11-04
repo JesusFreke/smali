@@ -31,11 +31,14 @@
 
 package org.jf.dexlib2.iface;
 
+import org.jf.dexlib2.iface.reference.MethodReference;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface Method {
+public interface Method extends MethodReference {
+    @Nonnull String getContainingClass();
     @Nonnull String getName();
     @Nonnull List<? extends MethodParameter> getParameters();
     @Nonnull String getReturnType();

@@ -31,10 +31,13 @@
 
 package org.jf.dexlib2.dexbacked.instruction;
 
+import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.NibbleUtils;
@@ -165,9 +168,10 @@ public abstract class DexBackedInstruction {
 
     @Nonnull
     private static Instruction21c instruction21c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
+        DexBuffer dexBuf = reader.getDexBuffer();
         int registerA = reader.readUbyte();
         int referenceIndex = reader.readUshort();
-        String reference = reader.getReference(opcode.referenceType, referenceIndex);
+        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
         return new ImmutableInstruction21c(opcode, registerA, reference);
     }
 
@@ -209,12 +213,12 @@ public abstract class DexBackedInstruction {
 
     @Nonnull
     private static Instruction22c instruction22c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
+        DexBuffer dexBuf = reader.getDexBuffer();
         int b = reader.readUbyte();
         int registerA = NibbleUtils.extractLowUnsignedNibble(b);
         int registerB = NibbleUtils.extractHighUnsignedNibble(b);
-
         int referenceIndex = reader.readUshort();
-        String reference = reader.getReference(opcode.referenceType, referenceIndex);
+        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
         return new ImmutableInstruction22c(opcode, registerA, registerB, reference);
     }
 
@@ -260,9 +264,10 @@ public abstract class DexBackedInstruction {
 
     @Nonnull
     private static Instruction31c instruction31c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
+        DexBuffer dexBuf = reader.getDexBuffer();
         int registerA = reader.readUbyte();
         int referenceIndex = reader.readSmallUint();
-        String reference = reader.getReference(opcode.referenceType, referenceIndex);
+        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
         return new ImmutableInstruction31c(opcode, registerA, reference);
     }
 
@@ -290,12 +295,12 @@ public abstract class DexBackedInstruction {
 
     @Nonnull
     private static Instruction35c instruction35c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
+        DexBuffer dexBuf = reader.getDexBuffer();
         int b = reader.readUbyte();
         int registerCount = NibbleUtils.extractHighUnsignedNibble(b);
         int registerG = NibbleUtils.extractLowUnsignedNibble(b);
 
         int referenceIndex = reader.readUshort();
-        String reference = reader.getReference(opcode.referenceType, referenceIndex);
 
         b = reader.readUbyte();
         int registerC = NibbleUtils.extractLowUnsignedNibble(b);
@@ -305,16 +310,18 @@ public abstract class DexBackedInstruction {
         int registerE = NibbleUtils.extractLowUnsignedNibble(b);
         int registerF = NibbleUtils.extractHighUnsignedNibble(b);
 
-        return new ImmutableInstruction35c(opcode, registerCount, registerC, registerD,
-                registerE, registerF, registerG, reference);
+        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
+        return new ImmutableInstruction35c(opcode, registerCount, registerC, registerD, registerE, registerF,
+                registerG, reference);
     }
 
     @Nonnull
     private static Instruction3rc instruction3rc(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
+        DexBuffer dexBuf = reader.getDexBuffer();
         int registerCount = reader.readUbyte();
         int referenceIndex = reader.readUshort();
-        String reference = reader.getReference(opcode.referenceType, referenceIndex);
         int startRegister = reader.readUshort();
+        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
         return new ImmutableInstruction3rc(opcode, startRegister, registerCount, reference);
     }
 

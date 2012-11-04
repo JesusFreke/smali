@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
+import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.EncodedValue;
@@ -82,10 +84,12 @@ public abstract class DexBackedEncodedValue {
                     return new ImmutableTypeEncodedValue(reader.getType(reader.readSizedSmallUint(valueArg + 1)));
                 case ValueType.FIELD:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new ImmutableFieldEncodedValue(reader.getField(reader.readSizedSmallUint(valueArg + 1)));
+                    return new ImmutableFieldEncodedValue(new DexBackedFieldReference(reader.getDexBuffer(),
+                            reader.readSizedSmallUint(valueArg + 1)));
                 case ValueType.METHOD:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new ImmutableMethodEncodedValue(reader.getMethod(reader.readSizedSmallUint(valueArg + 1)));
+                    return new ImmutableMethodEncodedValue(new DexBackedMethodReference(reader.getDexBuffer(),
+                            reader.readSizedSmallUint(valueArg + 1)));
                 case ValueType.ENUM:
                     Preconditions.checkValueArg(valueArg, 3);
                     return new ImmutableEnumEncodedValue(reader.getField(reader.readSizedSmallUint(valueArg + 1)));

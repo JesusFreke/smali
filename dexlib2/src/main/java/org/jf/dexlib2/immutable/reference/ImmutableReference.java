@@ -29,44 +29,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.instruction;
+package org.jf.dexlib2.immutable.reference;
 
-import org.jf.dexlib2.Format;
-import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.immutable.reference.ImmutableReference;
-import org.jf.dexlib2.util.Preconditions;
+import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.iface.reference.*;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableInstruction21c extends ImmutableInstruction implements Instruction21c {
-    public static final Format FORMAT = Format.Format21c;
-
-    public final int registerA;
-    @Nonnull public final ImmutableReference reference;
-
-    public ImmutableInstruction21c(@Nonnull Opcode opcode,
-                                      int registerA,
-                                      @Nonnull Reference reference) {
-        super(opcode);
-        Preconditions.checkFormat(opcode, FORMAT);
-        this.registerA = Preconditions.checkByteRegister(registerA);
-        this.reference = ImmutableReference.of(opcode.referenceType, reference);
-    }
-
-    public static ImmutableInstruction21c of(Instruction21c instruction) {
-        if (instruction instanceof ImmutableInstruction21c) {
-            return (ImmutableInstruction21c)instruction;
+public class ImmutableReference implements Reference {
+    @Nonnull
+    public static ImmutableReference of(Reference reference) {
+        if (reference instanceof StringReference) {
+            return ImmutableStringReference.of((StringReference)reference);
         }
-        return new ImmutableInstruction21c(
-                instruction.getOpcode(),
-                instruction.getRegisterA(),
-                instruction.getReference());
+        if (reference instanceof TypeReference) {
+            return ImmutableTypeReference.of((TypeReference)reference);
+        }
+        if (reference instanceof FieldReference) {
+            return ImmutableFieldReference.of((FieldReference)reference);
+        }
+        if (reference instanceof MethodReference) {
+            return ImmutableMethodReference.of((MethodReference)reference);
+        }
+        throw new ExceptionWithContext("Invalid reference type");
     }
 
-    @Override public int getRegisterA() { return registerA; }
-    @Nonnull @Override public ImmutableReference getReference() { return reference; }
-
-    @Override public Format getFormat() { return FORMAT; }
+    @Nonnull
+    public static ImmutableReference of(int referenceType, Reference reference) {
+        switch (referenceType) {
+            case ReferenceType.STRING:
+                return ImmutableStringReference.of((StringReference)reference);
+            case ReferenceType.TYPE:
+                return ImmutableTypeReference.of((TypeReference)reference);
+            case ReferenceType.FIELD:
+                return ImmutableFieldReference.of((FieldReference)reference);
+            case ReferenceType.METHOD:
+                return ImmutableMethodReference.of((MethodReference)reference);
+        }
+        throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
+    }
 }

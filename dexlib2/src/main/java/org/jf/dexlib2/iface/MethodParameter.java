@@ -32,12 +32,13 @@
 package org.jf.dexlib2.iface;
 
 import org.jf.dexlib2.iface.debug.LocalInfo;
+import org.jf.dexlib2.iface.reference.BasicMethodParameter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface MethodParameter extends LocalInfo {
+public interface MethodParameter extends LocalInfo, BasicMethodParameter {
     @Nonnull String getType();
     @Nonnull List<? extends Annotation> getAnnotations();
     @Nullable String getName();

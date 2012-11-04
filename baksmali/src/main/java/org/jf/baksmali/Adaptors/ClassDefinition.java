@@ -30,32 +30,30 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.*;
-import org.jf.dexlib2.iface.instruction.Instruction;
-import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
 import org.jf.util.StringUtils;
 import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 
 public class ClassDefinition {
     @Nonnull public final ClassDef classDef;
-    @Nonnull private final HashSet<String> fieldsSetInStaticConstructor;
+    //@Nonnull private final HashSet<String> fieldsSetInStaticConstructor;
 
     protected boolean validationErrors;
 
     public ClassDefinition(ClassDef classDef) {
         this.classDef = classDef;
-        fieldsSetInStaticConstructor = findFieldsSetInStaticConstructor();
+        //fieldsSetInStaticConstructor = findFieldsSetInStaticConstructor();
     }
 
     public boolean hadValidationErrors() {
         return validationErrors;
     }
 
-    @Nonnull
+    //TODO: uncomment
+    /*@Nonnull
     private HashSet<String> findFieldsSetInStaticConstructor() {
         HashSet<String> fieldsSetInStaticConstructor = new HashSet<String>();
 
@@ -85,7 +83,7 @@ public class ClassDefinition {
             }
         }
         return fieldsSetInStaticConstructor;
-    }
+    }*/
 
     public void writeTo(IndentingWriter writer) throws IOException {
         writeClass(writer);

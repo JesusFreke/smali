@@ -29,20 +29,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.immutable.reference;
 
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.List;
 
-public interface Field extends FieldReference {
-    @Nonnull String getContainingClass();
-    @Nonnull String getName();
-    @Nonnull String getType();
-    int getAccessFlags();
-    @Nullable EncodedValue getInitialValue();
-    @Nonnull List<? extends Annotation> getAnnotations();
+public class ImmutableTypeReference extends ImmutableReference implements TypeReference {
+    @Nonnull public final String type;
+
+    public ImmutableTypeReference(String type) {
+        this.type = type;
+    }
+
+    @Nonnull
+    public static ImmutableTypeReference of(@Nonnull TypeReference typeReference) {
+        if (typeReference instanceof ImmutableTypeReference) {
+            return (ImmutableTypeReference)typeReference;
+        }
+        return new ImmutableTypeReference(typeReference.getType());
+    }
+
+    @Nonnull @Override public String getType() { return type; }
 }

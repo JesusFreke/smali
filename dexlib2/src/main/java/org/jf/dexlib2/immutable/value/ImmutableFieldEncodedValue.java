@@ -32,14 +32,15 @@
 package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.value.FieldEncodedValue;
 
 import javax.annotation.Nonnull;
 
 public class ImmutableFieldEncodedValue extends ImmutableEncodedValue implements FieldEncodedValue {
-    @Nonnull public final String value;
+    @Nonnull public final FieldReference value;
 
-    public ImmutableFieldEncodedValue(@Nonnull String value) {
+    public ImmutableFieldEncodedValue(@Nonnull FieldReference value) {
         super(ValueType.FIELD);
         this.value = value;
     }
@@ -52,7 +53,7 @@ public class ImmutableFieldEncodedValue extends ImmutableEncodedValue implements
     }
 
     @Nonnull
-    public String getValue() {
+    public FieldReference getValue() {
         return value;
     }
 }

@@ -29,20 +29,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.immutable.reference;
 
 import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.List;
 
-public interface Field extends FieldReference {
-    @Nonnull String getContainingClass();
-    @Nonnull String getName();
-    @Nonnull String getType();
-    int getAccessFlags();
-    @Nullable EncodedValue getInitialValue();
-    @Nonnull List<? extends Annotation> getAnnotations();
+public class ImmutableFieldReference extends ImmutableReference implements FieldReference {
+    @Nonnull public final String containingClass;
+    @Nonnull public final String name;
+    @Nonnull public final String type;
+
+    public ImmutableFieldReference(@Nonnull String containingClass,
+                                   @Nonnull String name,
+                                   @Nonnull String type) {
+        this.containingClass = containingClass;
+        this.name = name;
+        this.type = type;
+    }
+
+    @Nonnull
+    public static ImmutableFieldReference of(@Nonnull FieldReference fieldReference) {
+        if (fieldReference instanceof ImmutableFieldReference) {
+            return (ImmutableFieldReference)fieldReference;
+        }
+        return new ImmutableFieldReference(
+                fieldReference.getContainingClass(),
+                fieldReference.getName(),
+                fieldReference.getType());
+    }
+
+    @Nonnull public String getContainingClass() { return containingClass; }
+    @Nonnull public String getName() { return name; }
+    @Nonnull public String getType() { return type; }
 }

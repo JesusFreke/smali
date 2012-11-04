@@ -34,6 +34,8 @@ package org.jf.dexlib2.immutable.instruction;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.formats.Instruction3rc;
+import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.immutable.reference.ImmutableReference;
 import org.jf.dexlib2.util.Preconditions;
 
 import javax.annotation.Nonnull;
@@ -44,17 +46,17 @@ public class ImmutableInstruction3rc extends ImmutableInstruction implements Ins
     public final int startRegister;
     public final int registerCount;
 
-    @Nonnull public final String reference;
+    @Nonnull public final ImmutableReference reference;
 
     public ImmutableInstruction3rc(@Nonnull Opcode opcode,
                                    int startRegister,
                                    int registerCount,
-                                   @Nonnull String reference) {
+                                   @Nonnull Reference reference) {
         super(opcode);
         Preconditions.checkFormat(opcode, Format.Format3rc);
         this.startRegister = Preconditions.checkShortRegister(startRegister);
         this.registerCount = Preconditions.check3rcRegisterCount(registerCount);
-        this.reference = Preconditions.checkReference(reference, opcode.referenceType);
+        this.reference = ImmutableReference.of(opcode.referenceType, reference);
     }
 
     public static ImmutableInstruction3rc of(Instruction3rc instruction) {
@@ -70,7 +72,7 @@ public class ImmutableInstruction3rc extends ImmutableInstruction implements Ins
 
     @Override public int getStartRegister() { return startRegister; }
     @Override public int getRegisterCount() { return registerCount; }
-    @Nonnull @Override public String getReference() { return reference; }
+    @Nonnull @Override public ImmutableReference getReference() { return reference; }
 
     @Override public Format getFormat() { return FORMAT; }
 }

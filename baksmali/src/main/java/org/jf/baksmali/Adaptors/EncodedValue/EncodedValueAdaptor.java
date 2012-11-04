@@ -31,6 +31,7 @@ package org.jf.baksmali.Adaptors.EncodedValue;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.*;
+import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.IndentingWriter;
 import org.jf.baksmali.Renderers.*;
 
@@ -62,7 +63,7 @@ public abstract class EncodedValueAdaptor {
                 writer.write(((EnumEncodedValue)encodedValue).getValue());
                 return;
             case ValueType.FIELD:
-                writer.write(((FieldEncodedValue)encodedValue).getValue());
+                ReferenceUtil.writeFieldDescriptor(writer, ((FieldEncodedValue)encodedValue).getValue());
                 return;
             case ValueType.FLOAT:
                 FloatRenderer.writeTo(writer, ((FloatEncodedValue)encodedValue).getValue());
@@ -74,7 +75,7 @@ public abstract class EncodedValueAdaptor {
                 LongRenderer.writeTo(writer, ((LongEncodedValue)encodedValue).getValue());
                 return;
             case ValueType.METHOD:
-                writer.write(((MethodEncodedValue)encodedValue).getValue());
+                ReferenceUtil.writeMethodDescriptor(writer, ((MethodEncodedValue)encodedValue).getValue());
                 return;
             case ValueType.NULL:
                 writer.write("null");

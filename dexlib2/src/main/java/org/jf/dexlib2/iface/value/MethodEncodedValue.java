@@ -31,8 +31,10 @@
 
 package org.jf.dexlib2.iface.value;
 
+import org.jf.dexlib2.iface.reference.MethodReference;
+
 import javax.annotation.Nonnull;
 
 public interface MethodEncodedValue extends EncodedValue {
-    @Nonnull String getValue();
+    @Nonnull MethodReference getValue();
 }

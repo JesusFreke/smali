@@ -29,7 +29,6 @@
 package org.jf.baksmali;
 
 import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.Code.Analysis.*;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
@@ -37,9 +36,6 @@ import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

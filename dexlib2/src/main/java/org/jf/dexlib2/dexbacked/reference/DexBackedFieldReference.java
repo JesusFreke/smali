@@ -29,20 +29,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.dexbacked.reference;
 
+import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.List;
 
-public interface Field extends FieldReference {
-    @Nonnull String getContainingClass();
-    @Nonnull String getName();
-    @Nonnull String getType();
-    int getAccessFlags();
-    @Nullable EncodedValue getInitialValue();
-    @Nonnull List<? extends Annotation> getAnnotations();
+public class DexBackedFieldReference implements FieldReference {
+    @Nonnull public final DexBuffer dexBuf;
+    public final int fieldIdItemOffset;
+
+    public DexBackedFieldReference(@Nonnull DexBuffer dexBuf, int fieldIndex) {
+        this.dexBuf = dexBuf;
+        this.fieldIdItemOffset = dexBuf.getFieldIdItemOffset(fieldIndex);
+    }
+
+    @Nonnull
+    @Override
+    public String getContainingClass() {
+        return dexBuf.getType(dexBuf.readUshort(fieldIdItemOffset + DexBuffer.FIELD_CLASS_IDX_OFFSET));
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return dexBuf.getString(dexBuf.readSmallUint(fieldIdItemOffset + DexBuffer.FIELD_NAME_IDX_OFFSET));
+    }
+
+    @Nonnull
+    @Override
+    public String getType() {
+        return dexBuf.getType(dexBuf.readUshort(fieldIdItemOffset + DexBuffer.FIELD_TYPE_IDX_OFFSET));
+    }
 }

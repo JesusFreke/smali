@@ -33,6 +33,7 @@ package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.iface.reference.Reference;
 
 public class Preconditions {
     public static void checkFormat(Opcode opcode, Format expectedFormat) {
@@ -120,11 +121,6 @@ public class Preconditions {
                     String.format("Invalid code offset: %d. Must be between -32768 and 32767, inclusive.", register));
         }
         return register;
-    }
-
-    public static String checkReference(String reference, int referenceType) {
-        //TODO: implement this
-        return reference;
     }
 
     public static int check35cRegisterCount(int registerCount) {

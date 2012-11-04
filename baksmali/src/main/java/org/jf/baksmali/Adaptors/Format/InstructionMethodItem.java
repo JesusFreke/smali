@@ -339,12 +339,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }*/
 
     protected void writeReference(IndentingWriter writer) throws IOException {
-        String reference = ((ReferenceInstruction)instruction).getReference();
-        if (instruction.getOpcode().referenceType == ReferenceType.STRING) {
-            ReferenceFormatter.writeStringReference(writer, reference);
-        } else {
-            writer.write(reference);
-        }
+        ReferenceFormatter.writeReference(writer, instruction.getOpcode().referenceType,
+                ((ReferenceInstruction)instruction).getReference());
     }
 
     //TODO: uncomment

@@ -33,10 +33,7 @@ package org.jf.dexlib2.immutable;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.iface.Annotation;
-import org.jf.dexlib2.iface.Method;
-import org.jf.dexlib2.iface.MethodImplementation;
-import org.jf.dexlib2.iface.MethodParameter;
+import org.jf.dexlib2.iface.*;
 import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
@@ -44,6 +41,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableMethod implements Method {
+    @Nonnull public final String containingClass;
     @Nonnull public final String name;
     @Nonnull public final ImmutableList<? extends ImmutableMethodParameter> parameters;
     @Nonnull public final String returnType;
@@ -51,12 +49,14 @@ public class ImmutableMethod implements Method {
     @Nonnull public final ImmutableList<? extends ImmutableAnnotation> annotations;
     @Nullable public final ImmutableMethodImplementation methodImplementation;
 
-    public ImmutableMethod(@Nonnull String name,
+    public ImmutableMethod(@Nonnull String containingClass,
+                           @Nonnull String name,
                            @Nullable List<? extends MethodParameter> parameters,
                            @Nonnull String returnType,
                            int accessFlags,
                            @Nullable List<? extends Annotation> annotations,
                            @Nullable MethodImplementation methodImplementation) {
+        this.containingClass = containingClass;
         this.name = name;
         this.parameters = ImmutableMethodParameter.immutableListOf(parameters);
         this.returnType = returnType;
@@ -65,12 +65,14 @@ public class ImmutableMethod implements Method {
         this.methodImplementation = ImmutableMethodImplementation.of(methodImplementation);
     }
 
-    public ImmutableMethod(@Nonnull String name,
+    public ImmutableMethod(@Nonnull String containingClass,
+                           @Nonnull String name,
                            @Nullable ImmutableList<? extends ImmutableMethodParameter> parameters,
                            @Nonnull String returnType,
                            int accessFlags,
                            @Nullable ImmutableList<? extends ImmutableAnnotation> annotations,
                            @Nullable ImmutableMethodImplementation methodImplementation) {
+        this.containingClass = containingClass;
         this.name = name;
         this.parameters = Objects.firstNonNull(parameters, ImmutableList.<ImmutableMethodParameter>of());
         this.returnType = returnType;
@@ -84,6 +86,7 @@ public class ImmutableMethod implements Method {
             return (ImmutableMethod)method;
         }
         return new ImmutableMethod(
+                method.getContainingClass(),
                 method.getName(),
                 method.getParameters(),
                 method.getReturnType(),
@@ -92,6 +95,7 @@ public class ImmutableMethod implements Method {
                 method.getImplementation());
     }
 
+    @Nonnull public String getContainingClass() { return containingClass; }
     @Nonnull public String getName() { return name; }
     @Nonnull public ImmutableList<? extends ImmutableMethodParameter> getParameters() { return parameters; }
     @Nonnull public String getReturnType() { return returnType; }

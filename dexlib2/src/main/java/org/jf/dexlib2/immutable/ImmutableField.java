@@ -44,17 +44,20 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableField implements Field {
+    @Nonnull public final String containingClass;
     @Nonnull public final String name;
     @Nonnull public final String type;
     public final int accessFlags;
     @Nullable public final ImmutableEncodedValue initialValue;
     @Nonnull public final ImmutableList<? extends ImmutableAnnotation> annotations;
 
-    public ImmutableField(@Nonnull String name,
+    public ImmutableField(@Nonnull String containingClass,
+                          @Nonnull String name,
                           @Nonnull String type,
                           int accessFlags,
                           @Nullable EncodedValue initialValue,
                           @Nullable List<? extends Annotation> annotations) {
+        this.containingClass = containingClass;
         this.name = name;
         this.type = type;
         this.accessFlags = accessFlags;
@@ -62,11 +65,13 @@ public class ImmutableField implements Field {
         this.annotations = ImmutableAnnotation.immutableListOf(annotations);
     }
 
-    public ImmutableField(@Nonnull String name,
+    public ImmutableField(@Nonnull String containingClass,
+                          @Nonnull String name,
                           @Nonnull String type,
                           int accessFlags,
                           @Nullable ImmutableEncodedValue initialValue,
                           @Nullable ImmutableList<? extends ImmutableAnnotation> annotations) {
+        this.containingClass = containingClass;
         this.name = name;
         this.type = type;
         this.accessFlags = accessFlags;
@@ -79,6 +84,7 @@ public class ImmutableField implements Field {
             return (ImmutableField)field;
         }
         return new ImmutableField(
+                field.getContainingClass(),
                 field.getName(),
                 field.getType(),
                 field.getAccessFlags(),
@@ -86,6 +92,7 @@ public class ImmutableField implements Field {
                 field.getAnnotations());
     }
 
+    @Nonnull @Override public String getContainingClass() { return containingClass; }
     @Nonnull @Override public String getName() { return name; }
     @Nonnull @Override public String getType() { return type; }
     @Override public int getAccessFlags() { return accessFlags; }

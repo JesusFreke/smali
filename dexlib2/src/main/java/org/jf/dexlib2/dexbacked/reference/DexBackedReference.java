@@ -29,20 +29,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.dexbacked.reference;
 
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.List;
 
-public interface Field extends FieldReference {
-    @Nonnull String getContainingClass();
-    @Nonnull String getName();
-    @Nonnull String getType();
-    int getAccessFlags();
-    @Nullable EncodedValue getInitialValue();
-    @Nonnull List<? extends Annotation> getAnnotations();
+public abstract class DexBackedReference {
+    public static Reference makeReference(@Nonnull DexBuffer dexBuf, int referenceType, int referenceIndex) {
+        switch (referenceType) {
+            case ReferenceType.STRING:
+                return new DexBackedStringReference(dexBuf, referenceIndex);
+            case ReferenceType.TYPE:
+                return new DexBackedTypeReference(dexBuf, referenceIndex);
+            case ReferenceType.METHOD:
+                return new DexBackedMethodReference(dexBuf, referenceIndex);
+            case ReferenceType.FIELD:
+                return new DexBackedFieldReference(dexBuf, referenceIndex);
+            default:
+                throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
+        }
+    }
 }

@@ -34,13 +34,14 @@ package org.jf.dexlib2.immutable.instruction;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.util.Preconditions;
 import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 public abstract class ImmutableInstruction implements Instruction {
     @Nonnull public final Opcode opcode;

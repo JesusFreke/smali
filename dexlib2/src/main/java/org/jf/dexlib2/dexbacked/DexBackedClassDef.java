@@ -149,8 +149,8 @@ public class DexBackedClassDef implements ClassDef {
                                     previousFieldIndex = 0;
                                     annotationIterator.reset();
                                 }
-                                DexBackedField item = new DexBackedField(reader, previousFieldIndex,
-                                        staticInitialValueIterator, annotationIterator);
+                                DexBackedField item = new DexBackedField(reader, DexBackedClassDef.this,
+                                        previousFieldIndex, staticInitialValueIterator, annotationIterator);
                                 previousFieldIndex = item.fieldIndex;
                                 return item;
                             }

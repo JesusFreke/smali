@@ -29,20 +29,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface;
+package org.jf.dexlib2.immutable.reference;
 
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.value.EncodedValue;
+import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.iface.reference.BasicMethodParameter;
+import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface Field extends FieldReference {
-    @Nonnull String getContainingClass();
-    @Nonnull String getName();
-    @Nonnull String getType();
-    int getAccessFlags();
-    @Nullable EncodedValue getInitialValue();
-    @Nonnull List<? extends Annotation> getAnnotations();
+public class ImmutableBasicMethodParameter implements BasicMethodParameter {
+    @Nonnull public final String type;
+
+    public ImmutableBasicMethodParameter(@Nonnull String type) {
+        this.type = type;
+    }
+
+    @Nonnull
+    public static ImmutableBasicMethodParameter of(@Nonnull BasicMethodParameter param) {
+        if (param instanceof ImmutableBasicMethodParameter) {
+            return (ImmutableBasicMethodParameter)param;
+        }
+        return new ImmutableBasicMethodParameter(param.getType());
+    }
+
+    @Nonnull @Override public String getType() { return type; }
+
+    @Nonnull
+    public static ImmutableList<ImmutableBasicMethodParameter> immutableListOf(
+            @Nullable List<? extends BasicMethodParameter> list) {
+        return CONVERTER.convert(list);
+    }
+
+    private static final ImmutableListConverter<ImmutableBasicMethodParameter, BasicMethodParameter> CONVERTER =
+            new ImmutableListConverter<ImmutableBasicMethodParameter, BasicMethodParameter>() {
+                @Override
+                protected boolean isImmutable(BasicMethodParameter item) {
+                    return item instanceof ImmutableBasicMethodParameter;
+                }
+
+                @Override
+                protected ImmutableBasicMethodParameter makeImmutable(BasicMethodParameter item) {
+                    return ImmutableBasicMethodParameter.of(item);
+                }
+            };
 }

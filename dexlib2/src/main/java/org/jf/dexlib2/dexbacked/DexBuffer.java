@@ -82,19 +82,19 @@ public class DexBuffer {
     private static final int METHOD_ID_ITEM_SIZE = 8;
     private static final int CLASS_DEF_ITEM_SIZE = 32;
 
-    private static final int FIELD_CLASS_IDX_OFFSET = 0;
-    private static final int FIELD_TYPE_IDX_OFFSET = 2;
-    private static final int FIELD_NAME_IDX_OFFSET = 4;
+    public static final int FIELD_CLASS_IDX_OFFSET = 0;
+    public static final int FIELD_TYPE_IDX_OFFSET = 2;
+    public static final int FIELD_NAME_IDX_OFFSET = 4;
 
-    private static final int METHOD_CLASS_IDX_OFFSET = 0;
-    private static final int METHOD_PROTO_IDX_OFFSET = 2;
-    private static final int METHOD_NAME_IDX_OFFSET = 4;
+    public static final int METHOD_CLASS_IDX_OFFSET = 0;
+    public static final int METHOD_PROTO_IDX_OFFSET = 2;
+    public static final int METHOD_NAME_IDX_OFFSET = 4;
 
-    private static final int PROTO_RETURN_TYPE_IDX_OFFSET = 4;
-    private static final int PROTO_PARAM_LIST_OFF_OFFSET = 8;
+    public static final int PROTO_RETURN_TYPE_IDX_OFFSET = 4;
+    public static final int PROTO_PARAM_LIST_OFF_OFFSET = 8;
 
-    private static final int TYPE_LIST_SIZE_OFFSET = 0;
-    private static final int TYPE_LIST_LIST_OFFSET = 4;
+    public static final int TYPE_LIST_SIZE_OFFSET = 0;
+    public static final int TYPE_LIST_LIST_OFFSET = 4;
 
 
     protected DexBuffer(@Nonnull byte[] buf, boolean bare) {

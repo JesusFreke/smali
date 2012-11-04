@@ -34,6 +34,8 @@ package org.jf.dexlib2.immutable.instruction;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.formats.Instruction35c;
+import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.immutable.reference.ImmutableReference;
 import org.jf.dexlib2.util.Preconditions;
 
 import javax.annotation.Nonnull;
@@ -47,7 +49,7 @@ public class ImmutableInstruction35c extends ImmutableInstruction implements Ins
     public final int registerE;
     public final int registerF;
     public final int registerG;
-    @Nonnull public final String reference;
+    @Nonnull public final ImmutableReference reference;
 
     public ImmutableInstruction35c(@Nonnull Opcode opcode,
                                    int registerCount,
@@ -56,7 +58,7 @@ public class ImmutableInstruction35c extends ImmutableInstruction implements Ins
                                    int registerE,
                                    int registerF,
                                    int registerG,
-                                   @Nonnull String reference) {
+                                   @Nonnull Reference reference) {
         super(opcode);
         Preconditions.checkFormat(opcode, FORMAT);
         this.registerCount = Preconditions.check35cRegisterCount(registerCount);
@@ -65,7 +67,7 @@ public class ImmutableInstruction35c extends ImmutableInstruction implements Ins
         this.registerE = (registerCount>2) ? Preconditions.checkNibbleRegister(registerE) : 0;
         this.registerF = (registerCount>3) ? Preconditions.checkNibbleRegister(registerF) : 0;
         this.registerG = (registerCount>4) ? Preconditions.checkNibbleRegister(registerG) : 0;
-        this.reference = Preconditions.checkReference(reference, opcode.referenceType);
+        this.reference = ImmutableReference.of(opcode.referenceType, reference);
     }
 
     public static ImmutableInstruction35c of(Instruction35c instruction) {
@@ -89,7 +91,7 @@ public class ImmutableInstruction35c extends ImmutableInstruction implements Ins
     @Override public int getRegisterE() { return registerE; }
     @Override public int getRegisterF() { return registerF; }
     @Override public int getRegisterG() { return registerG; }
-    @Nonnull @Override public String getReference() { return reference; }
+    @Nonnull @Override public ImmutableReference getReference() { return reference; }
 
     @Override public Format getFormat() { return FORMAT; }
 }
