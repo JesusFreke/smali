@@ -31,13 +31,12 @@
 
 package org.jf.dexlib2.immutable.instruction;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.SparseSwitchPayload;
-import org.jf.dexlib2.iface.instruction.formats.SparseSwitchPayload;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,7 +55,7 @@ public class ImmutableSparseSwitchPayload extends ImmutableInstruction implement
     public ImmutableSparseSwitchPayload(
             @Nullable ImmutableList<? extends ImmutableSwitchElement> switchElements) {
         super(OPCODE);
-        this.switchElements = Objects.firstNonNull(switchElements, ImmutableList.<ImmutableSwitchElement>of());
+        this.switchElements = ImmutableListUtils.nullToEmptyList(switchElements);
     }
 
     @Nonnull

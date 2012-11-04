@@ -95,7 +95,7 @@ public class ImmutableEncodedValue implements EncodedValue {
     public int getValueType() { return type; }
 
     @Nonnull
-    public static ImmutableList<ImmutableEncodedValue> immutableListOf(List<? extends EncodedValue> list) {
+    public static ImmutableList<ImmutableEncodedValue> immutableListOf(@Nullable List<? extends EncodedValue> list) {
         return CONVERTER.convert(list);
     }
 

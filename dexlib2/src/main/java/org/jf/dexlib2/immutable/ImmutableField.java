@@ -31,13 +31,13 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValue;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,7 +76,7 @@ public class ImmutableField implements Field {
         this.type = type;
         this.accessFlags = accessFlags;
         this.initialValue = initialValue;
-        this.annotations = Objects.firstNonNull(annotations, ImmutableList.<ImmutableAnnotation>of());
+        this.annotations = ImmutableListUtils.nullToEmptyList(annotations);
     }
 
     public static ImmutableField of(Field field) {
@@ -100,7 +100,7 @@ public class ImmutableField implements Field {
     @Nonnull @Override public ImmutableList<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
 
     @Nonnull
-    public static ImmutableList<ImmutableField> immutableListOf(List<? extends Field> list) {
+    public static ImmutableList<ImmutableField> immutableListOf(@Nullable List<? extends Field> list) {
         return CONVERTER.convert(list);
     }
 

@@ -31,10 +31,10 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.BaseAnnotation;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,7 +53,7 @@ public class ImmutableBaseAnnotation implements BaseAnnotation {
     public ImmutableBaseAnnotation(@Nonnull String type,
                                    @Nullable ImmutableList<? extends ImmutableAnnotationElement> elements) {
         this.type = type;
-        this.elements = Objects.firstNonNull(elements, ImmutableList.<ImmutableAnnotationElement>of());
+        this.elements = ImmutableListUtils.nullToEmptyList(elements);
     }
 
     public static ImmutableBaseAnnotation of(BaseAnnotation baseAnnotation) {

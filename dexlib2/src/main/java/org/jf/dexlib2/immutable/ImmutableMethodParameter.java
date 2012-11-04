@@ -31,11 +31,11 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,7 +58,7 @@ public class ImmutableMethodParameter implements MethodParameter {
                                     @Nullable ImmutableList<? extends ImmutableAnnotation> annotations,
                                     @Nullable String name) {
         this.type = type;
-        this.annotations = Objects.firstNonNull(annotations, ImmutableList.<ImmutableAnnotation>of());
+        this.annotations = ImmutableListUtils.nullToEmptyList(annotations);
         this.name = name;
     }
 
@@ -80,7 +80,8 @@ public class ImmutableMethodParameter implements MethodParameter {
     @Nullable @Override public String getSignature() { return null; }
 
     @Nonnull
-    public static ImmutableList<ImmutableMethodParameter> immutableListOf(List<? extends MethodParameter> list) {
+    public static ImmutableList<ImmutableMethodParameter> immutableListOf(
+            @Nullable List<? extends MethodParameter> list) {
         return CONVERTER.convert(list);
     }
 

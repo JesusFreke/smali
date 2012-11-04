@@ -62,7 +62,8 @@ public class ImmutableExceptionHandler implements ExceptionHandler {
     @Override public int getHandlerCodeOffset() { return handlerCodeOffset; }
 
     @Nonnull
-    public static ImmutableList<ImmutableExceptionHandler> immutableListOf(List<? extends ExceptionHandler> list) {
+    public static ImmutableList<ImmutableExceptionHandler> immutableListOf(
+            @Nullable List<? extends ExceptionHandler> list) {
         return CONVERTER.convert(list);
     }
 

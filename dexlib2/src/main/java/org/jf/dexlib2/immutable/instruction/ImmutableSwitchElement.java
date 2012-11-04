@@ -36,6 +36,7 @@ import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableSwitchElement implements SwitchElement {
@@ -62,7 +63,7 @@ public class ImmutableSwitchElement implements SwitchElement {
     @Override public int getOffset() { return offset; }
 
     @Nonnull
-    public static ImmutableList<ImmutableSwitchElement> immutableListOf(List<? extends SwitchElement> list) {
+    public static ImmutableList<ImmutableSwitchElement> immutableListOf(@Nullable List<? extends SwitchElement> list) {
         return CONVERTER.convert(list);
     }
 

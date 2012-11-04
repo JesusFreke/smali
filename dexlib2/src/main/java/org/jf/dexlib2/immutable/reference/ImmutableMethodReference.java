@@ -31,10 +31,10 @@
 
 package org.jf.dexlib2.immutable.reference;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.reference.BasicMethodParameter;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -62,7 +62,7 @@ public class ImmutableMethodReference extends ImmutableReference implements Meth
                                     @Nonnull String returnType) {
         this.containingClass = containingClass;
         this.name = name;
-        this.parameters = Objects.firstNonNull(parameters, ImmutableList.<ImmutableBasicMethodParameter>of());
+        this.parameters = ImmutableListUtils.nullToEmptyList(parameters);
         this.returnType = returnType;
     }
 

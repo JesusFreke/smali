@@ -31,9 +31,9 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.*;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,7 +47,7 @@ public class ImmutableDexFile implements DexFile {
     }
 
     public ImmutableDexFile(@Nullable ImmutableList<? extends ImmutableClassDef> classes) {
-        this.classes = Objects.firstNonNull(classes, ImmutableList.<ImmutableClassDef>of());
+        this.classes = ImmutableListUtils.nullToEmptyList(classes);
     }
 
     public static ImmutableDexFile of(DexFile dexFile) {

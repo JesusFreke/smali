@@ -29,47 +29,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.instruction;
+package org.jf.util;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.Format;
-import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.iface.instruction.SwitchElement;
-import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
-import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
-public class ImmutablePackedSwitchPayload extends ImmutableInstruction implements PackedSwitchPayload {
-    public static final Opcode OPCODE = Opcode.PACKED_SWITCH_PAYLOAD;
-
-    @Nonnull public final ImmutableList<? extends ImmutableSwitchElement> switchElements;
-
-    public ImmutablePackedSwitchPayload(@Nullable List<? extends SwitchElement> switchElements) {
-        super(OPCODE);
-        //TODO: need to validate that the keys are sequential
-        this.switchElements = ImmutableSwitchElement.immutableListOf(switchElements);
-    }
-
-    public ImmutablePackedSwitchPayload(
-            @Nullable ImmutableList<? extends ImmutableSwitchElement> switchElements) {
-        super(OPCODE);
-        this.switchElements = ImmutableListUtils.nullToEmptyList(switchElements);
-    }
-
-    @Nonnull
-    public static ImmutablePackedSwitchPayload of(PackedSwitchPayload instruction) {
-        if (instruction instanceof ImmutablePackedSwitchPayload) {
-            return (ImmutablePackedSwitchPayload)instruction;
+public class ImmutableListUtils {
+    @Nonnull public static <T> ImmutableList<T> nullToEmptyList(@Nullable ImmutableList<T> list) {
+        if (list == null) {
+            return ImmutableList.of();
         }
-        return new ImmutablePackedSwitchPayload(
-                instruction.getSwitchElements());
+        return list;
     }
-
-    @Nonnull @Override public List<? extends SwitchElement> getSwitchElements() { return switchElements; }
-
-    @Override public int getCodeUnits() { return 4 + switchElements.size() * 2; }
-    @Override public Format getFormat() { return OPCODE.format; }
 }

@@ -31,12 +31,12 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.immutable.ImmutableAnnotationElement;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,7 +57,7 @@ public class ImmutableAnnotationEncodedValue extends ImmutableEncodedValue imple
                                            @Nullable ImmutableList<? extends ImmutableAnnotationElement> elements) {
         super(ValueType.ANNOTATION);
         this.type = type;
-        this.elements = Objects.firstNonNull(elements, ImmutableList.<ImmutableAnnotationElement>of());
+        this.elements = ImmutableListUtils.nullToEmptyList(elements);
     }
 
     public static ImmutableAnnotationEncodedValue of(AnnotationEncodedValue annotationEncodedValue) {

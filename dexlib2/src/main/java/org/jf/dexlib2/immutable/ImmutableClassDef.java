@@ -38,6 +38,7 @@ import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
 import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -82,11 +83,11 @@ public class ImmutableClassDef implements ClassDef {
         this.name = name;
         this.accessFlags = accessFlags;
         this.superclass = superclass;
-        this.interfaces = Objects.firstNonNull(interfaces, ImmutableList.<String>of());
+        this.interfaces = ImmutableListUtils.nullToEmptyList(interfaces);
         this.sourceFile = sourceFile;
-        this.annotations = Objects.firstNonNull(annotations, ImmutableList.<ImmutableAnnotation>of());
-        this.fields = Objects.firstNonNull(fields, ImmutableList.<ImmutableField>of());
-        this.methods = Objects.firstNonNull(methods, ImmutableList.<ImmutableMethod>of());
+        this.annotations = ImmutableListUtils.nullToEmptyList(annotations);
+        this.fields = ImmutableListUtils.nullToEmptyList(fields);
+        this.methods = ImmutableListUtils.nullToEmptyList(methods);
     }
 
     public static ImmutableClassDef of(ClassDef classDef) {
@@ -114,7 +115,7 @@ public class ImmutableClassDef implements ClassDef {
     @Nonnull @Override public ImmutableList<? extends ImmutableMethod> getMethods() { return methods; }
 
     @Nonnull
-    public static ImmutableList<ImmutableClassDef> immutableListOf(List<? extends ClassDef> list) {
+    public static ImmutableList<ImmutableClassDef> immutableListOf(@Nullable List<? extends ClassDef> list) {
         return CONVERTER.convert(list);
     }
 

@@ -31,10 +31,10 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.*;
 import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -74,10 +74,10 @@ public class ImmutableMethod implements Method {
                            @Nullable ImmutableMethodImplementation methodImplementation) {
         this.containingClass = containingClass;
         this.name = name;
-        this.parameters = Objects.firstNonNull(parameters, ImmutableList.<ImmutableMethodParameter>of());
+        this.parameters = ImmutableListUtils.nullToEmptyList(parameters);
         this.returnType = returnType;
         this.accessFlags = accessFlags;
-        this.annotations = Objects.firstNonNull(annotations, ImmutableList.<ImmutableAnnotation>of());
+        this.annotations = ImmutableListUtils.nullToEmptyList(annotations);
         this.methodImplementation = methodImplementation;
     }
 
@@ -104,7 +104,7 @@ public class ImmutableMethod implements Method {
     @Nullable public ImmutableMethodImplementation getImplementation() { return methodImplementation; }
 
     @Nonnull
-    public static ImmutableList<ImmutableMethod> immutableListOf(List<? extends Method> list) {
+    public static ImmutableList<ImmutableMethod> immutableListOf(@Nullable List<? extends Method> list) {
         return CONVERTER.convert(list);
     }
 

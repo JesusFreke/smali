@@ -38,6 +38,7 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableAnnotationElement implements AnnotationElement {
@@ -69,7 +70,8 @@ public class ImmutableAnnotationElement implements AnnotationElement {
     @Nonnull @Override public EncodedValue getValue() { return value; }
 
     @Nonnull
-    public static ImmutableList<ImmutableAnnotationElement> immutableListOf(List<? extends AnnotationElement> list) {
+    public static ImmutableList<ImmutableAnnotationElement> immutableListOf(
+            @Nullable List<? extends AnnotationElement> list) {
         return CONVERTER.convert(list);
     }
 

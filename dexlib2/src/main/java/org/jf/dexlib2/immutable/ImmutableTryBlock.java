@@ -31,11 +31,11 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,7 +59,7 @@ public class ImmutableTryBlock implements TryBlock {
                              @Nullable ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers) {
         this.startCodeOffset = startCodeOffset;
         this.codeUnitCount = codeUnitCount;
-        this.exceptionHandlers = Objects.firstNonNull(exceptionHandlers, ImmutableList.<ImmutableExceptionHandler>of());
+        this.exceptionHandlers = ImmutableListUtils.nullToEmptyList(exceptionHandlers);
     }
 
     public static ImmutableTryBlock of(TryBlock tryBlock) {
@@ -80,7 +80,7 @@ public class ImmutableTryBlock implements TryBlock {
     }
 
     @Nonnull
-    public static ImmutableList<ImmutableTryBlock> immutableListOf(List<? extends TryBlock> list) {
+    public static ImmutableList<ImmutableTryBlock> immutableListOf(@Nullable List<? extends TryBlock> list) {
         return CONVERTER.convert(list);
     }
 
