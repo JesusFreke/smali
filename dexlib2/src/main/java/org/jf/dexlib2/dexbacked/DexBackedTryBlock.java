@@ -31,9 +31,9 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
-import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 
 import javax.annotation.Nonnull;
 import java.util.List;

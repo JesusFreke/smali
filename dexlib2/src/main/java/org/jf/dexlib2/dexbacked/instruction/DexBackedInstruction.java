@@ -31,9 +31,9 @@
 
 package org.jf.dexlib2.dexbacked.instruction;
 
+import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.*;

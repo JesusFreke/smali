@@ -34,8 +34,8 @@ package org.jf.dexlib2.immutable.value;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.AnnotationElement;
-import org.jf.dexlib2.immutable.ImmutableAnnotationElement;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
+import org.jf.dexlib2.immutable.ImmutableAnnotationElement;
 import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;

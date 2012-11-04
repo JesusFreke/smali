@@ -32,7 +32,8 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;

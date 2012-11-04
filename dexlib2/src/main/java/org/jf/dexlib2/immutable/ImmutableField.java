@@ -32,10 +32,10 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.immutable.value.ImmutableEncodedValue;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.immutable.value.ImmutableEncodedValue;
 import org.jf.util.ImmutableListConverter;
 import org.jf.util.ImmutableListUtils;
 

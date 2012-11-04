@@ -32,7 +32,10 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.dexbacked.util.*;
+import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
+import org.jf.dexlib2.dexbacked.util.FixedSizeList;
+import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
+import org.jf.dexlib2.dexbacked.util.VariableSizeListWithContext;
 import org.jf.dexlib2.iface.ClassDef;
 
 import javax.annotation.Nonnull;

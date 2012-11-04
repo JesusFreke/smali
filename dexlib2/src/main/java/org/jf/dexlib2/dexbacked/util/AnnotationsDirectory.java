@@ -32,8 +32,8 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotation;
+import org.jf.dexlib2.dexbacked.DexBuffer;
 
 import javax.annotation.Nonnull;
 import java.util.List;

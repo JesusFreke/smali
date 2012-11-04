@@ -31,10 +31,10 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
+import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
 import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
-import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.*;
 import org.jf.dexlib2.util.Preconditions;

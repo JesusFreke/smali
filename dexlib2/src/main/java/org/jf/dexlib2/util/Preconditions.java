@@ -33,7 +33,6 @@ package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.iface.reference.Reference;
 
 public class Preconditions {
     public static void checkFormat(Opcode opcode, Format expectedFormat) {

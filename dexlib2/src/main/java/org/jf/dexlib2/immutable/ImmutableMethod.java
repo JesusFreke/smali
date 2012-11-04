@@ -32,7 +32,10 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.iface.MethodImplementation;
+import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.util.ImmutableListConverter;
 import org.jf.util.ImmutableListUtils;
 

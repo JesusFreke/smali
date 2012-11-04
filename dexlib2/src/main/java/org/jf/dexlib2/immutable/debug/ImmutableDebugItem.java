@@ -34,13 +34,11 @@ package org.jf.dexlib2.immutable.debug;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.iface.debug.*;
-import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public abstract class ImmutableDebugItem implements DebugItem {
     public final int codeAddress;
