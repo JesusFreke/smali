@@ -181,7 +181,7 @@ public abstract class AnnotationsDirectory {
             int methodCount = getMethodAnnotationCount();
             int parameterAnnotationsOffset = directoryOffset + ANNOTATIONS_START_OFFSET +
                     fieldCount * FIELD_ANNOTATION_SIZE +
-                    methodCount + METHOD_ANNOTATION_SIZE;
+                    methodCount * METHOD_ANNOTATION_SIZE;
             return new AnnotationIteratorImpl(parameterAnnotationsOffset, parameterAnnotationCount);
         }
 
