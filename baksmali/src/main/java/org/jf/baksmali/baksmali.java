@@ -29,9 +29,10 @@
 package org.jf.baksmali;
 
 import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.dexlib.Code.Analysis.*;
+import org.jf.dexlib.Code.Analysis.InlineMethodResolver;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
 
@@ -118,10 +119,9 @@ public class baksmali {
             }
         }
 
-        //TODO: uncomment
-        /*if (!noAccessorComments) {
-            syntheticAccessorResolver = new SyntheticAccessorResolver(dexFile);
-        }*/
+        if (!noAccessorComments) {
+            syntheticAccessorResolver = new SyntheticAccessorResolver(dexFile.getClasses());
+        }
 
         //sort the classes, so that if we're on a case-insensitive file system and need to handle classes with file
         //name collisions, then we'll use the same name for each class, if the dex file goes through multiple
@@ -146,7 +146,7 @@ public class baksmali {
              * package name are separated by '/'
              */
 
-            String classDescriptor = classDef.getName();
+            String classDescriptor = classDef.getType();
 
             //validate that the descriptor is formatted like we expect
             if (classDescriptor.charAt(0) != 'L' ||

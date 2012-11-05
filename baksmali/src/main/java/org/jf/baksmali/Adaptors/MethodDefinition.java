@@ -33,12 +33,16 @@ import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;
+import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
+import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.util.InstructionOffsetMap;
 import org.jf.dexlib2.util.MethodUtil;
+import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.dexlib2.util.TypeUtils;
 import org.jf.util.IndentingWriter;
 import org.jf.baksmali.baksmali;
@@ -314,22 +318,21 @@ public class MethodDefinition {
                 });
             }
 
-            //TODO: uncomment
-            /*if (!baksmali.noAccessorComments && (instruction instanceof InstructionWithReference)) {
+            if (!baksmali.noAccessorComments && (instruction instanceof ReferenceInstruction)) {
                 Opcode opcode = instruction.getOpcode();
-                if (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) {
-                    MethodIdItem methodIdItem =
-                            (MethodIdItem)((InstructionWithReference) instruction).getReferencedItem();
 
-                    if (SyntheticAccessorResolver.looksLikeSyntheticAccessor(methodIdItem)) {
+                if (opcode.referenceType == ReferenceType.METHOD) {
+                    MethodReference methodReference = (MethodReference)((ReferenceInstruction)instruction).getReference();
+
+                    if (SyntheticAccessorResolver.looksLikeSyntheticAccessor(methodReference.getName())) {
                         SyntheticAccessorResolver.AccessedMember accessedMember =
-                                baksmali.syntheticAccessorResolver.getAccessedMember(methodIdItem);
+                                baksmali.syntheticAccessorResolver.getAccessedMember(methodReference);
                         if (accessedMember != null) {
                             methodItems.add(new SyntheticAccessCommentMethodItem(accessedMember, currentCodeAddress));
                         }
                     }
                 }
-            }*/
+            }
 
             currentCodeAddress += instruction.getCodeUnits();
         }
