@@ -68,7 +68,7 @@ public class DexBackedClassDef implements ClassDef {
 
     @Nonnull
     @Override
-    public String getName() {
+    public String getType() {
         return dexBuf.getType(dexBuf.readSmallUint(classDefOffset + CLASS_NAME_OFFSET));
     }
 

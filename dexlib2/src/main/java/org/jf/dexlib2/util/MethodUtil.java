@@ -39,7 +39,7 @@ public class MethodUtil {
     public static String buildFullMethodString(ClassDef classDef, Method method) {
         //TODO: consider using a cached thread-local StringBuilder
         StringBuilder sb = new StringBuilder();
-        sb.append(classDef.getName());
+        sb.append(classDef.getType());
         sb.append("->");
         sb.append(method.getName());
         sb.append("(");

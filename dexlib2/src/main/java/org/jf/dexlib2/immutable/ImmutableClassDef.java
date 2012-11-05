@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableClassDef implements ClassDef {
-    @Nonnull public final String name;
+    @Nonnull public final String type;
     public final int accessFlags;
     @Nullable public final String superclass;
     @Nonnull public final ImmutableList<String> interfaces;
@@ -53,7 +53,7 @@ public class ImmutableClassDef implements ClassDef {
     @Nonnull public final ImmutableList<? extends ImmutableField> fields;
     @Nonnull public final ImmutableList<? extends ImmutableMethod> methods;
 
-    public ImmutableClassDef(@Nonnull String name,
+    public ImmutableClassDef(@Nonnull String type,
                              int accessFlags,
                              @Nullable String superclass,
                              @Nullable List<String> interfaces,
@@ -61,7 +61,7 @@ public class ImmutableClassDef implements ClassDef {
                              @Nullable List<? extends Annotation> annotations,
                              @Nullable List<? extends Field> fields,
                              @Nullable List<? extends Method> methods) {
-        this.name = name;
+        this.type = type;
         this.accessFlags = accessFlags;
         this.superclass = superclass;
         this.interfaces = interfaces==null ? ImmutableList.<String>of() : ImmutableList.copyOf(interfaces);
@@ -71,7 +71,7 @@ public class ImmutableClassDef implements ClassDef {
         this.methods = ImmutableMethod.immutableListOf(methods);
     }
 
-    public ImmutableClassDef(@Nonnull String name,
+    public ImmutableClassDef(@Nonnull String type,
                              int accessFlags,
                              @Nullable String superclass,
                              @Nullable ImmutableList<String> interfaces,
@@ -79,7 +79,7 @@ public class ImmutableClassDef implements ClassDef {
                              @Nullable ImmutableList<? extends ImmutableAnnotation> annotations,
                              @Nullable ImmutableList<? extends ImmutableField> fields,
                              @Nullable ImmutableList<? extends ImmutableMethod> methods) {
-        this.name = name;
+        this.type = type;
         this.accessFlags = accessFlags;
         this.superclass = superclass;
         this.interfaces = ImmutableListUtils.nullToEmptyList(interfaces);
@@ -94,7 +94,7 @@ public class ImmutableClassDef implements ClassDef {
             return (ImmutableClassDef)classDef;
         }
         return new ImmutableClassDef(
-                classDef.getName(),
+                classDef.getType(),
                 classDef.getAccessFlags(),
                 classDef.getSuperclass(),
                 classDef.getInterfaces(),
@@ -104,7 +104,7 @@ public class ImmutableClassDef implements ClassDef {
                 classDef.getMethods());
     }
 
-    @Nonnull @Override public String getName() { return name; }
+    @Nonnull @Override public String getType() { return type; }
     @Override public int getAccessFlags() { return accessFlags; }
     @Nullable @Override public String getSuperclass() { return superclass; }
     @Nonnull @Override public ImmutableList<String> getInterfaces() { return interfaces; }

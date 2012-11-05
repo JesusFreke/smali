@@ -100,7 +100,7 @@ public class ClassDefinition {
     private void writeClass(IndentingWriter writer) throws IOException {
         writer.write(".class ");
         writeAccessFlags(writer);
-        writer.write(classDef.getName());
+        writer.write(classDef.getType());
         writer.write('\n');
     }
 

@@ -85,7 +85,7 @@ public class DexBackedField implements Field {
         return dexBuf.getType(dexBuf.readUshort(getFieldIdItemOffset() + TYPE_OFFSET));
     }
 
-    @Nonnull @Override public String getContainingClass() { return classDef.getName(); }
+    @Nonnull @Override public String getContainingClass() { return classDef.getType(); }
     @Override public int getAccessFlags() { return accessFlags; }
     @Nullable @Override public EncodedValue getInitialValue() { return initialValue; }
 

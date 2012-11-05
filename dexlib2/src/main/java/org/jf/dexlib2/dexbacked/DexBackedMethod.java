@@ -98,7 +98,7 @@ public class DexBackedMethod implements Method {
         this.parameterAnnotationSetListOffset = paramaterAnnotationIterator.seekTo(methodIndex);
     }
 
-    @Nonnull @Override public String getContainingClass() { return classDef.getName(); }
+    @Nonnull @Override public String getContainingClass() { return classDef.getType(); }
     @Override public int getAccessFlags() { return accessFlags; }
 
     @Nonnull

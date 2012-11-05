@@ -113,7 +113,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                 // add the local info for the "this" parameter
                 locals[parameterIndex++] = new LocalInfo() {
                     @Override public String getName() { return "this"; }
-                    @Override public String getType() { return methodImpl.method.classDef.getName(); }
+                    @Override public String getType() { return methodImpl.method.classDef.getType(); }
                     @Override public String getSignature() { return null; }
                 };
             }

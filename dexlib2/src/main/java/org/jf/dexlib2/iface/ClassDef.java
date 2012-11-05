@@ -31,12 +31,14 @@
 
 package org.jf.dexlib2.iface;
 
+import org.jf.dexlib2.iface.reference.TypeReference;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface ClassDef {
-    @Nonnull String getName();
+public interface ClassDef extends TypeReference {
+    @Nonnull String getType();
     int getAccessFlags();
     @Nullable String getSuperclass();
     @Nonnull List<String> getInterfaces();
