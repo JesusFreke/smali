@@ -40,11 +40,8 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class DexBackedArrayPayload implements ArrayPayload {
+public class DexBackedArrayPayload extends DexBackedInstruction implements ArrayPayload {
     public static final Opcode OPCODE = Opcode.ARRAY_PAYLOAD;
-
-    @Nonnull public final DexBuffer dexBuf;
-    private final int instructionOffset;
 
     public final int elementWidth;
     public final int elementCount;
@@ -53,13 +50,12 @@ public class DexBackedArrayPayload implements ArrayPayload {
     private static final int ELEMENT_COUNT_OFFSET = 4;
     private static final int ELEMENTS_OFFSET = 8;
 
-    public DexBackedArrayPayload(DexBuffer dexBuf,
-                                 int instructionOffset) {
-        this.dexBuf = dexBuf;
-        this.instructionOffset = instructionOffset;
+    public DexBackedArrayPayload(@Nonnull DexBuffer dexBuf,
+                                 int instructionStart) {
+        super(dexBuf, OPCODE, instructionStart);
 
-        this.elementWidth = dexBuf.readUshort(instructionOffset + ELEMENT_WIDTH_OFFSET);
-        this.elementCount = dexBuf.readSmallUint(instructionOffset + ELEMENT_COUNT_OFFSET);
+        elementWidth = dexBuf.readUshort(instructionStart + ELEMENT_WIDTH_OFFSET);
+        elementCount = dexBuf.readSmallUint(instructionStart + ELEMENT_COUNT_OFFSET);
     }
 
     @Override public int getElementWidth() { return elementWidth; }
@@ -67,7 +63,7 @@ public class DexBackedArrayPayload implements ArrayPayload {
     @Nonnull
     @Override
     public List<Number> getArrayElements() {
-        final int elementsStart = instructionOffset + ELEMENTS_OFFSET;
+        final int elementsStart = instructionStart + ELEMENTS_OFFSET;
 
         abstract class ReturnedList extends FixedSizeList<Number> {
             @Override public int size() { return elementCount; }
@@ -115,6 +111,4 @@ public class DexBackedArrayPayload implements ArrayPayload {
     public int getCodeUnits() {
         return 4 + (elementWidth*elementCount + 1) / 2;
     }
-
-    @Override public Opcode getOpcode() { return OPCODE; }
 }

@@ -187,11 +187,19 @@ public class DexReader {
         return result;
     }
 
+    public int peekUshort() {
+        return dexBuf.readUshort(offset);
+    }
+
     public int readUshort() {
         int o = offset;
         int result = dexBuf.readUshort(offset);
         offset = o + 2;
         return result;
+    }
+
+    public int peekUbyte() {
+        return dexBuf.readUbyte(offset);
     }
 
     public int readUbyte() {

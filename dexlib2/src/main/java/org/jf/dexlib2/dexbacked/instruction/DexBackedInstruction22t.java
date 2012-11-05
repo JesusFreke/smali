@@ -33,51 +33,27 @@ package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBuffer;
-import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.iface.instruction.SwitchElement;
-import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
+import org.jf.dexlib2.iface.instruction.formats.Instruction22t;
+import org.jf.util.NibbleUtils;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
-public class DexBackedPackedSwitchPayload extends DexBackedInstruction implements PackedSwitchPayload {
-    public final int elementCount;
-
-    private static final int ELEMENT_COUNT_OFFSET = 2;
-    private static final int FIRST_KEY_OFFSET = 4;
-    private static final int TARGETS_OFFSET = 8;
-
-    public DexBackedPackedSwitchPayload(@Nonnull DexBuffer dexBuf,
-                                        int instructionStart) {
-        super(dexBuf, Opcode.PACKED_SWITCH_PAYLOAD, instructionStart);
-
-        elementCount = dexBuf.readUshort(instructionStart + ELEMENT_COUNT_OFFSET);
+public class DexBackedInstruction22t extends DexBackedInstruction implements Instruction22t {
+    public DexBackedInstruction22t(@Nonnull DexBuffer dexBuf,
+                                   @Nonnull Opcode opcode,
+                                   int instructionStart) {
+        super(dexBuf, opcode, instructionStart);
     }
 
-    @Nonnull
     @Override
-    public List<? extends SwitchElement> getSwitchElements() {
-        final int firstKey = dexBuf.readInt(instructionStart + FIRST_KEY_OFFSET);
-        return new FixedSizeList<SwitchElement>() {
-            @Nonnull
-            @Override
-            public SwitchElement readItem(final int index) {
-                return new SwitchElement() {
-                    @Override
-                    public int getKey() {
-                        return firstKey + index;
-                    }
-
-                    @Override
-                    public int getOffset() {
-                        return dexBuf.readInt(instructionStart + TARGETS_OFFSET + index*4);
-                    }
-                };
-            }
-
-            @Override public int size() { return elementCount; }
-        };
+    public int getRegisterA() {
+        return NibbleUtils.extractLowUnsignedNibble(dexBuf.readByte(instructionStart + 1));
     }
 
-    @Override public int getCodeUnits() { return 4 + elementCount*2; }
+    @Override
+    public int getRegisterB() {
+        return NibbleUtils.extractHighUnsignedNibble(dexBuf.readByte(instructionStart + 1));
+    }
+
+    @Override public int getCodeOffset() { return dexBuf.readShort(instructionStart + 2); }
 }

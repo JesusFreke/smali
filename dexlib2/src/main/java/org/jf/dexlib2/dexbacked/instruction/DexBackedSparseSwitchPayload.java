@@ -40,23 +40,17 @@ import org.jf.dexlib2.iface.instruction.formats.SparseSwitchPayload;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class DexBackedSparseSwitchPayload implements SparseSwitchPayload {
-    public static final Opcode OPCODE = Opcode.SPARSE_SWITCH_PAYLOAD;
-
-    @Nonnull public final DexBuffer dexBuf;
-    private final int instructionOffset;
-
+public class DexBackedSparseSwitchPayload extends DexBackedInstruction implements SparseSwitchPayload {
     public final int elementCount;
 
     private static final int ELEMENT_COUNT_OFFSET = 2;
     private static final int KEYS_OFFSET = 4;
 
     public DexBackedSparseSwitchPayload(@Nonnull DexBuffer dexBuf,
-                                        int instructionOffset) {
-        this.dexBuf = dexBuf;
-        this.instructionOffset = instructionOffset;
+                                        int instructionStart) {
+        super(dexBuf, Opcode.SPARSE_SWITCH_PAYLOAD, instructionStart);
 
-        this.elementCount = dexBuf.readUshort(instructionOffset + ELEMENT_COUNT_OFFSET);
+        elementCount = dexBuf.readUshort(instructionStart + ELEMENT_COUNT_OFFSET);
     }
 
     @Nonnull
@@ -69,12 +63,12 @@ public class DexBackedSparseSwitchPayload implements SparseSwitchPayload {
                 return new SwitchElement() {
                     @Override
                     public int getKey() {
-                        return dexBuf.readInt(instructionOffset + KEYS_OFFSET + index*4);
+                        return dexBuf.readInt(instructionStart + KEYS_OFFSET + index*4);
                     }
 
                     @Override
                     public int getOffset() {
-                        return dexBuf.readInt(instructionOffset + KEYS_OFFSET + elementCount*4 + index*4);
+                        return dexBuf.readInt(instructionStart + KEYS_OFFSET + elementCount*4 + index*4);
                     }
                 };
             }
@@ -84,5 +78,4 @@ public class DexBackedSparseSwitchPayload implements SparseSwitchPayload {
     }
 
     @Override public int getCodeUnits() { return 2 + elementCount*4; }
-    @Override public Opcode getOpcode() { return OPCODE; }
 }

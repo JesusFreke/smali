@@ -34,330 +34,105 @@ package org.jf.dexlib2.dexbacked.instruction;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
 import org.jf.dexlib2.iface.instruction.Instruction;
-import org.jf.dexlib2.iface.instruction.formats.*;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.util.ExceptionWithContext;
-import org.jf.util.NibbleUtils;
 
 import javax.annotation.Nonnull;
 
-public abstract class DexBackedInstruction {
+public abstract class DexBackedInstruction implements Instruction {
+    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final Opcode opcode;
+    public final int instructionStart;
+
+    public DexBackedInstruction(@Nonnull DexBuffer dexBuf,
+                                @Nonnull Opcode opcode,
+                                int instructionStart) {
+        this.dexBuf = dexBuf;
+        this.opcode = opcode;
+        this.instructionStart = instructionStart;
+    }
+
+    @Nonnull public Opcode getOpcode() { return opcode; }
+    @Override public int getCodeUnits() { return opcode.format.size / 2; }
+
     @Nonnull
     public static Instruction readFrom(@Nonnull DexReader reader) {
-        int opcodeValue = reader.readUbyte();
+        int opcodeValue = reader.peekUbyte();
+
         if (opcodeValue == 0) {
-            reader.moveRelative(-1);
-            opcodeValue = reader.readUshort();
-            if (opcodeValue == 0) {
-                // if we've got a real nop, and not a payload instruction, back up a byte,
-                // so that the reader is positioned just after the single opcode byte, for consistency
-                reader.moveRelative(-1);
-            }
+            opcodeValue = reader.peekUshort();
         }
 
         Opcode opcode = Opcode.getOpcodeByValue(opcodeValue);
 
         //TODO: handle unexpected/unknown opcodes
-
+        Instruction instruction = buildInstruction(reader.getDexBuffer(), opcode, reader.getOffset());
+        reader.moveRelative(instruction.getCodeUnits()*2);
+        return instruction;
+    }
+    
+    private static DexBackedInstruction buildInstruction(@Nonnull DexBuffer dexBuf, Opcode opcode,
+                                                         int instructionStartOffset) {
         switch (opcode.format) {
             case Format10t:
-                return instruction10t(opcode, reader);
+                return new DexBackedInstruction10t(dexBuf, opcode, instructionStartOffset);
             case Format10x:
-                return instruction10x(opcode, reader);
+                return new DexBackedInstruction10x(dexBuf, opcode, instructionStartOffset);
             case Format11n:
-                return instruction11n(opcode, reader);
+                return new DexBackedInstruction11n(dexBuf, opcode, instructionStartOffset);
             case Format11x:
-                return instruction11x(opcode, reader);
+                return new DexBackedInstruction11x(dexBuf, opcode, instructionStartOffset);
             case Format12x:
-                return instruction12x(opcode, reader);
+                return new DexBackedInstruction12x(dexBuf, opcode, instructionStartOffset);
             case Format20t:
-                return instruction20t(opcode, reader);
+                return new DexBackedInstruction20t(dexBuf, opcode, instructionStartOffset);
             case Format21c:
-                return instruction21c(opcode, reader);
+                return new DexBackedInstruction21c(dexBuf, opcode, instructionStartOffset);
             case Format21ih:
-                return instruction21ih(opcode, reader);
+                return new DexBackedInstruction21ih(dexBuf, opcode, instructionStartOffset);
             case Format21lh:
-                return instruction21lh(opcode, reader);
+                return new DexBackedInstruction21lh(dexBuf, opcode, instructionStartOffset);
             case Format21s:
-                return instruction21s(opcode, reader);
+                return new DexBackedInstruction21s(dexBuf, opcode, instructionStartOffset);
             case Format21t:
-                return instruction21t(opcode, reader);
+                return new DexBackedInstruction21t(dexBuf, opcode, instructionStartOffset);
             case Format22b:
-                return instruction22b(opcode, reader);
+                return new DexBackedInstruction22b(dexBuf, opcode, instructionStartOffset);
             case Format22c:
-                return instruction22c(opcode, reader);
+                return new DexBackedInstruction22c(dexBuf, opcode, instructionStartOffset);
             case Format22s:
-                return instruction22s(opcode, reader);
+                return new DexBackedInstruction22s(dexBuf, opcode, instructionStartOffset);
             case Format22t:
-                return instruction22t(opcode, reader);
+                return new DexBackedInstruction22t(dexBuf, opcode, instructionStartOffset);
             case Format22x:
-                return instruction22x(opcode, reader);
+                return new DexBackedInstruction22x(dexBuf, opcode, instructionStartOffset);
             case Format23x:
-                return instruction23x(opcode, reader);
+                return new DexBackedInstruction23x(dexBuf, opcode, instructionStartOffset);
             case Format30t:
-                return instruction30t(opcode, reader);
+                return new DexBackedInstruction30t(dexBuf, opcode, instructionStartOffset);
             case Format31c:
-                return instruction31c(opcode, reader);
+                return new DexBackedInstruction31c(dexBuf, opcode, instructionStartOffset);
             case Format31i:
-                return instruction31i(opcode, reader);
+                return new DexBackedInstruction31i(dexBuf, opcode, instructionStartOffset);
             case Format31t:
-                return instruction31t(opcode, reader);
+                return new DexBackedInstruction31t(dexBuf, opcode, instructionStartOffset);
             case Format32x:
-                return instruction32x(opcode, reader);
+                return new DexBackedInstruction32x(dexBuf, opcode, instructionStartOffset);
             case Format35c:
-                return instruction35c(opcode, reader);
+                return new DexBackedInstruction35c(dexBuf, opcode, instructionStartOffset);
             case Format3rc:
-                return instruction3rc(opcode, reader);
+                return new DexBackedInstruction3rc(dexBuf, opcode, instructionStartOffset);
             case Format51l:
-                return instruction51l(opcode, reader);
+                return new DexBackedInstruction51l(dexBuf, opcode, instructionStartOffset);
             case PackedSwitchPayload:
-                return packedSwitchPayload(reader);
+                return new DexBackedPackedSwitchPayload(dexBuf, instructionStartOffset);
             case SparseSwitchPayload:
-                return sparseSwitchPayload(reader);
+                return new DexBackedSparseSwitchPayload(dexBuf, instructionStartOffset);
             case ArrayPayload:
-                return arrayPayload(reader);
-            //TODO: temporary, until we get all instructions implemented
+                return new DexBackedArrayPayload(dexBuf, instructionStartOffset);
+                //TODO: temporary, until we get all instructions implemented
             default:
                 throw new ExceptionWithContext("Unexpected opcode format: %s", opcode.format.toString());
         }
-    }
-
-    @Nonnull
-    private static Instruction10t instruction10t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int offset = reader.readByte();
-        return new ImmutableInstruction10t(opcode, offset);
-    }
-
-    @Nonnull
-    private static Instruction10x instruction10x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        reader.skipByte();
-        return new ImmutableInstruction10x(opcode);
-    }
-
-    @Nonnull
-    private static Instruction11n instruction11n(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int b = reader.readUbyte();
-        int registerA = NibbleUtils.extractLowUnsignedNibble(b);
-        int literal = NibbleUtils.extractHighSignedNibble(b);
-        return new ImmutableInstruction11n(opcode, registerA, literal);
-    }
-
-    @Nonnull
-    private static Instruction11x instruction11x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        return new ImmutableInstruction11x(opcode, registerA);
-    }
-
-    @Nonnull
-    private static Instruction12x instruction12x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int b = reader.readUbyte();
-        int registerA = NibbleUtils.extractLowUnsignedNibble(b);
-        int registerB = NibbleUtils.extractHighUnsignedNibble(b);
-        return new ImmutableInstruction12x(opcode, registerA, registerB);
-    }
-
-    @Nonnull
-    private static Instruction20t instruction20t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        reader.skipByte();
-        int offset = reader.readShort();
-        return new ImmutableInstruction20t(opcode, offset);
-    }
-
-    @Nonnull
-    private static Instruction21c instruction21c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        DexBuffer dexBuf = reader.getDexBuffer();
-        int registerA = reader.readUbyte();
-        int referenceIndex = reader.readUshort();
-        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
-        return new ImmutableInstruction21c(opcode, registerA, reference);
-    }
-
-    @Nonnull
-    private static Instruction21ih instruction21ih(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int literalHat = reader.readShort();
-        return new ImmutableInstruction21ih(opcode, registerA, literalHat << 16);
-    }
-
-    @Nonnull
-    private static Instruction21lh instruction21lh(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int literalHat = reader.readShort();
-        return new ImmutableInstruction21lh(opcode, registerA, ((long)literalHat) << 48);
-    }
-
-    @Nonnull
-    private static Instruction21s instruction21s(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int literal = reader.readShort();
-        return new ImmutableInstruction21s(opcode, registerA, literal);
-    }
-
-    @Nonnull
-    private static Instruction21t instruction21t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int offset = reader.readShort();
-        return new ImmutableInstruction21t(opcode, registerA, offset);
-    }
-
-    @Nonnull
-    private static Instruction22b instruction22b(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int registerB = reader.readUbyte();
-        int literal = reader.readByte();
-        return new ImmutableInstruction22b(opcode, registerA, registerB, literal);
-    }
-
-    @Nonnull
-    private static Instruction22c instruction22c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        DexBuffer dexBuf = reader.getDexBuffer();
-        int b = reader.readUbyte();
-        int registerA = NibbleUtils.extractLowUnsignedNibble(b);
-        int registerB = NibbleUtils.extractHighUnsignedNibble(b);
-        int referenceIndex = reader.readUshort();
-        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
-        return new ImmutableInstruction22c(opcode, registerA, registerB, reference);
-    }
-
-    @Nonnull
-    private static Instruction22s instruction22s(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int b = reader.readUbyte();
-        int registerA = NibbleUtils.extractLowUnsignedNibble(b);
-        int registerB = NibbleUtils.extractHighUnsignedNibble(b);
-        int literal = reader.readShort();
-        return new ImmutableInstruction22s(opcode, registerA, registerB, literal);
-    }
-
-    @Nonnull
-    private static Instruction22t instruction22t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int b = reader.readUbyte();
-        int registerA = NibbleUtils.extractLowUnsignedNibble(b);
-        int registerB = NibbleUtils.extractHighUnsignedNibble(b);
-        int offset = reader.readShort();
-        return new ImmutableInstruction22t(opcode, registerA, registerB, offset);
-    }
-
-    @Nonnull
-    private static Instruction22x instruction22x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int registerB = reader.readUshort();
-        return new ImmutableInstruction22x(opcode, registerA, registerB);
-    }
-
-    @Nonnull
-    private static Instruction23x instruction23x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int registerB = reader.readUbyte();
-        int registerC = reader.readUbyte();
-        return new ImmutableInstruction23x(opcode, registerA, registerB, registerC);
-    }
-
-    @Nonnull
-    private static Instruction30t instruction30t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        reader.skipByte();
-        int offset = reader.readInt();
-        return new ImmutableInstruction30t(opcode, offset);
-    }
-
-    @Nonnull
-    private static Instruction31c instruction31c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        DexBuffer dexBuf = reader.getDexBuffer();
-        int registerA = reader.readUbyte();
-        int referenceIndex = reader.readSmallUint();
-        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
-        return new ImmutableInstruction31c(opcode, registerA, reference);
-    }
-
-    @Nonnull
-    private static Instruction31i instruction31i(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int literal = reader.readInt();
-        return new ImmutableInstruction31i(opcode, registerA, literal);
-    }
-
-    @Nonnull
-    private static Instruction31t instruction31t(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        int offset = reader.readInt();
-        return new ImmutableInstruction31t(opcode, registerA, offset);
-    }
-
-    @Nonnull
-    private static Instruction32x instruction32x(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        reader.skipByte();
-        int registerA = reader.readUshort();
-        int registerB = reader.readUshort();
-        return new ImmutableInstruction32x(opcode, registerA, registerB);
-    }
-
-    @Nonnull
-    private static Instruction35c instruction35c(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        DexBuffer dexBuf = reader.getDexBuffer();
-        int b = reader.readUbyte();
-        int registerCount = NibbleUtils.extractHighUnsignedNibble(b);
-        int registerG = NibbleUtils.extractLowUnsignedNibble(b);
-
-        int referenceIndex = reader.readUshort();
-
-        b = reader.readUbyte();
-        int registerC = NibbleUtils.extractLowUnsignedNibble(b);
-        int registerD = NibbleUtils.extractHighUnsignedNibble(b);
-
-        b = reader.readUbyte();
-        int registerE = NibbleUtils.extractLowUnsignedNibble(b);
-        int registerF = NibbleUtils.extractHighUnsignedNibble(b);
-
-        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
-        return new ImmutableInstruction35c(opcode, registerCount, registerC, registerD, registerE, registerF,
-                registerG, reference);
-    }
-
-    @Nonnull
-    private static Instruction3rc instruction3rc(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        DexBuffer dexBuf = reader.getDexBuffer();
-        int registerCount = reader.readUbyte();
-        int referenceIndex = reader.readUshort();
-        int startRegister = reader.readUshort();
-        Reference reference = DexBackedReference.makeReference(dexBuf, opcode.referenceType, referenceIndex);
-        return new ImmutableInstruction3rc(opcode, startRegister, registerCount, reference);
-    }
-
-    @Nonnull
-    private static Instruction51l instruction51l(@Nonnull Opcode opcode, @Nonnull DexReader reader) {
-        int registerA = reader.readUbyte();
-        long literal = reader.readLong();
-        return new ImmutableInstruction51l(opcode, registerA, literal);
-    }
-
-    @Nonnull
-    private static DexBackedPackedSwitchPayload packedSwitchPayload(@Nonnull DexReader reader) {
-        // the reader is currently positioned after the 2-byte "opcode"
-        int instructionStartOffset = reader.getOffset() - 2;
-        DexBackedPackedSwitchPayload instruction =
-                new DexBackedPackedSwitchPayload(reader.getDexBuffer(), instructionStartOffset);
-        reader.setOffset(instructionStartOffset + instruction.getCodeUnits() * 2);
-        return instruction;
-    }
-
-    @Nonnull
-    private static DexBackedSparseSwitchPayload sparseSwitchPayload(@Nonnull DexReader reader) {
-        // the reader is currently positioned after the 2-byte "opcode"
-        int instructionStartOffset = reader.getOffset() - 2;
-        DexBackedSparseSwitchPayload instruction =
-                new DexBackedSparseSwitchPayload(reader.getDexBuffer(), instructionStartOffset);
-        reader.setOffset(instructionStartOffset + instruction.getCodeUnits() * 2);
-        return instruction;
-    }
-
-    @Nonnull
-    private static DexBackedArrayPayload arrayPayload(@Nonnull DexReader reader) {
-        // the reader is currently positioned after the 2-byte "opcode"
-        int instructionStartOffset = reader.getOffset() - 2;
-        DexBackedArrayPayload instruction = new DexBackedArrayPayload(reader.getDexBuffer(), instructionStartOffset);
-        reader.setOffset(instructionStartOffset + instruction.getCodeUnits() * 2);
-        return instruction;
     }
 }

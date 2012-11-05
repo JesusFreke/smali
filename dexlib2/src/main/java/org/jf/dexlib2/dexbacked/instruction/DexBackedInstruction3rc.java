@@ -33,51 +33,32 @@ package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBuffer;
-import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.iface.instruction.SwitchElement;
-import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
+import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
+import org.jf.dexlib2.iface.instruction.formats.Instruction3rc;
+import org.jf.dexlib2.iface.reference.Reference;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
-public class DexBackedPackedSwitchPayload extends DexBackedInstruction implements PackedSwitchPayload {
-    public final int elementCount;
+public class DexBackedInstruction3rc extends DexBackedInstruction implements Instruction3rc {
+    public DexBackedInstruction3rc(@Nonnull DexBuffer dexBuf,
+                                   @Nonnull Opcode opcode,
+                                   int instructionStart) {
+        super(dexBuf, opcode, instructionStart);
+    }
 
-    private static final int ELEMENT_COUNT_OFFSET = 2;
-    private static final int FIRST_KEY_OFFSET = 4;
-    private static final int TARGETS_OFFSET = 8;
+    @Override public int getRegisterCount() {
+        return dexBuf.readUbyte(instructionStart + 1);
+    }
 
-    public DexBackedPackedSwitchPayload(@Nonnull DexBuffer dexBuf,
-                                        int instructionStart) {
-        super(dexBuf, Opcode.PACKED_SWITCH_PAYLOAD, instructionStart);
-
-        elementCount = dexBuf.readUshort(instructionStart + ELEMENT_COUNT_OFFSET);
+    @Override
+    public int getStartRegister() {
+        return dexBuf.readUshort(instructionStart + 4);
     }
 
     @Nonnull
     @Override
-    public List<? extends SwitchElement> getSwitchElements() {
-        final int firstKey = dexBuf.readInt(instructionStart + FIRST_KEY_OFFSET);
-        return new FixedSizeList<SwitchElement>() {
-            @Nonnull
-            @Override
-            public SwitchElement readItem(final int index) {
-                return new SwitchElement() {
-                    @Override
-                    public int getKey() {
-                        return firstKey + index;
-                    }
-
-                    @Override
-                    public int getOffset() {
-                        return dexBuf.readInt(instructionStart + TARGETS_OFFSET + index*4);
-                    }
-                };
-            }
-
-            @Override public int size() { return elementCount; }
-        };
+    public Reference getReference() {
+        return DexBackedReference.makeReference(dexBuf, opcode.referenceType,
+                dexBuf.readUshort(instructionStart + 2));
     }
-
-    @Override public int getCodeUnits() { return 4 + elementCount*2; }
 }
