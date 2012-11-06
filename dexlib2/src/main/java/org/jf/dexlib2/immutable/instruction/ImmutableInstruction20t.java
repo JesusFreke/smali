@@ -56,7 +56,7 @@ public class ImmutableInstruction20t extends ImmutableInstruction implements Ins
         }
         return new ImmutableInstruction20t(
                 instruction.getOpcode(),
-                (byte)instruction.getCodeOffset());
+                instruction.getCodeOffset());
     }
 
     @Override public int getCodeOffset() { return codeOffset; }
