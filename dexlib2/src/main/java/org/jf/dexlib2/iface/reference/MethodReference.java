@@ -37,6 +37,6 @@ import java.util.List;
 public interface MethodReference extends Reference {
     @Nonnull String getContainingClass();
     @Nonnull String getName();
-    @Nonnull List<? extends BasicMethodParameter> getParameters();
+    @Nonnull List<? extends TypeReference> getParameters();
     @Nonnull String getReturnType();
 }

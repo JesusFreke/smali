@@ -31,8 +31,8 @@
 
 package org.jf.dexlib2.base.reference;
 
-import org.jf.dexlib2.iface.reference.BasicMethodParameter;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -40,7 +40,7 @@ import java.util.List;
 public abstract class BaseMethodReference implements MethodReference {
     @Nonnull public abstract String getContainingClass();
     @Nonnull public abstract String getName();
-    @Nonnull public abstract List<? extends BasicMethodParameter> getParameters();
+    @Nonnull public abstract List<? extends TypeReference> getParameters();
     @Nonnull
     public abstract String getReturnType();
 
@@ -61,7 +61,7 @@ public abstract class BaseMethodReference implements MethodReference {
         int hashCode = methodRef.getContainingClass().hashCode();
         hashCode = hashCode*31 + methodRef.getName().hashCode();
         hashCode = hashCode*31 + methodRef.getReturnType().hashCode();
-        for (BasicMethodParameter param: methodRef.getParameters()) {
+        for (TypeReference param: methodRef.getParameters()) {
             hashCode = hashCode*31 + param.hashCode();
         }
         return hashCode;

@@ -31,10 +31,14 @@
 
 package org.jf.dexlib2.immutable.reference;
 
+import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
 
 public class ImmutableTypeReference extends BaseTypeReference implements ImmutableReference {
     @Nonnull public final String type;
@@ -52,4 +56,22 @@ public class ImmutableTypeReference extends BaseTypeReference implements Immutab
     }
 
     @Nonnull @Override public String getType() { return type; }
+
+    @Nonnull
+    public static ImmutableList<ImmutableTypeReference> immutableListOf(@Nullable List<? extends TypeReference> list) {
+        return CONVERTER.convert(list);
+    }
+
+    private static final ImmutableListConverter<ImmutableTypeReference, TypeReference> CONVERTER =
+            new ImmutableListConverter<ImmutableTypeReference, TypeReference>() {
+                @Override
+                protected boolean isImmutable(TypeReference item) {
+                    return item instanceof ImmutableTypeReference;
+                }
+
+                @Override
+                protected ImmutableTypeReference makeImmutable(TypeReference item) {
+                    return ImmutableTypeReference.of(item);
+                }
+            };
 }

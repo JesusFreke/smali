@@ -143,18 +143,8 @@ public class SyntheticAccessorResolver {
 
     private static boolean methodReferenceEquals(@Nonnull MethodReference ref1, @Nonnull MethodReference ref2) {
         // we already know the containing class matches
-        if ((!ref1.getName().equals(ref2.getName())) ||
-                (!ref1.getReturnType().equals(ref2.getReturnType()))) {
-            return false;
-        }
-
-        Iterator<? extends BasicMethodParameter> params1 = ref1.getParameters().iterator();
-        Iterator<? extends BasicMethodParameter> params2 = ref2.getParameters().iterator();
-        while (params1.hasNext() && params2.hasNext()) {
-            if (!params1.next().getType().equals(params2.next().getType())) {
-                return false;
-            }
-        }
-        return (!params1.hasNext()) && (!params2.hasNext());
+        return ref1.getName().equals(ref2.getName()) &&
+               ref1.getReturnType().equals(ref2.getReturnType()) &&
+               ref1.getParameters().equals(ref2.getParameters());
     }
 }

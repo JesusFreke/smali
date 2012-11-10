@@ -31,9 +31,9 @@
 
 package org.jf.dexlib2.util;
 
-import org.jf.dexlib2.iface.reference.BasicMethodParameter;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -46,7 +46,7 @@ public abstract class ReferenceUtil {
         sb.append("->");
         sb.append(methodReference.getName());
         sb.append('(');
-        for (BasicMethodParameter param: methodReference.getParameters()) {
+        for (TypeReference param: methodReference.getParameters()) {
             sb.append(param.getType());
         }
         sb.append(')');
@@ -59,7 +59,7 @@ public abstract class ReferenceUtil {
         writer.write("->");
         writer.write(methodReference.getName());
         writer.write('(');
-        for (BasicMethodParameter param: methodReference.getParameters()) {
+        for (TypeReference param: methodReference.getParameters()) {
             writer.write(param.getType());
         }
         writer.write(')');

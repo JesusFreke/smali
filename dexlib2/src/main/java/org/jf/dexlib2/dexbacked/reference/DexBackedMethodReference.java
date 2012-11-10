@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.iface.reference.BasicMethodParameter;
+import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -64,17 +64,17 @@ public class DexBackedMethodReference extends BaseMethodReference {
 
     @Nonnull
     @Override
-    public List<? extends BasicMethodParameter> getParameters() {
+    public List<? extends TypeReference> getParameters() {
         int protoIdItemOffset = getProtoIdItemOffset();
         final int parametersOffset = dexBuf.readSmallUint(protoIdItemOffset + DexBuffer.PROTO_PARAM_LIST_OFF_OFFSET);
         if (parametersOffset > 0) {
             final int parameterCount = dexBuf.readSmallUint(parametersOffset + DexBuffer.TYPE_LIST_SIZE_OFFSET);
             final int paramListStart = parametersOffset + DexBuffer.TYPE_LIST_LIST_OFFSET;
-            return new FixedSizeList<BasicMethodParameter>() {
+            return new FixedSizeList<TypeReference>() {
                 @Nonnull
                 @Override
-                public BasicMethodParameter readItem(final int index) {
-                    return new BasicMethodParameter() {
+                public TypeReference readItem(final int index) {
+                    return new TypeReference() {
                         @Nonnull
                         @Override
                         public String getType() {

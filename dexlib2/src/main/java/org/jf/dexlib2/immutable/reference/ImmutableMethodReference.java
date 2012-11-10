@@ -33,8 +33,8 @@ package org.jf.dexlib2.immutable.reference;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
-import org.jf.dexlib2.iface.reference.BasicMethodParameter;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
@@ -44,22 +44,22 @@ import java.util.List;
 public class ImmutableMethodReference extends BaseMethodReference implements ImmutableReference {
     @Nonnull public final String containingClass;
     @Nonnull public final String name;
-    @Nonnull public final ImmutableList<? extends ImmutableBasicMethodParameter> parameters;
+    @Nonnull public final ImmutableList<? extends ImmutableTypeReference> parameters;
     @Nonnull public final String returnType;
 
     public ImmutableMethodReference(@Nonnull String containingClass,
                                     @Nonnull String name,
-                                    @Nullable List<? extends BasicMethodParameter> parameters,
+                                    @Nullable List<? extends TypeReference> parameters,
                                     @Nonnull String returnType) {
         this.containingClass = containingClass;
         this.name = name;
-        this.parameters = ImmutableBasicMethodParameter.immutableListOf(parameters);
+        this.parameters = ImmutableTypeReference.immutableListOf(parameters);
         this.returnType = returnType;
     }
 
     public ImmutableMethodReference(@Nonnull String containingClass,
                                     @Nonnull String name,
-                                    @Nullable ImmutableList<? extends ImmutableBasicMethodParameter> parameters,
+                                    @Nullable ImmutableList<? extends ImmutableTypeReference> parameters,
                                     @Nonnull String returnType) {
         this.containingClass = containingClass;
         this.name = name;
@@ -81,6 +81,6 @@ public class ImmutableMethodReference extends BaseMethodReference implements Imm
 
     @Nonnull @Override public String getContainingClass() { return containingClass; }
     @Nonnull @Override public String getName() { return name; }
-    @Nonnull @Override public List<? extends BasicMethodParameter> getParameters() { return parameters; }
+    @Nonnull @Override public List<? extends ImmutableTypeReference> getParameters() { return parameters; }
     @Nonnull @Override public String getReturnType() { return returnType; }
 }
