@@ -34,7 +34,6 @@
 package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.iface.instruction.Instruction;
-import org.jf.dexlib2.iface.instruction.formats.Instruction22b;
 import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
 import org.jf.dexlib2.iface.instruction.WideLiteralInstruction;
 
@@ -42,9 +41,9 @@ import java.util.List;
 
 public class SyntheticAccessorFSM {
     
-// line 43 "SyntheticAccessorFSM.rl"
+// line 42 "SyntheticAccessorFSM.rl"
     
-// line 48 "/home/jesusfreke/projects/smali/dexlib2/src/main/java/org/jf/dexlib2/util/SyntheticAccessorFSM.java"
+// line 47 "/home/jesusfreke/projects/smali/dexlib2/src/main/java/org/jf/dexlib2/util/SyntheticAccessorFSM.java"
 private static byte[] init__SyntheticAccessorFSM_actions_0()
 {
 	return new byte [] {
@@ -188,7 +187,7 @@ static final int SyntheticAccessorFSM_error = 0;
 static final int SyntheticAccessorFSM_en_main = 1;
 
 
-// line 44 "SyntheticAccessorFSM.rl"
+// line 43 "SyntheticAccessorFSM.rl"
 
     // math type constants
     public static final int ADD = SyntheticAccessorResolver.ADD_ASSIGNMENT;
@@ -232,12 +231,12 @@ static final int SyntheticAccessorFSM_en_main = 1;
         int returnRegister = -1;
 
         
-// line 236 "/home/jesusfreke/projects/smali/dexlib2/src/main/java/org/jf/dexlib2/util/SyntheticAccessorFSM.java"
+// line 235 "/home/jesusfreke/projects/smali/dexlib2/src/main/java/org/jf/dexlib2/util/SyntheticAccessorFSM.java"
 	{
 	cs = SyntheticAccessorFSM_start;
 	}
 
-// line 241 "/home/jesusfreke/projects/smali/dexlib2/src/main/java/org/jf/dexlib2/util/SyntheticAccessorFSM.java"
+// line 240 "/home/jesusfreke/projects/smali/dexlib2/src/main/java/org/jf/dexlib2/util/SyntheticAccessorFSM.java"
 	{
 	int _klen;
 	int _trans = 0;
@@ -318,19 +317,19 @@ case 1:
 			switch ( _SyntheticAccessorFSM_actions[_acts++] )
 			{
 	case 0:
-// line 94 "SyntheticAccessorFSM.rl"
+// line 93 "SyntheticAccessorFSM.rl"
 	{
                 putRegister = ((OneRegisterInstruction)instructions.get(p)).getRegisterA();
             }
 	break;
 	case 1:
-// line 101 "SyntheticAccessorFSM.rl"
+// line 100 "SyntheticAccessorFSM.rl"
 	{
                 constantValue = ((WideLiteralInstruction)instructions.get(p)).getWideLiteral();
             }
 	break;
 	case 2:
-// line 105 "SyntheticAccessorFSM.rl"
+// line 104 "SyntheticAccessorFSM.rl"
 	{
                 mathType = INT;
                 mathOp = ADD;
@@ -338,146 +337,146 @@ case 1:
             }
 	break;
 	case 3:
-// line 111 "SyntheticAccessorFSM.rl"
+// line 110 "SyntheticAccessorFSM.rl"
 	{ mathType = INT; }
 	break;
 	case 4:
-// line 112 "SyntheticAccessorFSM.rl"
+// line 111 "SyntheticAccessorFSM.rl"
 	{ mathType = LONG; }
 	break;
 	case 5:
-// line 113 "SyntheticAccessorFSM.rl"
+// line 112 "SyntheticAccessorFSM.rl"
 	{ mathType = FLOAT; }
 	break;
 	case 6:
-// line 114 "SyntheticAccessorFSM.rl"
+// line 113 "SyntheticAccessorFSM.rl"
 	{mathType = DOUBLE; }
 	break;
 	case 7:
-// line 114 "SyntheticAccessorFSM.rl"
+// line 113 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = ADD;
             }
 	break;
 	case 8:
-// line 117 "SyntheticAccessorFSM.rl"
+// line 116 "SyntheticAccessorFSM.rl"
 	{ mathType = INT; }
 	break;
 	case 9:
-// line 118 "SyntheticAccessorFSM.rl"
+// line 117 "SyntheticAccessorFSM.rl"
 	{ mathType = LONG; }
 	break;
 	case 10:
-// line 119 "SyntheticAccessorFSM.rl"
+// line 118 "SyntheticAccessorFSM.rl"
 	{ mathType = FLOAT; }
 	break;
 	case 11:
-// line 120 "SyntheticAccessorFSM.rl"
+// line 119 "SyntheticAccessorFSM.rl"
 	{mathType = DOUBLE; }
 	break;
 	case 12:
-// line 120 "SyntheticAccessorFSM.rl"
+// line 119 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = SUB;
             }
 	break;
 	case 13:
-// line 124 "SyntheticAccessorFSM.rl"
+// line 123 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = MUL;
             }
 	break;
 	case 14:
-// line 128 "SyntheticAccessorFSM.rl"
+// line 127 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = DIV;
             }
 	break;
 	case 15:
-// line 132 "SyntheticAccessorFSM.rl"
+// line 131 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = REM;
             }
 	break;
 	case 16:
-// line 135 "SyntheticAccessorFSM.rl"
+// line 134 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = AND;
             }
 	break;
 	case 17:
-// line 138 "SyntheticAccessorFSM.rl"
+// line 137 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = OR;
             }
 	break;
 	case 18:
-// line 141 "SyntheticAccessorFSM.rl"
+// line 140 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = XOR;
             }
 	break;
 	case 19:
-// line 144 "SyntheticAccessorFSM.rl"
+// line 143 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = SHL;
             }
 	break;
 	case 20:
-// line 147 "SyntheticAccessorFSM.rl"
+// line 146 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = SHR;
             }
 	break;
 	case 21:
-// line 150 "SyntheticAccessorFSM.rl"
+// line 149 "SyntheticAccessorFSM.rl"
 	{
                 mathOp = USHR;
             }
 	break;
 	case 22:
-// line 156 "SyntheticAccessorFSM.rl"
+// line 155 "SyntheticAccessorFSM.rl"
 	{
                 returnRegister = ((OneRegisterInstruction)instructions.get(p)).getRegisterA();
             }
 	break;
 	case 23:
-// line 162 "SyntheticAccessorFSM.rl"
+// line 161 "SyntheticAccessorFSM.rl"
 	{
                 accessorType = SyntheticAccessorResolver.GETTER; { p += 1; _goto_targ = 5; if (true)  continue _goto;}
             }
 	break;
 	case 24:
-// line 166 "SyntheticAccessorFSM.rl"
+// line 165 "SyntheticAccessorFSM.rl"
 	{
                 accessorType = SyntheticAccessorResolver.SETTER; { p += 1; _goto_targ = 5; if (true)  continue _goto;}
             }
 	break;
 	case 25:
-// line 170 "SyntheticAccessorFSM.rl"
+// line 169 "SyntheticAccessorFSM.rl"
 	{
                 accessorType = SyntheticAccessorResolver.METHOD; { p += 1; _goto_targ = 5; if (true)  continue _goto;}
             }
 	break;
 	case 26:
-// line 174 "SyntheticAccessorFSM.rl"
+// line 173 "SyntheticAccessorFSM.rl"
 	{
                 accessorType = getIncrementType(mathOp, mathType, constantValue, putRegister, returnRegister);
             }
 	break;
 	case 27:
-// line 178 "SyntheticAccessorFSM.rl"
+// line 177 "SyntheticAccessorFSM.rl"
 	{
                 accessorType = getIncrementType(mathOp, mathType, constantValue, putRegister, returnRegister);
             }
 	break;
 	case 28:
-// line 186 "SyntheticAccessorFSM.rl"
+// line 185 "SyntheticAccessorFSM.rl"
 	{
                 accessorType = mathOp; { p += 1; _goto_targ = 5; if (true)  continue _goto;}
             }
 	break;
-// line 481 "/home/jesusfreke/projects/smali/dexlib2/src/main/java/org/jf/dexlib2/util/SyntheticAccessorFSM.java"
+// line 480 "/home/jesusfreke/projects/smali/dexlib2/src/main/java/org/jf/dexlib2/util/SyntheticAccessorFSM.java"
 			}
 		}
 	}
@@ -497,7 +496,7 @@ case 5:
 	break; }
 	}
 
-// line 199 "SyntheticAccessorFSM.rl"
+// line 198 "SyntheticAccessorFSM.rl"
 
 
         return accessorType;

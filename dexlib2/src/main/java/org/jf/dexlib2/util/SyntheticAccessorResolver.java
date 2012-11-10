@@ -65,8 +65,6 @@ public class SyntheticAccessorResolver {
     public static final int SHR_ASSIGNMENT = 16;
     public static final int USHR_ASSIGNMENT = 17;
 
-
-    //TODO: use a hashmap for the classes?
     private final Map<String, ClassDef> classDefMap;
     private final HashMap<String, AccessedMember> resolvedAccessors = new HashMap<String, AccessedMember>();
 
@@ -125,12 +123,10 @@ public class SyntheticAccessorResolver {
 
         int accessType = SyntheticAccessorFSM.test(instructions);
 
-        byte b = 0;
-        double l = 12341234.567;
-        b += l;
-
         if (accessType >= 0) {
-            return new AccessedMember(accessType, ((ReferenceInstruction)instructions.get(0)).getReference());
+            AccessedMember member =
+                    new AccessedMember(accessType, ((ReferenceInstruction)instructions.get(0)).getReference());
+            resolvedAccessors.put(methodDescriptor, member);
         }
         return null;
     }
@@ -142,15 +138,6 @@ public class SyntheticAccessorResolver {
         public AccessedMember(int accessedMemberType, @Nonnull Reference accessedMember) {
             this.accessedMemberType = accessedMemberType;
             this.accessedMember = accessedMember;
-        }
-
-        @Override
-        public int hashCode() {
-            switch (accessedMemberType) {
-                case METHOD:
-
-            }
-            return super.hashCode();    //To change body of overridden methods use File | Settings | File Templates.
         }
     }
 

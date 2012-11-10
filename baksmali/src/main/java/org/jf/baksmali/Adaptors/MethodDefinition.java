@@ -322,7 +322,8 @@ public class MethodDefinition {
                 Opcode opcode = instruction.getOpcode();
 
                 if (opcode.referenceType == ReferenceType.METHOD) {
-                    MethodReference methodReference = (MethodReference)((ReferenceInstruction)instruction).getReference();
+                    MethodReference methodReference =
+                            (MethodReference)((ReferenceInstruction)instruction).getReference();
 
                     if (SyntheticAccessorResolver.looksLikeSyntheticAccessor(methodReference.getName())) {
                         SyntheticAccessorResolver.AccessedMember accessedMember =
