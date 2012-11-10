@@ -31,11 +31,32 @@
 
 package org.jf.dexlib2.util;
 
-import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.*;
 
-public class TypeUtils {
-    public static boolean isWideType(String type) {
-        char c = type.charAt(0);
-        return c == 'J' || c == 'D';
+public class EncodedValueUtils {
+    public static boolean isDefaultValue(EncodedValue encodedValue) {
+        switch (encodedValue.getValueType()) {
+            case ValueType.BOOLEAN:
+                return !((BooleanEncodedValue)encodedValue).getValue();
+            case ValueType.BYTE:
+                return ((ByteEncodedValue)encodedValue).getValue() == 0;
+            case ValueType.CHAR:
+                return ((CharEncodedValue)encodedValue).getValue() == 0;
+            case ValueType.DOUBLE:
+                return ((DoubleEncodedValue)encodedValue).getValue() == 0;
+            case ValueType.FLOAT:
+                return ((FloatEncodedValue)encodedValue).getValue() == 0;
+            case ValueType.INT:
+                return ((IntEncodedValue)encodedValue).getValue() == 0;
+            case ValueType.LONG:
+                return ((LongEncodedValue)encodedValue).getValue() == 0;
+            case ValueType.NULL:
+                return true;
+            case ValueType.SHORT:
+                return ((ShortEncodedValue)encodedValue).getValue() == 0;
+        }
+        return false;
     }
+
 }

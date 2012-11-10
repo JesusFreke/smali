@@ -34,6 +34,7 @@ import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.util.EncodedValueUtils;
 import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
@@ -45,15 +46,16 @@ public class FieldDefinition {
         int accessFlags = field.getAccessFlags();
 
         if (setInStaticConstructor &&
-            AccessFlags.STATIC.isSet(accessFlags) &&
-            AccessFlags.FINAL.isSet(accessFlags) &&
-            initialValue != null &&
-            (   //it's a primitive type, or it's an array/reference type and the initial value isn't null
-                field.getType().length() == 1 ||
-                initialValue.getValueType() != ValueType.NULL
-            )) {
-
-            writer.write("#the value of this static final field might be set in the static constructor\n");
+                AccessFlags.STATIC.isSet(accessFlags) &&
+                AccessFlags.FINAL.isSet(accessFlags) &&
+                initialValue != null) {
+            if (!EncodedValueUtils.isDefaultValue(initialValue)) {
+                writer.write("# The value of this static final field might be set in the static constructor\n");
+            } else {
+                // don't write out the default initial value for static final fields that get set in the static
+                // constructor
+                initialValue = null;
+            }
         }
 
         writer.write(".field ");
