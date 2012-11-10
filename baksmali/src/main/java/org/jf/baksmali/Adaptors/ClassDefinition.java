@@ -30,30 +30,34 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.StringUtils;
 import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 
 public class ClassDefinition {
     @Nonnull public final ClassDef classDef;
-    //@Nonnull private final HashSet<String> fieldsSetInStaticConstructor;
+    @Nonnull private final HashSet<String> fieldsSetInStaticConstructor;
 
     protected boolean validationErrors;
 
     public ClassDefinition(ClassDef classDef) {
         this.classDef = classDef;
-        //fieldsSetInStaticConstructor = findFieldsSetInStaticConstructor();
+        fieldsSetInStaticConstructor = findFieldsSetInStaticConstructor();
     }
 
     public boolean hadValidationErrors() {
         return validationErrors;
     }
 
-    //TODO: uncomment
-    /*@Nonnull
+    @Nonnull
     private HashSet<String> findFieldsSetInStaticConstructor() {
         HashSet<String> fieldsSetInStaticConstructor = new HashSet<String>();
 
@@ -71,9 +75,9 @@ public class ClassDefinition {
                             case SPUT_SHORT:
                             case SPUT_WIDE: {
                                 Instruction21c ins = (Instruction21c)instruction;
-                                String field = ins.getReference();
-                                if (field.startsWith(classDef.getName())) {
-                                    fieldsSetInStaticConstructor.add(field);
+                                FieldReference fieldRef = (FieldReference)ins.getReference();
+                                if (fieldRef.getContainingClass().equals((classDef.getType()))) {
+                                    fieldsSetInStaticConstructor.add(ReferenceUtil.getShortFieldDescriptor(fieldRef));
                                 }
                                 break;
                             }
@@ -83,7 +87,7 @@ public class ClassDefinition {
             }
         }
         return fieldsSetInStaticConstructor;
-    }*/
+    }
 
     public void writeTo(IndentingWriter writer) throws IOException {
         writeClass(writer);
@@ -162,9 +166,11 @@ public class ClassDefinition {
                 }
                 writer.write('\n');
                 // TODO: detect duplicate fields.
-                // TODO: check if field is set in static constructor
 
-                FieldDefinition.writeTo(writer, field, false);
+                boolean setInStaticConstructor =
+                        fieldsSetInStaticConstructor.contains(ReferenceUtil.getShortFieldDescriptor(field));
+
+                FieldDefinition.writeTo(writer, field, setInStaticConstructor);
             }
         }
     }
@@ -180,7 +186,6 @@ public class ClassDefinition {
                 }
                 writer.write('\n');
                 // TODO: detect duplicate fields.
-                // TODO: check if field is set in static constructor
 
                 FieldDefinition.writeTo(writer, field, false);
             }

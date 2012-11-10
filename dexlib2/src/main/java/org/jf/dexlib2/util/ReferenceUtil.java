@@ -77,6 +77,15 @@ public abstract class ReferenceUtil {
         return sb.toString();
     }
 
+    public static String getShortFieldDescriptor(FieldReference fieldReference) {
+        // TODO: try using a thread local StringBuilder
+        StringBuilder sb = new StringBuilder();
+        sb.append(fieldReference.getName());
+        sb.append(':');
+        sb.append(fieldReference.getType());
+        return sb.toString();
+    }
+
     public static void writeFieldDescriptor(Writer writer, FieldReference fieldReference) throws IOException {
         writer.write(fieldReference.getContainingClass());
         writer.write("->");
