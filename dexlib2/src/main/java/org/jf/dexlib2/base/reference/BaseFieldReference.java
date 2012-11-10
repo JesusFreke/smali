@@ -29,13 +29,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.reference;
+package org.jf.dexlib2.base.reference;
 
-import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.iface.reference.*;
-import org.jf.util.ExceptionWithContext;
+import org.jf.dexlib2.iface.reference.FieldReference;
 
 import javax.annotation.Nonnull;
 
-public interface ImmutableReference extends Reference {
+public abstract class BaseFieldReference implements FieldReference {
+    @Nonnull public abstract String getContainingClass();
+    @Nonnull public abstract String getName();
+    @Nonnull public abstract String getType();
+
+    @Override
+    public int hashCode() {
+        return hashCode(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o != null && o instanceof FieldReference) {
+            return equals(this, (FieldReference)o);
+        }
+        return false;
+    }
+
+    public static int hashCode(@Nonnull FieldReference fieldRef) {
+        int hashCode = fieldRef.getContainingClass().hashCode();
+        hashCode = hashCode*31 + fieldRef.getName().hashCode();
+        return hashCode*31 + fieldRef.getType().hashCode();
+    }
+
+    public static boolean equals(@Nonnull FieldReference fieldRef1, @Nonnull FieldReference fieldRef2) {
+        return fieldRef1.getContainingClass().equals(fieldRef2.getContainingClass()) &&
+               fieldRef1.getName().equals(fieldRef2.getName()) &&
+               fieldRef1.getType().equals(fieldRef2.getType());
+    }
 }

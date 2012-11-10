@@ -31,12 +31,12 @@
 
 package org.jf.dexlib2.dexbacked.reference;
 
+import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.dexbacked.DexBuffer;
-import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 
-public class DexBackedTypeReference implements TypeReference {
+public class DexBackedTypeReference extends BaseTypeReference {
     @Nonnull public final DexBuffer dexBuf;
     public final int typeIndex;
 

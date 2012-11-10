@@ -31,12 +31,12 @@
 
 package org.jf.dexlib2.dexbacked.reference;
 
+import org.jf.dexlib2.base.reference.BaseStringReference;
 import org.jf.dexlib2.dexbacked.DexBuffer;
-import org.jf.dexlib2.iface.reference.StringReference;
 
 import javax.annotation.Nonnull;
 
-public class DexBackedStringReference implements StringReference {
+public class DexBackedStringReference extends BaseStringReference {
     @Nonnull public final DexBuffer dexBuf;
     public final int stringIndex;
 

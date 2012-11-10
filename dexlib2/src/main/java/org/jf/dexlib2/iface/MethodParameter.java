@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface MethodParameter extends LocalInfo, BasicMethodParameter {
+public interface MethodParameter extends BasicMethodParameter, LocalInfo {
     @Nonnull String getType();
     @Nonnull List<? extends Annotation> getAnnotations();
     @Nullable String getName();

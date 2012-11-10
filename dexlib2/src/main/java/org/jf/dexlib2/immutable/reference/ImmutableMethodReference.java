@@ -32,6 +32,7 @@
 package org.jf.dexlib2.immutable.reference;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.reference.BasicMethodParameter;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.util.ImmutableListUtils;
@@ -40,7 +41,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ImmutableMethodReference extends ImmutableReference implements MethodReference {
+public class ImmutableMethodReference extends BaseMethodReference implements ImmutableReference {
     @Nonnull public final String containingClass;
     @Nonnull public final String name;
     @Nonnull public final ImmutableList<? extends ImmutableBasicMethodParameter> parameters;

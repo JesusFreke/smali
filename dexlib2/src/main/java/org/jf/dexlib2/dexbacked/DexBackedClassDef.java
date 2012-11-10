@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
@@ -42,7 +43,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DexBackedClassDef implements ClassDef {
+public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull public final DexBuffer dexBuf;
     private final int classDefOffset;
 

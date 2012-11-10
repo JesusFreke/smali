@@ -29,45 +29,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.instruction;
+package org.jf.dexlib2.base.reference;
 
-import org.jf.dexlib2.Format;
-import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.immutable.reference.ImmutableReference;
-import org.jf.dexlib2.immutable.reference.ImmutableReferenceFactory;
-import org.jf.dexlib2.util.Preconditions;
+import org.jf.dexlib2.iface.reference.BasicMethodParameter;
+import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
-public class ImmutableInstruction21c extends ImmutableInstruction implements Instruction21c {
-    public static final Format FORMAT = Format.Format21c;
+public abstract class BaseMethodReference implements MethodReference {
+    @Nonnull public abstract String getContainingClass();
+    @Nonnull public abstract String getName();
+    @Nonnull public abstract List<? extends BasicMethodParameter> getParameters();
+    @Nonnull
+    public abstract String getReturnType();
 
-    public final int registerA;
-    @Nonnull public final ImmutableReference reference;
-
-    public ImmutableInstruction21c(@Nonnull Opcode opcode,
-                                      int registerA,
-                                      @Nonnull Reference reference) {
-        super(opcode);
-        Preconditions.checkFormat(opcode, FORMAT);
-        this.registerA = Preconditions.checkByteRegister(registerA);
-        this.reference = ImmutableReferenceFactory.of(opcode.referenceType, reference);
+    @Override
+    public int hashCode() {
+        return hashCode(this);
     }
 
-    public static ImmutableInstruction21c of(Instruction21c instruction) {
-        if (instruction instanceof ImmutableInstruction21c) {
-            return (ImmutableInstruction21c)instruction;
+    @Override
+    public boolean equals(Object o) {
+        if (o != null && o instanceof MethodReference) {
+            return equals(this, (MethodReference)o);
         }
-        return new ImmutableInstruction21c(
-                instruction.getOpcode(),
-                instruction.getRegisterA(),
-                instruction.getReference());
+        return false;
     }
 
-    @Override public int getRegisterA() { return registerA; }
-    @Nonnull @Override public ImmutableReference getReference() { return reference; }
+    public static int hashCode(@Nonnull MethodReference methodRef) {
+        int hashCode = methodRef.getContainingClass().hashCode();
+        hashCode = hashCode*31 + methodRef.getName().hashCode();
+        hashCode = hashCode*31 + methodRef.getReturnType().hashCode();
+        for (BasicMethodParameter param: methodRef.getParameters()) {
+            hashCode = hashCode*31 + param.hashCode();
+        }
+        return hashCode;
+    }
 
-    @Override public Format getFormat() { return FORMAT; }
+    public static boolean equals(@Nonnull MethodReference methodRef1, @Nonnull MethodReference methodRef2) {
+        return methodRef1.getContainingClass().equals(methodRef2.getContainingClass()) &&
+               methodRef1.getName().equals(methodRef2.getName()) &&
+               methodRef1.getReturnType().equals(methodRef2.getReturnType()) &&
+               methodRef1.getParameters().equals(methodRef2.getParameters());
+    }
 }

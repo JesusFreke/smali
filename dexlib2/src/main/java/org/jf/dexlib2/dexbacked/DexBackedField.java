@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
 import org.jf.dexlib2.iface.ClassDef;
@@ -41,7 +42,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DexBackedField implements Field {
+public class DexBackedField extends BaseFieldReference implements Field {
     @Nonnull public final DexBuffer dexBuf;
     @Nonnull public final ClassDef classDef;
 

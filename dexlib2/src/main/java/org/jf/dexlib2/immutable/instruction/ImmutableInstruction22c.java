@@ -36,6 +36,7 @@ import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.formats.Instruction22c;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.immutable.reference.ImmutableReference;
+import org.jf.dexlib2.immutable.reference.ImmutableReferenceFactory;
 import org.jf.dexlib2.util.Preconditions;
 
 import javax.annotation.Nonnull;
@@ -55,7 +56,7 @@ public class ImmutableInstruction22c extends ImmutableInstruction implements Ins
         Preconditions.checkFormat(opcode, FORMAT);
         this.registerA = Preconditions.checkNibbleRegister(registerA);
         this.registerB = Preconditions.checkNibbleRegister(registerB);
-        this.reference = ImmutableReference.of(opcode.referenceType, reference);
+        this.reference = ImmutableReferenceFactory.of(opcode.referenceType, reference);
     }
 
     public static ImmutableInstruction22c of(Instruction22c instruction) {

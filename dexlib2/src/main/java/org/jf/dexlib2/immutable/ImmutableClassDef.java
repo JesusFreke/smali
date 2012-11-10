@@ -32,6 +32,7 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
@@ -43,7 +44,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ImmutableClassDef implements ClassDef {
+public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull public final String type;
     public final int accessFlags;
     @Nullable public final String superclass;

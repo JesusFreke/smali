@@ -32,15 +32,15 @@
 package org.jf.dexlib2.dexbacked.reference;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.iface.reference.BasicMethodParameter;
-import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class DexBackedMethodReference implements MethodReference {
+public class DexBackedMethodReference extends BaseMethodReference {
     @Nonnull public final DexBuffer dexBuf;
     public final int methodIdItemOffset;
     private int protoIdItemOffset;

@@ -31,11 +31,12 @@
 
 package org.jf.dexlib2.immutable.reference;
 
+import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableTypeReference extends ImmutableReference implements TypeReference {
+public class ImmutableTypeReference extends BaseTypeReference implements ImmutableReference {
     @Nonnull public final String type;
 
     public ImmutableTypeReference(String type) {

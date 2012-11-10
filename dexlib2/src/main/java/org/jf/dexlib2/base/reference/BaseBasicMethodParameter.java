@@ -29,13 +29,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.reference;
+package org.jf.dexlib2.base.reference;
 
-import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.iface.reference.*;
-import org.jf.util.ExceptionWithContext;
+import org.jf.dexlib2.iface.reference.BasicMethodParameter;
 
 import javax.annotation.Nonnull;
 
-public interface ImmutableReference extends Reference {
+public abstract class BaseBasicMethodParameter implements BasicMethodParameter {
+    @Nonnull public abstract String getType();
+
+    @Override
+    public int hashCode() {
+        return hashCode(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o != null && o instanceof BasicMethodParameter) {
+            return equals(this, (BasicMethodParameter)o);
+        }
+        return false;
+    }
+
+    public static int hashCode(@Nonnull BasicMethodParameter param) {
+        return param.getType().hashCode();
+    }
+
+    public static boolean equals(@Nonnull BasicMethodParameter param1, @Nonnull BasicMethodParameter param2) {
+        return param1.getType().equals(param2.getType());
+    }
 }

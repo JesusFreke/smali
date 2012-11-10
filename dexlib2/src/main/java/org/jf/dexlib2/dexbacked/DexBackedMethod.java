@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.iface.Annotation;
@@ -42,7 +43,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DexBackedMethod implements Method {
+public class DexBackedMethod extends BaseMethodReference implements Method {
     @Nonnull public final DexBuffer dexBuf;
     @Nonnull public final DexBackedClassDef classDef;
 

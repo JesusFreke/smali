@@ -29,13 +29,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.reference;
+package org.jf.dexlib2.base.reference;
 
-import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.iface.reference.*;
-import org.jf.util.ExceptionWithContext;
+import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 
-public interface ImmutableReference extends Reference {
+public abstract class BaseTypeReference implements TypeReference {
+    @Nonnull public abstract String getType();
+
+    @Override
+    public int hashCode() {
+        return hashCode(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o != null && o instanceof TypeReference) {
+            return equals(this, (TypeReference)o);
+        }
+        return false;
+    }
+
+    public static int hashCode(@Nonnull TypeReference typeRef) {
+        return typeRef.getType().hashCode();
+    }
+
+    public static boolean equals(@Nonnull TypeReference typeRef1, @Nonnull TypeReference typeRef2) {
+        return typeRef1.getType().equals(typeRef2.getType());
+    }
 }

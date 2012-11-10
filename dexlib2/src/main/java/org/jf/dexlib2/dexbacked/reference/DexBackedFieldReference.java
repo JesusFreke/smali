@@ -31,12 +31,12 @@
 
 package org.jf.dexlib2.dexbacked.reference;
 
+import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.dexbacked.DexBuffer;
-import org.jf.dexlib2.iface.reference.FieldReference;
 
 import javax.annotation.Nonnull;
 
-public class DexBackedFieldReference implements FieldReference {
+public class DexBackedFieldReference extends BaseFieldReference {
     @Nonnull public final DexBuffer dexBuf;
     public final int fieldIdItemOffset;
 
