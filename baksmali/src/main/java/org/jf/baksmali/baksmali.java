@@ -28,6 +28,7 @@
 
 package org.jf.baksmali;
 
+import com.google.common.collect.ImmutableList;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib.Code.Analysis.InlineMethodResolver;
 import org.jf.dexlib2.iface.ClassDef;
@@ -37,6 +38,10 @@ import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -119,25 +124,25 @@ public class baksmali {
             }
         }
 
-        if (!noAccessorComments) {
-            syntheticAccessorResolver = new SyntheticAccessorResolver(dexFile.getClasses());
-        }
-
         //sort the classes, so that if we're on a case-insensitive file system and need to handle classes with file
         //name collisions, then we'll use the same name for each class, if the dex file goes through multiple
         //baksmali/smali cycles for some reason. If a class with a colliding name is added or removed, the filenames
         //may still change of course
-        // TODO: aren't classes already sorted? Why do we need to sort here?
-        /*ArrayList<ClassDefItem> classDefItems = new ArrayList<ClassDefItem>(dexFile.ClassDefsSection.getItems());
-        Collections.sort(classDefItems, new Comparator<ClassDefItem>() {
-            public int compare(ClassDefItem classDefItem1, ClassDefItem classDefItem2) {
-                return classDefItem1.getClassType().getTypeDescriptor().compareTo(classDefItem1.getClassType().getTypeDescriptor());
+        List<ClassDef> classDefs = new ArrayList<ClassDef>(dexFile.getClasses());
+        Collections.sort(classDefs, new Comparator<ClassDef>() {
+            public int compare(ClassDef classDef1, ClassDef classDef2) {
+                return classDef1.getType().compareTo(classDef2.getType());
             }
-        });*/
+        });
+        classDefs = ImmutableList.copyOf(classDefs);
+
+        if (!noAccessorComments) {
+            syntheticAccessorResolver = new SyntheticAccessorResolver(classDefs);
+        }
 
         ClassFileNameHandler fileNameHandler = new ClassFileNameHandler(outputDirectoryFile, ".smali");
 
-        for (ClassDef classDef: dexFile.getClasses()) {
+        for (ClassDef classDef: classDefs) {
             /**
              * The path for the disassembly file is based on the package name
              * The class descriptor will look something like:
