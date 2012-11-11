@@ -62,7 +62,7 @@ public abstract class ImmutableListConverter<ImmutableItem, Item> {
         boolean needsCopy = false;
         if (iterable instanceof ImmutableList) {
             for (Item element: iterable) {
-                if (isImmutable(element)) {
+                if (!isImmutable(element)) {
                     needsCopy = true;
                     break;
                 }
