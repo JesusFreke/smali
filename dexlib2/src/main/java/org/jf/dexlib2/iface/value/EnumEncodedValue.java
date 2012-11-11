@@ -31,8 +31,10 @@
 
 package org.jf.dexlib2.iface.value;
 
+import org.jf.dexlib2.iface.reference.FieldReference;
+
 import javax.annotation.Nonnull;
 
 public interface EnumEncodedValue extends EncodedValue {
-    @Nonnull String getValue();
+    @Nonnull FieldReference getValue();
 }

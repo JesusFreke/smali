@@ -60,7 +60,7 @@ public abstract class EncodedValueAdaptor {
                 return;
             case ValueType.ENUM:
                 writer.write(".enum ");
-                writer.write(((EnumEncodedValue)encodedValue).getValue());
+                ReferenceUtil.writeFieldDescriptor(writer, ((EnumEncodedValue)encodedValue).getValue());
                 return;
             case ValueType.FIELD:
                 ReferenceUtil.writeFieldDescriptor(writer, ((FieldEncodedValue)encodedValue).getValue());
