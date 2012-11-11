@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
 import org.jf.dexlib2.dexbacked.util.DebugInfo;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.dexbacked.util.VariableSizeIterator;
+import org.jf.dexlib2.dexbacked.util.VariableSizeLookaheadIterator;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.dexlib2.iface.TryBlock;
@@ -79,9 +79,9 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         return new Iterable<Instruction>() {
             @Override
             public Iterator<Instruction> iterator() {
-                return new VariableSizeIterator<Instruction>(dexBuf, instructionsStartOffset) {
+                return new VariableSizeLookaheadIterator<Instruction>(dexBuf, instructionsStartOffset) {
                     @Override
-                    protected Instruction readItem(@Nonnull DexReader reader, int index) {
+                    protected Instruction readNextItem(@Nonnull DexReader reader) {
                         if (reader.getOffset() >= endOffset) {
                             return null;
                         }

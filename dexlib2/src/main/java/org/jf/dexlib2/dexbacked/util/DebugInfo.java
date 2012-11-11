@@ -50,7 +50,6 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public abstract class DebugInfo implements Iterable<DebugItem> {
     @Nonnull public abstract List<? extends MethodParameter> getParametersWithNames();
@@ -140,24 +139,16 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                 }
             }
 
-            return new Iterator<DebugItem>() {
-                @Nonnull private DexReader reader = dexBuf.readerAt(parameterIterator.getReaderOffset());
-                private boolean finished = false;
+            return new VariableSizeLookaheadIterator<DebugItem>(dexBuf, parameterIterator.getReaderOffset()) {
                 private int codeAddress = 0;
                 private int lineNumber = lineNumberStart;
 
-                @Nullable private DebugItem nextItem;
-
                 @Nullable
-                protected DebugItem readItem() {
-                    if (finished) {
-                        return null;
-                    }
+                protected DebugItem readNextItem(@Nonnull DexReader reader) {
                     while (true) {
                         int next = reader.readUbyte();
                         switch (next) {
                             case DebugItemType.END_SEQUENCE: {
-                                finished = true;
                                 return null;
                             }
                             case DebugItemType.ADVANCE_PC: {
@@ -235,38 +226,6 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                             }
                         }
                     }
-                }
-
-                @Override
-                public boolean hasNext() {
-                    if (finished || nextItem != null) {
-                        return false;
-                    }
-                    nextItem = readItem();
-                    return nextItem != null;
-                }
-
-                @Nonnull
-                @Override
-                public DebugItem next() {
-                    if (finished) {
-                        throw new NoSuchElementException();
-                    }
-                    if (nextItem == null) {
-                        DebugItem ret = readItem();
-                        if (ret == null) {
-                            throw new NoSuchElementException();
-                        }
-                        return ret;
-                    }
-                    DebugItem ret = nextItem;
-                    nextItem = null;
-                    return ret;
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException();
                 }
             };
         }

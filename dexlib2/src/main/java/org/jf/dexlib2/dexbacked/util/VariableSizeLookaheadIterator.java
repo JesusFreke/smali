@@ -37,26 +37,24 @@ import org.jf.dexlib2.dexbacked.DexReader;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public abstract class VariableSizeIterator<T> implements Iterator<T> {
-    private final DexReader reader;
+public abstract class VariableSizeLookaheadIterator<T> implements Iterator<T> {
+    @Nonnull private final DexReader reader;
 
-    private int index = 0;
     private T cachedItem = null;
 
-    protected VariableSizeIterator(DexBuffer dexBuf, int offset) {
+    protected VariableSizeLookaheadIterator(@Nonnull DexBuffer dexBuf, int offset) {
         this.reader = dexBuf.readerAt(offset);
-        cachedItem = readItem(reader, index++);
+        cachedItem = readNextItem(reader);
     }
 
     /**
      * Reads the next item from reader. If the end of the list has been reached, it should return null.
      *
-     * @param reader The {@code DexReader} to read from
-     * @param index The index of the item that is being read
      * @return The item that was read, or null if the end of the list has been reached.
      */
-    @Nullable protected abstract T readItem(@Nonnull DexReader reader, int index);
+    @Nullable protected abstract T readNextItem(@Nonnull DexReader reader);
 
     @Override
     public boolean hasNext() {
@@ -64,9 +62,13 @@ public abstract class VariableSizeIterator<T> implements Iterator<T> {
     }
 
     @Override
+    @Nonnull
     public T next() {
+        if (cachedItem == null) {
+            throw new NoSuchElementException();
+        }
         T ret = cachedItem;
-        cachedItem = readItem(reader, index++);
+        cachedItem = readNextItem(reader);
         return ret;
     }
 
