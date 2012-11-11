@@ -35,15 +35,8 @@ import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 public abstract class BaseMethodReference implements MethodReference {
-    @Nonnull public abstract String getContainingClass();
-    @Nonnull public abstract String getName();
-    @Nonnull public abstract List<? extends TypeReference> getParameters();
-    @Nonnull
-    public abstract String getReturnType();
-
     @Override
     public int hashCode() {
         return hashCode(this);

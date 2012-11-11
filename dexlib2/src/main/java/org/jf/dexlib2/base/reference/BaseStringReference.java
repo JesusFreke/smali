@@ -36,9 +36,6 @@ import org.jf.dexlib2.iface.reference.StringReference;
 import javax.annotation.Nonnull;
 
 public abstract class BaseStringReference implements StringReference {
-    @Nonnull
-    public abstract String getString();
-
     @Override
     public int hashCode() {
         return hashCode(this);

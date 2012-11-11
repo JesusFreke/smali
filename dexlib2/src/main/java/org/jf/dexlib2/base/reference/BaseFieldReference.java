@@ -36,10 +36,6 @@ import org.jf.dexlib2.iface.reference.FieldReference;
 import javax.annotation.Nonnull;
 
 public abstract class BaseFieldReference implements FieldReference {
-    @Nonnull public abstract String getContainingClass();
-    @Nonnull public abstract String getName();
-    @Nonnull public abstract String getType();
-
     @Override
     public int hashCode() {
         return hashCode(this);
