@@ -31,11 +31,16 @@
 
 package org.jf.dexlib2.iface;
 
-public interface Annotation extends BaseAnnotation {
+import javax.annotation.Nonnull;
+import java.util.List;
+
+public interface Annotation {
     // The possible annotation visibility values
     public static final int BUILD = 0;
     public static final int RUNTIME = 1;
     public static final int SYSTEM = 2;
 
     int getVisibility();
+    @Nonnull String getType();
+    @Nonnull List<? extends AnnotationElement> getElements();
 }
