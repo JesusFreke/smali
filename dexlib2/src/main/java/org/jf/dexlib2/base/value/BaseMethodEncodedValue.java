@@ -29,27 +29,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.value;
+package org.jf.dexlib2.base.value;
 
-import org.jf.dexlib2.base.value.BaseTypeEncodedValue;
-import org.jf.dexlib2.iface.value.TypeEncodedValue;
+import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.MethodEncodedValue;
 
-import javax.annotation.Nonnull;
-
-public class ImmutableTypeEncodedValue extends BaseTypeEncodedValue
-        implements ImmutableEncodedValue, TypeEncodedValue {
-    @Nonnull public final String value;
-
-    public ImmutableTypeEncodedValue(@Nonnull String value) {
-        this.value = value;
+public abstract class BaseMethodEncodedValue implements MethodEncodedValue {
+    @Override
+    public int hashCode() {
+        return getValue().hashCode();
     }
 
-    public static ImmutableTypeEncodedValue of(@Nonnull TypeEncodedValue typeEncodedValue) {
-        if (typeEncodedValue instanceof ImmutableTypeEncodedValue) {
-            return (ImmutableTypeEncodedValue)typeEncodedValue;
+    @Override
+    public boolean equals(Object o) {
+        if (o != null && o instanceof MethodEncodedValue) {
+            return getValue().equals(((MethodEncodedValue) o).getValue());
         }
-        return new ImmutableTypeEncodedValue(typeEncodedValue.getValue());
+        return false;
     }
 
-    @Nonnull @Override public String getValue() { return value; }
+    public int getValueType() { return ValueType.METHOD; }
 }

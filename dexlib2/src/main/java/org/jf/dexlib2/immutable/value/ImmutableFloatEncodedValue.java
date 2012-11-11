@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseFloatEncodedValue;
 import org.jf.dexlib2.iface.value.FloatEncodedValue;
 
-public class ImmutableFloatEncodedValue extends ImmutableEncodedValue implements FloatEncodedValue {
+public class ImmutableFloatEncodedValue extends BaseFloatEncodedValue
+        implements ImmutableEncodedValue, FloatEncodedValue {
     public final float value;
 
     public ImmutableFloatEncodedValue(float value) {
-        super(ValueType.FLOAT);
         this.value = value;
     }
 
@@ -49,7 +49,5 @@ public class ImmutableFloatEncodedValue extends ImmutableEncodedValue implements
         return new ImmutableFloatEncodedValue(floatEncodedValue.getValue());
     }
 
-    public float getValue() {
-        return value;
-    }
+    @Override public float getValue() { return value; }
 }

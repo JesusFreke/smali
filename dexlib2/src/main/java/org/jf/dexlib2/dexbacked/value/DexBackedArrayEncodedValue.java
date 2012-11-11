@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseArrayEncodedValue;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
@@ -41,7 +42,7 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class DexBackedArrayEncodedValue implements ArrayEncodedValue {
+public class DexBackedArrayEncodedValue extends BaseArrayEncodedValue implements ArrayEncodedValue {
     @Nonnull public final DexBuffer dexBuf;
     private final int encodedArrayOffset;
 
@@ -57,8 +58,6 @@ public class DexBackedArrayEncodedValue implements ArrayEncodedValue {
             DexBackedEncodedValue.skipFrom(reader);
         }
     }
-
-    @Override public int getValueType() { return ValueType.ARRAY; }
 
     @Nonnull
     @Override

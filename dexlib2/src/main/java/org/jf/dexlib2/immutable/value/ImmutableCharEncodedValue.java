@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseCharEncodedValue;
 import org.jf.dexlib2.iface.value.CharEncodedValue;
 
-public class ImmutableCharEncodedValue extends ImmutableEncodedValue implements CharEncodedValue {
+public class ImmutableCharEncodedValue extends BaseCharEncodedValue
+        implements ImmutableEncodedValue, CharEncodedValue {
     public final char value;
 
     public ImmutableCharEncodedValue(char value) {
-        super(ValueType.CHAR);
         this.value = value;
     }
 
@@ -49,7 +49,5 @@ public class ImmutableCharEncodedValue extends ImmutableEncodedValue implements 
         return new ImmutableCharEncodedValue(charEncodedValue.getValue());
     }
 
-    public char getValue() {
-        return value;
-    }
+    @Override public char getValue() { return value; }
 }

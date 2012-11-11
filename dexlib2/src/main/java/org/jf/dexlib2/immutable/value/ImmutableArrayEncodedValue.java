@@ -32,24 +32,22 @@
 package org.jf.dexlib2.immutable.value;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseArrayEncodedValue;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class ImmutableArrayEncodedValue extends ImmutableEncodedValue implements ArrayEncodedValue {
-    @Nonnull
-    public final ImmutableList<? extends ImmutableEncodedValue> value;
+public class ImmutableArrayEncodedValue extends BaseArrayEncodedValue
+        implements ImmutableEncodedValue, ArrayEncodedValue {
+    @Nonnull public final ImmutableList<? extends ImmutableEncodedValue> value;
 
     public ImmutableArrayEncodedValue(@Nonnull List<? extends EncodedValue> value) {
-        super(ValueType.ARRAY);
-        this.value = ImmutableEncodedValue.immutableListOf(value);
+        this.value = ImmutableEncodedValueFactory.immutableListOf(value);
     }
 
     public ImmutableArrayEncodedValue(@Nonnull ImmutableList<ImmutableEncodedValue> value) {
-        super(ValueType.ARRAY);
         this.value = value;
     }
 
@@ -60,8 +58,5 @@ public class ImmutableArrayEncodedValue extends ImmutableEncodedValue implements
         return new ImmutableArrayEncodedValue(arrayEncodedValue.getValue());
     }
 
-    @Nonnull
-    public ImmutableList<? extends ImmutableEncodedValue> getValue() {
-        return value;
-    }
+    @Nonnull public ImmutableList<? extends ImmutableEncodedValue> getValue() { return value; }
 }

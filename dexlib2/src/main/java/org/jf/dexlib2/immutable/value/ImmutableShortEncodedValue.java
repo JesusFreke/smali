@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseShortEncodedValue;
 import org.jf.dexlib2.iface.value.ShortEncodedValue;
 
-public class ImmutableShortEncodedValue extends ImmutableEncodedValue implements ShortEncodedValue {
+public class ImmutableShortEncodedValue extends BaseShortEncodedValue
+        implements ImmutableEncodedValue, ShortEncodedValue {
     public final short value;
 
     public ImmutableShortEncodedValue(short value) {
-        super(ValueType.SHORT);
         this.value = value;
     }
 
@@ -49,7 +49,5 @@ public class ImmutableShortEncodedValue extends ImmutableEncodedValue implements
         return new ImmutableShortEncodedValue(shortEncodedValue.getValue());
     }
 
-    public short getValue() {
-        return value;
-    }
+    @Override public short getValue() { return value; }
 }

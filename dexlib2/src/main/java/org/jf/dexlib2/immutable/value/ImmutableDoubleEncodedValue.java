@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseDoubleEncodedValue;
 import org.jf.dexlib2.iface.value.DoubleEncodedValue;
 
-public class ImmutableDoubleEncodedValue extends ImmutableEncodedValue implements DoubleEncodedValue {
+public class ImmutableDoubleEncodedValue extends BaseDoubleEncodedValue
+        implements ImmutableEncodedValue, DoubleEncodedValue {
     public final double value;
 
     public ImmutableDoubleEncodedValue(double value) {
-        super(ValueType.DOUBLE);
         this.value = value;
     }
 
@@ -49,7 +49,5 @@ public class ImmutableDoubleEncodedValue extends ImmutableEncodedValue implement
         return new ImmutableDoubleEncodedValue(doubleEncodedValue.getValue());
     }
 
-    public double getValue() {
-        return value;
-    }
+    @Override public double getValue() { return value; }
 }

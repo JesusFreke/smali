@@ -29,27 +29,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.value;
+package org.jf.dexlib2.base.value;
 
-import org.jf.dexlib2.base.value.BaseTypeEncodedValue;
-import org.jf.dexlib2.iface.value.TypeEncodedValue;
+import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
 
-import javax.annotation.Nonnull;
-
-public class ImmutableTypeEncodedValue extends BaseTypeEncodedValue
-        implements ImmutableEncodedValue, TypeEncodedValue {
-    @Nonnull public final String value;
-
-    public ImmutableTypeEncodedValue(@Nonnull String value) {
-        this.value = value;
+public abstract class BaseAnnotationEncodedValue implements AnnotationEncodedValue {
+    @Override
+    public int hashCode() {
+        int hashCode = getType().hashCode();
+        return hashCode * 31 + getElements().hashCode();
     }
 
-    public static ImmutableTypeEncodedValue of(@Nonnull TypeEncodedValue typeEncodedValue) {
-        if (typeEncodedValue instanceof ImmutableTypeEncodedValue) {
-            return (ImmutableTypeEncodedValue)typeEncodedValue;
+    @Override
+    public boolean equals(Object o) {
+        if (o != null && o instanceof AnnotationEncodedValue) {
+            return getType().equals(((AnnotationEncodedValue) o).getType()) &&
+                   getElements().equals(((AnnotationEncodedValue) o).getElements());
         }
-        return new ImmutableTypeEncodedValue(typeEncodedValue.getValue());
+        return false;
     }
 
-    @Nonnull @Override public String getValue() { return value; }
+    public int getValueType() { return ValueType.ANNOTATION; }
 }

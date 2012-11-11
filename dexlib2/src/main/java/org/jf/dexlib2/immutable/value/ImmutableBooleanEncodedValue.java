@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseBooleanEncodedValue;
 import org.jf.dexlib2.iface.value.BooleanEncodedValue;
 
-public class ImmutableBooleanEncodedValue extends ImmutableEncodedValue implements BooleanEncodedValue {
+public class ImmutableBooleanEncodedValue extends BaseBooleanEncodedValue
+        implements ImmutableEncodedValue, BooleanEncodedValue {
     public final boolean value;
 
     public ImmutableBooleanEncodedValue(boolean value) {
-        super(ValueType.BOOLEAN);
         this.value = value;
     }
 
@@ -49,7 +49,5 @@ public class ImmutableBooleanEncodedValue extends ImmutableEncodedValue implemen
         return new ImmutableBooleanEncodedValue(booleanEncodedValue.getValue());
     }
 
-    public boolean getValue() {
-        return value;
-    }
+    @Override public boolean getValue() { return value; }
 }

@@ -31,17 +31,16 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseStringEncodedValue;
 import org.jf.dexlib2.iface.value.StringEncodedValue;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableStringEncodedValue extends ImmutableEncodedValue implements StringEncodedValue {
-    @Nonnull
-    public final String value;
+public class ImmutableStringEncodedValue extends BaseStringEncodedValue
+        implements ImmutableEncodedValue, StringEncodedValue {
+    @Nonnull public final String value;
 
     public ImmutableStringEncodedValue(@Nonnull String value) {
-        super(ValueType.STRING);
         this.value = value;
     }
 
@@ -52,8 +51,5 @@ public class ImmutableStringEncodedValue extends ImmutableEncodedValue implement
         return new ImmutableStringEncodedValue(stringEncodedValue.getValue());
     }
 
-    @Nonnull
-    public String getValue() {
-        return value;
-    }
+    @Nonnull @Override public String getValue() { return value; }
 }

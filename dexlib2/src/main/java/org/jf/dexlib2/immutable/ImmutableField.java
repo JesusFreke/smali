@@ -37,6 +37,7 @@ import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValue;
+import org.jf.dexlib2.immutable.value.ImmutableEncodedValueFactory;
 import org.jf.util.ImmutableListConverter;
 import org.jf.util.ImmutableListUtils;
 
@@ -62,7 +63,7 @@ public class ImmutableField extends BaseFieldReference implements Field {
         this.name = name;
         this.type = type;
         this.accessFlags = accessFlags;
-        this.initialValue = ImmutableEncodedValue.of(initialValue);
+        this.initialValue = ImmutableEncodedValueFactory.of(initialValue);
         this.annotations = ImmutableAnnotation.immutableListOf(annotations);
     }
 

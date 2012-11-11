@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseAnnotationEncodedValue;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotationElement;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
@@ -42,7 +43,7 @@ import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class DexBackedAnnotationEncodedValue implements AnnotationEncodedValue {
+public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue implements AnnotationEncodedValue {
     @Nonnull public final DexBuffer dexBuf;
     @Nonnull public final String type;
     private final int elementsOffset;
@@ -67,7 +68,6 @@ public class DexBackedAnnotationEncodedValue implements AnnotationEncodedValue {
         }
     }
 
-    @Override public int getValueType() { return ValueType.ANNOTATION; }
     @Nonnull @Override public String getType() { return type; }
 
     @Nonnull

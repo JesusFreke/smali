@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseLongEncodedValue;
 import org.jf.dexlib2.iface.value.LongEncodedValue;
 
-public class ImmutableLongEncodedValue extends ImmutableEncodedValue implements LongEncodedValue {
+public class ImmutableLongEncodedValue extends BaseLongEncodedValue
+        implements ImmutableEncodedValue, LongEncodedValue {
     public final long value;
 
     public ImmutableLongEncodedValue(long value) {
-        super(ValueType.LONG);
         this.value = value;
     }
 
@@ -49,7 +49,5 @@ public class ImmutableLongEncodedValue extends ImmutableEncodedValue implements 
         return new ImmutableLongEncodedValue(longEncodedValue.getValue());
     }
 
-    public long getValue() {
-        return value;
-    }
+    @Override public long getValue() { return value; }
 }

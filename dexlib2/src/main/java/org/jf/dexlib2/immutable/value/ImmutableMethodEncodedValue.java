@@ -31,18 +31,17 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseMethodEncodedValue;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.value.MethodEncodedValue;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableMethodEncodedValue extends ImmutableEncodedValue implements MethodEncodedValue {
-    @Nonnull
-    public final MethodReference value;
+public class ImmutableMethodEncodedValue extends BaseMethodEncodedValue
+        implements ImmutableEncodedValue, MethodEncodedValue {
+    @Nonnull public final MethodReference value;
 
     public ImmutableMethodEncodedValue(@Nonnull MethodReference value) {
-        super(ValueType.METHOD);
         this.value = value;
     }
 
@@ -53,8 +52,5 @@ public class ImmutableMethodEncodedValue extends ImmutableEncodedValue implement
         return new ImmutableMethodEncodedValue(methodEncodedValue.getValue());
     }
 
-    @Nonnull
-    public MethodReference getValue() {
-        return value;
-    }
+    @Nonnull @Override public MethodReference getValue() { return value; }
 }

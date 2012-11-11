@@ -31,16 +31,16 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.value.BaseEnumEncodedValue;
 import org.jf.dexlib2.iface.value.EnumEncodedValue;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableEnumEncodedValue extends ImmutableEncodedValue implements EnumEncodedValue {
+public class ImmutableEnumEncodedValue extends BaseEnumEncodedValue
+        implements ImmutableEncodedValue, EnumEncodedValue {
     @Nonnull public final String value;
 
     public ImmutableEnumEncodedValue(@Nonnull String value) {
-        super(ValueType.ENUM);
         this.value = value;
     }
 
@@ -51,7 +51,5 @@ public class ImmutableEnumEncodedValue extends ImmutableEncodedValue implements 
         return new ImmutableEnumEncodedValue(enumEncodedValue.getValue());
     }
 
-    @Nonnull public String getValue() {
-        return value;
-    }
+    @Nonnull @Override public String getValue() { return value; }
 }
