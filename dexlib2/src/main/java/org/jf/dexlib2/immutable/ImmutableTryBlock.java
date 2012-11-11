@@ -39,6 +39,7 @@ import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public class ImmutableTryBlock implements TryBlock {
@@ -48,7 +49,7 @@ public class ImmutableTryBlock implements TryBlock {
 
     public ImmutableTryBlock(int startCodeOffset,
                              int codeUnitCount,
-                             @Nullable List<? extends ExceptionHandler> exceptionHandlers) {
+                             @Nullable Collection<? extends ExceptionHandler> exceptionHandlers) {
         this.startCodeOffset = startCodeOffset;
         this.codeUnitCount = codeUnitCount;
         this.exceptionHandlers = ImmutableExceptionHandler.immutableListOf(exceptionHandlers);

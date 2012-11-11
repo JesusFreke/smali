@@ -33,7 +33,7 @@ import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
 import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 public abstract class AnnotationEncodedValueAdaptor {
 
@@ -47,8 +47,8 @@ public abstract class AnnotationEncodedValueAdaptor {
         writer.write(".end subannotation");
     }
 
-    public static void writeElementsTo(IndentingWriter writer, List<? extends AnnotationElement> annotationElements)
-                                throws IOException {
+    public static void writeElementsTo(IndentingWriter writer,
+                                       Collection<? extends AnnotationElement> annotationElements) throws IOException {
         writer.indent(4);
         for (AnnotationElement annotationElement: annotationElements) {
             writer.write(annotationElement.getName());

@@ -40,7 +40,7 @@ import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Collection;
 
 public class ImmutableAnnotationEncodedValue extends BaseAnnotationEncodedValue
         implements ImmutableEncodedValue, AnnotationEncodedValue {
@@ -48,7 +48,7 @@ public class ImmutableAnnotationEncodedValue extends BaseAnnotationEncodedValue
     @Nonnull public final ImmutableList<? extends ImmutableAnnotationElement> elements;
 
     public ImmutableAnnotationEncodedValue(@Nonnull String type,
-                                           @Nullable List<? extends AnnotationElement> elements) {
+                                           @Nullable Collection<? extends AnnotationElement> elements) {
         this.type = type;
         this.elements = ImmutableAnnotationElement.immutableListOf(elements);
     }

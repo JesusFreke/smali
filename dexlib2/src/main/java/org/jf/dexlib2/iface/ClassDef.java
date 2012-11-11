@@ -35,6 +35,7 @@ import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public interface ClassDef extends TypeReference {
@@ -44,6 +45,6 @@ public interface ClassDef extends TypeReference {
     @Nonnull List<String> getInterfaces();
     @Nullable String getSourceFile();
     @Nonnull List<? extends Annotation> getAnnotations();
-    @Nonnull List<? extends Field> getFields();
-    @Nonnull List<? extends Method> getMethods();
+    @Nonnull Collection<? extends Field> getFields();
+    @Nonnull Collection<? extends Method> getMethods();
 }

@@ -72,7 +72,7 @@ public class ImmutableAnnotationElement implements AnnotationElement {
 
     @Nonnull
     public static ImmutableList<ImmutableAnnotationElement> immutableListOf(
-            @Nullable List<? extends AnnotationElement> list) {
+            @Nullable Iterable<? extends AnnotationElement> list) {
         return CONVERTER.convert(list);
     }
 

@@ -31,37 +31,37 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.base.value.BaseAnnotationEncodedValue;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotationElement;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.dexbacked.util.VariableSizeList;
-import org.jf.dexlib2.iface.AnnotationElement;
+import org.jf.dexlib2.dexbacked.util.VariableSizeCollection;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Collection;
 
 public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue implements AnnotationEncodedValue {
     @Nonnull public final DexBuffer dexBuf;
     @Nonnull public final String type;
+    private final int elementCount;
     private final int elementsOffset;
 
     public DexBackedAnnotationEncodedValue(@Nonnull DexReader reader) {
         this.dexBuf = reader.getDexBuffer();
         this.type = reader.getType(reader.readSmallUleb128());
+        this.elementCount = reader.readSmallUleb128();
         this.elementsOffset = reader.getOffset();
-        skipElements(reader);
+        skipElements(reader, elementCount);
     }
 
     public static void skipFrom(@Nonnull DexReader reader) {
-        reader.skipUleb128();
-        skipElements(reader);
+        reader.skipUleb128(); // type
+        int elementCount = reader.readSmallUleb128();
+        skipElements(reader, elementCount);
     }
 
-    private static void skipElements(@Nonnull DexReader reader) {
-        int elementCount = reader.readSmallUleb128();
+    private static void skipElements(@Nonnull DexReader reader, int elementCount) {
         for (int i=0; i<elementCount; i++) {
             reader.skipUleb128();
             DexBackedEncodedValue.skipFrom(reader);
@@ -72,23 +72,13 @@ public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue 
 
     @Nonnull
     @Override
-    public List<? extends AnnotationElement> getElements() {
-        DexReader reader = dexBuf.readerAt(elementsOffset);
-        final int size = reader.readSmallUleb128();
-
-        return new VariableSizeList<AnnotationElement>(dexBuf, reader.getOffset()) {
+    public Collection<? extends DexBackedAnnotationElement> getElements() {
+        return new VariableSizeCollection<DexBackedAnnotationElement>(dexBuf, elementsOffset, elementCount) {
             @Nonnull
             @Override
-            protected AnnotationElement readItem(@Nonnull DexReader dexReader, int index) {
+            protected DexBackedAnnotationElement readNextItem(@Nonnull DexReader dexReader, int index) {
                 return new DexBackedAnnotationElement(dexReader);
             }
-
-            @Override
-            protected void skipItem(@Nonnull DexReader reader, int index) {
-                DexBackedAnnotationElement.skipFrom(reader);
-            }
-
-            @Override public int size() { return size;}
         };
     }
 }

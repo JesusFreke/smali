@@ -42,6 +42,7 @@ import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public class ImmutableMethod extends BaseMethodReference implements Method {
@@ -55,7 +56,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
 
     public ImmutableMethod(@Nonnull String containingClass,
                            @Nonnull String name,
-                           @Nullable List<? extends MethodParameter> parameters,
+                           @Nullable Collection<? extends MethodParameter> parameters,
                            @Nonnull String returnType,
                            int accessFlags,
                            @Nullable List<? extends Annotation> annotations,
@@ -108,7 +109,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
     @Nullable public ImmutableMethodImplementation getImplementation() { return methodImplementation; }
 
     @Nonnull
-    public static ImmutableList<ImmutableMethod> immutableListOf(@Nullable List<? extends Method> list) {
+    public static ImmutableList<ImmutableMethod> immutableListOf(@Nullable Iterable<? extends Method> list) {
         return CONVERTER.convert(list);
     }
 

@@ -31,12 +31,12 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.util.VariableSizeList;
+import org.jf.dexlib2.dexbacked.util.VariableSizeCollection;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Collection;
 
 public class DexBackedTryBlock implements TryBlock {
     @Nonnull public final DexBuffer dexBuf;
@@ -60,52 +60,33 @@ public class DexBackedTryBlock implements TryBlock {
 
     @Nonnull
     @Override
-    public List<? extends ExceptionHandler> getExceptionHandlers() {
+    public Collection<? extends ExceptionHandler> getExceptionHandlers() {
         DexReader reader =
                 dexBuf.readerAt(handlersStartOffset + dexBuf.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET));
         final int encodedSize = reader.readSleb128();
 
         if (encodedSize > 0) {
             //no catch-all
-            return new VariableSizeList<ExceptionHandler>(dexBuf, reader.getOffset()) {
+            return new VariableSizeCollection<ExceptionHandler>(dexBuf, reader.getOffset(), encodedSize) {
                 @Nonnull
                 @Override
-                protected ExceptionHandler readItem(@Nonnull DexReader reader, int index) {
+                protected DexBackedExceptionHandler readNextItem(@Nonnull DexReader reader, int index) {
                     return new DexBackedExceptionHandler(reader);
                 }
-
-                @Override
-                protected void skipItem(@Nonnull DexReader dexReader, int index) {
-                    DexBackedExceptionHandler.skipFrom(dexReader);
-                }
-
-                @Override public int size() { return encodedSize; }
             };
         } else {
             //with catch-all
             final int sizeWithCatchAll = (-1 * encodedSize) + 1;
-            return new VariableSizeList<ExceptionHandler>(dexBuf, reader.getOffset()) {
+            return new VariableSizeCollection<ExceptionHandler>(dexBuf, reader.getOffset(), sizeWithCatchAll) {
                 @Nonnull
                 @Override
-                protected ExceptionHandler readItem(@Nonnull DexReader dexReader, int index) {
+                protected ExceptionHandler readNextItem(@Nonnull DexReader dexReader, int index) {
                     if (index == sizeWithCatchAll-1) {
                         return new DexBackedCatchAllExceptionHandler(dexReader);
                     } else {
                         return new DexBackedExceptionHandler(dexReader);
                     }
                 }
-
-                @Override
-                protected void skipItem(@Nonnull DexReader dexReader, int index) {
-                    if (index == sizeWithCatchAll-1) {
-                        DexBackedCatchAllExceptionHandler.skipFrom(dexReader);
-                    } else {
-                        DexBackedExceptionHandler.skipFrom(dexReader);
-                    }
-
-                }
-
-                @Override public int size() { return sizeWithCatchAll; }
             };
         }
     }

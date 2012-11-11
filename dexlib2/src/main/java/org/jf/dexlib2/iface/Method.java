@@ -35,12 +35,13 @@ import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public interface Method extends MethodReference {
     @Nonnull String getContainingClass();
     @Nonnull String getName();
-    @Nonnull List<? extends MethodParameter> getParameters();
+    @Nonnull Collection<? extends MethodParameter> getParameters();
     @Nonnull String getReturnType();
     int getAccessFlags();
     @Nonnull List<? extends Annotation> getAnnotations();

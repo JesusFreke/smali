@@ -32,10 +32,10 @@
 package org.jf.dexlib2.iface;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Collection;
 
 public interface TryBlock {
     int getStartCodeOffset();
     int getCodeUnitCount();
-    @Nonnull List<? extends ExceptionHandler> getExceptionHandlers();
+    @Nonnull Collection<? extends ExceptionHandler> getExceptionHandlers();
 }

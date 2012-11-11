@@ -32,6 +32,7 @@
 package org.jf.dexlib2.iface;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.List;
 
 public interface Annotation {
@@ -42,5 +43,5 @@ public interface Annotation {
 
     int getVisibility();
     @Nonnull String getType();
-    @Nonnull List<? extends AnnotationElement> getElements();
+    @Nonnull Collection<? extends AnnotationElement> getElements();
 }

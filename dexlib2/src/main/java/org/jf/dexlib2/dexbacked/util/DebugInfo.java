@@ -48,11 +48,12 @@ import org.jf.dexlib2.immutable.debug.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 public abstract class DebugInfo implements Iterable<DebugItem> {
-    @Nonnull public abstract List<? extends MethodParameter> getParametersWithNames();
+    @Nonnull public abstract Collection<? extends MethodParameter> getParametersWithNames();
 
     public static DebugInfo newOrEmpty(@Nonnull DexBuffer dexBuf, int debugInfoOffset,
                                        @Nonnull DexBackedMethodImplementation methodImpl) {
@@ -102,8 +103,8 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
             final LocalInfo[] locals = new LocalInfo[registerCount];
             Arrays.fill(locals, EMPTY_LOCAL_INFO);
 
-            VariableSizeList<? extends MethodParameter> parameters = getParametersWithNames();
-            final VariableSizeList<? extends MethodParameter>.Iterator parameterIterator = parameters.listIterator();
+            final VariableSizeIterator<? extends MethodParameter> parameterIterator =
+                    getParametersWithNames().iterator();
 
             // first, we grab all the parameters and temporarily store them at the beginning of locals,
             // disregarding any wide types
@@ -232,7 +233,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
 
         @Nonnull
         @Override
-        public VariableSizeList<MethodParameter> getParametersWithNames() {
+        public VariableSizeCollection<MethodParameter> getParametersWithNames() {
             DexReader reader = dexBuf.readerAt(debugInfoOffset);
             reader.skipUleb128();
             final int parameterNameCount = reader.readSmallUleb128();
@@ -240,10 +241,11 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                     methodImpl.method.getParametersWithoutNames();
             //TODO: make sure dalvik doesn't allow more parameter names than we have parameters
 
-            return new VariableSizeList<MethodParameter>(dexBuf, reader.getOffset()) {
+            return new VariableSizeCollection<MethodParameter>(dexBuf, reader.getOffset(),
+                                                               methodParametersWithoutNames.size()) {
                 @Nonnull
                 @Override
-                protected MethodParameter readItem(@Nonnull DexReader reader, int index) {
+                protected MethodParameter readNextItem(@Nonnull DexReader reader, int index) {
                     final MethodParameter methodParameter = methodParametersWithoutNames.get(index);
                     String _name = null;
                     if (index < parameterNameCount) {
@@ -260,8 +262,6 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                         }
                     };
                 }
-
-                @Override public int size() { return methodParametersWithoutNames.size(); }
             };
         }
     }

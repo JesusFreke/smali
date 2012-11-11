@@ -41,6 +41,7 @@ import org.jf.dexlib2.iface.MethodParameter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public class DexBackedMethod extends BaseMethodReference implements Method {
@@ -116,7 +117,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
 
     @Nonnull
     @Override
-    public List<? extends MethodParameter> getParameters() {
+    public Collection<? extends MethodParameter> getParameters() {
         if (getParametersOffset() > 0) {
             DexBackedMethodImplementation methodImpl = getImplementation();
             if (methodImpl != null) {
@@ -204,18 +205,5 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
             parametersOffset = dexBuf.readSmallUint(getProtoIdItemOffset() + PARAMETERS_OFFSET);
         }
         return parametersOffset;
-    }
-
-    /**
-     * Skips the reader over a single encoded_method structure.
-     * @param reader The {@code DexFileReader} to skip
-     * @param previousMethodIndex The method index of the previous field, or 0 if this is the first
-     * @return The method index of the field that was skipped
-     */
-    public static int skipEncodedMethod(@Nonnull DexReader reader, int previousMethodIndex) {
-        int idxDiff = reader.readSmallUleb128();
-        reader.skipUleb128();
-        reader.skipUleb128();
-        return previousMethodIndex + idxDiff;
     }
 }

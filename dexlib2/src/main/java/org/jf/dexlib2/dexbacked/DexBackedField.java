@@ -97,18 +97,6 @@ public class DexBackedField extends BaseFieldReference implements Field {
     }
 
     /**
-     * Skips the reader over a single encoded_field structure.
-     * @param reader The {@code DexFileReader} to skip
-     * @param previousFieldIndex The field index of the previous field, or 0 if this is the first
-     * @return The field index of the field that was skipped
-     */
-    public static int skipEncodedField(@Nonnull DexReader reader, int previousFieldIndex) {
-        int idxDiff = reader.readSmallUleb128();
-        reader.skipUleb128();
-        return previousFieldIndex + idxDiff;
-    }
-
-    /**
      * Skips the reader over the specified number of encoded_field structures
      *
      * @param reader The reader to skip

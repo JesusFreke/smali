@@ -44,6 +44,7 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.AlignmentUtils;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -131,7 +132,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull
-    public List<? extends MethodParameter> getParametersWithNames() {
+    public Collection<? extends MethodParameter> getParametersWithNames() {
         return getDebugInfo().getParametersWithNames();
     }
 }

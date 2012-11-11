@@ -33,14 +33,14 @@ package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
-import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
-import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
-import org.jf.dexlib2.dexbacked.util.VariableSizeListWithContext;
+import org.jf.dexlib2.dexbacked.util.*;
 import org.jf.dexlib2.iface.ClassDef;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
@@ -117,7 +117,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
 
     @Nonnull
     @Override
-    public List<? extends DexBackedField> getFields() {
+    public Collection<? extends DexBackedField> getFields() {
         int classDataOffset = getClassDataOffset();
         if (getClassDataOffset() != 0) {
             DexReader reader = dexBuf.readerAt(classDataOffset);
@@ -133,11 +133,11 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                         dexBuf.readSmallUint(classDefOffset + STATIC_INITIAL_VALUES_OFFSET);
                 final int fieldsStartOffset = reader.getOffset();
 
-                return new VariableSizeListWithContext<DexBackedField>() {
+                return new AbstractCollection<DexBackedField>() {
                     @Nonnull
                     @Override
-                    public VariableSizeListIterator listIterator() {
-                        return new VariableSizeListIterator(dexBuf, fieldsStartOffset) {
+                    public Iterator<DexBackedField> iterator() {
+                        return new VariableSizeIterator<DexBackedField>(dexBuf, fieldsStartOffset, fieldCount) {
                             private int previousFieldIndex = 0;
                             @Nonnull private final AnnotationsDirectory.AnnotationIterator annotationIterator =
                                     annotationsDirectory.getFieldAnnotationIterator();
@@ -146,7 +146,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
 
                             @Nonnull
                             @Override
-                            protected DexBackedField readItem(@Nonnull DexReader reader, int index) {
+                            protected DexBackedField readNextItem(@Nonnull DexReader reader, int index) {
                                 if (index == staticFieldCount) {
                                     // We reached the end of the static field, restart the numbering for
                                     // instance fields
@@ -157,18 +157,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                                         previousFieldIndex, staticInitialValueIterator, annotationIterator);
                                 previousFieldIndex = item.fieldIndex;
                                 return item;
-                            }
-
-                            @Override
-                            protected void skipItem(@Nonnull DexReader reader, int index) {
-                                if (index == staticFieldCount) {
-                                    // We reached the end of the static field, restart the numbering for
-                                    // instance fields
-                                    previousFieldIndex = 0;
-                                    annotationIterator.reset();
-                                }
-                                previousFieldIndex = DexBackedField.skipEncodedField(reader, previousFieldIndex);
-                                staticInitialValueIterator.skipNext();
                             }
                         };
                     }
@@ -182,7 +170,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
 
     @Nonnull
     @Override
-    public List<? extends DexBackedMethod> getMethods() {
+    public Collection<? extends DexBackedMethod> getMethods() {
         int classDataOffset = getClassDataOffset();
         if (classDataOffset > 0) {
             DexReader reader = dexBuf.readerAt(classDataOffset);
@@ -197,11 +185,11 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
                 final int methodsStartOffset = reader.getOffset();
 
-                return new VariableSizeListWithContext<DexBackedMethod>() {
+                return new AbstractCollection<DexBackedMethod>() {
                     @Nonnull
                     @Override
-                    public VariableSizeListIterator listIterator() {
-                        return new VariableSizeListIterator(dexBuf, methodsStartOffset) {
+                    public Iterator<DexBackedMethod> iterator() {
+                        return new VariableSizeIterator<DexBackedMethod>(dexBuf, methodsStartOffset, methodCount) {
                             private int previousMethodIndex = 0;
                             @Nonnull private final AnnotationsDirectory.AnnotationIterator methodAnnotationIterator =
                                     annotationsDirectory.getMethodAnnotationIterator();
@@ -210,7 +198,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
 
                             @Nonnull
                             @Override
-                            protected DexBackedMethod readItem(@Nonnull DexReader reader, int index) {
+                            protected DexBackedMethod readNextItem(@Nonnull DexReader reader, int index) {
                                 if (index == directMethodCount) {
                                     // We reached the end of the direct methods, restart the numbering for
                                     // virtual methods
@@ -222,18 +210,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                                         previousMethodIndex, methodAnnotationIterator, parameterAnnotationIterator);
                                 previousMethodIndex = item.methodIndex;
                                 return item;
-                            }
-
-                            @Override
-                            protected void skipItem(@Nonnull DexReader reader, int index) {
-                                if (index == directMethodCount) {
-                                    // We reached the end of the direct methods, restart the numbering for
-                                    // virtual methods
-                                    previousMethodIndex = 0;
-                                    methodAnnotationIterator.reset();
-                                    parameterAnnotationIterator.reset();
-                                }
-                                previousMethodIndex = DexBackedMethod.skipEncodedMethod(reader, previousMethodIndex);
                             }
                         };
                     }

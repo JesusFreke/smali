@@ -31,29 +31,34 @@
 
 package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.base.value.BaseArrayEncodedValue;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.dexbacked.util.VariableSizeList;
+import org.jf.dexlib2.dexbacked.util.VariableSizeCollection;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Collection;
 
 public class DexBackedArrayEncodedValue extends BaseArrayEncodedValue implements ArrayEncodedValue {
     @Nonnull public final DexBuffer dexBuf;
+    private final int elementCount;
     private final int encodedArrayOffset;
 
     public DexBackedArrayEncodedValue(@Nonnull DexReader reader) {
         this.dexBuf = reader.getDexBuffer();
+        this.elementCount = reader.readSmallUleb128();
         this.encodedArrayOffset = reader.getOffset();
-        skipFrom(reader);
+        skipElementsFrom(reader, elementCount);
     }
 
     public static void skipFrom(@Nonnull DexReader reader) {
         int elementCount = reader.readSmallUleb128();
+        skipElementsFrom(reader, elementCount);
+    }
+
+    private static void skipElementsFrom(@Nonnull DexReader reader, int elementCount) {
         for (int i=0; i<elementCount; i++) {
             DexBackedEncodedValue.skipFrom(reader);
         }
@@ -61,23 +66,13 @@ public class DexBackedArrayEncodedValue extends BaseArrayEncodedValue implements
 
     @Nonnull
     @Override
-    public List<? extends EncodedValue> getValue() {
-        DexReader reader = dexBuf.readerAt(encodedArrayOffset);
-        final int size = reader.readSmallUleb128();
-
-        return new VariableSizeList<EncodedValue>(dexBuf, reader.getOffset()) {
+    public Collection<? extends EncodedValue> getValue() {
+        return new VariableSizeCollection<EncodedValue>(dexBuf, encodedArrayOffset, elementCount) {
             @Nonnull
             @Override
-            protected EncodedValue readItem(@Nonnull DexReader dexReader, int index) {
+            protected EncodedValue readNextItem(@Nonnull DexReader dexReader, int index) {
                 return DexBackedEncodedValue.readFrom(dexReader);
             }
-
-            @Override
-            protected void skipItem(@Nonnull DexReader reader, int index) {
-                DexBackedEncodedValue.skipFrom(reader);
-            }
-
-            @Override public int size() { return size;}
         };
     }
 }

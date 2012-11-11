@@ -82,7 +82,7 @@ public class ImmutableMethodParameter extends BaseTypeReference implements Metho
 
     @Nonnull
     public static ImmutableList<ImmutableMethodParameter> immutableListOf(
-            @Nullable List<? extends MethodParameter> list) {
+            @Nullable Iterable<? extends MethodParameter> list) {
         return CONVERTER.convert(list);
     }
 

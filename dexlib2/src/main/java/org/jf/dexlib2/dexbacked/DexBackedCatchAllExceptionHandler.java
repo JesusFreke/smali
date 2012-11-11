@@ -45,6 +45,4 @@ public class DexBackedCatchAllExceptionHandler implements ExceptionHandler {
 
     @Nullable @Override public String getExceptionType() { return null; }
     @Override public int getHandlerCodeOffset() { return handlerCodeOffset; }
-
-    public static void skipFrom(@Nonnull DexReader reader) { reader.skipUleb128(); }
 }

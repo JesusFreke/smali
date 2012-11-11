@@ -34,9 +34,9 @@ package org.jf.dexlib2.iface;
 import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Collection;
 
 public interface MethodPrototype {
-    @Nonnull List<? extends TypeReference> getParameters();
+    @Nonnull Collection<? extends TypeReference> getParameters();
     @Nonnull String getReturnType();
 }

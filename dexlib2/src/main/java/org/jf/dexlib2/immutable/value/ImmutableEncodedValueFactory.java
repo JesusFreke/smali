@@ -39,7 +39,6 @@ import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ImmutableEncodedValueFactory {
     @Nullable
@@ -87,7 +86,8 @@ public class ImmutableEncodedValueFactory {
     }
 
     @Nonnull
-    public static ImmutableList<ImmutableEncodedValue> immutableListOf(@Nullable List<? extends EncodedValue> list) {
+    public static ImmutableList<ImmutableEncodedValue> immutableListOf
+            (@Nullable Iterable<? extends EncodedValue> list) {
         return CONVERTER.convert(list);
     }
 

@@ -37,7 +37,6 @@ import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ImmutableExceptionHandler implements ExceptionHandler {
     @Nullable public final String exceptionType;
@@ -63,7 +62,7 @@ public class ImmutableExceptionHandler implements ExceptionHandler {
 
     @Nonnull
     public static ImmutableList<ImmutableExceptionHandler> immutableListOf(
-            @Nullable List<? extends ExceptionHandler> list) {
+            @Nullable Iterable<? extends ExceptionHandler> list) {
         return CONVERTER.convert(list);
     }
 

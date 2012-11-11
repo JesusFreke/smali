@@ -39,6 +39,7 @@ import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public class ImmutableAnnotation implements Annotation {
@@ -48,7 +49,7 @@ public class ImmutableAnnotation implements Annotation {
 
     public ImmutableAnnotation(int visibility,
                                @Nonnull String type,
-                               @Nullable List<? extends AnnotationElement> elements) {
+                               @Nullable Collection<? extends AnnotationElement> elements) {
         this.visibility = visibility;
         this.type = type;
         this.elements = ImmutableAnnotationElement.immutableListOf(elements);

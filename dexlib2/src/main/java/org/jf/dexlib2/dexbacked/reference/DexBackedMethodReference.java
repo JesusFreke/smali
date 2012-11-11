@@ -74,6 +74,8 @@ public class DexBackedMethodReference extends BaseMethodReference {
                 @Nonnull
                 @Override
                 public TypeReference readItem(final int index) {
+                    // Can't use DexBackedTypeReference, because we don't want to read in the type index until it
+                    // is asked for
                     return new TypeReference() {
                         @Nonnull
                         @Override

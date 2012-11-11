@@ -102,7 +102,7 @@ public class ImmutableField extends BaseFieldReference implements Field {
     @Nonnull @Override public ImmutableList<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
 
     @Nonnull
-    public static ImmutableList<ImmutableField> immutableListOf(@Nullable List<? extends Field> list) {
+    public static ImmutableList<ImmutableField> immutableListOf(@Nullable Iterable<? extends Field> list) {
         return CONVERTER.convert(list);
     }
 

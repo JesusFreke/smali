@@ -31,12 +31,11 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.util.VariableSizeList;
+import org.jf.dexlib2.dexbacked.util.VariableSizeCollection;
 import org.jf.dexlib2.iface.Annotation;
-import org.jf.dexlib2.iface.AnnotationElement;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Collection;
 
 public class DexBackedAnnotation implements Annotation {
     @Nonnull public final DexBuffer dexBuf;
@@ -60,23 +59,16 @@ public class DexBackedAnnotation implements Annotation {
 
     @Nonnull
     @Override
-    public List<? extends AnnotationElement> getElements() {
+    public Collection<? extends DexBackedAnnotationElement> getElements() {
         DexReader reader = dexBuf.readerAt(elementsOffset);
         final int size = reader.readSmallUleb128();
 
-        return new VariableSizeList<AnnotationElement>(dexBuf, reader.getOffset()) {
+        return new VariableSizeCollection<DexBackedAnnotationElement>(dexBuf, reader.getOffset(), size) {
             @Nonnull
             @Override
-            protected AnnotationElement readItem(@Nonnull DexReader reader, int index) {
+            protected DexBackedAnnotationElement readNextItem(@Nonnull DexReader reader, int index) {
                 return new DexBackedAnnotationElement(reader);
             }
-
-            @Override
-            protected void skipItem(@Nonnull DexReader reader, int index) {
-                DexBackedAnnotationElement.skipFrom(reader);
-            }
-
-            @Override public int size() { return size;}
         };
     }
 }

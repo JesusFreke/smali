@@ -32,8 +32,9 @@
 package org.jf.dexlib2.iface.value;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.List;
 
 public interface ArrayEncodedValue extends EncodedValue {
-    @Nonnull List<? extends EncodedValue> getValue();
+    @Nonnull Collection<? extends EncodedValue> getValue();
 }

@@ -42,6 +42,7 @@ import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
@@ -60,8 +61,8 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
                              @Nullable List<String> interfaces,
                              @Nullable String sourceFile,
                              @Nullable List<? extends Annotation> annotations,
-                             @Nullable List<? extends Field> fields,
-                             @Nullable List<? extends Method> methods) {
+                             @Nullable Collection<? extends Field> fields,
+                             @Nullable Collection<? extends Method> methods) {
         this.type = type;
         this.accessFlags = accessFlags;
         this.superclass = superclass;

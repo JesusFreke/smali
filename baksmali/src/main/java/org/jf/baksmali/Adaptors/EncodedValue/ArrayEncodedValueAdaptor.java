@@ -33,12 +33,12 @@ import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 public class ArrayEncodedValueAdaptor {
     public static void writeTo(IndentingWriter writer, ArrayEncodedValue arrayEncodedValue) throws IOException {
         writer.write('{');
-        List<? extends EncodedValue> values = arrayEncodedValue.getValue();
+        Collection<? extends EncodedValue> values = arrayEncodedValue.getValue();
         if (values.size() == 0) {
             writer.write('}');
             return;

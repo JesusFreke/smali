@@ -33,78 +33,34 @@ package org.jf.dexlib2.dexbacked.util;
 
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.util.AbstractListIterator;
 
 import javax.annotation.Nonnull;
-import java.util.AbstractSequentialList;
-import java.util.NoSuchElementException;
+import java.util.AbstractCollection;
+import java.util.Iterator;
 
-/**
- * Provides a base class for a list that is backed by variable size items in a dex file
- * @param <T> The type of the item that this list contains
- */
-public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
+public abstract class VariableSizeCollection<T> extends AbstractCollection<T> {
     @Nonnull private final DexBuffer dexBuf;
     private final int offset;
+    private final int size;
 
-    public VariableSizeList(@Nonnull DexBuffer dexBuf, int offset) {
+    public VariableSizeCollection(@Nonnull DexBuffer dexBuf, int offset, int size) {
         this.dexBuf = dexBuf;
         this.offset = offset;
+        this.size = size;
     }
 
-    @Nonnull
-    protected abstract T readItem(@Nonnull DexReader reader, int index);
+    @Nonnull protected abstract T readNextItem(@Nonnull DexReader reader, int index);
 
-    protected void skipItem(@Nonnull DexReader reader, int index) {
-        readItem(reader, index);
-    }
-
-    @Nonnull
     @Override
-    public Iterator listIterator(int startIndex) {
-        Iterator iterator = listIterator();
-        if (startIndex < 0 || startIndex >= size()) {
-            throw new IndexOutOfBoundsException();
-        }
-        for (int i=0; i<startIndex; i++) {
-            iterator.skip();
-        }
-        return iterator;
-    }
-
-    @Nonnull
-    @Override
-    public Iterator listIterator() {
-        return new Iterator();
-    }
-
-    public class Iterator extends AbstractListIterator<T> {
-        private int index = 0;
-        @Nonnull private final DexReader reader = dexBuf.readerAt(offset);
-
-        @Override public boolean hasNext() { return index < size(); }
-        @Override public int nextIndex() { return index; }
-
-        protected void checkBounds(int index) {
-            if (index >= size()) {
-                throw new NoSuchElementException();
+    public VariableSizeIterator<T> iterator() {
+        return new VariableSizeIterator<T>(dexBuf, offset, size) {
+            @Nonnull
+            @Override
+            protected T readNextItem(@Nonnull DexReader reader, int index) {
+                return VariableSizeCollection.this.readNextItem(reader, index);
             }
-        }
-
-        @Nonnull
-        @Override
-        public T next() {
-            checkBounds(index);
-            return readItem(reader, index++);
-        }
-
-        public void skip() {
-            checkBounds(index);
-            skipItem(reader, index++);
-        }
-
-        public int getReaderOffset() {
-            return reader.getOffset();
-        }
+        };
     }
+
+    @Override public int size() { return size; }
 }
