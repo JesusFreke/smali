@@ -29,16 +29,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.reference;
+package org.jf.dexlib2.iface;
 
-import org.jf.dexlib2.iface.MethodPrototype;
+import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public interface MethodReference extends Reference, MethodPrototype {
-    @Nonnull String getContainingClass();
-    @Nonnull String getName();
+public interface MethodPrototype {
     @Nonnull List<? extends TypeReference> getParameters();
     @Nonnull String getReturnType();
 }
