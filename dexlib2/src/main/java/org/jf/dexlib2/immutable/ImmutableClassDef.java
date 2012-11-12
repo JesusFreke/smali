@@ -60,7 +60,7 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
                              @Nullable String superclass,
                              @Nullable List<String> interfaces,
                              @Nullable String sourceFile,
-                             @Nullable List<? extends Annotation> annotations,
+                             @Nullable Collection<? extends Annotation> annotations,
                              @Nullable Collection<? extends Field> fields,
                              @Nullable Collection<? extends Method> methods) {
         this.type = type;

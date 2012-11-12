@@ -34,11 +34,12 @@ import org.jf.dexlib2.iface.Annotation;
 import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 public class AnnotationFormatter {
 
-    public static void writeTo(IndentingWriter writer, List<? extends Annotation> annotations) throws IOException {
+    public static void writeTo(IndentingWriter writer,
+                               Collection<? extends Annotation> annotations) throws IOException {
         boolean first = true;
         for (Annotation annotation: annotations) {
             if (!first) {

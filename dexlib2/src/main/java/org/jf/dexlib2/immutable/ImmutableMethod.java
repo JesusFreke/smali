@@ -43,7 +43,6 @@ import org.jf.util.ImmutableListUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 
 public class ImmutableMethod extends BaseMethodReference implements Method {
     @Nonnull public final String containingClass;
@@ -59,7 +58,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
                            @Nullable Collection<? extends MethodParameter> parameters,
                            @Nonnull String returnType,
                            int accessFlags,
-                           @Nullable List<? extends Annotation> annotations,
+                           @Nullable Collection<? extends Annotation> annotations,
                            @Nullable MethodImplementation methodImplementation) {
         this.containingClass = containingClass;
         this.name = name;

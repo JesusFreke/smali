@@ -30,7 +30,6 @@ package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
 import org.jf.dexlib2.AccessFlags;
-import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
@@ -38,7 +37,7 @@ import org.jf.dexlib2.util.EncodedValueUtils;
 import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 public class FieldDefinition {
     public static void writeTo(IndentingWriter writer, Field field, boolean setInStaticConstructor) throws IOException {
@@ -70,7 +69,7 @@ public class FieldDefinition {
 
         writer.write('\n');
 
-        List<? extends Annotation> annotations = field.getAnnotations();
+        Collection<? extends Annotation> annotations = field.getAnnotations();
         if (annotations.size() > 0) {
             writer.indent(4);
             AnnotationFormatter.writeTo(writer, annotations);

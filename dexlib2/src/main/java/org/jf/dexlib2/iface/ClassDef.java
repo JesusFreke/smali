@@ -44,7 +44,7 @@ public interface ClassDef extends TypeReference {
     @Nullable String getSuperclass();
     @Nonnull List<String> getInterfaces();
     @Nullable String getSourceFile();
-    @Nonnull List<? extends Annotation> getAnnotations();
+    @Nonnull Collection<? extends Annotation> getAnnotations();
     @Nonnull Collection<? extends Field> getFields();
     @Nonnull Collection<? extends Method> getMethods();
 }

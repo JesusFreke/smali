@@ -36,11 +36,11 @@ import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Collection;
 
 public interface MethodParameter extends TypeReference, LocalInfo {
     @Nonnull String getType();
-    @Nonnull List<? extends Annotation> getAnnotations();
+    @Nonnull Collection<? extends Annotation> getAnnotations();
     @Nullable String getName();
     @Nullable String getSignature();
 }

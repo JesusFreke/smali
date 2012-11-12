@@ -34,11 +34,12 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.util.ReferenceUtil;
-import org.jf.util.StringUtils;
 import org.jf.util.IndentingWriter;
+import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -147,7 +148,7 @@ public class ClassDefinition {
     }
 
     private void writeAnnotations(IndentingWriter writer) throws IOException {
-        List<? extends Annotation> classAnnotations = classDef.getAnnotations();
+        Collection<? extends Annotation> classAnnotations = classDef.getAnnotations();
         if (classAnnotations.size() != 0) {
             writer.write("\n\n");
             writer.write("# annotations\n");

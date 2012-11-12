@@ -223,7 +223,7 @@ public class MethodDefinition {
         for (MethodParameter parameter: parameters) {
             String parameterType = parameter.getType();
             String parameterName = parameter.getName();
-            List<? extends Annotation> annotations = parameter.getAnnotations();
+            Collection<? extends Annotation> annotations = parameter.getAnnotations();
             if (parameterName != null || annotations.size() != 0) {
                 writer.write(".param p");
                 writer.printSignedIntAsDec(registerNumber);

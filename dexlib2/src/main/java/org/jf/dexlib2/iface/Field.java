@@ -36,7 +36,7 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Collection;
 
 public interface Field extends FieldReference {
     @Nonnull String getContainingClass();
@@ -44,5 +44,5 @@ public interface Field extends FieldReference {
     @Nonnull String getType();
     int getAccessFlags();
     @Nullable EncodedValue getInitialValue();
-    @Nonnull List<? extends Annotation> getAnnotations();
+    @Nonnull Collection<? extends Annotation> getAnnotations();
 }

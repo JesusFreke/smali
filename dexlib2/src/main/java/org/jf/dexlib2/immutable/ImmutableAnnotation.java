@@ -40,7 +40,6 @@ import org.jf.util.ImmutableListUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 
 public class ImmutableAnnotation implements Annotation {
     public final int visibility;
@@ -78,7 +77,7 @@ public class ImmutableAnnotation implements Annotation {
     @Nonnull @Override public ImmutableList<? extends ImmutableAnnotationElement> getElements() { return elements; }
 
     @Nonnull
-    public static ImmutableList<ImmutableAnnotation> immutableListOf(@Nullable List<? extends Annotation> list) {
+    public static ImmutableList<ImmutableAnnotation> immutableListOf(@Nullable Iterable<? extends Annotation> list) {
         return CONVERTER.convert(list);
     }
 

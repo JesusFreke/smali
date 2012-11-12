@@ -43,7 +43,7 @@ import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Collection;
 
 public class ImmutableField extends BaseFieldReference implements Field {
     @Nonnull public final String containingClass;
@@ -58,7 +58,7 @@ public class ImmutableField extends BaseFieldReference implements Field {
                           @Nonnull String type,
                           int accessFlags,
                           @Nullable EncodedValue initialValue,
-                          @Nullable List<? extends Annotation> annotations) {
+                          @Nullable Collection<? extends Annotation> annotations) {
         this.containingClass = containingClass;
         this.name = name;
         this.type = type;

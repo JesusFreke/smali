@@ -257,7 +257,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                         @Nonnull @Override public String getType() { return methodParameter.getType(); }
                         @Nullable @Override public String getName() { return name; }
                         @Nullable @Override public String getSignature() { return methodParameter.getSignature();}
-                        @Nonnull @Override public List<? extends Annotation> getAnnotations() {
+                        @Nonnull @Override public Collection<? extends Annotation> getAnnotations() {
                             return methodParameter.getAnnotations();
                         }
                     };

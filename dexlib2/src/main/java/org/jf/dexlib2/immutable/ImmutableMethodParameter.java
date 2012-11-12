@@ -40,6 +40,7 @@ import org.jf.util.ImmutableListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public class ImmutableMethodParameter extends BaseTypeReference implements MethodParameter {
@@ -48,7 +49,7 @@ public class ImmutableMethodParameter extends BaseTypeReference implements Metho
     @Nullable public final String name;
 
     public ImmutableMethodParameter(@Nonnull String type,
-                                    @Nullable List<? extends Annotation> annotations,
+                                    @Nullable Collection<? extends Annotation> annotations,
                                     @Nullable String name) {
         this.type = type;
         this.annotations = ImmutableAnnotation.immutableListOf(annotations);
