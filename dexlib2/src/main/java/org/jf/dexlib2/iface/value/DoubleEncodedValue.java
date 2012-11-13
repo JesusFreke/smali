@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.iface.value;
 
-public interface DoubleEncodedValue extends EncodedValue {
+import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+
+public interface DoubleEncodedValue extends EncodedValue, SortedEncodedValue {
     double getValue();
 }

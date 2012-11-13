@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.iface.value;
 
-public interface NullEncodedValue extends EncodedValue {
+import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+
+public interface NullEncodedValue extends EncodedValue, SortedEncodedValue {
     //no value
 }

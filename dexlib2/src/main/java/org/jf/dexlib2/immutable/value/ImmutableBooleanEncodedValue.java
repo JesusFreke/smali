@@ -33,9 +33,10 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseBooleanEncodedValue;
 import org.jf.dexlib2.iface.value.BooleanEncodedValue;
+import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
 public class ImmutableBooleanEncodedValue extends BaseBooleanEncodedValue
-        implements ImmutableEncodedValue, BooleanEncodedValue {
+        implements ImmutableEncodedValue, SortedImmutableEncodedValue, BooleanEncodedValue {
     public final boolean value;
 
     public ImmutableBooleanEncodedValue(boolean value) {

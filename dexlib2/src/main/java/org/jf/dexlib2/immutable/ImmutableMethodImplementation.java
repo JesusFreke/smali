@@ -38,7 +38,7 @@ import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.immutable.debug.ImmutableDebugItem;
 import org.jf.dexlib2.immutable.instruction.ImmutableInstruction;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -65,9 +65,9 @@ public class ImmutableMethodImplementation implements MethodImplementation {
                                          @Nullable ImmutableList<? extends ImmutableTryBlock> tryBlocks,
                                          @Nullable ImmutableList<? extends ImmutableDebugItem> debugItems) {
         this.registerCount = registerCount;
-        this.instructions = ImmutableListUtils.nullToEmptyList(instructions);
-        this.tryBlocks = ImmutableListUtils.nullToEmptyList(tryBlocks);
-        this.debugItems = ImmutableListUtils.nullToEmptyList(debugItems);
+        this.instructions = ImmutableUtils.nullToEmptyList(instructions);
+        this.tryBlocks = ImmutableUtils.nullToEmptyList(tryBlocks);
+        this.debugItems = ImmutableUtils.nullToEmptyList(debugItems);
     }
 
     @Nullable

@@ -33,9 +33,10 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseIntEncodedValue;
 import org.jf.dexlib2.iface.value.IntEncodedValue;
+import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
 public class ImmutableIntEncodedValue extends BaseIntEncodedValue
-        implements ImmutableEncodedValue, IntEncodedValue {
+        implements ImmutableEncodedValue, SortedImmutableEncodedValue, IntEncodedValue {
     public final int value;
 
     public ImmutableIntEncodedValue(int value) {

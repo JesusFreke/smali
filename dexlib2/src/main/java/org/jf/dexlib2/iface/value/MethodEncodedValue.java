@@ -32,9 +32,10 @@
 package org.jf.dexlib2.iface.value;
 
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
 
 import javax.annotation.Nonnull;
 
-public interface MethodEncodedValue extends EncodedValue {
+public interface MethodEncodedValue extends EncodedValue, SortedEncodedValue {
     @Nonnull MethodReference getValue();
 }

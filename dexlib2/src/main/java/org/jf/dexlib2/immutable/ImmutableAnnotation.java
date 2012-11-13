@@ -36,7 +36,7 @@ import org.jf.dexlib2.base.BaseAnnotation;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.util.ImmutableListConverter;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,7 +60,7 @@ public class ImmutableAnnotation extends BaseAnnotation {
                                @Nullable ImmutableList<? extends ImmutableAnnotationElement> elements) {
         this.visibility = visibility;
         this.type = type;
-        this.elements = ImmutableListUtils.nullToEmptyList(elements);
+        this.elements = ImmutableUtils.nullToEmptyList(elements);
     }
 
     public static ImmutableAnnotation of(Annotation annotation) {

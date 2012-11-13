@@ -33,9 +33,10 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseNullEncodedValue;
 import org.jf.dexlib2.iface.value.NullEncodedValue;
+import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
 public class ImmutableNullEncodedValue extends BaseNullEncodedValue
-        implements ImmutableEncodedValue, NullEncodedValue {
+        implements ImmutableEncodedValue, SortedImmutableEncodedValue, NullEncodedValue {
     public static final ImmutableNullEncodedValue INSTANCE = new ImmutableNullEncodedValue();
 
     private ImmutableNullEncodedValue() {}

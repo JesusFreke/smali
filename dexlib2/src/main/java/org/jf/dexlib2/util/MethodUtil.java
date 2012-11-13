@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.util;
 
+import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodParameter;
@@ -49,5 +50,12 @@ public class MethodUtil {
         sb.append(")");
         sb.append(method.getReturnType());
         return sb.toString();
+    }
+
+    private static int directMask = AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
+            AccessFlags.CONSTRUCTOR.getValue();
+
+    public static boolean isDirect(Method method) {
+        return (method.getAccessFlags() | directMask) != 0;
     }
 }

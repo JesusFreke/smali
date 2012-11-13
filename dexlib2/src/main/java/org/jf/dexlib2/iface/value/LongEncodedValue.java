@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.iface.value;
 
-public interface LongEncodedValue extends EncodedValue {
+import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+
+public interface LongEncodedValue extends EncodedValue, SortedEncodedValue {
     long getValue();
 }

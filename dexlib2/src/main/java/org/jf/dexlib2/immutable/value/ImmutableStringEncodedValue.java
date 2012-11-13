@@ -33,11 +33,12 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseStringEncodedValue;
 import org.jf.dexlib2.iface.value.StringEncodedValue;
+import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
 import javax.annotation.Nonnull;
 
 public class ImmutableStringEncodedValue extends BaseStringEncodedValue
-        implements ImmutableEncodedValue, StringEncodedValue {
+        implements ImmutableEncodedValue, SortedImmutableEncodedValue, StringEncodedValue {
     @Nonnull public final String value;
 
     public ImmutableStringEncodedValue(@Nonnull String value) {

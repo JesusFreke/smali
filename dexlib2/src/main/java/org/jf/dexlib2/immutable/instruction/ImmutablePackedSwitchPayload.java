@@ -36,7 +36,7 @@ import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,7 +56,7 @@ public class ImmutablePackedSwitchPayload extends ImmutableInstruction implement
     public ImmutablePackedSwitchPayload(
             @Nullable ImmutableList<? extends ImmutableSwitchElement> switchElements) {
         super(OPCODE);
-        this.switchElements = ImmutableListUtils.nullToEmptyList(switchElements);
+        this.switchElements = ImmutableUtils.nullToEmptyList(switchElements);
     }
 
     @Nonnull

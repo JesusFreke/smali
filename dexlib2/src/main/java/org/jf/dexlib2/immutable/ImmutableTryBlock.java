@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.util.ImmutableListConverter;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,7 +60,7 @@ public class ImmutableTryBlock implements TryBlock {
                              @Nullable ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers) {
         this.startCodeOffset = startCodeOffset;
         this.codeUnitCount = codeUnitCount;
-        this.exceptionHandlers = ImmutableListUtils.nullToEmptyList(exceptionHandlers);
+        this.exceptionHandlers = ImmutableUtils.nullToEmptyList(exceptionHandlers);
     }
 
     public static ImmutableTryBlock of(TryBlock tryBlock) {

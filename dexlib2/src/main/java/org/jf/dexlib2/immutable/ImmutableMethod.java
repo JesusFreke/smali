@@ -38,7 +38,7 @@ import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.util.ImmutableListConverter;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -78,10 +78,10 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
                            @Nullable ImmutableMethodImplementation methodImplementation) {
         this.containingClass = containingClass;
         this.name = name;
-        this.parameters = ImmutableListUtils.nullToEmptyList(parameters);
+        this.parameters = ImmutableUtils.nullToEmptyList(parameters);
         this.returnType = returnType;
         this.accessFlags = accessFlags;
-        this.annotations = ImmutableListUtils.nullToEmptyList(annotations);
+        this.annotations = ImmutableUtils.nullToEmptyList(annotations);
         this.methodImplementation = methodImplementation;
     }
 

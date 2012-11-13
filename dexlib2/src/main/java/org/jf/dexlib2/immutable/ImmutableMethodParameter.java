@@ -36,7 +36,7 @@ import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.util.ImmutableListConverter;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,7 +60,7 @@ public class ImmutableMethodParameter extends BaseMethodParameter {
                                     @Nullable ImmutableList<? extends ImmutableAnnotation> annotations,
                                     @Nullable String name) {
         this.type = type;
-        this.annotations = ImmutableListUtils.nullToEmptyList(annotations);
+        this.annotations = ImmutableUtils.nullToEmptyList(annotations);
         this.name = name;
     }
 

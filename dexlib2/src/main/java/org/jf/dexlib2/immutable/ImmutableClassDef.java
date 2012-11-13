@@ -38,7 +38,7 @@ import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
 import org.jf.util.ImmutableListConverter;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -84,11 +84,11 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
         this.type = type;
         this.accessFlags = accessFlags;
         this.superclass = superclass;
-        this.interfaces = ImmutableListUtils.nullToEmptyList(interfaces);
+        this.interfaces = ImmutableUtils.nullToEmptyList(interfaces);
         this.sourceFile = sourceFile;
-        this.annotations = ImmutableListUtils.nullToEmptyList(annotations);
-        this.fields = ImmutableListUtils.nullToEmptyList(fields);
-        this.methods = ImmutableListUtils.nullToEmptyList(methods);
+        this.annotations = ImmutableUtils.nullToEmptyList(annotations);
+        this.fields = ImmutableUtils.nullToEmptyList(fields);
+        this.methods = ImmutableUtils.nullToEmptyList(methods);
     }
 
     public static ImmutableClassDef of(ClassDef classDef) {

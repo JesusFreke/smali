@@ -32,9 +32,10 @@
 package org.jf.dexlib2.iface.value;
 
 import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
 
 import javax.annotation.Nonnull;
 
-public interface EnumEncodedValue extends EncodedValue {
+public interface EnumEncodedValue extends EncodedValue, SortedEncodedValue {
     @Nonnull FieldReference getValue();
 }

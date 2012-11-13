@@ -34,11 +34,12 @@ package org.jf.dexlib2.immutable.value;
 import org.jf.dexlib2.base.value.BaseEnumEncodedValue;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.value.EnumEncodedValue;
+import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
 import javax.annotation.Nonnull;
 
 public class ImmutableEnumEncodedValue extends BaseEnumEncodedValue
-        implements ImmutableEncodedValue, EnumEncodedValue {
+        implements ImmutableEncodedValue, SortedImmutableEncodedValue, EnumEncodedValue {
     @Nonnull public final FieldReference value;
 
     public ImmutableEnumEncodedValue(@Nonnull FieldReference value) {

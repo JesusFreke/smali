@@ -36,7 +36,7 @@ import org.jf.dexlib2.base.value.BaseAnnotationEncodedValue;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
 import org.jf.dexlib2.immutable.ImmutableAnnotationElement;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,7 +56,7 @@ public class ImmutableAnnotationEncodedValue extends BaseAnnotationEncodedValue
     public ImmutableAnnotationEncodedValue(@Nonnull String type,
                                            @Nullable ImmutableList<? extends ImmutableAnnotationElement> elements) {
         this.type = type;
-        this.elements = ImmutableListUtils.nullToEmptyList(elements);
+        this.elements = ImmutableUtils.nullToEmptyList(elements);
     }
 
     public static ImmutableAnnotationEncodedValue of(AnnotationEncodedValue annotationEncodedValue) {

@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,7 +63,7 @@ public class ImmutableMethodReference extends BaseMethodReference implements Imm
                                     @Nonnull String returnType) {
         this.containingClass = containingClass;
         this.name = name;
-        this.parameters = ImmutableListUtils.nullToEmptyList(parameters);
+        this.parameters = ImmutableUtils.nullToEmptyList(parameters);
         this.returnType = returnType;
     }
 

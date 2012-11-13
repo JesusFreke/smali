@@ -29,18 +29,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.util;
+package org.jf.dexlib2.immutable.sorted.value;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.value.BaseArrayEncodedValue;
+import org.jf.dexlib2.iface.sorted.value.SortedArrayEncodedValue;
+import org.jf.dexlib2.iface.value.ArrayEncodedValue;
+import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Collection;
 
-public class ImmutableListUtils {
-    @Nonnull public static <T> ImmutableList<T> nullToEmptyList(@Nullable ImmutableList<T> list) {
-        if (list == null) {
-            return ImmutableList.of();
-        }
-        return list;
+public class SortedImmutableArrayEncodedValue extends BaseArrayEncodedValue
+        implements SortedImmutableEncodedValue, SortedArrayEncodedValue {
+    @Nonnull public final ImmutableList<? extends SortedImmutableEncodedValue> value;
+
+    public SortedImmutableArrayEncodedValue(@Nonnull Collection<? extends EncodedValue> value) {
+        this.value = SortedImmutableEncodedValueFactory.immutableListOf(value);
     }
+
+    public SortedImmutableArrayEncodedValue(@Nonnull ImmutableList<SortedImmutableEncodedValue> value) {
+        this.value = value;
+    }
+
+    public static SortedImmutableArrayEncodedValue of(@Nonnull ArrayEncodedValue arrayEncodedValue) {
+        if (arrayEncodedValue instanceof SortedImmutableArrayEncodedValue) {
+            return (SortedImmutableArrayEncodedValue)arrayEncodedValue;
+        }
+        return new SortedImmutableArrayEncodedValue(arrayEncodedValue.getValue());
+    }
+
+    @Nonnull public ImmutableList<? extends SortedImmutableEncodedValue> getValue() { return value; }
 }

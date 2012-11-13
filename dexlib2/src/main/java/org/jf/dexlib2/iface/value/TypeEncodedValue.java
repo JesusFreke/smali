@@ -31,8 +31,10 @@
 
 package org.jf.dexlib2.iface.value;
 
+import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+
 import javax.annotation.Nonnull;
 
-public interface TypeEncodedValue extends EncodedValue {
+public interface TypeEncodedValue extends EncodedValue, SortedEncodedValue {
     @Nonnull String getValue();
 }

@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
-import org.jf.util.ImmutableListUtils;
+import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,7 +60,7 @@ public class ImmutableArrayPayload extends ImmutableInstruction implements Array
         //TODO: need to ensure this is a valid width (1, 2, 4, 8)
         this.elementWidth = elementWidth;
         //TODO: need to validate the elements fit within the width
-        this.arrayElements = ImmutableListUtils.nullToEmptyList(arrayElements);
+        this.arrayElements = ImmutableUtils.nullToEmptyList(arrayElements);
     }
 
     @Nonnull
