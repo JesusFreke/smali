@@ -85,7 +85,7 @@ public class ImmutableMethodImplementation implements MethodImplementation {
                 methodImplementation.getDebugItems());
     }
 
-    @Override public int getRegisterCount() { return 0; }
+    @Override public int getRegisterCount() { return registerCount; }
     @Nonnull @Override public ImmutableList<? extends ImmutableInstruction> getInstructions() { return instructions; }
     @Nonnull @Override public ImmutableList<? extends ImmutableTryBlock> getTryBlocks() { return tryBlocks; }
     @Nonnull @Override public ImmutableList<? extends ImmutableDebugItem> getDebugItems() { return debugItems; }
