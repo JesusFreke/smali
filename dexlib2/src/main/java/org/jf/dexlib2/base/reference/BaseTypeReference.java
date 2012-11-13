@@ -56,4 +56,9 @@ public abstract class BaseTypeReference implements TypeReference {
     public static boolean equals(@Nonnull TypeReference typeRef1, @Nonnull TypeReference typeRef2) {
         return typeRef1.getType().equals(typeRef2.getType());
     }
+
+    @Override public int length() { return getType().length(); }
+    @Override public char charAt(int index) { return getType().charAt(index); }
+    @Override public CharSequence subSequence(int start, int end) { return getType().subSequence(start, end); }
+    @Override public String toString() { return getType(); }
 }

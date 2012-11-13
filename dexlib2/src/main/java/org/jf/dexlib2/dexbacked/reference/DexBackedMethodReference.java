@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked.reference;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
+import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.iface.reference.TypeReference;
@@ -76,7 +77,7 @@ public class DexBackedMethodReference extends BaseMethodReference {
                 public TypeReference readItem(final int index) {
                     // Can't use DexBackedTypeReference, because we don't want to read in the type index until it
                     // is asked for
-                    return new TypeReference() {
+                    return new BaseTypeReference() {
                         @Nonnull
                         @Override
                         public String getType() {

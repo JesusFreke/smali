@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
@@ -140,7 +141,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
                 @Nonnull
                 @Override
                 public MethodParameter readItem(final int index) {
-                    return new MethodParameter() {
+                    return new BaseMethodParameter() {
                         @Nonnull
                         @Override
                         public String getType() {

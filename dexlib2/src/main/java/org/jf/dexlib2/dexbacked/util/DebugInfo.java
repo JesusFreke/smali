@@ -34,6 +34,7 @@ package org.jf.dexlib2.dexbacked.util;
 import com.google.common.collect.Iterators;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.dexbacked.DexBackedMethod;
 import org.jf.dexlib2.dexbacked.DexBackedMethodImplementation;
 import org.jf.dexlib2.dexbacked.DexBuffer;
@@ -253,7 +254,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                     }
                     final String name = _name;
 
-                    return new MethodParameter() {
+                    return new BaseMethodParameter() {
                         @Nonnull @Override public String getType() { return methodParameter.getType(); }
                         @Nullable @Override public String getName() { return name; }
                         @Nullable @Override public String getSignature() { return methodParameter.getSignature();}

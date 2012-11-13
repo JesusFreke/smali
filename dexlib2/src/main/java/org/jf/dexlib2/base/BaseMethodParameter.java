@@ -29,36 +29,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base.reference;
+package org.jf.dexlib2.base;
 
-import org.jf.dexlib2.iface.reference.StringReference;
+import org.jf.dexlib2.base.reference.BaseTypeReference;
+import org.jf.dexlib2.iface.MethodParameter;
 
-import javax.annotation.Nonnull;
-
-public abstract class BaseStringReference implements StringReference {
-    @Override
-    public int hashCode() {
-        return hashCode(this);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof StringReference) {
-            return equals(this, (StringReference)o);
-        }
-        return false;
-    }
-
-    public static int hashCode(@Nonnull StringReference stringRef) {
-        return stringRef.getString().hashCode();
-    }
-
-    public static boolean equals(@Nonnull StringReference stringRef1, @Nonnull StringReference stringRef2) {
-        return stringRef1.getString().equals(stringRef2.getString());
-    }
-
-    @Override public int length() { return getString().length(); }
-    @Override public char charAt(int index) { return getString().charAt(index); }
-    @Override public CharSequence subSequence(int start, int end) { return getString().subSequence(start, end); }
-    @Override public String toString() { return getString(); }
+public abstract class BaseMethodParameter extends BaseTypeReference implements MethodParameter {
 }

@@ -33,6 +33,6 @@ package org.jf.dexlib2.iface.reference;
 
 import javax.annotation.Nonnull;
 
-public interface StringReference extends Reference {
+public interface StringReference extends Reference, CharSequence {
     @Nonnull String getString();
 }
