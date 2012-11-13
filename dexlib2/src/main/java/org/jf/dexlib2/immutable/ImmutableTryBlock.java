@@ -88,12 +88,13 @@ public class ImmutableTryBlock implements TryBlock {
     private static final ImmutableListConverter<ImmutableTryBlock, TryBlock> CONVERTER =
             new ImmutableListConverter<ImmutableTryBlock, TryBlock>() {
                 @Override
-                protected boolean isImmutable(TryBlock item) {
+                protected boolean isImmutable(@Nonnull TryBlock item) {
                     return item instanceof ImmutableTryBlock;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableTryBlock makeImmutable(TryBlock item) {
+                protected ImmutableTryBlock makeImmutable(@Nonnull TryBlock item) {
                     return ImmutableTryBlock.of(item);
                 }
             };

@@ -82,13 +82,13 @@ public abstract class ImmutableDebugItem implements DebugItem {
     private static final ImmutableListConverter<ImmutableDebugItem, DebugItem> CONVERTER =
             new ImmutableListConverter<ImmutableDebugItem, DebugItem>() {
                 @Override
-                protected boolean isImmutable(DebugItem item) {
+                protected boolean isImmutable(@Nonnull DebugItem item) {
                     return item instanceof ImmutableDebugItem;
                 }
 
                 @Nonnull
                 @Override
-                protected ImmutableDebugItem makeImmutable(DebugItem item) {
+                protected ImmutableDebugItem makeImmutable(@Nonnull DebugItem item) {
                     return ImmutableDebugItem.of(item);
                 }
             };

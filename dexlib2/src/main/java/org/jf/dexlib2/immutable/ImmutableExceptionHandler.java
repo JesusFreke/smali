@@ -69,12 +69,13 @@ public class ImmutableExceptionHandler implements ExceptionHandler {
     private static final ImmutableListConverter<ImmutableExceptionHandler, ExceptionHandler> CONVERTER =
             new ImmutableListConverter<ImmutableExceptionHandler, ExceptionHandler>() {
                 @Override
-                protected boolean isImmutable(ExceptionHandler item) {
+                protected boolean isImmutable(@Nonnull ExceptionHandler item) {
                     return item instanceof ImmutableExceptionHandler;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableExceptionHandler makeImmutable(ExceptionHandler item) {
+                protected ImmutableExceptionHandler makeImmutable(@Nonnull ExceptionHandler item) {
                     return ImmutableExceptionHandler.of(item);
                 }
             };

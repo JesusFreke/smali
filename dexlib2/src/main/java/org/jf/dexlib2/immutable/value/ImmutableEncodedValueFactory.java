@@ -41,11 +41,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class ImmutableEncodedValueFactory {
-    @Nullable
-    public static ImmutableEncodedValue of(@Nullable EncodedValue encodedValue) {
-        if (encodedValue == null) {
-            return null;
-        }
+    @Nonnull
+    public static ImmutableEncodedValue of(@Nonnull EncodedValue encodedValue) {
         switch (encodedValue.getValueType()) {
             case ValueType.BYTE:
                 return ImmutableByteEncodedValue.of((ByteEncodedValue)encodedValue);
@@ -85,6 +82,14 @@ public class ImmutableEncodedValueFactory {
         }
     }
 
+    @Nullable
+    public static ImmutableEncodedValue ofNullable(@Nullable EncodedValue encodedValue) {
+        if (encodedValue == null) {
+            return null;
+        }
+        return of(encodedValue);
+    }
+
     @Nonnull
     public static ImmutableList<ImmutableEncodedValue> immutableListOf
             (@Nullable Iterable<? extends EncodedValue> list) {
@@ -94,12 +99,13 @@ public class ImmutableEncodedValueFactory {
     private static final ImmutableListConverter<ImmutableEncodedValue, EncodedValue> CONVERTER =
             new ImmutableListConverter<ImmutableEncodedValue, EncodedValue>() {
                 @Override
-                protected boolean isImmutable(EncodedValue item) {
+                protected boolean isImmutable(@Nonnull EncodedValue item) {
                     return item instanceof ImmutableEncodedValue;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableEncodedValue makeImmutable(EncodedValue item) {
+                protected ImmutableEncodedValue makeImmutable(@Nonnull EncodedValue item) {
                     return of(item);
                 }
             };

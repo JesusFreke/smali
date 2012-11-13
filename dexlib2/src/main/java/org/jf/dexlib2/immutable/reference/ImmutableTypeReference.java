@@ -65,12 +65,13 @@ public class ImmutableTypeReference extends BaseTypeReference implements Immutab
     private static final ImmutableListConverter<ImmutableTypeReference, TypeReference> CONVERTER =
             new ImmutableListConverter<ImmutableTypeReference, TypeReference>() {
                 @Override
-                protected boolean isImmutable(TypeReference item) {
+                protected boolean isImmutable(@Nonnull TypeReference item) {
                     return item instanceof ImmutableTypeReference;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableTypeReference makeImmutable(TypeReference item) {
+                protected ImmutableTypeReference makeImmutable(@Nonnull TypeReference item) {
                     return ImmutableTypeReference.of(item);
                 }
             };

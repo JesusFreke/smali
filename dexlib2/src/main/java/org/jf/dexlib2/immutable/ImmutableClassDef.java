@@ -123,12 +123,13 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
     private static final ImmutableListConverter<ImmutableClassDef, ClassDef> CONVERTER =
             new ImmutableListConverter<ImmutableClassDef, ClassDef>() {
                 @Override
-                protected boolean isImmutable(ClassDef item) {
+                protected boolean isImmutable(@Nonnull ClassDef item) {
                     return item instanceof ImmutableClassDef;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableClassDef makeImmutable(ClassDef item) {
+                protected ImmutableClassDef makeImmutable(@Nonnull ClassDef item) {
                     return ImmutableClassDef.of(item);
                 }
             };

@@ -70,13 +70,13 @@ public class ImmutableSwitchElement implements SwitchElement {
     private static final ImmutableListConverter<ImmutableSwitchElement, SwitchElement> CONVERTER =
             new ImmutableListConverter<ImmutableSwitchElement, SwitchElement>() {
                 @Override
-                protected boolean isImmutable(SwitchElement item) {
+                protected boolean isImmutable(@Nonnull SwitchElement item) {
                     return item instanceof ImmutableSwitchElement;
                 }
 
                 @Nonnull
                 @Override
-                protected ImmutableSwitchElement makeImmutable(SwitchElement item) {
+                protected ImmutableSwitchElement makeImmutable(@Nonnull SwitchElement item) {
                     return ImmutableSwitchElement.of(item);
                 }
             };

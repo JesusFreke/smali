@@ -137,13 +137,13 @@ public abstract class ImmutableInstruction implements Instruction {
     private static final ImmutableListConverter<ImmutableInstruction, Instruction> CONVERTER =
             new ImmutableListConverter<ImmutableInstruction, Instruction>() {
                 @Override
-                protected boolean isImmutable(Instruction item) {
+                protected boolean isImmutable(@Nonnull Instruction item) {
                     return item instanceof ImmutableInstruction;
                 }
 
                 @Nonnull
                 @Override
-                protected ImmutableInstruction makeImmutable(Instruction item) {
+                protected ImmutableInstruction makeImmutable(@Nonnull Instruction item) {
                     return ImmutableInstruction.of(item);
                 }
             };

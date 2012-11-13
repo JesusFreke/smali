@@ -90,12 +90,13 @@ public class ImmutableMethodParameter extends BaseMethodParameter {
     private static final ImmutableListConverter<ImmutableMethodParameter, MethodParameter> CONVERTER =
             new ImmutableListConverter<ImmutableMethodParameter, MethodParameter>() {
                 @Override
-                protected boolean isImmutable(MethodParameter item) {
+                protected boolean isImmutable(@Nonnull MethodParameter item) {
                     return item instanceof ImmutableMethodParameter;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableMethodParameter makeImmutable(MethodParameter item) {
+                protected ImmutableMethodParameter makeImmutable(@Nonnull MethodParameter item) {
                     return ImmutableMethodParameter.of(item);
                 }
             };

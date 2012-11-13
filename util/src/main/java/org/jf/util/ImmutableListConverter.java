@@ -84,6 +84,6 @@ public abstract class ImmutableListConverter<ImmutableItem, Item> {
         });
     }
 
-    protected abstract boolean isImmutable(Item item);
-    protected abstract ImmutableItem makeImmutable(Item item);
+    protected abstract boolean isImmutable(@Nonnull Item item);
+    @Nonnull protected abstract ImmutableItem makeImmutable(@Nonnull Item item);
 }

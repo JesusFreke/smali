@@ -63,7 +63,7 @@ public class ImmutableField extends BaseFieldReference implements Field {
         this.name = name;
         this.type = type;
         this.accessFlags = accessFlags;
-        this.initialValue = ImmutableEncodedValueFactory.of(initialValue);
+        this.initialValue = ImmutableEncodedValueFactory.ofNullable(initialValue);
         this.annotations = ImmutableAnnotation.immutableListOf(annotations);
     }
 
@@ -109,12 +109,13 @@ public class ImmutableField extends BaseFieldReference implements Field {
     private static final ImmutableListConverter<ImmutableField, Field> CONVERTER =
             new ImmutableListConverter<ImmutableField, Field>() {
                 @Override
-                protected boolean isImmutable(Field item) {
+                protected boolean isImmutable(@Nonnull Field item) {
                     return item instanceof ImmutableField;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableField makeImmutable(Field item) {
+                protected ImmutableField makeImmutable(@Nonnull Field item) {
                     return ImmutableField.of(item);
                 }
             };

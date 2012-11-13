@@ -115,12 +115,13 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
     private static final ImmutableListConverter<ImmutableMethod, Method> CONVERTER =
             new ImmutableListConverter<ImmutableMethod, Method>() {
                 @Override
-                protected boolean isImmutable(Method item) {
+                protected boolean isImmutable(@Nonnull Method item) {
                     return item instanceof ImmutableMethod;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableMethod makeImmutable(Method item) {
+                protected ImmutableMethod makeImmutable(@Nonnull Method item) {
                     return ImmutableMethod.of(item);
                 }
             };

@@ -79,12 +79,13 @@ public class ImmutableAnnotationElement extends BaseAnnotationElement {
     private static final ImmutableListConverter<ImmutableAnnotationElement, AnnotationElement> CONVERTER =
             new ImmutableListConverter<ImmutableAnnotationElement, AnnotationElement>() {
                 @Override
-                protected boolean isImmutable(AnnotationElement item) {
+                protected boolean isImmutable(@Nonnull AnnotationElement item) {
                     return item instanceof ImmutableAnnotationElement;
                 }
 
+                @Nonnull
                 @Override
-                protected ImmutableAnnotationElement makeImmutable(AnnotationElement item) {
+                protected ImmutableAnnotationElement makeImmutable(@Nonnull AnnotationElement item) {
                     return ImmutableAnnotationElement.of(item);
                 }
             };
