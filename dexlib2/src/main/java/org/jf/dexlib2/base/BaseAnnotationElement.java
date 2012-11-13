@@ -29,46 +29,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.dexbacked;
+package org.jf.dexlib2.base;
 
-import org.jf.dexlib2.base.BaseAnnotation;
-import org.jf.dexlib2.dexbacked.util.VariableSizeCollection;
+import org.jf.dexlib2.iface.AnnotationElement;
 
-import javax.annotation.Nonnull;
-import java.util.Collection;
-
-public class DexBackedAnnotation extends BaseAnnotation {
-    @Nonnull public final DexBuffer dexBuf;
-
-    public final int visibility;
-    public final int typeIndex;
-    private final int elementsOffset;
-
-    public DexBackedAnnotation(@Nonnull DexBuffer dexBuf,
-                               int annotationOffset) {
-        this.dexBuf = dexBuf;
-
-        DexReader reader = dexBuf.readerAt(annotationOffset);
-        this.visibility = reader.readUbyte();
-        this.typeIndex = reader.readSmallUleb128();
-        this.elementsOffset = reader.getOffset();
+public abstract class BaseAnnotationElement implements AnnotationElement {
+    @Override
+    public int hashCode() {
+        int hashCode = getName().hashCode();
+        return hashCode*31 + getValue().hashCode();
     }
 
-    @Override public int getVisibility() { return visibility; }
-    @Nonnull @Override public String getType() { return dexBuf.getType(typeIndex); }
-
-    @Nonnull
     @Override
-    public Collection<? extends DexBackedAnnotationElement> getElements() {
-        DexReader reader = dexBuf.readerAt(elementsOffset);
-        final int size = reader.readSmallUleb128();
-
-        return new VariableSizeCollection<DexBackedAnnotationElement>(dexBuf, reader.getOffset(), size) {
-            @Nonnull
-            @Override
-            protected DexBackedAnnotationElement readNextItem(@Nonnull DexReader reader, int index) {
-                return new DexBackedAnnotationElement(reader);
-            }
-        };
+    public boolean equals(Object o) {
+        if (o != null && o instanceof AnnotationElement) {
+            AnnotationElement other = (AnnotationElement)o;
+            return getName().equals(other.getName()) &&
+                   getValue().equals(other.getValue());
+        }
+        return false;
     }
 }

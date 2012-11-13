@@ -32,6 +32,7 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.BaseAnnotationElement;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValue;
@@ -40,9 +41,8 @@ import org.jf.util.ImmutableListConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
-public class ImmutableAnnotationElement implements AnnotationElement {
+public class ImmutableAnnotationElement extends BaseAnnotationElement {
     @Nonnull public final String name;
     @Nonnull public final ImmutableEncodedValue value;
 
