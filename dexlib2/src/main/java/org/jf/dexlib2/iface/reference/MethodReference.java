@@ -31,12 +31,10 @@
 
 package org.jf.dexlib2.iface.reference;
 
-import org.jf.dexlib2.iface.MethodPrototype;
-
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
-public interface MethodReference extends Reference, MethodPrototype {
+public interface MethodReference extends Reference {
     @Nonnull String getContainingClass();
     @Nonnull String getName();
     @Nonnull Collection<? extends TypeReference> getParameters();
