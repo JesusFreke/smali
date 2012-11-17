@@ -43,22 +43,22 @@ import java.util.Collection;
 import java.util.List;
 
 public class ImmutableTryBlock implements TryBlock {
-    public final int startCodeOffset;
+    public final int startCodeAddress;
     public final int codeUnitCount;
     @Nonnull public final ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers;
 
-    public ImmutableTryBlock(int startCodeOffset,
+    public ImmutableTryBlock(int startCodeAddress,
                              int codeUnitCount,
                              @Nullable Collection<? extends ExceptionHandler> exceptionHandlers) {
-        this.startCodeOffset = startCodeOffset;
+        this.startCodeAddress = startCodeAddress;
         this.codeUnitCount = codeUnitCount;
         this.exceptionHandlers = ImmutableExceptionHandler.immutableListOf(exceptionHandlers);
     }
 
-    public ImmutableTryBlock(int startCodeOffset,
+    public ImmutableTryBlock(int startCodeAddress,
                              int codeUnitCount,
                              @Nullable ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers) {
-        this.startCodeOffset = startCodeOffset;
+        this.startCodeAddress = startCodeAddress;
         this.codeUnitCount = codeUnitCount;
         this.exceptionHandlers = ImmutableUtils.nullToEmptyList(exceptionHandlers);
     }
@@ -68,12 +68,12 @@ public class ImmutableTryBlock implements TryBlock {
             return (ImmutableTryBlock)tryBlock;
         }
         return new ImmutableTryBlock(
-                tryBlock.getStartCodeOffset(),
+                tryBlock.getStartCodeAddress(),
                 tryBlock.getCodeUnitCount(),
                 tryBlock.getExceptionHandlers());
     }
 
-    @Override public int getStartCodeOffset() { return startCodeOffset; }
+    @Override public int getStartCodeAddress() { return startCodeAddress; }
     @Override public int getCodeUnitCount() { return codeUnitCount; }
 
     @Nonnull @Override public ImmutableList<? extends ImmutableExceptionHandler> getExceptionHandlers() {

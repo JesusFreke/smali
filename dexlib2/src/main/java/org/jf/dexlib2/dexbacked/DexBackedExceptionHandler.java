@@ -38,15 +38,15 @@ import javax.annotation.Nonnull;
 public class DexBackedExceptionHandler implements ExceptionHandler {
     @Nonnull private final DexBuffer dexBuf;
     private final int typeId;
-    private final int handlerCodeOffset;
+    private final int handlerCodeAddress;
 
     public DexBackedExceptionHandler(@Nonnull DexReader reader) {
         // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
         this.dexBuf = reader.getDexBuffer();
         this.typeId = reader.readSmallUleb128();
-        this.handlerCodeOffset = reader.readSmallUleb128();
+        this.handlerCodeAddress = reader.readSmallUleb128();
     }
 
     @Nonnull @Override public String getExceptionType() { return dexBuf.getType(typeId); }
-    @Override public int getHandlerCodeOffset() { return handlerCodeOffset; }
+    @Override public int getHandlerCodeAddress() { return handlerCodeAddress; }
 }

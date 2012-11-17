@@ -421,7 +421,7 @@ public class MethodDefinition {
         int codeSize = lastInstructionAddress + instructions.get(instructions.size() - 1).getCodeUnits();
 
         for (TryBlock tryBlock: tryBlocks) {
-            int startAddress = tryBlock.getStartCodeOffset();
+            int startAddress = tryBlock.getStartCodeAddress();
             int endAddress = startAddress + tryBlock.getCodeUnitCount();
 
             if (startAddress >= codeSize) {
@@ -445,15 +445,15 @@ public class MethodDefinition {
             int lastCoveredAddress = instructionOffsetMap.getInstructionCodeOffset(lastCoveredIndex);
 
             for (ExceptionHandler handler: tryBlock.getExceptionHandlers()) {
-                int handlerOffset = handler.getHandlerCodeOffset();
-                if (handlerOffset >= codeSize) {
+                int handlerAddress = handler.getHandlerCodeAddress();
+                if (handlerAddress >= codeSize) {
                     throw new ExceptionWithContext(
-                            "Exception handler offset %d is past the end of the code block.", handlerOffset);
+                            "Exception handler offset %d is past the end of the code block.", handlerAddress);
                 }
 
                 //use the address from the last covered instruction
                 CatchMethodItem catchMethodItem = new CatchMethodItem(labelCache, lastCoveredAddress,
-                        handler.getExceptionType(), startAddress, endAddress, handlerOffset);
+                        handler.getExceptionType(), startAddress, endAddress, handlerAddress);
                 methodItems.add(catchMethodItem);
             }
         }

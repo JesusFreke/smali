@@ -37,12 +37,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class DexBackedCatchAllExceptionHandler implements ExceptionHandler {
-    private final int handlerCodeOffset;
+    private final int handlerCodeAddress;
 
     public DexBackedCatchAllExceptionHandler(@Nonnull DexReader reader) {
-        this.handlerCodeOffset = reader.readSmallUleb128();
+        this.handlerCodeAddress = reader.readSmallUleb128();
     }
 
     @Nullable @Override public String getExceptionType() { return null; }
-    @Override public int getHandlerCodeOffset() { return handlerCodeOffset; }
+    @Override public int getHandlerCodeAddress() { return handlerCodeAddress; }
 }

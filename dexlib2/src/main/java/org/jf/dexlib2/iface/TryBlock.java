@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 
 public interface TryBlock {
-    int getStartCodeOffset();
+    int getStartCodeAddress();
     int getCodeUnitCount();
     @Nonnull Collection<? extends ExceptionHandler> getExceptionHandlers();
 }

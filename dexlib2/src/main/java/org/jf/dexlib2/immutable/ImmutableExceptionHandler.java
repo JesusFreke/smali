@@ -40,12 +40,12 @@ import javax.annotation.Nullable;
 
 public class ImmutableExceptionHandler implements ExceptionHandler {
     @Nullable public final String exceptionType;
-    public final int handlerCodeOffset;
+    public final int handlerCodeAddress;
 
     public ImmutableExceptionHandler(@Nullable String exceptionType,
-                                     int handlerCodeOffset) {
+                                     int handlerCodeAddress) {
         this.exceptionType = exceptionType;
-        this.handlerCodeOffset = handlerCodeOffset;
+        this.handlerCodeAddress = handlerCodeAddress;
     }
 
     public static ImmutableExceptionHandler of(ExceptionHandler exceptionHandler) {
@@ -54,11 +54,11 @@ public class ImmutableExceptionHandler implements ExceptionHandler {
         }
         return new ImmutableExceptionHandler(
                 exceptionHandler.getExceptionType(),
-                exceptionHandler.getHandlerCodeOffset());
+                exceptionHandler.getHandlerCodeAddress());
     }
 
     @Nullable @Override public String getExceptionType() { return exceptionType; }
-    @Override public int getHandlerCodeOffset() { return handlerCodeOffset; }
+    @Override public int getHandlerCodeAddress() { return handlerCodeAddress; }
 
     @Nonnull
     public static ImmutableList<ImmutableExceptionHandler> immutableListOf(

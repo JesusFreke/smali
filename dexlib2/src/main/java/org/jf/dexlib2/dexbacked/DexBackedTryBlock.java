@@ -55,7 +55,7 @@ public class DexBackedTryBlock implements TryBlock {
         this.handlersStartOffset = handlersStartOffset;
     }
 
-    @Override public int getStartCodeOffset() { return dexBuf.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET); }
+    @Override public int getStartCodeAddress() { return dexBuf.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET); }
     @Override public int getCodeUnitCount() { return dexBuf.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET); }
 
     @Nonnull
