@@ -44,7 +44,7 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public abstract class DexFileFactory {
+public final class DexFileFactory {
     @Nonnull
     public static DexFile loadDexFile(String path) throws IOException {
         return loadDexFile(new File(path));
@@ -97,4 +97,6 @@ public abstract class DexFileFactory {
         DexBuffer dexBuf = new DexBuffer(dexBytes);
         return new DexBackedDexFile(dexBuf);
     }
+
+    private DexFileFactory() {}
 }

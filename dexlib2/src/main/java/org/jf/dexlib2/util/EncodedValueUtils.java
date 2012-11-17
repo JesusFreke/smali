@@ -34,7 +34,7 @@ package org.jf.dexlib2.util;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.*;
 
-public class EncodedValueUtils {
+public final class EncodedValueUtils {
     public static boolean isDefaultValue(EncodedValue encodedValue) {
         switch (encodedValue.getValueType()) {
             case ValueType.BOOLEAN:
@@ -59,4 +59,5 @@ public class EncodedValueUtils {
         return false;
     }
 
+    private EncodedValueUtils() {}
 }

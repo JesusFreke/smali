@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2;
 
-public abstract class ValueType {
+public final class ValueType {
     public static final int BYTE = 0x00;
     public static final int SHORT = 0x02;
     public static final int CHAR = 0x03;
@@ -48,4 +48,6 @@ public abstract class ValueType {
     public static final int ANNOTATION = 0x1d;
     public static final int NULL = 0x1e;
     public static final int BOOLEAN = 0x1f;
+
+    private ValueType() {}
 }

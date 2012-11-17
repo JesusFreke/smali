@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2;
 
-public abstract class DebugItemType {
+public final class DebugItemType {
     // The debug items that directly correspond with one of the dexlib2.iface.debug interfaces
     public static final int START_LOCAL = 0x03;
     public static final int END_LOCAL = 0x05;
@@ -46,4 +46,6 @@ public abstract class DebugItemType {
     public static final int ADVANCE_PC = 0x01;
     public static final int ADVANCE_LINE = 0x02;
     public static final int START_LOCAL_EXTENDED = 0x04;
+
+    private DebugItemType() {}
 }

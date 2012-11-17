@@ -33,7 +33,7 @@ package org.jf.dexlib2;
 
 import org.jf.util.ExceptionWithContext;
 
-public abstract class AnnotationVisibility {
+public final class AnnotationVisibility {
     public static final int BUILD = 0;
     public static final int RUNTIME = 1;
     public static final int SYSTEM = 2;
@@ -46,4 +46,6 @@ public abstract class AnnotationVisibility {
         }
         return NAMES[visibility];
     }
+
+    private AnnotationVisibility() {}
 }

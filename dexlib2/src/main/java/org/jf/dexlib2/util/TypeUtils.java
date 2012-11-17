@@ -31,11 +31,11 @@
 
 package org.jf.dexlib2.util;
 
-import org.jf.dexlib2.iface.value.EncodedValue;
-
-public class TypeUtils {
+public final class TypeUtils {
     public static boolean isWideType(String type) {
         char c = type.charAt(0);
         return c == 'J' || c == 'D';
     }
+
+    private TypeUtils() {}
 }

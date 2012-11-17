@@ -36,7 +36,7 @@ import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodParameter;
 
-public class MethodUtil {
+public final class MethodUtil {
     public static String buildFullMethodString(ClassDef classDef, Method method) {
         //TODO: consider using a cached thread-local StringBuilder
         StringBuilder sb = new StringBuilder();
@@ -58,4 +58,6 @@ public class MethodUtil {
     public static boolean isDirect(Method method) {
         return (method.getAccessFlags() | directMask) != 0;
     }
+
+    private MethodUtil() {}
 }

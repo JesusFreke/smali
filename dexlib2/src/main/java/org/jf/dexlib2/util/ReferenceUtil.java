@@ -38,7 +38,7 @@ import org.jf.dexlib2.iface.reference.TypeReference;
 import java.io.IOException;
 import java.io.Writer;
 
-public abstract class ReferenceUtil {
+public final class ReferenceUtil {
     public static String getMethodDescriptor(MethodReference methodReference) {
         // TODO: try using a thread local StringBuilder
         StringBuilder sb = new StringBuilder();
@@ -93,4 +93,6 @@ public abstract class ReferenceUtil {
         writer.write(':');
         writer.write(fieldReference.getType());
     }
+
+    private ReferenceUtil() {}
 }
