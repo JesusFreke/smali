@@ -29,41 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base;
+package org.jf.dexlib2.writer;
 
-import org.jf.dexlib2.iface.AnnotationElement;
-
-import javax.annotation.Nonnull;
-import java.util.Comparator;
-
-public abstract class BaseAnnotationElement implements AnnotationElement {
-    @Override
-    public int hashCode() {
-        int hashCode = getName().hashCode();
-        return hashCode*31 + getValue().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof AnnotationElement) {
-            AnnotationElement other = (AnnotationElement)o;
-            return getName().equals(other.getName()) &&
-                   getValue().equals(other.getValue());
-        }
-        return false;
-    }
-
-    @Override
-    public int compareTo(AnnotationElement o) {
-        int res = getName().compareTo(o.getName());
-        if (res != 0) return res;
-        return getValue().compareTo(o.getValue());
-    }
-
-    public static final Comparator<AnnotationElement> BY_NAME = new Comparator<AnnotationElement>() {
-        @Override
-        public int compare(@Nonnull AnnotationElement element1, @Nonnull AnnotationElement element2) {
-            return element1.getName().compareTo(element2.getName());
-        }
-    };
+public class DexItemType {
+    public static final int HEADER_ITEM = 0x0000;
+    public static final int STRING_ID_ITEM = 0x0001;
+    public static final int TYPE_ID_ITEM = 0x0002;
+    public static final int PROTO_ID_ITEM = 0x0003;
+    public static final int FIELD_ID_ITEM = 0x0004;
+    public static final int METHOD_ID_ITEM = 0x0005;
+    public static final int CLASS_DEF_ITEM = 0x0006;
+    public static final int MAP_LIST = 0x1000;
+    public static final int TYPE_LIST = 0x1001;
+    public static final int ANNOTATION_SET_REF_LIST = 0x1002;
+    public static final int ANNOTATION_SET_ITEM = 0x1003;
+    public static final int CLASS_DATA_ITEM = 0x2000;
+    public static final int CODE_ITEM = 0x2001;
+    public static final int STRING_DATA_ITEM = 0x2002;
+    public static final int DEBUG_INFO_ITEM = 0x2003;
+    public static final int ANNOTATION_ITEM = 0x2004;
+    public static final int ENCODED_ARRAY_ITEM = 0x2005;
+    public static final int ANNOTATION_DIRECTORY_ITEM = 0x2006;
 }

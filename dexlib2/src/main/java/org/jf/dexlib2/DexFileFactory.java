@@ -98,5 +98,9 @@ public final class DexFileFactory {
         return new DexBackedDexFile(dexBuf);
     }
 
+    public static void writeDexFile(String path, DexFile dexFile) throws IOException {
+        org.jf.dexlib2.writer.DexFile.writeTo(path, dexFile);
+    }
+
     private DexFileFactory() {}
 }

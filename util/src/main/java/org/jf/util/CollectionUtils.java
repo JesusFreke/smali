@@ -31,17 +31,35 @@
 
 package org.jf.util;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.SortedSet;
+import java.util.*;
 
 public class CollectionUtils {
+    public static <T> int listHashCode(@Nonnull Iterable<T> iterable) {
+        int hashCode = 1;
+        for (T item: iterable) {
+            hashCode = hashCode*31 + item.hashCode();
+        }
+        return hashCode;
+    }
+
+    public static <T> int lastIndexOf(@Nonnull Iterable<T> iterable, @Nonnull Predicate<? super T> predicate) {
+        int index = 0;
+        int lastMatchingIndex = -1;
+        for (T item: iterable) {
+            if (predicate.apply(item)) {
+                lastMatchingIndex = index;
+            }
+            index++;
+        }
+        return lastMatchingIndex;
+    }
+
     public static <T extends Comparable<? super T>> int compareAsList(@Nonnull Collection<? extends T> list1,
                                                                       @Nonnull Collection<? extends T> list2) {
         int res = Ints.compare(list1.size(), list2.size());
@@ -49,6 +67,27 @@ public class CollectionUtils {
         Iterator<? extends T> elements2 = list2.iterator();
         for (T element1: list1) {
             res = element1.compareTo(elements2.next());
+            if (res != 0) return res;
+        }
+        return 0;
+    }
+
+    public static <T> int compareAsIterable(@Nonnull Comparator<? super T> comparator,
+                                            @Nonnull Iterable<? extends T> it1,
+                                            @Nonnull Iterable<? extends T> it2) {
+        Iterator<? extends T> elements2 = it2.iterator();
+        for (T element1: it1) {
+            int res = comparator.compare(element1, elements2.next());
+            if (res != 0) return res;
+        }
+        return 0;
+    }
+
+    public static <T extends Comparable<? super T>> int compareAsIterable(@Nonnull Iterable<? extends T> it1,
+                                                                          @Nonnull Iterable<? extends T> it2) {
+        Iterator<? extends T> elements2 = it2.iterator();
+        for (T element1: it1) {
+            int res = element1.compareTo(elements2.next());
             if (res != 0) return res;
         }
         return 0;
@@ -67,6 +106,7 @@ public class CollectionUtils {
         return 0;
     }
 
+    @Nonnull
     public static <T> Comparator<Collection<? extends T>> listComparator(
             @Nonnull final Comparator<? super T> elementComparator) {
         return new Comparator<Collection<? extends T>>() {
@@ -77,14 +117,32 @@ public class CollectionUtils {
         };
     }
 
+    public static <T> boolean isNaturalSortedSet(@Nonnull Iterable<? extends T> it) {
+        if (it instanceof SortedSet) {
+            SortedSet<? extends T> sortedSet = (SortedSet<? extends T>)it;
+            Comparator<?> comparator = sortedSet.comparator();
+            return (comparator == null) || comparator.equals(Ordering.natural());
+        }
+        return false;
+    }
+
+    public static <T> boolean isSortedSet(@Nonnull Comparator<? extends T> elementComparator,
+                                          @Nonnull Iterable<? extends T> it) {
+        if (it instanceof SortedSet) {
+            SortedSet<? extends T> sortedSet = (SortedSet<? extends T>)it;
+            Comparator<?> comparator = sortedSet.comparator();
+            if (comparator == null) {
+                return elementComparator.equals(Ordering.natural());
+            }
+            return elementComparator.equals(comparator);
+        }
+        return false;
+    }
+
     @Nonnull
     private static <T> SortedSet<? extends T> toNaturalSortedSet(@Nonnull Collection<? extends T> collection) {
-        if (collection instanceof SortedSet) {
-            SortedSet<? extends T> sortedSet = (SortedSet<? extends T>)collection;
-            Comparator<?> comparator = sortedSet.comparator();
-            if (comparator == null || comparator.equals(Ordering.natural())) {
-                return sortedSet;
-            }
+        if (isNaturalSortedSet(collection)) {
+            return (SortedSet<? extends T>)collection;
         }
         return ImmutableSortedSet.copyOf(collection);
     }
@@ -100,6 +158,17 @@ public class CollectionUtils {
             }
         }
         return ImmutableSortedSet.copyOf(elementComparator, collection);
+    }
+
+    @Nonnull
+    public static <T> Comparator<Collection<? extends T>> setComparator(
+            @Nonnull final Comparator<? super T> elementComparator) {
+        return new Comparator<Collection<? extends T>>() {
+            @Override
+            public int compare(Collection<? extends T> list1, Collection<? extends T> list2) {
+                return compareAsSet(elementComparator, list1, list2);
+            }
+        };
     }
 
     public static <T extends Comparable<T>> int compareAsSet(@Nonnull Collection<? extends T> set1,

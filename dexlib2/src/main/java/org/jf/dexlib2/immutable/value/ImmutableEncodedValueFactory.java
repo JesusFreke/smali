@@ -35,6 +35,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.*;
+import org.jf.util.ExceptionWithContext;
 import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
@@ -79,6 +80,33 @@ public class ImmutableEncodedValueFactory {
             default:
                 Preconditions.checkArgument(false);
                 return null;
+        }
+    }
+
+    @Nonnull
+    public static EncodedValue defaultValueForType(String type) {
+        switch (type.charAt(0)) {
+            case 'Z':
+                return new ImmutableBooleanEncodedValue(false);
+            case 'B':
+                return new ImmutableByteEncodedValue((byte)0);
+            case 'S':
+                return new ImmutableShortEncodedValue((short)0);
+            case 'C':
+                return new ImmutableCharEncodedValue((char)0);
+            case 'I':
+                return new ImmutableIntEncodedValue(0);
+            case 'J':
+                return new ImmutableLongEncodedValue(0);
+            case 'F':
+                return new ImmutableFloatEncodedValue(0);
+            case 'D':
+                return new ImmutableDoubleEncodedValue(0);
+            case 'L':
+            case '[':
+                return ImmutableNullEncodedValue.INSTANCE;
+            default:
+                throw new ExceptionWithContext("Unrecognized type: %s", type);
         }
     }
 

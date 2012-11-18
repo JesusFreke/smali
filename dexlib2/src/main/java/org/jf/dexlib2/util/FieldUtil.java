@@ -29,41 +29,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base;
+package org.jf.dexlib2.util;
 
-import org.jf.dexlib2.iface.AnnotationElement;
+import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.iface.Field;
 
 import javax.annotation.Nonnull;
-import java.util.Comparator;
 
-public abstract class BaseAnnotationElement implements AnnotationElement {
-    @Override
-    public int hashCode() {
-        int hashCode = getName().hashCode();
-        return hashCode*31 + getValue().hashCode();
+public final class FieldUtil {
+    public static boolean isStatic(@Nonnull Field field) {
+        return AccessFlags.STATIC.isSet(field.getAccessFlags());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof AnnotationElement) {
-            AnnotationElement other = (AnnotationElement)o;
-            return getName().equals(other.getName()) &&
-                   getValue().equals(other.getValue());
-        }
-        return false;
-    }
-
-    @Override
-    public int compareTo(AnnotationElement o) {
-        int res = getName().compareTo(o.getName());
-        if (res != 0) return res;
-        return getValue().compareTo(o.getValue());
-    }
-
-    public static final Comparator<AnnotationElement> BY_NAME = new Comparator<AnnotationElement>() {
-        @Override
-        public int compare(@Nonnull AnnotationElement element1, @Nonnull AnnotationElement element2) {
-            return element1.getName().compareTo(element2.getName());
-        }
-    };
+    private FieldUtil() {}
 }
