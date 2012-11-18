@@ -31,8 +31,13 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.NullEncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseNullEncodedValue implements NullEncodedValue {
     @Override
@@ -41,8 +46,13 @@ public abstract class BaseNullEncodedValue implements NullEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        return o != null && o instanceof NullEncodedValue;
+    public boolean equals(@Nullable Object o) {
+        return o instanceof NullEncodedValue;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        return Ints.compare(getValueType(), o.getValueType());
     }
 
     public int getValueType() { return ValueType.NULL; }

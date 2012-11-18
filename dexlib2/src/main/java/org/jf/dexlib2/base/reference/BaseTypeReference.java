@@ -38,23 +38,20 @@ import javax.annotation.Nonnull;
 public abstract class BaseTypeReference implements TypeReference {
     @Override
     public int hashCode() {
-        return hashCode(this);
+        return getType().hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
         if (o != null && o instanceof TypeReference) {
-            return equals(this, (TypeReference)o);
+            return getType().equals(((TypeReference)o).getType());
         }
         return false;
     }
 
-    public static int hashCode(@Nonnull TypeReference typeRef) {
-        return typeRef.getType().hashCode();
-    }
-
-    public static boolean equals(@Nonnull TypeReference typeRef1, @Nonnull TypeReference typeRef2) {
-        return typeRef1.getType().equals(typeRef2.getType());
+    @Override
+    public int compareTo(@Nonnull CharSequence o) {
+        return getType().compareTo(o.toString());
     }
 
     @Override public int length() { return getType().length(); }

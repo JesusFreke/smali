@@ -34,30 +34,34 @@ package org.jf.dexlib2.base.reference;
 import org.jf.dexlib2.iface.reference.FieldReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseFieldReference implements FieldReference {
     @Override
     public int hashCode() {
-        return hashCode(this);
+        int hashCode = getDefiningClass().hashCode();
+        hashCode = hashCode*31 + getName().hashCode();
+        return hashCode*31 + getType().hashCode();
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof FieldReference) {
-            return equals(this, (FieldReference)o);
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof FieldReference) {
+            FieldReference other = (FieldReference)o;
+            return getDefiningClass().equals(other.getDefiningClass()) &&
+                   getName().equals(other.getName()) &&
+                   getType().equals(other.getType());
+
         }
         return false;
     }
 
-    public static int hashCode(@Nonnull FieldReference fieldRef) {
-        int hashCode = fieldRef.getContainingClass().hashCode();
-        hashCode = hashCode*31 + fieldRef.getName().hashCode();
-        return hashCode*31 + fieldRef.getType().hashCode();
-    }
-
-    public static boolean equals(@Nonnull FieldReference fieldRef1, @Nonnull FieldReference fieldRef2) {
-        return fieldRef1.getContainingClass().equals(fieldRef2.getContainingClass()) &&
-               fieldRef1.getName().equals(fieldRef2.getName()) &&
-               fieldRef1.getType().equals(fieldRef2.getType());
+    @Override
+    public int compareTo(@Nonnull FieldReference o) {
+        int res = getDefiningClass().compareTo(o.getDefiningClass());
+        if (res != 0) return res;
+        res = getName().compareTo(o.getName());
+        if (res != 0) return res;
+        return getType().compareTo(o.getType());
     }
 }

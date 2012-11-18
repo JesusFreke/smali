@@ -42,26 +42,26 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableMethodReference extends BaseMethodReference implements ImmutableReference {
-    @Nonnull public final String containingClass;
-    @Nonnull public final String name;
-    @Nonnull public final ImmutableList<? extends ImmutableTypeReference> parameters;
-    @Nonnull public final String returnType;
+    @Nonnull protected final String definingClass;
+    @Nonnull protected final String name;
+    @Nonnull protected final ImmutableList<? extends ImmutableTypeReference> parameters;
+    @Nonnull protected final String returnType;
 
-    public ImmutableMethodReference(@Nonnull String containingClass,
+    public ImmutableMethodReference(@Nonnull String definingClass,
                                     @Nonnull String name,
                                     @Nullable List<? extends TypeReference> parameters,
                                     @Nonnull String returnType) {
-        this.containingClass = containingClass;
+        this.definingClass = definingClass;
         this.name = name;
         this.parameters = ImmutableTypeReference.immutableListOf(parameters);
         this.returnType = returnType;
     }
 
-    public ImmutableMethodReference(@Nonnull String containingClass,
+    public ImmutableMethodReference(@Nonnull String definingClass,
                                     @Nonnull String name,
                                     @Nullable ImmutableList<? extends ImmutableTypeReference> parameters,
                                     @Nonnull String returnType) {
-        this.containingClass = containingClass;
+        this.definingClass = definingClass;
         this.name = name;
         this.parameters = ImmutableUtils.nullToEmptyList(parameters);
         this.returnType = returnType;
@@ -73,13 +73,13 @@ public class ImmutableMethodReference extends BaseMethodReference implements Imm
             return (ImmutableMethodReference)methodReference;
         }
         return new ImmutableMethodReference(
-                methodReference.getContainingClass(),
+                methodReference.getDefiningClass(),
                 methodReference.getName(),
                 ImmutableList.copyOf(methodReference.getParameters()),
                 methodReference.getReturnType());
     }
 
-    @Nonnull @Override public String getContainingClass() { return containingClass; }
+    @Nonnull @Override public String getDefiningClass() { return definingClass; }
     @Nonnull @Override public String getName() { return name; }
     @Nonnull @Override public List<? extends ImmutableTypeReference> getParameters() { return parameters; }
     @Nonnull @Override public String getReturnType() { return returnType; }

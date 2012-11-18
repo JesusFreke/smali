@@ -35,13 +35,13 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.iface.debug.*;
 import org.jf.util.ExceptionWithContext;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public abstract class ImmutableDebugItem implements DebugItem {
-    public final int codeAddress;
+    protected final int codeAddress;
 
     public ImmutableDebugItem(int codeAddress) {
         this.codeAddress = codeAddress;
@@ -76,11 +76,11 @@ public abstract class ImmutableDebugItem implements DebugItem {
 
     @Nonnull
     public static ImmutableList<ImmutableDebugItem> immutableListOf(@Nullable Iterable<? extends DebugItem> list) {
-        return CONVERTER.convert(list);
+        return CONVERTER.toList(list);
     }
 
-    private static final ImmutableListConverter<ImmutableDebugItem, DebugItem> CONVERTER =
-            new ImmutableListConverter<ImmutableDebugItem, DebugItem>() {
+    private static final ImmutableConverter<ImmutableDebugItem, DebugItem> CONVERTER =
+            new ImmutableConverter<ImmutableDebugItem, DebugItem>() {
                 @Override
                 protected boolean isImmutable(@Nonnull DebugItem item) {
                     return item instanceof ImmutableDebugItem;

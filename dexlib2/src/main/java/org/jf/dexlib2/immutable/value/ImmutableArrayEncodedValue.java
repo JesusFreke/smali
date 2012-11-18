@@ -39,9 +39,8 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
-public class ImmutableArrayEncodedValue extends BaseArrayEncodedValue
-        implements ImmutableEncodedValue, ArrayEncodedValue {
-    @Nonnull public final ImmutableList<? extends ImmutableEncodedValue> value;
+public class ImmutableArrayEncodedValue extends BaseArrayEncodedValue implements ImmutableEncodedValue {
+    @Nonnull protected final ImmutableList<? extends ImmutableEncodedValue> value;
 
     public ImmutableArrayEncodedValue(@Nonnull Collection<? extends EncodedValue> value) {
         this.value = ImmutableEncodedValueFactory.immutableListOf(value);

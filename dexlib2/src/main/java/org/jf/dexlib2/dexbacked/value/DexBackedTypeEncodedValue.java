@@ -29,13 +29,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.sorted;
+package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.base.value.BaseTypeEncodedValue;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
-import java.util.SortedSet;
 
-public interface SortedAnnotation extends Annotation {
-    @Nonnull SortedSet<? extends SortedAnnotationElement> getElements();
+public class DexBackedTypeEncodedValue extends BaseTypeEncodedValue {
+    @Nonnull public final DexBuffer dexBuf;
+    private final int typeIndex;
+
+    public DexBackedTypeEncodedValue(@Nonnull DexReader reader, int valueArg) {
+        this.dexBuf = reader.getDexBuffer();
+        typeIndex = reader.readSizedSmallUint(valueArg + 1);
+    }
+
+    @Override public String getValue() {
+        return dexBuf.getType(typeIndex);
+    }
 }

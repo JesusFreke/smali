@@ -31,8 +31,14 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
+import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.util.CollectionUtils;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseAnnotationEncodedValue implements AnnotationEncodedValue {
     @Override
@@ -42,13 +48,26 @@ public abstract class BaseAnnotationEncodedValue implements AnnotationEncodedVal
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof AnnotationEncodedValue) {
-            return getType().equals(((AnnotationEncodedValue) o).getType()) &&
-                   getElements().equals(((AnnotationEncodedValue) o).getElements());
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof AnnotationEncodedValue) {
+            AnnotationEncodedValue other = (AnnotationEncodedValue)o;
+            return getType().equals(other.getType()) &&
+                    getElements().equals(other.getElements());
         }
         return false;
     }
 
-    public int getValueType() { return ValueType.ANNOTATION; }
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        AnnotationEncodedValue other = (AnnotationEncodedValue)o;
+        res = getType().compareTo(other.getType());
+        if (res != 0) return res;
+        return CollectionUtils.compareAsSet(getElements(), other.getElements());
+    }
+
+    public int getValueType() {
+        return ValueType.ANNOTATION;
+    }
 }

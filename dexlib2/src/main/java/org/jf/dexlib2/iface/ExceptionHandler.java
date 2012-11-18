@@ -31,9 +31,63 @@
 
 package org.jf.dexlib2.iface;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface ExceptionHandler {
+/**
+ * This class represents an individual exception handler entry, in a try block.
+ */
+public interface ExceptionHandler extends Comparable<ExceptionHandler> {
+    /**
+     * Gets the type of exception that is handled by this handler.
+     *
+     * @return The type of exception that is handled by this handler, or null if this is a catch-all handler.
+     */
     @Nullable String getExceptionType();
+
+    /**
+     * Gets the code offset of the handler.
+     *
+     * @return The offset of the handler from the the beginning of the bytecode for the method. The offset will be in
+     * terms of 16-bit code units
+     */
     int getHandlerCodeAddress();
+
+    /**
+     * Returns a hashcode for this ExceptionHandler.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * String exceptionType = getExceptionType();
+     * int hashCode = exceptionType==null?0:exceptionType.hashCode();
+     * return hashCode*31 + getHandlerCodeAddress();
+     * }</pre>
+     *
+     * @return The hash code value for this ExceptionHandler
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this ExceptionHandler to another ExceptionHandler for equality.
+     *
+     * This ExceptionHandler is equal to another ExceptionHandler if all of it's "fields" are equal. That is, if
+     * the return values of getExceptionType() and getHandlerCodeAddress() are both equal.
+     *
+     * @param o The object to be compared for equality with this ExceptionHandler
+     * @return true if the specified object is equal to this ExceptionHandler
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this ExceptionHandler to another ExceptionHandler.
+     *
+     * The comparison is based on the comparison of the return values of getExceptionType() and
+     * getHandlerCodeAddress() in that order. A null value for getExceptionType() compares after a non-null value.
+     *
+     * @param o The ExceptionHandler to compare with this ExceptionHandler
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull ExceptionHandler o);
 }

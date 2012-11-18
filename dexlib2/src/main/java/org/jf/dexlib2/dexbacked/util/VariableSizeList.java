@@ -29,35 +29,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.sorted.value;
+package org.jf.dexlib2.dexbacked.util;
 
-import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.base.value.BaseArrayEncodedValue;
-import org.jf.dexlib2.iface.sorted.value.SortedArrayEncodedValue;
-import org.jf.dexlib2.iface.value.ArrayEncodedValue;
-import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+import java.util.AbstractSequentialList;
 
-public class SortedImmutableArrayEncodedValue extends BaseArrayEncodedValue
-        implements SortedImmutableEncodedValue, SortedArrayEncodedValue {
-    @Nonnull public final ImmutableList<? extends SortedImmutableEncodedValue> value;
+public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
+    @Nonnull private final DexBuffer dexBuf;
+    private final int offset;
+    private final int size;
 
-    public SortedImmutableArrayEncodedValue(@Nonnull Collection<? extends EncodedValue> value) {
-        this.value = SortedImmutableEncodedValueFactory.immutableListOf(value);
+    public VariableSizeList(@Nonnull DexBuffer dexBuf, int offset, int size) {
+        this.dexBuf = dexBuf;
+        this.offset = offset;
+        this.size = size;
     }
 
-    public SortedImmutableArrayEncodedValue(@Nonnull ImmutableList<SortedImmutableEncodedValue> value) {
-        this.value = value;
+    @Nonnull protected abstract T readNextItem(@Nonnull DexReader reader, int index);
+
+    @Override
+    public VariableSizeListIterator<T> listIterator() {
+        return listIterator(0);
     }
 
-    public static SortedImmutableArrayEncodedValue of(@Nonnull ArrayEncodedValue arrayEncodedValue) {
-        if (arrayEncodedValue instanceof SortedImmutableArrayEncodedValue) {
-            return (SortedImmutableArrayEncodedValue)arrayEncodedValue;
+    @Override public int size() { return size; }
+
+    @Override
+    public VariableSizeListIterator<T> listIterator(int index) {
+        VariableSizeListIterator<T> iterator = new VariableSizeListIterator<T>(dexBuf, offset, size) {
+            @Nonnull
+            @Override
+            protected T readNextItem(@Nonnull DexReader reader, int index) {
+                return VariableSizeList.this.readNextItem(reader, index);
+            }
+        };
+        while (index++ > 0) {
+            iterator.next();
         }
-        return new SortedImmutableArrayEncodedValue(arrayEncodedValue.getValue());
+        return iterator;
     }
-
-    @Nonnull public ImmutableList<? extends SortedImmutableEncodedValue> getValue() { return value; }
 }

@@ -32,16 +32,78 @@
 package org.jf.dexlib2.iface;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.Set;
 
-public interface Annotation {
-    // The possible annotation visibility values
-    public static final int BUILD = 0;
-    public static final int RUNTIME = 1;
-    public static final int SYSTEM = 2;
-
+/**
+ * This class represents a specific instance of an annotation applied to a class/field/method/parameter
+ */
+public interface Annotation extends Comparable<Annotation> {
+    /**
+     * Gets the visibility of this annotation.
+     *
+     * This will be one of the AnnotationVisibility.* constants.
+     *
+     * @return The visibility of this annotation
+     */
     int getVisibility();
+
+    /**
+     * Gets the type of this annotation.
+     *
+     * This will be the type descriptor of the class that defines this annotation.
+     *
+     * @return The type of this annotation
+     */
     @Nonnull String getType();
-    @Nonnull Collection<? extends AnnotationElement> getElements();
+
+    /**
+     * Gets a set of the name/value elements associated with this annotation.
+     *
+     * The elements in the returned set will be unique with respect to the element name.
+     *
+     * @return A set of AnnotationElements
+     */
+    @Nonnull Set<? extends AnnotationElement> getElements();
+
+    /**
+     * Returns a hashcode for this Annotation.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = getVisibility();
+     * hashCode = hashCode*31 + getType().hashCode();
+     * hashCode = hashCode*31 + getElements().hashCode();
+     * }</pre>
+     *
+     * @return The hash code value for this Annotation
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this Annotation to another Annotation for equality.
+     *
+     * This Annotation is equal to another Annotation if all of it's "fields" are equal. That is, if the return values
+     * of getVisibility(), getType(), and getElements() are all equal.
+     *
+     * TODO: when an Annotation is used in a set, need to specify that the uniqueness in the set is based on annotation type
+     *
+     * @param o The object to be compared for equality with this Annotation
+     * @return true if the specified object is equal to this Annotation
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compares this Annotation to another Annotation.
+     *
+     * The comparison is based on the value of getVisibility(), getType() and getElements(), in that order. When
+     * comparing the set of elements, the comparison is done with the semantics of
+     * org.jf.util.CollectionUtils.compareAsSet(), using the natural ordering of AnnotationElement.
+     *
+     * @param o The Annotation to compare with this Annotation
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(Annotation o);
 }

@@ -34,12 +34,12 @@ package org.jf.dexlib2.dexbacked.value;
 import org.jf.dexlib2.base.value.BaseArrayEncodedValue;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.dexbacked.util.VariableSizeCollection;
+import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+import java.util.List;
 
 public class DexBackedArrayEncodedValue extends BaseArrayEncodedValue implements ArrayEncodedValue {
     @Nonnull public final DexBuffer dexBuf;
@@ -66,8 +66,8 @@ public class DexBackedArrayEncodedValue extends BaseArrayEncodedValue implements
 
     @Nonnull
     @Override
-    public Collection<? extends EncodedValue> getValue() {
-        return new VariableSizeCollection<EncodedValue>(dexBuf, encodedArrayOffset, elementCount) {
+    public List<? extends EncodedValue> getValue() {
+        return new VariableSizeList<EncodedValue>(dexBuf, encodedArrayOffset, elementCount) {
             @Nonnull
             @Override
             protected EncodedValue readNextItem(@Nonnull DexReader dexReader, int index) {

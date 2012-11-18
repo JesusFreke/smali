@@ -31,8 +31,52 @@
 
 package org.jf.dexlib2.iface.value;
 
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface IntEncodedValue extends EncodedValue, SortedEncodedValue {
+/**
+ * This class represents an encoded integer value.
+ */
+public interface IntEncodedValue extends EncodedValue {
+    /**
+     * Gets the integer value.
+     *
+     * @return the int value
+     */
     int getValue();
+
+    /**
+     * Returns a hashcode for this EncodedIntValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = getValue();
+     * }</pre>
+     *
+     * @return The hash code value for this EncodedIntValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this IntEncodedValue to another IntEncodedValue for equality.
+     *
+     * This IntEncodedValue is equal to another IntEncodedValue if the values returned by getValue() are equal.
+     *
+     * @param o The object to be compared for equality with this IntEncodedValue
+     * @return true if the specified object is equal to this IntEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this IntEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * IntEncodedValue, the return values of getValue() are compared.
+     *
+     * @param o The EncodedValue to compare with this IntEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

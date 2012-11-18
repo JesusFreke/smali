@@ -32,38 +32,40 @@
 package org.jf.dexlib2.base.reference;
 
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.util.CollectionUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseMethodReference implements MethodReference {
     @Override
     public int hashCode() {
-        return hashCode(this);
+        int hashCode = getDefiningClass().hashCode();
+        hashCode = hashCode*31 + getName().hashCode();
+        hashCode = hashCode*31 + getReturnType().hashCode();
+        return hashCode*31 + getParameters().hashCode();
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (o != null && o instanceof MethodReference) {
-            return equals(this, (MethodReference)o);
+            MethodReference other = (MethodReference)o;
+            return getDefiningClass().equals(other.getDefiningClass()) &&
+                   getName().equals(other.getName()) &&
+                   getReturnType().equals(other.getReturnType()) &&
+                   getParameters().equals(other.getParameters());
         }
         return false;
     }
 
-    public static int hashCode(@Nonnull MethodReference methodRef) {
-        int hashCode = methodRef.getContainingClass().hashCode();
-        hashCode = hashCode*31 + methodRef.getName().hashCode();
-        hashCode = hashCode*31 + methodRef.getReturnType().hashCode();
-        for (TypeReference param: methodRef.getParameters()) {
-            hashCode = hashCode*31 + param.hashCode();
-        }
-        return hashCode;
-    }
-
-    public static boolean equals(@Nonnull MethodReference methodRef1, @Nonnull MethodReference methodRef2) {
-        return methodRef1.getContainingClass().equals(methodRef2.getContainingClass()) &&
-               methodRef1.getName().equals(methodRef2.getName()) &&
-               methodRef1.getReturnType().equals(methodRef2.getReturnType()) &&
-               methodRef1.getParameters().equals(methodRef2.getParameters());
+    @Override
+    public int compareTo(@Nonnull MethodReference o) {
+        int res = getDefiningClass().compareTo(o.getDefiningClass());
+        if (res != 0) return res;
+        res = getName().compareTo(o.getName());
+        if (res != 0) return res;
+        res = getReturnType().compareTo(o.getReturnType());
+        if (res != 0) return res;
+        return CollectionUtils.compareAsList(getParameters(), o.getParameters());
     }
 }

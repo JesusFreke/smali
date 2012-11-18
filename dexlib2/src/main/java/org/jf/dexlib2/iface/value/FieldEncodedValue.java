@@ -32,10 +32,56 @@
 package org.jf.dexlib2.iface.value;
 
 import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface FieldEncodedValue extends EncodedValue, SortedEncodedValue {
-    @Nonnull FieldReference getValue();
+/**
+ * This class represents an encoded field value.
+ */
+public interface FieldEncodedValue extends EncodedValue {
+    /**
+     * Gets the field value.
+     *
+     * @return the field value as a FieldReference
+     */
+    FieldReference getValue();
+
+    /**
+     * Returns a hashcode for this EncodedFieldValue.
+     * <p/>
+     * This hashCode is defined to be the following:
+     * <p/>
+     * <pre>
+     * {@code
+     * int hashCode = getValue.hashCode();
+     * }</pre>
+     *
+     * @return The hash code value for this EncodedFieldValue
+     */
+    @Override
+    int hashCode();
+
+    /**
+     * Compares this FieldEncodedValue to another FieldEncodedValue for equality.
+     * <p/>
+     * This FieldEncodedValue is equal to another FieldEncodedValue if the values returned by getValue() are equal.
+     *
+     * @param o The object to be compared for equality with this FieldEncodedValue
+     * @return true if the specified object is equal to this FieldEncodedValue
+     */
+    @Override
+    boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this FieldEncodedValue to another EncodedValue.
+     * <p/>
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * FieldEncodedValue, the return values of getValue() are compared.
+     *
+     * @param o The EncodedValue to compare with this FieldEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override
+    int compareTo(@Nonnull EncodedValue o);
 }

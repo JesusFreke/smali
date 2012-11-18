@@ -140,6 +140,11 @@ public class Preconditions {
 
     public static void checkValueArg(int valueArg, int maxValue) {
         if (valueArg > maxValue) {
+            if (maxValue == 0) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid value_arg value %d for an encoded_value. Expecting 0",
+                                valueArg));
+            }
             throw new IllegalArgumentException(
                     String.format("Invalid value_arg value %d for an encoded_value. Expecting 0..%d, inclusive",
                             valueArg, maxValue));

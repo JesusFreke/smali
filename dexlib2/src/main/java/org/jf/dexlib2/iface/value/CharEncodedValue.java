@@ -31,8 +31,52 @@
 
 package org.jf.dexlib2.iface.value;
 
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface CharEncodedValue extends EncodedValue, SortedEncodedValue {
+/**
+ * This class represents an encoded char value.
+ */
+public interface CharEncodedValue extends EncodedValue {
+    /**
+     * Gets the char value.
+     *
+     * @return the char value
+     */
     char getValue();
+
+    /**
+     * Returns a hashcode for this EncodedCharValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = getValue();
+     * }</pre>
+     *
+     * @return The hash code value for this EncodedCharValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this CharEncodedValue to another CharEncodedValue for equality.
+     *
+     * This CharEncodedValue is equal to another CharEncodedValue if the values returned by getValue() are equal.
+     *
+     * @param o The object to be compared for equality with this CharEncodedValue
+     * @return true if the specified object is equal to this CharEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this CharEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * CharEncodedValue, the return values of getValue() are compared.
+     *
+     * @param o The EncodedValue to compare with this CharEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

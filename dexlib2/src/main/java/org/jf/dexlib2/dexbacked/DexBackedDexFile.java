@@ -31,11 +31,11 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.util.FixedSizeList;
+import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Set;
 
 public class DexBackedDexFile implements DexFile {
     @Nonnull public final DexBuffer dexBuf;
@@ -46,10 +46,10 @@ public class DexBackedDexFile implements DexFile {
 
     @Nonnull
     @Override
-    public List<? extends DexBackedClassDef> getClasses() {
+    public Set<? extends DexBackedClassDef> getClasses() {
         final int classCount = dexBuf.getClassCount();
 
-        return new FixedSizeList<DexBackedClassDef>() {
+        return new FixedSizeSet<DexBackedClassDef>() {
             @Nonnull
             @Override
             public DexBackedClassDef readItem(int index) {

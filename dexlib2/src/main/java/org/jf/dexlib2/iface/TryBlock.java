@@ -32,10 +32,39 @@
 package org.jf.dexlib2.iface;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+import java.util.Set;
 
+/**
+ * This class represents an individual try block and associated set of handlers.
+ */
 public interface TryBlock {
+    /**
+     * Gets the code offset of the start of this try block.
+     *
+     * The starting location must not occur in the middle of an instruction.
+     *
+     * @return The offset of the start of the try block from the the beginning of the bytecode for the method. The
+     * offset will be in terms of 16-bit code units.
+     */
     int getStartCodeAddress();
+
+    /**
+     * Gets the number of code units covered by this try block.
+     *
+     * The end of the try block is typically coincident with the end of an instruction, but does not strictly need to
+     * be. If the last instruction is only partly covered by this try block, it is considered to be covered.
+     *
+     * @return The number of code units covered by this try block.
+     */
     int getCodeUnitCount();
-    @Nonnull Collection<? extends ExceptionHandler> getExceptionHandlers();
+
+    /**
+     * A set of the exception handlers associated with this try block.
+     *
+     * The exception handlers in the returned set will all have a unique type, including at most 1 with no type, which
+     * is the catch-all handler.
+     *
+     * @return A set of ExceptionHandler objects
+     */
+    @Nonnull Set<? extends ExceptionHandler> getExceptionHandlers();
 }

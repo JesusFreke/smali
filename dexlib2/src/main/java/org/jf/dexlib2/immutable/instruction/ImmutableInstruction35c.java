@@ -44,13 +44,13 @@ import javax.annotation.Nonnull;
 public class ImmutableInstruction35c extends ImmutableInstruction implements Instruction35c {
     public static final Format FORMAT = Format.Format35c;
 
-    public final int registerCount;
-    public final int registerC;
-    public final int registerD;
-    public final int registerE;
-    public final int registerF;
-    public final int registerG;
-    @Nonnull public final ImmutableReference reference;
+    protected final int registerCount;
+    protected final int registerC;
+    protected final int registerD;
+    protected final int registerE;
+    protected final int registerF;
+    protected final int registerG;
+    @Nonnull protected final ImmutableReference reference;
 
     public ImmutableInstruction35c(@Nonnull Opcode opcode,
                                    int registerCount,

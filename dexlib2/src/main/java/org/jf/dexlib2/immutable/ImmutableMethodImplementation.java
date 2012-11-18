@@ -45,10 +45,10 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableMethodImplementation implements MethodImplementation {
-    public final int registerCount;
-    @Nonnull public final ImmutableList<? extends ImmutableInstruction> instructions;
-    @Nonnull public final ImmutableList<? extends ImmutableTryBlock> tryBlocks;
-    @Nonnull public final ImmutableList<? extends ImmutableDebugItem> debugItems;
+    protected final int registerCount;
+    @Nonnull protected final ImmutableList<? extends ImmutableInstruction> instructions;
+    @Nonnull protected final ImmutableList<? extends ImmutableTryBlock> tryBlocks;
+    @Nonnull protected final ImmutableList<? extends ImmutableDebugItem> debugItems;
 
     public ImmutableMethodImplementation(int registerCount,
                                          @Nullable Iterable<? extends Instruction> instructions,

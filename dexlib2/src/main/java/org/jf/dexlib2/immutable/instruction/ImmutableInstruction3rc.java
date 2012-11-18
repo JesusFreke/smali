@@ -44,10 +44,10 @@ import javax.annotation.Nonnull;
 public class ImmutableInstruction3rc extends ImmutableInstruction implements Instruction3rc {
     public static final Format FORMAT = Format.Format3rc;
 
-    public final int startRegister;
-    public final int registerCount;
+    protected final int startRegister;
+    protected final int registerCount;
 
-    @Nonnull public final ImmutableReference reference;
+    @Nonnull protected final ImmutableReference reference;
 
     public ImmutableInstruction3rc(@Nonnull Opcode opcode,
                                    int startRegister,

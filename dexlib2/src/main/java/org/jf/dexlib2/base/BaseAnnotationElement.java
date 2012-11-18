@@ -33,6 +33,9 @@ package org.jf.dexlib2.base;
 
 import org.jf.dexlib2.iface.AnnotationElement;
 
+import javax.annotation.Nonnull;
+import java.util.Comparator;
+
 public abstract class BaseAnnotationElement implements AnnotationElement {
     @Override
     public int hashCode() {
@@ -49,4 +52,18 @@ public abstract class BaseAnnotationElement implements AnnotationElement {
         }
         return false;
     }
+
+    @Override
+    public int compareTo(AnnotationElement o) {
+        int res = getName().compareTo(o.getName());
+        if (res != 0) return res;
+        return getValue().compareTo(o.getValue());
+    }
+
+    public static final Comparator<AnnotationElement> COMPARE_BY_NAME = new Comparator<AnnotationElement>() {
+        @Override
+        public int compare(@Nonnull AnnotationElement element1, @Nonnull AnnotationElement element2) {
+            return element1.getName().compareTo(element2.getName());
+        }
+    };
 }

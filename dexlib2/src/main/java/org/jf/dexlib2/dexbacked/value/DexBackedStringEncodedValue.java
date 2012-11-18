@@ -29,10 +29,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.immutable.sorted.value;
+package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
-import org.jf.dexlib2.immutable.value.ImmutableEncodedValue;
+import org.jf.dexlib2.base.value.BaseStringEncodedValue;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
 
-public interface SortedImmutableEncodedValue extends SortedEncodedValue, ImmutableEncodedValue {
+import javax.annotation.Nonnull;
+
+public class DexBackedStringEncodedValue extends BaseStringEncodedValue {
+    @Nonnull public final DexBuffer dexBuf;
+    private final int stringIndex;
+
+    public DexBackedStringEncodedValue(@Nonnull DexReader reader, int valueArg) {
+        this.dexBuf = reader.getDexBuffer();
+        stringIndex = reader.readSizedSmallUint(valueArg + 1);
+    }
+
+    @Override public String getValue() {
+        return dexBuf.getString(stringIndex);
+    }
 }

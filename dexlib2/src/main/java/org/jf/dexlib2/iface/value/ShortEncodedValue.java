@@ -31,8 +31,52 @@
 
 package org.jf.dexlib2.iface.value;
 
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface ShortEncodedValue extends EncodedValue, SortedEncodedValue {
+/**
+ * This class represents an encoded short value.
+ */
+public interface ShortEncodedValue extends EncodedValue {
+    /**
+     * Gets the short value.
+     *
+     * @return the short value
+     */
     short getValue();
+
+    /**
+     * Returns a hashcode for this EncodedShortValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = getValue();
+     * }</pre>
+     *
+     * @return The hash code value for this EncodedShortValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this ShortEncodedValue to another ShortEncodedValue for equality.
+     *
+     * This ShortEncodedValue is equal to another ShortEncodedValue if the values returned by getValue() are equal.
+     *
+     * @param o The object to be compared for equality with this ShortEncodedValue
+     * @return true if the specified object is equal to this ShortEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this ShortEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * ShortEncodedValue, the return values of getValue() are compared.
+     *
+     * @param o The EncodedValue to compare with this ShortEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

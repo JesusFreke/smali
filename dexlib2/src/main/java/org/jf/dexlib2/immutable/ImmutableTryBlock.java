@@ -32,35 +32,36 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class ImmutableTryBlock implements TryBlock {
-    public final int startCodeAddress;
-    public final int codeUnitCount;
-    @Nonnull public final ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers;
+    protected final int startCodeAddress;
+    protected final int codeUnitCount;
+    @Nonnull protected final ImmutableSet<? extends ImmutableExceptionHandler> exceptionHandlers;
 
     public ImmutableTryBlock(int startCodeAddress,
                              int codeUnitCount,
-                             @Nullable Collection<? extends ExceptionHandler> exceptionHandlers) {
+                             @Nullable Set<? extends ExceptionHandler> exceptionHandlers) {
         this.startCodeAddress = startCodeAddress;
         this.codeUnitCount = codeUnitCount;
-        this.exceptionHandlers = ImmutableExceptionHandler.immutableListOf(exceptionHandlers);
+        this.exceptionHandlers = ImmutableExceptionHandler.immutableSetOf(exceptionHandlers);
     }
 
     public ImmutableTryBlock(int startCodeAddress,
                              int codeUnitCount,
-                             @Nullable ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers) {
+                             @Nullable ImmutableSet<? extends ImmutableExceptionHandler> exceptionHandlers) {
         this.startCodeAddress = startCodeAddress;
         this.codeUnitCount = codeUnitCount;
-        this.exceptionHandlers = ImmutableUtils.nullToEmptyList(exceptionHandlers);
+        this.exceptionHandlers = ImmutableUtils.nullToEmptySet(exceptionHandlers);
     }
 
     public static ImmutableTryBlock of(TryBlock tryBlock) {
@@ -76,17 +77,17 @@ public class ImmutableTryBlock implements TryBlock {
     @Override public int getStartCodeAddress() { return startCodeAddress; }
     @Override public int getCodeUnitCount() { return codeUnitCount; }
 
-    @Nonnull @Override public ImmutableList<? extends ImmutableExceptionHandler> getExceptionHandlers() {
+    @Nonnull @Override public ImmutableSet<? extends ImmutableExceptionHandler> getExceptionHandlers() {
         return exceptionHandlers;
     }
 
     @Nonnull
     public static ImmutableList<ImmutableTryBlock> immutableListOf(@Nullable List<? extends TryBlock> list) {
-        return CONVERTER.convert(list);
+        return CONVERTER.toList(list);
     }
 
-    private static final ImmutableListConverter<ImmutableTryBlock, TryBlock> CONVERTER =
-            new ImmutableListConverter<ImmutableTryBlock, TryBlock>() {
+    private static final ImmutableConverter<ImmutableTryBlock, TryBlock> CONVERTER =
+            new ImmutableConverter<ImmutableTryBlock, TryBlock>() {
                 @Override
                 protected boolean isImmutable(@Nonnull TryBlock item) {
                     return item instanceof ImmutableTryBlock;

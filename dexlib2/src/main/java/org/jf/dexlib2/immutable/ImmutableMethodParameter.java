@@ -32,35 +32,35 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.MethodParameter;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 public class ImmutableMethodParameter extends BaseMethodParameter {
-    @Nonnull public final String type;
-    @Nonnull public final ImmutableList<? extends ImmutableAnnotation> annotations;
-    @Nullable public final String name;
+    @Nonnull protected final String type;
+    @Nonnull protected final ImmutableSet<? extends ImmutableAnnotation> annotations;
+    @Nullable protected final String name;
 
     public ImmutableMethodParameter(@Nonnull String type,
-                                    @Nullable Collection<? extends Annotation> annotations,
+                                    @Nullable Set<? extends Annotation> annotations,
                                     @Nullable String name) {
         this.type = type;
-        this.annotations = ImmutableAnnotation.immutableListOf(annotations);
+        this.annotations = ImmutableAnnotation.immutableSetOf(annotations);
         this.name = name;
     }
 
     public ImmutableMethodParameter(@Nonnull String type,
-                                    @Nullable ImmutableList<? extends ImmutableAnnotation> annotations,
+                                    @Nullable ImmutableSet<? extends ImmutableAnnotation> annotations,
                                     @Nullable String name) {
         this.type = type;
-        this.annotations = ImmutableUtils.nullToEmptyList(annotations);
+        this.annotations = ImmutableUtils.nullToEmptySet(annotations);
         this.name = name;
     }
 
@@ -75,7 +75,7 @@ public class ImmutableMethodParameter extends BaseMethodParameter {
     }
 
     @Nonnull @Override public String getType() { return type; }
-    @Nonnull @Override public List<? extends Annotation> getAnnotations() { return annotations; }
+    @Nonnull @Override public Set<? extends Annotation> getAnnotations() { return annotations; }
     @Nullable @Override public String getName() { return name; }
 
     //TODO: iterate over the annotations to get the signature
@@ -84,11 +84,11 @@ public class ImmutableMethodParameter extends BaseMethodParameter {
     @Nonnull
     public static ImmutableList<ImmutableMethodParameter> immutableListOf(
             @Nullable Iterable<? extends MethodParameter> list) {
-        return CONVERTER.convert(list);
+        return CONVERTER.toList(list);
     }
 
-    private static final ImmutableListConverter<ImmutableMethodParameter, MethodParameter> CONVERTER =
-            new ImmutableListConverter<ImmutableMethodParameter, MethodParameter>() {
+    private static final ImmutableConverter<ImmutableMethodParameter, MethodParameter> CONVERTER =
+            new ImmutableConverter<ImmutableMethodParameter, MethodParameter>() {
                 @Override
                 protected boolean isImmutable(@Nonnull MethodParameter item) {
                     return item instanceof ImmutableMethodParameter;

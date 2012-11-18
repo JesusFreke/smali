@@ -33,11 +33,9 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseCharEncodedValue;
 import org.jf.dexlib2.iface.value.CharEncodedValue;
-import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
-public class ImmutableCharEncodedValue extends BaseCharEncodedValue
-        implements ImmutableEncodedValue, SortedImmutableEncodedValue, CharEncodedValue {
-    public final char value;
+public class ImmutableCharEncodedValue extends BaseCharEncodedValue implements ImmutableEncodedValue {
+    protected final char value;
 
     public ImmutableCharEncodedValue(char value) {
         this.value = value;

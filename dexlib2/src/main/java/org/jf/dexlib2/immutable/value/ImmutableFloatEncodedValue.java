@@ -33,11 +33,9 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseFloatEncodedValue;
 import org.jf.dexlib2.iface.value.FloatEncodedValue;
-import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
-public class ImmutableFloatEncodedValue extends BaseFloatEncodedValue
-        implements ImmutableEncodedValue, SortedImmutableEncodedValue, FloatEncodedValue {
-    public final float value;
+public class ImmutableFloatEncodedValue extends BaseFloatEncodedValue implements ImmutableEncodedValue {
+    protected final float value;
 
     public ImmutableFloatEncodedValue(float value) {
         this.value = value;

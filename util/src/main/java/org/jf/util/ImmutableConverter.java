@@ -31,6 +31,8 @@
 
 package org.jf.util;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 
 import javax.annotation.Nonnull;
@@ -39,11 +41,75 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.SortedSet;
 
-public abstract class ImmutableSortedSetConverter<ImmutableItem, Item> {
+public abstract class ImmutableConverter<ImmutableItem, Item> {
+    protected abstract boolean isImmutable(@Nonnull Item item);
+    @Nonnull protected abstract ImmutableItem makeImmutable(@Nonnull Item item);
 
     @Nonnull
-    public ImmutableSortedSet<ImmutableItem> convert(@Nonnull Comparator<? super ImmutableItem> comparator,
-                                                     @Nullable final Iterable<? extends Item> iterable) {
+    public ImmutableList<ImmutableItem> toList(@Nullable final Iterable<? extends Item> iterable) {
+        if (iterable == null) {
+            return ImmutableList.of();
+        }
+
+        boolean needsCopy = false;
+        if (iterable instanceof ImmutableList) {
+            for (Item element: iterable) {
+                if (!isImmutable(element)) {
+                    needsCopy = true;
+                    break;
+                }
+            }
+        } else {
+            needsCopy = true;
+        }
+
+        if (!needsCopy) {
+            return (ImmutableList<ImmutableItem>)iterable;
+        }
+
+        final Iterator<? extends Item> iter = iterable.iterator();
+
+        return ImmutableList.copyOf(new Iterator<ImmutableItem>() {
+            @Override public boolean hasNext() { return iter.hasNext(); }
+            @Override public ImmutableItem next() { return makeImmutable(iter.next()); }
+            @Override public void remove() { iter.remove(); }
+        });
+    }
+
+    @Nonnull
+    public ImmutableSet<ImmutableItem> toSet(@Nullable final Iterable<? extends Item> iterable) {
+        if (iterable == null) {
+            return ImmutableSet.of();
+        }
+
+        boolean needsCopy = false;
+        if (iterable instanceof ImmutableSet) {
+            for (Item element: iterable) {
+                if (!isImmutable(element)) {
+                    needsCopy = true;
+                    break;
+                }
+            }
+        } else {
+            needsCopy = true;
+        }
+
+        if (!needsCopy) {
+            return (ImmutableSet<ImmutableItem>)iterable;
+        }
+
+        final Iterator<? extends Item> iter = iterable.iterator();
+
+        return ImmutableSet.copyOf(new Iterator<ImmutableItem>() {
+            @Override public boolean hasNext() { return iter.hasNext(); }
+            @Override public ImmutableItem next() { return makeImmutable(iter.next()); }
+            @Override public void remove() { iter.remove(); }
+        });
+    }
+
+    @Nonnull
+    public ImmutableSortedSet<ImmutableItem> toSortedSet(@Nonnull Comparator<? super ImmutableItem> comparator,
+                                                         @Nullable final Iterable<? extends Item> iterable) {
         if (iterable == null) {
             return ImmutableSortedSet.of();
         }
@@ -76,8 +142,8 @@ public abstract class ImmutableSortedSetConverter<ImmutableItem, Item> {
     }
 
     @Nonnull
-    public SortedSet<ImmutableItem> convert(@Nonnull Comparator<? super ImmutableItem> comparator,
-                                            @Nullable final SortedSet<? extends Item> sortedSet) {
+    public SortedSet<ImmutableItem> toSortedSet(@Nonnull Comparator<? super ImmutableItem> comparator,
+                                                @Nullable final SortedSet<? extends Item> sortedSet) {
         if (sortedSet == null || sortedSet.size() == 0) {
             return ImmutableSortedSet.of();
         }
@@ -91,7 +157,4 @@ public abstract class ImmutableSortedSetConverter<ImmutableItem, Item> {
 
         return ArraySortedSet.of(comparator, newItems);
     }
-
-    protected abstract boolean isImmutable(@Nonnull Item item);
-    @Nonnull protected abstract ImmutableItem makeImmutable(@Nonnull Item item);
 }

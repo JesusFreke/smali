@@ -31,8 +31,14 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Booleans;
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.BooleanEncodedValue;
+import org.jf.dexlib2.iface.value.EncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseBooleanEncodedValue implements BooleanEncodedValue {
     @Override
@@ -41,11 +47,18 @@ public abstract class BaseBooleanEncodedValue implements BooleanEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof BooleanEncodedValue) {
-            return getValue() == ((BooleanEncodedValue) o).getValue();
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof BooleanEncodedValue) {
+            return getValue() == ((BooleanEncodedValue)o).getValue();
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return Booleans.compare(getValue(), ((BooleanEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.BOOLEAN; }

@@ -34,13 +34,11 @@ package org.jf.dexlib2.immutable.value;
 import org.jf.dexlib2.base.value.BaseMethodEncodedValue;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.value.MethodEncodedValue;
-import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableMethodEncodedValue extends BaseMethodEncodedValue
-        implements ImmutableEncodedValue, SortedImmutableEncodedValue, MethodEncodedValue {
-    @Nonnull public final MethodReference value;
+public class ImmutableMethodEncodedValue extends BaseMethodEncodedValue implements ImmutableEncodedValue {
+    @Nonnull protected final MethodReference value;
 
     public ImmutableMethodEncodedValue(@Nonnull MethodReference value) {
         this.value = value;

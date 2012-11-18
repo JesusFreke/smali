@@ -32,10 +32,10 @@
 package org.jf.dexlib2.dexbacked;
 
 import org.jf.dexlib2.base.BaseAnnotation;
-import org.jf.dexlib2.dexbacked.util.VariableSizeCollection;
+import org.jf.dexlib2.dexbacked.util.VariableSizeSet;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+import java.util.Set;
 
 public class DexBackedAnnotation extends BaseAnnotation {
     @Nonnull public final DexBuffer dexBuf;
@@ -59,11 +59,11 @@ public class DexBackedAnnotation extends BaseAnnotation {
 
     @Nonnull
     @Override
-    public Collection<? extends DexBackedAnnotationElement> getElements() {
+    public Set<? extends DexBackedAnnotationElement> getElements() {
         DexReader reader = dexBuf.readerAt(elementsOffset);
         final int size = reader.readSmallUleb128();
 
-        return new VariableSizeCollection<DexBackedAnnotationElement>(dexBuf, reader.getOffset(), size) {
+        return new VariableSizeSet<DexBackedAnnotationElement>(dexBuf, reader.getOffset(), size) {
             @Nonnull
             @Override
             protected DexBackedAnnotationElement readNextItem(@Nonnull DexReader reader, int index) {

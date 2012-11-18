@@ -31,23 +31,35 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.DoubleEncodedValue;
+import org.jf.dexlib2.iface.value.EncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseDoubleEncodedValue implements DoubleEncodedValue {
     @Override
     public int hashCode() {
-        long value = Double.doubleToRawLongBits(getValue());
-        int hashCode = (int)value;
-        return hashCode*31 + (int)(value>>>32);
+        long v = Double.doubleToRawLongBits(getValue());
+        return (int)(v^(v>>>32));
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof DoubleEncodedValue) {
-            return getValue() == ((DoubleEncodedValue) o).getValue();
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof DoubleEncodedValue) {
+            return Double.doubleToRawLongBits(getValue()) ==
+                   Double.doubleToRawLongBits(((DoubleEncodedValue)o).getValue());
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return Double.compare(getValue(), ((DoubleEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.DOUBLE; }

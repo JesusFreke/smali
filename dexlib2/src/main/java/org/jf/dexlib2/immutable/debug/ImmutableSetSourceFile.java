@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class ImmutableSetSourceFile extends ImmutableDebugItem implements SetSourceFile {
-    @Nullable public final String sourceFile;
+    @Nullable protected final String sourceFile;
 
     public ImmutableSetSourceFile(int codeAddress,
                                   @Nullable String sourceFile) {

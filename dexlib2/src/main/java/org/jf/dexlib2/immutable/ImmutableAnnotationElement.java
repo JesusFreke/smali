@@ -31,20 +31,20 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.base.BaseAnnotationElement;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValueFactory;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class ImmutableAnnotationElement extends BaseAnnotationElement {
-    @Nonnull public final String name;
-    @Nonnull public final ImmutableEncodedValue value;
+    @Nonnull protected final String name;
+    @Nonnull protected final ImmutableEncodedValue value;
 
     public ImmutableAnnotationElement(@Nonnull String name,
                                       @Nonnull EncodedValue value) {
@@ -71,13 +71,13 @@ public class ImmutableAnnotationElement extends BaseAnnotationElement {
     @Nonnull @Override public EncodedValue getValue() { return value; }
 
     @Nonnull
-    public static ImmutableList<ImmutableAnnotationElement> immutableListOf(
+    public static ImmutableSet<ImmutableAnnotationElement> immutableSetOf(
             @Nullable Iterable<? extends AnnotationElement> list) {
-        return CONVERTER.convert(list);
+        return CONVERTER.toSet(list);
     }
 
-    private static final ImmutableListConverter<ImmutableAnnotationElement, AnnotationElement> CONVERTER =
-            new ImmutableListConverter<ImmutableAnnotationElement, AnnotationElement>() {
+    private static final ImmutableConverter<ImmutableAnnotationElement, AnnotationElement> CONVERTER =
+            new ImmutableConverter<ImmutableAnnotationElement, AnnotationElement>() {
                 @Override
                 protected boolean isImmutable(@Nonnull AnnotationElement item) {
                     return item instanceof ImmutableAnnotationElement;

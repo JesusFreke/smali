@@ -35,7 +35,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.*;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -93,11 +93,11 @@ public class ImmutableEncodedValueFactory {
     @Nonnull
     public static ImmutableList<ImmutableEncodedValue> immutableListOf
             (@Nullable Iterable<? extends EncodedValue> list) {
-        return CONVERTER.convert(list);
+        return CONVERTER.toList(list);
     }
 
-    private static final ImmutableListConverter<ImmutableEncodedValue, EncodedValue> CONVERTER =
-            new ImmutableListConverter<ImmutableEncodedValue, EncodedValue>() {
+    private static final ImmutableConverter<ImmutableEncodedValue, EncodedValue> CONVERTER =
+            new ImmutableConverter<ImmutableEncodedValue, EncodedValue>() {
                 @Override
                 protected boolean isImmutable(@Nonnull EncodedValue item) {
                     return item instanceof ImmutableEncodedValue;

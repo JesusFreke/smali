@@ -31,8 +31,14 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Chars;
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.CharEncodedValue;
+import org.jf.dexlib2.iface.value.EncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseCharEncodedValue implements CharEncodedValue {
     @Override
@@ -41,11 +47,18 @@ public abstract class BaseCharEncodedValue implements CharEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof CharEncodedValue) {
-            return getValue() == ((CharEncodedValue) o).getValue();
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof CharEncodedValue) {
+            return getValue() == ((CharEncodedValue)o).getValue();
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return Chars.compare(getValue(), ((CharEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.CHAR; }

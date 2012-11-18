@@ -31,8 +31,13 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.EnumEncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseEnumEncodedValue implements EnumEncodedValue {
     @Override
@@ -41,11 +46,18 @@ public abstract class BaseEnumEncodedValue implements EnumEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof EnumEncodedValue) {
-            return getValue().equals(((EnumEncodedValue) o).getValue());
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof EnumEncodedValue) {
+            return getValue().equals(((EnumEncodedValue)o).getValue());
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return getValue().compareTo(((EnumEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.ENUM; }

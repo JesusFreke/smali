@@ -32,23 +32,25 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotation;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Set;
 
 public abstract class AnnotationsDirectory {
     public static final AnnotationsDirectory EMPTY = new AnnotationsDirectory() {
         @Override public int getFieldAnnotationCount() { return 0; }
-        @Nonnull @Override public List<? extends DexBackedAnnotation> getClassAnnotations() {return ImmutableList.of();}
+        @Nonnull @Override public Set<? extends DexBackedAnnotation> getClassAnnotations() { return ImmutableSet.of(); }
         @Nonnull @Override public AnnotationIterator getFieldAnnotationIterator() { return AnnotationIterator.EMPTY; }
         @Nonnull @Override public AnnotationIterator getMethodAnnotationIterator() { return AnnotationIterator.EMPTY; }
         @Nonnull @Override public AnnotationIterator getParameterAnnotationIterator() {return AnnotationIterator.EMPTY;}
     };
 
     public abstract int getFieldAnnotationCount();
-    @Nonnull public abstract List<? extends DexBackedAnnotation> getClassAnnotations();
+    @Nonnull public abstract Set<? extends DexBackedAnnotation> getClassAnnotations();
     @Nonnull public abstract AnnotationIterator getFieldAnnotationIterator();
     @Nonnull public abstract AnnotationIterator getMethodAnnotationIterator();
     @Nonnull public abstract AnnotationIterator getParameterAnnotationIterator();
@@ -74,11 +76,11 @@ public abstract class AnnotationsDirectory {
     }
 
     @Nonnull
-    public static List<? extends DexBackedAnnotation> getAnnotations(@Nonnull final DexBuffer dexBuf,
+    public static Set<? extends DexBackedAnnotation> getAnnotations(@Nonnull final DexBuffer dexBuf,
                                                                      final int annotationSetOffset) {
         if (annotationSetOffset != 0) {
             final int size = dexBuf.readSmallUint(annotationSetOffset);
-            return new FixedSizeList<DexBackedAnnotation>() {
+            return new FixedSizeSet<DexBackedAnnotation>() {
                 @Nonnull
                 @Override
                 public DexBackedAnnotation readItem(int index) {
@@ -90,19 +92,19 @@ public abstract class AnnotationsDirectory {
             };
         }
 
-        return ImmutableList.of();
+        return ImmutableSet.of();
     }
 
     @Nonnull
-    public static List<List<? extends DexBackedAnnotation>> getParameterAnnotations(@Nonnull final DexBuffer dexBuf,
+    public static List<Set<? extends DexBackedAnnotation>> getParameterAnnotations(@Nonnull final DexBuffer dexBuf,
                                                                                     final int annotationSetListOffset) {
         if (annotationSetListOffset > 0) {
             final int size = dexBuf.readSmallUint(annotationSetListOffset);
 
-            return new FixedSizeList<List<? extends DexBackedAnnotation>>() {
+            return new FixedSizeList<Set<? extends DexBackedAnnotation>>() {
                 @Nonnull
                 @Override
-                public List<? extends DexBackedAnnotation> readItem(int index) {
+                public Set<? extends DexBackedAnnotation> readItem(int index) {
                     int annotationSetOffset = dexBuf.readSmallUint(annotationSetListOffset + 4 + index * 4);
                     return getAnnotations(dexBuf, annotationSetOffset);
                 }
@@ -146,7 +148,7 @@ public abstract class AnnotationsDirectory {
         }
 
         @Nonnull
-        public List<? extends DexBackedAnnotation> getClassAnnotations() {
+        public Set<? extends DexBackedAnnotation> getClassAnnotations() {
             return getAnnotations(dexBuf, dexBuf.readSmallUint(directoryOffset));
         }
 

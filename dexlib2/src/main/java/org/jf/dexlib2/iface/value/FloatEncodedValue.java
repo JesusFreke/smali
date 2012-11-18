@@ -31,8 +31,58 @@
 
 package org.jf.dexlib2.iface.value;
 
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface FloatEncodedValue extends EncodedValue, SortedEncodedValue {
+/**
+ * This class represents an encoded float value.
+ */
+public interface FloatEncodedValue extends EncodedValue {
+    /**
+     * Gets the float value.
+     *
+     * @return the float value
+     */
     float getValue();
+
+    /**
+     * Returns a hashcode for this EncodedFloatValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = Float.floatToRawIntBits(getValue());
+     * }</pre>
+     *
+     * Note: This is slightly different than the definition of Float.hashCode(). This uses floatToRawIntBits()
+     * instead of floatToIntBits(), in order to preserve as much information as possible.
+     *
+     * @return The hash code value for this EncodedFloatValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this FloatEncodedValue to another FloatEncodedValue for equality.
+     *
+     * This FloatEncodedValue is equal to another FloatEncodedValue if the values returned by
+     * getValue().floatToRawIntBits() are equal.
+     *
+     * Note: this isn't quite the same as getValue() == getValue(), due to various NaN issues and signed zero issues.
+     *
+     * @param o The object to be compared for equality with this FloatEncodedValue
+     * @return true if the specified object is equal to this FloatEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this FloatEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * FloatEncodedValue, the return values of getValue() are compared, using the semantics of Float.compare()
+     *
+     * @param o The EncodedValue to compare with this FloatEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

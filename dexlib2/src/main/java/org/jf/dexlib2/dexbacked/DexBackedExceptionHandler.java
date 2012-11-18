@@ -31,11 +31,12 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.dexlib2.base.BaseExceptionHandler;
 import org.jf.dexlib2.iface.ExceptionHandler;
 
 import javax.annotation.Nonnull;
 
-public class DexBackedExceptionHandler implements ExceptionHandler {
+public class DexBackedExceptionHandler extends BaseExceptionHandler implements ExceptionHandler {
     @Nonnull private final DexBuffer dexBuf;
     private final int typeId;
     private final int handlerCodeAddress;

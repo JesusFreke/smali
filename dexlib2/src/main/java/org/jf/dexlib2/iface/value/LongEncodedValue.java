@@ -31,8 +31,53 @@
 
 package org.jf.dexlib2.iface.value;
 
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface LongEncodedValue extends EncodedValue, SortedEncodedValue {
+/**
+ * This class represents an encoded long value.
+ */
+public interface LongEncodedValue extends EncodedValue {
+    /**
+     * Gets the long value.
+     *
+     * @return the long value
+     */
     long getValue();
+
+    /**
+     * Returns a hashcode for this EncodedLongValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * long v = getValue();
+     * int hashCode = (int)(v^(v>>>32));
+     * }</pre>
+     *
+     * @return The hash code value for this EncodedLongValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this LongEncodedValue to another LongEncodedValue for equality.
+     *
+     * This LongEncodedValue is equal to another LongEncodedValue if the values returned by getValue() are equal.
+     *
+     * @param o The object to be compared for equality with this LongEncodedValue
+     * @return true if the specified object is equal to this LongEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this LongEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * LongEncodedValue, the return values of getValue() are compared.
+     *
+     * @param o The EncodedValue to compare with this LongEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

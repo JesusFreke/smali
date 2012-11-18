@@ -33,11 +33,9 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseLongEncodedValue;
 import org.jf.dexlib2.iface.value.LongEncodedValue;
-import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
-public class ImmutableLongEncodedValue extends BaseLongEncodedValue
-        implements ImmutableEncodedValue, SortedImmutableEncodedValue, LongEncodedValue {
-    public final long value;
+public class ImmutableLongEncodedValue extends BaseLongEncodedValue implements ImmutableEncodedValue {
+    protected final long value;
 
     public ImmutableLongEncodedValue(long value) {
         this.value = value;

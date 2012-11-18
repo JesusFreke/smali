@@ -32,8 +32,18 @@
 package org.jf.dexlib2.iface;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.Set;
 
+/**
+ * This class is a high level representation of a dex file - essentially a set of class definitions.
+ */
 public interface DexFile {
-    @Nonnull List<? extends ClassDef> getClasses();
+    /**
+     * Get a set of the classes defined in this dex file.
+     *
+     * The classes in the returned set will all have unique types.
+     *
+     * @return A set of the classes defined in this dex file
+     */
+    @Nonnull Set<? extends ClassDef> getClasses();
 }

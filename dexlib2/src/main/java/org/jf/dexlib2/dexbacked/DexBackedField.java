@@ -40,7 +40,7 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Set;
 
 public class DexBackedField extends BaseFieldReference implements Field {
     @Nonnull public final DexBuffer dexBuf;
@@ -86,13 +86,13 @@ public class DexBackedField extends BaseFieldReference implements Field {
         return dexBuf.getType(dexBuf.readUshort(getFieldIdItemOffset() + TYPE_OFFSET));
     }
 
-    @Nonnull @Override public String getContainingClass() { return classDef.getType(); }
+    @Nonnull @Override public String getDefiningClass() { return classDef.getType(); }
     @Override public int getAccessFlags() { return accessFlags; }
     @Nullable @Override public EncodedValue getInitialValue() { return initialValue; }
 
     @Nonnull
     @Override
-    public List<? extends DexBackedAnnotation> getAnnotations() {
+    public Set<? extends DexBackedAnnotation> getAnnotations() {
         return AnnotationsDirectory.getAnnotations(dexBuf, annotationSetOffset);
     }
 

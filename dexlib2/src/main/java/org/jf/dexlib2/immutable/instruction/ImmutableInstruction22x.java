@@ -41,8 +41,8 @@ import javax.annotation.Nonnull;
 public class ImmutableInstruction22x extends ImmutableInstruction implements Instruction22x {
     public static final Format FORMAT = Format.Format22x;
 
-    public final int registerA;
-    public final int registerB;
+    protected final int registerA;
+    protected final int registerB;
 
     public ImmutableInstruction22x(@Nonnull Opcode opcode,
                                    int registerA,

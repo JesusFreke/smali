@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 public class ImmutableInstruction10t extends ImmutableInstruction implements Instruction10t {
     public static final Format FORMAT = Format.Format10t;
 
-    public final int codeOffset;
+    protected final int codeOffset;
 
     public ImmutableInstruction10t(@Nonnull Opcode opcode,
                                    int codeOffset) {

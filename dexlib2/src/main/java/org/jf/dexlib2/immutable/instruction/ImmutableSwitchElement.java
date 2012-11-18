@@ -33,15 +33,15 @@ package org.jf.dexlib2.immutable.instruction;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutableSwitchElement implements SwitchElement {
-    public final int key;
-    public final int offset;
+    protected final int key;
+    protected final int offset;
 
     public ImmutableSwitchElement(int key,
                                   int offset) {
@@ -64,11 +64,11 @@ public class ImmutableSwitchElement implements SwitchElement {
 
     @Nonnull
     public static ImmutableList<ImmutableSwitchElement> immutableListOf(@Nullable List<? extends SwitchElement> list) {
-        return CONVERTER.convert(list);
+        return CONVERTER.toList(list);
     }
 
-    private static final ImmutableListConverter<ImmutableSwitchElement, SwitchElement> CONVERTER =
-            new ImmutableListConverter<ImmutableSwitchElement, SwitchElement>() {
+    private static final ImmutableConverter<ImmutableSwitchElement, SwitchElement> CONVERTER =
+            new ImmutableConverter<ImmutableSwitchElement, SwitchElement>() {
                 @Override
                 protected boolean isImmutable(@Nonnull SwitchElement item) {
                     return item instanceof ImmutableSwitchElement;

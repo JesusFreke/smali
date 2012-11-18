@@ -37,12 +37,12 @@ import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.util.Preconditions;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
 
 public abstract class ImmutableInstruction implements Instruction {
-    @Nonnull public final Opcode opcode;
+    @Nonnull protected final Opcode opcode;
 
     protected ImmutableInstruction(@Nonnull Opcode opcode) {
         this.opcode = opcode;
@@ -131,11 +131,11 @@ public abstract class ImmutableInstruction implements Instruction {
 
     @Nonnull
     public static ImmutableList<ImmutableInstruction> immutableListOf(Iterable<? extends Instruction> list) {
-        return CONVERTER.convert(list);
+        return CONVERTER.toList(list);
     }
 
-    private static final ImmutableListConverter<ImmutableInstruction, Instruction> CONVERTER =
-            new ImmutableListConverter<ImmutableInstruction, Instruction>() {
+    private static final ImmutableConverter<ImmutableInstruction, Instruction> CONVERTER =
+            new ImmutableConverter<ImmutableInstruction, Instruction>() {
                 @Override
                 protected boolean isImmutable(@Nonnull Instruction item) {
                     return item instanceof ImmutableInstruction;

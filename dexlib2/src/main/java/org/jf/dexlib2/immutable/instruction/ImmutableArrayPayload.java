@@ -44,8 +44,8 @@ import java.util.List;
 public class ImmutableArrayPayload extends ImmutableInstruction implements ArrayPayload {
     public static final Opcode OPCODE = Opcode.ARRAY_PAYLOAD;
 
-    public final int elementWidth;
-    @Nonnull public final ImmutableList<Number> arrayElements;
+    protected final int elementWidth;
+    @Nonnull protected final ImmutableList<Number> arrayElements;
 
     public ImmutableArrayPayload(int elementWidth,
                                  @Nullable List<Number> arrayElements) {

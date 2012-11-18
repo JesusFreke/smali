@@ -29,15 +29,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.sorted;
+package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.base.value.BaseEnumEncodedValue;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
+import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
+import org.jf.dexlib2.iface.reference.FieldReference;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.SortedSet;
 
-public interface SortedMethod extends Method {
-    @Nonnull Collection<? extends SortedMethodParameter> getParameters();
-    @Nonnull SortedSet<? extends SortedAnnotation> getAnnotations();
+public class DexBackedEnumEncodedValue extends BaseEnumEncodedValue {
+    @Nonnull public final DexBuffer dexBuf;
+    private final int fieldIndex;
+
+    public DexBackedEnumEncodedValue(@Nonnull DexReader reader, int valueArg) {
+        this.dexBuf = reader.getDexBuffer();
+        fieldIndex = reader.readSizedSmallUint(valueArg + 1);
+    }
+
+    @Override public FieldReference getValue() {
+        return new DexBackedFieldReference(dexBuf, fieldIndex);
+    }
 }

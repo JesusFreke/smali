@@ -37,7 +37,7 @@ import org.jf.dexlib2.iface.reference.StringReference;
 import javax.annotation.Nonnull;
 
 public class ImmutableStringReference extends BaseStringReference implements ImmutableReference {
-    @Nonnull public final String str;
+    @Nonnull protected final String str;
 
     public ImmutableStringReference(String str) {
         this.str = str;

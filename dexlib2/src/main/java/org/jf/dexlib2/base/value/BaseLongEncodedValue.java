@@ -31,8 +31,14 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.LongEncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseLongEncodedValue implements LongEncodedValue {
     @Override
@@ -43,11 +49,18 @@ public abstract class BaseLongEncodedValue implements LongEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof LongEncodedValue) {
-            return getValue() == ((LongEncodedValue) o).getValue();
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof LongEncodedValue) {
+            return getValue() == ((LongEncodedValue)o).getValue();
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return Longs.compare(getValue(), ((LongEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.LONG; }

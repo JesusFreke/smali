@@ -31,8 +31,45 @@
 
 package org.jf.dexlib2.iface.value;
 
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface NullEncodedValue extends EncodedValue, SortedEncodedValue {
-    //no value
+/**
+ * This class represents an encoded null value.
+ */
+public interface NullEncodedValue extends EncodedValue {
+    /**
+     * Returns a hashcode for this EncodedNullValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = 0;
+     * }</pre>
+     *
+     * @return The hash code value for this EncodedNullValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this NullEncodedValue to another NullEncodedValue for equality.
+     *
+     * This NullEncodedValue is always equal to another other NullEncodedValue
+     *
+     * @param o The object to be compared for equality with this NullEncodedValue
+     * @return true if the specified object is equal to this NullEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this NullEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * NullEncodedValue, then 0 is returned.
+     *
+     * @param o The EncodedValue to compare with this NullEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

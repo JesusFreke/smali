@@ -31,16 +31,17 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.base.BaseExceptionHandler;
 import org.jf.dexlib2.iface.ExceptionHandler;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class ImmutableExceptionHandler implements ExceptionHandler {
-    @Nullable public final String exceptionType;
-    public final int handlerCodeAddress;
+public class ImmutableExceptionHandler extends BaseExceptionHandler implements ExceptionHandler {
+    @Nullable protected final String exceptionType;
+    protected final int handlerCodeAddress;
 
     public ImmutableExceptionHandler(@Nullable String exceptionType,
                                      int handlerCodeAddress) {
@@ -61,13 +62,13 @@ public class ImmutableExceptionHandler implements ExceptionHandler {
     @Override public int getHandlerCodeAddress() { return handlerCodeAddress; }
 
     @Nonnull
-    public static ImmutableList<ImmutableExceptionHandler> immutableListOf(
+    public static ImmutableSet<ImmutableExceptionHandler> immutableSetOf(
             @Nullable Iterable<? extends ExceptionHandler> list) {
-        return CONVERTER.convert(list);
+        return CONVERTER.toSet(list);
     }
 
-    private static final ImmutableListConverter<ImmutableExceptionHandler, ExceptionHandler> CONVERTER =
-            new ImmutableListConverter<ImmutableExceptionHandler, ExceptionHandler>() {
+    private static final ImmutableConverter<ImmutableExceptionHandler, ExceptionHandler> CONVERTER =
+            new ImmutableConverter<ImmutableExceptionHandler, ExceptionHandler>() {
                 @Override
                 protected boolean isImmutable(@Nonnull ExceptionHandler item) {
                     return item instanceof ImmutableExceptionHandler;

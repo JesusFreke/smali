@@ -34,27 +34,25 @@ package org.jf.dexlib2.base.reference;
 import org.jf.dexlib2.iface.reference.StringReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseStringReference implements StringReference {
     @Override
     public int hashCode() {
-        return hashCode(this);
+        return getString().hashCode();
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (o != null && o instanceof StringReference) {
-            return equals(this, (StringReference)o);
+            return getString().equals(((StringReference)o).getString());
         }
         return false;
     }
 
-    public static int hashCode(@Nonnull StringReference stringRef) {
-        return stringRef.getString().hashCode();
-    }
-
-    public static boolean equals(@Nonnull StringReference stringRef1, @Nonnull StringReference stringRef2) {
-        return stringRef1.getString().equals(stringRef2.getString());
+    @Override
+    public int compareTo(@Nonnull CharSequence o) {
+        return getString().compareTo(o.toString());
     }
 
     @Override public int length() { return getString().length(); }

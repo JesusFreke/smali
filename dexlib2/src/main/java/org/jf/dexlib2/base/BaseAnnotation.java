@@ -31,37 +31,44 @@
 
 package org.jf.dexlib2.base;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.iface.Annotation;
-import org.jf.dexlib2.iface.AnnotationElement;
+import org.jf.util.CollectionUtils;
 
-import javax.annotation.Nonnull;
+import java.util.Comparator;
 
 public abstract class BaseAnnotation implements Annotation {
     @Override
     public int hashCode() {
-        return hashCode(this);
+        int hashCode = getVisibility();
+        hashCode = hashCode*31 + getType().hashCode();
+        return hashCode*31 + getElements().hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o != null && o instanceof Annotation) {
-            return equals(this, (Annotation)o);
+        if (o instanceof Annotation) {
+            Annotation other = (Annotation)o;
+            return (getVisibility() == other.getVisibility()) &&
+                   getType().equals(other.getType()) &&
+                   getElements().equals(other.getElements());
         }
         return false;
     }
 
-    public static int hashCode(@Nonnull Annotation annotation) {
-        int hashCode = annotation.getVisibility();
-        hashCode = hashCode*31 + annotation.getType().hashCode();
-        for (AnnotationElement element: annotation.getElements()) {
-            hashCode = hashCode*31 + element.hashCode();
-        }
-        return hashCode;
+    @Override
+    public int compareTo(Annotation o) {
+        int res = Ints.compare(getVisibility(), o.getVisibility());
+        if (res != 0) return res;
+        res = getType().compareTo(o.getType());
+        if (res != 0) return res;
+        return CollectionUtils.compareAsSet(getElements(), o.getElements());
     }
 
-    public static boolean equals(@Nonnull Annotation annotation1, @Nonnull Annotation annotation2) {
-        return (annotation1.getVisibility() == annotation2.getVisibility()) &&
-                annotation1.getType().equals(annotation2.getType()) &&
-                annotation1.getElements().equals(annotation2.getElements());
-    }
+    public static final Comparator<Annotation> COMPARE_BY_TYPE = new Comparator<Annotation>() {
+        @Override
+        public int compare(Annotation annotation1, Annotation annotation2) {
+            return annotation1.getType().compareTo(annotation2.getType());
+        }
+    };
 }

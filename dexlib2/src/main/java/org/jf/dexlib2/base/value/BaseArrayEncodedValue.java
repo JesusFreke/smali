@@ -31,8 +31,14 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
+import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.util.CollectionUtils;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseArrayEncodedValue implements ArrayEncodedValue {
     @Override
@@ -41,11 +47,17 @@ public abstract class BaseArrayEncodedValue implements ArrayEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof ArrayEncodedValue) {
-            return getValue().equals(((ArrayEncodedValue) o).getValue());
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof ArrayEncodedValue) {
+            return getValue().equals(((ArrayEncodedValue)o).getValue());
         }
         return false;
+    }
+
+    @Override public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return CollectionUtils.compareAsList(getValue(), ((ArrayEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.ARRAY; }

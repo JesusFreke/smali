@@ -44,7 +44,6 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.AlignmentUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -96,6 +95,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull
     @Override
     public List<? extends TryBlock> getTryBlocks() {
+        // TODO: provide utility to put try blocks into a "canonical", easy to use format, which more closely matches java's try blocks
         final int triesSize = dexBuf.readUshort(codeOffset + TRIES_SIZE_OFFSET);
         if (triesSize > 0) {
             int instructionsSize = dexBuf.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
@@ -132,7 +132,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull
-    public Collection<? extends MethodParameter> getParametersWithNames() {
+    public List<? extends MethodParameter> getParametersWithNames() {
         return getDebugInfo().getParametersWithNames();
     }
 }

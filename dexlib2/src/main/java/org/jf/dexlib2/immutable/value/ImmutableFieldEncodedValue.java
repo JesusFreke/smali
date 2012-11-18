@@ -34,13 +34,11 @@ package org.jf.dexlib2.immutable.value;
 import org.jf.dexlib2.base.value.BaseFieldEncodedValue;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.value.FieldEncodedValue;
-import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableFieldEncodedValue extends BaseFieldEncodedValue
-        implements ImmutableEncodedValue, SortedImmutableEncodedValue, FieldEncodedValue {
-    @Nonnull public final FieldReference value;
+public class ImmutableFieldEncodedValue extends BaseFieldEncodedValue implements ImmutableEncodedValue {
+    @Nonnull protected final FieldReference value;
 
     public ImmutableFieldEncodedValue(@Nonnull FieldReference value) {
         this.value = value;

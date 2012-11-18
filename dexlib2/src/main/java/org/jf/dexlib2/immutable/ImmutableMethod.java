@@ -32,56 +32,60 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Ordering;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 public class ImmutableMethod extends BaseMethodReference implements Method {
-    @Nonnull public final String containingClass;
-    @Nonnull public final String name;
-    @Nonnull public final ImmutableList<? extends ImmutableMethodParameter> parameters;
-    @Nonnull public final String returnType;
-    public final int accessFlags;
-    @Nonnull public final ImmutableList<? extends ImmutableAnnotation> annotations;
-    @Nullable public final ImmutableMethodImplementation methodImplementation;
+    @Nonnull protected final String definingClass;
+    @Nonnull protected final String name;
+    @Nonnull protected final ImmutableList<? extends ImmutableMethodParameter> parameters;
+    @Nonnull protected final String returnType;
+    protected final int accessFlags;
+    @Nonnull protected final ImmutableSet<? extends ImmutableAnnotation> annotations;
+    @Nullable protected final ImmutableMethodImplementation methodImplementation;
 
-    public ImmutableMethod(@Nonnull String containingClass,
+    public ImmutableMethod(@Nonnull String definingClass,
                            @Nonnull String name,
-                           @Nullable Collection<? extends MethodParameter> parameters,
+                           @Nullable List<? extends MethodParameter> parameters,
                            @Nonnull String returnType,
                            int accessFlags,
-                           @Nullable Collection<? extends Annotation> annotations,
+                           @Nullable Set<? extends Annotation> annotations,
                            @Nullable MethodImplementation methodImplementation) {
-        this.containingClass = containingClass;
+        this.definingClass = definingClass;
         this.name = name;
         this.parameters = ImmutableMethodParameter.immutableListOf(parameters);
         this.returnType = returnType;
         this.accessFlags = accessFlags;
-        this.annotations = ImmutableAnnotation.immutableListOf(annotations);
+        this.annotations = ImmutableAnnotation.immutableSetOf(annotations);
         this.methodImplementation = ImmutableMethodImplementation.of(methodImplementation);
     }
 
-    public ImmutableMethod(@Nonnull String containingClass,
+    public ImmutableMethod(@Nonnull String definingClass,
                            @Nonnull String name,
                            @Nullable ImmutableList<? extends ImmutableMethodParameter> parameters,
                            @Nonnull String returnType,
                            int accessFlags,
-                           @Nullable ImmutableList<? extends ImmutableAnnotation> annotations,
+                           @Nullable ImmutableSet<? extends ImmutableAnnotation> annotations,
                            @Nullable ImmutableMethodImplementation methodImplementation) {
-        this.containingClass = containingClass;
+        this.definingClass = definingClass;
         this.name = name;
         this.parameters = ImmutableUtils.nullToEmptyList(parameters);
         this.returnType = returnType;
         this.accessFlags = accessFlags;
-        this.annotations = ImmutableUtils.nullToEmptyList(annotations);
+        this.annotations = ImmutableUtils.nullToEmptySet(annotations);
         this.methodImplementation = methodImplementation;
     }
 
@@ -90,7 +94,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
             return (ImmutableMethod)method;
         }
         return new ImmutableMethod(
-                method.getContainingClass(),
+                method.getDefiningClass(),
                 method.getName(),
                 method.getParameters(),
                 method.getReturnType(),
@@ -99,21 +103,21 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
                 method.getImplementation());
     }
 
-    @Nonnull public String getContainingClass() { return containingClass; }
+    @Nonnull public String getDefiningClass() { return definingClass; }
     @Nonnull public String getName() { return name; }
     @Nonnull public ImmutableList<? extends ImmutableMethodParameter> getParameters() { return parameters; }
     @Nonnull public String getReturnType() { return returnType; }
     public int getAccessFlags() { return accessFlags; }
-    @Nonnull public ImmutableList<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
+    @Nonnull public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
     @Nullable public ImmutableMethodImplementation getImplementation() { return methodImplementation; }
 
     @Nonnull
-    public static ImmutableList<ImmutableMethod> immutableListOf(@Nullable Iterable<? extends Method> list) {
-        return CONVERTER.convert(list);
+    public static ImmutableSortedSet<ImmutableMethod> immutableSetOf(@Nullable Iterable<? extends Method> list) {
+        return CONVERTER.toSortedSet(Ordering.natural(), list);
     }
 
-    private static final ImmutableListConverter<ImmutableMethod, Method> CONVERTER =
-            new ImmutableListConverter<ImmutableMethod, Method>() {
+    private static final ImmutableConverter<ImmutableMethod, Method> CONVERTER =
+            new ImmutableConverter<ImmutableMethod, Method>() {
                 @Override
                 protected boolean isImmutable(@Nonnull Method item) {
                     return item instanceof ImmutableMethod;

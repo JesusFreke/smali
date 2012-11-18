@@ -34,8 +34,59 @@ package org.jf.dexlib2.iface;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface AnnotationElement {
+/**
+ * This class represents an individual name/value element in an annotation
+ */
+public interface AnnotationElement extends Comparable<AnnotationElement> {
+    /**
+     * Gets the name of the element.
+     *
+     * @return The name of the element.
+     */
     @Nonnull String getName();
+
+    /**
+     * Gets the value of the element.
+     *
+     * @return The value of the element
+     */
     @Nonnull EncodedValue getValue();
+
+    /**
+     * Returns a hashcode for this AnnotationElement.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = getName().hashCode();
+     * hashCode = hashCode*31 + getValue().hashCode();
+     * }</pre>
+     *
+     * @return The hash code value for this AnnotationElement
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this AnnotationElement to another AnnotationElement for equality.
+     *
+     * This AnnotationElement is equal to another AnnotationElement if all of it's "fields" are equal. That is, if
+     * the return values of getName() and getValue() are both equal.
+     *
+     * @param o The object to be compared for equality with this AnnotationElement
+     * @return true if the specified object is equal to this AnnotationElement
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compares this AnnotationElement to another AnnotationElement.
+     *
+     * The comparison is based on the value of getName() and getValue(), in that order.
+     *
+     * @param o The AnnotationElement to compare with this AnnotationElement
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(AnnotationElement o);
 }

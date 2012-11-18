@@ -35,16 +35,83 @@ import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
+/**
+ * This class represents a class definition.
+ *
+ * It also acts as a TypeReference to itself. Any equality/comparison is based on its identity as a TypeReference,
+ * and shouldn't take into account anything other than the type of this class.
+ */
 public interface ClassDef extends TypeReference {
-    @Nonnull String getType();
+    /**
+     * Gets the class type.
+     *
+     * This will be a type descriptor per the dex file specification.
+     *
+     * @return The class type
+     */
+    @Override @Nonnull String getType();
+
+    /**
+     * Gets the access flags for this class.
+     *
+     * This will be a combination of the AccessFlags.* flags that are marked as compatible for use with a class.
+     *
+     * @return The access flags for this class
+     */
     int getAccessFlags();
+
+    /**
+     * Gets the superclass of this class.
+     *
+     * This will only be null if this is the base java.lang.Object class.
+     *
+     * @return The superclass of this class
+     */
     @Nullable String getSuperclass();
-    @Nonnull List<String> getInterfaces();
+
+    /**
+     * Gets a set of the interfaces that this class implements.
+     *
+     * @return A set of the interfaces that this class implements
+     */
+    @Nonnull Set<String> getInterfaces();
+
+    /**
+     * Gets the name of the primary source file that this class is defined in, if available.
+     *
+     * This will be the default source file associated with all methods defined in this class. This can be overridden
+     * for sections of an individual method with the SetSourceFile debug item.
+     *
+     * @return The name of the primary source file for this class, or null if not available
+     */
     @Nullable String getSourceFile();
-    @Nonnull Collection<? extends Annotation> getAnnotations();
-    @Nonnull Collection<? extends Field> getFields();
-    @Nonnull Collection<? extends Method> getMethods();
+
+    /**
+     * Gets a set of the annotations that are applied to this class.
+     *
+     * The annotations in the returned set are guaranteed to have unique types.
+     *
+     * @return A set of the annotations that are applied to this class
+     */
+    @Nonnull Set<? extends Annotation> getAnnotations();
+
+    /**
+     * Gets a set of the fields that are defined by this class.
+     *
+     * TODO: uniqueness?
+     *
+     * @return A set of the fields that are defined by this class
+     */
+    @Nonnull Set<? extends Field> getFields();
+
+    /**
+     * Gets a set of the methods that are defined by this class.
+     *
+     * TODO: uniqueness?
+     *
+     * @return A set of the methods that are defined by this class.
+     */
+    @Nonnull Set<? extends Method> getMethods();
 }

@@ -31,17 +31,19 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
-import org.jf.dexlib2.dexbacked.util.*;
+import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
+import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
+import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
+import org.jf.dexlib2.dexbacked.util.VariableSizeIterator;
 import org.jf.dexlib2.iface.ClassDef;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.AbstractCollection;
-import java.util.Collection;
+import java.util.AbstractSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull public final DexBuffer dexBuf;
@@ -92,11 +94,11 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
 
     @Nonnull
     @Override
-    public List<String> getInterfaces() {
+    public Set<String> getInterfaces() {
         final int interfacesOffset = dexBuf.readSmallUint(classDefOffset + INTERFACES_OFFSET);
         if (interfacesOffset > 0) {
             final int size = dexBuf.readSmallUint(interfacesOffset);
-            return new FixedSizeList<String>() {
+            return new FixedSizeSet<String>() {
                 @Nonnull
                 @Override
                 public String readItem(int index) {
@@ -106,18 +108,18 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 @Override public int size() { return size; }
             };
         }
-        return ImmutableList.of();
+        return ImmutableSet.of();
     }
 
     @Nonnull
     @Override
-    public List<? extends DexBackedAnnotation> getAnnotations() {
+    public Set<? extends DexBackedAnnotation> getAnnotations() {
         return getAnnotationsDirectory().getClassAnnotations();
     }
 
     @Nonnull
     @Override
-    public Collection<? extends DexBackedField> getFields() {
+    public Set<? extends DexBackedField> getFields() {
         int classDataOffset = getClassDataOffset();
         if (getClassDataOffset() != 0) {
             DexReader reader = dexBuf.readerAt(classDataOffset);
@@ -133,7 +135,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                         dexBuf.readSmallUint(classDefOffset + STATIC_INITIAL_VALUES_OFFSET);
                 final int fieldsStartOffset = reader.getOffset();
 
-                return new AbstractCollection<DexBackedField>() {
+                return new AbstractSet<DexBackedField>() {
                     @Nonnull
                     @Override
                     public Iterator<DexBackedField> iterator() {
@@ -165,12 +167,12 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 };
             }
         }
-        return ImmutableList.of();
+        return ImmutableSet.of();
     }
 
     @Nonnull
     @Override
-    public Collection<? extends DexBackedMethod> getMethods() {
+    public Set<? extends DexBackedMethod> getMethods() {
         int classDataOffset = getClassDataOffset();
         if (classDataOffset > 0) {
             DexReader reader = dexBuf.readerAt(classDataOffset);
@@ -185,7 +187,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
                 final int methodsStartOffset = reader.getOffset();
 
-                return new AbstractCollection<DexBackedMethod>() {
+                return new AbstractSet<DexBackedMethod>() {
                     @Nonnull
                     @Override
                     public Iterator<DexBackedMethod> iterator() {
@@ -218,7 +220,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 };
             }
         }
-        return ImmutableList.of();
+        return ImmutableSet.of();
     }
 
     private int getClassDataOffset() {

@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 public class ImmutableInstruction20t extends ImmutableInstruction implements Instruction20t {
     public static final Format FORMAT = Format.Format20t;
 
-    public final int codeOffset;
+    protected final int codeOffset;
 
     public ImmutableInstruction20t(@Nonnull Opcode opcode,
                                    int codeOffset) {

@@ -33,8 +33,6 @@ package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
-import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.*;
 import org.jf.dexlib2.util.Preconditions;
@@ -78,22 +76,19 @@ public abstract class DexBackedEncodedValue {
                             reader.readSizedRightExtendedLong(valueArg + 1)));
                 case ValueType.STRING:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new ImmutableStringEncodedValue(reader.getString(reader.readSizedSmallUint(valueArg + 1)));
+                    return new DexBackedStringEncodedValue(reader, valueArg);
                 case ValueType.TYPE:
                     Preconditions.checkValueArg(valueArg, 3);
                     return new ImmutableTypeEncodedValue(reader.getType(reader.readSizedSmallUint(valueArg + 1)));
                 case ValueType.FIELD:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new ImmutableFieldEncodedValue(new DexBackedFieldReference(reader.getDexBuffer(),
-                            reader.readSizedSmallUint(valueArg + 1)));
+                    return new DexBackedFieldEncodedValue(reader, valueArg);
                 case ValueType.METHOD:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new ImmutableMethodEncodedValue(new DexBackedMethodReference(reader.getDexBuffer(),
-                            reader.readSizedSmallUint(valueArg + 1)));
+                    return new DexBackedMethodEncodedValue(reader, valueArg);
                 case ValueType.ENUM:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new ImmutableEnumEncodedValue(new DexBackedFieldReference(reader.getDexBuffer(),
-                            reader.readSizedSmallUint(valueArg + 1)));
+                    return new DexBackedEnumEncodedValue(reader, valueArg);
                 case ValueType.ARRAY:
                     Preconditions.checkValueArg(valueArg, 0);
                     return new DexBackedArrayEncodedValue(reader);
@@ -101,6 +96,7 @@ public abstract class DexBackedEncodedValue {
                     Preconditions.checkValueArg(valueArg, 0);
                     return new DexBackedAnnotationEncodedValue(reader);
                 case ValueType.NULL:
+                    Preconditions.checkValueArg(valueArg, 0);
                     return ImmutableNullEncodedValue.INSTANCE;
                 case ValueType.BOOLEAN:
                     Preconditions.checkValueArg(valueArg, 1);

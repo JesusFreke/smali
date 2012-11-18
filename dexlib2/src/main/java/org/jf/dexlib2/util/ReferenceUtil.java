@@ -42,7 +42,7 @@ public final class ReferenceUtil {
     public static String getMethodDescriptor(MethodReference methodReference) {
         // TODO: try using a thread local StringBuilder
         StringBuilder sb = new StringBuilder();
-        sb.append(methodReference.getContainingClass());
+        sb.append(methodReference.getDefiningClass());
         sb.append("->");
         sb.append(methodReference.getName());
         sb.append('(');
@@ -55,7 +55,7 @@ public final class ReferenceUtil {
     }
 
     public static void writeMethodDescriptor(Writer writer, MethodReference methodReference) throws IOException {
-        writer.write(methodReference.getContainingClass());
+        writer.write(methodReference.getDefiningClass());
         writer.write("->");
         writer.write(methodReference.getName());
         writer.write('(');
@@ -69,7 +69,7 @@ public final class ReferenceUtil {
     public static String getFieldDescriptor(FieldReference fieldReference) {
         // TODO: try using a thread local StringBuilder
         StringBuilder sb = new StringBuilder();
-        sb.append(fieldReference.getContainingClass());
+        sb.append(fieldReference.getDefiningClass());
         sb.append("->");
         sb.append(fieldReference.getName());
         sb.append(':');
@@ -87,7 +87,7 @@ public final class ReferenceUtil {
     }
 
     public static void writeFieldDescriptor(Writer writer, FieldReference fieldReference) throws IOException {
-        writer.write(fieldReference.getContainingClass());
+        writer.write(fieldReference.getDefiningClass());
         writer.write("->");
         writer.write(fieldReference.getName());
         writer.write(':');

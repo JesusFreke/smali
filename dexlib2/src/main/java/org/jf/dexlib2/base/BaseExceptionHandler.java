@@ -29,9 +29,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.sorted.value;
+package org.jf.dexlib2.base;
 
-import org.jf.dexlib2.iface.value.EncodedValue;
+import com.google.common.base.Objects;
+import com.google.common.primitives.Ints;
+import org.jf.dexlib2.iface.ExceptionHandler;
 
-public interface SortedEncodedValue extends EncodedValue {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public abstract class BaseExceptionHandler implements ExceptionHandler {
+    @Override
+    public int hashCode() {
+        String exceptionType = getExceptionType();
+        int hashCode = exceptionType==null?0:exceptionType.hashCode();
+        return hashCode*31 + getHandlerCodeAddress();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof ExceptionHandler) {
+            ExceptionHandler other = (ExceptionHandler)o;
+            return Objects.equal(getExceptionType(), other.getExceptionType()) &&
+                   (getHandlerCodeAddress() == other.getHandlerCodeAddress());
+        }
+        return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull ExceptionHandler o) {
+        int res;
+        String exceptionType = getExceptionType();
+        if (exceptionType == null) {
+            if (o.getExceptionType() != null) {
+                return 1;
+            }
+        } else {
+            res = exceptionType.compareTo(o.getExceptionType());
+            if (res != 0) return res;
+        }
+        return Ints.compare(getHandlerCodeAddress(), o.getHandlerCodeAddress());
+    }
 }

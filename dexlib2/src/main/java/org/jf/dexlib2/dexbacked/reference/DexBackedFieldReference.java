@@ -47,7 +47,7 @@ public class DexBackedFieldReference extends BaseFieldReference {
 
     @Nonnull
     @Override
-    public String getContainingClass() {
+    public String getDefiningClass() {
         return dexBuf.getType(dexBuf.readUshort(fieldIdItemOffset + DexBuffer.FIELD_CLASS_IDX_OFFSET));
     }
 

@@ -32,11 +32,80 @@
 package org.jf.dexlib2.iface.reference;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+import javax.annotation.Nullable;
+import java.util.List;
 
-public interface MethodReference extends Reference {
-    @Nonnull String getContainingClass();
+/**
+ * This class represents a reference to a method.
+ */
+public interface MethodReference extends Reference, Comparable<MethodReference> {
+    /**
+     * Gets the type of the class that defines the referenced method.
+     *
+     * @return The type of the class that defines the referenced method
+     */
+    @Nonnull String getDefiningClass();
+
+    /**
+     * Gets the name of the referenced method.
+     *
+     * @return The name of the referenced method
+     */
     @Nonnull String getName();
-    @Nonnull Collection<? extends TypeReference> getParameters();
+
+    /**
+     * Gets a list of the types of the parameters of the referenced method.
+     *
+     * Note: In some implementations, the returned list is likely to *not* provide efficient random access.
+     *
+     * @return A list of the types of the parameters of the referenced method
+     */
+    @Nonnull List<? extends TypeReference> getParameters();
+
+    /**
+     * Gets the return type of the referenced method.
+     *
+     * @return The return type of the referenced method.
+     */
     @Nonnull String getReturnType();
+
+    /**
+     * Returns a hashcode for this MethodReference.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode =  getDefiningClass().hashCode();
+     * hashCode = hashCode*31 + getName().hashCode();
+     * hashCode = hashCode*31 + getReturnType().hashCode();
+     * hashCode = hashCode*31 + getParameters().hashCode();
+     * }</pre>
+     *
+     * @return The hash code value for this MethodReference
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this MethodReference to another MethodReference for equality.
+     *
+     * This MethodReference is equal to another MethodReference if all of it's "fields" are equal. That is, if
+     * the return values of getDefiningClass(), getName(), getReturnType() and getParameters() are all equal.
+     *
+     * @param o The object to be compared for equality with this MethodReference
+     * @return true if the specified object is equal to this MethodReference
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this MethodReference to another MethodReference.
+     *
+     * The comparison is based on the comparison of the return values of getDefiningClass(), getName(),
+     * getReturnType() and getParameters(), in that order. getParameters() should be compared using the semantics
+     * of org.jf.util.CollectionUtils.compareAsList()
+     *
+     * @param o The MethodReference to compare with this MethodReference
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull MethodReference o);
 }

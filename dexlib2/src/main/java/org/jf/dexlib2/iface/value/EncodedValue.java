@@ -31,6 +31,18 @@
 
 package org.jf.dexlib2.iface.value;
 
-public interface EncodedValue {
+/**
+ * This class represents a generic encoded value.
+ *
+ * It acts as the base interface for each specific type of encoded value.
+ */
+public interface EncodedValue extends Comparable<EncodedValue> {
+    /**
+     * Returns the type of this encoded value.
+     *
+     * The returned integer will be one of the ValueType.* constants.
+     *
+     * @return The type of this encoded value
+     */
     int getValueType();
 }

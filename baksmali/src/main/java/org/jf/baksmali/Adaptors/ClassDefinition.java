@@ -41,7 +41,6 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
 public class ClassDefinition {
     @Nonnull public final ClassDef classDef;
@@ -77,7 +76,7 @@ public class ClassDefinition {
                             case SPUT_WIDE: {
                                 Instruction21c ins = (Instruction21c)instruction;
                                 FieldReference fieldRef = (FieldReference)ins.getReference();
-                                if (fieldRef.getContainingClass().equals((classDef.getType()))) {
+                                if (fieldRef.getDefiningClass().equals((classDef.getType()))) {
                                     fieldsSetInStaticConstructor.add(ReferenceUtil.getShortFieldDescriptor(fieldRef));
                                 }
                                 break;
@@ -135,7 +134,7 @@ public class ClassDefinition {
     }
 
     private void writeInterfaces(IndentingWriter writer) throws IOException {
-        List<String> interfaces = classDef.getInterfaces();
+        Collection<String> interfaces = classDef.getInterfaces();
         if (interfaces.size() != 0) {
             writer.write('\n');
             writer.write("# interfaces\n");

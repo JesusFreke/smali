@@ -31,14 +31,14 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValueFactory;
-import org.jf.util.ImmutableListConverter;
+import org.jf.util.ImmutableConverter;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
@@ -46,39 +46,39 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class ImmutableField extends BaseFieldReference implements Field {
-    @Nonnull public final String containingClass;
-    @Nonnull public final String name;
-    @Nonnull public final String type;
-    public final int accessFlags;
-    @Nullable public final ImmutableEncodedValue initialValue;
-    @Nonnull public final ImmutableList<? extends ImmutableAnnotation> annotations;
+    @Nonnull protected final String definingClass;
+    @Nonnull protected final String name;
+    @Nonnull protected final String type;
+    protected final int accessFlags;
+    @Nullable protected final ImmutableEncodedValue initialValue;
+    @Nonnull protected final ImmutableSet<? extends ImmutableAnnotation> annotations;
 
-    public ImmutableField(@Nonnull String containingClass,
+    public ImmutableField(@Nonnull String definingClass,
                           @Nonnull String name,
                           @Nonnull String type,
                           int accessFlags,
                           @Nullable EncodedValue initialValue,
                           @Nullable Collection<? extends Annotation> annotations) {
-        this.containingClass = containingClass;
+        this.definingClass = definingClass;
         this.name = name;
         this.type = type;
         this.accessFlags = accessFlags;
         this.initialValue = ImmutableEncodedValueFactory.ofNullable(initialValue);
-        this.annotations = ImmutableAnnotation.immutableListOf(annotations);
+        this.annotations = ImmutableAnnotation.immutableSetOf(annotations);
     }
 
-    public ImmutableField(@Nonnull String containingClass,
+    public ImmutableField(@Nonnull String definingClass,
                           @Nonnull String name,
                           @Nonnull String type,
                           int accessFlags,
                           @Nullable ImmutableEncodedValue initialValue,
-                          @Nullable ImmutableList<? extends ImmutableAnnotation> annotations) {
-        this.containingClass = containingClass;
+                          @Nullable ImmutableSet<? extends ImmutableAnnotation> annotations) {
+        this.definingClass = definingClass;
         this.name = name;
         this.type = type;
         this.accessFlags = accessFlags;
         this.initialValue = initialValue;
-        this.annotations = ImmutableUtils.nullToEmptyList(annotations);
+        this.annotations = ImmutableUtils.nullToEmptySet(annotations);
     }
 
     public static ImmutableField of(Field field) {
@@ -86,7 +86,7 @@ public class ImmutableField extends BaseFieldReference implements Field {
             return (ImmutableField)field;
         }
         return new ImmutableField(
-                field.getContainingClass(),
+                field.getDefiningClass(),
                 field.getName(),
                 field.getType(),
                 field.getAccessFlags(),
@@ -94,20 +94,20 @@ public class ImmutableField extends BaseFieldReference implements Field {
                 field.getAnnotations());
     }
 
-    @Nonnull @Override public String getContainingClass() { return containingClass; }
+    @Nonnull @Override public String getDefiningClass() { return definingClass; }
     @Nonnull @Override public String getName() { return name; }
     @Nonnull @Override public String getType() { return type; }
     @Override public int getAccessFlags() { return accessFlags; }
     @Override public EncodedValue getInitialValue() { return initialValue;}
-    @Nonnull @Override public ImmutableList<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
+    @Nonnull @Override public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
 
     @Nonnull
-    public static ImmutableList<ImmutableField> immutableListOf(@Nullable Iterable<? extends Field> list) {
-        return CONVERTER.convert(list);
+    public static ImmutableSet<ImmutableField> immutableSetOf(@Nullable Iterable<? extends Field> list) {
+        return CONVERTER.toSet(list);
     }
 
-    private static final ImmutableListConverter<ImmutableField, Field> CONVERTER =
-            new ImmutableListConverter<ImmutableField, Field>() {
+    private static final ImmutableConverter<ImmutableField, Field> CONVERTER =
+            new ImmutableConverter<ImmutableField, Field>() {
                 @Override
                 protected boolean isImmutable(@Nonnull Field item) {
                     return item instanceof ImmutableField;

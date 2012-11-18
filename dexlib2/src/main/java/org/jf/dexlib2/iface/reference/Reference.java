@@ -31,5 +31,9 @@
 
 package org.jf.dexlib2.iface.reference;
 
+/**
+ * This class is the base interface for field/method/string/type references in a dex file. It has no functionality or
+ * contract itself.
+ */
 public interface Reference {
 }

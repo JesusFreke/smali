@@ -29,13 +29,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.sorted.value;
+package org.jf.dexlib2.dexbacked.value;
 
-import org.jf.dexlib2.iface.value.ArrayEncodedValue;
+import org.jf.dexlib2.base.value.BaseMethodEncodedValue;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
+import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
 
-public interface SortedArrayEncodedValue extends SortedEncodedValue, ArrayEncodedValue{
-    @Nonnull Collection<? extends SortedEncodedValue> getValue();
+public class DexBackedMethodEncodedValue extends BaseMethodEncodedValue {
+    @Nonnull public final DexBuffer dexBuf;
+    private final int MethodIndex;
+
+    public DexBackedMethodEncodedValue(@Nonnull DexReader reader, int valueArg) {
+        this.dexBuf = reader.getDexBuffer();
+        MethodIndex = reader.readSizedSmallUint(valueArg + 1);
+    }
+
+    @Override public MethodReference getValue() {
+        return new DexBackedMethodReference(dexBuf, MethodIndex);
+    }
 }

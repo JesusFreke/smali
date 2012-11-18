@@ -31,8 +31,54 @@
 
 package org.jf.dexlib2.base;
 
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.MethodParameter;
+import org.jf.dexlib2.iface.value.ArrayEncodedValue;
+import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.iface.value.StringEncodedValue;
+
+import javax.annotation.Nullable;
 
 public abstract class BaseMethodParameter extends BaseTypeReference implements MethodParameter {
+    @Nullable
+    @Override
+    public String getSignature() {
+        Annotation signatureAnnotation = null;
+        for (Annotation annotation: getAnnotations()) {
+            if (annotation.getType().equals("Ldalvik/annotation/Signature;")) {
+                signatureAnnotation = annotation;
+                break;
+            }
+        }
+        if (signatureAnnotation == null) {
+            return null;
+        }
+
+        ArrayEncodedValue signatureValues = null;
+        for (AnnotationElement annotationElement: signatureAnnotation.getElements()) {
+            if (annotationElement.getName().equals("value")) {
+                EncodedValue encodedValue = annotationElement.getValue();
+                if (encodedValue.getValueType() != ValueType.ARRAY) {
+                    return null;
+                }
+                signatureValues = (ArrayEncodedValue)encodedValue;
+                break;
+            }
+        }
+        if (signatureValues == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (EncodedValue signatureValue: signatureValues.getValue()) {
+            if (signatureValue.getValueType() != ValueType.STRING) {
+                return null;
+            }
+            sb.append(((StringEncodedValue)signatureValue).getValue());
+        }
+        return sb.toString();
+    }
 }

@@ -29,13 +29,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.sorted;
+package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.iface.AnnotationElement;
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
+import java.util.AbstractSet;
 
-public interface SortedAnnotationElement extends AnnotationElement {
-    @Nonnull SortedEncodedValue getValue();
+public abstract class VariableSizeSet<T> extends AbstractSet<T> {
+    @Nonnull private final DexBuffer dexBuf;
+    private final int offset;
+    private final int size;
+
+    public VariableSizeSet(@Nonnull DexBuffer dexBuf, int offset, int size) {
+        this.dexBuf = dexBuf;
+        this.offset = offset;
+        this.size = size;
+    }
+
+    @Nonnull protected abstract T readNextItem(@Nonnull DexReader reader, int index);
+
+    @Override
+    public VariableSizeIterator<T> iterator() {
+        return new VariableSizeIterator<T>(dexBuf, offset, size) {
+            @Nonnull
+            @Override
+            protected T readNextItem(@Nonnull DexReader reader, int index) {
+                return VariableSizeSet.this.readNextItem(reader, index);
+            }
+        };
+    }
+
+    @Override public int size() { return size; }
 }

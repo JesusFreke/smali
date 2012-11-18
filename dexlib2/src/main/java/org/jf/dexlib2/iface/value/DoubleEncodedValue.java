@@ -31,8 +31,59 @@
 
 package org.jf.dexlib2.iface.value;
 
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface DoubleEncodedValue extends EncodedValue, SortedEncodedValue {
+/**
+ * This class represents an encoded double value.
+ */
+public interface DoubleEncodedValue extends EncodedValue {
+    /**
+     * Gets the double value.
+     *
+     * @return the double value
+     */
     double getValue();
+
+    /**
+     * Returns a hashcode for this EncodedDoubleValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * long v = Double.doubleToRawLongBits(getValue());
+     * int hashCode = (int)(v^(v>>>32));
+     * }</pre>
+     *
+     * Note: This is slightly different than the definition of Double.hashCode(). This uses doubleToRawLongBits()
+     * instead of doubleToLongBits(), in order to preserve as much information as possible.
+     *
+     * @return The hash code value for this EncodedDoubleValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this DoubleEncodedValue to another DoubleEncodedValue for equality.
+     *
+     * This DoubleEncodedValue is equal to another DoubleEncodedValue if the values returned by
+     * getValue().doubleToRawLongBits() are equal.
+     *
+     * Note: this isn't quite the same as getValue() == getValue(), due to various NaN issues and signed zero issues.
+     *
+     * @param o The object to be compared for equality with this DoubleEncodedValue
+     * @return true if the specified object is equal to this DoubleEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this DoubleEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(), and then if the other value is another
+     * DoubleEncodedValue, the return values of getValue() are compared, using the semantics of Double.compare()
+     *
+     * @param o The EncodedValue to compare with this DoubleEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

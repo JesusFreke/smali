@@ -36,13 +36,61 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
+import java.util.Set;
 
+/**
+ * This class represents a specific field definition in a class.
+ *
+ * It also acts as a FieldReference to itself. Any equality/comparison is based on its identity as a FieldReference,
+ * and shouldn't take into account any non-FieldReference specifics of this field.
+ */
 public interface Field extends FieldReference {
-    @Nonnull String getContainingClass();
+    /**
+     * Gets the type of the class that defines this field.
+     *
+     * @return The type of the class that defines this field
+     */
+    @Nonnull String getDefiningClass();
+
+    /**
+     * Gets the name of this field.
+     *
+     * @return The name of this field
+     */
     @Nonnull String getName();
+
+    /**
+     * Gets the type of this field.
+     *
+     * @return The type of this field
+     */
     @Nonnull String getType();
+
+    /**
+     * Gets the access flags for this field.
+     *
+     * This will be a combination of the AccessFlags.* flags that are marked as compatible for use with a field.
+     *
+     * @return The access flags for this field
+     */
     int getAccessFlags();
+
+    /**
+     * Gets the initial value for this field, if available.
+     *
+     * Only static field may have an initial value set, but are not required to have an initial value.
+     *
+     * @return The initial value for this field, or null if this field is not a static field, or if this static field
+     * does not have an initial value.
+     */
     @Nullable EncodedValue getInitialValue();
-    @Nonnull Collection<? extends Annotation> getAnnotations();
+
+    /**
+     * Gets a set of the annotations that are applied to this field.
+     *
+     * The annotations in the returned set are guaranteed to have unique types.
+     *
+     * @return A set of the annotations that are applied to this field
+     */
+    @Nonnull Set<? extends Annotation> getAnnotations();
 }

@@ -68,7 +68,7 @@ public class SyntheticAccessorResolver {
     private final Map<String, ClassDef> classDefMap;
     private final HashMap<String, AccessedMember> resolvedAccessors = new HashMap<String, AccessedMember>();
 
-    public SyntheticAccessorResolver(List<? extends ClassDef> classDefs) {
+    public SyntheticAccessorResolver(Iterable<? extends ClassDef> classDefs) {
         ImmutableMap.Builder<String, ClassDef> builder = ImmutableMap.builder();
 
         for (ClassDef classDef: classDefs) {
@@ -91,7 +91,7 @@ public class SyntheticAccessorResolver {
             return accessedMember;
         }
 
-        String type = methodReference.getContainingClass();
+        String type = methodReference.getDefiningClass();
         ClassDef classDef = classDefMap.get(type);
         if (classDef == null) {
             return null;

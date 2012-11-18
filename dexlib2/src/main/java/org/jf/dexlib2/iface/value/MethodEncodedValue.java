@@ -32,10 +32,53 @@
 package org.jf.dexlib2.iface.value;
 
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface MethodEncodedValue extends EncodedValue, SortedEncodedValue {
-    @Nonnull MethodReference getValue();
+/**
+ * This class represents an encoded method value.
+ */
+public interface MethodEncodedValue extends EncodedValue {
+    /**
+     * Gets the method value.
+     *
+     * @return the method value as a MethodReference
+     */
+    MethodReference getValue();
+
+    /**
+     * Returns a hashcode for this EncodedMethodValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = getValue.hashCode();
+     * }</pre>
+     *
+     * @return The hash code value for this EncodedMethodValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this MethodEncodedValue to another MethodEncodedValue for equality.
+     *
+     * This MethodEncodedValue is equal to another MethodEncodedValue if the values returned by getValue() are equal.
+     *
+     * @param o The object to be compared for equality with this MethodEncodedValue
+     * @return true if the specified object is equal to this MethodEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this MethodEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * MethodEncodedValue, the return values of getValue() are compared.
+     *
+     * @param o The EncodedValue to compare with this MethodEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

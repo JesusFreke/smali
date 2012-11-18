@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
@@ -42,8 +43,8 @@ import org.jf.dexlib2.iface.MethodParameter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class DexBackedMethod extends BaseMethodReference implements Method {
     @Nonnull public final DexBuffer dexBuf;
@@ -101,7 +102,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         this.parameterAnnotationSetListOffset = paramaterAnnotationIterator.seekTo(methodIndex);
     }
 
-    @Nonnull @Override public String getContainingClass() { return classDef.getType(); }
+    @Nonnull @Override public String getDefiningClass() { return classDef.getType(); }
     @Override public int getAccessFlags() { return accessFlags; }
 
     @Nonnull
@@ -118,7 +119,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
 
     @Nonnull
     @Override
-    public Collection<? extends MethodParameter> getParameters() {
+    public List<? extends MethodParameter> getParameters() {
         if (getParametersOffset() > 0) {
             DexBackedMethodImplementation methodImpl = getImplementation();
             if (methodImpl != null) {
@@ -134,7 +135,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         final int parametersOffset = getParametersOffset();
         if (parametersOffset > 0) {
             final int size = dexBuf.readSmallUint(parametersOffset);
-            final List<List<? extends DexBackedAnnotation>> parameterAnnotations =
+            final List<Set<? extends DexBackedAnnotation>> parameterAnnotations =
                     AnnotationsDirectory.getParameterAnnotations(dexBuf, parameterAnnotationSetListOffset);
 
             return new FixedSizeList<MethodParameter>() {
@@ -151,11 +152,11 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
 
                         @Nonnull
                         @Override
-                        public List<? extends Annotation> getAnnotations() {
+                        public Set<? extends Annotation> getAnnotations() {
                             if (index < parameterAnnotations.size()) {
                                 return parameterAnnotations.get(index);
                             }
-                            return ImmutableList.of();
+                            return ImmutableSet.of();
                         }
 
                         @Nullable @Override public String getName() { return null; }
@@ -173,7 +174,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
 
     @Nonnull
     @Override
-    public List<? extends Annotation> getAnnotations() {
+    public Set<? extends Annotation> getAnnotations() {
         return AnnotationsDirectory.getAnnotations(dexBuf, methodAnnotationSetOffset);
     }
 

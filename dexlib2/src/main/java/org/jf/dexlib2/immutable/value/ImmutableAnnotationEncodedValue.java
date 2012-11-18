@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.immutable.value;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.base.value.BaseAnnotationEncodedValue;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
@@ -42,21 +42,20 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public class ImmutableAnnotationEncodedValue extends BaseAnnotationEncodedValue
-        implements ImmutableEncodedValue, AnnotationEncodedValue {
-    @Nonnull public final String type;
-    @Nonnull public final ImmutableList<? extends ImmutableAnnotationElement> elements;
+public class ImmutableAnnotationEncodedValue extends BaseAnnotationEncodedValue implements ImmutableEncodedValue {
+    @Nonnull protected final String type;
+    @Nonnull protected final ImmutableSet<? extends ImmutableAnnotationElement> elements;
 
     public ImmutableAnnotationEncodedValue(@Nonnull String type,
                                            @Nullable Collection<? extends AnnotationElement> elements) {
         this.type = type;
-        this.elements = ImmutableAnnotationElement.immutableListOf(elements);
+        this.elements = ImmutableAnnotationElement.immutableSetOf(elements);
     }
 
     public ImmutableAnnotationEncodedValue(@Nonnull String type,
-                                           @Nullable ImmutableList<? extends ImmutableAnnotationElement> elements) {
+                                           @Nullable ImmutableSet<? extends ImmutableAnnotationElement> elements) {
         this.type = type;
-        this.elements = ImmutableUtils.nullToEmptyList(elements);
+        this.elements = ImmutableUtils.nullToEmptySet(elements);
     }
 
     public static ImmutableAnnotationEncodedValue of(AnnotationEncodedValue annotationEncodedValue) {
@@ -69,5 +68,5 @@ public class ImmutableAnnotationEncodedValue extends BaseAnnotationEncodedValue
     }
 
     @Nonnull @Override public String getType() { return type; }
-    @Nonnull @Override public ImmutableList<? extends ImmutableAnnotationElement> getElements() { return elements; }
+    @Nonnull @Override public ImmutableSet<? extends ImmutableAnnotationElement> getElements() { return elements; }
 }

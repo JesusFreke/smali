@@ -31,8 +31,13 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.FloatEncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseFloatEncodedValue implements FloatEncodedValue {
     @Override
@@ -41,11 +46,18 @@ public abstract class BaseFloatEncodedValue implements FloatEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (o != null && o instanceof FloatEncodedValue) {
-            return getValue() == ((FloatEncodedValue) o).getValue();
+            return Float.floatToRawIntBits(getValue()) == Float.floatToRawIntBits(((FloatEncodedValue)o).getValue());
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return Float.compare(getValue(), ((FloatEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.FLOAT; }

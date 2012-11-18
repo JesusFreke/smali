@@ -37,7 +37,7 @@ import org.jf.dexlib2.iface.debug.LineNumber;
 import javax.annotation.Nonnull;
 
 public class ImmutableLineNumber extends ImmutableDebugItem implements LineNumber {
-    public final int lineNumber;
+    protected final int lineNumber;
 
     public ImmutableLineNumber(int codeAddress,
                                int lineNumber) {

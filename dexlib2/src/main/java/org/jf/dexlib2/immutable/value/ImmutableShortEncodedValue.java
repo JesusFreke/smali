@@ -33,11 +33,9 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseShortEncodedValue;
 import org.jf.dexlib2.iface.value.ShortEncodedValue;
-import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
-public class ImmutableShortEncodedValue extends BaseShortEncodedValue
-        implements ImmutableEncodedValue, SortedImmutableEncodedValue, ShortEncodedValue {
-    public final short value;
+public class ImmutableShortEncodedValue extends BaseShortEncodedValue implements ImmutableEncodedValue {
+    protected final short value;
 
     public ImmutableShortEncodedValue(short value) {
         this.value = value;

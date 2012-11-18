@@ -33,11 +33,9 @@ package org.jf.dexlib2.immutable.value;
 
 import org.jf.dexlib2.base.value.BaseByteEncodedValue;
 import org.jf.dexlib2.iface.value.ByteEncodedValue;
-import org.jf.dexlib2.immutable.sorted.value.SortedImmutableEncodedValue;
 
-public class ImmutableByteEncodedValue extends BaseByteEncodedValue
-        implements ImmutableEncodedValue, SortedImmutableEncodedValue, ByteEncodedValue {
-    public final byte value;
+public class ImmutableByteEncodedValue extends BaseByteEncodedValue implements ImmutableEncodedValue {
+    protected final byte value;
 
     public ImmutableByteEncodedValue(byte value) {
         this.value = value;

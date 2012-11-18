@@ -32,10 +32,55 @@
 package org.jf.dexlib2.iface.value;
 
 import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.sorted.value.SortedEncodedValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface EnumEncodedValue extends EncodedValue, SortedEncodedValue {
-    @Nonnull FieldReference getValue();
+/**
+ * This class represents an encoded enum value.
+ *
+ * The enum value is represented as a FieldReference to the field on an enum class that holds the enum value.
+ */
+public interface EnumEncodedValue extends EncodedValue {
+    /**
+     * Gets the enum value.
+     *
+     * @return a reference to the field on the enum class that holds the enum value, as a FieldReference
+     */
+    FieldReference getValue();
+
+    /**
+     * Returns a hashcode for this EncodedEnumValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = getValue.hashCode();
+     * }</pre>
+     *
+     * @return The hash code value for this EncodedEnumValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this EnumEncodedValue to another EnumEncodedValue for equality.
+     *
+     * This EnumEncodedValue is equal to another EnumEncodedValue if the values returned by getValue() are equal.
+     *
+     * @param o The object to be compared for equality with this EnumEncodedValue
+     * @return true if the specified object is equal to this EnumEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this EnumEncodedValue to another EncodedValue.
+     *
+     * The comparison is first done on the return values of getValueType(). If the other value is another
+     * EnumEncodedValue, the return values of getValue() are compared.
+     *
+     * @param o The EncodedValue to compare with this EnumEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

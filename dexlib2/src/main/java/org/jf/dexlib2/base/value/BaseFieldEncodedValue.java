@@ -31,8 +31,13 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.FieldEncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseFieldEncodedValue implements FieldEncodedValue {
     @Override
@@ -41,11 +46,18 @@ public abstract class BaseFieldEncodedValue implements FieldEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof FieldEncodedValue) {
-            return getValue().equals(((FieldEncodedValue) o).getValue());
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof FieldEncodedValue) {
+            return getValue().equals(((FieldEncodedValue)o).getValue());
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return getValue().compareTo(((FieldEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.FIELD; }

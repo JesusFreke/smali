@@ -53,7 +53,7 @@ public class DexBackedMethodReference extends BaseMethodReference {
 
     @Nonnull
     @Override
-    public String getContainingClass() {
+    public String getDefiningClass() {
         return dexBuf.getType(dexBuf.readUshort(methodIdItemOffset + DexBuffer.METHOD_CLASS_IDX_OFFSET));
     }
 

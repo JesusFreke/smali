@@ -31,8 +31,13 @@
 
 package org.jf.dexlib2.base.value;
 
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.StringEncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class BaseStringEncodedValue implements StringEncodedValue {
     @Override
@@ -41,11 +46,18 @@ public abstract class BaseStringEncodedValue implements StringEncodedValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof StringEncodedValue) {
-            return getValue().equals(((StringEncodedValue) o).getValue());
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof StringEncodedValue) {
+            return getValue().equals(((StringEncodedValue)o).getValue());
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return getValue().compareTo(((StringEncodedValue)o).getValue());
     }
 
     public int getValueType() { return ValueType.STRING; }

@@ -31,12 +31,12 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.util.VariableSizeCollection;
+import org.jf.dexlib2.dexbacked.util.VariableSizeSet;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+import java.util.Set;
 
 public class DexBackedTryBlock implements TryBlock {
     @Nonnull public final DexBuffer dexBuf;
@@ -60,14 +60,14 @@ public class DexBackedTryBlock implements TryBlock {
 
     @Nonnull
     @Override
-    public Collection<? extends ExceptionHandler> getExceptionHandlers() {
+    public Set<? extends ExceptionHandler> getExceptionHandlers() {
         DexReader reader =
                 dexBuf.readerAt(handlersStartOffset + dexBuf.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET));
         final int encodedSize = reader.readSleb128();
 
         if (encodedSize > 0) {
             //no catch-all
-            return new VariableSizeCollection<ExceptionHandler>(dexBuf, reader.getOffset(), encodedSize) {
+            return new VariableSizeSet<ExceptionHandler>(dexBuf, reader.getOffset(), encodedSize) {
                 @Nonnull
                 @Override
                 protected DexBackedExceptionHandler readNextItem(@Nonnull DexReader reader, int index) {
@@ -77,7 +77,7 @@ public class DexBackedTryBlock implements TryBlock {
         } else {
             //with catch-all
             final int sizeWithCatchAll = (-1 * encodedSize) + 1;
-            return new VariableSizeCollection<ExceptionHandler>(dexBuf, reader.getOffset(), sizeWithCatchAll) {
+            return new VariableSizeSet<ExceptionHandler>(dexBuf, reader.getOffset(), sizeWithCatchAll) {
                 @Nonnull
                 @Override
                 protected ExceptionHandler readNextItem(@Nonnull DexReader dexReader, int index) {

@@ -34,10 +34,66 @@ package org.jf.dexlib2.iface.value;
 import org.jf.dexlib2.iface.AnnotationElement;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.Set;
 
+/**
+ * This class represents an encoded annotation value.
+ */
 public interface AnnotationEncodedValue extends EncodedValue {
+    /**
+     * Gets the type of this annotation.
+     *
+     * This will be the type descriptor of the class that defines this annotation.
+     *
+     * @return The type of this annotation
+     */
     @Nonnull String getType();
-    @Nonnull Collection<? extends AnnotationElement> getElements();
+
+    /**
+     * Gets a set of the name/value elements associated with this annotation.
+     *
+     * The elements in the returned set will be unique by name.
+     *
+     * @return A set of AnnotationElements
+     */
+    @Nonnull Set<? extends AnnotationElement> getElements();
+
+    /**
+     * Returns a hashcode for this AnnotationEncodedValue.
+     *
+     * This hashCode is defined to be the following:
+     *
+     * <pre>
+     * {@code
+     * int hashCode = getType().hashCode();
+     * hashCode = hashCode*31 + getElements().hashCode();
+     * }</pre>
+     *
+     * @return The hash code value for this AnnotationEncodedValue
+     */
+    @Override int hashCode();
+
+    /**
+     * Compares this AnnotationEncodedValue to another AnnotationEncodedValue for equality.
+     *
+     * This AnnotationEncodedValue is equal to another AnnotationEncodedValue if all of it's "fields" are equal. That
+     * is, if the return values getType() and getElements() are both equal.
+     *
+     * @param o The object to be compared for equality with this AnnotationEncodedValue
+     * @return true if the specified object is equal to this AnnotationEncodedValue
+     */
+    @Override boolean equals(@Nullable Object o);
+
+    /**
+     * Compare this AnnotationEncodedValue to another EncodedValue.
+     *
+     * The comparison is based on the value of getType() and getElements(), in that order. When
+     * comparing the set of elements, the comparison is done with the semantics of
+     * org.jf.util.CollectionUtils.compareAsSet(), using the natural ordering of AnnotationElement.
+     *
+     * @param o The EncodedValue to compare with this AnnotationEncodedValue
+     * @return An integer representing the result of the comparison
+     */
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

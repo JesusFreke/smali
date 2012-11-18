@@ -41,8 +41,8 @@ import javax.annotation.Nonnull;
 public class ImmutableInstruction31t extends ImmutableInstruction implements Instruction31t {
     public static final Format FORMAT = Format.Format31t;
 
-    public final int registerA;
-    public final int codeOffset;
+    protected final int registerA;
+    protected final int codeOffset;
 
     public ImmutableInstruction31t(@Nonnull Opcode opcode,
                                    int registerA,

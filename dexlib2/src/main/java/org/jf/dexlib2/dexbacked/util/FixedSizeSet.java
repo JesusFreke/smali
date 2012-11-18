@@ -29,15 +29,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.sorted;
-
-import org.jf.dexlib2.iface.ClassDef;
+package org.jf.dexlib2.dexbacked.util;
 
 import javax.annotation.Nonnull;
-import java.util.SortedSet;
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public interface SortedClassDef extends ClassDef {
-    @Nonnull SortedSet<? extends SortedAnnotation> getAnnotations();
-    @Nonnull SortedSet<? extends SortedField> getFields();
-    @Nonnull SortedSet<? extends SortedMethod> getMethods();
+/**
+ * This provides a wrapper around AbstractSet to allow easy implementation when backed by a list that can be randomly
+ * accessed.
+ */
+public abstract class FixedSizeSet<T> extends AbstractSet<T> {
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<T>() {
+            int index = 0;
+
+            @Override public boolean hasNext() { return index < size(); }
+            @Override public void remove() { throw new UnsupportedOperationException(); }
+            @Override
+            public T next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                return readItem(index++);
+            }
+        };
+    }
+
+    /**
+     * Reads the item at {@code index}
+     * @param index The index of the item. This is guaranteed to be in [0, size)
+     * @return The item at the given index
+     */
+    @Nonnull
+    public abstract T readItem(int index);
 }

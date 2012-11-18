@@ -38,10 +38,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class ImmutableRestartLocal extends ImmutableDebugItem implements RestartLocal {
-    public final int register;
-    @Nullable public final String name;
-    @Nullable public final String type;
-    @Nullable public final String signature;
+    protected final int register;
+    @Nullable protected final String name;
+    @Nullable protected final String type;
+    @Nullable protected final String signature;
 
     public ImmutableRestartLocal(int codeAddress,
                                  int register) {
