@@ -127,6 +127,7 @@ public class main {
         List<String> bootClassPathDirs = new ArrayList<String>();
         bootClassPathDirs.add(".");
         String inlineTable = null;
+        boolean jumboInstructions = false;
 
         String[] remainingArgs = commandLine.getArgs();
 
@@ -232,6 +233,9 @@ public class main {
                 case 'I':
                     ignoreErrors = true;
                     break;
+                case 'J':
+                    jumboInstructions = true;
+                    break;
                 case 'W':
                     write = true;
                     outputDexFileName = commandLine.getOptionValue("W");
@@ -270,7 +274,7 @@ public class main {
                 System.exit(1);
             }
 
-            Opcode.updateMapsForApiLevel(apiLevel);
+            Opcode.updateMapsForApiLevel(apiLevel, jumboInstructions);
 
             //Read in and parse the dex file
             DexFile dexFile = new DexFile(dexFileFile, !fixRegisters, false);
@@ -453,6 +457,12 @@ public class main {
                         " behavior is to stop disassembling and exit once an error is encountered")
                 .create("I");
 
+        Option jumboInstructionsOption = OptionBuilder.withLongOpt("jumbo-instructions")
+                .withDescription("adds support for the jumbo opcodes that were temporarily available around the" +
+                        " ics timeframe. Note that support for these opcodes was removed from newer version of" +
+                        " dalvik. You shouldn't use this option unless you know the dex file contains these jumbo" +
+                        " opcodes.")
+                .create("J");
 
         Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
                 .withDescription("suppresses the output of the disassembly")
@@ -500,6 +510,7 @@ public class main {
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);
+        debugOptions.addOption(jumboInstructionsOption);
         debugOptions.addOption(noDisassemblyOption);
         debugOptions.addOption(writeDexOption);
         debugOptions.addOption(sortOption);
