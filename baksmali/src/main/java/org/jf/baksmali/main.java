@@ -218,6 +218,9 @@ public class main {
                     break;
                 case 'a':
                     apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
+                    if (apiLevel >= 17) {
+                        checkPackagePrivateAccess = true;
+                    }
                     break;
                 case 'N':
                     disassemble = false;
@@ -480,12 +483,6 @@ public class main {
                 .withArgName("FILE")
                 .create("T");
 
-        Option checkPackagePrivateAccess = OptionBuilder.withLongOpt("check-package-private-access")
-                .withDescription("When deodexing, use the new virtual table generation logic that " +
-                        "prevents overriding an inaccessible package private method. This is a temporary option " +
-                        "that will be removed once this new functionality can be tied to a specific api level.")
-                .create("K");
-
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputDirOption);
@@ -509,7 +506,6 @@ public class main {
         debugOptions.addOption(fixSignedRegisterOption);
         debugOptions.addOption(verifyDexOption);
         debugOptions.addOption(inlineTableOption);
-        debugOptions.addOption(checkPackagePrivateAccess);
 
         for (Object option: basicOptions.getOptions()) {
             options.addOption((Option)option);
