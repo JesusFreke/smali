@@ -78,6 +78,8 @@ public interface MethodImplementation {
      * This generally matches the semantics of the debug_info_item in the dex specification, although in an easier to
      * digest form.
      *
+     * The addresses of the DebugItems in the returned list will be in non-descending order.
+     *
      * @return A list of DebugInfo items
      */
     @Nonnull Iterable<? extends DebugItem> getDebugItems();

@@ -150,6 +150,22 @@ public class DexWriter extends OutputStream {
         write(value);
     }
 
+    public void writeSleb128(int value) throws IOException {
+        if (value >= 0) {
+            while (value > 0x3f) {
+                write((value & 0x7f) | 0x80);
+                value >>>= 7;
+            }
+            write(value & 0x7f);
+        } else {
+            while (value < -0x40) {
+                write((value & 0x7f) | 0x80);
+                value >>= 7;
+            }
+            write(value & 0x7f);
+        }
+    }
+
     /*    public static byte[] encodeSignedIntegralValue(long value) {
         int requiredBytes = getRequiredBytesForSignedIntegralValue(value);
 

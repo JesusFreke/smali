@@ -46,7 +46,6 @@ import org.jf.dexlib2.iface.value.*;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
@@ -67,6 +66,7 @@ public class DexFile {
     @Nonnull final AnnotationSetPool annotationSetPool = new AnnotationSetPool(this);
     @Nonnull final AnnotationSetRefPool annotationSetRefPool = new AnnotationSetRefPool(this);
     @Nonnull final AnnotationDirectoryPool annotationDirectoryPool = new AnnotationDirectoryPool(this);
+    @Nonnull final DebugInfoPool debugInfoPool = new DebugInfoPool(this);
 
     @Nonnull private final Set<? extends ClassDef> classes;
 
@@ -197,18 +197,16 @@ public class DexFile {
     public void internMethods(@Nonnull ClassDef classDef) {
         for (Method method: classDef.getMethods()) {
             methodPool.intern(method);
-            for (MethodParameter param: method.getParameters()) {
-                stringPool.internNullable(param.getName());
-            }
-            internMethodImplementation(method.getImplementation());
-        }
-    }
+            // TODO: can we have parameter names (in the debug_info_item), without having any other sort of method implementation
 
-    public void internMethodImplementation(@Nullable MethodImplementation methodImplementation) {
-        if (methodImplementation != null) {
-            internDebugItems(methodImplementation.getDebugItems());
-            internTryBlocks(methodImplementation.getTryBlocks());
-            internInstructions(methodImplementation.getInstructions());
+            // this also handles parameter names, which aren't directly tied to the MethodImplementation, even though the debug items are
+            debugInfoPool.intern(method);
+
+            MethodImplementation methodImpl = method.getImplementation();
+            if (methodImpl != null) {
+                internTryBlocks(methodImpl.getTryBlocks());
+                internInstructions(methodImpl.getInstructions());
+            }
         }
     }
 
@@ -294,6 +292,7 @@ public class DexFile {
                 annotationSetPool.write(offsetWriter);
                 annotationSetRefPool.write(offsetWriter);
                 annotationDirectoryPool.write(offsetWriter);
+                debugInfoPool.write(offsetWriter);
             } finally {
                 indexWriter.close();
                 offsetWriter.close();
