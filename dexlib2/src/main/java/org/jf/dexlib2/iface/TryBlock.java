@@ -32,7 +32,7 @@
 package org.jf.dexlib2.iface;
 
 import javax.annotation.Nonnull;
-import java.util.Set;
+import java.util.List;
 
 /**
  * This class represents an individual try block and associated set of handlers.
@@ -59,12 +59,12 @@ public interface TryBlock {
     int getCodeUnitCount();
 
     /**
-     * A set of the exception handlers associated with this try block.
+     * A list of the exception handlers associated with this try block.
      *
      * The exception handlers in the returned set will all have a unique type, including at most 1 with no type, which
      * is the catch-all handler.
      *
-     * @return A set of ExceptionHandler objects
+     * @return A list of ExceptionHandler objects
      */
-    @Nonnull Set<? extends ExceptionHandler> getExceptionHandlers();
+    @Nonnull List<? extends ExceptionHandler> getExceptionHandlers();
 }

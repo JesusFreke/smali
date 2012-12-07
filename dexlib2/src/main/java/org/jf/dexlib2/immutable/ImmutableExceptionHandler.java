@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.immutable;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.BaseExceptionHandler;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.util.ImmutableConverter;
@@ -62,9 +62,9 @@ public class ImmutableExceptionHandler extends BaseExceptionHandler implements E
     @Override public int getHandlerCodeAddress() { return handlerCodeAddress; }
 
     @Nonnull
-    public static ImmutableSet<ImmutableExceptionHandler> immutableSetOf(
+    public static ImmutableList<ImmutableExceptionHandler> immutableListOf(
             @Nullable Iterable<? extends ExceptionHandler> list) {
-        return CONVERTER.toSet(list);
+        return CONVERTER.toList(list);
     }
 
     private static final ImmutableConverter<ImmutableExceptionHandler, ExceptionHandler> CONVERTER =
