@@ -66,7 +66,7 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
                 return VariableSizeList.this.readNextItem(reader, index);
             }
         };
-        while (index++ > 0) {
+        for (int i=0; i<index; i++) {
             iterator.next();
         }
         return iterator;
