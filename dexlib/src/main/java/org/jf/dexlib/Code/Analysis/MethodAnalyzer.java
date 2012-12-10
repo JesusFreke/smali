@@ -3621,12 +3621,16 @@ public class MethodAnalyzer {
         }
 
         MethodIdItem methodIdItem = null;
+        ClassPath.ClassDef accessingClass =
+                ClassPath.getClassDef(this.encodedMethod.method.getContainingClass(), false);
+        if (accessingClass == null) {
+            throw new ExceptionWithContext(String.format("Could not find ClassDef for current class: %s",
+                    this.encodedMethod.method.getContainingClass()));
+        }
         if (isSuper) {
-            ClassPath.ClassDef classDef = ClassPath.getClassDef(this.encodedMethod.method.getContainingClass(), false);
-            assert classDef != null;
-
-            if (classDef.getSuperclass() != null) {
-                methodIdItem = deodexUtil.lookupVirtualMethod(classDef.getSuperclass(), methodIndex);
+            if (accessingClass.getSuperclass() != null) {
+                methodIdItem = deodexUtil.lookupVirtualMethod(accessingClass, accessingClass.getSuperclass(),
+                        methodIndex);
             }
 
             if (methodIdItem == null) {
@@ -3634,10 +3638,10 @@ public class MethodAnalyzer {
                 //of from the superclass (although the superclass method is still what would actually be called).
                 //And so the MethodIdItem for the superclass method may not be in the dex file. Let's try to get the
                 //MethodIdItem for the method in the current class instead
-                methodIdItem = deodexUtil.lookupVirtualMethod(classDef, methodIndex);
+                methodIdItem = deodexUtil.lookupVirtualMethod(accessingClass, accessingClass, methodIndex);
             }
         } else{
-            methodIdItem = deodexUtil.lookupVirtualMethod(objectRegisterType.type, methodIndex);
+            methodIdItem = deodexUtil.lookupVirtualMethod(accessingClass, objectRegisterType.type, methodIndex);
         }
 
         if (methodIdItem == null) {
