@@ -91,9 +91,12 @@ public class AnnotationDirectoryPool {
             if (!key.hasNonClassAnnotations()) {
                 offset = internedAnnotationDirectoryItems.get(key);
             }
-        }
-        if (offset == null) {
-            throw new ExceptionWithContext("Annotation directory not found for class %s.", classDef.getType());
+            if (offset == null) {
+                if (key.hasClassAnnotations() || key.hasNonClassAnnotations()) {
+                    throw new ExceptionWithContext("Annotation directory not found for class %s.", classDef.getType());
+                }
+                offset = 0;
+            }
         }
         return offset;
     }
