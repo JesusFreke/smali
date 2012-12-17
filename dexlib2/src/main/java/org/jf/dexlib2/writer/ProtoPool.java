@@ -47,9 +47,11 @@ import java.util.List;
 import java.util.Map;
 
 public class ProtoPool {
-    private final static int PROTO_ID_ITEM_SIZE = 12;
+    public final static int PROTO_ID_ITEM_SIZE = 0x0C;
+
     @Nonnull private final Map<Key, Integer> internedProtoIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public ProtoPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -80,10 +82,22 @@ public class ProtoPool {
         return internedProtoIdItems.size() * PROTO_ID_ITEM_SIZE;
     }
 
+    public int getNumItems() {
+        return internedProtoIdItems.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<Key> prototypes = Lists.newArrayList(internedProtoIdItems.keySet());
         Collections.sort(prototypes);
 
+        sectionOffset = writer.getPosition();
         int index = 0;
         for (Key proto: prototypes) {
             internedProtoIdItems.put(proto, index++);

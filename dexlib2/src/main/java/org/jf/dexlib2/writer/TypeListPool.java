@@ -42,6 +42,7 @@ import java.util.*;
 public class TypeListPool {
     @Nonnull private final Map<Key, Integer> internedTypeListItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public TypeListPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -66,10 +67,23 @@ public class TypeListPool {
         return offset;
     }
 
+    public int getNumItems() {
+        return internedTypeListItems.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<Key> typeLists = Lists.newArrayList(internedTypeListItems.keySet());
         Collections.sort(typeLists);
 
+        writer.align();
+        sectionOffset = writer.getPosition();
         for (Key typeList: typeLists) {
             writer.align();
             internedTypeListItems.put(typeList, writer.getPosition());

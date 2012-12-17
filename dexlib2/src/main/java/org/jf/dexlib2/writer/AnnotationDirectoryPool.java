@@ -49,6 +49,7 @@ public class AnnotationDirectoryPool {
     @Nonnull private final Map<String, Integer> nonInternedAnnotationDirectoryOffsetMap = Maps.newHashMap();
     @Nonnull private final List<Key> nonInternedAnnotationDirectoryItems = Lists.newArrayList();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public AnnotationDirectoryPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -101,10 +102,24 @@ public class AnnotationDirectoryPool {
         return offset;
     }
 
+    public int getNumItems() {
+        return internedAnnotationDirectoryItems.size() + nonInternedAnnotationDirectoryItems.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         // we'll write out the interned items first
         List<Key> directoryItems = Lists.newArrayList(internedAnnotationDirectoryItems.keySet());
         Collections.sort(directoryItems);
+
+        writer.align();
+        sectionOffset = writer.getPosition();
         for (Key key: directoryItems) {
             writer.align();
             internedAnnotationDirectoryItems.put(key, writer.getPosition());

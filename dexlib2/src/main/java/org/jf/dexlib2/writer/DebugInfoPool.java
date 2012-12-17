@@ -49,6 +49,7 @@ import java.util.Map;
 public class DebugInfoPool {
     @Nonnull private final Map<Method, Integer> debugInfoOffsetMap = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public DebugInfoPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -96,9 +97,22 @@ public class DebugInfoPool {
         return offset;
     }
 
+    public int getNumItems() {
+        return debugInfoOffsetMap.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<Method> methods = Lists.newArrayList(debugInfoOffsetMap.keySet());
         Collections.sort(methods);
+
+        sectionOffset = writer.getPosition();
         for (Method method: methods) {
             debugInfoOffsetMap.put(method, writer.getPosition());
 

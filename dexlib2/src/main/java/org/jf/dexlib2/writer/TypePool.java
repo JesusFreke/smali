@@ -43,9 +43,11 @@ import java.util.List;
 import java.util.Map;
 
 public class TypePool {
-    private final static int TYPE_ID_ITEM_SIZE = 4;
+    public final static int TYPE_ID_ITEM_SIZE = 0x04;
+
     @Nonnull private final Map<String, Integer> internedTypeIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public TypePool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -83,10 +85,22 @@ public class TypePool {
         return internedTypeIdItems.size() * TYPE_ID_ITEM_SIZE;
     }
 
+    public int getNumItems() {
+        return internedTypeIdItems.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<String> types = Lists.newArrayList(internedTypeIdItems.keySet());
         Collections.sort(types);
 
+        sectionOffset = writer.getPosition();
         int index = 0;
         for (String type: types) {
             internedTypeIdItems.put(type, index++);

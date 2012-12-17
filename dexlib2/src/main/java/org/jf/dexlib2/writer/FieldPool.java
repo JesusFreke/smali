@@ -44,9 +44,11 @@ import java.util.List;
 import java.util.Map;
 
 public class FieldPool {
-    private final static int FIELD_ID_ITEM_SIZE = 8;
+    public final static int FIELD_ID_ITEM_SIZE = 0x08;
+
     @Nonnull private final Map<FieldReference, Integer> internedFieldIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public FieldPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -73,10 +75,22 @@ public class FieldPool {
         return internedFieldIdItems.size() * FIELD_ID_ITEM_SIZE;
     }
 
+    public int getNumItems() {
+        return internedFieldIdItems.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<FieldReference> fields = Lists.newArrayList(internedFieldIdItems.keySet());
         Collections.sort(fields);
 
+        sectionOffset = writer.getPosition();
         int index = 0;
         for (FieldReference field: fields) {
             internedFieldIdItems.put(field, index++);

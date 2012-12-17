@@ -44,8 +44,11 @@ import java.util.List;
 import java.util.Map;
 
 public class StringPool {
-    private final static int STRING_ID_ITEM_SIZE = 4;
+    public final static int STRING_ID_ITEM_SIZE = 0x04;
+
     @Nonnull private final Map<String, Integer> internedStringIdItems = Maps.newHashMap();
+    private int indexSectionOffset = -1;
+    private int dataSectionOffset = -1;
 
     public void intern(@Nonnull CharSequence string) {
         internedStringIdItems.put(string.toString(), 0);
@@ -77,9 +80,24 @@ public class StringPool {
         return internedStringIdItems.size() * STRING_ID_ITEM_SIZE;
     }
 
+    public int getNumItems() {
+        return internedStringIdItems.size();
+    }
+
+    public int getIndexSectionOffset() {
+        return indexSectionOffset;
+    }
+
+    public int getDataSectionOffset() {
+        return dataSectionOffset;
+    }
+
     public void write(@Nonnull DexWriter indexWriter, @Nonnull DexWriter offsetWriter) throws IOException {
         List<String> strings = Lists.newArrayList(internedStringIdItems.keySet());
         Collections.sort(strings);
+
+        indexSectionOffset = indexWriter.getPosition();
+        dataSectionOffset = offsetWriter.getPosition();
 
         int index = 0;
         for (String string: strings) {

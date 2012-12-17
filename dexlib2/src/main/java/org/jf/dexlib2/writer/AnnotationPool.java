@@ -49,6 +49,7 @@ import java.util.SortedSet;
 public class AnnotationPool {
     @Nonnull private final Map<Annotation, Integer> internedAnnotations = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public AnnotationPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -73,10 +74,22 @@ public class AnnotationPool {
         return offset;
     }
 
+    public int getNumItems() {
+        return internedAnnotations.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<Annotation> annotations = Lists.newArrayList(internedAnnotations.keySet());
         Collections.sort(annotations);
 
+        sectionOffset = writer.getPosition();
         for (Annotation annotation: annotations) {
             internedAnnotations.put(annotation, writer.getPosition());
             writer.writeUbyte(annotation.getVisibility());

@@ -43,9 +43,11 @@ import java.util.List;
 import java.util.Map;
 
 public class MethodPool {
-    private final static int METHOD_ID_ITEM_SIZE = 8;
+    public final static int METHOD_ID_ITEM_SIZE = 0x08;
+
     @Nonnull private final Map<MethodReference, Integer> internedMethodIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public MethodPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -72,9 +74,21 @@ public class MethodPool {
         return internedMethodIdItems.size() * METHOD_ID_ITEM_SIZE;
     }
 
+    public int getNumItems() {
+        return internedMethodIdItems.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<MethodReference> methods = Lists.newArrayList(internedMethodIdItems.keySet());
 
+        sectionOffset = writer.getPosition();
         int index = 0;
         for (MethodReference method: methods) {
             internedMethodIdItems.put(method, index++);

@@ -55,6 +55,7 @@ import java.util.*;
 public class EncodedArrayPool {
     @Nonnull private final Map<Key, Integer> internedEncodedArrayItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public EncodedArrayPool(DexFile dexFile) {
         this.dexFile = dexFile;
@@ -84,10 +85,22 @@ public class EncodedArrayPool {
         return 0;
     }
 
+    public int getNumItems() {
+        return internedEncodedArrayItems.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<Key> encodedArrays = Lists.newArrayList(internedEncodedArrayItems.keySet());
         Collections.sort(encodedArrays);
 
+        sectionOffset = writer.getPosition();
         for (Key encodedArray: encodedArrays) {
             internedEncodedArrayItems.put(encodedArray, writer.getPosition());
             writer.writeUleb128(encodedArray.getElementCount());

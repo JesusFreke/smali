@@ -51,6 +51,7 @@ import java.util.*;
 public class AnnotationSetRefPool {
     @Nonnull private final Map<Key, Integer> internedAnnotationSetRefItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
+    private int sectionOffset = -1;
 
     public AnnotationSetRefPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -75,11 +76,24 @@ public class AnnotationSetRefPool {
         return offset;
     }
 
+    public int getNumItems() {
+        return internedAnnotationSetRefItems.size();
+    }
+
+    public int getSectionOffset() {
+        if (sectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
+        return sectionOffset;
+    }
+
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<Key> annotationSetRefs =
                 Lists.newArrayList(internedAnnotationSetRefItems.keySet());
         Collections.sort(annotationSetRefs);
 
+        writer.align();
+        sectionOffset = writer.getPosition();
         for (Key key: annotationSetRefs) {
             writer.align();
             internedAnnotationSetRefItems.put(key, writer.getPosition());
@@ -127,7 +141,7 @@ public class AnnotationSetRefPool {
                 }
                 Iterator<Set<? extends Annotation>> otherAnnotationSets = getAnnotationSets().iterator();
                 for (Set<? extends Annotation> annotationSet: getAnnotationSets()) {
-                    if (!annotationSet.equals(otherAnnotationSets)) {
+                    if (!annotationSet.equals(otherAnnotationSets.next())) {
                         return false;
                     }
                 }

@@ -60,6 +60,7 @@ public class DexFile {
     @Nonnull final DebugInfoPool debugInfoPool = new DebugInfoPool(this);
     @Nonnull final CodeItemPool codeItemPool = new CodeItemPool(this);
     @Nonnull final ClassDefPool classDefPool = new ClassDefPool(this);
+    @Nonnull final MapItem mapItem = new MapItem(this);
 
     @Nonnull private final Set<? extends ClassDef> classes;
 
@@ -205,6 +206,7 @@ public class DexFile {
                 debugInfoPool.write(offsetWriter);
                 codeItemPool.write(offsetWriter);
                 classDefPool.write(indexWriter, offsetWriter);
+                mapItem.write(offsetWriter);
             } finally {
                 indexWriter.close();
                 offsetWriter.close();
