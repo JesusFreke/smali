@@ -112,6 +112,11 @@ public class DexWriter extends OutputStream {
         }
     }
 
+    public void writeLong(long value) throws IOException {
+        writeInt((int)value);
+        writeInt((int)(value >> 32));
+    }
+
     public void writeInt(int value) throws IOException {
         write(value);
         write(value >> 8);
@@ -142,66 +147,37 @@ public class DexWriter extends OutputStream {
         write(value);
     }
 
-    public void writeUleb128(int value) throws IOException {
+    public static void writeUleb128(OutputStream out, int value) throws IOException {
         while (value > 0x7f) {
-            write((value & 0x7f) | 0x80);
+            out.write((value & 0x7f) | 0x80);
             value >>>= 7;
         }
-        write(value);
+        out.write(value);
+    }
+
+    public void writeUleb128(int value) throws IOException {
+        writeUleb128(this, value);
+    }
+
+    public static void writeSleb128(OutputStream out, int value) throws IOException {
+        if (value >= 0) {
+            while (value > 0x3f) {
+                out.write((value & 0x7f) | 0x80);
+                value >>>= 7;
+            }
+            out.write(value & 0x7f);
+        } else {
+            while (value < -0x40) {
+                out.write((value & 0x7f) | 0x80);
+                value >>= 7;
+            }
+            out.write(value & 0x7f);
+        }
     }
 
     public void writeSleb128(int value) throws IOException {
-        if (value >= 0) {
-            while (value > 0x3f) {
-                write((value & 0x7f) | 0x80);
-                value >>>= 7;
-            }
-            write(value & 0x7f);
-        } else {
-            while (value < -0x40) {
-                write((value & 0x7f) | 0x80);
-                value >>= 7;
-            }
-            write(value & 0x7f);
-        }
+        writeSleb128(this, value);
     }
-
-    /*    public static byte[] encodeSignedIntegralValue(long value) {
-        int requiredBytes = getRequiredBytesForSignedIntegralValue(value);
-
-        byte[] bytes = new byte[requiredBytes];
-
-        for (int i = 0; i < requiredBytes; i++) {
-            bytes[i] = (byte) value;
-            value >>= 8;
-        }
-        return bytes;
-    }*/
-
-
-    /*
-        public static long decodeUnsignedIntegralValue(byte[] bytes) {
-        long value = 0;
-        for (int i = 0; i < bytes.length; i++) {
-            value |= (((long)(bytes[i] & 0xFF)) << i * 8);
-        }
-        return value;
-    }
-     */
-
-    /*
-    public static byte[] encodeUnsignedIntegralValue(long value) {
-        int requiredBytes = getRequiredBytesForUnsignedIntegralValue(value);
-
-        byte[] bytes = new byte[requiredBytes];
-
-        for (int i = 0; i < requiredBytes; i++) {
-            bytes[i] = (byte) value;
-            value >>= 8;
-        }
-        return bytes;
-    }
-     */
 
     public void writeEncodedValueHeader(int valueType, int valueArg) throws IOException {
         write(valueType | (valueArg << 5));

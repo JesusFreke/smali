@@ -31,40 +31,12 @@
 
 package org.jf.dexlib2.util;
 
-import org.jf.dexlib2.AccessFlags;
-import org.jf.dexlib2.iface.Method;
-import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.Opcode;
 
-import javax.annotation.Nonnull;
-
-public final class MethodUtil {
-    private static int directMask = AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
-            AccessFlags.CONSTRUCTOR.getValue();
-
-    public static boolean isDirect(@Nonnull Method method) {
-        return (method.getAccessFlags() & directMask) != 0;
+public final class InstructionUtil {
+    public static boolean isInvokeStatic(Opcode opcode) {
+        return opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE;
     }
 
-    public static boolean isStatic(@Nonnull Method method) {
-        return AccessFlags.STATIC.isSet(method.getAccessFlags());
-    }
-
-    public static int getParameterRegisterCount(@Nonnull MethodReference methodRef, boolean isStatic) {
-        int regCount = 0;
-        for (TypeReference param: methodRef.getParameters()) {
-            int firstChar = param.getType().charAt(0);
-            if (firstChar == 'J' || firstChar == 'D') {
-                regCount += 2;
-            } else {
-                regCount++;
-            }
-        }
-        if (!isStatic) {
-            regCount++;
-        }
-        return regCount;
-    }
-
-    private MethodUtil() {}
+    private InstructionUtil() {}
 }

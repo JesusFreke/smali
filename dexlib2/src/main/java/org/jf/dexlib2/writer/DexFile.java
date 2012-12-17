@@ -67,6 +67,7 @@ public class DexFile {
     @Nonnull final AnnotationSetRefPool annotationSetRefPool = new AnnotationSetRefPool(this);
     @Nonnull final AnnotationDirectoryPool annotationDirectoryPool = new AnnotationDirectoryPool(this);
     @Nonnull final DebugInfoPool debugInfoPool = new DebugInfoPool(this);
+    @Nonnull final CodeItemPool codeItemPool = new CodeItemPool(this);
 
     @Nonnull private final Set<? extends ClassDef> classes;
 
@@ -197,10 +198,7 @@ public class DexFile {
     public void internMethods(@Nonnull ClassDef classDef) {
         for (Method method: classDef.getMethods()) {
             methodPool.intern(method);
-            // TODO: can we have parameter names (in the debug_info_item), without having any other sort of method implementation
-
-            // this also handles parameter names, which aren't directly tied to the MethodImplementation, even though the debug items are
-            debugInfoPool.intern(method);
+            codeItemPool.intern(method);
 
             MethodImplementation methodImpl = method.getImplementation();
             if (methodImpl != null) {
@@ -293,6 +291,7 @@ public class DexFile {
                 annotationSetRefPool.write(offsetWriter);
                 annotationDirectoryPool.write(offsetWriter);
                 debugInfoPool.write(offsetWriter);
+                codeItemPool.write(offsetWriter);
             } finally {
                 indexWriter.close();
                 offsetWriter.close();

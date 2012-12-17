@@ -40,10 +40,7 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.util.InstructionOffsetMap;
-import org.jf.dexlib2.util.MethodUtil;
-import org.jf.dexlib2.util.SyntheticAccessorResolver;
-import org.jf.dexlib2.util.TypeUtils;
+import org.jf.dexlib2.util.*;
 import org.jf.util.IndentingWriter;
 import org.jf.baksmali.baksmali;
 import org.jf.util.ExceptionWithContext;
@@ -103,7 +100,7 @@ public class MethodDefinition {
         }catch (Exception ex) {
             String methodString;
             try {
-                methodString = MethodUtil.buildFullMethodString(classDef.classDef, method);
+                methodString = ReferenceUtil.getMethodDescriptor(method);
             } catch (Exception ex2) {
                 throw ExceptionWithContext.withContext(ex, "Error while processing method");
             }

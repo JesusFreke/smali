@@ -61,8 +61,8 @@ public interface TryBlock {
     /**
      * A list of the exception handlers associated with this try block.
      *
-     * The exception handlers in the returned set will all have a unique type, including at most 1 with no type, which
-     * is the catch-all handler.
+     * The exception handlers in the returned list will all have a unique type, including at most 1 with no type, which
+     * is the catch-all handler. Catch-all handler is always the last item in the list.
      *
      * @return A list of ExceptionHandler objects
      */

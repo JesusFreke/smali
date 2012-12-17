@@ -54,7 +54,7 @@ public class DebugInfoPool {
         this.dexFile = dexFile;
     }
 
-    public void intern(@Nonnull Method method) {
+    public boolean intern(@Nonnull Method method) {
         boolean hasDebugInfo = false;
         for (MethodParameter param: method.getParameters()) {
             String paramName = param.getName();
@@ -85,6 +85,7 @@ public class DebugInfoPool {
         if (hasDebugInfo) {
             debugInfoOffsetMap.put(method, 0);
         }
+        return hasDebugInfo;
     }
 
     public int getOffset(@Nonnull Method method) {
