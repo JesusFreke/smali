@@ -40,6 +40,7 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.Collection;
 import java.util.Set;
 
@@ -61,6 +62,7 @@ public class DexFile {
     @Nonnull final CodeItemPool codeItemPool = new CodeItemPool(this);
     @Nonnull final ClassDefPool classDefPool = new ClassDefPool(this);
     @Nonnull final MapItem mapItem = new MapItem(this);
+    @Nonnull final HeaderItem headerItem = new HeaderItem(this);
 
     @Nonnull private final Set<? extends ClassDef> classes;
 
@@ -182,15 +184,23 @@ public class DexFile {
         }
     }
 
+    private int getDataSectionOffset() {
+        return HeaderItem.HEADER_ITEM_SIZE +
+               stringPool.getIndexedSectionSize() +
+               typePool.getIndexedSectionSize() +
+               protoPool.getIndexedSectionSize() +
+               fieldPool.getIndexedSectionSize() +
+               methodPool.getIndexedSectionSize() +
+               classDefPool.getIndexedSectionSize();
+    }
+
     private void writeTo(@Nonnull String path) throws IOException {
         RandomAccessFile raf = new RandomAccessFile(path, "rw");
         try {
-            int dataOffset = stringPool.getIndexedSectionSize() + typePool.getIndexedSectionSize() +
-                    fieldPool.getIndexedSectionSize() + protoPool.getIndexedSectionSize() +
-                    methodPool.getIndexedSectionSize();
-
-            DexWriter indexWriter = outputAt(raf, 0);
-            DexWriter offsetWriter = outputAt(raf, dataOffset);
+            int dataSectionOffset = getDataSectionOffset();
+            DexWriter headerWriter  = outputAt(raf, 0);
+            DexWriter indexWriter   = outputAt(raf, HeaderItem.HEADER_ITEM_SIZE);
+            DexWriter offsetWriter  = outputAt(raf, dataSectionOffset);
             try {
                 stringPool.write(indexWriter, offsetWriter);
                 typePool.write(indexWriter);
@@ -207,10 +217,15 @@ public class DexFile {
                 codeItemPool.write(offsetWriter);
                 classDefPool.write(indexWriter, offsetWriter);
                 mapItem.write(offsetWriter);
+                headerItem.write(headerWriter, dataSectionOffset, offsetWriter.getPosition());
             } finally {
+                headerWriter.close();
                 indexWriter.close();
                 offsetWriter.close();
             }
+            FileChannel fileChannel = raf.getChannel();
+            headerItem.updateSignature(fileChannel);
+            headerItem.updateChecksum(fileChannel);
         } finally {
             raf.close();
         }

@@ -117,11 +117,15 @@ public class DexWriter extends OutputStream {
         writeInt((int)(value >> 32));
     }
 
+    public static void writeInt(OutputStream out, int value) throws IOException {
+        out.write(value);
+        out.write(value >> 8);
+        out.write(value >> 16);
+        out.write(value >> 24);
+    }
+
     public void writeInt(int value) throws IOException {
-        write(value);
-        write(value >> 8);
-        write(value >> 16);
-        write(value >> 24);
+        writeInt(this, value);
     }
 
     public void writeShort(int value) throws IOException {
