@@ -31,17 +31,9 @@
 
 package org.jf.dexlib2.writer;
 
-import com.google.common.collect.ImmutableSortedSet;
-import org.jf.dexlib2.DebugItemType;
-import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.ValueType;
-import org.jf.dexlib2.iface.*;
-import org.jf.dexlib2.iface.debug.DebugItem;
-import org.jf.dexlib2.iface.debug.SetSourceFile;
-import org.jf.dexlib2.iface.debug.StartLocal;
-import org.jf.dexlib2.iface.instruction.Instruction;
-import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
-import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.iface.AnnotationElement;
+import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.util.ExceptionWithContext;
 
@@ -49,7 +41,6 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public class DexFile {
@@ -68,6 +59,7 @@ public class DexFile {
     @Nonnull final AnnotationDirectoryPool annotationDirectoryPool = new AnnotationDirectoryPool(this);
     @Nonnull final DebugInfoPool debugInfoPool = new DebugInfoPool(this);
     @Nonnull final CodeItemPool codeItemPool = new CodeItemPool(this);
+    @Nonnull final ClassDefPool classDefPool = new ClassDefPool(this);
 
     @Nonnull private final Set<? extends ClassDef> classes;
 
@@ -75,7 +67,7 @@ public class DexFile {
         this.classes = classes;
 
         for (ClassDef classDef: classes) {
-            internClass(classDef);
+            classDefPool.intern(classDef);
         }
     }
 
@@ -189,86 +181,6 @@ public class DexFile {
         }
     }
 
-    public void internFields(@Nonnull ClassDef classDef) {
-        for (Field field: classDef.getFields()) {
-            fieldPool.intern(field);
-        }
-    }
-
-    public void internMethods(@Nonnull ClassDef classDef) {
-        for (Method method: classDef.getMethods()) {
-            methodPool.intern(method);
-            codeItemPool.intern(method);
-
-            MethodImplementation methodImpl = method.getImplementation();
-            if (methodImpl != null) {
-                internTryBlocks(methodImpl.getTryBlocks());
-                internInstructions(methodImpl.getInstructions());
-            }
-        }
-    }
-
-    public void internDebugItems(Iterable<? extends DebugItem> debugItems) {
-        // TODO: debug_info_items should technically be internable...
-        for (DebugItem debugItem: debugItems) {
-            switch (debugItem.getDebugItemType()) {
-                case DebugItemType.START_LOCAL:
-                    StartLocal startLocal = (StartLocal)debugItem;
-                    stringPool.internNullable(startLocal.getName());
-                    typePool.internNullable(startLocal.getType());
-                    stringPool.internNullable(startLocal.getSignature());
-                    break;
-                case DebugItemType.SET_SOURCE_FILE:
-                    stringPool.internNullable(((SetSourceFile) debugItem).getSourceFile());
-                    break;
-            }
-        }
-    }
-
-    public void internTryBlocks(List<? extends TryBlock> tryBlocks) {
-        for (TryBlock tryBlock: tryBlocks) {
-            for (ExceptionHandler handler: tryBlock.getExceptionHandlers()) {
-                typePool.internNullable(handler.getExceptionType());
-            }
-        }
-    }
-    
-    public void internInstructions(Iterable<? extends Instruction> instructions) {
-        for (Instruction instruction: instructions) {
-            if (instruction instanceof ReferenceInstruction) {
-                Reference reference = ((ReferenceInstruction)instruction).getReference();
-                switch (instruction.getOpcode().referenceType) {
-                    case ReferenceType.STRING:
-                        stringPool.intern((StringReference) reference);
-                        break;
-                    case ReferenceType.TYPE:
-                        typePool.intern((TypeReference)reference);
-                        break;
-                    case ReferenceType.FIELD:
-                        fieldPool.intern((FieldReference) reference);
-                        break;
-                    case ReferenceType.METHOD:
-                        methodPool.intern((MethodReference)reference);
-                        break;
-                    default:
-                        throw new ExceptionWithContext("Unrecognized reference type: %d",
-                                instruction.getOpcode().referenceType);
-                }
-            }
-        }
-    }
-
-    public void internClass(@Nonnull ClassDef classDef) {
-        typePool.intern(classDef.getType());
-        typePool.internNullable(classDef.getSuperclass());
-        typeListPool.intern(ImmutableSortedSet.copyOf(classDef.getInterfaces()));
-        stringPool.internNullable(classDef.getSourceFile());
-        encodedArrayPool.intern(classDef);
-        annotationDirectoryPool.intern(classDef);
-        internFields(classDef);
-        internMethods(classDef);
-    }
-
     private void writeTo(@Nonnull String path) throws IOException {
         RandomAccessFile raf = new RandomAccessFile(path, "rw");
         try {
@@ -292,6 +204,7 @@ public class DexFile {
                 annotationDirectoryPool.write(offsetWriter);
                 debugInfoPool.write(offsetWriter);
                 codeItemPool.write(offsetWriter);
+                classDefPool.write(indexWriter, offsetWriter);
             } finally {
                 indexWriter.close();
                 offsetWriter.close();
