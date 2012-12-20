@@ -31,64 +31,31 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
-import org.jf.dexlib2.iface.DexFile;
-
 import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Set;
 
-public class DexBackedDexFile implements DexFile {
+public class DexBackedMapItem {
     @Nonnull public final DexBuffer dexBuf;
+    private final int mapItemOffset;
 
-    public DexBackedDexFile(@Nonnull DexBuffer dexBuf) {
+    private static final int TYPE_OFFSET = 0;
+    private static final int SIZE_OFFSET = 4;
+    private static final int OFFSET_OFFSET = 8;
+
+    DexBackedMapItem(@Nonnull DexBuffer dexBuf,
+                     int mapItemOffset) {
         this.dexBuf = dexBuf;
+        this.mapItemOffset = mapItemOffset;
     }
 
-    @Nonnull
-    @Override
-    public Set<? extends DexBackedClassDef> getClasses() {
-        final int classCount = dexBuf.getClassCount();
-
-        return new FixedSizeSet<DexBackedClassDef>() {
-            @Nonnull
-            @Override
-            public DexBackedClassDef readItem(int index) {
-                int classOffset = dexBuf.getClassDefItemOffset(index);
-                return new DexBackedClassDef(dexBuf, classOffset);
-            }
-
-            @Override
-            public int size() {
-                return classCount;
-            }
-        };
+    public int getType() {
+        return dexBuf.readUshort(mapItemOffset + TYPE_OFFSET);
     }
 
-    public int getChecksum() {
-        return dexBuf.getChecksum();
+    public int getNumItems() {
+        return dexBuf.readSmallUint(mapItemOffset + SIZE_OFFSET);
     }
 
-    public byte[] getSignature() {
-        return dexBuf.getSignature();
-    }
-
-    public List<DexBackedMapItem> getMap() {
-        final int mapOffset = dexBuf.getMapOffset();
-        final int sectionCount = dexBuf.readSmallUint(mapOffset);
-
-        return new FixedSizeList<DexBackedMapItem>() {
-            @Override
-            public DexBackedMapItem readItem(int index) {
-                int mapItemOffset = mapOffset + index * DexBuffer.MAP_ITEM_SIZE;
-                return new DexBackedMapItem(dexBuf, mapItemOffset);
-            }
-
-            @Override
-            public int size() {
-                return sectionCount;
-            }
-        };
+    public int getOffset() {
+        return dexBuf.readSmallUint(mapItemOffset + OFFSET_OFFSET);
     }
 }

@@ -37,6 +37,7 @@ import org.jf.util.Utf8Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
 public class DexBuffer {
     // TODO: consider using a direct ByteBuffer instead
@@ -61,7 +62,10 @@ public class DexBuffer {
     private static final int LITTLE_ENDIAN_TAG = 0x12345678;
     private static final int BIG_ENDIAN_TAG = 0x78563412;
 
+    private static final int CHECKSUM_OFFSET = 8;
+    private static final int SIGNATURE_OFFSET = 12;
     private static final int ENDIAN_TAG_OFFSET = 40;
+    private static final int MAP_OFFSET = 52;
     private static final int STRING_COUNT_OFFSET = 56;
     private static final int STRING_START_OFFSET = 60;
     private static final int TYPE_COUNT_OFFSET = 64;
@@ -75,12 +79,15 @@ public class DexBuffer {
     private static final int CLASS_COUNT_OFFSET = 96;
     private static final int CLASS_START_OFFSET = 100;
 
+    private static final int SIGNATURE_SIZE = 20;
+
     private static final int STRING_ID_ITEM_SIZE = 4;
     private static final int TYPE_ID_ITEM_SIZE = 4;
     private static final int PROTO_ID_ITEM_SIZE = 12;
     private static final int FIELD_ID_ITEM_SIZE = 8;
     private static final int METHOD_ID_ITEM_SIZE = 8;
     private static final int CLASS_DEF_ITEM_SIZE = 32;
+    public static final int MAP_ITEM_SIZE = 12;
 
     public static final int FIELD_CLASS_IDX_OFFSET = 0;
     public static final int FIELD_TYPE_IDX_OFFSET = 2;
@@ -162,6 +169,18 @@ public class DexBuffer {
             }
             throw new ExceptionWithContext(sb.toString());
         }
+    }
+
+    public int getChecksum() {
+        return readInt(CHECKSUM_OFFSET);
+    }
+
+    public byte[] getSignature() {
+        return Arrays.copyOfRange(this.buf, SIGNATURE_OFFSET, SIGNATURE_OFFSET + SIGNATURE_SIZE);
+    }
+
+    public int getMapOffset() {
+        return readSmallUint(MAP_OFFSET);
     }
 
     public int getStringIdItemOffset(int stringIndex) {
