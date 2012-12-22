@@ -238,11 +238,11 @@ public class DexWriter extends OutputStream {
 
         int index = 3;
         do {
-            buf[index--] = (byte)((intValue & 0xFF000000) >>> 24);
+            tempBuf[index--] = (byte)((intValue & 0xFF000000) >>> 24);
             intValue <<= 8;
         } while (intValue != 0);
         writeEncodedValueHeader(valueType, 4-index);
-        write(buf, index+1, 4-index);
+        write(tempBuf, index+1, 4-index);
     }
 
     public void writeEncodedDouble(int valueType, double value) throws IOException {
@@ -250,11 +250,11 @@ public class DexWriter extends OutputStream {
 
         int index = 7;
         do {
-            buf[index--] = (byte)((longValue & 0xFF00000000000000L) >>> 56);
+            tempBuf[index--] = (byte)((longValue & 0xFF00000000000000L) >>> 56);
             longValue <<= 8;
         } while (longValue != 0);
         writeEncodedValueHeader(valueType, 7-index);
-        write(buf, index+1, 7-index);
+        write(tempBuf, index+1, 7-index);
     }
 
     public void writeString(String string) throws IOException {
