@@ -100,7 +100,17 @@ public interface ClassDef extends TypeReference {
     /**
      * Gets a set of the fields that are defined by this class.
      *
-     * TODO: uniqueness?
+     * In general, in a "well-formed" class, the fields in a class should be unique by name and type.
+     *
+     * However, dalvik "allows" (doesn't check/error) duplicate fields. There can be two "active" fields with the same
+     * name+type, a static field and an instance field. If there are multiple static or instance fields with the same
+     * name+type, the first of each is the "active" field. Any other duplicate is ignored. This behavior should be
+     * considered a bug and not relied on.
+     *
+     * As such, the DexBacked implementation may return a Set that contains such duplicated fields.
+     *
+     * In such cases, any non-active field should be removed, and either the active static or instance version of the
+     * duplicated field should be renamed.
      *
      * @return A set of the fields that are defined by this class
      */
@@ -108,8 +118,6 @@ public interface ClassDef extends TypeReference {
 
     /**
      * Gets a set of the methods that are defined by this class.
-     *
-     * TODO: uniqueness?
      *
      * @return A set of the methods that are defined by this class.
      */
