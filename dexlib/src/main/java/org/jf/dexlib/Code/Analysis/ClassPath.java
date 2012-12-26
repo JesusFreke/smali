@@ -537,7 +537,7 @@ public class ClassPath {
         }
 
         public ClassDef getSuperclass() {
-            throw unresolvedValidationException();
+            return theClassPath.javaLangObjectClassDef;
         }
 
         public int getClassDepth() {
