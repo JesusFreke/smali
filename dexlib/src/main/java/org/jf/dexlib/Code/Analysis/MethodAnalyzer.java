@@ -3578,7 +3578,14 @@ public class MethodAnalyzer {
             return false;
         }
 
-        FieldIdItem fieldIdItem = deodexUtil.lookupField(objectRegisterType.type, fieldOffset);
+        ClassPath.ClassDef accessingClass =
+                ClassPath.getClassDef(this.encodedMethod.method.getContainingClass(), false);
+        if (accessingClass == null) {
+            throw new ExceptionWithContext(String.format("Could not find ClassDef for current class: %s",
+                    this.encodedMethod.method.getContainingClass()));
+        }
+
+        FieldIdItem fieldIdItem = deodexUtil.lookupField(accessingClass, objectRegisterType.type, fieldOffset);
         if (fieldIdItem == null) {
             throw new ValidationException(String.format("Could not resolve the field in class %s at offset %d",
                     objectRegisterType.type.getClassType(), fieldOffset));
