@@ -12,10 +12,16 @@
     stringValue = "Class Annotation Test"
 .end annotation
 
-
 .field public testField:I
     .annotation runtime LTestAnnotationClass;
         stringValue = "Field Annotation Test"
+    .end annotation
+.end field
+
+.field public testAnnotationValuesOutOfOrder:I
+    .annotation runtime LTestAnnotationClass;
+        stringValue = "stringValue Value"
+        anotherStringValue = "anotherStringValue Value"
     .end annotation
 .end field
 
@@ -67,6 +73,41 @@
     const-string v1, "Field Annotation Test"
 
     invoke-static {v0, v1}, Lorg/junit/Assert;->assertEquals(Ljava/lang/Object;Ljava/lang/Object;)V
+
+    return-void
+.end method
+
+.method public testAnnotationValuesOutOfOrder()V
+    .registers 5
+
+    .annotation runtime Lorg/junit/Test;
+    .end annotation
+
+    const-class v0, LAnnotationTests;
+    const-class v1, LTestAnnotationClass;
+    const-string v2, "testAnnotationValuesOutOfOrder"
+
+    invoke-virtual {v0, v2}, Ljava/lang/Class;->getField(Ljava/lang/String;)Ljava/lang/reflect/Field;
+    move-result-object v3
+
+    invoke-virtual {v3, v1}, Ljava/lang/reflect/Field;->getAnnotation(Ljava/lang/Class;)Ljava/lang/annotation/Annotation;
+    move-result-object v0
+
+    check-cast v0, LTestAnnotationClass;
+
+    invoke-interface {v0}, LTestAnnotationClass;->stringValue()Ljava/lang/String;
+    move-result-object v4
+
+    const-string v1, "stringValue Value"
+
+    invoke-static {v4, v1}, Lorg/junit/Assert;->assertEquals(Ljava/lang/Object;Ljava/lang/Object;)V
+
+    invoke-interface {v0}, LTestAnnotationClass;->anotherStringValue()Ljava/lang/String;
+    move-result-object v4
+
+    const-string v1, "anotherStringValue Value"
+
+    invoke-static {v4, v1}, Lorg/junit/Assert;->assertEquals(Ljava/lang/Object;Ljava/lang/Object;)V
 
     return-void
 .end method

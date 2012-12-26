@@ -69,6 +69,7 @@ dependencies {
     compile project(':dexlib')
     compile 'org.antlr:antlr-runtime:3.2'
     compile 'commons-cli:commons-cli:1.2'
+    compile 'com.google.guava:guava:13.0.1'
 
     testCompile 'junit:junit:4.6'
 
