@@ -50,4 +50,28 @@ public class DexItemType {
     public static final int ANNOTATION_ITEM = 0x2004;
     public static final int ENCODED_ARRAY_ITEM = 0x2005;
     public static final int ANNOTATION_DIRECTORY_ITEM = 0x2006;
+
+    public static String getItemTypeName(int itemType) {
+        switch (itemType) {
+            case HEADER_ITEM: return "HEADER_ITEM";
+            case STRING_ID_ITEM: return "STRING_ID_ITEM";
+            case TYPE_ID_ITEM: return "TYPE_ID_ITEM";
+            case PROTO_ID_ITEM: return "PROTO_ID_ITEM";
+            case FIELD_ID_ITEM: return "FIELD_ID_ITEM";
+            case METHOD_ID_ITEM: return "METHOD_ID_ITEM";
+            case CLASS_DEF_ITEM: return "CLASS_DEF_ITEM";
+            case MAP_LIST: return "MAP_LIST";
+            case TYPE_LIST: return "TYPE_LIST";
+            case ANNOTATION_SET_REF_LIST: return "ANNOTATION_SET_REF_LIST";
+            case ANNOTATION_SET_ITEM: return "ANNOTATION_SET_ITEM";
+            case CLASS_DATA_ITEM: return "CLASS_DATA_ITEM";
+            case CODE_ITEM: return "CODE_ITEM";
+            case STRING_DATA_ITEM: return "STRING_DATA_ITEM";
+            case DEBUG_INFO_ITEM: return "DEBUG_INFO_ITEM";
+            case ANNOTATION_ITEM: return "ANNOTATION_ITEM";
+            case ENCODED_ARRAY_ITEM: return "ENCODED_ARRAY_ITEM";
+            case ANNOTATION_DIRECTORY_ITEM: return "ANNOTATION_DIRECTORY_ITEM";
+            default: return "Unknown dex item type";
+        }
+    }
 }

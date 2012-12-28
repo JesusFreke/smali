@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.dexlib2.writer.DexItemType;
+
 import javax.annotation.Nonnull;
 
 public class DexBackedMapItem {
@@ -49,6 +51,11 @@ public class DexBackedMapItem {
 
     public int getType() {
         return dexBuf.readUshort(mapItemOffset + TYPE_OFFSET);
+    }
+
+    public String getName() {
+        int type = dexBuf.readShort(mapItemOffset + TYPE_OFFSET);
+        return DexItemType.getItemTypeName(type);
     }
 
     public int getNumItems() {
