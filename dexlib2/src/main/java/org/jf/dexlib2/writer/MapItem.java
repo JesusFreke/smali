@@ -78,7 +78,7 @@ public class MapItem {
         writeItem(writer, DexItemType.DEBUG_INFO_ITEM, dexFile.debugInfoPool.getNumItems(), dexFile.debugInfoPool.getSectionOffset());
         writeItem(writer, DexItemType.CODE_ITEM, dexFile.codeItemPool.getNumItems(), dexFile.codeItemPool.getSectionOffset());
         writeItem(writer, DexItemType.CLASS_DATA_ITEM, dexFile.classDefPool.getNumClassDataItems(), dexFile.classDefPool.getDataSectionOffset());
-        writeItem(writer, DexItemType.MAP_LIST, numItems, sectionOffset);
+        writeItem(writer, DexItemType.MAP_LIST, 1, sectionOffset);
     }
 
     private int calcNumItems() {
