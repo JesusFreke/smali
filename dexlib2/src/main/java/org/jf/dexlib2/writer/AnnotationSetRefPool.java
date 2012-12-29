@@ -69,7 +69,7 @@ public class AnnotationSetRefPool {
 
     public int getOffset(@Nonnull Method method) {
         Key annotationSetRefKey = new Key(method);
-        Integer offset = internedAnnotationSetRefItems.put(annotationSetRefKey, 0);
+        Integer offset = internedAnnotationSetRefItems.get(annotationSetRefKey);
         if (offset == null) {
             throw new ExceptionWithContext("Annotation set ref not found.");
         }
