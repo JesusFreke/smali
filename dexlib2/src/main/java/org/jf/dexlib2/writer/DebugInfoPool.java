@@ -135,7 +135,7 @@ public class DebugInfoPool {
             List<? extends MethodParameter> parameters = method.getParameters();
             writer.writeUleb128(parameters.size());
             for (MethodParameter parameter: parameters) {
-                writer.writeUleb128(dexFile.stringPool.getIndexNullable(parameter.getName()));
+                writer.writeUleb128(dexFile.stringPool.getIndexNullable(parameter.getName())+1);
             }
 
             if (debugItems != null && debugItems.size() > 0) {
