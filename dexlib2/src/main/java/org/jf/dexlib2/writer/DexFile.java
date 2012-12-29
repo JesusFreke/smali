@@ -81,6 +81,7 @@ public class DexFile {
             case ValueType.ANNOTATION:
                 AnnotationEncodedValue annotationEncodedValue = (AnnotationEncodedValue)encodedValue;
                 Collection<? extends AnnotationElement> annotationElements = annotationEncodedValue.getElements();
+                writer.writeEncodedValueHeader(valueType, 0);
                 writer.writeUleb128(typePool.getIndex(annotationEncodedValue.getType()));
                 writer.writeUleb128(annotationElements.size());
                 for (AnnotationElement element: annotationElements) {
@@ -91,6 +92,7 @@ public class DexFile {
             case ValueType.ARRAY:
                 ArrayEncodedValue arrayEncodedValue = (ArrayEncodedValue)encodedValue;
                 Collection<? extends EncodedValue> elements = arrayEncodedValue.getValue();
+                writer.writeEncodedValueHeader(valueType, 0);
                 writer.writeUleb128(elements.size());
                 for (EncodedValue element: elements) {
                     writeEncodedValue(writer, element);
