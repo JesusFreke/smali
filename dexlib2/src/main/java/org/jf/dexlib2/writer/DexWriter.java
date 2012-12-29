@@ -176,7 +176,7 @@ public class DexWriter extends BufferedOutputStream {
             }
         }
         tempBuf[index++] = (byte)value;
-        writeEncodedValueHeader(valueType, index);
+        writeEncodedValueHeader(valueType, index-1);
         write(tempBuf, 0, index);
     }
 
@@ -194,7 +194,7 @@ public class DexWriter extends BufferedOutputStream {
             }
         }
         tempBuf[index++] = (byte)value;
-        writeEncodedValueHeader(valueType, index);
+        writeEncodedValueHeader(valueType, index-1);
         write(tempBuf, 0, index);
     }
 
@@ -202,34 +202,44 @@ public class DexWriter extends BufferedOutputStream {
         int index = 0;
         do {
             tempBuf[index++] = (byte)value;
-            value >>= 8;
+            value >>>= 8;
         } while (value != 0);
-        writeEncodedValueHeader(valueType, index);
+        writeEncodedValueHeader(valueType, index-1);
         write(tempBuf, 0, index);
     }
 
     public void writeEncodedFloat(int valueType, float value) throws IOException {
-        int intValue = Float.floatToRawIntBits(value);
+        writeRightZeroExtendedInt(valueType, Float.floatToRawIntBits(value));
+    }
 
+    protected void writeRightZeroExtendedInt(int valueType, int value) throws IOException {
         int index = 3;
         do {
-            tempBuf[index--] = (byte)((intValue & 0xFF000000) >>> 24);
-            intValue <<= 8;
-        } while (intValue != 0);
-        writeEncodedValueHeader(valueType, 4-index);
-        write(tempBuf, index+1, 4-index);
+            tempBuf[index--] = (byte)((value & 0xFF000000) >>> 24);
+            value <<= 8;
+        } while (value != 0);
+
+        int firstElement = index+1;
+        int encodedLength = 4-firstElement;
+        writeEncodedValueHeader(valueType, encodedLength - 1);
+        write(tempBuf, firstElement, encodedLength);
     }
 
     public void writeEncodedDouble(int valueType, double value) throws IOException {
-        long longValue = Double.doubleToRawLongBits(value);
+        writeRightZeroExtendedLong(valueType, Double.doubleToRawLongBits(value));
+    }
 
+    protected void writeRightZeroExtendedLong(int valueType, long value) throws IOException {
         int index = 7;
         do {
-            tempBuf[index--] = (byte)((longValue & 0xFF00000000000000L) >>> 56);
-            longValue <<= 8;
-        } while (longValue != 0);
-        writeEncodedValueHeader(valueType, 7-index);
-        write(tempBuf, index+1, 7-index);
+            tempBuf[index--] = (byte)((value & 0xFF00000000000000L) >>> 56);
+            value <<= 8;
+        } while (value != 0);
+
+        int firstElement = index+1;
+        int encodedLength = 8-firstElement;
+        writeEncodedValueHeader(valueType, encodedLength - 1);
+        write(tempBuf, firstElement, encodedLength);
     }
 
     public void writeString(String string) throws IOException {
