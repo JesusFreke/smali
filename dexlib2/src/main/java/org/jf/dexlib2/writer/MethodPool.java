@@ -39,6 +39,7 @@ import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -87,6 +88,7 @@ public class MethodPool {
 
     public void write(@Nonnull DexWriter writer) throws IOException {
         List<MethodReference> methods = Lists.newArrayList(internedMethodIdItems.keySet());
+        Collections.sort(methods);
 
         sectionOffset = writer.getPosition();
         int index = 0;
