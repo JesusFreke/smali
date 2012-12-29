@@ -28,6 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
+import com.google.common.collect.Lists;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -40,7 +41,9 @@ import org.jf.util.StringUtils;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 public class ClassDefinition {
     @Nonnull public final ClassDef classDef;
@@ -134,7 +137,9 @@ public class ClassDefinition {
     }
 
     private void writeInterfaces(IndentingWriter writer) throws IOException {
-        Collection<String> interfaces = classDef.getInterfaces();
+        List<String> interfaces = Lists.newArrayList(classDef.getInterfaces());
+        Collections.sort(interfaces);
+
         if (interfaces.size() != 0) {
             writer.write('\n');
             writer.write("# interfaces\n");
