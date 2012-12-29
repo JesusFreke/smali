@@ -36,6 +36,7 @@ import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.util.ExceptionWithContext;
+import org.jf.util.RandomAccessFileOutputStream;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -232,7 +233,7 @@ public class DexFile {
     }
 
     private static DexWriter outputAt(RandomAccessFile raf, int filePosition) throws IOException {
-        return new DexWriter(raf.getChannel(), filePosition);
+        return new DexWriter(new RandomAccessFileOutputStream(raf), filePosition);
     }
 
     public static void writeTo(@Nonnull String path, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {

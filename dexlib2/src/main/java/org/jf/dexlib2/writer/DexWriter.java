@@ -31,29 +31,19 @@
 
 package org.jf.dexlib2.writer;
 
-import com.google.common.base.Preconditions;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 
-public class DexWriter extends OutputStream {
-    private static final int MAP_SIZE = 1024*1024;
-    private static final int BUF_SIZE = 256*1024;
-
-    @Nonnull private final FileChannel channel;
-    private MappedByteBuffer byteBuffer;
-
-    /** The position in the file at which byteBuffer starts. */
-    private int mappedFilePosition;
-
-    private byte[] buf = new byte[BUF_SIZE];
-    /** The index within buf to write to */
-    private int bufPosition;
+public class DexWriter extends BufferedOutputStream {
+    /**
+     * The position within the file that we will write to next. This is only updated when the buffer is flushed to the
+     * outputStream.
+     */
+    private int filePosition;
 
     /**
      * A temporary buffer that can be used for larger writes. Can be replaced with a larger buffer if needed.
@@ -61,22 +51,29 @@ public class DexWriter extends OutputStream {
      */
     private byte[] tempBuf = new byte[8];
 
-    /** A buffer of 0s we used for writing alignment values */
+    /** A buffer of 0s to use for writing alignment values */
     private byte[] zeroBuf = new byte[3];
 
-    public DexWriter(FileChannel channel, int position) throws IOException {
-        this.channel = channel;
-        this.mappedFilePosition = position;
+    /**
+     * Construct a new DexWriter instance that writes to output.
+     *
+     * @param output An OutputStream to write the data to.
+     * @param filePosition The position within the file that OutputStream will write to.
+     */
+    public DexWriter(@Nonnull OutputStream output, int filePosition) {
+        this(output, filePosition, 256 * 1024);
+    }
 
-        byteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, position, MAP_SIZE);
+    public DexWriter(@Nonnull OutputStream output, int filePosition, int bufferSize) {
+        super(output, bufferSize);
+
+        this.filePosition = filePosition;
     }
 
     @Override
     public void write(int b) throws IOException {
-        if (bufPosition >= BUF_SIZE) {
-            flushBuffer();
-        }
-        buf[bufPosition++] = (byte)b;
+        filePosition++;
+        super.write(b);
     }
 
     @Override
@@ -86,30 +83,8 @@ public class DexWriter extends OutputStream {
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        int toWrite = len;
-
-        if (bufPosition == BUF_SIZE) {
-            flushBuffer();
-        }
-        int remainingBuffer = BUF_SIZE - bufPosition;
-        if (toWrite >= remainingBuffer) {
-            // fill up and write out the current buffer
-            System.arraycopy(b, 0, buf, bufPosition, remainingBuffer);
-            bufPosition += remainingBuffer;
-            toWrite -= remainingBuffer;
-            flushBuffer();
-
-            // skip the intermediate buffer while we have a full buffer's worth
-            while (toWrite >= BUF_SIZE) {
-                writeBufferToMap(b, len - toWrite, BUF_SIZE);
-                toWrite -= BUF_SIZE;
-            }
-        }
-        // write out the final chunk, if any
-        if (toWrite > 0) {
-            System.arraycopy(b, len-toWrite, buf, bufPosition, len);
-            bufPosition += len;
-        }
+        filePosition += len;
+        super.write(b, off, len);
     }
 
     public void writeLong(long value) throws IOException {
@@ -291,48 +266,7 @@ public class DexWriter extends OutputStream {
         }
     }
 
-    @Override
-    public void flush() throws IOException {
-        if (bufPosition > 0) {
-            writeBufferToMap(buf, 0, bufPosition);
-            bufPosition = 0;
-        }
-        byteBuffer.force();
-        mappedFilePosition += byteBuffer.position();
-        channel.position(mappedFilePosition + MAP_SIZE);
-        channel.write(ByteBuffer.wrap(new byte[]{0}));
-        byteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, mappedFilePosition, MAP_SIZE);
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (bufPosition > 0) {
-            writeBufferToMap(buf, 0, bufPosition);
-            bufPosition = 0;
-        }
-        byteBuffer.force();
-        byteBuffer = null;
-        buf = null;
-        tempBuf = null;
-    }
-
-    private void flushBuffer() throws IOException {
-        Preconditions.checkState(bufPosition == BUF_SIZE);
-        writeBufferToMap(buf, 0, BUF_SIZE);
-        bufPosition = 0;
-    }
-
-    private void writeBufferToMap(byte[] buf, int bufOffset, int len) throws IOException {
-        // we always write BUF_SIZE, which evenly divides our mapped size, so we only care if remaining is 0 yet
-        if (!byteBuffer.hasRemaining()) {
-            byteBuffer.force();
-            mappedFilePosition += MAP_SIZE;
-            byteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, mappedFilePosition, MAP_SIZE);
-        }
-        byteBuffer.put(buf, bufOffset, len);
-    }
-
     public int getPosition() {
-        return mappedFilePosition + byteBuffer.position() + bufPosition;
+        return filePosition;
     }
 }
