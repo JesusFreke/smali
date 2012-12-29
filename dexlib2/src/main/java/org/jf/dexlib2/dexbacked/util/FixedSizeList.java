@@ -41,7 +41,7 @@ import java.util.AbstractList;
 public abstract class FixedSizeList<T> extends AbstractList<T> {
     @Override
     public T get(int index) {
-        if (index < 0 || index > size()) {
+        if (index < 0 || index >= size()) {
             throw new IndexOutOfBoundsException();
         }
         return readItem(index);

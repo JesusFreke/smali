@@ -66,6 +66,6 @@ public abstract class BaseMethodReference implements MethodReference {
         if (res != 0) return res;
         res = getReturnType().compareTo(o.getReturnType());
         if (res != 0) return res;
-        return CollectionUtils.compareAsList(getParameters(), o.getParameters());
+        return CollectionUtils.compareAsIterable(getParameters(), o.getParameters());
     }
 }
