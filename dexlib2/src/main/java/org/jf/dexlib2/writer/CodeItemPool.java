@@ -152,9 +152,8 @@ public class CodeItemPool {
                 int maxOutParamCount = 0;
                 int codeUnitCount = 0;
                 for (Instruction instruction: methodImpl.getInstructions()) {
+                    codeUnitCount += instruction.getCodeUnits();
                     if (instruction.getOpcode().referenceType == ReferenceType.METHOD) {
-                        codeUnitCount += instruction.getCodeUnits();
-
                         ReferenceInstruction refInsn = (ReferenceInstruction)instruction;
                         MethodReference methodRef = (MethodReference)refInsn.getReference();
                         int paramCount = MethodUtil.getParameterRegisterCount(methodRef,
