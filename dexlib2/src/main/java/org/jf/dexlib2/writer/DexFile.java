@@ -233,7 +233,7 @@ public class DexFile {
     }
 
     private static DexWriter outputAt(RandomAccessFile raf, int filePosition) throws IOException {
-        return new DexWriter(new RandomAccessFileOutputStream(raf), filePosition);
+        return new DexWriter(new RandomAccessFileOutputStream(raf, filePosition), filePosition);
     }
 
     public static void writeTo(@Nonnull String path, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
