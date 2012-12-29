@@ -507,21 +507,25 @@ public class CodeItemPool {
                 for (Number element: elements) {
                     writer.write(element.byteValue());
                 }
-                return;
+                break;
             case 2:
                 for (Number element: elements) {
                     writer.writeShort(element.shortValue());
                 }
-                return;
+                break;
             case 4:
                 for (Number element: elements) {
                     writer.writeInt(element.intValue());
                 }
-                return;
+                break;
             case 8:
                 for (Number element: elements) {
                     writer.writeLong(element.longValue());
                 }
+                break;
+        }
+        if ((writer.getPosition() & 1) != 0) {
+            writer.write(0);
         }
     }
 
