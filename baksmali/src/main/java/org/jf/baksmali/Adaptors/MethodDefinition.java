@@ -231,13 +231,12 @@ public class MethodDefinition {
                 }
                 writer.write("    # ");
                 writer.write(parameterType);
+                writer.write("\n");
                 if (annotations.size() > 0) {
                     writer.indent(4);
                     AnnotationFormatter.writeTo(writer, annotations);
                     writer.deindent(4);
                     writer.write(".end param\n");
-                } else {
-                    writer.write("\n");
                 }
             }
 
