@@ -152,7 +152,7 @@ public class AnnotationDirectoryPool {
                 writer.writeInt(dexFile.annotationSetPool.getOffset(field.getAnnotations()));
             }
 
-            boolean sortMethods = CollectionUtils.isNaturalSortedSet(key.classDef.getMethods());
+            boolean sortMethods = !CollectionUtils.isNaturalSortedSet(key.classDef.getMethods());
             Iterable<? extends Method> methodsWithAnnotations = null;
             if (sortMethods) {
                 methodsWithAnnotations = Lists.newArrayList(key.getMethodsWithAnnotations());
