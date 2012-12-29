@@ -54,8 +54,7 @@ public class DexBackedMapItem {
     }
 
     public String getName() {
-        int type = dexBuf.readShort(mapItemOffset + TYPE_OFFSET);
-        return DexItemType.getItemTypeName(type);
+        return DexItemType.getItemTypeName(getType());
     }
 
     public int getNumItems() {
