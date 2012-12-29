@@ -126,6 +126,7 @@ public class DebugInfoPool {
                 for (DebugItem item: debugItems) {
                     if (item.getDebugItemType() == DebugItemType.LINE_NUMBER) {
                         startingLineNumber = ((LineNumber)item).getLineNumber();
+                        break;
                     }
                 }
             }
@@ -199,7 +200,7 @@ public class DebugInfoPool {
         }
 
         private void emitAdvanceLine(int line) throws IOException {
-            int lineDelta = line-currentAddress;
+            int lineDelta = line-currentLine;
             if (lineDelta != 0) {
                 writer.write(2);
                 writer.writeSleb128(lineDelta);
@@ -214,7 +215,8 @@ public class DebugInfoPool {
             if (lineDelta < -4 || lineDelta > 10) {
                 emitAdvanceLine(lineNumber.getLineNumber());
                 lineDelta = 0;
-            } else if ((lineDelta < 2 && addressDelta > 16) || (lineDelta > 1 && addressDelta > 15)) {
+            }
+            if ((lineDelta < 2 && addressDelta > 16) || (lineDelta > 1 && addressDelta > 15)) {
                 emitAdvancePC(lineNumber.getCodeAddress());
                 addressDelta = 0;
             }
@@ -276,7 +278,7 @@ public class DebugInfoPool {
         private void emitSpecialOpcode(int lineDelta, int addressDelta) throws IOException {
             writer.write((byte)(FIRST_SPECIAL + (addressDelta * LINE_RANGE) + (lineDelta - LINE_BASE)));
             currentLine += lineDelta;
-            addressDelta += addressDelta;
+            currentAddress += addressDelta;
         }
     }
 }
