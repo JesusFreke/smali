@@ -81,7 +81,7 @@ public class DexBackedDexFile implements DexFile {
         return new FixedSizeList<DexBackedMapItem>() {
             @Override
             public DexBackedMapItem readItem(int index) {
-                int mapItemOffset = mapOffset + index * DexBuffer.MAP_ITEM_SIZE;
+                int mapItemOffset = mapOffset + 4 + index * DexBuffer.MAP_ITEM_SIZE;
                 return new DexBackedMapItem(dexBuf, mapItemOffset);
             }
 
