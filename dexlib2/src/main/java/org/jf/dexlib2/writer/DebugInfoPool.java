@@ -226,7 +226,7 @@ public class DebugInfoPool {
         public void emitStartLocal(@Nonnull StartLocal startLocal) throws IOException {
             int nameIndex = dexFile.stringPool.getIndexNullable(startLocal.getName());
             int typeIndex = dexFile.typePool.getIndexNullable(startLocal.getType());
-            int signatureIndex = dexFile.stringPool.getIndexNullable(startLocal.getName());
+            int signatureIndex = dexFile.stringPool.getIndexNullable(startLocal.getSignature());
             emitAdvancePC(startLocal.getCodeAddress());
             if (signatureIndex == -1) {
                 writer.write(3);
