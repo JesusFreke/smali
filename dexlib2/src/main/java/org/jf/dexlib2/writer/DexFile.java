@@ -202,6 +202,7 @@ public class DexFile {
             DexWriter headerWriter  = outputAt(raf, 0);
             DexWriter indexWriter   = outputAt(raf, HeaderItem.HEADER_ITEM_SIZE);
             DexWriter offsetWriter  = outputAt(raf, dataSectionOffset);
+            long fileSize = 0;
             try {
                 stringPool.write(indexWriter, offsetWriter);
                 typePool.write(indexWriter);
@@ -222,11 +223,13 @@ public class DexFile {
             } finally {
                 headerWriter.close();
                 indexWriter.close();
+                fileSize = offsetWriter.getPosition();
                 offsetWriter.close();
             }
             FileChannel fileChannel = raf.getChannel();
             headerItem.updateSignature(fileChannel);
             headerItem.updateChecksum(fileChannel);
+            fileChannel.truncate(fileSize);
         } finally {
             raf.close();
         }
