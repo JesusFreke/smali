@@ -55,6 +55,8 @@ public class DexBuffer {
     private final int classCount;
     private final int classStartOffset;
 
+    @Nonnull private final String[] stringCache;
+
     private static final byte[][] MAGIC_VALUES= new byte[][] {
             new byte[]{0x64, 0x65, 0x78, 0x0a, 0x30, 0x33, 0x35, 0x00},
             new byte[]{0x64, 0x65, 0x78, 0x0a, 0x30, 0x33, 0x36, 0x00}};
@@ -103,7 +105,6 @@ public class DexBuffer {
     public static final int TYPE_LIST_SIZE_OFFSET = 0;
     public static final int TYPE_LIST_LIST_OFFSET = 4;
 
-
     protected DexBuffer(@Nonnull byte[] buf, boolean bare) {
         this.buf = buf;
 
@@ -136,6 +137,7 @@ public class DexBuffer {
             classCount = 0;
             classStartOffset = 0;
         }
+        stringCache = new String[stringCount];
     }
 
     public DexBuffer(@Nonnull byte[] buf) {
@@ -231,11 +233,16 @@ public class DexBuffer {
 
     @Nonnull
     public String getString(int stringIndex) {
-        int stringOffset = getStringIdItemOffset(stringIndex);
-        int stringDataOffset = readSmallUint(stringOffset);
-        DexReader reader = readerAt(stringDataOffset);
-        int utf16Length = reader.readSmallUleb128();
-        return Utf8Utils.utf8BytesWithUtf16LengthToString(buf, reader.getOffset(), utf16Length);
+        String ret = stringCache[stringIndex];
+        if (ret == null) {
+            int stringOffset = getStringIdItemOffset(stringIndex);
+            int stringDataOffset = readSmallUint(stringOffset);
+            DexReader reader = readerAt(stringDataOffset);
+            int utf16Length = reader.readSmallUleb128();
+            ret = Utf8Utils.utf8BytesWithUtf16LengthToString(buf, reader.getOffset(), utf16Length);
+            stringCache[stringIndex] = ret;
+        }
+        return ret;
     }
 
     @Nullable
