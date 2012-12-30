@@ -105,7 +105,7 @@ public class DexFile {
                 writer.writeEncodedInt(valueType, ((ByteEncodedValue)encodedValue).getValue());
                 break;
             case ValueType.CHAR:
-                writer.writeEncodedInt(valueType, ((CharEncodedValue)encodedValue).getValue());
+                writer.writeEncodedUint(valueType, ((CharEncodedValue)encodedValue).getValue());
                 break;
             case ValueType.DOUBLE:
                 writer.writeEncodedDouble(valueType, ((DoubleEncodedValue)encodedValue).getValue());
