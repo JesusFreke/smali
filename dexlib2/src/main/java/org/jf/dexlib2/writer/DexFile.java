@@ -207,9 +207,9 @@ public class DexFile {
             try {
                 stringPool.write(indexWriter, offsetWriter);
                 typePool.write(indexWriter);
-                fieldPool.write(indexWriter);
                 typeListPool.write(offsetWriter);
                 protoPool.write(indexWriter);
+                fieldPool.write(indexWriter);
                 methodPool.write(indexWriter);
                 encodedArrayPool.write(offsetWriter);
                 annotationPool.write(offsetWriter);
