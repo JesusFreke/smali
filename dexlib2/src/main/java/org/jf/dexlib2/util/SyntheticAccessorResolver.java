@@ -127,6 +127,7 @@ public class SyntheticAccessorResolver {
             AccessedMember member =
                     new AccessedMember(accessType, ((ReferenceInstruction)instructions.get(0)).getReference());
             resolvedAccessors.put(methodDescriptor, member);
+            return member;
         }
         return null;
     }
