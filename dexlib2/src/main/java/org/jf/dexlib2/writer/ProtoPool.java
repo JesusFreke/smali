@@ -168,7 +168,7 @@ public class ProtoPool {
         public int compareTo(@Nonnull Key o) {
             int res = getReturnType().compareTo(o.getReturnType());
             if (res != 0) return res;
-            return CollectionUtils.compareAsList(getParameters(), o.getParameters());
+            return CollectionUtils.compareAsIterable(getParameters(), o.getParameters());
         }
     }
 }
