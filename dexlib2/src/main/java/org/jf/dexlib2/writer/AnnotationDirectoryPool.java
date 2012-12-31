@@ -140,12 +140,11 @@ public class AnnotationDirectoryPool {
             writer.writeInt(key.methodAnnotationCount);
             writer.writeInt(key.parameterAnnotationCount);
 
-            Iterable<? extends Field> fieldsWithAnnotations = null;
+            Iterable<? extends Field> fieldsWithAnnotations;
             if (CollectionUtils.isNaturalSortedSet(key.classDef.getFields())) {
                 fieldsWithAnnotations = key.getFieldsWithAnnotations();
             } else {
-                fieldsWithAnnotations = Lists.newArrayList(key.getFieldsWithAnnotations());
-                Collections.sort((List<? extends Field>)fieldsWithAnnotations);
+                fieldsWithAnnotations = Ordering.natural().immutableSortedCopy(key.getFieldsWithAnnotations());
             }
             for (Field field: fieldsWithAnnotations) {
                 writer.writeInt(dexFile.fieldPool.getIndex(field));
@@ -153,10 +152,9 @@ public class AnnotationDirectoryPool {
             }
 
             boolean sortMethods = !CollectionUtils.isNaturalSortedSet(key.classDef.getMethods());
-            Iterable<? extends Method> methodsWithAnnotations = null;
+            Iterable<? extends Method> methodsWithAnnotations;
             if (sortMethods) {
-                methodsWithAnnotations = Lists.newArrayList(key.getMethodsWithAnnotations());
-                Collections.sort((List<? extends Method>)methodsWithAnnotations);
+                methodsWithAnnotations = Ordering.natural().immutableSortedCopy(key.getMethodsWithAnnotations());
             } else {
                 methodsWithAnnotations = key.getMethodsWithAnnotations();
             }
@@ -165,10 +163,10 @@ public class AnnotationDirectoryPool {
                 writer.writeInt(dexFile.annotationSetPool.getOffset(method.getAnnotations()));
             }
 
-            Iterable<? extends Method> methodsWithParameterAnnotations = null;
+            Iterable<? extends Method> methodsWithParameterAnnotations;
             if (sortMethods) {
-                methodsWithParameterAnnotations = Lists.newArrayList(key.getMethodsWithParameterAnnotations());
-                Collections.sort((List<? extends Method>)methodsWithParameterAnnotations);
+                methodsWithParameterAnnotations = Ordering.natural().immutableSortedCopy(
+                        key.getMethodsWithParameterAnnotations());
             } else {
                 methodsWithParameterAnnotations = key.getMethodsWithParameterAnnotations();
             }
