@@ -103,14 +103,14 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
                 method.getImplementation());
     }
 
-    @Nonnull public String getDefiningClass() { return definingClass; }
-    @Nonnull public String getName() { return name; }
-    @Nonnull public ImmutableList<? extends CharSequence> getParameterTypes() { return parameters; }
-    @Nonnull public ImmutableList<? extends ImmutableMethodParameter> getParameters() { return parameters; }
-    @Nonnull public String getReturnType() { return returnType; }
-    public int getAccessFlags() { return accessFlags; }
-    @Nonnull public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
-    @Nullable public ImmutableMethodImplementation getImplementation() { return methodImplementation; }
+    @Override @Nonnull public String getDefiningClass() { return definingClass; }
+    @Override @Nonnull public String getName() { return name; }
+    @Override @Nonnull public ImmutableList<? extends CharSequence> getParameterTypes() { return parameters; }
+    @Override @Nonnull public ImmutableList<? extends ImmutableMethodParameter> getParameters() { return parameters; }
+    @Override @Nonnull public String getReturnType() { return returnType; }
+    @Override public int getAccessFlags() { return accessFlags; }
+    @Override @Nonnull public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
+    @Override @Nullable public ImmutableMethodImplementation getImplementation() { return methodImplementation; }
 
     @Nonnull
     public static ImmutableSortedSet<ImmutableMethod> immutableSetOf(@Nullable Iterable<? extends Method> list) {
