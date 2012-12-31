@@ -44,7 +44,7 @@ public class DexBackedFieldEncodedValue extends BaseFieldEncodedValue {
     private final int fieldIndex;
 
     public DexBackedFieldEncodedValue(@Nonnull DexReader reader, int valueArg) {
-        this.dexBuf = reader.getDexBuffer();
+        this.dexBuf = reader.dexBuf;
         fieldIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 

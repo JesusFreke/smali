@@ -73,7 +73,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     public DexBackedMethod(@Nonnull DexReader reader,
                            @Nonnull DexBackedClassDef classDef,
                            int previousMethodIndex) {
-        this.dexBuf = reader.getDexBuffer();
+        this.dexBuf = reader.dexBuf;
         this.classDef = classDef;
 
         int methodIndexDiff = reader.readSmallUleb128();
@@ -90,7 +90,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
                            int previousMethodIndex,
                            @Nonnull AnnotationsDirectory.AnnotationIterator methodAnnotationIterator,
                            @Nonnull AnnotationsDirectory.AnnotationIterator paramaterAnnotationIterator) {
-        this.dexBuf = reader.getDexBuffer();
+        this.dexBuf = reader.dexBuf;
         this.classDef = classDef;
 
         int methodIndexDiff = reader.readSmallUleb128();

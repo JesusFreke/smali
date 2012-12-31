@@ -48,8 +48,8 @@ public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue 
     private final int elementsOffset;
 
     public DexBackedAnnotationEncodedValue(@Nonnull DexReader reader) {
-        this.dexBuf = reader.getDexBuffer();
-        this.type = reader.getType(reader.readSmallUleb128());
+        this.dexBuf = reader.dexBuf;
+        this.type = dexBuf.getType(reader.readSmallUleb128());
         this.elementCount = reader.readSmallUleb128();
         this.elementsOffset = reader.getOffset();
         skipElements(reader, elementCount);

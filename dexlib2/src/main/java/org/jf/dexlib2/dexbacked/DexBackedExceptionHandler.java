@@ -43,7 +43,7 @@ public class DexBackedExceptionHandler extends BaseExceptionHandler implements E
 
     public DexBackedExceptionHandler(@Nonnull DexReader reader) {
         // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
-        this.dexBuf = reader.getDexBuffer();
+        this.dexBuf = reader.dexBuf;
         this.typeId = reader.readSmallUleb128();
         this.handlerCodeAddress = reader.readSmallUleb128();
     }

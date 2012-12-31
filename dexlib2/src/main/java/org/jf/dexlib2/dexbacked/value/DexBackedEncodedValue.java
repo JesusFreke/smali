@@ -79,7 +79,8 @@ public abstract class DexBackedEncodedValue {
                     return new DexBackedStringEncodedValue(reader, valueArg);
                 case ValueType.TYPE:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new ImmutableTypeEncodedValue(reader.getType(reader.readSizedSmallUint(valueArg + 1)));
+                    return new ImmutableTypeEncodedValue(reader.dexBuf.getType(
+                            reader.readSizedSmallUint(valueArg + 1)));
                 case ValueType.FIELD:
                     Preconditions.checkValueArg(valueArg, 3);
                     return new DexBackedFieldEncodedValue(reader, valueArg);

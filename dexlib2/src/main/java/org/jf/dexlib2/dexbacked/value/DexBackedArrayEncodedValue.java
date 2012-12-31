@@ -47,7 +47,7 @@ public class DexBackedArrayEncodedValue extends BaseArrayEncodedValue implements
     private final int encodedArrayOffset;
 
     public DexBackedArrayEncodedValue(@Nonnull DexReader reader) {
-        this.dexBuf = reader.getDexBuffer();
+        this.dexBuf = reader.dexBuf;
         this.elementCount = reader.readSmallUleb128();
         this.encodedArrayOffset = reader.getOffset();
         skipElementsFrom(reader, elementCount);

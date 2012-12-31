@@ -44,7 +44,7 @@ public class DexBackedEnumEncodedValue extends BaseEnumEncodedValue {
     private final int fieldIndex;
 
     public DexBackedEnumEncodedValue(@Nonnull DexReader reader, int valueArg) {
-        this.dexBuf = reader.getDexBuffer();
+        this.dexBuf = reader.dexBuf;
         fieldIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 

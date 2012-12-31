@@ -247,7 +247,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                     final MethodParameter methodParameter = methodParametersWithoutNames.get(index);
                     String _name = null;
                     if (index < parameterNameCount) {
-                        _name = reader.getOptionalString(reader.readSmallUleb128() - 1);
+                        _name = dexBuf.getOptionalString(reader.readSmallUleb128() - 1);
                     }
                     final String name = _name;
 

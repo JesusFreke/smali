@@ -42,7 +42,7 @@ public class DexBackedTypeEncodedValue extends BaseTypeEncodedValue {
     private final int typeIndex;
 
     public DexBackedTypeEncodedValue(@Nonnull DexReader reader, int valueArg) {
-        this.dexBuf = reader.getDexBuffer();
+        this.dexBuf = reader.dexBuf;
         typeIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 
