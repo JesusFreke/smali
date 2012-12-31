@@ -48,19 +48,20 @@ public abstract class VariableSizeList<T> extends AbstractSequentialList<T> {
         this.size = size;
     }
 
-    @Nonnull protected abstract T readNextItem(@Nonnull DexReader reader, int index);
+    protected abstract T readNextItem(@Nonnull DexReader reader, int index);
 
     @Override
+    @Nonnull
     public VariableSizeListIterator<T> listIterator() {
         return listIterator(0);
     }
 
     @Override public int size() { return size; }
 
+    @Nonnull
     @Override
     public VariableSizeListIterator<T> listIterator(int index) {
         VariableSizeListIterator<T> iterator = new VariableSizeListIterator<T>(dexBuf, offset, size) {
-            @Nonnull
             @Override
             protected T readNextItem(@Nonnull DexReader reader, int index) {
                 return VariableSizeList.this.readNextItem(reader, index);

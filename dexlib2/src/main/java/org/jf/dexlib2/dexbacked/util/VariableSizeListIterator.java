@@ -58,7 +58,7 @@ public abstract class VariableSizeListIterator<T> implements ListIterator<T> {
      * @param index The index of the item being read. This is guaranteed to be less than {@code size}
      * @return The item that was read
      */
-    @Nonnull protected abstract T readNextItem(@Nonnull DexReader reader, int index);
+    protected abstract T readNextItem(@Nonnull DexReader reader, int index);
 
     public int getReaderOffset() {
         return reader.getOffset();
@@ -70,7 +70,6 @@ public abstract class VariableSizeListIterator<T> implements ListIterator<T> {
     }
 
     @Override
-    @Nonnull
     public T next() {
         if (index >= size) {
             throw new NoSuchElementException();
