@@ -39,92 +39,92 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Random;
 
-public class DexBufferTest {
+public class BaseDexBufferTest {
     @Test
     public void testReadSmallUintSuccess() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x11, 0x22, 0x33, 0x44});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {0x11, 0x22, 0x33, 0x44});
         Assert.assertEquals(0x44332211, dexBuf.readSmallUint(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00});
+        dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00});
         Assert.assertEquals(0, dexBuf.readSmallUint(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, 0x7f});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, 0x7f});
         Assert.assertEquals(0x7fffffff, dexBuf.readSmallUint(0));
     }
 
     @Test(expected=ExceptionWithContext.class)
     public void testReadSmallUintTooLarge1() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, (byte)0x80});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00, 0x00, (byte)0x80});
         dexBuf.readSmallUint(0);
     }
 
     @Test(expected=ExceptionWithContext.class)
     public void testReadSmallUintTooLarge2() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0x80});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0x80});
         dexBuf.readSmallUint(0);
     }
 
     @Test(expected=ExceptionWithContext.class)
     public void testReadSmallUintTooLarge3() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
         dexBuf.readSmallUint(0);
     }
 
     @Test
     public void testReadOptionalUintSuccess() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x11, 0x22, 0x33, 0x44});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {0x11, 0x22, 0x33, 0x44});
         Assert.assertEquals(0x44332211, dexBuf.readSmallUint(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00});
+        dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00});
         Assert.assertEquals(0, dexBuf.readSmallUint(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, 0x7f});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, 0x7f});
         Assert.assertEquals(0x7fffffff, dexBuf.readSmallUint(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
         Assert.assertEquals(-1, dexBuf.readOptionalUint(0));
     }
 
     @Test(expected=ExceptionWithContext.class)
     public void testReadOptionalUintTooLarge1() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, (byte)0x80});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00, 0x00, (byte)0x80});
         dexBuf.readSmallUint(0);
     }
 
     @Test(expected=ExceptionWithContext.class)
     public void testReadOptionalUintTooLarge2() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0x80});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0x80});
         dexBuf.readSmallUint(0);
     }
 
     @Test(expected=ExceptionWithContext.class)
     public void testReadOptionalUintTooLarge3() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {(byte)0xfe, (byte)0xff, (byte)0xff, (byte)0xff});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {(byte)0xfe, (byte)0xff, (byte)0xff, (byte)0xff});
         dexBuf.readSmallUint(0);
     }
 
     @Test
     public void testReadUshort() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x11, 0x22});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {0x11, 0x22});
         Assert.assertEquals(dexBuf.readUshort(0), 0x2211);
 
-        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00});
+        dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00});
         Assert.assertEquals(dexBuf.readUshort(0), 0);
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff});
         Assert.assertEquals(dexBuf.readUshort(0), 0xffff);
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0x00, (byte)0x80});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0x00, (byte)0x80});
         Assert.assertEquals(dexBuf.readUshort(0), 0x8000);
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0x7f});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0x7f});
         Assert.assertEquals(dexBuf.readUshort(0), 0x7fff);
     }
 
     @Test
     public void testReadUbyte() {
         byte[] buf = new byte[1];
-        BareDexBuffer dexBuf = new BareDexBuffer(buf);
+        BaseDexBuffer dexBuf = new BaseDexBuffer(buf);
 
         for (int i=0; i<=0xff; i++) {
             buf[0] = (byte)i;
@@ -134,24 +134,24 @@ public class DexBufferTest {
 
     @Test
     public void testReadLong() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77});
         Assert.assertEquals(0x7766554433221100L, dexBuf.readLong(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+        dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
         Assert.assertEquals(0, dexBuf.readLong(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff,
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff,
                 (byte)0xff, (byte)0xff, (byte)0xff, 0x7f});
         Assert.assertEquals(Long.MAX_VALUE, dexBuf.readLong(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte)0x80});
+        dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte)0x80});
         Assert.assertEquals(Long.MIN_VALUE, dexBuf.readLong(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff,
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff,
                 (byte)0xff, (byte)0xff, (byte)0xff, (byte)0x80});
         Assert.assertEquals(0x80ffffffffffffffL, dexBuf.readLong(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff,
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff,
                 (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
         Assert.assertEquals(-1, dexBuf.readLong(0));
 
@@ -159,50 +159,50 @@ public class DexBufferTest {
 
     @Test
     public void testReadInt() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x11, 0x22, 0x33, 0x44});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {0x11, 0x22, 0x33, 0x44});
         Assert.assertEquals(0x44332211, dexBuf.readInt(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00});
+        dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00, 0x00, 0x00});
         Assert.assertEquals(0, dexBuf.readInt(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, 0x7f});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, 0x7f});
         Assert.assertEquals(Integer.MAX_VALUE, dexBuf.readInt(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00, 0x00, (byte)0x80});
+        dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00, 0x00, (byte)0x80});
         Assert.assertEquals(Integer.MIN_VALUE, dexBuf.readInt(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0x80});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0x80});
         Assert.assertEquals(0x80ffffff, dexBuf.readInt(0));
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
         Assert.assertEquals(-1, dexBuf.readInt(0));
     }
 
     @Test
     public void testReadShort() {
-        BareDexBuffer dexBuf = new BareDexBuffer(new byte[] {0x11, 0x22});
+        BaseDexBuffer dexBuf = new BaseDexBuffer(new byte[] {0x11, 0x22});
         Assert.assertEquals(dexBuf.readShort(0), 0x2211);
 
-        dexBuf = new BareDexBuffer(new byte[] {0x00, 0x00});
+        dexBuf = new BaseDexBuffer(new byte[] {0x00, 0x00});
         Assert.assertEquals(dexBuf.readShort(0), 0);
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0xff});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0xff});
         Assert.assertEquals(dexBuf.readShort(0), -1);
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0x00, (byte)0x80});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0x00, (byte)0x80});
         Assert.assertEquals(dexBuf.readShort(0), Short.MIN_VALUE);
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0x7f});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0x7f});
         Assert.assertEquals(dexBuf.readShort(0), 0x7fff);
 
-        dexBuf = new BareDexBuffer(new byte[] {(byte)0xff, (byte)0x80});
+        dexBuf = new BaseDexBuffer(new byte[] {(byte)0xff, (byte)0x80});
         Assert.assertEquals(dexBuf.readShort(0), 0xffff80ff);
     }
 
     @Test
     public void testReadByte() {
         byte[] buf = new byte[1];
-        BareDexBuffer dexBuf = new BareDexBuffer(buf);
+        BaseDexBuffer dexBuf = new BaseDexBuffer(buf);
 
         for (int i=0; i<=0xff; i++) {
             buf[0] = (byte)i;
@@ -215,7 +215,7 @@ public class DexBufferTest {
         Random r = new Random(1234567890);
         ByteBuffer byteBuf = ByteBuffer.allocateDirect(4).order(ByteOrder.LITTLE_ENDIAN);
         byte[] buf = new byte[4];
-        BareDexBuffer dexBuf = new BareDexBuffer(buf);
+        BaseDexBuffer dexBuf = new BaseDexBuffer(buf);
 
         for (int i=0; i<10000; i++) {
             int val = r.nextInt();
@@ -249,7 +249,7 @@ public class DexBufferTest {
         Random r = new Random(1234567890);
         ByteBuffer byteBuf = ByteBuffer.allocateDirect(8).order(ByteOrder.LITTLE_ENDIAN);
         byte[] buf = new byte[8];
-        BareDexBuffer dexBuf = new BareDexBuffer(buf);
+        BaseDexBuffer dexBuf = new BaseDexBuffer(buf);
 
         for (int i=0; i<10000; i++) {
             int val = r.nextInt();

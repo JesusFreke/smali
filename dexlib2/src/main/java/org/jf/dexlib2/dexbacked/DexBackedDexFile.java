@@ -31,12 +31,10 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 import java.util.Set;
 
 public class DexBackedDexFile implements DexFile {
@@ -62,112 +60,6 @@ public class DexBackedDexFile implements DexFile {
             @Override
             public int size() {
                 return classCount;
-            }
-        };
-    }
-
-    public int getChecksum() {
-        return dexBuf.getChecksum();
-    }
-
-    public byte[] getSignature() {
-        return dexBuf.getSignature();
-    }
-
-    public List<DexBackedMapItem> getMap() {
-        final int mapOffset = dexBuf.getMapOffset();
-        final int sectionCount = dexBuf.readSmallUint(mapOffset);
-
-        return new FixedSizeList<DexBackedMapItem>() {
-            @Override
-            public DexBackedMapItem readItem(int index) {
-                int mapItemOffset = mapOffset + 4 + index * DexBuffer.MAP_ITEM_SIZE;
-                return new DexBackedMapItem(dexBuf, mapItemOffset);
-            }
-
-            @Override
-            public int size() {
-                return sectionCount;
-            }
-        };
-    }
-
-    public Set<String> getStrings() {
-        final int stringCount = dexBuf.getStringCount();
-
-        return new FixedSizeSet<String>() {
-            @Override
-            public String readItem(int index) {
-                return dexBuf.getString(index);
-            }
-
-            @Override
-            public int size() {
-                return stringCount;
-            }
-        };
-    }
-
-    public Set<String> getTypes() {
-        final int typeCount = dexBuf.getTypeCount();
-
-        return new FixedSizeSet<String>() {
-            @Override
-            public String readItem(int index) {
-                return dexBuf.getType(index);
-            }
-
-            @Override
-            public int size() {
-                return typeCount;
-            }
-        };
-    }
-
-    public Set<String> getProtos() {
-        final int protoCount = dexBuf.getProtoCount();
-
-        return new FixedSizeSet<String>() {
-            @Override
-            public String readItem(int index) {
-                return dexBuf.getProto(index);
-            }
-
-            @Override
-            public int size() {
-                return protoCount;
-            }
-        };
-    }
-
-    public Set<String> getFields() {
-        final int fieldCount = dexBuf.getFieldCount();
-
-        return new FixedSizeSet<String>() {
-            @Override
-            public String readItem(int index) {
-                return dexBuf.getField(index);
-            }
-
-            @Override
-            public int size() {
-                return fieldCount;
-            }
-        };
-    }
-
-    public Set<String> getMethods() {
-        final int methodCount = dexBuf.getMethodCount();
-
-        return new FixedSizeSet<String>() {
-            @Override
-            public String readItem(int index) {
-                return dexBuf.getMethod(index);
-            }
-
-            @Override
-            public int size() {
-                return methodCount;
             }
         };
     }

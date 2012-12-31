@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.ReferenceType;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.Utf8Utils;
 
@@ -39,21 +38,19 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-public class DexBuffer {
-    // TODO: consider using a direct ByteBuffer instead
-    @Nonnull /* package private */ final byte[] buf;
-    private final int stringCount;
-    private final int stringStartOffset;
-    private final int typeCount;
-    private final int typeStartOffset;
-    private final int protoCount;
-    private final int protoStartOffset;
-    private final int fieldCount;
-    private final int fieldStartOffset;
-    private final int methodCount;
-    private final int methodStartOffset;
-    private final int classCount;
-    private final int classStartOffset;
+public class DexBuffer extends BaseDexBuffer {
+    public final int stringCount;
+    public final int stringStartOffset;
+    public final int typeCount;
+    public final int typeStartOffset;
+    public final int protoCount;
+    public final int protoStartOffset;
+    public final int fieldCount;
+    public final int fieldStartOffset;
+    public final int methodCount;
+    public final int methodStartOffset;
+    public final int classCount;
+    public final int classStartOffset;
 
     @Nonnull private final String[] stringCache;
 
@@ -105,43 +102,25 @@ public class DexBuffer {
     public static final int TYPE_LIST_SIZE_OFFSET = 0;
     public static final int TYPE_LIST_LIST_OFFSET = 4;
 
-    protected DexBuffer(@Nonnull byte[] buf, boolean bare) {
-        this.buf = buf;
-
-        if (!bare) {
-            verifyMagic();
-            verifyEndian();
-            stringCount = readSmallUint(STRING_COUNT_OFFSET);
-            stringStartOffset = readSmallUint(STRING_START_OFFSET);
-            typeCount = readSmallUint(TYPE_COUNT_OFFSET);
-            typeStartOffset = readSmallUint(TYPE_START_OFFSET);
-            protoCount = readSmallUint(PROTO_COUNT_OFFSET);
-            protoStartOffset = readSmallUint(PROTO_START_OFFSET);
-            fieldCount = readSmallUint(FIELD_COUNT_OFFSET);
-            fieldStartOffset = readSmallUint(FIELD_START_OFFSET);
-            methodCount = readSmallUint(METHOD_COUNT_OFFSET);
-            methodStartOffset = readSmallUint(METHOD_START_OFFSET);
-            classCount = readSmallUint(CLASS_COUNT_OFFSET);
-            classStartOffset = readSmallUint(CLASS_START_OFFSET);
-        } else {
-            stringCount = 0;
-            stringStartOffset = 0;
-            typeCount = 0;
-            typeStartOffset = 0;
-            protoCount = 0;
-            protoStartOffset = 0;
-            fieldCount = 0;
-            fieldStartOffset = 0;
-            methodCount = 0;
-            methodStartOffset = 0;
-            classCount = 0;
-            classStartOffset = 0;
-        }
-        stringCache = new String[stringCount];
-    }
-
     public DexBuffer(@Nonnull byte[] buf) {
-        this(buf, false);
+        super(buf);
+
+        verifyMagic();
+        verifyEndian();
+        stringCount = readSmallUint(STRING_COUNT_OFFSET);
+        stringStartOffset = readSmallUint(STRING_START_OFFSET);
+        typeCount = readSmallUint(TYPE_COUNT_OFFSET);
+        typeStartOffset = readSmallUint(TYPE_START_OFFSET);
+        protoCount = readSmallUint(PROTO_COUNT_OFFSET);
+        protoStartOffset = readSmallUint(PROTO_START_OFFSET);
+        fieldCount = readSmallUint(FIELD_COUNT_OFFSET);
+        fieldStartOffset = readSmallUint(FIELD_START_OFFSET);
+        methodCount = readSmallUint(METHOD_COUNT_OFFSET);
+        methodStartOffset = readSmallUint(METHOD_START_OFFSET);
+        classCount = readSmallUint(CLASS_COUNT_OFFSET);
+        classStartOffset = readSmallUint(CLASS_START_OFFSET);
+
+        stringCache = new String[stringCount];
     }
 
     private void verifyMagic() {
@@ -245,10 +224,6 @@ public class DexBuffer {
         return ret;
     }
 
-    public int getStringCount() {
-        return stringCount;
-    }
-
     @Nullable
     public String getOptionalType(int typeIndex) {
         if (typeIndex == -1) {
@@ -272,165 +247,9 @@ public class DexBuffer {
         return getString(stringIndex);
     }
 
-    public int getTypeCount() {
-        return typeCount;
-    }
-
-    @Nonnull
-    public String getProto(int typeIndex) {
-        int protoOffset = getProtoIdItemOffset(typeIndex);
-        int stringIndex = readSmallUint(protoOffset);
-        return getString(stringIndex);
-    }
-
-    public int getProtoCount() {
-        return protoCount;
-    }
-
-    @Nonnull
-    public String getField(int fieldIndex) {
-        int fieldOffset = getFieldIdItemOffset(fieldIndex);
-        String className = getType(readUshort(fieldOffset + FIELD_CLASS_IDX_OFFSET));
-        String fieldType = getType(readUshort(fieldOffset + FIELD_TYPE_IDX_OFFSET));
-        String fieldName = getString(readSmallUint(fieldOffset + FIELD_NAME_IDX_OFFSET));
-
-        StringBuilder sb = localStringBuilder.get();
-        sb.setLength(0);
-        sb.append(className);
-        sb.append("->");
-        sb.append(fieldName);
-        sb.append(":");
-        sb.append(fieldType);
-        return sb.toString();
-    }
-
-    public int getFieldCount() {
-        return fieldCount;
-    }
-
-    @Nonnull
-    public String getMethod(int methodIndex) {
-        int methodOffset = getMethodIdItemOffset(methodIndex);
-        String className = getType(readUshort(methodOffset + METHOD_CLASS_IDX_OFFSET));
-        String methodName = getString(readSmallUint(methodOffset + METHOD_NAME_IDX_OFFSET));
-
-        int protoOffset = getProtoIdItemOffset(readUshort(methodOffset + METHOD_PROTO_IDX_OFFSET));
-        String returnType = getType(readSmallUint(protoOffset + PROTO_RETURN_TYPE_IDX_OFFSET));
-        int parametersOffset = readSmallUint(protoOffset + PROTO_PARAM_LIST_OFF_OFFSET);
-
-        StringBuilder sb = localStringBuilder.get();
-        sb.setLength(0);
-        sb.append(className);
-        sb.append("->");
-        sb.append(methodName);
-        sb.append("(");
-
-        if (parametersOffset > 0) {
-            int parameterCount = readSmallUint(parametersOffset + TYPE_LIST_SIZE_OFFSET);
-            int endOffset = parametersOffset + TYPE_LIST_LIST_OFFSET + parameterCount*2;
-
-            for (int off=parametersOffset+TYPE_LIST_LIST_OFFSET; off<endOffset; off+=2) {
-                int parameterTypeIndex = readUshort(off);
-                sb.append(getType(parameterTypeIndex));
-            }
-        }
-
-        sb.append(")");
-        sb.append(returnType);
-        return sb.toString();
-    }
-
-    public int getMethodCount() {
-        return methodCount;
-    }
-
-    @Nonnull
-    public String getReference(int referenceType, int referenceIndex) {
-        switch (referenceType) {
-            case ReferenceType.STRING:
-                return getString(referenceIndex);
-            case ReferenceType.TYPE:
-                return getType(referenceIndex);
-            case ReferenceType.FIELD:
-                return getField(referenceIndex);
-            case ReferenceType.METHOD:
-                return getMethod(referenceIndex);
-            default:
-                throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
-        }
-    }
-
-    public int readSmallUint(int offset) {
-        byte[] buf = this.buf;
-        int result = (buf[offset] & 0xff) |
-                     ((buf[offset+1] & 0xff) << 8) |
-                     ((buf[offset+2] & 0xff) << 16) |
-                     ((buf[offset+3]) << 24);
-        if (result < 0) {
-            throw new ExceptionWithContext("Encountered small uint that is out of range at offset 0x%x", offset);
-        }
-        return result;
-    }
-
-    public int readOptionalUint(int offset) {
-        byte[] buf = this.buf;
-        int result = (buf[offset] & 0xff) |
-                ((buf[offset+1] & 0xff) << 8) |
-                ((buf[offset+2] & 0xff) << 16) |
-                ((buf[offset+3]) << 24);
-        if (result < -1) {
-            throw new ExceptionWithContext("Encountered optional uint that is out of range at offset 0x%x", offset);
-        }
-        return result;
-    }
-
-    public int readUshort(int offset) {
-        byte[] buf = this.buf;
-        return (buf[offset] & 0xff) |
-               ((buf[offset+1] & 0xff) << 8);
-    }
-
-    public int readUbyte(int offset) {
-        return buf[offset] & 0xff;
-    }
-
-    public long readLong(int offset) {
-        // TODO: use | or +?
-        byte[] buf = this.buf;
-        return (buf[offset] & 0xff) |
-               ((buf[offset+1] & 0xff) << 8) |
-               ((buf[offset+2] & 0xff) << 16) |
-               ((buf[offset+3] & 0xffL) << 24) |
-               ((buf[offset+4] & 0xffL) << 32) |
-               ((buf[offset+5] & 0xffL) << 40) |
-               ((buf[offset+6] & 0xffL) << 48) |
-               (((long)buf[offset+7]) << 56);
-    }
-
-    public int readInt(int offset) {
-        byte[] buf = this.buf;
-        return (buf[offset] & 0xff) |
-               ((buf[offset+1] & 0xff) << 8) |
-               ((buf[offset+2] & 0xff) << 16) |
-               (buf[offset+3] << 24);
-    }
-
-    public int readShort(int offset) {
-        byte[] buf = this.buf;
-        return (buf[offset] & 0xff) |
-               (buf[offset+1] << 8);
-    }
-
-    public int readByte(int offset) {
-        return buf[offset];
-    }
-
+    @Override
     @Nonnull
     public DexReader readerAt(int offset) {
         return new DexReader(this, offset);
     }
-
-    private final ThreadLocal<StringBuilder> localStringBuilder = new ThreadLocal<StringBuilder>() {
-        @Override protected StringBuilder initialValue() { return new StringBuilder(256); }
-    };
 }
