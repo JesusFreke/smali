@@ -60,7 +60,7 @@ public interface Method extends MethodReference {
     @Override @Nonnull String getName();
 
     /**
-     * Gets a list of the types of the parameters of this method.
+     * Gets a list of the parameters of this method.
      *
      * As per the MethodReference interface, the MethodParameter objects contained in the returned list also act
      * as a simple reference to the type of the parameter. However, the MethodParameter object can also contain
@@ -70,7 +70,7 @@ public interface Method extends MethodReference {
      *
      * @return A list of MethodParameter objects, representing the parameters of this method.
      */
-    @Override @Nonnull List<? extends MethodParameter> getParameters();
+    @Nonnull List<? extends MethodParameter> getParameters();
 
     /**
      * Gets the return type of this method.

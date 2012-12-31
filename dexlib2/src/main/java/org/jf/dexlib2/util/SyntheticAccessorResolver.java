@@ -146,6 +146,6 @@ public class SyntheticAccessorResolver {
         // we already know the containing class matches
         return ref1.getName().equals(ref2.getName()) &&
                ref1.getReturnType().equals(ref2.getReturnType()) &&
-               ref1.getParameters().equals(ref2.getParameters());
+               ref1.getParameterTypes().equals(ref2.getParameterTypes());
     }
 }

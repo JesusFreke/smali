@@ -29,44 +29,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base.reference;
+package org.jf.dexlib2.immutable.util;
 
-import com.google.common.collect.Ordering;
-import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.util.CollectionUtils;
+import com.google.common.collect.ImmutableList;
+import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 
-public abstract class BaseMethodReference implements MethodReference {
-    @Override
-    public int hashCode() {
-        int hashCode = getDefiningClass().hashCode();
-        hashCode = hashCode*31 + getName().hashCode();
-        hashCode = hashCode*31 + getReturnType().hashCode();
-        return hashCode*31 + getParameterTypes().hashCode();
+public final class CharSequenceConverter {
+    private CharSequenceConverter() {
     }
 
-    @Override
-    public boolean equals(@Nullable Object o) {
-        if (o != null && o instanceof MethodReference) {
-            MethodReference other = (MethodReference)o;
-            return getDefiningClass().equals(other.getDefiningClass()) &&
-                   getName().equals(other.getName()) &&
-                   getReturnType().equals(other.getReturnType()) &&
-                   getParameterTypes().equals(other.getParameterTypes());
-        }
-        return false;
+    @Nonnull
+    public static ImmutableList<String> immutableStringList(@Nullable List<? extends CharSequence> list) {
+        return CONVERTER.toList(list);
     }
 
-    @Override
-    public int compareTo(@Nonnull MethodReference o) {
-        int res = getDefiningClass().compareTo(o.getDefiningClass());
-        if (res != 0) return res;
-        res = getName().compareTo(o.getName());
-        if (res != 0) return res;
-        res = getReturnType().compareTo(o.getReturnType());
-        if (res != 0) return res;
-        return CollectionUtils.compareAsIterable(Ordering.usingToString(), getParameterTypes(), o.getParameterTypes());
-    }
+    private static final ImmutableConverter<String, CharSequence> CONVERTER =
+            new ImmutableConverter<String, CharSequence>() {
+                @Override
+                protected boolean isImmutable(@Nonnull CharSequence item) {
+                    return item instanceof String;
+                }
+
+                @Nonnull
+                @Override
+                protected String makeImmutable(@Nonnull CharSequence item) {
+                    return item.toString();
+                }
+            };
 }

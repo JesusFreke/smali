@@ -174,6 +174,26 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
 
     @Nonnull
     @Override
+    public List<String> getParameterTypes() {
+        int protoIdItemOffset = getProtoIdItemOffset();
+        final int parametersOffset = dexBuf.readSmallUint(protoIdItemOffset + DexBuffer.PROTO_PARAM_LIST_OFF_OFFSET);
+        if (parametersOffset > 0) {
+            final int parameterCount = dexBuf.readSmallUint(parametersOffset + DexBuffer.TYPE_LIST_SIZE_OFFSET);
+            final int paramListStart = parametersOffset + DexBuffer.TYPE_LIST_LIST_OFFSET;
+            return new FixedSizeList<String>() {
+                @Nonnull
+                @Override
+                public String readItem(final int index) {
+                    return dexBuf.getType(dexBuf.readUshort(paramListStart + 2*index));
+                }
+                @Override public int size() { return parameterCount; }
+            };
+        }
+        return ImmutableList.of();
+    }
+
+    @Nonnull
+    @Override
     public Set<? extends Annotation> getAnnotations() {
         return AnnotationsDirectory.getAnnotations(dexBuf, methodAnnotationSetOffset);
     }

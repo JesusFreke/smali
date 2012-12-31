@@ -33,10 +33,8 @@ package org.jf.dexlib2.dexbacked.reference;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
-import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -65,25 +63,17 @@ public class DexBackedMethodReference extends BaseMethodReference {
 
     @Nonnull
     @Override
-    public List<? extends TypeReference> getParameters() {
+    public List<String> getParameterTypes() {
         int protoIdItemOffset = getProtoIdItemOffset();
         final int parametersOffset = dexBuf.readSmallUint(protoIdItemOffset + DexBuffer.PROTO_PARAM_LIST_OFF_OFFSET);
         if (parametersOffset > 0) {
             final int parameterCount = dexBuf.readSmallUint(parametersOffset + DexBuffer.TYPE_LIST_SIZE_OFFSET);
             final int paramListStart = parametersOffset + DexBuffer.TYPE_LIST_LIST_OFFSET;
-            return new FixedSizeList<TypeReference>() {
+            return new FixedSizeList<String>() {
                 @Nonnull
                 @Override
-                public TypeReference readItem(final int index) {
-                    // Can't use DexBackedTypeReference, because we don't want to read in the type index until it
-                    // is asked for
-                    return new BaseTypeReference() {
-                        @Nonnull
-                        @Override
-                        public String getType() {
-                            return dexBuf.getType(dexBuf.readUshort(paramListStart + 2*index));
-                        }
-                    };
+                public String readItem(final int index) {
+                    return dexBuf.getType(dexBuf.readUshort(paramListStart + 2*index));
                 }
                 @Override public int size() { return parameterCount; }
             };

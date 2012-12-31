@@ -33,8 +33,8 @@ package org.jf.dexlib2.writer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.util.CollectionUtils;
 import org.jf.util.ExceptionWithContext;
 
@@ -65,7 +65,7 @@ public class ProtoPool {
         if (prev == null) {
             dexFile.stringPool.intern(key.getShorty());
             dexFile.typePool.intern(method.getReturnType());
-            dexFile.typeListPool.intern(method.getParameters());
+            dexFile.typeListPool.intern(method.getParameterTypes());
         }
     }
 
@@ -116,15 +116,15 @@ public class ProtoPool {
         }
 
         @Nonnull public String getReturnType() { return method.getReturnType(); }
-        @Nonnull public Collection<? extends TypeReference> getParameters() {
-            return method.getParameters();
+        @Nonnull public Collection<? extends CharSequence> getParameters() {
+            return method.getParameterTypes();
         }
 
         public String getShorty() {
-            Collection<? extends TypeReference> params = method.getParameters();
+            Collection<? extends CharSequence> params = getParameters();
             StringBuilder sb = new StringBuilder(params.size() + 1);
             sb.append(getShortyType(method.getReturnType()));
-            for (TypeReference typeRef: params) {
+            for (CharSequence typeRef: params) {
                 sb.append(getShortyType(typeRef));
             }
             return sb.toString();
@@ -140,8 +140,8 @@ public class ProtoPool {
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append('(');
-            for (TypeReference type: getParameters()) {
-                sb.append(type);
+            for (CharSequence paramType: getParameters()) {
+                sb.append(paramType);
             }
             sb.append(')');
             sb.append(getReturnType());
@@ -168,7 +168,7 @@ public class ProtoPool {
         public int compareTo(@Nonnull Key o) {
             int res = getReturnType().compareTo(o.getReturnType());
             if (res != 0) return res;
-            return CollectionUtils.compareAsIterable(getParameters(), o.getParameters());
+            return CollectionUtils.compareAsIterable(Ordering.usingToString(), getParameters(), o.getParameters());
         }
     }
 }

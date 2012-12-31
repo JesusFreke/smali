@@ -34,7 +34,6 @@ package org.jf.dexlib2.util;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 
@@ -52,8 +51,8 @@ public final class MethodUtil {
 
     public static int getParameterRegisterCount(@Nonnull MethodReference methodRef, boolean isStatic) {
         int regCount = 0;
-        for (TypeReference param: methodRef.getParameters()) {
-            int firstChar = param.getType().charAt(0);
+        for (CharSequence paramType: methodRef.getParameterTypes()) {
+            int firstChar = paramType.charAt(0);
             if (firstChar == 'J' || firstChar == 'D') {
                 regCount += 2;
             } else {

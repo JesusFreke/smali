@@ -34,7 +34,7 @@ package org.jf.dexlib2.immutable.reference;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.immutable.util.CharSequenceConverter;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
@@ -44,22 +44,22 @@ import java.util.List;
 public class ImmutableMethodReference extends BaseMethodReference implements ImmutableReference {
     @Nonnull protected final String definingClass;
     @Nonnull protected final String name;
-    @Nonnull protected final ImmutableList<? extends ImmutableTypeReference> parameters;
+    @Nonnull protected final ImmutableList<String> parameters;
     @Nonnull protected final String returnType;
 
     public ImmutableMethodReference(@Nonnull String definingClass,
                                     @Nonnull String name,
-                                    @Nullable List<? extends TypeReference> parameters,
+                                    @Nullable List<String> parameters,
                                     @Nonnull String returnType) {
         this.definingClass = definingClass;
         this.name = name;
-        this.parameters = ImmutableTypeReference.immutableListOf(parameters);
+        this.parameters = ImmutableList.copyOf(parameters);
         this.returnType = returnType;
     }
 
     public ImmutableMethodReference(@Nonnull String definingClass,
                                     @Nonnull String name,
-                                    @Nullable ImmutableList<? extends ImmutableTypeReference> parameters,
+                                    @Nullable ImmutableList<String> parameters,
                                     @Nonnull String returnType) {
         this.definingClass = definingClass;
         this.name = name;
@@ -75,12 +75,14 @@ public class ImmutableMethodReference extends BaseMethodReference implements Imm
         return new ImmutableMethodReference(
                 methodReference.getDefiningClass(),
                 methodReference.getName(),
-                ImmutableList.copyOf(methodReference.getParameters()),
+                CharSequenceConverter.immutableStringList(methodReference.getParameterTypes()),
                 methodReference.getReturnType());
     }
 
     @Nonnull @Override public String getDefiningClass() { return definingClass; }
     @Nonnull @Override public String getName() { return name; }
-    @Nonnull @Override public List<? extends ImmutableTypeReference> getParameters() { return parameters; }
+    @Nonnull @Override public ImmutableList<String> getParameterTypes() { return parameters; }
     @Nonnull @Override public String getReturnType() { return returnType; }
+
+
 }

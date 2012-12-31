@@ -105,6 +105,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
 
     @Nonnull public String getDefiningClass() { return definingClass; }
     @Nonnull public String getName() { return name; }
+    @Nonnull public ImmutableList<? extends CharSequence> getParameterTypes() { return parameters; }
     @Nonnull public ImmutableList<? extends ImmutableMethodParameter> getParameters() { return parameters; }
     @Nonnull public String getReturnType() { return returnType; }
     public int getAccessFlags() { return accessFlags; }

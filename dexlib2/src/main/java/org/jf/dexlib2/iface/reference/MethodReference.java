@@ -54,13 +54,11 @@ public interface MethodReference extends Reference, Comparable<MethodReference> 
     @Nonnull String getName();
 
     /**
-     * Gets a list of the types of the parameters of the referenced method.
+     * Gets a list of the types of the parameters of this method.
      *
-     * Note: In some implementations, the returned list is likely to *not* provide efficient random access.
-     *
-     * @return A list of the types of the parameters of the referenced method
+     * @return A list of the parameter types of this method, as strings.
      */
-    @Nonnull List<? extends TypeReference> getParameters();
+    @Nonnull List<? extends CharSequence> getParameterTypes();
 
     /**
      * Gets the return type of the referenced method.

@@ -33,7 +33,6 @@ package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -46,8 +45,8 @@ public final class ReferenceUtil {
         sb.append("->");
         sb.append(methodReference.getName());
         sb.append('(');
-        for (TypeReference param: methodReference.getParameters()) {
-            sb.append(param.getType());
+        for (CharSequence paramType: methodReference.getParameterTypes()) {
+            sb.append(paramType);
         }
         sb.append(')');
         sb.append(methodReference.getReturnType());
@@ -59,8 +58,8 @@ public final class ReferenceUtil {
         writer.write("->");
         writer.write(methodReference.getName());
         writer.write('(');
-        for (TypeReference param: methodReference.getParameters()) {
-            writer.write(param.getType());
+        for (CharSequence paramType: methodReference.getParameterTypes()) {
+            writer.write(paramType.toString());
         }
         writer.write(')');
         writer.write(methodReference.getReturnType());
