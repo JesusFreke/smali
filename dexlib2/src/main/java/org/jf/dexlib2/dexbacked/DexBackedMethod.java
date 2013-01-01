@@ -32,17 +32,19 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import org.jf.dexlib2.base.BaseMethodParameter;
+import com.google.common.collect.Iterators;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
+import org.jf.dexlib2.dexbacked.util.ParameterIterator;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodParameter;
+import org.jf.util.AbstractForwardSequentialList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -102,6 +104,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         this.parameterAnnotationSetListOffset = paramaterAnnotationIterator.seekTo(methodIndex);
     }
 
+    public int getMethodIndex() { return methodIndex; }
     @Nonnull @Override public String getDefiningClass() { return classDef.getType(); }
     @Override public int getAccessFlags() { return accessFlags; }
 
@@ -120,63 +123,43 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     @Nonnull
     @Override
     public List<? extends MethodParameter> getParameters() {
-        if (getParametersOffset() > 0) {
-            DexBackedMethodImplementation methodImpl = getImplementation();
-            if (methodImpl != null) {
-                return methodImpl.getParametersWithNames();
-            }
-            return getParametersWithoutNames();
+        int parametersOffset = getParametersOffset();
+        if (parametersOffset > 0) {
+            final List<String> parameterTypes = getParameterTypes();
+
+            return new AbstractForwardSequentialList<MethodParameter>() {
+                @Nonnull @Override public Iterator<MethodParameter> iterator() {
+                    return new ParameterIterator(parameterTypes,
+                            getParameterAnnotations(),
+                            getParameterNames());
+                }
+
+                @Override public int size() {
+                    return parameterTypes.size();
+                }
+            };
         }
         return ImmutableList.of();
     }
 
     @Nonnull
-    public List<? extends MethodParameter> getParametersWithoutNames() {
-        final int parametersOffset = getParametersOffset();
-        if (parametersOffset > 0) {
-            final int size = dexBuf.readSmallUint(parametersOffset);
-            final List<Set<? extends DexBackedAnnotation>> parameterAnnotations =
-                    AnnotationsDirectory.getParameterAnnotations(dexBuf, parameterAnnotationSetListOffset);
+    public List<? extends Set<? extends DexBackedAnnotation>> getParameterAnnotations() {
+        return AnnotationsDirectory.getParameterAnnotations(dexBuf, parameterAnnotationSetListOffset);
+    }
 
-            return new FixedSizeList<MethodParameter>() {
-                @Nonnull
-                @Override
-                public MethodParameter readItem(final int index) {
-                    return new BaseMethodParameter() {
-                        @Nonnull
-                        @Override
-                        public String getType() {
-                            int typeIndex = dexBuf.readUshort(parametersOffset + 4 + (index * 2));
-                            return dexBuf.getType(typeIndex);
-                        }
-
-                        @Nonnull
-                        @Override
-                        public Set<? extends Annotation> getAnnotations() {
-                            if (index < parameterAnnotations.size()) {
-                                return parameterAnnotations.get(index);
-                            }
-                            return ImmutableSet.of();
-                        }
-
-                        @Nullable @Override public String getName() { return null; }
-                        //TODO: iterate over the annotations to get the signature
-                        @Nullable @Override public String getSignature() { return null; }
-                    };
-                }
-
-                @Override public int size() { return size; }
-            };
+    @Nonnull
+    public Iterator<String> getParameterNames() {
+        DexBackedMethodImplementation methodImpl = getImplementation();
+        if (methodImpl != null) {
+            return methodImpl.getParameterNames(null);
         }
-
-        return ImmutableList.of();
+        return Iterators.emptyIterator();
     }
 
     @Nonnull
     @Override
     public List<String> getParameterTypes() {
-        int protoIdItemOffset = getProtoIdItemOffset();
-        final int parametersOffset = dexBuf.readSmallUint(protoIdItemOffset + DexBuffer.PROTO_PARAM_LIST_OFF_OFFSET);
+        final int parametersOffset = getParametersOffset();
         if (parametersOffset > 0) {
             final int parameterCount = dexBuf.readSmallUint(parametersOffset + DexBuffer.TYPE_LIST_SIZE_OFFSET);
             final int paramListStart = parametersOffset + DexBuffer.TYPE_LIST_LIST_OFFSET;

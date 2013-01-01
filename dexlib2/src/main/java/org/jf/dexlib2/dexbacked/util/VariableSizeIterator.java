@@ -35,7 +35,6 @@ import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -50,6 +49,11 @@ public abstract class VariableSizeIterator<T> implements Iterator<T> {
         this.size = size;
     }
 
+    protected VariableSizeIterator(@Nonnull DexReader reader, int size) {
+        this.reader = reader;
+        this.size = size;
+    }
+
     /**
      * Reads the next item from reader.
      *
@@ -57,7 +61,7 @@ public abstract class VariableSizeIterator<T> implements Iterator<T> {
      * @param index The index of the item being read. This is guaranteed to be less than {@code size}
      * @return The item that was read
      */
-    @Nonnull protected abstract T readNextItem(@Nonnull DexReader reader, int index);
+    protected abstract T readNextItem(@Nonnull DexReader reader, int index);
 
     public int getReaderOffset() {
         return reader.getOffset();
@@ -69,7 +73,6 @@ public abstract class VariableSizeIterator<T> implements Iterator<T> {
     }
 
     @Override
-    @Nonnull
     public T next() {
         if (index >= size) {
             throw new NoSuchElementException();

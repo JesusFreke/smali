@@ -36,7 +36,6 @@ import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
 import java.util.AbstractCollection;
-import java.util.Iterator;
 
 public abstract class VariableSizeCollection<T> extends AbstractCollection<T> {
     @Nonnull private final DexBuffer dexBuf;
@@ -49,12 +48,11 @@ public abstract class VariableSizeCollection<T> extends AbstractCollection<T> {
         this.size = size;
     }
 
-    @Nonnull protected abstract T readNextItem(@Nonnull DexReader reader, int index);
+    protected abstract T readNextItem(@Nonnull DexReader reader, int index);
 
     @Override
     public VariableSizeIterator<T> iterator() {
         return new VariableSizeIterator<T>(dexBuf, offset, size) {
-            @Nonnull
             @Override
             protected T readNextItem(@Nonnull DexReader reader, int index) {
                 return VariableSizeCollection.this.readNextItem(reader, index);

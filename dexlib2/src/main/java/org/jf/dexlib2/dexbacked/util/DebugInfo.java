@@ -34,12 +34,10 @@ package org.jf.dexlib2.dexbacked.util;
 import com.google.common.collect.Iterators;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.DebugItemType;
-import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.dexbacked.DexBackedMethod;
 import org.jf.dexlib2.dexbacked.DexBackedMethodImplementation;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
-import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.debug.EndLocal;
@@ -48,25 +46,33 @@ import org.jf.dexlib2.immutable.debug.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
 
 public abstract class DebugInfo implements Iterable<DebugItem> {
-    @Nonnull public abstract List<? extends MethodParameter> getParametersWithNames();
+    /**
+     * Gets an iterator that yields the parameter names from the debug_info_item
+     *
+     * @param reader Optional. If provided, the reader must be positioned at the debug_info_item.parameters_size
+     *               field, and will
+     * @return An iterator that yields the parameter names as strings
+     */
+    @Nonnull public abstract Iterator<String> getParameterNames(@Nullable DexReader reader);
 
     public static DebugInfo newOrEmpty(@Nonnull DexBuffer dexBuf, int debugInfoOffset,
                                        @Nonnull DexBackedMethodImplementation methodImpl) {
         if (debugInfoOffset == 0) {
-            return new EmptyDebugInfo(methodImpl.method);
+            return EmptyDebugInfo.INSTANCE;
         }
         return new DebugInfoImpl(dexBuf, debugInfoOffset, methodImpl);
     }
 
     private static class EmptyDebugInfo extends DebugInfo {
-        @Nonnull private final DexBackedMethod method;
-        public EmptyDebugInfo(@Nonnull DexBackedMethod method) { this.method = method; }
+        public static final EmptyDebugInfo INSTANCE = new EmptyDebugInfo();
+        private EmptyDebugInfo() {}
         @Nonnull @Override public Iterator<DebugItem> iterator() { return Iterators.emptyIterator(); }
-        @Nonnull @Override public List<? extends MethodParameter> getParametersWithNames() {
-            return method.getParametersWithoutNames();
+        @Nonnull @Override public Iterator<String> getParameterNames(@Nullable DexReader reader) {
+            return Iterators.emptyIterator();
         }
     }
 
@@ -92,17 +98,24 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
         @Nonnull
         @Override
         public Iterator<DebugItem> iterator() {
-            DexReader initialReader = dexBuf.readerAt(debugInfoOffset);
+            DexReader reader = dexBuf.readerAt(debugInfoOffset);
             // TODO: this unsigned value could legitimally be > MAX_INT
-            final int lineNumberStart = initialReader.readSmallUleb128();
+            final int lineNumberStart = reader.readSmallUleb128();
             int registerCount = methodImpl.getRegisterCount();
 
             //TODO: does dalvik allow references to invalid registers?
             final LocalInfo[] locals = new LocalInfo[registerCount];
             Arrays.fill(locals, EMPTY_LOCAL_INFO);
 
-            final VariableSizeListIterator<? extends MethodParameter> parameterIterator =
-                    getParametersWithNames().listIterator();
+            DexBackedMethod method = methodImpl.method;
+
+            // Create a MethodParameter iterator that uses our DexReader instance to read the parameter names.
+            // After we have finished iterating over the parameters, reader will "point to" the beginning of the
+            // debug instructions
+            final Iterator<? extends MethodParameter> parameterIterator =
+                    new ParameterIterator(method.getParameterTypes(),
+                            method.getParameterAnnotations(),
+                            getParameterNames(reader));
 
             // first, we grab all the parameters and temporarily store them at the beginning of locals,
             // disregarding any wide types
@@ -111,7 +124,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                 // add the local info for the "this" parameter
                 locals[parameterIndex++] = new LocalInfo() {
                     @Override public String getName() { return "this"; }
-                    @Override public String getType() { return methodImpl.method.classDef.getType(); }
+                    @Override public String getType() { return methodImpl.method.getDefiningClass(); }
                     @Override public String getSignature() { return null; }
                 };
             }
@@ -138,7 +151,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                 }
             }
 
-            return new VariableSizeLookaheadIterator<DebugItem>(dexBuf, parameterIterator.getReaderOffset()) {
+            return new VariableSizeLookaheadIterator<DebugItem>(dexBuf, reader.getOffset()) {
                 private int codeAddress = 0;
                 private int lineNumber = lineNumberStart;
 
@@ -231,34 +244,16 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
 
         @Nonnull
         @Override
-        public VariableSizeList<MethodParameter> getParametersWithNames() {
-            DexReader reader = dexBuf.readerAt(debugInfoOffset);
-            reader.skipUleb128();
-            final int parameterNameCount = reader.readSmallUleb128();
-            final List<? extends MethodParameter> methodParametersWithoutNames =
-                    methodImpl.method.getParametersWithoutNames();
+        public VariableSizeIterator<String> getParameterNames(@Nullable DexReader reader) {
+            if (reader == null) {
+                reader = dexBuf.readerAt(debugInfoOffset);
+                reader.skipUleb128();
+            }
             //TODO: make sure dalvik doesn't allow more parameter names than we have parameters
-
-            return new VariableSizeList<MethodParameter>(dexBuf, reader.getOffset(),
-                                                               methodParametersWithoutNames.size()) {
-                @Nonnull
-                @Override
-                protected MethodParameter readNextItem(@Nonnull DexReader reader, int index) {
-                    final MethodParameter methodParameter = methodParametersWithoutNames.get(index);
-                    String _name = null;
-                    if (index < parameterNameCount) {
-                        _name = dexBuf.getOptionalString(reader.readSmallUleb128() - 1);
-                    }
-                    final String name = _name;
-
-                    return new BaseMethodParameter() {
-                        @Nonnull @Override public String getType() { return methodParameter.getType(); }
-                        @Nullable @Override public String getName() { return name; }
-                        @Nullable @Override public String getSignature() { return methodParameter.getSignature();}
-                        @Nonnull @Override public Set<? extends Annotation> getAnnotations() {
-                            return methodParameter.getAnnotations();
-                        }
-                    };
+            final int parameterNameCount = reader.readSmallUleb128();
+            return new VariableSizeIterator<String>(reader, parameterNameCount) {
+                @Override protected String readNextItem(@Nonnull DexReader reader, int index) {
+                    return dexBuf.getOptionalString(reader.readSmallUleb128() - 1);
                 }
             };
         }
