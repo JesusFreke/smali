@@ -64,14 +64,34 @@ public abstract class AnnotationsDirectory {
         return new AnnotationsDirectoryImpl(dexFile, directoryAnnotationsOffset);
     }
 
-
+    /**
+     * This provides a forward-only, skipable iteration over the field_annotation, method_annotation or
+     * parameter_annotation lists in an annotations_directory_item.
+     *
+     * These lists associate a key, either a field or method index, with an offset to where the annotation data for
+     * that field/method/parameter is stored.
+     */
     public interface AnnotationIterator {
         public static final AnnotationIterator EMPTY = new AnnotationIterator() {
-            @Override public int seekTo(int fieldIndex) { return 0; }
-            public void reset() {}
+            @Override public int seekTo(int key) { return 0; }
+            @Override public void reset() {}
         };
 
-        public int seekTo(int fieldIndex);
+        /**
+         * Seeks the iterator forward, to the first item whose key is >= the requested key. If the requested key value
+         * is less than that of the item that the iterator currently points to, it will not be moved forward.
+         *
+         * If an item with the requested key is found, the associated annotation offset is returned. Otherwise, 0 is
+         * returned.
+         *
+         * @param key The method/field index to search for
+         * @return The annotation offset associated with the requested key, or 0 if not found.
+         */
+        public int seekTo(int key);
+
+        /**
+         * Resets the iterator to the beginning of its list.
+         */
         public void reset();
     }
 
