@@ -100,7 +100,11 @@ public class TypePool {
         List<String> types = Lists.newArrayList(internedTypeIdItems.keySet());
         Collections.sort(types);
 
-        sectionOffset = writer.getPosition();
+        sectionOffset = 0;
+        if (getNumItems() > 0) {
+            sectionOffset = writer.getPosition();
+        }
+
         int index = 0;
         for (String type: types) {
             internedTypeIdItems.put(type, index++);

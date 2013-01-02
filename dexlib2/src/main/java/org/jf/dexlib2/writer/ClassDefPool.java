@@ -120,7 +120,10 @@ public class ClassDefPool {
     public void write(@Nonnull DexWriter indexWriter, @Nonnull DexWriter offsetWriter) throws IOException {
         List<ClassDef> classDefs = Lists.newArrayList(internedClassDefItems.keySet());
 
-        indexSectionOffset = indexWriter.getPosition();
+        indexSectionOffset = 0;
+        if (getNumClassDefItems() > 0) {
+            indexSectionOffset = indexWriter.getPosition();
+        }
         dataSectionOffset = offsetWriter.getPosition();
 
         for (ClassDef classDef: classDefs) {

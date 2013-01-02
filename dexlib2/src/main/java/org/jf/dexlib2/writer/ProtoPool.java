@@ -97,7 +97,11 @@ public class ProtoPool {
         List<Key> prototypes = Lists.newArrayList(internedProtoIdItems.keySet());
         Collections.sort(prototypes);
 
-        sectionOffset = writer.getPosition();
+        sectionOffset = 0;
+        if (getNumItems() > 0) {
+            sectionOffset = writer.getPosition();
+        }
+
         int index = 0;
         for (Key proto: prototypes) {
             internedProtoIdItems.put(proto, index++);

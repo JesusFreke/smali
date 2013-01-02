@@ -96,7 +96,10 @@ public class StringPool {
         List<String> strings = Lists.newArrayList(internedStringIdItems.keySet());
         Collections.sort(strings);
 
-        indexSectionOffset = indexWriter.getPosition();
+        indexSectionOffset = 0;
+        if (getNumItems() > 0) {
+            indexSectionOffset = indexWriter.getPosition();
+        }
         dataSectionOffset = offsetWriter.getPosition();
 
         int index = 0;

@@ -85,7 +85,6 @@ public class HeaderItem {
         writer.writeInt(dexFile.mapItem.getSectionOffset());
 
         // index sections
-        // TODO: double-check whether section offset for an empty section must be 0
         writeSectionInfo(writer, dexFile.stringPool.getNumItems(), dexFile.stringPool.getIndexSectionOffset());
         writeSectionInfo(writer, dexFile.typePool.getNumItems(), dexFile.typePool.getSectionOffset());
         writeSectionInfo(writer, dexFile.protoPool.getNumItems(), dexFile.protoPool.getSectionOffset());

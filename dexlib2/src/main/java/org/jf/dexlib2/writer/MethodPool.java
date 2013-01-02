@@ -90,7 +90,11 @@ public class MethodPool {
         List<MethodReference> methods = Lists.newArrayList(internedMethodIdItems.keySet());
         Collections.sort(methods);
 
-        sectionOffset = writer.getPosition();
+        sectionOffset = 0;
+        if (getNumItems() > 0) {
+            sectionOffset = writer.getPosition();
+        }
+
         int index = 0;
         for (MethodReference method: methods) {
             internedMethodIdItems.put(method, index++);

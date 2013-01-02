@@ -90,7 +90,11 @@ public class FieldPool {
         List<FieldReference> fields = Lists.newArrayList(internedFieldIdItems.keySet());
         Collections.sort(fields);
 
-        sectionOffset = writer.getPosition();
+        sectionOffset = 0;
+        if (getNumItems() > 0) {
+            sectionOffset = writer.getPosition();
+        }
+
         int index = 0;
         for (FieldReference field: fields) {
             internedFieldIdItems.put(field, index++);

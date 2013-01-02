@@ -53,8 +53,12 @@ public class MapItem {
 
     public void write(@Nonnull DexWriter writer) throws IOException {
         writer.align();
-        sectionOffset = writer.getPosition();
         int numItems = calcNumItems();
+
+        sectionOffset = 0;
+        if (numItems > 0) {
+            sectionOffset = writer.getPosition();
+        }
 
         writer.writeInt(numItems);
 
