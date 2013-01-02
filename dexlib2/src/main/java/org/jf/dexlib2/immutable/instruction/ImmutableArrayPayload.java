@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
+import org.jf.util.ExceptionWithContext;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
@@ -57,9 +58,19 @@ public class ImmutableArrayPayload extends ImmutableInstruction implements Array
     public ImmutableArrayPayload(int elementWidth,
                                  @Nullable ImmutableList<Number> arrayElements) {
         super(OPCODE);
-        //TODO: need to ensure this is a valid width (1, 2, 4, 8)
+        if (!(elementWidth == 0x0001 || elementWidth == 0x0010 || elementWidth == 0x0100 || elementWidth == 0x1000)) {
+            throw new ExceptionWithContext("Invalid element width: " + elementWidth);
+        }
+
         this.elementWidth = elementWidth;
-        //TODO: need to validate the elements fit within the width
+        int maxValue = 2^elementWidth-1;
+        for (Number element: arrayElements) {
+            if (element.intValue() > maxValue) {
+                throw new ExceptionWithContext("Array element does not fit withing the width!"
+                            + "Width: " + elementWidth + ", value: " + element.intValue());
+            }
+        }
+
         this.arrayElements = ImmutableUtils.nullToEmptyList(arrayElements);
     }
 
