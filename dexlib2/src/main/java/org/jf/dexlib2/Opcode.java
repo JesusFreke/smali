@@ -343,9 +343,6 @@ public enum Opcode
             case 0x300:
                 return ARRAY_PAYLOAD;
             default:
-                if (opcodeValue > opcodesByValue.length) {
-                    return NOP;
-                }
                 return opcodesByValue[opcodeValue];
         }
     }
