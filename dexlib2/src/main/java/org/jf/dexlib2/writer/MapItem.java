@@ -38,7 +38,7 @@ import java.io.IOException;
 
 public class MapItem {
     DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public MapItem(DexFile dexFile) {
         this.dexFile = dexFile;
@@ -54,9 +54,8 @@ public class MapItem {
     public void write(@Nonnull DexWriter writer) throws IOException {
         writer.align();
         sectionOffset = writer.getPosition();
-        int numItems = calcNumItems();
 
-        writer.writeInt(numItems);
+        writer.writeInt(calcNumItems());
 
         // index section
         writeItem(writer, DexItemType.HEADER_ITEM, 1, 0);

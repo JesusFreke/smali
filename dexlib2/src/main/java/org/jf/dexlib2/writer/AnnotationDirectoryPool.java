@@ -49,7 +49,7 @@ public class AnnotationDirectoryPool {
     @Nonnull private final Map<String, Integer> nonInternedAnnotationDirectoryOffsetMap = Maps.newHashMap();
     @Nonnull private final List<Key> nonInternedAnnotationDirectoryItems = Lists.newArrayList();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public AnnotationDirectoryPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

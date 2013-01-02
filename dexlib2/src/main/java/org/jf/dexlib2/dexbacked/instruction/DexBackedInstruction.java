@@ -65,7 +65,6 @@ public abstract class DexBackedInstruction implements Instruction {
 
         Opcode opcode = Opcode.getOpcodeByValue(opcodeValue);
 
-        //TODO: handle unexpected/unknown opcodes
         Instruction instruction = buildInstruction(reader.getDexBuffer(), opcode, reader.getOffset());
         reader.moveRelative(instruction.getCodeUnits()*2);
         return instruction;
@@ -130,9 +129,8 @@ public abstract class DexBackedInstruction implements Instruction {
                 return new DexBackedSparseSwitchPayload(dexBuf, instructionStartOffset);
             case ArrayPayload:
                 return new DexBackedArrayPayload(dexBuf, instructionStartOffset);
-                //TODO: temporary, until we get all instructions implemented
             default:
-                throw new ExceptionWithContext("Unexpected opcode format: %s", opcode.format.toString());
+                return new DexBackedUnknownInstruction(dexBuf, opcode, instructionStartOffset);
         }
     }
 }

@@ -42,7 +42,7 @@ import java.util.*;
 public class TypeListPool {
     @Nonnull private final Map<Key, Integer> internedTypeListItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public TypeListPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

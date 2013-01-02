@@ -51,7 +51,7 @@ public class ProtoPool {
 
     @Nonnull private final Map<Key, Integer> internedProtoIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public ProtoPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -97,7 +97,11 @@ public class ProtoPool {
         List<Key> prototypes = Lists.newArrayList(internedProtoIdItems.keySet());
         Collections.sort(prototypes);
 
-        sectionOffset = writer.getPosition();
+        sectionOffset = 0;
+        if (getNumItems() > 0) {
+            sectionOffset = writer.getPosition();
+        }
+
         int index = 0;
         for (Key proto: prototypes) {
             internedProtoIdItems.put(proto, index++);

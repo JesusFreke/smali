@@ -343,7 +343,6 @@ public enum Opcode
             case 0x300:
                 return ARRAY_PAYLOAD;
             default:
-                // TODO: handle unknown opcodes (treat as nop)
                 return opcodesByValue[opcodeValue];
         }
     }

@@ -49,7 +49,7 @@ import java.util.SortedSet;
 public class AnnotationPool {
     @Nonnull private final Map<Annotation, Integer> internedAnnotations = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public AnnotationPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

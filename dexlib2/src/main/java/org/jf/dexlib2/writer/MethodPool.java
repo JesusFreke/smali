@@ -48,7 +48,7 @@ public class MethodPool {
 
     @Nonnull private final Map<MethodReference, Integer> internedMethodIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public MethodPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -90,7 +90,11 @@ public class MethodPool {
         List<MethodReference> methods = Lists.newArrayList(internedMethodIdItems.keySet());
         Collections.sort(methods);
 
-        sectionOffset = writer.getPosition();
+        sectionOffset = 0;
+        if (getNumItems() > 0) {
+            sectionOffset = writer.getPosition();
+        }
+
         int index = 0;
         for (MethodReference method: methods) {
             internedMethodIdItems.put(method, index++);

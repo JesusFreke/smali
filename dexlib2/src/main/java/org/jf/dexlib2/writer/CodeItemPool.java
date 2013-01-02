@@ -58,7 +58,7 @@ import java.util.Map;
 public class CodeItemPool {
     @Nonnull private final Map<Method, Integer> codeItemOffsetMap = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public CodeItemPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

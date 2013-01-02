@@ -47,8 +47,8 @@ public class StringPool {
     public final static int STRING_ID_ITEM_SIZE = 0x04;
 
     @Nonnull private final Map<String, Integer> internedStringIdItems = Maps.newHashMap();
-    private int indexSectionOffset = -1;
-    private int dataSectionOffset = -1;
+    private int indexSectionOffset = DexFile.NO_OFFSET;
+    private int dataSectionOffset = DexFile.NO_OFFSET;
 
     public void intern(@Nonnull CharSequence string) {
         internedStringIdItems.put(string.toString(), 0);
@@ -85,10 +85,16 @@ public class StringPool {
     }
 
     public int getIndexSectionOffset() {
+        if (indexSectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
         return indexSectionOffset;
     }
 
     public int getDataSectionOffset() {
+        if (dataSectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
         return dataSectionOffset;
     }
 
@@ -96,7 +102,10 @@ public class StringPool {
         List<String> strings = Lists.newArrayList(internedStringIdItems.keySet());
         Collections.sort(strings);
 
-        indexSectionOffset = indexWriter.getPosition();
+        indexSectionOffset = 0;
+        if (getNumItems() > 0) {
+            indexSectionOffset = indexWriter.getPosition();
+        }
         dataSectionOffset = offsetWriter.getPosition();
 
         int index = 0;

@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
+import org.jf.util.ExceptionWithContext;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
@@ -57,10 +58,41 @@ public class ImmutableArrayPayload extends ImmutableInstruction implements Array
     public ImmutableArrayPayload(int elementWidth,
                                  @Nullable ImmutableList<Number> arrayElements) {
         super(OPCODE);
-        //TODO: need to ensure this is a valid width (1, 2, 4, 8)
+        if (!(elementWidth == 1 || elementWidth == 2 || elementWidth == 4 || elementWidth == 8)) {
+            throw new ExceptionWithContext("Invalid element width: " + elementWidth);
+        }
+
         this.elementWidth = elementWidth;
-        //TODO: need to validate the elements fit within the width
+        long maxValue = getMaxVal();
+        long minValue = getMinVal();
+        for (Number element: arrayElements) {
+            if (element.longValue() > maxValue || element.longValue() < minValue) {
+                throw new ExceptionWithContext("Array element does not fit withing the width!"
+                            + "Width: " + elementWidth + ", value: " + element.intValue());
+            }
+        }
+
         this.arrayElements = ImmutableUtils.nullToEmptyList(arrayElements);
+    }
+
+    private long getMaxVal() {
+        switch (elementWidth) {
+            case 1: return 0xFF;
+            case 2: return 0xFFFF;
+            case 4: return 0xFFFFFFFF;
+            case 8: return Long.MAX_VALUE;
+        }
+        return 0;
+    }
+
+    private long getMinVal() {
+        switch (elementWidth) {
+            case 1: return Byte.MIN_VALUE;
+            case 2: return Short.MIN_VALUE;
+            case 4: return Integer.MIN_VALUE;
+            case 8: return Long.MIN_VALUE;
+        }
+        return 0;
     }
 
     @Nonnull

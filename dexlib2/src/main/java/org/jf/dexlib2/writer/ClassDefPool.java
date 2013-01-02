@@ -52,8 +52,8 @@ public class ClassDefPool {
     @Nonnull private final Map<String, ClassDef> nameToClassDef = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
 
-    private int indexSectionOffset = -1;
-    private int dataSectionOffset = -1;
+    private int indexSectionOffset = DexFile.NO_OFFSET;
+    private int dataSectionOffset = DexFile.NO_OFFSET;
     private int classDataCount = 0;
 
     public ClassDefPool(@Nonnull DexFile dexFile) {
@@ -120,7 +120,10 @@ public class ClassDefPool {
     public void write(@Nonnull DexWriter indexWriter, @Nonnull DexWriter offsetWriter) throws IOException {
         List<ClassDef> classDefs = Lists.newArrayList(internedClassDefItems.keySet());
 
-        indexSectionOffset = indexWriter.getPosition();
+        indexSectionOffset = 0;
+        if (getNumClassDefItems() > 0) {
+            indexSectionOffset = indexWriter.getPosition();
+        }
         dataSectionOffset = offsetWriter.getPosition();
 
         for (ClassDef classDef: classDefs) {
@@ -164,7 +167,7 @@ public class ClassDefPool {
         if (classDef.getSourceFile() != null) {
             indexWriter.writeInt(dexFile.stringPool.getIndexNullable(classDef.getSourceFile()));
         } else {
-            indexWriter.writeInt(-1); // TODO: this should be replaced by NO_INDEX
+            indexWriter.writeInt(DexFile.NO_OFFSET);
         }
 
         indexWriter.writeInt(dexFile.annotationDirectoryPool.getOffset(classDef));

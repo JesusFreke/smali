@@ -36,6 +36,7 @@ import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
+import org.jf.util.ExceptionWithContext;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
@@ -49,7 +50,17 @@ public class ImmutablePackedSwitchPayload extends ImmutableInstruction implement
 
     public ImmutablePackedSwitchPayload(@Nullable List<? extends SwitchElement> switchElements) {
         super(OPCODE);
-        //TODO: need to validate that the keys are sequential
+
+        SwitchElement lastElement = null;
+        for (SwitchElement element: switchElements) {
+            if (lastElement != null) {
+                if (element.getKey() < lastElement.getKey()) {
+                    throw new ExceptionWithContext("Element keys are not sequential!");
+                }
+            }
+            lastElement = element;
+        }
+
         this.switchElements = ImmutableSwitchElement.immutableListOf(switchElements);
     }
 

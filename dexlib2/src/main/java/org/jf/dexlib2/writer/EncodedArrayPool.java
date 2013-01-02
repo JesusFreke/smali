@@ -55,7 +55,7 @@ import java.util.*;
 public class EncodedArrayPool {
     @Nonnull private final Map<Key, Integer> internedEncodedArrayItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public EncodedArrayPool(DexFile dexFile) {
         this.dexFile = dexFile;

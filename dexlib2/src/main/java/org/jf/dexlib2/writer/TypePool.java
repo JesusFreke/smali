@@ -47,7 +47,7 @@ public class TypePool {
 
     @Nonnull private final Map<String, Integer> internedTypeIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public TypePool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
@@ -100,7 +100,11 @@ public class TypePool {
         List<String> types = Lists.newArrayList(internedTypeIdItems.keySet());
         Collections.sort(types);
 
-        sectionOffset = writer.getPosition();
+        sectionOffset = 0;
+        if (getNumItems() > 0) {
+            sectionOffset = writer.getPosition();
+        }
+
         int index = 0;
         for (String type: types) {
             internedTypeIdItems.put(type, index++);

@@ -46,6 +46,8 @@ import java.util.Collection;
 import java.util.Set;
 
 public class DexFile {
+    public static final int NO_OFFSET = -1;
+
     // package-private access for these
     @Nonnull final StringPool stringPool = new StringPool();
     @Nonnull final TypePool typePool = new TypePool(this);
