@@ -32,23 +32,23 @@
 package org.jf.dexlib2.dexbacked.reference;
 
 import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 
 public abstract class DexBackedReference {
-    public static Reference makeReference(@Nonnull DexBuffer dexBuf, int referenceType, int referenceIndex) {
+    public static Reference makeReference(@Nonnull DexBackedDexFile dexFile, int referenceType, int referenceIndex) {
         switch (referenceType) {
             case ReferenceType.STRING:
-                return new DexBackedStringReference(dexBuf, referenceIndex);
+                return new DexBackedStringReference(dexFile, referenceIndex);
             case ReferenceType.TYPE:
-                return new DexBackedTypeReference(dexBuf, referenceIndex);
+                return new DexBackedTypeReference(dexFile, referenceIndex);
             case ReferenceType.METHOD:
-                return new DexBackedMethodReference(dexBuf, referenceIndex);
+                return new DexBackedMethodReference(dexFile, referenceIndex);
             case ReferenceType.FIELD:
-                return new DexBackedFieldReference(dexBuf, referenceIndex);
+                return new DexBackedFieldReference(dexFile, referenceIndex);
             default:
                 throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
         }

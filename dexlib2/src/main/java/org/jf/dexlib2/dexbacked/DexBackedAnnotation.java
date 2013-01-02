@@ -38,32 +38,32 @@ import javax.annotation.Nonnull;
 import java.util.Set;
 
 public class DexBackedAnnotation extends BaseAnnotation {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
 
     public final int visibility;
     public final int typeIndex;
     private final int elementsOffset;
 
-    public DexBackedAnnotation(@Nonnull DexBuffer dexBuf,
+    public DexBackedAnnotation(@Nonnull DexBackedDexFile dexFile,
                                int annotationOffset) {
-        this.dexBuf = dexBuf;
+        this.dexFile = dexFile;
 
-        DexReader reader = dexBuf.readerAt(annotationOffset);
+        DexReader reader = dexFile.readerAt(annotationOffset);
         this.visibility = reader.readUbyte();
         this.typeIndex = reader.readSmallUleb128();
         this.elementsOffset = reader.getOffset();
     }
 
     @Override public int getVisibility() { return visibility; }
-    @Nonnull @Override public String getType() { return dexBuf.getType(typeIndex); }
+    @Nonnull @Override public String getType() { return dexFile.getType(typeIndex); }
 
     @Nonnull
     @Override
     public Set<? extends DexBackedAnnotationElement> getElements() {
-        DexReader reader = dexBuf.readerAt(elementsOffset);
+        DexReader reader = dexFile.readerAt(elementsOffset);
         final int size = reader.readSmallUleb128();
 
-        return new VariableSizeSet<DexBackedAnnotationElement>(dexBuf, reader.getOffset(), size) {
+        return new VariableSizeSet<DexBackedAnnotationElement>(dexFile, reader.getOffset(), size) {
             @Nonnull
             @Override
             protected DexBackedAnnotationElement readNextItem(@Nonnull DexReader reader, int index) {

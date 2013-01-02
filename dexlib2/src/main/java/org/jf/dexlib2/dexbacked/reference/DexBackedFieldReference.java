@@ -32,34 +32,34 @@
 package org.jf.dexlib2.dexbacked.reference;
 
 import org.jf.dexlib2.base.reference.BaseFieldReference;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedFieldReference extends BaseFieldReference {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
     public final int fieldIdItemOffset;
 
-    public DexBackedFieldReference(@Nonnull DexBuffer dexBuf, int fieldIndex) {
-        this.dexBuf = dexBuf;
-        this.fieldIdItemOffset = dexBuf.getFieldIdItemOffset(fieldIndex);
+    public DexBackedFieldReference(@Nonnull DexBackedDexFile dexFile, int fieldIndex) {
+        this.dexFile = dexFile;
+        this.fieldIdItemOffset = dexFile.getFieldIdItemOffset(fieldIndex);
     }
 
     @Nonnull
     @Override
     public String getDefiningClass() {
-        return dexBuf.getType(dexBuf.readUshort(fieldIdItemOffset + DexBuffer.FIELD_CLASS_IDX_OFFSET));
+        return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + DexBackedDexFile.Impl.FIELD_CLASS_IDX_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return dexBuf.getString(dexBuf.readSmallUint(fieldIdItemOffset + DexBuffer.FIELD_NAME_IDX_OFFSET));
+        return dexFile.getString(dexFile.readSmallUint(fieldIdItemOffset + DexBackedDexFile.Impl.FIELD_NAME_IDX_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexBuf.getType(dexBuf.readUshort(fieldIdItemOffset + DexBuffer.FIELD_TYPE_IDX_OFFSET));
+        return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + DexBackedDexFile.Impl.FIELD_TYPE_IDX_OFFSET));
     }
 }

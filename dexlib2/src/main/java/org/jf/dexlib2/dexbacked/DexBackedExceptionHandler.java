@@ -37,17 +37,17 @@ import org.jf.dexlib2.iface.ExceptionHandler;
 import javax.annotation.Nonnull;
 
 public class DexBackedExceptionHandler extends BaseExceptionHandler implements ExceptionHandler {
-    @Nonnull private final DexBuffer dexBuf;
+    @Nonnull private final DexBackedDexFile dexFile;
     private final int typeId;
     private final int handlerCodeAddress;
 
     public DexBackedExceptionHandler(@Nonnull DexReader reader) {
         // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
-        this.dexBuf = reader.dexBuf;
+        this.dexFile = reader.dexBuf;
         this.typeId = reader.readSmallUleb128();
         this.handlerCodeAddress = reader.readSmallUleb128();
     }
 
-    @Nonnull @Override public String getExceptionType() { return dexBuf.getType(typeId); }
+    @Nonnull @Override public String getExceptionType() { return dexFile.getType(typeId); }
     @Override public int getHandlerCodeAddress() { return handlerCodeAddress; }
 }

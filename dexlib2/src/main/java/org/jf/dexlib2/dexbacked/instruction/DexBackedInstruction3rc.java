@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
 import org.jf.dexlib2.iface.instruction.formats.Instruction3rc;
 import org.jf.dexlib2.iface.reference.Reference;
@@ -40,25 +40,25 @@ import org.jf.dexlib2.iface.reference.Reference;
 import javax.annotation.Nonnull;
 
 public class DexBackedInstruction3rc extends DexBackedInstruction implements Instruction3rc {
-    public DexBackedInstruction3rc(@Nonnull DexBuffer dexBuf,
+    public DexBackedInstruction3rc(@Nonnull DexBackedDexFile dexFile,
                                    @Nonnull Opcode opcode,
                                    int instructionStart) {
-        super(dexBuf, opcode, instructionStart);
+        super(dexFile, opcode, instructionStart);
     }
 
     @Override public int getRegisterCount() {
-        return dexBuf.readUbyte(instructionStart + 1);
+        return dexFile.readUbyte(instructionStart + 1);
     }
 
     @Override
     public int getStartRegister() {
-        return dexBuf.readUshort(instructionStart + 4);
+        return dexFile.readUshort(instructionStart + 4);
     }
 
     @Nonnull
     @Override
     public Reference getReference() {
-        return DexBackedReference.makeReference(dexBuf, opcode.referenceType,
-                dexBuf.readUshort(instructionStart + 2));
+        return DexBackedReference.makeReference(dexFile, opcode.referenceType,
+                dexFile.readUshort(instructionStart + 2));
     }
 }

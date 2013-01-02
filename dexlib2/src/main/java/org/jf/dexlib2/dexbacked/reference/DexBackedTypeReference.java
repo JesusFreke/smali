@@ -32,21 +32,21 @@
 package org.jf.dexlib2.dexbacked.reference;
 
 import org.jf.dexlib2.base.reference.BaseTypeReference;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedTypeReference extends BaseTypeReference {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
     public final int typeIndex;
 
-    public DexBackedTypeReference(@Nonnull DexBuffer dexBuf,
+    public DexBackedTypeReference(@Nonnull DexBackedDexFile dexFile,
                                   int typeIndex) {
-        this.dexBuf = dexBuf;
+        this.dexFile = dexFile;
         this.typeIndex = typeIndex;
     }
 
     @Nonnull public String getType() {
-        return dexBuf.getType(typeIndex);
+        return dexFile.getType(typeIndex);
     }
 }

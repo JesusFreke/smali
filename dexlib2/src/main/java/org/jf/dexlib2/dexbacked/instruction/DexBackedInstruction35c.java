@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
 import org.jf.dexlib2.iface.instruction.formats.Instruction35c;
 import org.jf.dexlib2.iface.reference.Reference;
@@ -41,46 +41,46 @@ import org.jf.util.NibbleUtils;
 import javax.annotation.Nonnull;
 
 public class DexBackedInstruction35c extends DexBackedInstruction implements Instruction35c {
-    public DexBackedInstruction35c(@Nonnull DexBuffer dexBuf,
+    public DexBackedInstruction35c(@Nonnull DexBackedDexFile dexFile,
                                    @Nonnull Opcode opcode,
                                    int instructionStart) {
-        super(dexBuf, opcode, instructionStart);
+        super(dexFile, opcode, instructionStart);
     }
 
     @Override public int getRegisterCount() {
         //TODO: make sure dalvik verifies that this is in the correct range
-        return NibbleUtils.extractHighUnsignedNibble(dexBuf.readUbyte(instructionStart + 1));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.readUbyte(instructionStart + 1));
     }
 
     @Override
     public int getRegisterC() {
-        return NibbleUtils.extractLowUnsignedNibble(dexBuf.readUbyte(instructionStart + 4));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.readUbyte(instructionStart + 4));
     }
 
     @Override
     public int getRegisterD() {
-        return NibbleUtils.extractHighUnsignedNibble(dexBuf.readUbyte(instructionStart + 4));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.readUbyte(instructionStart + 4));
     }
 
     @Override
     public int getRegisterE() {
-        return NibbleUtils.extractLowUnsignedNibble(dexBuf.readUbyte(instructionStart + 5));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.readUbyte(instructionStart + 5));
     }
 
     @Override
     public int getRegisterF() {
-        return NibbleUtils.extractHighUnsignedNibble(dexBuf.readUbyte(instructionStart + 5));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.readUbyte(instructionStart + 5));
     }
 
     @Override
     public int getRegisterG() {
-        return NibbleUtils.extractLowUnsignedNibble(dexBuf.readUbyte(instructionStart + 1));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.readUbyte(instructionStart + 1));
     }
 
     @Nonnull
     @Override
     public Reference getReference() {
-        return DexBackedReference.makeReference(dexBuf, opcode.referenceType,
-                dexBuf.readUshort(instructionStart + 2));
+        return DexBackedReference.makeReference(dexFile, opcode.referenceType,
+                dexFile.readUshort(instructionStart + 2));
     }
 }

@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
@@ -44,8 +44,8 @@ public abstract class VariableSizeLookaheadIterator<T> implements Iterator<T> {
 
     private T cachedItem = null;
 
-    protected VariableSizeLookaheadIterator(@Nonnull DexBuffer dexBuf, int offset) {
-        this.reader = dexBuf.readerAt(offset);
+    protected VariableSizeLookaheadIterator(@Nonnull DexBackedDexFile dexFile, int offset) {
+        this.reader = dexFile.readerAt(offset);
         cachedItem = readNextItem(reader);
     }
 

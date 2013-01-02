@@ -33,7 +33,7 @@ package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.base.value.BaseAnnotationEncodedValue;
 import org.jf.dexlib2.dexbacked.DexBackedAnnotationElement;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.util.VariableSizeSet;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
@@ -42,14 +42,14 @@ import javax.annotation.Nonnull;
 import java.util.Set;
 
 public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue implements AnnotationEncodedValue {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
     @Nonnull public final String type;
     private final int elementCount;
     private final int elementsOffset;
 
     public DexBackedAnnotationEncodedValue(@Nonnull DexReader reader) {
-        this.dexBuf = reader.dexBuf;
-        this.type = dexBuf.getType(reader.readSmallUleb128());
+        this.dexFile = reader.dexBuf;
+        this.type = dexFile.getType(reader.readSmallUleb128());
         this.elementCount = reader.readSmallUleb128();
         this.elementsOffset = reader.getOffset();
         skipElements(reader, elementCount);
@@ -73,7 +73,7 @@ public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue 
     @Nonnull
     @Override
     public Set<? extends DexBackedAnnotationElement> getElements() {
-        return new VariableSizeSet<DexBackedAnnotationElement>(dexBuf, elementsOffset, elementCount) {
+        return new VariableSizeSet<DexBackedAnnotationElement>(dexFile, elementsOffset, elementCount) {
             @Nonnull
             @Override
             protected DexBackedAnnotationElement readNextItem(@Nonnull DexReader dexReader, int index) {

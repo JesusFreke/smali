@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.base.value.BaseFieldEncodedValue;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
 import org.jf.dexlib2.iface.reference.FieldReference;
@@ -40,15 +40,15 @@ import org.jf.dexlib2.iface.reference.FieldReference;
 import javax.annotation.Nonnull;
 
 public class DexBackedFieldEncodedValue extends BaseFieldEncodedValue {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
     private final int fieldIndex;
 
     public DexBackedFieldEncodedValue(@Nonnull DexReader reader, int valueArg) {
-        this.dexBuf = reader.dexBuf;
+        this.dexFile = reader.dexBuf;
         fieldIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 
     @Override public FieldReference getValue() {
-        return new DexBackedFieldReference(dexBuf, fieldIndex);
+        return new DexBackedFieldReference(dexFile, fieldIndex);
     }
 }

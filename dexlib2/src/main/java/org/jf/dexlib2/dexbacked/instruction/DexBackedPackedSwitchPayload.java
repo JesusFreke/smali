@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
@@ -47,17 +47,17 @@ public class DexBackedPackedSwitchPayload extends DexBackedInstruction implement
     private static final int FIRST_KEY_OFFSET = 4;
     private static final int TARGETS_OFFSET = 8;
 
-    public DexBackedPackedSwitchPayload(@Nonnull DexBuffer dexBuf,
+    public DexBackedPackedSwitchPayload(@Nonnull DexBackedDexFile dexFile,
                                         int instructionStart) {
-        super(dexBuf, Opcode.PACKED_SWITCH_PAYLOAD, instructionStart);
+        super(dexFile, Opcode.PACKED_SWITCH_PAYLOAD, instructionStart);
 
-        elementCount = dexBuf.readUshort(instructionStart + ELEMENT_COUNT_OFFSET);
+        elementCount = dexFile.readUshort(instructionStart + ELEMENT_COUNT_OFFSET);
     }
 
     @Nonnull
     @Override
     public List<? extends SwitchElement> getSwitchElements() {
-        final int firstKey = dexBuf.readInt(instructionStart + FIRST_KEY_OFFSET);
+        final int firstKey = dexFile.readInt(instructionStart + FIRST_KEY_OFFSET);
         return new FixedSizeList<SwitchElement>() {
             @Nonnull
             @Override
@@ -70,7 +70,7 @@ public class DexBackedPackedSwitchPayload extends DexBackedInstruction implement
 
                     @Override
                     public int getOffset() {
-                        return dexBuf.readInt(instructionStart + TARGETS_OFFSET + index*4);
+                        return dexFile.readInt(instructionStart + TARGETS_OFFSET + index*4);
                     }
                 };
             }

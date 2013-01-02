@@ -32,18 +32,18 @@
 package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.instruction.formats.Instruction32x;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedInstruction32x extends DexBackedInstruction implements Instruction32x {
-    public DexBackedInstruction32x(@Nonnull DexBuffer dexBuf,
+    public DexBackedInstruction32x(@Nonnull DexBackedDexFile dexFile,
                                    @Nonnull Opcode opcode,
                                    int instructionStart) {
-        super(dexBuf, opcode, instructionStart);
+        super(dexFile, opcode, instructionStart);
     }
 
-    @Override public int getRegisterA() { return dexBuf.readUshort(instructionStart + 2); }
-    @Override public int getRegisterB() { return dexBuf.readUshort(instructionStart + 4); }
+    @Override public int getRegisterA() { return dexFile.readUshort(instructionStart + 2); }
+    @Override public int getRegisterB() { return dexFile.readUshort(instructionStart + 4); }
 }

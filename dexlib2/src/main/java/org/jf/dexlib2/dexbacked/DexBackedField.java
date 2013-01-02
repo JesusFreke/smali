@@ -43,7 +43,7 @@ import javax.annotation.Nullable;
 import java.util.Set;
 
 public class DexBackedField extends BaseFieldReference implements Field {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
     @Nonnull public final ClassDef classDef;
 
     public final int accessFlags;
@@ -63,7 +63,7 @@ public class DexBackedField extends BaseFieldReference implements Field {
                           int previousFieldIndex,
                           @Nonnull StaticInitialValueIterator staticInitialValueIterator,
                           @Nonnull AnnotationsDirectory.AnnotationIterator annotationIterator) {
-        this.dexBuf = reader.dexBuf;
+        this.dexFile = reader.dexBuf;
         this.classDef = classDef;
 
         int fieldIndexDiff = reader.readSmallUleb128();
@@ -77,13 +77,13 @@ public class DexBackedField extends BaseFieldReference implements Field {
     @Nonnull
     @Override
     public String getName() {
-        return dexBuf.getString(dexBuf.readSmallUint(getFieldIdItemOffset() + NAME_OFFSET));
+        return dexFile.getString(dexFile.readSmallUint(getFieldIdItemOffset() + NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexBuf.getType(dexBuf.readUshort(getFieldIdItemOffset() + TYPE_OFFSET));
+        return dexFile.getType(dexFile.readUshort(getFieldIdItemOffset() + TYPE_OFFSET));
     }
 
     @Nonnull @Override public String getDefiningClass() { return classDef.getType(); }
@@ -93,7 +93,7 @@ public class DexBackedField extends BaseFieldReference implements Field {
     @Nonnull
     @Override
     public Set<? extends DexBackedAnnotation> getAnnotations() {
-        return AnnotationsDirectory.getAnnotations(dexBuf, annotationSetOffset);
+        return AnnotationsDirectory.getAnnotations(dexFile, annotationSetOffset);
     }
 
     /**
@@ -111,7 +111,7 @@ public class DexBackedField extends BaseFieldReference implements Field {
 
     private int getFieldIdItemOffset() {
         if (fieldIdItemOffset == 0) {
-            fieldIdItemOffset = dexBuf.getFieldIdItemOffset(fieldIndex);
+            fieldIdItemOffset = dexFile.getFieldIdItemOffset(fieldIndex);
         }
         return fieldIdItemOffset;
     }

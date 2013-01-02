@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DexBackedTryBlock implements TryBlock {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
     private final int tryItemOffset;
     private final int handlersStartOffset;
 
@@ -47,27 +47,27 @@ public class DexBackedTryBlock implements TryBlock {
     private static final int CODE_UNIT_COUNT_OFFSET = 4;
     private static final int HANDLER_OFFSET_OFFSET = 6;
 
-    public DexBackedTryBlock(@Nonnull DexBuffer dexBuf,
+    public DexBackedTryBlock(@Nonnull DexBackedDexFile dexFile,
                              int tryItemOffset,
                              int handlersStartOffset) {
-        this.dexBuf = dexBuf;
+        this.dexFile = dexFile;
         this.tryItemOffset = tryItemOffset;
         this.handlersStartOffset = handlersStartOffset;
     }
 
-    @Override public int getStartCodeAddress() { return dexBuf.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET); }
-    @Override public int getCodeUnitCount() { return dexBuf.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET); }
+    @Override public int getStartCodeAddress() { return dexFile.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET); }
+    @Override public int getCodeUnitCount() { return dexFile.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET); }
 
     @Nonnull
     @Override
     public List<? extends ExceptionHandler> getExceptionHandlers() {
         DexReader reader =
-                dexBuf.readerAt(handlersStartOffset + dexBuf.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET));
+                dexFile.readerAt(handlersStartOffset + dexFile.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET));
         final int encodedSize = reader.readSleb128();
 
         if (encodedSize > 0) {
             //no catch-all
-            return new VariableSizeList<ExceptionHandler>(dexBuf, reader.getOffset(), encodedSize) {
+            return new VariableSizeList<ExceptionHandler>(dexFile, reader.getOffset(), encodedSize) {
                 @Nonnull
                 @Override
                 protected ExceptionHandler readNextItem(@Nonnull DexReader reader, int index) {
@@ -77,7 +77,7 @@ public class DexBackedTryBlock implements TryBlock {
         } else {
             //with catch-all
             final int sizeWithCatchAll = (-1 * encodedSize) + 1;
-            return new VariableSizeList<ExceptionHandler>(dexBuf, reader.getOffset(), sizeWithCatchAll) {
+            return new VariableSizeList<ExceptionHandler>(dexFile, reader.getOffset(), sizeWithCatchAll) {
                 @Nonnull
                 @Override
                 protected ExceptionHandler readNextItem(@Nonnull DexReader dexReader, int index) {

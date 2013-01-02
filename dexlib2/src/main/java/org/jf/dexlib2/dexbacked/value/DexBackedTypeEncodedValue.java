@@ -32,21 +32,21 @@
 package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.base.value.BaseTypeEncodedValue;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedTypeEncodedValue extends BaseTypeEncodedValue {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
     private final int typeIndex;
 
     public DexBackedTypeEncodedValue(@Nonnull DexReader reader, int valueArg) {
-        this.dexBuf = reader.dexBuf;
+        this.dexFile = reader.dexBuf;
         typeIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 
     @Override public String getValue() {
-        return dexBuf.getType(typeIndex);
+        return dexFile.getType(typeIndex);
     }
 }

@@ -32,26 +32,26 @@
 package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.instruction.formats.Instruction12x;
 import org.jf.util.NibbleUtils;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedInstruction12x extends DexBackedInstruction implements Instruction12x {
-    public DexBackedInstruction12x(@Nonnull DexBuffer dexBuf,
+    public DexBackedInstruction12x(@Nonnull DexBackedDexFile dexFile,
                                    @Nonnull Opcode opcode,
                                    int instructionStart) {
-        super(dexBuf, opcode, instructionStart);
+        super(dexFile, opcode, instructionStart);
     }
 
     @Override
     public int getRegisterA() {
-        return NibbleUtils.extractLowUnsignedNibble(dexBuf.readByte(instructionStart + 1));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.readByte(instructionStart + 1));
     }
 
     @Override
     public int getRegisterB() {
-        return NibbleUtils.extractHighUnsignedNibble(dexBuf.readByte(instructionStart + 1));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.readByte(instructionStart + 1));
     }
 }

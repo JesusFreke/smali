@@ -34,7 +34,6 @@ package org.jf.dexlib2;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ExceptionWithContext;
 
@@ -94,8 +93,7 @@ public final class DexFileFactory {
             dexBytes = Files.toByteArray(dexFile);
         }
 
-        DexBuffer dexBuf = new DexBuffer(dexBytes);
-        return new DexBackedDexFile(dexBuf);
+        return new DexBackedDexFile.Impl(dexBytes);
     }
 
     public static void writeDexFile(String path, DexFile dexFile) throws IOException {

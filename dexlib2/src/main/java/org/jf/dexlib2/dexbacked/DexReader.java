@@ -33,8 +33,8 @@ package org.jf.dexlib2.dexbacked;
 
 import javax.annotation.Nonnull;
 
-public class DexReader extends BaseDexReader<DexBuffer> {
-    public DexReader(@Nonnull DexBuffer dexBuf, int offset) {
-        super(dexBuf, offset);
+public class DexReader extends BaseDexReader<DexBackedDexFile> {
+    public DexReader(@Nonnull DexBackedDexFile dexFile, int offset) {
+        super(dexFile, offset);
     }
 }

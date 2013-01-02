@@ -32,19 +32,19 @@
 package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.instruction.formats.Instruction31i;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedInstruction31i extends DexBackedInstruction implements Instruction31i {
-    public DexBackedInstruction31i(@Nonnull DexBuffer dexBuf,
+    public DexBackedInstruction31i(@Nonnull DexBackedDexFile dexFile,
                                    @Nonnull Opcode opcode,
                                    int instructionStart) {
-        super(dexBuf, opcode, instructionStart);
+        super(dexFile, opcode, instructionStart);
     }
 
-    @Override public int getRegisterA() { return dexBuf.readUbyte(instructionStart + 1); }
-    @Override public int getNarrowLiteral() { return dexBuf.readInt(instructionStart + 2); }
+    @Override public int getRegisterA() { return dexFile.readUbyte(instructionStart + 1); }
+    @Override public int getNarrowLiteral() { return dexFile.readInt(instructionStart + 2); }
     @Override public long getWideLiteral() { return getNarrowLiteral(); }
 }

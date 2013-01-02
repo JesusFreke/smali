@@ -32,22 +32,22 @@
 package org.jf.dexlib2.dexbacked.reference;
 
 import org.jf.dexlib2.base.reference.BaseStringReference;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedStringReference extends BaseStringReference {
-    @Nonnull public final DexBuffer dexBuf;
+    @Nonnull public final DexBackedDexFile dexFile;
     public final int stringIndex;
 
-    public DexBackedStringReference(@Nonnull DexBuffer dexBuf,
+    public DexBackedStringReference(@Nonnull DexBackedDexFile dexBuf,
                                     int stringIndex) {
-        this.dexBuf = dexBuf;
+        this.dexFile = dexBuf;
         this.stringIndex = stringIndex;
     }
 
     @Nonnull
     public String getString() {
-        return dexBuf.getString(stringIndex);
+        return dexFile.getString(stringIndex);
     }
 }

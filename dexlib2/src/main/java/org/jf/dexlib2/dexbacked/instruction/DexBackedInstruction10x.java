@@ -32,15 +32,15 @@
 package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.instruction.formats.Instruction10x;
 
 import javax.annotation.Nonnull;
 
 public class DexBackedInstruction10x extends DexBackedInstruction implements Instruction10x {
-    public DexBackedInstruction10x(@Nonnull DexBuffer dexBuf,
+    public DexBackedInstruction10x(@Nonnull DexBackedDexFile dexFile,
                                    @Nonnull Opcode opcode,
                                    int instructionStart) {
-        super(dexBuf, opcode, instructionStart);
+        super(dexFile, opcode, instructionStart);
     }
 }
