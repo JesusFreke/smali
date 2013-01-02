@@ -85,10 +85,16 @@ public class StringPool {
     }
 
     public int getIndexSectionOffset() {
+        if (indexSectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
         return indexSectionOffset;
     }
 
     public int getDataSectionOffset() {
+        if (dataSectionOffset < 0) {
+            throw new ExceptionWithContext("Section offset has not been set yet!");
+        }
         return dataSectionOffset;
     }
 
