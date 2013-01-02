@@ -47,7 +47,7 @@ import java.util.*;
 public class AnnotationSetPool {
     @Nonnull private final Map<Set<? extends Annotation>, Integer> internedAnnotationSetItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public AnnotationSetPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

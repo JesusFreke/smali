@@ -48,7 +48,7 @@ public class MethodPool {
 
     @Nonnull private final Map<MethodReference, Integer> internedMethodIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public MethodPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

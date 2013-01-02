@@ -51,7 +51,7 @@ public class ProtoPool {
 
     @Nonnull private final Map<Key, Integer> internedProtoIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public ProtoPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

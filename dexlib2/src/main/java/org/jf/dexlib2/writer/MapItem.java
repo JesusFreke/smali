@@ -38,7 +38,7 @@ import java.io.IOException;
 
 public class MapItem {
     DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public MapItem(DexFile dexFile) {
         this.dexFile = dexFile;

@@ -48,7 +48,7 @@ public class FieldPool {
 
     @Nonnull private final Map<FieldReference, Integer> internedFieldIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public FieldPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

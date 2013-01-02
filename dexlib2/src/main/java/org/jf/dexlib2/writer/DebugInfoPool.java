@@ -49,7 +49,7 @@ import java.util.Map;
 public class DebugInfoPool {
     @Nonnull private final Map<Method, Integer> debugInfoOffsetMap = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public DebugInfoPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;

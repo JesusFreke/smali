@@ -47,7 +47,7 @@ public class TypePool {
 
     @Nonnull private final Map<String, Integer> internedTypeIdItems = Maps.newHashMap();
     @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+    private int sectionOffset = DexFile.NO_OFFSET;
 
     public TypePool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
