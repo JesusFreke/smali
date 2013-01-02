@@ -58,20 +58,41 @@ public class ImmutableArrayPayload extends ImmutableInstruction implements Array
     public ImmutableArrayPayload(int elementWidth,
                                  @Nullable ImmutableList<Number> arrayElements) {
         super(OPCODE);
-        if (!(elementWidth == 0x0001 || elementWidth == 0x0010 || elementWidth == 0x0100 || elementWidth == 0x1000)) {
+        if (!(elementWidth == 1 || elementWidth == 2 || elementWidth == 4 || elementWidth == 8)) {
             throw new ExceptionWithContext("Invalid element width: " + elementWidth);
         }
 
         this.elementWidth = elementWidth;
-        int maxValue = 2^elementWidth-1;
+        long maxValue = getMaxVal();
+        long minValue = getMinVal();
         for (Number element: arrayElements) {
-            if (element.intValue() > maxValue) {
+            if (element.longValue() > maxValue || element.longValue() < minValue) {
                 throw new ExceptionWithContext("Array element does not fit withing the width!"
                             + "Width: " + elementWidth + ", value: " + element.intValue());
             }
         }
 
         this.arrayElements = ImmutableUtils.nullToEmptyList(arrayElements);
+    }
+
+    private long getMaxVal() {
+        switch (elementWidth) {
+            case 1: return 0xFF;
+            case 2: return 0xFFFF;
+            case 4: return 0xFFFFFFFF;
+            case 8: return Long.MAX_VALUE;
+        }
+        return 0;
+    }
+
+    private long getMinVal() {
+        switch (elementWidth) {
+            case 1: return Byte.MIN_VALUE;
+            case 2: return Short.MIN_VALUE;
+            case 4: return Integer.MIN_VALUE;
+            case 8: return Long.MIN_VALUE;
+        }
+        return 0;
     }
 
     @Nonnull
