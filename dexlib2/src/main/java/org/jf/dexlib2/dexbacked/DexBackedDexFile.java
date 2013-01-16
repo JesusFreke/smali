@@ -91,4 +91,84 @@ public class DexBackedDexFile implements DexFile {
             }
         };
     }
+
+    public Set<String> getStrings() {
+        final int stringCount = dexBuf.getStringCount();
+
+        return new FixedSizeSet<String>() {
+            @Override
+            public String readItem(int index) {
+                return dexBuf.getString(index);
+            }
+
+            @Override
+            public int size() {
+                return stringCount;
+            }
+        };
+    }
+
+    public Set<String> getTypes() {
+        final int typeCount = dexBuf.getTypeCount();
+
+        return new FixedSizeSet<String>() {
+            @Override
+            public String readItem(int index) {
+                return dexBuf.getType(index);
+            }
+
+            @Override
+            public int size() {
+                return typeCount;
+            }
+        };
+    }
+
+    public Set<String> getProtos() {
+        final int protoCount = dexBuf.getProtoCount();
+
+        return new FixedSizeSet<String>() {
+            @Override
+            public String readItem(int index) {
+                return dexBuf.getProto(index);
+            }
+
+            @Override
+            public int size() {
+                return protoCount;
+            }
+        };
+    }
+
+    public Set<String> getFields() {
+        final int fieldCount = dexBuf.getFieldCount();
+
+        return new FixedSizeSet<String>() {
+            @Override
+            public String readItem(int index) {
+                return dexBuf.getField(index);
+            }
+
+            @Override
+            public int size() {
+                return fieldCount;
+            }
+        };
+    }
+
+    public Set<String> getMethods() {
+        final int methodCount = dexBuf.getMethodCount();
+
+        return new FixedSizeSet<String>() {
+            @Override
+            public String readItem(int index) {
+                return dexBuf.getMethod(index);
+            }
+
+            @Override
+            public int size() {
+                return methodCount;
+            }
+        };
+    }
 }
