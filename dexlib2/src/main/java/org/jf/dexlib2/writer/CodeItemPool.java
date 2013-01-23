@@ -33,6 +33,7 @@ package org.jf.dexlib2.writer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.Method;
@@ -170,7 +171,7 @@ public class CodeItemPool {
                 writer.writeInt(dexFile.debugInfoPool.getOffset(method));
                 writer.writeInt(codeUnitCount);
 
-                // TODO: need to fix up instructions. Add alignment nops, convert to const-string/jumbos, etc.
+                // TODO: need to fix up instructions. Add alignment nops, etc.
 
                 for (Instruction instruction: methodImpl.getInstructions()) {
                     switch (instruction.getOpcode().format) {
@@ -193,7 +194,14 @@ public class CodeItemPool {
                             writeFormat20t(writer, (Instruction20t)instruction);
                             break;
                         case Format21c:
-                            writeFormat21c(writer, (Instruction21c)instruction);
+                            Instruction21c instruction21c = (Instruction21c)instruction;
+                            int referenceIndex = getReferenceIndex(instruction21c);
+                            if (referenceIndex > 0xFFFF && instruction.getOpcode().equals(Opcode.CONST_STRING)) {
+                                // convert to jumbo instruction
+                                writeFormat21cAs31c(writer, instruction21c);
+                            } else {
+                                writeFormat21c(writer, instruction21c);
+                            }
                             break;
                         case Format21ih:
                             writeFormat21ih(writer, (Instruction21ih)instruction);
@@ -380,6 +388,12 @@ public class CodeItemPool {
         writer.write(instruction.getOpcode().value);
         writer.write(instruction.getRegisterA());
         writer.writeUshort(getReferenceIndex(instruction));
+    }
+
+    public void writeFormat21cAs31c(@Nonnull DexWriter writer, @Nonnull Instruction21c instruction) throws IOException {
+        writer.write(instruction.getOpcode().getJumboOpcode().value);
+        writer.write(instruction.getRegisterA());
+        writer.writeInt(getReferenceIndex(instruction));
     }
 
     public void writeFormat21ih(@Nonnull DexWriter writer, @Nonnull Instruction21ih instruction) throws IOException {
