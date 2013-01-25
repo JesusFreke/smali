@@ -33,6 +33,7 @@ package org.jf.dexlib2.writer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.ExceptionHandler;
@@ -40,6 +41,7 @@ import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.OffsetInstruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.*;
@@ -52,6 +54,7 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -166,6 +169,11 @@ public class CodeItemPool {
                 }
                 writer.writeUshort(maxOutParamCount);
 
+                ArrayList<Integer> codeOffsetShifts = findCodeOffsetShifts(methodImpl);
+                if (codeOffsetShifts != null) {
+                    codeUnitCount += codeOffsetShifts.size();
+                }
+
                 List<? extends TryBlock> tryBlocks = methodImpl.getTryBlocks();
                 writer.writeUshort(tryBlocks.size());
                 writer.writeInt(dexFile.debugInfoPool.getOffset(method));
@@ -176,7 +184,8 @@ public class CodeItemPool {
                 for (Instruction instruction: methodImpl.getInstructions()) {
                     switch (instruction.getOpcode().format) {
                         case Format10t:
-                            writeFormat10t(writer, (Instruction10t)instruction);
+                            int codeOffsetDelta = codeOffsetShift(codeOffsetShifts, ((OffsetInstruction) instruction).getCodeOffset());
+                            writeFormat10t(writer, ((Instruction10t)instruction), codeOffsetDelta);
                             break;
                         case Format10x:
                             writeFormat10x(writer, (Instruction10x)instruction);
@@ -191,17 +200,11 @@ public class CodeItemPool {
                             writeFormat12x(writer, (Instruction12x)instruction);
                             break;
                         case Format20t:
-                            writeFormat20t(writer, (Instruction20t)instruction);
+                            codeOffsetDelta = codeOffsetShift(codeOffsetShifts, ((OffsetInstruction) instruction).getCodeOffset());
+                            writeFormat20t(writer, (Instruction20t)instruction, codeOffsetDelta);
                             break;
                         case Format21c:
-                            Instruction21c instruction21c = (Instruction21c)instruction;
-                            int referenceIndex = getReferenceIndex(instruction21c);
-                            if (referenceIndex > 0xFFFF && instruction.getOpcode().equals(Opcode.CONST_STRING)) {
-                                // convert to jumbo instruction
-                                writeFormat21cAs31c(writer, instruction21c);
-                            } else {
-                                writeFormat21c(writer, instruction21c);
-                            }
+                            writeFormat21c(writer, (Instruction21c)instruction);
                             break;
                         case Format21ih:
                             writeFormat21ih(writer, (Instruction21ih)instruction);
@@ -213,7 +216,8 @@ public class CodeItemPool {
                             writeFormat21s(writer, (Instruction21s)instruction);
                             break;
                         case Format21t:
-                            writeFormat21t(writer, (Instruction21t)instruction);
+                            codeOffsetDelta = codeOffsetShift(codeOffsetShifts, ((OffsetInstruction) instruction).getCodeOffset());
+                            writeFormat21t(writer, (Instruction21t)instruction, codeOffsetDelta);
                             break;
                         case Format22b:
                             writeFormat22b(writer, (Instruction22b)instruction);
@@ -225,7 +229,8 @@ public class CodeItemPool {
                             writeFormat22s(writer, (Instruction22s)instruction);
                             break;
                         case Format22t:
-                            writeFormat22t(writer, (Instruction22t)instruction);
+                            codeOffsetDelta = codeOffsetShift(codeOffsetShifts, ((OffsetInstruction) instruction).getCodeOffset());
+                            writeFormat22t(writer, (Instruction22t)instruction, codeOffsetDelta);
                             break;
                         case Format22x:
                             writeFormat22x(writer, (Instruction22x)instruction);
@@ -234,7 +239,8 @@ public class CodeItemPool {
                             writeFormat23x(writer, (Instruction23x)instruction);
                             break;
                         case Format30t:
-                            writeFormat30t(writer, (Instruction30t)instruction);
+                            codeOffsetDelta = codeOffsetShift(codeOffsetShifts, ((OffsetInstruction) instruction).getCodeOffset());
+                            writeFormat30t(writer, (Instruction30t)instruction, codeOffsetDelta);
                             break;
                         case Format31c:
                             writeFormat31c(writer, (Instruction31c)instruction);
@@ -243,7 +249,8 @@ public class CodeItemPool {
                             writeFormat31i(writer, (Instruction31i)instruction);
                             break;
                         case Format31t:
-                            writeFormat31t(writer, (Instruction31t)instruction);
+                            codeOffsetDelta = codeOffsetShift(codeOffsetShifts, ((OffsetInstruction) instruction).getCodeOffset());
+                            writeFormat31t(writer, (Instruction31t)instruction, codeOffsetDelta);
                             break;
                         case Format32x:
                             writeFormat32x(writer, (Instruction32x)instruction);
@@ -282,8 +289,15 @@ public class CodeItemPool {
                     DexWriter.writeUleb128(ehBuf, exceptionHandlerOffsetMap.size());
 
                     for (TryBlock tryBlock: tryBlocks) {
-                        writer.writeInt(tryBlock.getStartCodeAddress());
-                        writer.writeUshort(tryBlock.getCodeUnitCount());
+                        int startAddress = tryBlock.getStartCodeAddress();
+                        int endAddress = startAddress + tryBlock.getCodeUnitCount();
+
+                        startAddress += codeOffsetShift(codeOffsetShifts, startAddress);
+                        endAddress += codeOffsetShift(codeOffsetShifts, endAddress);
+                        int tbCodeUnitCount = endAddress - startAddress;
+
+                        writer.writeInt(startAddress);
+                        writer.writeUshort(tbCodeUnitCount);
 
                         if (tryBlock.getExceptionHandlers().size() == 0) {
                             throw new ExceptionWithContext("No exception handlers for the try block!");
@@ -311,6 +325,7 @@ public class CodeItemPool {
                             for (ExceptionHandler eh : tryBlock.getExceptionHandlers()) {
                                 String exceptionType = eh.getExceptionType();
                                 int codeAddress = eh.getHandlerCodeAddress();
+                                codeAddress += codeOffsetShift(codeOffsetShifts, codeAddress);
 
                                 if (exceptionType != null) {
                                     //regular exception handling
@@ -333,6 +348,82 @@ public class CodeItemPool {
         }
     }
 
+    private int codeOffsetShift(ArrayList<Integer> codeOffsetShifts, int offset) {
+        int shift = 0;
+        if (codeOffsetShifts != null) {
+            int numCodeOffsetShifts = codeOffsetShifts.size();
+            if (numCodeOffsetShifts > 0) {
+                if (offset > codeOffsetShifts.get(numCodeOffsetShifts-1)) {
+                    shift = numCodeOffsetShifts;
+                } else if (numCodeOffsetShifts>1) {
+                    for (int i=1;i<numCodeOffsetShifts;i++) {
+                        if (offset > codeOffsetShifts.get(i-1) && offset <= codeOffsetShifts.get(i)) {
+                            shift = i;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return shift;
+    }
+
+    /*
+    * This method returns a list of code offsets of instructions that will create a code offset shift.
+    * This happens when the instruction has to be changed to a larger sized one to fit new value.
+     */
+    private ArrayList<Integer> findCodeOffsetShifts(MethodImplementation methodImpl) {
+        ArrayList<Integer> codeOffsetShifts = null;
+
+        // first, process const-string to const-string/jumbo conversions
+        int currentCodeOffset = 0;
+        for (Instruction instruction: methodImpl.getInstructions()) {
+            if (instruction.getOpcode().equals(Opcode.CONST_STRING)) {
+                int referenceIndex = getReferenceIndex((Instruction21c)instruction);
+                if (referenceIndex > 0xFFFF) {
+                    if (codeOffsetShifts == null) {
+                        codeOffsetShifts = new ArrayList<Integer>();
+                    }
+                    codeOffsetShifts.add(currentCodeOffset);
+                }
+            }
+            currentCodeOffset += instruction.getCodeUnits();
+        }
+
+        if (codeOffsetShifts == null) {
+            return null;
+        }
+
+        // now, let's check if this caused any conversions in goto instructions due to changes in offset values
+        // since code offset delta is equivalent to the position of instruction's code offset in the shift list,
+        // we use it as a position here
+        currentCodeOffset = 0;
+        for (Instruction instruction: methodImpl.getInstructions()) {
+            if (instruction.getOpcode().format.equals(Format.Format10t)) {
+                int codeOffset = ((Instruction10t)instruction).getCodeOffset();
+                int codeOffsetDelta = codeOffsetShift(codeOffsetShifts, codeOffset);
+                if (codeOffset+codeOffsetDelta > 0xFFFF) {
+                    // handling very small (negligible) possiblity of goto becoming goto/32
+                    // we insert extra 1 code unit shift referring to the same position
+                    // this will cause subsequent code offsets to be shifted by 2 code units
+                    codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset);
+                }
+                if (codeOffset+codeOffsetDelta > 0xFF) {
+                    codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset);
+                }
+            } else if (instruction.getOpcode().format.equals(Format.Format20t)) {
+                int codeOffset = ((Instruction20t)instruction).getCodeOffset();
+                int codeOffsetDelta = codeOffsetShift(codeOffsetShifts, codeOffset);
+                if (codeOffset+codeOffsetDelta > 0xFFFF) {
+                    codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset);
+                }
+            }
+            currentCodeOffset += instruction.getCodeUnits();
+        }
+
+        return codeOffsetShifts;
+    }
+
     private static int packNibbles(int a, int b) {
         return (b << 4) | a;
     }
@@ -353,9 +444,18 @@ public class CodeItemPool {
         }
     }
 
-    public void writeFormat10t(@Nonnull DexWriter writer, @Nonnull Instruction10t instruction) throws IOException {
-        writer.write(instruction.getOpcode().value);
-        writer.write(instruction.getCodeOffset());
+    public void writeFormat10t(@Nonnull DexWriter writer, @Nonnull Instruction10t instruction, int codeOffsetDelta) throws IOException {
+        int codeOffset = instruction.getCodeOffset() + codeOffsetDelta;
+        if (codeOffset > 0xFFFF) {
+            writer.write(Opcode.GOTO_32.value);
+            writer.writeInt(codeOffset);
+        } else if (codeOffset > 0xFF) {
+            writer.write(Opcode.GOTO_16.value);
+            writer.writeUshort(codeOffset);
+        } else {
+            writer.write(instruction.getOpcode().value);
+            writer.write(codeOffset);
+        }
     }
 
     public void writeFormat10x(@Nonnull DexWriter writer, @Nonnull Instruction10x instruction) throws IOException {
@@ -378,22 +478,31 @@ public class CodeItemPool {
         writer.write(packNibbles(instruction.getRegisterA(), instruction.getRegisterB()));
     }
 
-    public void writeFormat20t(@Nonnull DexWriter writer, @Nonnull Instruction20t instruction) throws IOException {
-        writer.write(instruction.getOpcode().value);
-        writer.write(0);
-        writer.writeShort(instruction.getCodeOffset());
+    public void writeFormat20t(@Nonnull DexWriter writer, @Nonnull Instruction20t instruction, int codeOffsetDelta) throws IOException {
+        int codeOffset = instruction.getCodeOffset() + codeOffsetDelta;
+        if (codeOffset > 0xFFFF) {
+            writer.write(Opcode.GOTO_32.value);
+            writer.write(0);
+            writer.writeInt(codeOffset);
+        } else {
+            writer.write(instruction.getOpcode().value);
+            writer.write(0);
+            writer.writeShort(codeOffset);
+        }
     }
 
     public void writeFormat21c(@Nonnull DexWriter writer, @Nonnull Instruction21c instruction) throws IOException {
-        writer.write(instruction.getOpcode().value);
-        writer.write(instruction.getRegisterA());
-        writer.writeUshort(getReferenceIndex(instruction));
-    }
-
-    public void writeFormat21cAs31c(@Nonnull DexWriter writer, @Nonnull Instruction21c instruction) throws IOException {
-        writer.write(instruction.getOpcode().getJumboOpcode().value);
-        writer.write(instruction.getRegisterA());
-        writer.writeInt(getReferenceIndex(instruction));
+        int referenceIndex = getReferenceIndex(instruction);
+        if (referenceIndex > 0xFFFF && instruction.getOpcode().hasJumboOpcode()) {
+            // convert to jumbo instruction
+            writer.write(instruction.getOpcode().getJumboOpcode().value);
+            writer.write(instruction.getRegisterA());
+            writer.writeInt(referenceIndex);
+        } else {
+            writer.write(instruction.getOpcode().value);
+            writer.write(instruction.getRegisterA());
+            writer.writeUshort(referenceIndex);
+        }
     }
 
     public void writeFormat21ih(@Nonnull DexWriter writer, @Nonnull Instruction21ih instruction) throws IOException {
@@ -414,10 +523,10 @@ public class CodeItemPool {
         writer.writeShort(instruction.getNarrowLiteral());
     }
 
-    public void writeFormat21t(@Nonnull DexWriter writer, @Nonnull Instruction21t instruction) throws IOException {
+    public void writeFormat21t(@Nonnull DexWriter writer, @Nonnull Instruction21t instruction, int codeOffsetDelta) throws IOException {
         writer.write(instruction.getOpcode().value);
         writer.write(instruction.getRegisterA());
-        writer.writeShort(instruction.getCodeOffset());
+        writer.writeShort(instruction.getCodeOffset() + codeOffsetDelta);
     }
 
     public void writeFormat22b(@Nonnull DexWriter writer, @Nonnull Instruction22b instruction) throws IOException {
@@ -439,10 +548,10 @@ public class CodeItemPool {
         writer.writeShort(instruction.getNarrowLiteral());
     }
 
-    public void writeFormat22t(@Nonnull DexWriter writer, @Nonnull Instruction22t instruction) throws IOException {
+    public void writeFormat22t(@Nonnull DexWriter writer, @Nonnull Instruction22t instruction, int codeOffsetDelta) throws IOException {
         writer.write(instruction.getOpcode().value);
         writer.write(packNibbles(instruction.getRegisterA(), instruction.getRegisterB()));
-        writer.writeShort(instruction.getCodeOffset());
+        writer.writeShort(instruction.getCodeOffset() + codeOffsetDelta);
     }
 
     public void writeFormat22x(@Nonnull DexWriter writer, @Nonnull Instruction22x instruction) throws IOException {
@@ -458,10 +567,10 @@ public class CodeItemPool {
         writer.write(instruction.getRegisterC());
     }
 
-    public void writeFormat30t(@Nonnull DexWriter writer, @Nonnull Instruction30t instruction) throws IOException {
+    public void writeFormat30t(@Nonnull DexWriter writer, @Nonnull Instruction30t instruction, int codeOffsetDelta) throws IOException {
         writer.write(instruction.getOpcode().value);
         writer.write(0);
-        writer.writeInt(instruction.getCodeOffset());
+        writer.writeInt(instruction.getCodeOffset() + codeOffsetDelta);
     }
 
     public void writeFormat31c(@Nonnull DexWriter writer, @Nonnull Instruction31c instruction) throws IOException {
@@ -476,10 +585,10 @@ public class CodeItemPool {
         writer.writeInt(instruction.getNarrowLiteral());
     }
 
-    public void writeFormat31t(@Nonnull DexWriter writer, @Nonnull Instruction31t instruction) throws IOException {
+    public void writeFormat31t(@Nonnull DexWriter writer, @Nonnull Instruction31t instruction, int codeOffsetDelta) throws IOException {
         writer.write(instruction.getOpcode().value);
         writer.write(instruction.getRegisterA());
-        writer.writeInt(instruction.getCodeOffset());
+        writer.writeInt(instruction.getCodeOffset() + codeOffsetDelta);
     }
 
     public void writeFormat32x(@Nonnull DexWriter writer, @Nonnull Instruction32x instruction) throws IOException {
