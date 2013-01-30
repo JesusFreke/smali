@@ -1,6 +1,7 @@
 package org.jf.dexlib2.writer.util;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
@@ -8,14 +9,17 @@ import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
+import org.jf.dexlib2.iface.instruction.SwitchPayload;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.writer.StringPool;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class InstructionWriteUtil {
@@ -256,60 +260,69 @@ public class InstructionWriteUtil {
                     break;
                 }
                 case SparseSwitchPayload: {
-                        SparseSwitchPayload instr = (SparseSwitchPayload)instruction;
-                        boolean targetOffsetChanged = false;
-                        for (SwitchElement switchElement: instr.getSwitchElements()) {
-                            if (targetOffsetShift(currentCodeOffset, switchElement.getOffset()) != 0) {
-                                targetOffsetChanged = true;
-                                break;
-                            }
-                        }
-                        if (targetOffsetChanged) {
-                            ArrayList<SwitchElement> switchElements = Lists.newArrayList();
-                            for (SwitchElement switchElement: instr.getSwitchElements()) {
-                                int targetOffset = switchElement.getOffset();
-                                int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
-                                if (newTargetOffset != targetOffset) {
-                                    ImmutableSwitchElement immuSwitchElement = new ImmutableSwitchElement(switchElement.getKey(), newTargetOffset);
-                                    switchElements.add(immuSwitchElement);
-                                } else {
-                                    switchElements.add(switchElement);
-                                }
-                            }
-                            ImmutableSparseSwitchPayload immuInstr = new ImmutableSparseSwitchPayload(instr.getSwitchElements());
-                            instructions.set(instructions.size()-1, immuInstr);
-                        }
+                    int switchInstructionOffset = findSwitchInstructionOffset(currentCodeOffset);
+                    SwitchPayload payload = (SwitchPayload)instruction;
+                    if (isSwitchTargetOffsetChanged(payload, switchInstructionOffset)) {
+                        List<SwitchElement> newSwitchElements = modifySwitchElements(payload, switchInstructionOffset);
+                        ImmutableSparseSwitchPayload immuInstr = new ImmutableSparseSwitchPayload(newSwitchElements);
+                        instructions.set(instructions.size()-1, immuInstr);
                     }
                     break;
+                }
                 case PackedSwitchPayload: {
-                        PackedSwitchPayload instr = (PackedSwitchPayload)instruction;
-                        boolean targetOffsetChanged = false;
-                        for (SwitchElement switchElement: instr.getSwitchElements()) {
-                            if (targetOffsetShift(currentCodeOffset, switchElement.getOffset()) != 0) {
-                                targetOffsetChanged = true;
-                                break;
-                            }
-                        }
-                        if (targetOffsetChanged) {
-                            ArrayList<SwitchElement> switchElements = Lists.newArrayList();
-                            for (SwitchElement switchElement: instr.getSwitchElements()) {
-                                int targetOffset = switchElement.getOffset();
-                                int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
-                                if (newTargetOffset != targetOffset) {
-                                    ImmutableSwitchElement immuSwitchElement = new ImmutableSwitchElement(switchElement.getKey(), newTargetOffset);
-                                    switchElements.add(immuSwitchElement);
-                                } else {
-                                    switchElements.add(switchElement);
-                                }
-                            }
-                            ImmutablePackedSwitchPayload immuInstr = new ImmutablePackedSwitchPayload(instr.getSwitchElements());
-                            instructions.set(instructions.size()-1, immuInstr);
-                        }
+                    int switchInstructionOffset = findSwitchInstructionOffset(currentCodeOffset);
+                    SwitchPayload payload = (SwitchPayload)instruction;
+                    if (isSwitchTargetOffsetChanged(payload, switchInstructionOffset)) {
+                        List<SwitchElement> newSwitchElements = modifySwitchElements(payload, switchInstructionOffset);
+                        ImmutablePackedSwitchPayload immuInstr = new ImmutablePackedSwitchPayload(newSwitchElements);
+                        instructions.set(instructions.size()-1, immuInstr);
                     }
                     break;
+                }
             }
             currentCodeOffset += instruction.getCodeUnits();
         }
+    }
+
+    private int findSwitchInstructionOffset(int payloadOffset) {
+        int currentCodeOffset = 0;
+        for (Instruction instruction: methodImplementation.getInstructions()) {
+            if (instruction.getOpcode().equals(Opcode.PACKED_SWITCH)
+                    || instruction.getOpcode().equals(Opcode.SPARSE_SWITCH)) {
+                int targetOffset = currentCodeOffset + ((Instruction31t)instruction).getCodeOffset();
+                if (targetOffset == payloadOffset) {
+                    return currentCodeOffset;
+                }
+            }
+            currentCodeOffset += instruction.getCodeUnits();
+        }
+
+        // we should never get here
+        throw new ExceptionWithContext("Switch payload with no corresponding switch statement. Mailformed method implementation?");
+    }
+
+    private boolean isSwitchTargetOffsetChanged(SwitchPayload payload, int switchInstructionOffset) {
+        for (SwitchElement switchElement: payload.getSwitchElements()) {
+            if (targetOffsetShift(switchInstructionOffset, switchElement.getOffset()) != 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private ArrayList<SwitchElement> modifySwitchElements(SwitchPayload payload, int switchInstructionOffset) {
+        ArrayList<SwitchElement> switchElements = Lists.newArrayList();
+        for (SwitchElement switchElement: payload.getSwitchElements()) {
+            int targetOffset = switchElement.getOffset();
+            int newTargetOffset = targetOffset + targetOffsetShift(switchInstructionOffset, targetOffset);
+            if (newTargetOffset != targetOffset) {
+                ImmutableSwitchElement immuSwitchElement = new ImmutableSwitchElement(switchElement.getKey(), newTargetOffset);
+                switchElements.add(immuSwitchElement);
+            } else {
+                switchElements.add(switchElement);
+            }
+        }
+        return switchElements;
     }
 }
 
