@@ -7,6 +7,7 @@ import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
+import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.immutable.instruction.*;
@@ -254,11 +255,57 @@ public class InstructionWriteUtil {
                     }
                     break;
                 }
-                case SparseSwitchPayload:
-                    // TODO implement
+                case SparseSwitchPayload: {
+                        SparseSwitchPayload instr = (SparseSwitchPayload)instruction;
+                        boolean targetOffsetChanged = false;
+                        for (SwitchElement switchElement: instr.getSwitchElements()) {
+                            if (targetOffsetShift(currentCodeOffset, switchElement.getOffset()) != 0) {
+                                targetOffsetChanged = true;
+                                break;
+                            }
+                        }
+                        if (targetOffsetChanged) {
+                            ArrayList<SwitchElement> switchElements = Lists.newArrayList();
+                            for (SwitchElement switchElement: instr.getSwitchElements()) {
+                                int targetOffset = switchElement.getOffset();
+                                int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
+                                if (newTargetOffset != targetOffset) {
+                                    ImmutableSwitchElement immuSwitchElement = new ImmutableSwitchElement(switchElement.getKey(), newTargetOffset);
+                                    switchElements.add(immuSwitchElement);
+                                } else {
+                                    switchElements.add(switchElement);
+                                }
+                            }
+                            ImmutableSparseSwitchPayload immuInstr = new ImmutableSparseSwitchPayload(instr.getSwitchElements());
+                            instructions.set(instructions.size()-1, immuInstr);
+                        }
+                    }
                     break;
-                case PackedSwitchPayload:
-                    // TODO implement
+                case PackedSwitchPayload: {
+                        PackedSwitchPayload instr = (PackedSwitchPayload)instruction;
+                        boolean targetOffsetChanged = false;
+                        for (SwitchElement switchElement: instr.getSwitchElements()) {
+                            if (targetOffsetShift(currentCodeOffset, switchElement.getOffset()) != 0) {
+                                targetOffsetChanged = true;
+                                break;
+                            }
+                        }
+                        if (targetOffsetChanged) {
+                            ArrayList<SwitchElement> switchElements = Lists.newArrayList();
+                            for (SwitchElement switchElement: instr.getSwitchElements()) {
+                                int targetOffset = switchElement.getOffset();
+                                int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
+                                if (newTargetOffset != targetOffset) {
+                                    ImmutableSwitchElement immuSwitchElement = new ImmutableSwitchElement(switchElement.getKey(), newTargetOffset);
+                                    switchElements.add(immuSwitchElement);
+                                } else {
+                                    switchElements.add(switchElement);
+                                }
+                            }
+                            ImmutablePackedSwitchPayload immuInstr = new ImmutablePackedSwitchPayload(instr.getSwitchElements());
+                            instructions.set(instructions.size()-1, immuInstr);
+                        }
+                    }
                     break;
             }
             currentCodeOffset += instruction.getCodeUnits();
