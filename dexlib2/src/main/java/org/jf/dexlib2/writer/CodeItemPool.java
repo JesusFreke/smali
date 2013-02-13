@@ -155,8 +155,6 @@ public class CodeItemPool {
                 writer.writeInt(dexFile.debugInfoPool.getOffset(method));
                 writer.writeInt(instrWriteUtil.getCodeUnitCount());
 
-                // TODO: need to fix up instructions. Add alignment nops, etc.
-
                 for (Instruction instruction: instrWriteUtil.getInstructions()) {
                     switch (instruction.getOpcode().format) {
                         case Format10t:

@@ -131,6 +131,8 @@ public class InstructionWriteUtil {
         // now, let's check if this caused any conversions in goto instructions due to changes in offset values
         // since code offset delta is equivalent to the position of instruction's code offset in the shift list,
         // we use it as a position here
+        // we also check if we will have to insert no-ops to ensure 4-byte alignment for
+        // switch statements and packed arrays
         currentCodeOffset = 0;
         for (Instruction instruction: methodImplementation.getInstructions()) {
             if (instruction.getOpcode().format.equals(Format.Format10t)) {
@@ -153,7 +155,14 @@ public class InstructionWriteUtil {
                 if ((short)newTargetOffset != newTargetOffset) {
                     codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset);
                 }
-            }
+            } else if (instruction.getOpcode().format.equals(Format.ArrayPayload)
+            		|| instruction.getOpcode().format.equals(Format.SparseSwitchPayload)
+            		|| instruction.getOpcode().format.equals(Format.PackedSwitchPayload)) {
+                int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
+                if ((currentCodeOffset+codeOffsetDelta)%2 != 0) {
+                    codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset);
+                }
+            } 
             currentCodeOffset += instruction.getCodeUnits();
         }
 
@@ -260,6 +269,10 @@ public class InstructionWriteUtil {
                     break;
                 }
                 case SparseSwitchPayload: {
+                	int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
+                    if ((currentCodeOffset+codeOffsetDelta)%2 != 0) {
+                		instructions.add(instructions.size()-1, new ImmutableInstruction10x(Opcode.NOP));
+                	}
                     int switchInstructionOffset = findSwitchInstructionOffset(currentCodeOffset);
                     SwitchPayload payload = (SwitchPayload)instruction;
                     if (isSwitchTargetOffsetChanged(payload, switchInstructionOffset)) {
@@ -270,6 +283,10 @@ public class InstructionWriteUtil {
                     break;
                 }
                 case PackedSwitchPayload: {
+                	int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
+                    if ((currentCodeOffset+codeOffsetDelta)%2 != 0) {
+                		instructions.add(instructions.size()-1, new ImmutableInstruction10x(Opcode.NOP));
+                	}
                     int switchInstructionOffset = findSwitchInstructionOffset(currentCodeOffset);
                     SwitchPayload payload = (SwitchPayload)instruction;
                     if (isSwitchTargetOffsetChanged(payload, switchInstructionOffset)) {
@@ -278,6 +295,12 @@ public class InstructionWriteUtil {
                         instructions.set(instructions.size()-1, immuInstr);
                     }
                     break;
+                }
+                case ArrayPayload: {
+                	int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
+                    if ((currentCodeOffset+codeOffsetDelta)%2 != 0) {
+                		instructions.add(instructions.size()-1, new ImmutableInstruction10x(Opcode.NOP));
+                	}
                 }
             }
             currentCodeOffset += instruction.getCodeUnits();
