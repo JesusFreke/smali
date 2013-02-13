@@ -245,6 +245,10 @@ public class DexBuffer {
         return ret;
     }
 
+    public int getStringCount() {
+        return stringCount;
+    }
+
     @Nullable
     public String getOptionalType(int typeIndex) {
         if (typeIndex == -1) {
@@ -268,6 +272,21 @@ public class DexBuffer {
         return getString(stringIndex);
     }
 
+    public int getTypeCount() {
+        return typeCount;
+    }
+
+    @Nonnull
+    public String getProto(int typeIndex) {
+        int protoOffset = getProtoIdItemOffset(typeIndex);
+        int stringIndex = readSmallUint(protoOffset);
+        return getString(stringIndex);
+    }
+
+    public int getProtoCount() {
+        return protoCount;
+    }
+
     @Nonnull
     public String getField(int fieldIndex) {
         int fieldOffset = getFieldIdItemOffset(fieldIndex);
@@ -283,6 +302,10 @@ public class DexBuffer {
         sb.append(":");
         sb.append(fieldType);
         return sb.toString();
+    }
+
+    public int getFieldCount() {
+        return fieldCount;
     }
 
     @Nonnull
@@ -315,6 +338,10 @@ public class DexBuffer {
         sb.append(")");
         sb.append(returnType);
         return sb.toString();
+    }
+
+    public int getMethodCount() {
+        return methodCount;
     }
 
     @Nonnull
