@@ -113,12 +113,12 @@ public class EncodedArrayPool {
     public static class Key implements Comparable<Key> {
         private final Set<? extends Field> fields;
         private final int size;
-        
+
         private static class FieldComparator implements Comparator<Field> {
-			@Override
-			public int compare(Field o1, Field o2) {
-				return o1.compareTo(o2);
-			}
+            @Override
+            public int compare(Field o1, Field o2) {
+                return o1.compareTo(o2);
+            }
         }
 
         private static final Function<Field, EncodedValue> GET_INITIAL_VALUE =
