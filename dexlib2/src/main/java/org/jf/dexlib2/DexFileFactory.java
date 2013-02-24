@@ -45,12 +45,12 @@ import java.util.zip.ZipFile;
 
 public final class DexFileFactory {
     @Nonnull
-    public static DexFile loadDexFile(String path) throws IOException {
+    public static DexBackedDexFile loadDexFile(String path) throws IOException {
         return loadDexFile(new File(path));
     }
 
     @Nonnull
-    public static DexFile loadDexFile(File dexFile) throws IOException {
+    public static DexBackedDexFile loadDexFile(File dexFile) throws IOException {
         boolean isZipFile = false;
         byte[] dexBytes = null;
         ZipFile zipFile = null;

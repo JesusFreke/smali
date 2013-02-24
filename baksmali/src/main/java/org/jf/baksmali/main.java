@@ -31,7 +31,7 @@ package org.jf.baksmali;
 import org.apache.commons.cli.*;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
@@ -272,7 +272,7 @@ public class main {
 
             //Read in and parse the dex file
             //TODO: add "fix registers" functionality?
-            DexFile dexFile = DexFileFactory.loadDexFile(dexFileFile);
+            DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile);
 
             //TODO: uncomment
             /*if (dexFile.isOdex()) {
