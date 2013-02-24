@@ -31,13 +31,19 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.dexlib2.dexbacked.raw.HeaderItem;
+import org.jf.dexlib2.dexbacked.raw.StringIdItem;
+import org.jf.dexlib2.dexbacked.raw.TypeIdItem;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.Utf8Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Set;
 
 public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile {
@@ -57,6 +63,8 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
 
     @Override @Nonnull public abstract DexReader readerAt(int offset);
 
+    public abstract void dumpTo(Writer out, int width) throws IOException;
+
     public static class Impl extends DexBackedDexFile {
         private final int stringCount;
         private final int stringStartOffset;
@@ -71,33 +79,6 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         private final int classCount;
         private final int classStartOffset;
 
-        private static final byte[][] MAGIC_VALUES= new byte[][] {
-                new byte[]{0x64, 0x65, 0x78, 0x0a, 0x30, 0x33, 0x35, 0x00},
-                new byte[]{0x64, 0x65, 0x78, 0x0a, 0x30, 0x33, 0x36, 0x00}};
-
-        private static final int LITTLE_ENDIAN_TAG = 0x12345678;
-        private static final int BIG_ENDIAN_TAG = 0x78563412;
-
-        private static final int CHECKSUM_OFFSET = 8;
-        private static final int SIGNATURE_OFFSET = 12;
-        private static final int ENDIAN_TAG_OFFSET = 40;
-        private static final int MAP_OFFSET = 52;
-        private static final int STRING_COUNT_OFFSET = 56;
-        private static final int STRING_START_OFFSET = 60;
-        private static final int TYPE_COUNT_OFFSET = 64;
-        private static final int TYPE_START_OFFSET = 68;
-        private static final int PROTO_COUNT_OFFSET = 72;
-        private static final int PROTO_START_OFFSET = 76;
-        private static final int FIELD_COUNT_OFFSET = 80;
-        private static final int FIELD_START_OFFSET = 84;
-        private static final int METHOD_COUNT_OFFSET = 88;
-        private static final int METHOD_START_OFFSET = 92;
-        private static final int CLASS_COUNT_OFFSET = 96;
-        private static final int CLASS_START_OFFSET = 100;
-
-        private static final int SIGNATURE_SIZE = 20;
-
-        private static final int STRING_ID_ITEM_SIZE = 4;
         private static final int TYPE_ID_ITEM_SIZE = 4;
         private static final int PROTO_ID_ITEM_SIZE = 12;
         private static final int FIELD_ID_ITEM_SIZE = 8;
@@ -124,18 +105,18 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
 
             verifyMagic();
             verifyEndian();
-            stringCount = readSmallUint(STRING_COUNT_OFFSET);
-            stringStartOffset = readSmallUint(STRING_START_OFFSET);
-            typeCount = readSmallUint(TYPE_COUNT_OFFSET);
-            typeStartOffset = readSmallUint(TYPE_START_OFFSET);
-            protoCount = readSmallUint(PROTO_COUNT_OFFSET);
-            protoStartOffset = readSmallUint(PROTO_START_OFFSET);
-            fieldCount = readSmallUint(FIELD_COUNT_OFFSET);
-            fieldStartOffset = readSmallUint(FIELD_START_OFFSET);
-            methodCount = readSmallUint(METHOD_COUNT_OFFSET);
-            methodStartOffset = readSmallUint(METHOD_START_OFFSET);
-            classCount = readSmallUint(CLASS_COUNT_OFFSET);
-            classStartOffset = readSmallUint(CLASS_START_OFFSET);
+            stringCount = readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
+            stringStartOffset = readSmallUint(HeaderItem.STRING_START_OFFSET);
+            typeCount = readSmallUint(HeaderItem.TYPE_COUNT_OFFSET);
+            typeStartOffset = readSmallUint(HeaderItem.TYPE_START_OFFSET);
+            protoCount = readSmallUint(HeaderItem.PROTO_COUNT_OFFSET);
+            protoStartOffset = readSmallUint(HeaderItem.PROTO_START_OFFSET);
+            fieldCount = readSmallUint(HeaderItem.FIELD_COUNT_OFFSET);
+            fieldStartOffset = readSmallUint(HeaderItem.FIELD_START_OFFSET);
+            methodCount = readSmallUint(HeaderItem.METHOD_COUNT_OFFSET);
+            methodStartOffset = readSmallUint(HeaderItem.METHOD_START_OFFSET);
+            classCount = readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
+            classStartOffset = readSmallUint(HeaderItem.CLASS_START_OFFSET);
         }
 
         @Nonnull
@@ -156,7 +137,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         }
 
         private void verifyMagic() {
-            outer: for (byte[] magic: MAGIC_VALUES) {
+            outer: for (byte[] magic: HeaderItem.MAGIC_VALUES) {
                 for (int i=0; i<magic.length; i++) {
                     if (buf[i] != magic[i]) {
                         continue outer;
@@ -172,13 +153,13 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         }
 
         private void verifyEndian() {
-            int endian = readInt(ENDIAN_TAG_OFFSET);
-            if (endian == BIG_ENDIAN_TAG) {
+            int endian = readInt(HeaderItem.ENDIAN_TAG_OFFSET);
+            if (endian == HeaderItem.BIG_ENDIAN_TAG) {
                 throw new ExceptionWithContext("dexlib does not currently support big endian dex files.");
-            } else if (endian != LITTLE_ENDIAN_TAG) {
+            } else if (endian != HeaderItem.LITTLE_ENDIAN_TAG) {
                 StringBuilder sb = new StringBuilder("Invalid endian tag:");
                 for (int i=0; i<4; i++) {
-                    sb.append(String.format(" %02x", buf[ENDIAN_TAG_OFFSET+i]));
+                    sb.append(String.format(" %02x", buf[HeaderItem.ENDIAN_TAG_OFFSET+i]));
                 }
                 throw new ExceptionWithContext(sb.toString());
             }
@@ -188,7 +169,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             if (stringIndex < 0 || stringIndex >= stringCount) {
                 throw new ExceptionWithContext("String index out of bounds: %d", stringIndex);
             }
-            return stringStartOffset + stringIndex*STRING_ID_ITEM_SIZE;
+            return stringStartOffset + stringIndex*StringIdItem.ITEM_SIZE;
         }
 
         public int getTypeIdItemOffset(int typeIndex) {
@@ -273,6 +254,14 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         @Nonnull
         public DexReader readerAt(int offset) {
             return new DexReader(this, offset);
+        }
+
+        public void dumpTo(Writer out, int width) throws IOException {
+            AnnotatedBytes annotatedBytes = new AnnotatedBytes(width);
+            HeaderItem.getSection().annotateSection(annotatedBytes, this, 1);
+            annotatedBytes.annotate(0, " ");
+            StringIdItem.getSection().annotateSection(annotatedBytes, this, stringCount);
+            annotatedBytes.writeAnnotations(out, buf);
         }
     }
 }

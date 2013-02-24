@@ -307,16 +307,18 @@ public class main {
                         noAccessorComments, registerInfo, verify, ignoreErrors, inlineTable, checkPackagePrivateAccess);
             }
 
-            //TODO: uncomment
-            /*if ((doDump || write) && !dexFile.isOdex()) {
+            // TODO: implement rewrite + optional sort functionality
+
+            // TODO: need to check if odex file
+            if (doDump) {
                 try
                 {
-                    dump.dump(dexFile, dumpFileName, outputDexFileName, sort);
+                    dump.dump(dexFile, dumpFileName);
                 }catch (IOException ex) {
                     System.err.println("Error occured while writing dump file");
                     ex.printStackTrace();
                 }
-            }*/
+            }
         } catch (RuntimeException ex) {
             System.err.println("\n\nUNEXPECTED TOP-LEVEL EXCEPTION:");
             ex.printStackTrace();
