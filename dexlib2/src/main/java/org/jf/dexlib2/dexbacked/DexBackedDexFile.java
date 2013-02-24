@@ -79,7 +79,6 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         private final int classCount;
         private final int classStartOffset;
 
-        private static final int TYPE_ID_ITEM_SIZE = 4;
         private static final int PROTO_ID_ITEM_SIZE = 12;
         private static final int FIELD_ID_ITEM_SIZE = 8;
         private static final int METHOD_ID_ITEM_SIZE = 8;
@@ -176,7 +175,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             if (typeIndex < 0 || typeIndex >= typeCount) {
                 throw new ExceptionWithContext("Type index out of bounds: %d", typeIndex);
             }
-            return typeStartOffset + typeIndex*TYPE_ID_ITEM_SIZE;
+            return typeStartOffset + typeIndex*TypeIdItem.ITEM_SIZE;
         }
 
         @Override
@@ -259,8 +258,13 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         public void dumpTo(Writer out, int width) throws IOException {
             AnnotatedBytes annotatedBytes = new AnnotatedBytes(width);
             HeaderItem.getSection().annotateSection(annotatedBytes, this, 1);
+
             annotatedBytes.annotate(0, " ");
             StringIdItem.getSection().annotateSection(annotatedBytes, this, stringCount);
+
+            annotatedBytes.annotate(0, " ");
+            TypeIdItem.getSection().annotateSection(annotatedBytes, this, typeCount);
+
             annotatedBytes.writeAnnotations(out, buf);
         }
     }
