@@ -53,6 +53,10 @@ jar {
     manifest {
         attributes("Main-Class": "org.jf.baksmali.main")
     }
+
+    doLast {
+        ant.symlink(link: file("${destinationDir}/baksmali.jar"), resource: archivePath, overwrite: true)
+    }
 }
 
 task proguard(type: JavaExec, dependsOn: jar) {

@@ -127,6 +127,10 @@ jar {
     manifest {
         attributes("Main-Class": "org.jf.smali.main")
     }
+
+    doLast {
+        ant.symlink(link: file("${destinationDir}/smali.jar"), resource: archivePath, overwrite: true)
+    }
 }
 
 processResources.inputs.property('version', version)
