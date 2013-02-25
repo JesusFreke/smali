@@ -34,6 +34,7 @@ package org.jf.dexlib2.dexbacked.reference;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 
 import javax.annotation.Nonnull;
@@ -66,8 +67,7 @@ public class DexBackedMethodReference extends BaseMethodReference {
     @Override
     public List<String> getParameterTypes() {
         int protoIdItemOffset = getProtoIdItemOffset();
-        final int parametersOffset = dexFile.readSmallUint(protoIdItemOffset +
-                DexBackedDexFile.Impl.PROTO_PARAM_LIST_OFF_OFFSET);
+        final int parametersOffset = dexFile.readSmallUint(protoIdItemOffset + ProtoIdItem.PARAMETERS_OFFSET);
         if (parametersOffset > 0) {
             final int parameterCount = dexFile.readSmallUint(parametersOffset +
                     DexBackedDexFile.Impl.TYPE_LIST_SIZE_OFFSET);
@@ -88,8 +88,7 @@ public class DexBackedMethodReference extends BaseMethodReference {
     @Override
     public String getReturnType() {
         int protoIdItemOffset = getProtoIdItemOffset();
-        return dexFile.getType(dexFile.readSmallUint(protoIdItemOffset +
-                DexBackedDexFile.Impl.PROTO_RETURN_TYPE_IDX_OFFSET));
+        return dexFile.getType(dexFile.readSmallUint(protoIdItemOffset + ProtoIdItem.RETURN_TYPE_OFFSET));
     }
 
     private int getProtoIdItemOffset() {

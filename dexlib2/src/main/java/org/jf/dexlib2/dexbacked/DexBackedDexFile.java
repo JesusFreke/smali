@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import org.jf.dexlib2.dexbacked.raw.HeaderItem;
+import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
 import org.jf.dexlib2.dexbacked.raw.StringIdItem;
 import org.jf.dexlib2.dexbacked.raw.TypeIdItem;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
@@ -79,7 +80,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         private final int classCount;
         private final int classStartOffset;
 
-        private static final int PROTO_ID_ITEM_SIZE = 12;
+
         private static final int FIELD_ID_ITEM_SIZE = 8;
         private static final int METHOD_ID_ITEM_SIZE = 8;
         private static final int CLASS_DEF_ITEM_SIZE = 32;
@@ -92,9 +93,6 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         public static final int METHOD_CLASS_IDX_OFFSET = 0;
         public static final int METHOD_PROTO_IDX_OFFSET = 2;
         public static final int METHOD_NAME_IDX_OFFSET = 4;
-
-        public static final int PROTO_RETURN_TYPE_IDX_OFFSET = 4;
-        public static final int PROTO_PARAM_LIST_OFF_OFFSET = 8;
 
         public static final int TYPE_LIST_SIZE_OFFSET = 0;
         public static final int TYPE_LIST_LIST_OFFSET = 4;
@@ -199,7 +197,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             if (protoIndex < 0 || protoIndex >= protoCount) {
                 throw new ExceptionWithContext("Proto index out of bounds: %d", protoIndex);
             }
-            return protoStartOffset + protoIndex*PROTO_ID_ITEM_SIZE;
+            return protoStartOffset + protoIndex*ProtoIdItem.ITEM_SIZE;
         }
 
         public int getClassDefItemOffset(int classIndex) {
@@ -259,13 +257,23 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             AnnotatedBytes annotatedBytes = new AnnotatedBytes(width);
             HeaderItem.getAnnotator().annotateSection(annotatedBytes, this, 1);
 
-            annotatedBytes.skipTo(getStringIdItemOffset(0));
-            annotatedBytes.annotate(0, " ");
-            StringIdItem.getAnnotator().annotateSection(annotatedBytes, this, stringCount);
+            if (stringCount > 0) {
+                annotatedBytes.skipTo(getStringIdItemOffset(0));
+                annotatedBytes.annotate(0, " ");
+                StringIdItem.getAnnotator().annotateSection(annotatedBytes, this, stringCount);
+            }
 
-            annotatedBytes.skipTo(getTypeIdItemOffset(0));
-            annotatedBytes.annotate(0, " ");
-            TypeIdItem.getAnnotator().annotateSection(annotatedBytes, this, typeCount);
+            if (typeCount > 0) {
+                annotatedBytes.skipTo(getTypeIdItemOffset(0));
+                annotatedBytes.annotate(0, " ");
+                TypeIdItem.getAnnotator().annotateSection(annotatedBytes, this, typeCount);
+            }
+
+            if (protoCount > 0) {
+                annotatedBytes.skipTo(getProtoIdItemOffset(0));
+                annotatedBytes.annotate(0, " ");
+                ProtoIdItem.getAnnotator().annotateSection(annotatedBytes, this, protoCount);
+            }
 
             annotatedBytes.writeAnnotations(out, buf);
         }

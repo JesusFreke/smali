@@ -33,12 +33,15 @@ package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.util.AnnotatedBytes;
-import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
 
-public class TypeIdItem {
-    public static final int ITEM_SIZE = 4;
+public class ProtoIdItem {
+    public static final int ITEM_SIZE = 12;
+
+    public static final int SHORTY_OFFSET = 0;
+    public static final int RETURN_TYPE_OFFSET = 4;
+    public static final int PARAMETERS_OFFSET = 8;
 
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
@@ -46,14 +49,14 @@ public class TypeIdItem {
             public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int length) {
                 if (length > 0) {
                     out.annotate(0, "-----------------------------");
-                    out.annotate(0, "type_id_item section");
+                    out.annotate(0, "proto_id_item section");
                     out.annotate(0, "-----------------------------");
                     out.annotate(0, "");
 
                     for (int i=0; i<length; i++) {
-                        out.annotate(0, "[%d] type_id_item", i);
+                        out.annotate(0, "[%d] proto_id_item", i);
                         out.indent();
-                        annotateString(out, dexFile);
+                        annotateProto(out, dexFile);
                         out.deindent();
                     }
                 }
@@ -61,18 +64,19 @@ public class TypeIdItem {
         };
     }
 
-    private static void annotateString(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile) {
-        int stringIndex = dexFile.readSmallUint(out.getCursor());
-        out.annotate(4, StringIdItem.getReferenceAnnotation(dexFile, stringIndex));
-    }
+    private static void annotateProto(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile) {
+        int shortyIndex = dexFile.readSmallUint(out.getCursor());
+        out.annotate(4, "shorty_idx = %s", StringIdItem.getReferenceAnnotation(dexFile, shortyIndex));
 
-    public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int typeIndex) {
-        try {
-            String typeString = dexFile.getType(typeIndex);
-            return String.format("type_id_item[%d]: \"%s\"", typeIndex, StringUtils.escapeString(typeString));
-        } catch (Exception ex) {
-            ex.printStackTrace(System.err);
+        int returnTypeIndex = dexFile.readSmallUint(out.getCursor());
+        out.annotate(4, "return_type_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, returnTypeIndex));
+
+        // TODO: add formatted type list to output
+        int parametersOffset = dexFile.readSmallUint(out.getCursor());
+        if (parametersOffset != 0) {
+            out.annotate(4, "parameters_off = type_list_item[0x%x]", parametersOffset);
+        } else {
+            out.annotate(4, "parameters_off = 0");
         }
-        return String.format("type_id_item[%d]", typeIndex);
     }
 }
