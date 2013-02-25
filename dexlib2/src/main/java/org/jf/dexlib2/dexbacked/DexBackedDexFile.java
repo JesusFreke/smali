@@ -259,9 +259,11 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             AnnotatedBytes annotatedBytes = new AnnotatedBytes(width);
             HeaderItem.getAnnotator().annotateSection(annotatedBytes, this, 1);
 
+            annotatedBytes.skipTo(getStringIdItemOffset(0));
             annotatedBytes.annotate(0, " ");
             StringIdItem.getAnnotator().annotateSection(annotatedBytes, this, stringCount);
 
+            annotatedBytes.skipTo(getTypeIdItemOffset(0));
             annotatedBytes.annotate(0, " ");
             TypeIdItem.getAnnotator().annotateSection(annotatedBytes, this, typeCount);
 

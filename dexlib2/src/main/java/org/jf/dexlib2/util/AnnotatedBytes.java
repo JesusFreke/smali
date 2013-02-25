@@ -62,6 +62,22 @@ public class AnnotatedBytes {
     }
 
     /**
+     * Skips a portion of the binary output. This is equivalent to calling
+     * annotate(offset-cursor, "");
+     *
+     * @param offset The offset to skip to
+     */
+    public void skipTo(int offset) {
+        if (offset < cursor) {
+            throw new IllegalArgumentException("skipTo can only skip forward");
+        }
+        int delta = offset - cursor;
+        if (delta != 0) {
+            annotate(delta, "");
+        }
+    }
+
+    /**
      * Add an annotation of the given length at the current location.
      *
      * @param length the length of data being annotated
