@@ -50,6 +50,8 @@ public class HeaderItem {
     public static final int CHECKSUM_OFFSET = 8;
 
     public static final int SIGNATURE_OFFSET = 12;
+    public static final int SIGNATURE_SIZE = 20;
+
     public static final int ENDIAN_TAG_OFFSET = 40;
 
     public static final int MAP_OFFSET = 52;
@@ -72,10 +74,8 @@ public class HeaderItem {
     public static final int CLASS_COUNT_OFFSET = 96;
     public static final int CLASS_START_OFFSET = 100;
 
-    public static final int SIGNATURE_SIZE = 20;
-
-    public static Section getSection() {
-        return new Section() {
+    public static SectionAnnotator getAnnotator() {
+        return new SectionAnnotator() {
             @Override
             public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int length) {
                 int startOffset = out.getCursor();

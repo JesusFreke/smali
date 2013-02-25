@@ -40,8 +40,8 @@ import javax.annotation.Nonnull;
 public class StringIdItem {
     public static final int ITEM_SIZE = 4;
 
-    public static Section getSection() {
-        return new Section() {
+    public static SectionAnnotator getAnnotator() {
+        return new SectionAnnotator() {
             @Override
             public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int length) {
                 int startOffset = out.getCursor();

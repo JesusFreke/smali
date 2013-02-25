@@ -257,13 +257,13 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
 
         public void dumpTo(Writer out, int width) throws IOException {
             AnnotatedBytes annotatedBytes = new AnnotatedBytes(width);
-            HeaderItem.getSection().annotateSection(annotatedBytes, this, 1);
+            HeaderItem.getAnnotator().annotateSection(annotatedBytes, this, 1);
 
             annotatedBytes.annotate(0, " ");
-            StringIdItem.getSection().annotateSection(annotatedBytes, this, stringCount);
+            StringIdItem.getAnnotator().annotateSection(annotatedBytes, this, stringCount);
 
             annotatedBytes.annotate(0, " ");
-            TypeIdItem.getSection().annotateSection(annotatedBytes, this, typeCount);
+            TypeIdItem.getAnnotator().annotateSection(annotatedBytes, this, typeCount);
 
             annotatedBytes.writeAnnotations(out, buf);
         }

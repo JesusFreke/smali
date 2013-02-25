@@ -36,7 +36,7 @@ import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
 
-public interface Section {
+public interface SectionAnnotator {
 
     /**
      * Write out annotations for this section
