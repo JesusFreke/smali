@@ -31,10 +31,7 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.dexbacked.raw.HeaderItem;
-import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
-import org.jf.dexlib2.dexbacked.raw.StringIdItem;
-import org.jf.dexlib2.dexbacked.raw.TypeIdItem;
+import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.AnnotatedBytes;
@@ -81,14 +78,9 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         private final int classStartOffset;
 
 
-        private static final int FIELD_ID_ITEM_SIZE = 8;
         private static final int METHOD_ID_ITEM_SIZE = 8;
         private static final int CLASS_DEF_ITEM_SIZE = 32;
         public static final int MAP_ITEM_SIZE = 12;
-
-        public static final int FIELD_CLASS_IDX_OFFSET = 0;
-        public static final int FIELD_TYPE_IDX_OFFSET = 2;
-        public static final int FIELD_NAME_IDX_OFFSET = 4;
 
         public static final int METHOD_CLASS_IDX_OFFSET = 0;
         public static final int METHOD_PROTO_IDX_OFFSET = 2;
@@ -181,7 +173,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             if (fieldIndex < 0 || fieldIndex >= fieldCount) {
                 throw new ExceptionWithContext("Field index out of bounds: %d", fieldIndex);
             }
-            return fieldStartOffset + fieldIndex*FIELD_ID_ITEM_SIZE;
+            return fieldStartOffset + fieldIndex*FieldIdItem.ITEM_SIZE;
         }
 
         @Override
@@ -273,6 +265,12 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
                 annotatedBytes.skipTo(getProtoIdItemOffset(0));
                 annotatedBytes.annotate(0, " ");
                 ProtoIdItem.getAnnotator().annotateSection(annotatedBytes, this, protoCount);
+            }
+
+            if (fieldCount > 0) {
+                annotatedBytes.skipTo(getFieldIdItemOffset(0));
+                annotatedBytes.annotate(0, " ");
+                FieldIdItem.getAnnotator().annotateSection(annotatedBytes, this, fieldCount);
             }
 
             annotatedBytes.writeAnnotations(out, buf);

@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked.reference;
 
 import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.FieldIdItem;
 
 import javax.annotation.Nonnull;
 
@@ -48,18 +49,18 @@ public class DexBackedFieldReference extends BaseFieldReference {
     @Nonnull
     @Override
     public String getDefiningClass() {
-        return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + DexBackedDexFile.Impl.FIELD_CLASS_IDX_OFFSET));
+        return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + FieldIdItem.CLASS_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getString(dexFile.readSmallUint(fieldIdItemOffset + DexBackedDexFile.Impl.FIELD_NAME_IDX_OFFSET));
+        return dexFile.getString(dexFile.readSmallUint(fieldIdItemOffset + FieldIdItem.NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + DexBackedDexFile.Impl.FIELD_TYPE_IDX_OFFSET));
+        return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + FieldIdItem.TYPE_OFFSET));
     }
 }
