@@ -46,33 +46,21 @@ public class MethodIdItem {
     @Nonnull
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
-            @Override
-            public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int length) {
-                if (length > 0) {
-                    out.annotate(0, "-----------------------------");
-                    out.annotate(0, "method_id_item section");
-                    out.annotate(0, "-----------------------------");
-                    out.annotate(0, "");
+            @Nonnull @Override public String getItemName() {
+                return "method_id_item";
+            }
 
-                    for (int i=0; i<length; i++) {
-                        out.annotate(0, "[%d] method_id_item", i);
-                        out.indent();
-                        annotateMethod(out, dexFile);
-                        out.deindent();
-                    }
-                }
+            @Override
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+                int classIndex = dexFile.readUshort(out.getCursor());
+                out.annotate(2, "class_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, classIndex));
+
+                int protoIndex = dexFile.readUshort(out.getCursor());
+                out.annotate(2, "proto_idx = %s", ProtoIdItem.getReferenceAnnotation(dexFile, protoIndex));
+
+                int nameIndex = dexFile.readSmallUint(out.getCursor());
+                out.annotate(4, "name_idx = %s", StringIdItem.getReferenceAnnotation(dexFile, nameIndex));
             }
         };
-    }
-
-    private static void annotateMethod(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile) {
-        int classIndex = dexFile.readUshort(out.getCursor());
-        out.annotate(2, "class_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, classIndex));
-
-        int protoIndex = dexFile.readUshort(out.getCursor());
-        out.annotate(2, "proto_idx = %s", ProtoIdItem.getReferenceAnnotation(dexFile, protoIndex));
-
-        int nameIndex = dexFile.readSmallUint(out.getCursor());
-        out.annotate(4, "name_idx = %s", StringIdItem.getReferenceAnnotation(dexFile, nameIndex));
     }
 }

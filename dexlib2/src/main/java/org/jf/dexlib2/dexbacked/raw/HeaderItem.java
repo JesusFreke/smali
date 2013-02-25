@@ -77,15 +77,14 @@ public class HeaderItem {
     @Nonnull
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
+            @Nonnull @Override public String getItemName() {
+                return "header_item";
+            }
+
             @Override
-            public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int length) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
                 int startOffset = out.getCursor();
                 int headerSize;
-
-                out.annotate(0, "-----------------------------");
-                out.annotate(0, "header item");
-                out.annotate(0, "-----------------------------");
-                out.annotate(0, "");
 
                 StringBuilder magicBuilder = new StringBuilder();
                 for (int i=0; i<8; i++) {

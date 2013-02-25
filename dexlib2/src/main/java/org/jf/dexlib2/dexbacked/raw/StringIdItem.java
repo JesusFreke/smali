@@ -43,40 +43,27 @@ public class StringIdItem {
     @Nonnull
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
-            @Override
-            public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int length) {
-                int startOffset = out.getCursor();
-                if (length > 0) {
-                    out.annotate(0, "-----------------------------");
-                    out.annotate(0, "string_id_item section");
-                    out.annotate(0, "-----------------------------");
-                    out.annotate(0, "");
+            @Nonnull @Override public String getItemName() {
+                return "string_id_item";
+            }
 
-                    for (int i=0; i<length; i++) {
-                        out.annotate(0, "[%d] string_id_item", i);
-                        out.indent();
-                        annotateString(out, dexFile, i, startOffset + i * ITEM_SIZE);
-                        out.deindent();
-                    }
+            @Override protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile,
+                                                  int itemIndex) {
+                int stringDataOffset = dexFile.readSmallUint(out.getCursor());
+                try {
+                    String stringValue = dexFile.getString(itemIndex);
+                    out.annotate(4, "string_data_item[0x%x]: \"%s\"", stringDataOffset,
+                            StringUtils.escapeString(stringValue));
+                    return;
+                } catch (Exception ex) {
+                    System.err.print("Error while resolving string value at index: ");
+                    System.err.print(itemIndex);
+                    ex.printStackTrace(System.err);
                 }
+
+                out.annotate(4, "string_id_item[0x%x]", stringDataOffset);
             }
         };
-    }
-
-    private static void annotateString(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int index,
-                                       int offset) {
-        int stringDataOffset = dexFile.readSmallUint(offset);
-        try {
-            String stringValue = dexFile.getString(index);
-            out.annotate(4, "string_data_item[0x%x]: \"%s\"", stringDataOffset, StringUtils.escapeString(stringValue));
-            return;
-        } catch (Exception ex) {
-            System.err.print("Error while resolving string value at index: ");
-            System.err.print(index);
-            ex.printStackTrace(System.err);
-        }
-
-        out.annotate(4, "string_id_item[0x%x]", stringDataOffset);
     }
 
     @Nonnull
