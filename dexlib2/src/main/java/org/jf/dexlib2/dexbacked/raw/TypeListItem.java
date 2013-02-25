@@ -32,47 +32,39 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
 
-public class FieldIdItem {
-    public static final int ITEM_SIZE = 8;
-
-    public static final int CLASS_OFFSET = 0;
-    public static final int TYPE_OFFSET = 2;
-    public static final int NAME_OFFSET = 4;
-
+public class TypeListItem {
     @Nonnull
-    public static SectionAnnotator getAnnotator() {
-        return new SectionAnnotator() {
-            @Override
-            public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int length) {
-                if (length > 0) {
-                    out.annotate(0, "-----------------------------");
-                    out.annotate(0, "field_id_item section");
-                    out.annotate(0, "-----------------------------");
-                    out.annotate(0, "");
+    public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int typeListOffset) {
+        if (typeListOffset == 0) {
+            return "0";
+        }
 
-                    for (int i=0; i<length; i++) {
-                        out.annotate(0, "[%d] field_id_item", i);
-                        out.indent();
-                        annotateField(out, dexFile);
-                        out.deindent();
-                    }
-                }
-            }
-        };
+        try {
+            String typeList = asString(dexFile, typeListOffset);
+            return String.format("type_list_item[0x%x]: %s", typeListOffset, typeList);
+        } catch (Exception ex) {
+            ex.printStackTrace(System.err);
+        }
+        return String.format("type_list_item[0x%x]", typeListOffset);
     }
 
-    private static void annotateField(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile) {
-        int classIndex = dexFile.readUshort(out.getCursor());
-        out.annotate(2, "class_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, classIndex));
+    @Nonnull
+    public static String asString(@Nonnull DexBackedDexFile dexFile, int typeListOffset) {
+        if (typeListOffset == 0) {
+            return "";
+        }
 
-        int typeIndex = dexFile.readUshort(out.getCursor());
-        out.annotate(2, "return_type_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, typeIndex));
+        StringBuilder sb = new StringBuilder();
 
-        int nameIndex = dexFile.readSmallUint(out.getCursor());
-        out.annotate(4, "name_idx = %s", StringIdItem.getReferenceAnnotation(dexFile, nameIndex));
+        int size = dexFile.readSmallUint(typeListOffset);
+        for (int i=0; i<size; i++) {
+            int typeIndex = dexFile.readUshort(typeListOffset + 4 + i*2);
+            String type = dexFile.getType(typeIndex);
+            sb.append(type);
+        }
+        return sb.toString();
     }
 }

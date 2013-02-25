@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
 public class StringIdItem {
     public static final int ITEM_SIZE = 4;
 
-
+    @Nonnull
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
             @Override
@@ -79,10 +79,11 @@ public class StringIdItem {
         out.annotate(4, "string_id_item[0x%x]", stringDataOffset);
     }
 
+    @Nonnull
     public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int stringIndex) {
         try {
             String string = dexFile.getString(stringIndex);
-            return String.format("string_id_item[%d]: \"%s\"", stringIndex, StringUtils.escapeString(string));
+            return String.format("string_id_item[%d]: %s", stringIndex, string);
         } catch (Exception ex) {
             ex.printStackTrace(System.err);
         }

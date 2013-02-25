@@ -74,6 +74,7 @@ public class HeaderItem {
     public static final int CLASS_COUNT_OFFSET = 96;
     public static final int CLASS_START_OFFSET = 100;
 
+    @Nonnull
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
             @Override

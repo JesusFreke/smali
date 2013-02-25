@@ -33,13 +33,13 @@ package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.util.AnnotatedBytes;
-import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
 
 public class TypeIdItem {
     public static final int ITEM_SIZE = 4;
 
+    @Nonnull
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
             @Override
@@ -66,10 +66,11 @@ public class TypeIdItem {
         out.annotate(4, StringIdItem.getReferenceAnnotation(dexFile, stringIndex));
     }
 
+    @Nonnull
     public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int typeIndex) {
         try {
             String typeString = dexFile.getType(typeIndex);
-            return String.format("type_id_item[%d]: \"%s\"", typeIndex, StringUtils.escapeString(typeString));
+            return String.format("type_id_item[%d]: %s", typeIndex, typeString);
         } catch (Exception ex) {
             ex.printStackTrace(System.err);
         }

@@ -34,6 +34,7 @@ package org.jf.dexlib2.dexbacked.reference;
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.MethodIdItem;
 import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 
@@ -53,14 +54,13 @@ public class DexBackedMethodReference extends BaseMethodReference {
     @Nonnull
     @Override
     public String getDefiningClass() {
-        return dexFile.getType(dexFile.readUshort(methodIdItemOffset + DexBackedDexFile.Impl.METHOD_CLASS_IDX_OFFSET));
+        return dexFile.getType(dexFile.readUshort(methodIdItemOffset + MethodIdItem.CLASS_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getString(dexFile.readSmallUint(methodIdItemOffset +
-                DexBackedDexFile.Impl.METHOD_NAME_IDX_OFFSET));
+        return dexFile.getString(dexFile.readSmallUint(methodIdItemOffset + MethodIdItem.NAME_OFFSET));
     }
 
     @Nonnull
@@ -94,7 +94,7 @@ public class DexBackedMethodReference extends BaseMethodReference {
     private int getProtoIdItemOffset() {
         if (protoIdItemOffset == 0) {
             protoIdItemOffset = dexFile.getProtoIdItemOffset(
-                    dexFile.readUshort(methodIdItemOffset + DexBackedDexFile.Impl.METHOD_PROTO_IDX_OFFSET));
+                    dexFile.readUshort(methodIdItemOffset + MethodIdItem.PROTO_OFFSET));
         }
         return protoIdItemOffset;
     }

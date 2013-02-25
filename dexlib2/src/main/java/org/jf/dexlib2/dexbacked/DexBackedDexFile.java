@@ -77,14 +77,8 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         private final int classCount;
         private final int classStartOffset;
 
-
-        private static final int METHOD_ID_ITEM_SIZE = 8;
         private static final int CLASS_DEF_ITEM_SIZE = 32;
         public static final int MAP_ITEM_SIZE = 12;
-
-        public static final int METHOD_CLASS_IDX_OFFSET = 0;
-        public static final int METHOD_PROTO_IDX_OFFSET = 2;
-        public static final int METHOD_NAME_IDX_OFFSET = 4;
 
         public static final int TYPE_LIST_SIZE_OFFSET = 0;
         public static final int TYPE_LIST_LIST_OFFSET = 4;
@@ -181,7 +175,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             if (methodIndex < 0 || methodIndex >= methodCount) {
                 throw new ExceptionWithContext("Method index out of bounds: %d", methodIndex);
             }
-            return methodStartOffset + methodIndex*METHOD_ID_ITEM_SIZE;
+            return methodStartOffset + methodIndex*MethodIdItem.ITEM_SIZE;
         }
 
         @Override
@@ -271,6 +265,12 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
                 annotatedBytes.skipTo(getFieldIdItemOffset(0));
                 annotatedBytes.annotate(0, " ");
                 FieldIdItem.getAnnotator().annotateSection(annotatedBytes, this, fieldCount);
+            }
+
+            if (methodCount > 0) {
+                annotatedBytes.skipTo(getMethodIdItemOffset(0));
+                annotatedBytes.annotate(0, " ");
+                MethodIdItem.getAnnotator().annotateSection(annotatedBytes, this, methodCount);
             }
 
             annotatedBytes.writeAnnotations(out, buf);
