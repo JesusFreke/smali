@@ -77,7 +77,6 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         private final int classCount;
         private final int classStartOffset;
 
-        private static final int CLASS_DEF_ITEM_SIZE = 32;
         public static final int MAP_ITEM_SIZE = 12;
 
         public static final int TYPE_LIST_SIZE_OFFSET = 0;
@@ -190,7 +189,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             if (classIndex < 0 || classIndex >= classCount) {
                 throw new ExceptionWithContext("Class index out of bounds: %d", classIndex);
             }
-            return classStartOffset + classIndex*CLASS_DEF_ITEM_SIZE;
+            return classStartOffset + classIndex*ClassDefItem.ITEM_SIZE;
         }
 
         public int getClassCount() {
@@ -271,6 +270,12 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
                 annotatedBytes.skipTo(getMethodIdItemOffset(0));
                 annotatedBytes.annotate(0, " ");
                 MethodIdItem.getAnnotator().annotateSection(annotatedBytes, this, methodCount);
+            }
+
+            if (classCount > 0) {
+                annotatedBytes.skipTo(getClassDefItemOffset(0));
+                annotatedBytes.annotate(0, " ");
+                ClassDefItem.getAnnotator().annotateSection(annotatedBytes, this, classCount);
             }
 
             annotatedBytes.writeAnnotations(out, buf);
