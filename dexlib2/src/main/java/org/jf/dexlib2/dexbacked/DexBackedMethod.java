@@ -34,6 +34,7 @@ package org.jf.dexlib2.dexbacked;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
+import org.jf.dexlib2.dexbacked.raw.TypeListItem;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.ParameterIterator;
@@ -161,9 +162,8 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     public List<String> getParameterTypes() {
         final int parametersOffset = getParametersOffset();
         if (parametersOffset > 0) {
-            final int parameterCount = dexFile.readSmallUint(parametersOffset +
-                    DexBackedDexFile.Impl.TYPE_LIST_SIZE_OFFSET);
-            final int paramListStart = parametersOffset + DexBackedDexFile.Impl.TYPE_LIST_LIST_OFFSET;
+            final int parameterCount = dexFile.readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
+            final int paramListStart = parametersOffset + TypeListItem.LIST_OFFSET;
             return new FixedSizeList<String>() {
                 @Nonnull
                 @Override

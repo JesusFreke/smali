@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.util.AnnotatedBytes;
+import org.jf.util.AlignmentUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,17 +47,20 @@ public abstract class SectionAnnotator {
      *
      * @param out The AnnotatedBytes object to annotate to
      * @param dexFile The DexBackedDexFile representing the dex file being annotated
-     * @param length The number of items in the section (from the header/map)
+     * @param itemCount The number of items in the section (from the header/map)
      */
-    public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int length) {
+    public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemCount) {
         String itemName = getItemName();
-        if (length > 0) {
+        int itemAlignment = getItemAlignment();
+        if (itemCount > 0) {
             out.annotate(0, "-----------------------------");
             out.annotate(0, "%s section", itemName);
             out.annotate(0, "-----------------------------");
             out.annotate(0, "");
 
-            for (int i=0; i<length; i++) {
+            for (int i=0; i<itemCount; i++) {
+                out.skipTo(AlignmentUtils.alignOffset(out.getCursor(), itemAlignment));
+
                 String itemIdentity = getItemIdentity(dexFile, out.getCursor(), i);
                 if (itemIdentity != null) {
                     out.annotate(0, "[%d] %s: %s", i, itemName, itemIdentity);
@@ -72,5 +76,9 @@ public abstract class SectionAnnotator {
 
     @Nullable public String getItemIdentity(@Nonnull DexBackedDexFile dexFile, int itemIndex, int itemOffset) {
         return null;
+    }
+
+    public int getItemAlignment() {
+        return 1;
     }
 }

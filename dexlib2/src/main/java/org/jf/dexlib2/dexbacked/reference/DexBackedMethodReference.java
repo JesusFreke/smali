@@ -36,6 +36,7 @@ import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.MethodIdItem;
 import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
+import org.jf.dexlib2.dexbacked.raw.TypeListItem;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 
 import javax.annotation.Nonnull;
@@ -69,9 +70,8 @@ public class DexBackedMethodReference extends BaseMethodReference {
         int protoIdItemOffset = getProtoIdItemOffset();
         final int parametersOffset = dexFile.readSmallUint(protoIdItemOffset + ProtoIdItem.PARAMETERS_OFFSET);
         if (parametersOffset > 0) {
-            final int parameterCount = dexFile.readSmallUint(parametersOffset +
-                    DexBackedDexFile.Impl.TYPE_LIST_SIZE_OFFSET);
-            final int paramListStart = parametersOffset + DexBackedDexFile.Impl.TYPE_LIST_LIST_OFFSET;
+            final int parameterCount = dexFile.readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
+            final int paramListStart = parametersOffset + TypeListItem.LIST_OFFSET;
             return new FixedSizeList<String>() {
                 @Nonnull
                 @Override

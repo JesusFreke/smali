@@ -52,6 +52,8 @@ public class HeaderItem {
     public static final int SIGNATURE_OFFSET = 12;
     public static final int SIGNATURE_SIZE = 20;
 
+    public static final int HEADER_SIZE_OFFSET = 36;
+
     public static final int ENDIAN_TAG_OFFSET = 40;
 
     public static final int MAP_OFFSET = 52;
@@ -73,6 +75,68 @@ public class HeaderItem {
 
     public static final int CLASS_COUNT_OFFSET = 96;
     public static final int CLASS_START_OFFSET = 100;
+
+    @Nonnull private DexBackedDexFile dexFile;
+
+    public HeaderItem(@Nonnull DexBackedDexFile dexFile) {
+        this.dexFile = dexFile;
+    }
+
+    public int getMapOffset() {
+        return dexFile.readSmallUint(MAP_OFFSET);
+    }
+
+    public int getHeaderSize() {
+        return dexFile.readSmallUint(HEADER_SIZE_OFFSET);
+    }
+
+    public int getStringCount() {
+        return dexFile.readSmallUint(STRING_COUNT_OFFSET);
+    }
+
+    public int getStringOffset() {
+        return dexFile.readSmallUint(STRING_START_OFFSET);
+    }
+
+    public int getTypeCount() {
+        return dexFile.readSmallUint(TYPE_COUNT_OFFSET);
+    }
+
+    public int getTypeOffset() {
+        return dexFile.readSmallUint(TYPE_START_OFFSET);
+    }
+
+    public int getProtoCount() {
+        return dexFile.readSmallUint(PROTO_COUNT_OFFSET);
+    }
+
+    public int getProtoOffset() {
+        return dexFile.readSmallUint(PROTO_START_OFFSET);
+    }
+
+    public int getFieldCount() {
+        return dexFile.readSmallUint(FIELD_COUNT_OFFSET);
+    }
+
+    public int getFieldOffset() {
+        return dexFile.readSmallUint(FIELD_START_OFFSET);
+    }
+
+    public int getMethodCount() {
+        return dexFile.readSmallUint(METHOD_COUNT_OFFSET);
+    }
+
+    public int getMethodOffset() {
+        return dexFile.readSmallUint(METHOD_START_OFFSET);
+    }
+
+    public int getClassCount() {
+        return dexFile.readSmallUint(CLASS_COUNT_OFFSET);
+    }
+
+    public int getClassOffset() {
+        return dexFile.readSmallUint(CLASS_START_OFFSET);
+    }
 
     @Nonnull
     public static SectionAnnotator getAnnotator() {

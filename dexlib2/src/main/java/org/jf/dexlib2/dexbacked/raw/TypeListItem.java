@@ -32,10 +32,38 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
 
 public class TypeListItem {
+    public static final int SIZE_OFFSET = 0;
+    public static final int LIST_OFFSET = 4;
+
+    @Nonnull
+    public static SectionAnnotator getAnnotator() {
+        return new SectionAnnotator() {
+            @Nonnull @Override public String getItemName() {
+                return "type_list";
+            }
+
+            @Override
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+                int size = dexFile.readSmallUint(out.getCursor());
+                out.annotate(4, "size: %d", size);
+
+                for (int i=0; i<size; i++) {
+                    int typeIndex = dexFile.readUshort(out.getCursor());
+                    out.annotate(2, TypeIdItem.getReferenceAnnotation(dexFile, typeIndex));
+                }
+            }
+
+            @Override public int getItemAlignment() {
+                return 4;
+            }
+        };
+    }
+
     @Nonnull
     public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int typeListOffset) {
         if (typeListOffset == 0) {

@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.writer;
 
+import org.jf.dexlib2.dexbacked.raw.ItemType;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -59,26 +60,26 @@ public class MapItem {
         writer.writeInt(numItems);
 
         // index section
-        writeItem(writer, DexItemType.HEADER_ITEM, 1, 0);
-        writeItem(writer, DexItemType.STRING_ID_ITEM, dexFile.stringPool.getNumItems(), dexFile.stringPool.getIndexSectionOffset());
-        writeItem(writer, DexItemType.TYPE_ID_ITEM, dexFile.typePool.getNumItems(), dexFile.typePool.getSectionOffset());
-        writeItem(writer, DexItemType.PROTO_ID_ITEM, dexFile.protoPool.getNumItems(), dexFile.protoPool.getSectionOffset());
-        writeItem(writer, DexItemType.FIELD_ID_ITEM, dexFile.fieldPool.getNumItems(), dexFile.fieldPool.getSectionOffset());
-        writeItem(writer, DexItemType.METHOD_ID_ITEM, dexFile.methodPool.getNumItems(), dexFile.methodPool.getSectionOffset());
-        writeItem(writer, DexItemType.CLASS_DEF_ITEM, dexFile.classDefPool.getNumClassDefItems(), dexFile.classDefPool.getIndexSectionOffset());
+        writeItem(writer, ItemType.HEADER_ITEM, 1, 0);
+        writeItem(writer, ItemType.STRING_ID_ITEM, dexFile.stringPool.getNumItems(), dexFile.stringPool.getIndexSectionOffset());
+        writeItem(writer, ItemType.TYPE_ID_ITEM, dexFile.typePool.getNumItems(), dexFile.typePool.getSectionOffset());
+        writeItem(writer, ItemType.PROTO_ID_ITEM, dexFile.protoPool.getNumItems(), dexFile.protoPool.getSectionOffset());
+        writeItem(writer, ItemType.FIELD_ID_ITEM, dexFile.fieldPool.getNumItems(), dexFile.fieldPool.getSectionOffset());
+        writeItem(writer, ItemType.METHOD_ID_ITEM, dexFile.methodPool.getNumItems(), dexFile.methodPool.getSectionOffset());
+        writeItem(writer, ItemType.CLASS_DEF_ITEM, dexFile.classDefPool.getNumClassDefItems(), dexFile.classDefPool.getIndexSectionOffset());
 
         // data section
-        writeItem(writer, DexItemType.STRING_DATA_ITEM, dexFile.stringPool.getNumItems(), dexFile.stringPool.getDataSectionOffset());
-        writeItem(writer, DexItemType.TYPE_LIST, dexFile.typeListPool.getNumItems(), dexFile.typeListPool.getSectionOffset());
-        writeItem(writer, DexItemType.ENCODED_ARRAY_ITEM, dexFile.encodedArrayPool.getNumItems(), dexFile.encodedArrayPool.getSectionOffset());
-        writeItem(writer, DexItemType.ANNOTATION_ITEM, dexFile.annotationPool.getNumItems(), dexFile.annotationPool.getSectionOffset());
-        writeItem(writer, DexItemType.ANNOTATION_SET_ITEM, dexFile.annotationSetPool.getNumItems(), dexFile.annotationSetPool.getSectionOffset());
-        writeItem(writer, DexItemType.ANNOTATION_SET_REF_LIST, dexFile.annotationSetRefPool.getNumItems(), dexFile.annotationSetRefPool.getSectionOffset());
-        writeItem(writer, DexItemType.ANNOTATION_DIRECTORY_ITEM, dexFile.annotationDirectoryPool.getNumItems(), dexFile.annotationDirectoryPool.getSectionOffset());
-        writeItem(writer, DexItemType.DEBUG_INFO_ITEM, dexFile.debugInfoPool.getNumItems(), dexFile.debugInfoPool.getSectionOffset());
-        writeItem(writer, DexItemType.CODE_ITEM, dexFile.codeItemPool.getNumItems(), dexFile.codeItemPool.getSectionOffset());
-        writeItem(writer, DexItemType.CLASS_DATA_ITEM, dexFile.classDefPool.getNumClassDataItems(), dexFile.classDefPool.getDataSectionOffset());
-        writeItem(writer, DexItemType.MAP_LIST, 1, sectionOffset);
+        writeItem(writer, ItemType.STRING_DATA_ITEM, dexFile.stringPool.getNumItems(), dexFile.stringPool.getDataSectionOffset());
+        writeItem(writer, ItemType.TYPE_LIST, dexFile.typeListPool.getNumItems(), dexFile.typeListPool.getSectionOffset());
+        writeItem(writer, ItemType.ENCODED_ARRAY_ITEM, dexFile.encodedArrayPool.getNumItems(), dexFile.encodedArrayPool.getSectionOffset());
+        writeItem(writer, ItemType.ANNOTATION_ITEM, dexFile.annotationPool.getNumItems(), dexFile.annotationPool.getSectionOffset());
+        writeItem(writer, ItemType.ANNOTATION_SET_ITEM, dexFile.annotationSetPool.getNumItems(), dexFile.annotationSetPool.getSectionOffset());
+        writeItem(writer, ItemType.ANNOTATION_SET_REF_LIST, dexFile.annotationSetRefPool.getNumItems(), dexFile.annotationSetRefPool.getSectionOffset());
+        writeItem(writer, ItemType.ANNOTATION_DIRECTORY_ITEM, dexFile.annotationDirectoryPool.getNumItems(), dexFile.annotationDirectoryPool.getSectionOffset());
+        writeItem(writer, ItemType.DEBUG_INFO_ITEM, dexFile.debugInfoPool.getNumItems(), dexFile.debugInfoPool.getSectionOffset());
+        writeItem(writer, ItemType.CODE_ITEM, dexFile.codeItemPool.getNumItems(), dexFile.codeItemPool.getSectionOffset());
+        writeItem(writer, ItemType.CLASS_DATA_ITEM, dexFile.classDefPool.getNumClassDataItems(), dexFile.classDefPool.getDataSectionOffset());
+        writeItem(writer, ItemType.MAP_LIST, 1, sectionOffset);
     }
 
     private int calcNumItems() {

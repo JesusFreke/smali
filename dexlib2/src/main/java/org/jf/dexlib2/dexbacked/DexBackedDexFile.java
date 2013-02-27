@@ -34,14 +34,11 @@ package org.jf.dexlib2.dexbacked;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
-import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.Utf8Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.Set;
 
 public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile {
@@ -61,7 +58,9 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
 
     @Override @Nonnull public abstract DexReader readerAt(int offset);
 
-    public abstract void dumpTo(Writer out, int width) throws IOException;
+    @Nonnull public RawDexFile asRaw() {
+        return new RawDexFile(buf);
+    }
 
     public static class Impl extends DexBackedDexFile {
         private final int stringCount;
@@ -76,11 +75,6 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         private final int methodStartOffset;
         private final int classCount;
         private final int classStartOffset;
-
-        public static final int MAP_ITEM_SIZE = 12;
-
-        public static final int TYPE_LIST_SIZE_OFFSET = 0;
-        public static final int TYPE_LIST_LIST_OFFSET = 4;
 
         public Impl(@Nonnull byte[] buf) {
             super(buf);
@@ -236,49 +230,6 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         @Nonnull
         public DexReader readerAt(int offset) {
             return new DexReader(this, offset);
-        }
-
-        public void dumpTo(Writer out, int width) throws IOException {
-            AnnotatedBytes annotatedBytes = new AnnotatedBytes(width);
-            HeaderItem.getAnnotator().annotateSection(annotatedBytes, this, 1);
-
-            if (stringCount > 0) {
-                annotatedBytes.skipTo(getStringIdItemOffset(0));
-                annotatedBytes.annotate(0, " ");
-                StringIdItem.getAnnotator().annotateSection(annotatedBytes, this, stringCount);
-            }
-
-            if (typeCount > 0) {
-                annotatedBytes.skipTo(getTypeIdItemOffset(0));
-                annotatedBytes.annotate(0, " ");
-                TypeIdItem.getAnnotator().annotateSection(annotatedBytes, this, typeCount);
-            }
-
-            if (protoCount > 0) {
-                annotatedBytes.skipTo(getProtoIdItemOffset(0));
-                annotatedBytes.annotate(0, " ");
-                ProtoIdItem.getAnnotator().annotateSection(annotatedBytes, this, protoCount);
-            }
-
-            if (fieldCount > 0) {
-                annotatedBytes.skipTo(getFieldIdItemOffset(0));
-                annotatedBytes.annotate(0, " ");
-                FieldIdItem.getAnnotator().annotateSection(annotatedBytes, this, fieldCount);
-            }
-
-            if (methodCount > 0) {
-                annotatedBytes.skipTo(getMethodIdItemOffset(0));
-                annotatedBytes.annotate(0, " ");
-                MethodIdItem.getAnnotator().annotateSection(annotatedBytes, this, methodCount);
-            }
-
-            if (classCount > 0) {
-                annotatedBytes.skipTo(getClassDefItemOffset(0));
-                annotatedBytes.annotate(0, " ");
-                ClassDefItem.getAnnotator().annotateSection(annotatedBytes, this, classCount);
-            }
-
-            annotatedBytes.writeAnnotations(out, buf);
         }
     }
 }

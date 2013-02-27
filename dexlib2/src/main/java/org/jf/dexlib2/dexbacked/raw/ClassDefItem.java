@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import com.google.common.base.Joiner;
+import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
@@ -61,7 +63,8 @@ public class ClassDefItem {
                 out.annotate(4, "class_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, classIndex));
 
                 int accessFlags = dexFile.readInt(out.getCursor());
-                out.annotate(4, "access_flags = 0x%x", accessFlags);
+                out.annotate(4, "access_flags = 0x%x: %s", accessFlags,
+                        Joiner.on('|').join(AccessFlags.getAccessFlagsForClass(accessFlags)));
 
                 int superclassIndex = dexFile.readSmallUint(out.getCursor());
                 out.annotate(4, "superclass_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, superclassIndex));

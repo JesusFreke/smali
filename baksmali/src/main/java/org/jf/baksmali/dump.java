@@ -41,7 +41,6 @@ public class dump {
         if (dumpFileName != null) {
             FileWriter writer = null;
 
-
             try {
                 writer = new FileWriter(dumpFileName);
 
@@ -50,7 +49,7 @@ public class dump {
                     consoleWidth = 120;
                 }
 
-                dexFile.dumpTo(writer, consoleWidth);
+                dexFile.asRaw().dumpTo(writer, consoleWidth);
             } catch (IOException ex) {
                 System.err.println("There was an error while dumping the dex file to " + dumpFileName);
                 ex.printStackTrace(System.err);
