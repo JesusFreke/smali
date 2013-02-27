@@ -76,7 +76,9 @@ public class RawDexFile {
 
     private static final Map<Integer, SectionAnnotator> annotators;
     static {
-        annotators = ImmutableMap.of(ItemType.TYPE_LIST, TypeListItem.getAnnotator());
+        annotators = ImmutableMap.of(
+                ItemType.TYPE_LIST, TypeListItem.getAnnotator(),
+                ItemType.ANNOTATION_SET_REF_LIST, AnnotationSetRefList.getAnnotator());
     }
 
     public void dumpTo(Writer out, int width) throws IOException {
