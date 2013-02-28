@@ -32,57 +32,35 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
 
-public class AnnotationItem {
-    public static final int VISIBILITY_OFFSET = 0;
-    public static final int ANNOTATION_OFFSET = 1;
+public class AnnotationSetItem {
+    public static final int SIZE_OFFSET = 0;
+    public static final int LIST_OFFSET = 4;
 
     @Nonnull
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
             @Nonnull @Override public String getItemName() {
-                return "annotation_item";
+                return "annotation_set_item";
             }
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
-                int visibility = dexFile.readUbyte(out.getCursor());
-                out.annotate(1, "visibility = %d: %s", visibility, getAnnotationVisibility(visibility));
+                int size = dexFile.readSmallUint(out.getCursor());
+                out.annotate(4, "size = %d", size);
 
-                DexReader reader = dexFile.readerAt(out.getCursor());
+                for (int i=0; i<size; i++) {
+                    int annotationOffset = dexFile.readSmallUint(out.getCursor());
+                    out.annotate(4, AnnotationItem.getReferenceAnnotation(dexFile, annotationOffset));
+                }
+            }
 
-                EncodedValue.annotateEncodedAnnotation(out, reader);
+            @Override public int getItemAlignment() {
+                return 4;
             }
         };
-    }
-
-    private static String getAnnotationVisibility(int visibility) {
-        switch (visibility) {
-            case 0:
-                return "build";
-            case 1:
-                return "runtime";
-            case 2:
-                return "system";
-            default:
-                return "invalid visibility";
-        }
-    }
-
-    public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int annotationItemOffset) {
-        try {
-            DexReader reader = dexFile.readerAt(annotationItemOffset);
-            reader.readUbyte();
-            int typeIndex = reader.readSmallUleb128();
-            String annotationType = dexFile.getType(typeIndex);
-            return String.format("annotation_item[0x%x]: %s", annotationItemOffset, annotationType);
-        } catch (Exception ex) {
-            ex.printStackTrace(System.err);
-        }
-        return String.format("annotation_item[0x%x]", annotationItemOffset);
     }
 }

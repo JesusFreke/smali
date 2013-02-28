@@ -80,6 +80,7 @@ public class RawDexFile {
                 ItemType.TYPE_LIST, TypeListItem.getAnnotator(),
                 ItemType.ANNOTATION_SET_REF_LIST, AnnotationSetRefList.getAnnotator(),
                 ItemType.MAP_LIST, MapItem.getAnnotator(),
+                ItemType.ANNOTATION_SET_ITEM, AnnotationSetItem.getAnnotator(),
                 ItemType.ANNOTATION_ITEM, AnnotationItem.getAnnotator());
     }
 
