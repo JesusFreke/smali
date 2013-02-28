@@ -79,7 +79,8 @@ public class RawDexFile {
         annotators = ImmutableMap.of(
                 ItemType.TYPE_LIST, TypeListItem.getAnnotator(),
                 ItemType.ANNOTATION_SET_REF_LIST, AnnotationSetRefList.getAnnotator(),
-                ItemType.MAP_LIST, MapItem.getAnnotator());
+                ItemType.MAP_LIST, MapItem.getAnnotator(),
+                ItemType.ANNOTATION_ITEM, AnnotationItem.getAnnotator());
     }
 
     public void dumpTo(Writer out, int width) throws IOException {

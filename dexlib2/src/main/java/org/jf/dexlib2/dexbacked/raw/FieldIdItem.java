@@ -63,4 +63,30 @@ public class FieldIdItem {
             }
         };
     }
+
+    @Nonnull
+    public static String asString(@Nonnull DexBackedDexFile dexFile, int fieldIndex) {
+        int fieldOffset = dexFile.getFieldIdItemOffset(fieldIndex);
+        int classIndex = dexFile.readUshort(fieldOffset + CLASS_OFFSET);
+        String classType = dexFile.getType(classIndex);
+
+        int typeIndex = dexFile.readUshort(fieldOffset + TYPE_OFFSET);
+        String fieldType = dexFile.getType(typeIndex);
+
+        int nameIndex = dexFile.readSmallUint(fieldOffset + NAME_OFFSET);
+        String fieldName = dexFile.getString(nameIndex);
+
+        return String.format("%s->%s:%s", classType, fieldName, fieldType);
+    }
+
+    @Nonnull
+    public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int fieldIndex) {
+        try {
+            String fieldString = asString(dexFile, fieldIndex);
+            return String.format("field_id_item[%d]: %s", fieldIndex, fieldString);
+        } catch (Exception ex) {
+            ex.printStackTrace(System.err);
+        }
+        return String.format("field_id_item[%d]", fieldIndex);
+    }
 }

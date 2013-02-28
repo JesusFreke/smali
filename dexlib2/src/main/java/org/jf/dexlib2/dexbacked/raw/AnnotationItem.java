@@ -32,56 +32,44 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.util.AnnotatedBytes;
-import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
 
-public class StringIdItem {
-    public static final int ITEM_SIZE = 4;
+public class AnnotationItem {
+    public static final int VISIBILITY_OFFSET = 0;
+    public static final int ANNOTATION_OFFSET = 1;
 
     @Nonnull
     public static SectionAnnotator getAnnotator() {
         return new SectionAnnotator() {
             @Nonnull @Override public String getItemName() {
-                return "string_id_item";
+                return "annotation_item";
             }
 
-            @Override protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile,
-                                                  int itemIndex) {
-                int stringDataOffset = dexFile.readSmallUint(out.getCursor());
-                try {
-                    String stringValue = dexFile.getString(itemIndex);
-                    out.annotate(4, "string_data_item[0x%x]: \"%s\"", stringDataOffset,
-                            StringUtils.escapeString(stringValue));
-                    return;
-                } catch (Exception ex) {
-                    System.err.print("Error while resolving string value at index: ");
-                    System.err.print(itemIndex);
-                    ex.printStackTrace(System.err);
-                }
+            @Override
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+                int visibility = dexFile.readUbyte(out.getCursor());
+                out.annotate(1, "visibility = %d: %s", visibility, getAnnotationVisibility(visibility));
 
-                out.annotate(4, "string_id_item[0x%x]", stringDataOffset);
+                DexReader reader = dexFile.readerAt(out.getCursor());
+
+                EncodedValue.annotateEncodedAnnotation(out, reader);
             }
         };
     }
 
-    @Nonnull
-    public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int stringIndex) {
-        return getReferenceAnnotation(dexFile, stringIndex, false);
-
-    }
-
-    public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int stringIndex, boolean quote) {
-        try {
-            String string = dexFile.getString(stringIndex);
-            if (quote) {
-                string = String.format("\"%s\"", StringUtils.escapeString(string));
-            }
-            return String.format("string_id_item[%d]: %s", stringIndex, string);
-        } catch (Exception ex) {
-            ex.printStackTrace(System.err);
+    private static String getAnnotationVisibility(int visibility) {
+        switch (visibility) {
+            case 0:
+                return "build";
+            case 1:
+                return "runtime";
+            case 2:
+                return "system";
+            default:
+                return "invalid visibility";
         }
-        return String.format("string_id_item[%d]", stringIndex);
     }
 }

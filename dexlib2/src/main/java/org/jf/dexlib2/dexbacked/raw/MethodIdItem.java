@@ -63,4 +63,30 @@ public class MethodIdItem {
             }
         };
     }
+
+    @Nonnull
+    public static String asString(@Nonnull DexBackedDexFile dexFile, int methodIndex) {
+        int methodOffset = dexFile.getMethodIdItemOffset(methodIndex);
+        int classIndex = dexFile.readUshort(methodOffset + CLASS_OFFSET);
+        String classType = dexFile.getType(classIndex);
+
+        int protoIndex = dexFile.readUshort(methodOffset + PROTO_OFFSET);
+        String protoString = ProtoIdItem.asString(dexFile, protoIndex);
+
+        int nameIndex = dexFile.readSmallUint(methodOffset + NAME_OFFSET);
+        String methodName = dexFile.getString(nameIndex);
+
+        return String.format("%s->%s%s", classType, methodName, protoString);
+    }
+
+    @Nonnull
+    public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int methodIndex) {
+        try {
+            String methodString = asString(dexFile, methodIndex);
+            return String.format("method_id_item[%d]: %s", methodIndex, methodString);
+        } catch (Exception ex) {
+            ex.printStackTrace(System.err);
+        }
+        return String.format("method_id_item[%d]", methodIndex);
+    }
 }
