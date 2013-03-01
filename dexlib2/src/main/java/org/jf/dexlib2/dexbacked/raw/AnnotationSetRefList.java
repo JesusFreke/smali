@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
@@ -48,7 +47,7 @@ public class AnnotationSetRefList {
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
                 int size = dexFile.readSmallUint(out.getCursor());
                 out.annotate(4, "size = %d", size);
 

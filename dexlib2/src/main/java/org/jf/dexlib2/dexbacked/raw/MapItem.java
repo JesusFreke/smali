@@ -76,7 +76,7 @@ public class MapItem {
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
                 int itemType = dexFile.readUshort(out.getCursor());
                 out.annotate(2, "type = 0x%x: %s", itemType, ItemType.getItemTypeName(itemType));
 
@@ -90,7 +90,7 @@ public class MapItem {
             }
 
             @Override
-            public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemCount) {
+            public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemCount) {
                 int mapItemCount = dexFile.readSmallUint(out.getCursor());
                 out.annotate(4, "size = %d", mapItemCount);
 

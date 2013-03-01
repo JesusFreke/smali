@@ -48,7 +48,7 @@ public class TypeListItem {
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
                 int size = dexFile.readSmallUint(out.getCursor());
                 out.annotate(4, "size: %d", size);
 

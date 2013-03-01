@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.AlignmentUtils;
 
@@ -40,7 +39,7 @@ import javax.annotation.Nullable;
 
 public abstract class SectionAnnotator {
     @Nonnull public abstract String getItemName();
-    protected abstract void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex);
+    protected abstract void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex);
 
     /**
      * Write out annotations for this section
@@ -49,7 +48,7 @@ public abstract class SectionAnnotator {
      * @param dexFile The DexBackedDexFile representing the dex file being annotated
      * @param itemCount The number of items in the section (from the header/map)
      */
-    public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemCount) {
+    public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemCount) {
         String itemName = getItemName();
         int itemAlignment = getItemAlignment();
         if (itemCount > 0) {
@@ -74,7 +73,7 @@ public abstract class SectionAnnotator {
         }
     }
 
-    @Nullable public String getItemIdentity(@Nonnull DexBackedDexFile dexFile, int itemIndex, int itemOffset) {
+    @Nullable public String getItemIdentity(@Nonnull RawDexFile dexFile, int itemIndex, int itemOffset) {
         return null;
     }
 

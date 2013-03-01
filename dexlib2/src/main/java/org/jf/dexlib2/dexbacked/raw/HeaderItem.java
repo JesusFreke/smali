@@ -146,7 +146,7 @@ public class HeaderItem {
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
                 int startOffset = out.getCursor();
                 int headerSize;
 

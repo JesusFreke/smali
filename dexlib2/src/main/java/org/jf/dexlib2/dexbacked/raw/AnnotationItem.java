@@ -49,7 +49,7 @@ public class AnnotationItem {
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
                 int visibility = dexFile.readUbyte(out.getCursor());
                 out.annotate(1, "visibility = %d: %s", visibility, getAnnotationVisibility(visibility));
 

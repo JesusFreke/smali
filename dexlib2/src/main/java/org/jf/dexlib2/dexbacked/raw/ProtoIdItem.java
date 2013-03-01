@@ -51,7 +51,7 @@ public class ProtoIdItem {
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
                 int shortyIndex = dexFile.readSmallUint(out.getCursor());
                 out.annotate(4, "shorty_idx = %s", StringIdItem.getReferenceAnnotation(dexFile, shortyIndex));
 

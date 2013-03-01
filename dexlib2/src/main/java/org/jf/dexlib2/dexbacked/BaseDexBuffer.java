@@ -111,4 +111,9 @@ public class BaseDexBuffer {
     public BaseDexReader readerAt(int offset) {
         return new BaseDexReader<BaseDexBuffer>(this, offset);
     }
+
+    @Nonnull
+    protected byte[] getBuf() {
+        return buf;
+    }
 }

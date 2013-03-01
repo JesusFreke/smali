@@ -58,10 +58,6 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
 
     @Override @Nonnull public abstract DexReader readerAt(int offset);
 
-    @Nonnull public RawDexFile asRaw() {
-        return new RawDexFile(buf);
-    }
-
     public static class Impl extends DexBackedDexFile {
         private final int stringCount;
         private final int stringStartOffset;
@@ -75,6 +71,10 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
         private final int methodStartOffset;
         private final int classCount;
         private final int classStartOffset;
+
+        public Impl(@Nonnull BaseDexBuffer buf) {
+            this(buf.buf);
+        }
 
         public Impl(@Nonnull byte[] buf) {
             super(buf);

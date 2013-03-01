@@ -29,6 +29,7 @@
 package org.jf.baksmali;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.util.ConsoleUtil;
 
 import java.io.FileWriter;
@@ -49,7 +50,7 @@ public class dump {
                     consoleWidth = 120;
                 }
 
-                dexFile.asRaw().dumpTo(writer, consoleWidth);
+                new RawDexFile(dexFile).dumpTo(writer, consoleWidth);
             } catch (IOException ex) {
                 System.err.println("There was an error while dumping the dex file to " + dumpFileName);
                 ex.printStackTrace(System.err);

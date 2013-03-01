@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import com.google.common.collect.ImmutableMap;
+import org.jf.dexlib2.dexbacked.BaseDexBuffer;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.util.AnnotatedBytes;
@@ -42,15 +43,17 @@ import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 
-public class RawDexFile {
-    @Nonnull private final byte[] buf;
-    @Nonnull public final DexBackedDexFile dexFile;
+public class RawDexFile extends DexBackedDexFile.Impl {
     @Nonnull public final HeaderItem headerItem;
 
+    public RawDexFile(BaseDexBuffer buf) {
+        super(buf);
+        this.headerItem = new HeaderItem(this);
+    }
+
     public RawDexFile(byte[] buf) {
-        this.buf = buf;
-        this.dexFile = new DexBackedDexFile.Impl(buf);
-        this.headerItem = new HeaderItem(dexFile);
+        super(buf);
+        this.headerItem = new HeaderItem(this);
     }
 
     public int getMapOffset() {
@@ -59,13 +62,13 @@ public class RawDexFile {
 
     public List<MapItem> getMapItems() {
         final int mapOffset = getMapOffset();
-        final int mapSize = dexFile.readSmallUint(mapOffset);
+        final int mapSize = readSmallUint(mapOffset);
 
         return new FixedSizeList<MapItem>() {
             @Override
             public MapItem readItem(int index) {
                 int mapItemOffset = mapOffset + 4 + index * MapItem.ITEM_SIZE;
-                return new MapItem(dexFile, mapItemOffset);
+                return new MapItem(RawDexFile.this, mapItemOffset);
             }
 
             @Override public int size() {
@@ -86,58 +89,58 @@ public class RawDexFile {
 
     public void dumpTo(Writer out, int width) throws IOException {
         AnnotatedBytes annotatedBytes = new AnnotatedBytes(width);
-        HeaderItem.getAnnotator().annotateSection(annotatedBytes, dexFile, 1);
+        HeaderItem.getAnnotator().annotateSection(annotatedBytes, this, 1);
 
         int stringCount = headerItem.getStringCount();
         if (stringCount > 0) {
             annotatedBytes.skipTo(headerItem.getStringOffset());
             annotatedBytes.annotate(0, " ");
-            StringIdItem.getAnnotator().annotateSection(annotatedBytes, dexFile, stringCount);
+            StringIdItem.getAnnotator().annotateSection(annotatedBytes, this, stringCount);
         }
 
         int typeCount = headerItem.getTypeCount();
         if (typeCount > 0) {
             annotatedBytes.skipTo(headerItem.getTypeOffset());
             annotatedBytes.annotate(0, " ");
-            TypeIdItem.getAnnotator().annotateSection(annotatedBytes, dexFile, typeCount);
+            TypeIdItem.getAnnotator().annotateSection(annotatedBytes, this, typeCount);
         }
 
         int protoCount = headerItem.getProtoCount();
         if (protoCount > 0) {
             annotatedBytes.skipTo(headerItem.getProtoOffset());
             annotatedBytes.annotate(0, " ");
-            ProtoIdItem.getAnnotator().annotateSection(annotatedBytes, dexFile, protoCount);
+            ProtoIdItem.getAnnotator().annotateSection(annotatedBytes, this, protoCount);
         }
 
         int fieldCount = headerItem.getFieldCount();
         if (fieldCount > 0) {
             annotatedBytes.skipTo(headerItem.getFieldOffset());
             annotatedBytes.annotate(0, " ");
-            FieldIdItem.getAnnotator().annotateSection(annotatedBytes, dexFile, fieldCount);
+            FieldIdItem.getAnnotator().annotateSection(annotatedBytes, this, fieldCount);
         }
 
         int methodCount = headerItem.getMethodCount();
         if (methodCount > 0) {
             annotatedBytes.skipTo(headerItem.getMethodOffset());
             annotatedBytes.annotate(0, " ");
-            MethodIdItem.getAnnotator().annotateSection(annotatedBytes, dexFile, methodCount);
+            MethodIdItem.getAnnotator().annotateSection(annotatedBytes, this, methodCount);
         }
 
         int classCount = headerItem.getClassCount();
         if (classCount > 0) {
             annotatedBytes.skipTo(headerItem.getClassOffset());
             annotatedBytes.annotate(0, " ");
-            ClassDefItem.getAnnotator().annotateSection(annotatedBytes, dexFile, classCount);
+            ClassDefItem.getAnnotator().annotateSection(annotatedBytes, this, classCount);
         }
 
         for (MapItem mapItem: getMapItems()) {
             SectionAnnotator annotator = annotators.get(mapItem.getType());
             if (annotator != null) {
                 annotatedBytes.skipTo(mapItem.getOffset());
-                annotator.annotateSection(annotatedBytes, dexFile, mapItem.getItemCount());
+                annotator.annotateSection(annotatedBytes, this, mapItem.getItemCount());
             }
         }
 
-        annotatedBytes.writeAnnotations(out, buf);
+        annotatedBytes.writeAnnotations(out, getBuf());
     }
 }

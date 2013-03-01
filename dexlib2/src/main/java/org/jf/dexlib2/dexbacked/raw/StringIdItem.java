@@ -47,7 +47,7 @@ public class StringIdItem {
                 return "string_id_item";
             }
 
-            @Override protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull DexBackedDexFile dexFile,
+            @Override protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile,
                                                   int itemIndex) {
                 int stringDataOffset = dexFile.readSmallUint(out.getCursor());
                 try {
