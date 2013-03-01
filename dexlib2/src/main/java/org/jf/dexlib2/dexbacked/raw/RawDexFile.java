@@ -38,6 +38,7 @@ import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
@@ -60,6 +61,16 @@ public class RawDexFile extends DexBackedDexFile.Impl {
         return headerItem.getMapOffset();
     }
 
+    @Nullable
+    public MapItem getMapItemForSection(int itemType) {
+        for (MapItem mapItem: getMapItems()) {
+            if (mapItem.getType() == itemType) {
+                return mapItem;
+            }
+        }
+        return null;
+    }
+
     public List<MapItem> getMapItems() {
         final int mapOffset = getMapOffset();
         final int mapSize = readSmallUint(mapOffset);
@@ -79,12 +90,14 @@ public class RawDexFile extends DexBackedDexFile.Impl {
 
     private static final Map<Integer, SectionAnnotator> annotators;
     static {
-        annotators = ImmutableMap.of(
-                ItemType.TYPE_LIST, TypeListItem.getAnnotator(),
-                ItemType.ANNOTATION_SET_REF_LIST, AnnotationSetRefList.getAnnotator(),
-                ItemType.MAP_LIST, MapItem.getAnnotator(),
-                ItemType.ANNOTATION_SET_ITEM, AnnotationSetItem.getAnnotator(),
-                ItemType.ANNOTATION_ITEM, AnnotationItem.getAnnotator());
+        ImmutableMap.Builder<Integer, SectionAnnotator> builder = ImmutableMap.builder();
+        builder.put(ItemType.TYPE_LIST, TypeListItem.getAnnotator());
+        builder.put(ItemType.ANNOTATION_SET_REF_LIST, AnnotationSetRefList.getAnnotator());
+        builder.put(ItemType.MAP_LIST, MapItem.getAnnotator());
+        builder.put(ItemType.ANNOTATION_SET_ITEM, AnnotationSetItem.getAnnotator());
+        builder.put(ItemType.ANNOTATION_ITEM, AnnotationItem.getAnnotator());
+        builder.put(ItemType.CLASS_DATA_ITEM, ClassDataItem.getAnnotator());
+        annotators = builder.build();
     }
 
     public void dumpTo(Writer out, int width) throws IOException {

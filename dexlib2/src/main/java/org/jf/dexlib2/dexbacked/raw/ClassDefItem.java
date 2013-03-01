@@ -32,10 +32,13 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Map;
 
 public class ClassDefItem {
     public static final int ITEM_SIZE = 32;
@@ -101,5 +104,28 @@ public class ClassDefItem {
                 }
             }
         };
+    }
+
+    @Nullable
+    public static Map<Integer, String> getClassDataTypeMap(@Nonnull RawDexFile dexFile) {
+        MapItem classDefSection = dexFile.getMapItemForSection(ItemType.CLASS_DEF_ITEM);
+        if (classDefSection != null) {
+            int startOffset = classDefSection.getOffset();
+
+            ImmutableMap.Builder<Integer, String> builder = ImmutableMap.builder();
+
+            for (int i=0; i<classDefSection.getItemCount(); i++) {
+                int itemOffset = startOffset + i*ITEM_SIZE;
+                int classTypeIndex = dexFile.readSmallUint(itemOffset + CLASS_OFFSET);
+                String classType = dexFile.getType(classTypeIndex);
+                int classDataOffset = dexFile.readSmallUint(itemOffset + CLASS_DATA_OFFSET);
+
+                if (classDataOffset != 0) {
+                    builder.put(classDataOffset, classType);
+                }
+            }
+            return builder.build();
+        }
+        return null;
     }
 }
