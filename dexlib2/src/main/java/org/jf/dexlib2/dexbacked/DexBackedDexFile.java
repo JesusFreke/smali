@@ -35,7 +35,6 @@ import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ExceptionWithContext;
-import org.jf.util.Utf8Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -197,7 +196,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             int stringDataOffset = readSmallUint(stringOffset);
             DexReader reader = readerAt(stringDataOffset);
             int utf16Length = reader.readSmallUleb128();
-            return Utf8Utils.utf8BytesWithUtf16LengthToString(buf, reader.getOffset(), utf16Length);
+            return reader.readString(utf16Length);
         }
 
         @Override

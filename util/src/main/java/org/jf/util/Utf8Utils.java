@@ -24,12 +24,13 @@
 
 package org.jf.util;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Constants of type <code>CONSTANT_Utf8_info</code>.
  */
 public final class Utf8Utils {
-
-
     /**
      * Converts a string into its Java-style UTF-8 form. Java-style UTF-8
      * differs from normal UTF-8 in the handling of character '\0' and
@@ -174,7 +175,21 @@ public final class Utf8Utils {
      * @param utf16Length the number of utf16 characters in the string to decode
      * @return non-null; the converted string
      */
-    public static String utf8BytesWithUtf16LengthToString(byte[] bytes, int start, int utf16Length) {
+    public static String utf8BytesWithUtf16LengthToString(@Nonnull byte[] bytes, int start, int utf16Length) {
+        return utf8BytesWithUtf16LengthToString(bytes, start, utf16Length, null);
+    }
+
+    /**
+     * Converts an array of UTF-8 bytes into a string.
+     *
+     * @param bytes non-null; the bytes to convert
+     * @param start the start index of the utf8 string to convert
+     * @param utf16Length the number of utf16 characters in the string to decode
+     * @param readLength If non-null, the first element will contain the number of bytes read after the method exits
+     * @return non-null; the converted string
+     */
+    public static String utf8BytesWithUtf16LengthToString(@Nonnull byte[] bytes, int start, int utf16Length,
+                                                          @Nullable int[] readLength) {
         char[] chars = localBuffer.get();
         if (chars == null || chars.length < utf16Length) {
             chars = new char[utf16Length];
@@ -182,7 +197,8 @@ public final class Utf8Utils {
         }
         int outAt = 0;
 
-        for (int at = start; utf16Length > 0; utf16Length--) {
+        int at = 0;
+        for (at = start; utf16Length > 0; utf16Length--) {
             int v0 = bytes[at] & 0xFF;
             char out;
             switch (v0 >> 4) {
@@ -247,6 +263,10 @@ public final class Utf8Utils {
             outAt++;
         }
 
+        if (readLength != null && readLength.length > 0) {
+            readLength[0] = at - start;
+            readLength[0] = at - start;
+        }
         return new String(chars, 0, outAt);
     }
 

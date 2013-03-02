@@ -98,6 +98,7 @@ public class RawDexFile extends DexBackedDexFile.Impl {
         builder.put(ItemType.ANNOTATION_ITEM, AnnotationItem.getAnnotator());
         builder.put(ItemType.CLASS_DATA_ITEM, ClassDataItem.getAnnotator());
         builder.put(ItemType.CODE_ITEM, CodeItem.getAnnotator());
+        builder.put(ItemType.STRING_DATA_ITEM, StringDataItem.getAnnotator());
         annotators = builder.build();
     }
 
