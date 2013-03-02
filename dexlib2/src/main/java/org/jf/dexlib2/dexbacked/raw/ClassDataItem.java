@@ -32,12 +32,14 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ClassDataItem {
@@ -158,5 +160,60 @@ public class ClassDataItem {
                 annotator.annotateSection(out, dexFile, itemCount);
             }
         };
+    }
+
+    @Nullable public static Map<Integer, String> getCodeItemMethodMap(@Nonnull RawDexFile dexFile) {
+        MapItem classDataMap = dexFile.getMapItemForSection(ItemType.CLASS_DATA_ITEM);
+        if (classDataMap != null) {
+            HashMap<Integer, String> codeItemMethodMap = Maps.newHashMap();
+
+            int classDataOffset = classDataMap.getOffset();
+
+            DexReader reader = dexFile.readerAt(classDataOffset);
+
+            for (int i=0; i<classDataMap.getItemCount(); i++) {
+                int staticFieldsSize = reader.readSmallUleb128();
+                int instanceFieldsSize = reader.readSmallUleb128();
+                int directMethodsSize = reader.readSmallUleb128();
+                int virtualMethodsSize = reader.readSmallUleb128();
+
+                for (int j=0; j<staticFieldsSize; j++) {
+                    reader.readSmallUleb128();
+                    reader.readSmallUleb128();
+                }
+
+                for (int j=0; j<instanceFieldsSize; j++) {
+                    reader.readSmallUleb128();
+                    reader.readSmallUleb128();
+                }
+
+                int previousIndex = 0;
+                for (int j=0; j<directMethodsSize; j++) {
+                    previousIndex = handleMethod(reader, previousIndex, codeItemMethodMap);
+                }
+
+                previousIndex = 0;
+                for (int j=0; j<virtualMethodsSize; j++) {
+                    previousIndex = handleMethod(reader, previousIndex, codeItemMethodMap);
+                }
+            }
+
+            return codeItemMethodMap;
+        }
+        return null;
+    }
+
+    private static int handleMethod(@Nonnull DexReader reader, int previousIndex, Map<Integer, String> map) {
+        int methodIndexDelta = reader.readSmallUleb128();
+        int methodIndex = previousIndex + methodIndexDelta;
+        String methodString = MethodIdItem.asString(reader.dexBuf, methodIndex);
+
+        reader.readSmallUleb128();
+
+        int codeOffset = reader.readSmallUleb128();
+        if (codeOffset != 0) {
+            map.put(codeOffset, methodString);
+        }
+        return methodIndex;
     }
 }

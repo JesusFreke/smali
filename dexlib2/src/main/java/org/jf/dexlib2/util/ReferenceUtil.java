@@ -31,9 +31,10 @@
 
 package org.jf.dexlib2.util;
 
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.*;
+import org.jf.util.StringUtils;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
 
@@ -91,6 +92,23 @@ public final class ReferenceUtil {
         writer.write(fieldReference.getName());
         writer.write(':');
         writer.write(fieldReference.getType());
+    }
+
+    @Nullable
+    public static String getReferenceString(Reference reference) {
+        if (reference instanceof StringReference) {
+            return String.format("\"%s\"", StringUtils.escapeString(((StringReference)reference).getString()));
+        }
+        if (reference instanceof TypeReference) {
+            return ((TypeReference)reference).getType();
+        }
+        if (reference instanceof FieldReference) {
+            return getFieldDescriptor((FieldReference)reference);
+        }
+        if (reference instanceof MethodReference) {
+            return getMethodDescriptor((MethodReference)reference);
+        }
+        return null;
     }
 
     private ReferenceUtil() {}
