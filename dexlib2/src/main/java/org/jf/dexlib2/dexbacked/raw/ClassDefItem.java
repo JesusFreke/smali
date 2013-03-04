@@ -32,13 +32,12 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Map;
 
 public class ClassDefItem {
     public static final int ITEM_SIZE = 32;
@@ -53,14 +52,21 @@ public class ClassDefItem {
     public static final int STATIC_VALUES_OFFSET = 28;
 
     @Nonnull
-    public static SectionAnnotator getAnnotator() {
-        return new SectionAnnotator() {
+    public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
+        return new SectionAnnotator(annotator, mapItem) {
+            private SectionAnnotator classDataAnnotator = null;
+
+            @Override public void annotateSection(@Nonnull AnnotatedBytes out) {
+                classDataAnnotator = annotator.getAnnotator(ItemType.CLASS_DATA_ITEM);
+                super.annotateSection(out);
+            }
+
             @Nonnull @Override public String getItemName() {
                 return "class_def_item";
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
                 int classIndex = dexFile.readSmallUint(out.getCursor());
                 out.annotate(4, "class_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, classIndex));
 
@@ -94,6 +100,7 @@ public class ClassDefItem {
                     out.annotate(4, "class_data_off = 0");
                 } else {
                     out.annotate(4, "class_data_off = class_data_item[0x%x]", classDataOffset);
+                    addClassDataIdentity(classDataOffset, dexFile.getType(classIndex));
                 }
 
                 int staticValuesOffset = dexFile.readSmallUint(out.getCursor());
@@ -103,29 +110,12 @@ public class ClassDefItem {
                     out.annotate(4, "static_values_off = encoded_array_item[0x%x]", staticValuesOffset);
                 }
             }
-        };
-    }
 
-    @Nullable
-    public static Map<Integer, String> getClassDataTypeMap(@Nonnull RawDexFile dexFile) {
-        MapItem classDefSection = dexFile.getMapItemForSection(ItemType.CLASS_DEF_ITEM);
-        if (classDefSection != null) {
-            int startOffset = classDefSection.getOffset();
-
-            ImmutableMap.Builder<Integer, String> builder = ImmutableMap.builder();
-
-            for (int i=0; i<classDefSection.getItemCount(); i++) {
-                int itemOffset = startOffset + i*ITEM_SIZE;
-                int classTypeIndex = dexFile.readSmallUint(itemOffset + CLASS_OFFSET);
-                String classType = dexFile.getType(classTypeIndex);
-                int classDataOffset = dexFile.readSmallUint(itemOffset + CLASS_DATA_OFFSET);
-
-                if (classDataOffset != 0) {
-                    builder.put(classDataOffset, classType);
+            private void addClassDataIdentity(int classDataOffset, String classType) {
+                if (classDataAnnotator != null) {
+                    classDataAnnotator.setItemIdentity(classDataOffset, classType);
                 }
             }
-            return builder.build();
-        }
-        return null;
+        };
     }
 }

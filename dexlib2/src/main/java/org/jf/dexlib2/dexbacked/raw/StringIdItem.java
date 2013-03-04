@@ -32,23 +32,25 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class StringIdItem {
     public static final int ITEM_SIZE = 4;
 
     @Nonnull
-    public static SectionAnnotator getAnnotator() {
-        return new SectionAnnotator() {
+    public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
+        return new SectionAnnotator(annotator, mapItem) {
             @Nonnull @Override public String getItemName() {
                 return "string_id_item";
             }
 
-            @Override protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile,
-                                                  int itemIndex) {
+            @Override
+            public void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
                 int stringDataOffset = dexFile.readSmallUint(out.getCursor());
                 try {
                     String stringValue = dexFile.getString(itemIndex);

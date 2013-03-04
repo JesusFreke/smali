@@ -32,10 +32,12 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class HeaderItem {
     public static final int ITEM_SIZE = 0x70;
@@ -139,14 +141,14 @@ public class HeaderItem {
     }
 
     @Nonnull
-    public static SectionAnnotator getAnnotator() {
-        return new SectionAnnotator() {
+    public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
+        return new SectionAnnotator(annotator, mapItem) {
             @Nonnull @Override public String getItemName() {
                 return "header_item";
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
                 int startOffset = out.getCursor();
                 int headerSize;
 

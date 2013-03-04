@@ -32,9 +32,11 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class MapItem {
     public static final int ITEM_SIZE = 12;
@@ -69,14 +71,14 @@ public class MapItem {
     }
 
     @Nonnull
-    public static SectionAnnotator getAnnotator() {
-        return new SectionAnnotator() {
+    public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
+        return new SectionAnnotator(annotator, mapItem) {
             @Nonnull @Override public String getItemName() {
                 return "map_item";
             }
 
             @Override
-            protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
+            protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
                 int itemType = dexFile.readUshort(out.getCursor());
                 out.annotate(2, "type = 0x%x: %s", itemType, ItemType.getItemTypeName(itemType));
 
@@ -89,12 +91,12 @@ public class MapItem {
                 out.annotate(4, "offset = 0x%x", offset);
             }
 
-            @Override
-            public void annotateSection(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemCount) {
+            @Override public void annotateSection(@Nonnull AnnotatedBytes out) {
+                out.moveTo(sectionOffset);
                 int mapItemCount = dexFile.readSmallUint(out.getCursor());
                 out.annotate(4, "size = %d", mapItemCount);
 
-                super.annotateSection(out, dexFile, mapItemCount);
+                super.annotateSectionInner(out);
             }
         };
     }

@@ -30,6 +30,7 @@ package org.jf.baksmali;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.RawDexFile;
+import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.util.ConsoleUtil;
 
 import java.io.BufferedWriter;
@@ -52,7 +53,9 @@ public class dump {
                     consoleWidth = 120;
                 }
 
-                new RawDexFile(dexFile).dumpTo(writer, consoleWidth);
+                RawDexFile rawDexFile = new RawDexFile(dexFile);
+                DexAnnotator annotator = new DexAnnotator(rawDexFile, consoleWidth);
+                annotator.writeAnnotations(writer);
             } catch (IOException ex) {
                 System.err.println("There was an error while dumping the dex file to " + dumpFileName);
                 ex.printStackTrace(System.err);

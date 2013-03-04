@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
-import com.google.common.collect.ImmutableMap;
 import org.jf.dexlib2.dexbacked.BaseDexBuffer;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
@@ -42,7 +41,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
-import java.util.Map;
 
 public class RawDexFile extends DexBackedDexFile.Impl {
     @Nonnull public final HeaderItem headerItem;
@@ -88,74 +86,7 @@ public class RawDexFile extends DexBackedDexFile.Impl {
         };
     }
 
-    private static final Map<Integer, SectionAnnotator> annotators;
-    static {
-        ImmutableMap.Builder<Integer, SectionAnnotator> builder = ImmutableMap.builder();
-        builder.put(ItemType.TYPE_LIST, TypeListItem.getAnnotator());
-        builder.put(ItemType.ANNOTATION_SET_REF_LIST, AnnotationSetRefList.getAnnotator());
-        builder.put(ItemType.MAP_LIST, MapItem.getAnnotator());
-        builder.put(ItemType.ANNOTATION_SET_ITEM, AnnotationSetItem.getAnnotator());
-        builder.put(ItemType.ANNOTATION_ITEM, AnnotationItem.getAnnotator());
-        builder.put(ItemType.CLASS_DATA_ITEM, ClassDataItem.getAnnotator());
-        builder.put(ItemType.CODE_ITEM, CodeItem.getAnnotator());
-        builder.put(ItemType.STRING_DATA_ITEM, StringDataItem.getAnnotator());
-        annotators = builder.build();
-    }
-
-    public void dumpTo(Writer out, int width) throws IOException {
-        AnnotatedBytes annotatedBytes = new AnnotatedBytes(width);
-        HeaderItem.getAnnotator().annotateSection(annotatedBytes, this, 1);
-
-        int stringCount = headerItem.getStringCount();
-        if (stringCount > 0) {
-            annotatedBytes.moveTo(headerItem.getStringOffset());
-            annotatedBytes.annotate(0, " ");
-            StringIdItem.getAnnotator().annotateSection(annotatedBytes, this, stringCount);
-        }
-
-        int typeCount = headerItem.getTypeCount();
-        if (typeCount > 0) {
-            annotatedBytes.moveTo(headerItem.getTypeOffset());
-            annotatedBytes.annotate(0, " ");
-            TypeIdItem.getAnnotator().annotateSection(annotatedBytes, this, typeCount);
-        }
-
-        int protoCount = headerItem.getProtoCount();
-        if (protoCount > 0) {
-            annotatedBytes.moveTo(headerItem.getProtoOffset());
-            annotatedBytes.annotate(0, " ");
-            ProtoIdItem.getAnnotator().annotateSection(annotatedBytes, this, protoCount);
-        }
-
-        int fieldCount = headerItem.getFieldCount();
-        if (fieldCount > 0) {
-            annotatedBytes.moveTo(headerItem.getFieldOffset());
-            annotatedBytes.annotate(0, " ");
-            FieldIdItem.getAnnotator().annotateSection(annotatedBytes, this, fieldCount);
-        }
-
-        int methodCount = headerItem.getMethodCount();
-        if (methodCount > 0) {
-            annotatedBytes.moveTo(headerItem.getMethodOffset());
-            annotatedBytes.annotate(0, " ");
-            MethodIdItem.getAnnotator().annotateSection(annotatedBytes, this, methodCount);
-        }
-
-        int classCount = headerItem.getClassCount();
-        if (classCount > 0) {
-            annotatedBytes.moveTo(headerItem.getClassOffset());
-            annotatedBytes.annotate(0, " ");
-            ClassDefItem.getAnnotator().annotateSection(annotatedBytes, this, classCount);
-        }
-
-        for (MapItem mapItem: getMapItems()) {
-            SectionAnnotator annotator = annotators.get(mapItem.getType());
-            if (annotator != null) {
-                annotatedBytes.moveTo(mapItem.getOffset());
-                annotator.annotateSection(annotatedBytes, this, mapItem.getItemCount());
-            }
-        }
-
+    public void writeAnnotations(@Nonnull Writer out, @Nonnull AnnotatedBytes annotatedBytes) throws IOException {
         annotatedBytes.writeAnnotations(out, getBuf());
     }
 }
