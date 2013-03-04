@@ -108,42 +108,42 @@ public class RawDexFile extends DexBackedDexFile.Impl {
 
         int stringCount = headerItem.getStringCount();
         if (stringCount > 0) {
-            annotatedBytes.skipTo(headerItem.getStringOffset());
+            annotatedBytes.moveTo(headerItem.getStringOffset());
             annotatedBytes.annotate(0, " ");
             StringIdItem.getAnnotator().annotateSection(annotatedBytes, this, stringCount);
         }
 
         int typeCount = headerItem.getTypeCount();
         if (typeCount > 0) {
-            annotatedBytes.skipTo(headerItem.getTypeOffset());
+            annotatedBytes.moveTo(headerItem.getTypeOffset());
             annotatedBytes.annotate(0, " ");
             TypeIdItem.getAnnotator().annotateSection(annotatedBytes, this, typeCount);
         }
 
         int protoCount = headerItem.getProtoCount();
         if (protoCount > 0) {
-            annotatedBytes.skipTo(headerItem.getProtoOffset());
+            annotatedBytes.moveTo(headerItem.getProtoOffset());
             annotatedBytes.annotate(0, " ");
             ProtoIdItem.getAnnotator().annotateSection(annotatedBytes, this, protoCount);
         }
 
         int fieldCount = headerItem.getFieldCount();
         if (fieldCount > 0) {
-            annotatedBytes.skipTo(headerItem.getFieldOffset());
+            annotatedBytes.moveTo(headerItem.getFieldOffset());
             annotatedBytes.annotate(0, " ");
             FieldIdItem.getAnnotator().annotateSection(annotatedBytes, this, fieldCount);
         }
 
         int methodCount = headerItem.getMethodCount();
         if (methodCount > 0) {
-            annotatedBytes.skipTo(headerItem.getMethodOffset());
+            annotatedBytes.moveTo(headerItem.getMethodOffset());
             annotatedBytes.annotate(0, " ");
             MethodIdItem.getAnnotator().annotateSection(annotatedBytes, this, methodCount);
         }
 
         int classCount = headerItem.getClassCount();
         if (classCount > 0) {
-            annotatedBytes.skipTo(headerItem.getClassOffset());
+            annotatedBytes.moveTo(headerItem.getClassOffset());
             annotatedBytes.annotate(0, " ");
             ClassDefItem.getAnnotator().annotateSection(annotatedBytes, this, classCount);
         }
@@ -151,7 +151,7 @@ public class RawDexFile extends DexBackedDexFile.Impl {
         for (MapItem mapItem: getMapItems()) {
             SectionAnnotator annotator = annotators.get(mapItem.getType());
             if (annotator != null) {
-                annotatedBytes.skipTo(mapItem.getOffset());
+                annotatedBytes.moveTo(mapItem.getOffset());
                 annotator.annotateSection(annotatedBytes, this, mapItem.getItemCount());
             }
         }

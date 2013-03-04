@@ -32,18 +32,20 @@ import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.util.ConsoleUtil;
 
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 
 public class dump {
     public static void dump(DexBackedDexFile dexFile, String dumpFileName)
             throws IOException {
 
         if (dumpFileName != null) {
-            FileWriter writer = null;
+            Writer writer = null;
 
             try {
-                writer = new FileWriter(dumpFileName);
+                writer = new BufferedWriter(new FileWriter(dumpFileName));
 
                 int consoleWidth = ConsoleUtil.getConsoleWidth();
                 if (consoleWidth <= 0) {

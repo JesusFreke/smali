@@ -129,21 +129,18 @@ public class EncodedValue {
     public static void annotateEncodedAnnotation(@Nonnull AnnotatedBytes out, @Nonnull DexReader reader) {
         assert out.getCursor() == reader.getOffset();
 
-        int mark = reader.getOffset();
         int typeIndex = reader.readSmallUleb128();
-        out.annotate(reader.getOffset() - mark, TypeIdItem.getReferenceAnnotation(reader.dexBuf, typeIndex));
+        out.annotateTo(reader.getOffset(), TypeIdItem.getReferenceAnnotation(reader.dexBuf, typeIndex));
 
-        mark = reader.getOffset();
         int size = reader.readSmallUleb128();
-        out.annotate(reader.getOffset() - mark, "size: %d", size);
+        out.annotateTo(reader.getOffset(), "size: %d", size);
 
         for (int i=0; i<size; i++) {
             out.annotate(0, "element[%d]", i);
             out.indent();
 
-            mark = reader.getOffset();
             int nameIndex = reader.readSmallUleb128();
-            out.annotate(reader.getOffset() - mark, "name = %s",
+            out.annotateTo(reader.getOffset(), "name = %s",
                     StringIdItem.getReferenceAnnotation(reader.dexBuf, nameIndex));
 
             annotateEncodedValue(out, reader);
@@ -155,9 +152,8 @@ public class EncodedValue {
     public static void annotateEncodedArray(@Nonnull AnnotatedBytes out, @Nonnull DexReader reader) {
         assert out.getCursor() == reader.getOffset();
 
-        int mark = reader.getOffset();
         int size = reader.readSmallUleb128();
-        out.annotate(reader.getOffset() - mark, "size: %d", size);
+        out.annotateTo(reader.getOffset(), "size: %d", size);
 
         for (int i=0; i<size; i++) {
             out.annotate(0, "element[%d]", i);

@@ -145,17 +145,15 @@ public class CodeItem {
                 }
                 out.deindent();
 
-                int mark = reader.getOffset();
                 int handlerListCount = reader.readSmallUleb128();
                 out.annotate(0, "encoded_catch_handler_list:");
-                out.annotate(reader.getOffset() - mark, "size = %d", handlerListCount);
+                out.annotateTo(reader.getOffset(), "size = %d", handlerListCount);
                 out.indent();
                 for (int i=0; i<handlerListCount; i++) {
                     out.annotate(0, "encoded_catch_handler[%d]", i);
                     out.indent();
-                    mark = reader.getOffset();
                     int handlerCount = reader.readSleb128();
-                    out.annotate(reader.getOffset() - mark, "size = %d", handlerCount);
+                    out.annotateTo(reader.getOffset(), "size = %d", handlerCount);
                     boolean hasCatchAll = handlerCount <= 0;
                     handlerCount = Math.abs(handlerCount);
                     if (handlerCount != 0) {
@@ -164,22 +162,18 @@ public class CodeItem {
                         for (int j=0; j<handlerCount; j++) {
                             out.annotate(0, "encoded_type_addr_pair[%d]", i);
                             out.indent();
-                            mark = reader.getOffset();
                             int typeIndex = reader.readSmallUleb128();
-                            out.annotate(reader.getOffset() - mark,
-                                    TypeIdItem.getReferenceAnnotation(dexFile, typeIndex));
+                            out.annotateTo(reader.getOffset(), TypeIdItem.getReferenceAnnotation(dexFile, typeIndex));
 
-                            mark = reader.getOffset();
                             int handlerAddress = reader.readSmallUleb128();
-                            out.annotate(reader.getOffset() - mark, "addr = 0x%x", handlerAddress);
+                            out.annotateTo(reader.getOffset(), "addr = 0x%x", handlerAddress);
                             out.deindent();
                         }
                         out.deindent();
                     }
                     if (hasCatchAll) {
-                        mark = reader.getOffset();
                         int catchAllAddress = reader.readSmallUleb128();
-                        out.annotate(reader.getOffset() - mark, "catch_all_addr = 0x%x", catchAllAddress);
+                        out.annotateTo(reader.getOffset(), "catch_all_addr = 0x%x", catchAllAddress);
                     }
                     out.deindent();
                 }

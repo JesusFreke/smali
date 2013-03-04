@@ -49,13 +49,11 @@ public class StringDataItem {
                                                   int itemIndex) {
 
                 DexReader reader = dexFile.readerAt(out.getCursor());
-                int mark = reader.getOffset();
                 int utf16Length = reader.readSmallUleb128();
-                out.annotate(reader.getOffset() - mark, "utf16_size = %d", utf16Length);
+                out.annotateTo(reader.getOffset(), "utf16_size = %d", utf16Length);
 
-                mark = reader.getOffset();
                 String value = reader.readString(utf16Length);
-                out.annotate(reader.getOffset() - mark + 1, "data = \"%s\"", StringUtils.escapeString(value));
+                out.annotateTo(reader.getOffset() + 1, "data = \"%s\"", StringUtils.escapeString(value));
             }
         };
     }

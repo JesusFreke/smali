@@ -58,7 +58,7 @@ public abstract class SectionAnnotator {
             out.annotate(0, "");
 
             for (int i=0; i<itemCount; i++) {
-                out.skipTo(AlignmentUtils.alignOffset(out.getCursor(), itemAlignment));
+                out.moveTo(AlignmentUtils.alignOffset(out.getCursor(), itemAlignment));
 
                 String itemIdentity = getItemIdentity(dexFile, i, out.getCursor());
                 if (itemIdentity != null) {

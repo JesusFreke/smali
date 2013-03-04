@@ -54,21 +54,17 @@ public class ClassDataItem {
         @Override protected void annotateItem(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile, int itemIndex) {
             DexReader reader = dexFile.readerAt(out.getCursor());
 
-            int mark = reader.getOffset();
             int staticFieldsSize = reader.readSmallUleb128();
-            out.annotate(reader.getOffset() - mark, "static_fields_size = %d", staticFieldsSize);
+            out.annotateTo(reader.getOffset(), "static_fields_size = %d", staticFieldsSize);
 
-            mark = reader.getOffset();
             int instanceFieldsSize = reader.readSmallUleb128();
-            out.annotate(reader.getOffset() - mark, "instance_fields_size = %d", instanceFieldsSize);
+            out.annotateTo(reader.getOffset(), "instance_fields_size = %d", instanceFieldsSize);
 
-            mark = reader.getOffset();
             int directMethodsSize = reader.readSmallUleb128();
-            out.annotate(reader.getOffset() - mark, "direct_methods_size = %d", directMethodsSize);
+            out.annotateTo(reader.getOffset(), "direct_methods_size = %d", directMethodsSize);
 
-            mark = reader.getOffset();
             int virtualMethodsSize = reader.readSmallUleb128();
-            out.annotate(reader.getOffset() - mark, "virtual_methods_size = %d", virtualMethodsSize);
+            out.annotateTo(reader.getOffset(), "virtual_methods_size = %d", virtualMethodsSize);
 
             int previousIndex = 0;
             for (int i=0; i<staticFieldsSize; i++) {
@@ -105,15 +101,13 @@ public class ClassDataItem {
 
         private int annotateEncodedField(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile,
                                           @Nonnull DexReader reader, int previousIndex) {
-            int mark = reader.getOffset();
             int indexDelta = reader.readSmallUleb128();
             int fieldIndex = previousIndex + indexDelta;
-            out.annotate(reader.getOffset() - mark, "field_idx_diff = %d: %s", indexDelta,
+            out.annotateTo(reader.getOffset(), "field_idx_diff = %d: %s", indexDelta,
                     FieldIdItem.getReferenceAnnotation(dexFile, fieldIndex));
 
-            mark = reader.getOffset();
             int accessFlags = reader.readSmallUleb128();
-            out.annotate(reader.getOffset() - mark, "access_flags = 0x%x: %s", accessFlags,
+            out.annotateTo(reader.getOffset(), "access_flags = 0x%x: %s", accessFlags,
                     Joiner.on('|').join(AccessFlags.getAccessFlagsForField(accessFlags)));
 
             return fieldIndex;
@@ -121,20 +115,17 @@ public class ClassDataItem {
 
         private int annotateEncodedMethod(@Nonnull AnnotatedBytes out, @Nonnull RawDexFile dexFile,
                                            @Nonnull DexReader reader, int previousIndex) {
-            int mark = reader.getOffset();
             int indexDelta = reader.readSmallUleb128();
             int methodIndex = previousIndex + indexDelta;
-            out.annotate(reader.getOffset() - mark, "method_idx_diff = %d: %s", indexDelta,
+            out.annotateTo(reader.getOffset(), "method_idx_diff = %d: %s", indexDelta,
                     MethodIdItem.getReferenceAnnotation(dexFile, methodIndex));
 
-            mark = reader.getOffset();
             int accessFlags = reader.readSmallUleb128();
-            out.annotate(reader.getOffset() - mark, "access_flags = 0x%x: %s", accessFlags,
+            out.annotateTo(reader.getOffset(), "access_flags = 0x%x: %s", accessFlags,
                     Joiner.on('|').join(AccessFlags.getAccessFlagsForMethod(accessFlags)));
 
-            mark = reader.getOffset();
             int codeOffset = reader.readSmallUleb128();
-            out.annotate(reader.getOffset() - mark, "code_item[0x%x]", codeOffset);
+            out.annotateTo(reader.getOffset(), "code_item[0x%x]", codeOffset);
 
             return methodIndex;
         }

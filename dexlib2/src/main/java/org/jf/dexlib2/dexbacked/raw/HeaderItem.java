@@ -193,7 +193,7 @@ public class HeaderItem {
                 out.annotate(4, "data_off: 0x%x", dexFile.readInt(out.getCursor()));
 
                 if (headerSize > ITEM_SIZE) {
-                    out.annotate(headerSize - ITEM_SIZE, "header padding");
+                    out.annotateTo(headerSize, "header padding");
                 }
             }
         };
