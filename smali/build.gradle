@@ -67,14 +67,14 @@ idea {
 dependencies {
     compile project(':util')
     compile project(':dexlib')
-    compile 'org.antlr:antlr-runtime:3.2'
-    compile 'commons-cli:commons-cli:1.2'
+    compile depends.antlr_runtime
+    compile depends.commons_cli
 
-    testCompile 'junit:junit:4.6'
+    testCompile depends.junit
 
-    antlr3 'org.antlr:antlr:3.2'
-    jflex 'de.jflex:jflex:1.4.3'
-    proguard 'net.sf.proguard:proguard-base:4.8'
+    antlr3 depends.antlr
+    jflex depends.jflex
+    proguard depends.proguard
 }
 
 task generateAntlrSource(type: JavaExec) {

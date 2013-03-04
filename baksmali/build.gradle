@@ -37,10 +37,10 @@ dependencies {
     compile project(':util')
     compile project(':dexlib')
     compile project(':dexlib2')
-    compile 'commons-cli:commons-cli:1.2'
-    compile 'com.google.code.findbugs:jsr305:1.3.9'
+    compile depends.commons_cli
+    compile depends.guava
 
-    proguard 'net.sf.proguard:proguard-base:4.8'
+    proguard depends.proguard
 }
 
 processResources.inputs.property('version', version)
