@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
+import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
@@ -53,16 +54,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
 
     @Nullable private AnnotationsDirectory annotationsDirectory;
 
-    //class_def_item offsets
-    private static final int CLASS_NAME_OFFSET = 0;
-    private static final int ACCESS_FLAGS_OFFSET = 4;
-    private static final int SUPERCLASS_OFFSET = 8;
-    private static final int INTERFACES_OFFSET = 12;
-    private static final int SOURCE_FILE_OFFSET = 16;
-    private static final int ANNOTATIONS_OFFSET = 20;
-    private static final int CLASS_DATA_OFFSET = 24;
-    private static final int STATIC_INITIAL_VALUES_OFFSET = 28;
-
     public DexBackedClassDef(@Nonnull DexBackedDexFile dexFile,
                              int classDefOffset) {
         this.dexFile = dexFile;
@@ -72,30 +63,30 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getType(dexFile.readSmallUint(classDefOffset + CLASS_NAME_OFFSET));
+        return dexFile.getType(dexFile.readSmallUint(classDefOffset + ClassDefItem.CLASS_OFFSET));
     }
 
     @Nullable
     @Override
     public String getSuperclass() {
-        return dexFile.getOptionalType(dexFile.readOptionalUint(classDefOffset + SUPERCLASS_OFFSET));
+        return dexFile.getOptionalType(dexFile.readOptionalUint(classDefOffset + ClassDefItem.SUPERCLASS_OFFSET));
     }
 
     @Override
     public int getAccessFlags() {
-        return dexFile.readSmallUint(classDefOffset + ACCESS_FLAGS_OFFSET);
+        return dexFile.readSmallUint(classDefOffset + ClassDefItem.ACCESS_FLAGS_OFFSET);
     }
 
     @Nullable
     @Override
     public String getSourceFile() {
-        return dexFile.getOptionalString(dexFile.readOptionalUint(classDefOffset + SOURCE_FILE_OFFSET));
+        return dexFile.getOptionalString(dexFile.readOptionalUint(classDefOffset + ClassDefItem.SOURCE_FILE_OFFSET));
     }
 
     @Nonnull
     @Override
     public Set<String> getInterfaces() {
-        final int interfacesOffset = dexFile.readSmallUint(classDefOffset + INTERFACES_OFFSET);
+        final int interfacesOffset = dexFile.readSmallUint(classDefOffset + ClassDefItem.INTERFACES_OFFSET);
         if (interfacesOffset > 0) {
             final int size = dexFile.readSmallUint(interfacesOffset);
             return new FixedSizeSet<String>() {
@@ -132,7 +123,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
 
                 final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
                 final int staticInitialValuesOffset =
-                        dexFile.readSmallUint(classDefOffset + STATIC_INITIAL_VALUES_OFFSET);
+                        dexFile.readSmallUint(classDefOffset + ClassDefItem.STATIC_VALUES_OFFSET);
                 final int fieldsStartOffset = reader.getOffset();
 
                 return new AbstractSet<DexBackedField>() {
@@ -225,14 +216,14 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
 
     private int getClassDataOffset() {
         if (classDataOffset == -1) {
-            classDataOffset = dexFile.readSmallUint(classDefOffset + CLASS_DATA_OFFSET);
+            classDataOffset = dexFile.readSmallUint(classDefOffset + ClassDefItem.CLASS_DATA_OFFSET);
         }
         return classDataOffset;
     }
 
     private AnnotationsDirectory getAnnotationsDirectory() {
         if (annotationsDirectory == null) {
-            int annotationsDirectoryOffset = dexFile.readSmallUint(classDefOffset + ANNOTATIONS_OFFSET);
+            int annotationsDirectoryOffset = dexFile.readSmallUint(classDefOffset + ClassDefItem.ANNOTATIONS_OFFSET);
             annotationsDirectory = AnnotationsDirectory.newOrEmpty(dexFile, annotationsDirectoryOffset);
         }
         return annotationsDirectory;

@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
+import org.jf.dexlib2.dexbacked.raw.CodeItem;
 import org.jf.dexlib2.dexbacked.util.DebugInfo;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.VariableSizeLookaheadIterator;
@@ -52,14 +53,6 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull public final DexBackedMethod method;
     private final int codeOffset;
 
-    // code_item offsets
-    private static final int TRIES_SIZE_OFFSET = 6;
-    private static final int DEBUG_OFFSET_OFFSET = 8;
-    private static final int INSTRUCTIONS_SIZE_OFFSET = 12;
-    private static final int INSTRUCTIONS_START_OFFSET = 16;
-
-    private static final int TRY_ITEM_SIZE = 8;
-
     public DexBackedMethodImplementation(@Nonnull DexBackedDexFile dexFile,
                                          @Nonnull DexBackedMethod method,
                                          int codeOffset) {
@@ -72,9 +65,9 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     @Nonnull @Override public Iterable<? extends Instruction> getInstructions() {
         // instructionsSize is the number of 16-bit code units in the instruction list, not the number of instructions
-        int instructionsSize = dexFile.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
+        int instructionsSize = dexFile.readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET);
 
-        final int instructionsStartOffset = codeOffset + INSTRUCTIONS_START_OFFSET;
+        final int instructionsStartOffset = codeOffset + CodeItem.INSTRUCTION_START_OFFSET;
         final int endOffset = instructionsStartOffset + (instructionsSize*2);
         return new Iterable<Instruction>() {
             @Override
@@ -96,19 +89,19 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     @Override
     public List<? extends TryBlock> getTryBlocks() {
         // TODO: provide utility to put try blocks into a "canonical", easy to use format, which more closely matches java's try blocks
-        final int triesSize = dexFile.readUshort(codeOffset + TRIES_SIZE_OFFSET);
+        final int triesSize = dexFile.readUshort(codeOffset + CodeItem.TRIES_SIZE_OFFSET);
         if (triesSize > 0) {
-            int instructionsSize = dexFile.readSmallUint(codeOffset + INSTRUCTIONS_SIZE_OFFSET);
+            int instructionsSize = dexFile.readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET);
             final int triesStartOffset = AlignmentUtils.alignOffset(
-                    codeOffset + INSTRUCTIONS_START_OFFSET + (instructionsSize*2), 4);
-            final int handlersStartOffset = triesStartOffset + triesSize*TRY_ITEM_SIZE;
+                    codeOffset + CodeItem.INSTRUCTION_START_OFFSET + (instructionsSize*2), 4);
+            final int handlersStartOffset = triesStartOffset + triesSize*CodeItem.TryItem.ITEM_SIZE;
 
             return new FixedSizeList<TryBlock>() {
                 @Nonnull
                 @Override
                 public TryBlock readItem(int index) {
                     return new DexBackedTryBlock(dexFile,
-                            triesStartOffset + index*TRY_ITEM_SIZE,
+                            triesStartOffset + index*CodeItem.TryItem.ITEM_SIZE,
                             handlersStartOffset);
                 }
 
@@ -123,7 +116,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     @Nonnull
     private DebugInfo getDebugInfo() {
-        return DebugInfo.newOrEmpty(dexFile, dexFile.readSmallUint(codeOffset + DEBUG_OFFSET_OFFSET), this);
+        return DebugInfo.newOrEmpty(dexFile, dexFile.readSmallUint(codeOffset + CodeItem.DEBUG_INFO_OFFSET), this);
     }
 
     @Nonnull @Override

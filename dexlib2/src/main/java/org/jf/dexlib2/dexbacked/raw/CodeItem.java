@@ -50,9 +50,18 @@ public class CodeItem {
     public static final int REGISTERS_OFFSET = 0;
     public static final int INS_OFFSET = 2;
     public static final int OUTS_OFFSET = 4;
-    public static final int TRIES_OFFSET = 6;
+    public static final int TRIES_SIZE_OFFSET = 6;
     public static final int DEBUG_INFO_OFFSET = 8;
     public static final int INSTRUCTION_COUNT_OFFSET = 12;
+    public static final int INSTRUCTION_START_OFFSET = 16;
+
+    public static class TryItem {
+        public static final int ITEM_SIZE = 8;
+
+        public static final int START_ADDRESS_OFFSET = 0;
+        public static final int CODE_UNIT_COUNT_OFFSET = 4;
+        public static final int HANDLER_OFFSET = 6;
+    }
 
     @Nonnull
     public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {

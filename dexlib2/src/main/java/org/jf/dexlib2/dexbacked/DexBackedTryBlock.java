@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.dexlib2.dexbacked.raw.CodeItem;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
@@ -43,9 +44,7 @@ public class DexBackedTryBlock implements TryBlock {
     private final int tryItemOffset;
     private final int handlersStartOffset;
 
-    private static final int START_ADDRESS_OFFSET = 0;
-    private static final int CODE_UNIT_COUNT_OFFSET = 4;
-    private static final int HANDLER_OFFSET_OFFSET = 6;
+
 
     public DexBackedTryBlock(@Nonnull DexBackedDexFile dexFile,
                              int tryItemOffset,
@@ -55,14 +54,19 @@ public class DexBackedTryBlock implements TryBlock {
         this.handlersStartOffset = handlersStartOffset;
     }
 
-    @Override public int getStartCodeAddress() { return dexFile.readSmallUint(tryItemOffset + START_ADDRESS_OFFSET); }
-    @Override public int getCodeUnitCount() { return dexFile.readUshort(tryItemOffset + CODE_UNIT_COUNT_OFFSET); }
+    @Override public int getStartCodeAddress() {
+        return dexFile.readSmallUint(tryItemOffset + CodeItem.TryItem.START_ADDRESS_OFFSET);
+    }
+
+    @Override public int getCodeUnitCount() {
+        return dexFile.readUshort(tryItemOffset + CodeItem.TryItem.CODE_UNIT_COUNT_OFFSET);
+    }
 
     @Nonnull
     @Override
     public List<? extends ExceptionHandler> getExceptionHandlers() {
-        DexReader reader =
-                dexFile.readerAt(handlersStartOffset + dexFile.readUshort(tryItemOffset + HANDLER_OFFSET_OFFSET));
+        DexReader reader = dexFile.readerAt(
+                handlersStartOffset + dexFile.readUshort(tryItemOffset + CodeItem.TryItem.HANDLER_OFFSET));
         final int encodedSize = reader.readSleb128();
 
         if (encodedSize > 0) {

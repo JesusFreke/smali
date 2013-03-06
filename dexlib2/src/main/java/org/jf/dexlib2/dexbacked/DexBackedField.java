@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import org.jf.dexlib2.base.reference.BaseFieldReference;
+import org.jf.dexlib2.dexbacked.raw.FieldIdItem;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
 import org.jf.dexlib2.iface.ClassDef;
@@ -54,10 +55,6 @@ public class DexBackedField extends BaseFieldReference implements Field {
 
     private int fieldIdItemOffset;
 
-    // offsets for field_id_item
-    private static final int TYPE_OFFSET = 2;
-    private static final int NAME_OFFSET = 4;
-
     public DexBackedField(@Nonnull DexReader reader,
                           @Nonnull DexBackedClassDef classDef,
                           int previousFieldIndex,
@@ -77,13 +74,13 @@ public class DexBackedField extends BaseFieldReference implements Field {
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getString(dexFile.readSmallUint(getFieldIdItemOffset() + NAME_OFFSET));
+        return dexFile.getString(dexFile.readSmallUint(getFieldIdItemOffset() + FieldIdItem.NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getType(dexFile.readUshort(getFieldIdItemOffset() + TYPE_OFFSET));
+        return dexFile.getType(dexFile.readUshort(getFieldIdItemOffset() + FieldIdItem.TYPE_OFFSET));
     }
 
     @Nonnull @Override public String getDefiningClass() { return classDef.getType(); }
