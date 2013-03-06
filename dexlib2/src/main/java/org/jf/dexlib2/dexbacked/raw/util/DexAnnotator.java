@@ -139,6 +139,11 @@ public class DexAnnotator extends AnnotatedBytes {
                 case ItemType.ENCODED_ARRAY_ITEM:
                     annotators.put(mapItem.getType(), EncodedArrayItem.makeAnnotator(this, mapItem));
                     break;
+                case ItemType.ANNOTATION_DIRECTORY_ITEM:
+                    annotators.put(mapItem.getType(), AnnotationDirectoryItem.makeAnnotator(this, mapItem));
+                    break;
+                default:
+                    throw new RuntimeException(String.format("Unrecognized item type: 0x%x", mapItem.getType()));
             }
         }
     }
@@ -156,10 +161,7 @@ public class DexAnnotator extends AnnotatedBytes {
 
         for (MapItem mapItem: mapItems) {
             SectionAnnotator annotator = annotators.get(mapItem.getType());
-            //TODO: temporary null check, until all item types are implemented
-            if (annotator != null) {
-                annotator.annotateSection(this);
-            }
+            annotator.annotateSection(this);
         }
 
         dexFile.writeAnnotations(out, this);

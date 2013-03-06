@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
@@ -63,5 +64,13 @@ public class AnnotationSetRefList {
                 return 4;
             }
         };
+    }
+
+    @Nonnull
+    public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int annotationSetRefListOffset) {
+        if (annotationSetRefListOffset == 0) {
+            return "annotation_set_ref_list[NO_OFFSET]";
+        }
+        return String.format("annotation_set_ref_list[0x%x]", annotationSetRefListOffset);
     }
 }
