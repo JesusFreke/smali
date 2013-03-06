@@ -54,7 +54,7 @@ public class StartLocalMethodItem extends DebugMethodItem {
         writer.write(".local ");
         registerFormatter.writeTo(writer, startLocal.getRegister());
         writer.write(", ");
-        //TODO: what about when name or type is null?
+        //TODO: what about when name or type is null? Can the name contain a colon?
         writer.write(startLocal.getName());
         writer.write(':');
         writer.write(startLocal.getType());
