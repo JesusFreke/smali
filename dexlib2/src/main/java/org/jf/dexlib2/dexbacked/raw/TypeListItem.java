@@ -69,7 +69,7 @@ public class TypeListItem {
     @Nonnull
     public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int typeListOffset) {
         if (typeListOffset == 0) {
-            return "0";
+            return "type_list_item[NO_OFFSET]";
         }
 
         try {

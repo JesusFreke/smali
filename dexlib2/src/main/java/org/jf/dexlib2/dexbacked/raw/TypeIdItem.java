@@ -66,4 +66,12 @@ public class TypeIdItem {
         }
         return String.format("type_id_item[%d]", typeIndex);
     }
+
+    @Nonnull
+    public static String getOptionalReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int typeIndex) {
+        if (typeIndex == -1) {
+            return "type_id_item[NO_INDEX]";
+        }
+        return getReferenceAnnotation(dexFile, typeIndex);
+    }
 }

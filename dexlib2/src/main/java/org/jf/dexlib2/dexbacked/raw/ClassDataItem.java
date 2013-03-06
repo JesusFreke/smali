@@ -152,7 +152,7 @@ public class ClassDataItem {
 
                 int codeOffset = reader.readSmallUleb128();
                 if (codeOffset == 0) {
-                    out.annotateTo(reader.getOffset(), "code_off = 0");
+                    out.annotateTo(reader.getOffset(), "code_off = code_item[NO_OFFSET]");
                 } else {
                     out.annotateTo(reader.getOffset(), "code_off = code_item[0x%x]", codeOffset);
                     addCodeItemIdentity(codeOffset, MethodIdItem.asString(dexFile, methodIndex));

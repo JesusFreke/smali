@@ -86,4 +86,19 @@ public class StringIdItem {
         }
         return String.format("string_id_item[%d]", stringIndex);
     }
+
+
+    @Nonnull
+    public static String getOptionalReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int stringIndex) {
+        return getOptionalReferenceAnnotation(dexFile, stringIndex, false);
+
+    }
+
+    public static String getOptionalReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int stringIndex,
+                                                        boolean quote) {
+        if (stringIndex == -1) {
+            return "string_id_item[NO_INDEX]";
+        }
+        return getReferenceAnnotation(dexFile, stringIndex, quote);
+    }
 }
