@@ -130,6 +130,9 @@ public class DexAnnotator extends AnnotatedBytes {
                 case ItemType.STRING_DATA_ITEM:
                     annotators.put(mapItem.getType(), StringDataItem.makeAnnotator(this, mapItem));
                     break;
+                case ItemType.DEBUG_INFO_ITEM:
+                    annotators.put(mapItem.getType(), DebugInfoItem.makeAnnotator(this, mapItem));
+                    break;
                 case ItemType.ANNOTATION_ITEM:
                     annotators.put(mapItem.getType(), AnnotationItem.makeAnnotator(this, mapItem));
                     break;

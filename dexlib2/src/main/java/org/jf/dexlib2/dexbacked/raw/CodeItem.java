@@ -57,6 +57,13 @@ public class CodeItem {
     @Nonnull
     public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
         return new SectionAnnotator(annotator, mapItem) {
+            private SectionAnnotator debugInfoAnnotator = null;
+
+            @Override public void annotateSection(@Nonnull AnnotatedBytes out) {
+                debugInfoAnnotator = annotator.getAnnotator(ItemType.DEBUG_INFO_ITEM);
+                super.annotateSection(out);
+            }
+
             @Nonnull @Override public String getItemName() {
                 return "code_item";
             }
@@ -83,6 +90,10 @@ public class CodeItem {
 
                 int debugInfoOffset = reader.readSmallUint();
                 out.annotate(4, "debug_info_off = 0x%x", debugInfoOffset);
+
+                if (debugInfoOffset != 0) {
+                    addDebugInfoIdentity(debugInfoOffset, itemIdentity);
+                }
 
                 int instructionSize = reader.readSmallUint();
                 out.annotate(4, "insns_size = 0x%x", instructionSize);
@@ -346,6 +357,12 @@ public class CodeItem {
                 }
                 out.deindent();
                 out.deindent();
+            }
+
+            private void addDebugInfoIdentity(int debugInfoOffset, String methodString) {
+                if (debugInfoAnnotator != null) {
+                    debugInfoAnnotator.setItemIdentity(debugInfoOffset, methodString);
+                }
             }
         };
     }
