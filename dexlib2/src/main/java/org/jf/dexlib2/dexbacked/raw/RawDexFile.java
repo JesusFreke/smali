@@ -40,6 +40,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.List;
 
 public class RawDexFile extends DexBackedDexFile.Impl {
@@ -53,6 +54,10 @@ public class RawDexFile extends DexBackedDexFile.Impl {
     public RawDexFile(byte[] buf) {
         super(buf);
         this.headerItem = new HeaderItem(this);
+    }
+
+    public byte[] readByteRange(int start, int length) {
+        return Arrays.copyOfRange(getBuf(), start, start+length);
     }
 
     public int getMapOffset() {

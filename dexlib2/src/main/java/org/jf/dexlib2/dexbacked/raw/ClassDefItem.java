@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked.raw;
 
 import com.google.common.base.Joiner;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
@@ -114,5 +115,26 @@ public class ClassDefItem {
                 }
             }
         };
+    }
+
+    @Nonnull
+    public static String asString(@Nonnull DexBackedDexFile dexFile, int classIndex) {
+        int offset = dexFile.getClassDefItemOffset(classIndex);
+        int typeIndex = dexFile.readSmallUint(offset + CLASS_OFFSET);
+        return dexFile.getType(typeIndex);
+    }
+
+    public static String[] getClasses(@Nonnull RawDexFile dexFile) {
+        MapItem mapItem = dexFile.getMapItemForSection(ItemType.CLASS_DEF_ITEM);
+        if (mapItem == null) {
+            return new String[0];
+        }
+
+        int classCount = mapItem.getItemCount();
+        String[] ret = new String[classCount];
+        for (int i=0; i<classCount; i++) {
+            ret[i] = asString(dexFile, i);
+        }
+        return ret;
     }
 }

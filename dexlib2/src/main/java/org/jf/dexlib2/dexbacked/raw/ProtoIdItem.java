@@ -94,4 +94,18 @@ public class ProtoIdItem {
 
         return sb.toString();
     }
+
+    public static String[] getProtos(@Nonnull RawDexFile dexFile) {
+        MapItem mapItem = dexFile.getMapItemForSection(ItemType.PROTO_ID_ITEM);
+        if (mapItem == null) {
+            return new String[0];
+        }
+
+        int protoCount = mapItem.getItemCount();
+        String[] ret = new String[protoCount];
+        for (int i=0; i<protoCount; i++) {
+            ret[i] = asString(dexFile, i);
+        }
+        return ret;
+    }
 }

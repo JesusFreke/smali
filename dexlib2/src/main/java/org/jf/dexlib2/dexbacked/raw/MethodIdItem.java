@@ -91,4 +91,18 @@ public class MethodIdItem {
         }
         return String.format("method_id_item[%d]", methodIndex);
     }
+
+    public static String[] getMethods(@Nonnull RawDexFile dexFile) {
+        MapItem mapItem = dexFile.getMapItemForSection(ItemType.METHOD_ID_ITEM);
+        if (mapItem == null) {
+            return new String[0];
+        }
+
+        int methodCount = mapItem.getItemCount();
+        String[] ret = new String[methodCount];
+        for (int i=0; i<methodCount; i++) {
+            ret[i] = asString(dexFile, i);
+        }
+        return ret;
+    }
 }

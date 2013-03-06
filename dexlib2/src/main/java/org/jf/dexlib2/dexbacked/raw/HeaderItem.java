@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.StringUtils;
@@ -78,10 +77,18 @@ public class HeaderItem {
     public static final int CLASS_COUNT_OFFSET = 96;
     public static final int CLASS_START_OFFSET = 100;
 
-    @Nonnull private DexBackedDexFile dexFile;
+    @Nonnull private RawDexFile dexFile;
 
-    public HeaderItem(@Nonnull DexBackedDexFile dexFile) {
+    public HeaderItem(@Nonnull RawDexFile dexFile) {
         this.dexFile = dexFile;
+    }
+
+    public int getChecksum() {
+        return dexFile.readSmallUint(CHECKSUM_OFFSET);
+    }
+
+    @Nonnull public byte[] getSignature() {
+        return dexFile.readByteRange(SIGNATURE_OFFSET, SIGNATURE_SIZE);
     }
 
     public int getMapOffset() {

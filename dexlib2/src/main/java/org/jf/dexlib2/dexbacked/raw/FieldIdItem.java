@@ -91,4 +91,18 @@ public class FieldIdItem {
         }
         return String.format("field_id_item[%d]", fieldIndex);
     }
+
+    public static String[] getFields(@Nonnull RawDexFile dexFile) {
+        MapItem mapItem = dexFile.getMapItemForSection(ItemType.FIELD_ID_ITEM);
+        if (mapItem == null) {
+            return new String[0];
+        }
+
+        int fieldCount = mapItem.getItemCount();
+        String[] ret = new String[fieldCount];
+        for (int i=0; i<fieldCount; i++) {
+            ret[i] = asString(dexFile, i);
+        }
+        return ret;
+    }
 }

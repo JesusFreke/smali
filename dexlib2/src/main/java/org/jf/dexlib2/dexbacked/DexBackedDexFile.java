@@ -54,6 +54,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
     public abstract int getMethodIdItemOffset(int methodIndex);
     public abstract int getProtoIdItemOffset(int protoIndex);
     public abstract int getFieldIdItemOffset(int fieldIndex);
+    public abstract int getClassDefItemOffset(int classIndex);
 
     @Override @Nonnull public abstract DexReader readerAt(int offset);
 
@@ -178,6 +179,7 @@ public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile 
             return protoStartOffset + protoIndex*ProtoIdItem.ITEM_SIZE;
         }
 
+        @Override
         public int getClassDefItemOffset(int classIndex) {
             if (classIndex < 0 || classIndex >= classCount) {
                 throw new ExceptionWithContext("Class index out of bounds: %d", classIndex);

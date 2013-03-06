@@ -101,4 +101,18 @@ public class StringIdItem {
         }
         return getReferenceAnnotation(dexFile, stringIndex, quote);
     }
+
+    public static String[] getStrings(@Nonnull RawDexFile dexFile) {
+        MapItem mapItem = dexFile.getMapItemForSection(ItemType.STRING_ID_ITEM);
+        if (mapItem == null) {
+            return new String[0];
+        }
+
+        int stringCount = mapItem.getItemCount();
+        String[] ret = new String[stringCount];
+        for (int i=0; i<stringCount; i++) {
+            ret[i] = dexFile.getString(i);
+        }
+        return ret;
+    }
 }
