@@ -96,7 +96,7 @@ public class MapItem {
                 int mapItemCount = dexFile.readSmallUint(out.getCursor());
                 out.annotate(4, "size = %d", mapItemCount);
 
-                super.annotateSectionInner(out);
+                super.annotateSectionInner(out, mapItemCount);
             }
         };
     }

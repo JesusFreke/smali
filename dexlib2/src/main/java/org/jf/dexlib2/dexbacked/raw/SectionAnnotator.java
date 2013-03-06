@@ -68,10 +68,10 @@ public abstract class SectionAnnotator {
      */
     public void annotateSection(@Nonnull AnnotatedBytes out) {
         out.moveTo(sectionOffset);
-        annotateSectionInner(out);
+        annotateSectionInner(out, itemCount);
     }
 
-    protected void annotateSectionInner(@Nonnull AnnotatedBytes out) {
+    protected void annotateSectionInner(@Nonnull AnnotatedBytes out, int itemCount) {
         String itemName = getItemName();
         int itemAlignment = getItemAlignment();
         if (itemCount > 0) {
