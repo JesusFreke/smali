@@ -43,7 +43,7 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
 
-public class RawDexFile extends DexBackedDexFile.Impl {
+public class RawDexFile extends DexBackedDexFile {
     @Nonnull public final HeaderItem headerItem;
 
     public RawDexFile(BaseDexBuffer buf) {

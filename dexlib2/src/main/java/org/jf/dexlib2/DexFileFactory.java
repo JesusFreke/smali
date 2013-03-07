@@ -93,7 +93,7 @@ public final class DexFileFactory {
             dexBytes = Files.toByteArray(dexFile);
         }
 
-        return new DexBackedDexFile.Impl(dexBytes);
+        return new DexBackedDexFile(dexBytes);
     }
 
     public static void writeDexFile(String path, DexFile dexFile) throws IOException {

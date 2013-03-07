@@ -40,197 +40,170 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Set;
 
-public abstract class DexBackedDexFile extends BaseDexBuffer implements DexFile {
-    public DexBackedDexFile(@Nonnull byte[] buf) {
-        super(buf);
+public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
+    private final int stringCount;
+    private final int stringStartOffset;
+    private final int typeCount;
+    private final int typeStartOffset;
+    private final int protoCount;
+    private final int protoStartOffset;
+    private final int fieldCount;
+    private final int fieldStartOffset;
+    private final int methodCount;
+    private final int methodStartOffset;
+    private final int classCount;
+    private final int classStartOffset;
+
+    public DexBackedDexFile (@Nonnull BaseDexBuffer buf) {
+        this(buf.buf);
     }
 
-    @Nonnull public abstract String getString(int stringIndex);
-    @Nullable public abstract String getOptionalString(int stringIndex);
-    @Nonnull public abstract String getType(int typeIndex);
-    @Nullable public abstract String getOptionalType(int typeIndex);
+    public DexBackedDexFile (@Nonnull byte[] buf) {
+        super(buf);
 
-    // TODO: refactor how dex items are read
-    public abstract int getMethodIdItemOffset(int methodIndex);
-    public abstract int getProtoIdItemOffset(int protoIndex);
-    public abstract int getFieldIdItemOffset(int fieldIndex);
-    public abstract int getClassDefItemOffset(int classIndex);
+        verifyMagic();
+        verifyEndian();
+        stringCount = readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
+        stringStartOffset = readSmallUint(HeaderItem.STRING_START_OFFSET);
+        typeCount = readSmallUint(HeaderItem.TYPE_COUNT_OFFSET);
+        typeStartOffset = readSmallUint(HeaderItem.TYPE_START_OFFSET);
+        protoCount = readSmallUint(HeaderItem.PROTO_COUNT_OFFSET);
+        protoStartOffset = readSmallUint(HeaderItem.PROTO_START_OFFSET);
+        fieldCount = readSmallUint(HeaderItem.FIELD_COUNT_OFFSET);
+        fieldStartOffset = readSmallUint(HeaderItem.FIELD_START_OFFSET);
+        methodCount = readSmallUint(HeaderItem.METHOD_COUNT_OFFSET);
+        methodStartOffset = readSmallUint(HeaderItem.METHOD_START_OFFSET);
+        classCount = readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
+        classStartOffset = readSmallUint(HeaderItem.CLASS_START_OFFSET);
+    }
 
-    @Override @Nonnull public abstract DexReader readerAt(int offset);
-
-    public static class Impl extends DexBackedDexFile {
-        private final int stringCount;
-        private final int stringStartOffset;
-        private final int typeCount;
-        private final int typeStartOffset;
-        private final int protoCount;
-        private final int protoStartOffset;
-        private final int fieldCount;
-        private final int fieldStartOffset;
-        private final int methodCount;
-        private final int methodStartOffset;
-        private final int classCount;
-        private final int classStartOffset;
-
-        public Impl(@Nonnull BaseDexBuffer buf) {
-            this(buf.buf);
-        }
-
-        public Impl(@Nonnull byte[] buf) {
-            super(buf);
-
-            verifyMagic();
-            verifyEndian();
-            stringCount = readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
-            stringStartOffset = readSmallUint(HeaderItem.STRING_START_OFFSET);
-            typeCount = readSmallUint(HeaderItem.TYPE_COUNT_OFFSET);
-            typeStartOffset = readSmallUint(HeaderItem.TYPE_START_OFFSET);
-            protoCount = readSmallUint(HeaderItem.PROTO_COUNT_OFFSET);
-            protoStartOffset = readSmallUint(HeaderItem.PROTO_START_OFFSET);
-            fieldCount = readSmallUint(HeaderItem.FIELD_COUNT_OFFSET);
-            fieldStartOffset = readSmallUint(HeaderItem.FIELD_START_OFFSET);
-            methodCount = readSmallUint(HeaderItem.METHOD_COUNT_OFFSET);
-            methodStartOffset = readSmallUint(HeaderItem.METHOD_START_OFFSET);
-            classCount = readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
-            classStartOffset = readSmallUint(HeaderItem.CLASS_START_OFFSET);
-        }
-
-        @Nonnull
-        @Override
-        public Set<? extends DexBackedClassDef> getClasses() {
-            return new FixedSizeSet<DexBackedClassDef>() {
-                @Nonnull
-                @Override
-                public DexBackedClassDef readItem(int index) {
-                    return new DexBackedClassDef(Impl.this, getClassDefItemOffset(index));
-                }
-
-                @Override
-                public int size() {
-                    return classCount;
-                }
-            };
-        }
-
-        private void verifyMagic() {
-            outer: for (byte[] magic: HeaderItem.MAGIC_VALUES) {
-                for (int i=0; i<magic.length; i++) {
-                    if (buf[i] != magic[i]) {
-                        continue outer;
-                    }
-                }
-                return;
+    @Nonnull
+    @Override
+    public Set<? extends DexBackedClassDef> getClasses() {
+        return new FixedSizeSet<DexBackedClassDef>() {
+            @Nonnull
+            @Override
+            public DexBackedClassDef readItem(int index) {
+                return new DexBackedClassDef(DexBackedDexFile.this, getClassDefItemOffset(index));
             }
-            StringBuilder sb = new StringBuilder("Invalid magic value:");
-            for (int i=0; i<8; i++) {
-                sb.append(String.format(" %02x", buf[i]));
+
+            @Override
+            public int size() {
+                return classCount;
+            }
+        };
+    }
+
+    private void verifyMagic() {
+        outer: for (byte[] magic: HeaderItem.MAGIC_VALUES) {
+            for (int i=0; i<magic.length; i++) {
+                if (buf[i] != magic[i]) {
+                    continue outer;
+                }
+            }
+            return;
+        }
+        StringBuilder sb = new StringBuilder("Invalid magic value:");
+        for (int i=0; i<8; i++) {
+            sb.append(String.format(" %02x", buf[i]));
+        }
+        throw new ExceptionWithContext(sb.toString());
+    }
+
+    private void verifyEndian() {
+        int endian = readInt(HeaderItem.ENDIAN_TAG_OFFSET);
+        if (endian == HeaderItem.BIG_ENDIAN_TAG) {
+            throw new ExceptionWithContext("dexlib does not currently support big endian dex files.");
+        } else if (endian != HeaderItem.LITTLE_ENDIAN_TAG) {
+            StringBuilder sb = new StringBuilder("Invalid endian tag:");
+            for (int i=0; i<4; i++) {
+                sb.append(String.format(" %02x", buf[HeaderItem.ENDIAN_TAG_OFFSET+i]));
             }
             throw new ExceptionWithContext(sb.toString());
         }
+    }
 
-        private void verifyEndian() {
-            int endian = readInt(HeaderItem.ENDIAN_TAG_OFFSET);
-            if (endian == HeaderItem.BIG_ENDIAN_TAG) {
-                throw new ExceptionWithContext("dexlib does not currently support big endian dex files.");
-            } else if (endian != HeaderItem.LITTLE_ENDIAN_TAG) {
-                StringBuilder sb = new StringBuilder("Invalid endian tag:");
-                for (int i=0; i<4; i++) {
-                    sb.append(String.format(" %02x", buf[HeaderItem.ENDIAN_TAG_OFFSET+i]));
-                }
-                throw new ExceptionWithContext(sb.toString());
-            }
+    public int getStringIdItemOffset(int stringIndex) {
+        if (stringIndex < 0 || stringIndex >= stringCount) {
+            throw new ExceptionWithContext("String index out of bounds: %d", stringIndex);
         }
+        return stringStartOffset + stringIndex*StringIdItem.ITEM_SIZE;
+    }
 
-        public int getStringIdItemOffset(int stringIndex) {
-            if (stringIndex < 0 || stringIndex >= stringCount) {
-                throw new ExceptionWithContext("String index out of bounds: %d", stringIndex);
-            }
-            return stringStartOffset + stringIndex*StringIdItem.ITEM_SIZE;
+    public int getTypeIdItemOffset(int typeIndex) {
+        if (typeIndex < 0 || typeIndex >= typeCount) {
+            throw new ExceptionWithContext("Type index out of bounds: %d", typeIndex);
         }
+        return typeStartOffset + typeIndex*TypeIdItem.ITEM_SIZE;
+    }
 
-        public int getTypeIdItemOffset(int typeIndex) {
-            if (typeIndex < 0 || typeIndex >= typeCount) {
-                throw new ExceptionWithContext("Type index out of bounds: %d", typeIndex);
-            }
-            return typeStartOffset + typeIndex*TypeIdItem.ITEM_SIZE;
+    public int getFieldIdItemOffset(int fieldIndex) {
+        if (fieldIndex < 0 || fieldIndex >= fieldCount) {
+            throw new ExceptionWithContext("Field index out of bounds: %d", fieldIndex);
         }
+        return fieldStartOffset + fieldIndex*FieldIdItem.ITEM_SIZE;
+    }
 
-        @Override
-        public int getFieldIdItemOffset(int fieldIndex) {
-            if (fieldIndex < 0 || fieldIndex >= fieldCount) {
-                throw new ExceptionWithContext("Field index out of bounds: %d", fieldIndex);
-            }
-            return fieldStartOffset + fieldIndex*FieldIdItem.ITEM_SIZE;
+    public int getMethodIdItemOffset(int methodIndex) {
+        if (methodIndex < 0 || methodIndex >= methodCount) {
+            throw new ExceptionWithContext("Method index out of bounds: %d", methodIndex);
         }
+        return methodStartOffset + methodIndex*MethodIdItem.ITEM_SIZE;
+    }
 
-        @Override
-        public int getMethodIdItemOffset(int methodIndex) {
-            if (methodIndex < 0 || methodIndex >= methodCount) {
-                throw new ExceptionWithContext("Method index out of bounds: %d", methodIndex);
-            }
-            return methodStartOffset + methodIndex*MethodIdItem.ITEM_SIZE;
+    public int getProtoIdItemOffset(int protoIndex) {
+        if (protoIndex < 0 || protoIndex >= protoCount) {
+            throw new ExceptionWithContext("Proto index out of bounds: %d", protoIndex);
         }
+        return protoStartOffset + protoIndex*ProtoIdItem.ITEM_SIZE;
+    }
 
-        @Override
-        public int getProtoIdItemOffset(int protoIndex) {
-            if (protoIndex < 0 || protoIndex >= protoCount) {
-                throw new ExceptionWithContext("Proto index out of bounds: %d", protoIndex);
-            }
-            return protoStartOffset + protoIndex*ProtoIdItem.ITEM_SIZE;
+    public int getClassDefItemOffset(int classIndex) {
+        if (classIndex < 0 || classIndex >= classCount) {
+            throw new ExceptionWithContext("Class index out of bounds: %d", classIndex);
         }
+        return classStartOffset + classIndex*ClassDefItem.ITEM_SIZE;
+    }
 
-        @Override
-        public int getClassDefItemOffset(int classIndex) {
-            if (classIndex < 0 || classIndex >= classCount) {
-                throw new ExceptionWithContext("Class index out of bounds: %d", classIndex);
-            }
-            return classStartOffset + classIndex*ClassDefItem.ITEM_SIZE;
-        }
+    public int getClassCount() {
+        return classCount;
+    }
 
-        public int getClassCount() {
-            return classCount;
-        }
+    @Nonnull
+    public String getString(int stringIndex) {
+        int stringOffset = getStringIdItemOffset(stringIndex);
+        int stringDataOffset = readSmallUint(stringOffset);
+        DexReader reader = readerAt(stringDataOffset);
+        int utf16Length = reader.readSmallUleb128();
+        return reader.readString(utf16Length);
+    }
 
-        @Override
-        @Nonnull
-        public String getString(int stringIndex) {
-            int stringOffset = getStringIdItemOffset(stringIndex);
-            int stringDataOffset = readSmallUint(stringOffset);
-            DexReader reader = readerAt(stringDataOffset);
-            int utf16Length = reader.readSmallUleb128();
-            return reader.readString(utf16Length);
+    @Nullable
+    public String getOptionalString(int stringIndex) {
+        if (stringIndex == -1) {
+            return null;
         }
+        return getString(stringIndex);
+    }
 
-        @Override
-        @Nullable
-        public String getOptionalString(int stringIndex) {
-            if (stringIndex == -1) {
-                return null;
-            }
-            return getString(stringIndex);
-        }
+    @Nonnull
+    public String getType(int typeIndex) {
+        int typeOffset = getTypeIdItemOffset(typeIndex);
+        int stringIndex = readSmallUint(typeOffset);
+        return getString(stringIndex);
+    }
 
-        @Override
-        @Nonnull
-        public String getType(int typeIndex) {
-            int typeOffset = getTypeIdItemOffset(typeIndex);
-            int stringIndex = readSmallUint(typeOffset);
-            return getString(stringIndex);
+    @Nullable
+    public String getOptionalType(int typeIndex) {
+        if (typeIndex == -1) {
+            return null;
         }
+        return getType(typeIndex);
+    }
 
-        @Override
-        @Nullable
-        public String getOptionalType(int typeIndex) {
-            if (typeIndex == -1) {
-                return null;
-            }
-            return getType(typeIndex);
-        }
-
-        @Override
-        @Nonnull
-        public DexReader readerAt(int offset) {
-            return new DexReader(this, offset);
-        }
+    @Override
+    @Nonnull
+    public DexReader readerAt(int offset) {
+        return new DexReader(this, offset);
     }
 }
