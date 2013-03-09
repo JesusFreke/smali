@@ -50,6 +50,7 @@ import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class InstructionWriteUtil {
@@ -58,6 +59,7 @@ public class InstructionWriteUtil {
 
     private List<Instruction> instructions;
     private ArrayList<Integer> codeOffsetShifts;
+    private HashMap<Integer,Format> offsetToNewInstructionMap;
 
     private int codeUnitCount;
     private int outParamCount;
@@ -148,7 +150,11 @@ public class InstructionWriteUtil {
                     if (codeOffsetShifts == null) {
                         codeOffsetShifts = new ArrayList<Integer>();
                     }
+                    if (offsetToNewInstructionMap == null) {
+                    	offsetToNewInstructionMap = new HashMap<Integer,Format>();
+                    }
                     codeOffsetShifts.add(currentCodeOffset+instruction.getCodeUnits());
+                    offsetToNewInstructionMap.put(currentCodeOffset, instruction.getOpcode().format);
                 }
             }
             currentCodeOffset += instruction.getCodeUnits();
@@ -162,38 +168,55 @@ public class InstructionWriteUtil {
         // since code offset delta is equivalent to the position of instruction's code offset in the shift list,
         // we use it as a position here
         // we also check if we will have to insert nops to ensure 4-byte alignment for switch statements and packed arrays
-        currentCodeOffset = 0;
-        for (Instruction instruction: methodImplementation.getInstructions()) {
-            if (instruction.getOpcode().format.equals(Format.Format10t)) {
-                int targetOffset = ((Instruction10t)instruction).getCodeOffset();
-                int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
-                int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
-                if ((byte)newTargetOffset != newTargetOffset) {
-                    if ((short)newTargetOffset != newTargetOffset) {
-                        // handling very small (negligible) possibility of goto becoming goto/32
-                        // we insert extra 1 code unit shift referring to the same position
-                        // this will cause subsequent code offsets to be shifted by 2 code units
+        boolean shiftsInserted;
+        do {
+            currentCodeOffset = 0;
+            shiftsInserted = false;
+            for (Instruction instruction: methodImplementation.getInstructions()) {
+                if (instruction.getOpcode().format.equals(Format.Format10t) && !offsetToNewInstructionMap.containsKey(currentCodeOffset)) {
+                    int targetOffset = ((Instruction10t)instruction).getCodeOffset();
+                    int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
+                    int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
+                    if ((byte)newTargetOffset != newTargetOffset) {
+                        if ((short)newTargetOffset != newTargetOffset) {
+                        	// handling very small (negligible) possibility of goto becoming goto/32
+                        	// we insert extra 1 code unit shift referring to the same position
+                        	// this will cause subsequent code offsets to be shifted by 2 code units
+                            codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset+instruction.getCodeUnits());
+                            offsetToNewInstructionMap.put(currentCodeOffset, Format.Format30t);
+                        } else {
+                            offsetToNewInstructionMap.put(currentCodeOffset, Format.Format20t);
+                        }
                         codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset+instruction.getCodeUnits());
-                    } 
-                	codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset+instruction.getCodeUnits());
+                        shiftsInserted = true;
+                    }
+                } else if (instruction.getOpcode().format.equals(Format.Format20t) && !offsetToNewInstructionMap.containsKey(currentCodeOffset)) {
+                    int targetOffset = ((Instruction20t)instruction).getCodeOffset();
+                    int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
+                    int newTargetOffset = targetOffsetShift(currentCodeOffset, targetOffset);
+                    if ((short)newTargetOffset != newTargetOffset) {
+                        codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset+instruction.getCodeUnits());
+                        offsetToNewInstructionMap.put(currentCodeOffset, Format.Format30t);
+                        shiftsInserted = true;
+                    }
+                } else if (instruction.getOpcode().format.equals(Format.ArrayPayload)
+                        || instruction.getOpcode().format.equals(Format.SparseSwitchPayload)
+                        || instruction.getOpcode().format.equals(Format.PackedSwitchPayload)) {
+                    int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
+                    if ((currentCodeOffset+codeOffsetDelta)%2 != 0) {
+                        if (codeOffsetShifts.contains(currentCodeOffset)) {
+                            codeOffsetShifts.remove(codeOffsetDelta);
+                            offsetToNewInstructionMap.remove(currentCodeOffset);
+                        } else {
+                            codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset);
+                            offsetToNewInstructionMap.put(currentCodeOffset, Format.Format10x);
+                            shiftsInserted = true;
+                        }
+                    }
                 }
-            } else if (instruction.getOpcode().format.equals(Format.Format20t)) {
-                int targetOffset = ((Instruction20t)instruction).getCodeOffset();
-                int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
-                int newTargetOffset = targetOffsetShift(currentCodeOffset, targetOffset);
-                if ((short)newTargetOffset != newTargetOffset) {
-                    codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset+instruction.getCodeUnits());
-                }
-            } else if (instruction.getOpcode().format.equals(Format.ArrayPayload)
-            		|| instruction.getOpcode().format.equals(Format.SparseSwitchPayload)
-            		|| instruction.getOpcode().format.equals(Format.PackedSwitchPayload)) {
-                int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
-                if ((currentCodeOffset+codeOffsetDelta)%2 != 0) {
-                	codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset);
-                }
-            } 
-            currentCodeOffset += instruction.getCodeUnits();
-        }
+                currentCodeOffset += instruction.getCodeUnits();
+            }
+        } while (shiftsInserted);
         
         codeUnitCount += codeOffsetShifts.size();
     }
@@ -212,16 +235,15 @@ public class InstructionWriteUtil {
                     Instruction10t instr = (Instruction10t)instruction;
                     int targetOffset = instr.getCodeOffset();
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
-                    if (newTargetOffset != targetOffset) {
-                        if ((byte)newTargetOffset != newTargetOffset) {
-                            if ((short)newTargetOffset != newTargetOffset) {
-                            	modifiedInstruction = new ImmutableInstruction30t(Opcode.GOTO_32, newTargetOffset);
-                            } else {
-                            	modifiedInstruction = new ImmutableInstruction20t(Opcode.GOTO_16, newTargetOffset);
-                            }
-                        } else {
-                        	modifiedInstruction = new ImmutableInstruction10t(instr.getOpcode(), newTargetOffset);
+                    Format newInstructionFormat = offsetToNewInstructionMap.get(currentCodeOffset);
+                    if (newInstructionFormat != null) {
+                    	if (newInstructionFormat.equals(Format.Format30t)) {
+                        	modifiedInstruction = new ImmutableInstruction30t(Opcode.GOTO_32, newTargetOffset);
+                        } else if (newInstructionFormat.equals(Format.Format20t)) {
+                        	modifiedInstruction = new ImmutableInstruction20t(Opcode.GOTO_16, newTargetOffset);
                         }
+                    } else if (newTargetOffset != targetOffset) {
+                    	modifiedInstruction = new ImmutableInstruction10t(instr.getOpcode(), newTargetOffset);
                     }
                     break;
                 }
@@ -229,12 +251,11 @@ public class InstructionWriteUtil {
                     Instruction20t instr = (Instruction20t)instruction;
                     int targetOffset = instr.getCodeOffset();
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
-                    if (newTargetOffset != targetOffset) {
-                        if ((short)newTargetOffset != newTargetOffset) {
-                        	modifiedInstruction = new ImmutableInstruction30t(Opcode.GOTO_32, newTargetOffset);
-                        } else {
-                        	modifiedInstruction = new ImmutableInstruction20t(Opcode.GOTO_16, newTargetOffset);
-                        }
+                    Format newInstructionFormat = offsetToNewInstructionMap.get(currentCodeOffset);
+                    if (newInstructionFormat != null && newInstructionFormat.equals(Format.Format30t)) {
+                    	modifiedInstruction = new ImmutableInstruction30t(Opcode.GOTO_32, newTargetOffset);
+                    } else if (newTargetOffset != targetOffset) {
+                    	modifiedInstruction = new ImmutableInstruction20t(Opcode.GOTO_16, newTargetOffset);
                     }
                     break;
                 }
@@ -321,7 +342,8 @@ public class InstructionWriteUtil {
     }
     
     private void alignPayload(int codeOffset) {
-    	if (codeOffsetShifts.contains(codeOffset)) {
+    	Format newInstructionFormat = offsetToNewInstructionMap.get(codeOffset);
+    	if (newInstructionFormat != null && newInstructionFormat.equals(Format.Format10x)) {
     		instructions.add(new ImmutableInstruction10x(Opcode.NOP));
     	}
     }
