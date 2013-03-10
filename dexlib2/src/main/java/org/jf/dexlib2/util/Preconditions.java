@@ -130,7 +130,7 @@ public class Preconditions {
         return registerCount;
     }
 
-    public static int check3rcRegisterCount(int registerCount) {
+    public static int checkRegisterRangeCount(int registerCount) {
         if ((registerCount & 0xFFFFFF00) != 0) {
             throw new IllegalArgumentException(
                     String.format("Invalid register count: %d. Must be between 0 and 255, inclusive.", registerCount));

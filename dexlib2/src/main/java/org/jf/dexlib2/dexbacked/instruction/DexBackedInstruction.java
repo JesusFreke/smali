@@ -128,6 +128,10 @@ public abstract class DexBackedInstruction implements Instruction {
                 return new DexBackedInstruction35mi(dexFile, opcode, instructionStartOffset);
             case Format3rc:
                 return new DexBackedInstruction3rc(dexFile, opcode, instructionStartOffset);
+            case Format3rmi:
+                return new DexBackedInstruction3rmi(dexFile, opcode, instructionStartOffset);
+            case Format3rms:
+                return new DexBackedInstruction3rms(dexFile, opcode, instructionStartOffset);
             case Format51l:
                 return new DexBackedInstruction51l(dexFile, opcode, instructionStartOffset);
             case PackedSwitchPayload:

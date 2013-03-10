@@ -111,6 +111,10 @@ public abstract class ImmutableInstruction implements Instruction {
                 return ImmutableInstruction35ms.of((Instruction35ms)instruction);
             case Format3rc:
                 return ImmutableInstruction3rc.of((Instruction3rc)instruction);
+            case Format3rmi:
+                return ImmutableInstruction3rmi.of((Instruction3rmi)instruction);
+            case Format3rms:
+                return ImmutableInstruction3rms.of((Instruction3rms)instruction);
             case Format51l:
                 return ImmutableInstruction51l.of((Instruction51l)instruction);
             case PackedSwitchPayload:

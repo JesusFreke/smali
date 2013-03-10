@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,47 +33,44 @@ package org.jf.dexlib2.immutable.instruction;
 
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.iface.instruction.formats.Instruction3rc;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.immutable.reference.ImmutableReference;
-import org.jf.dexlib2.immutable.reference.ImmutableReferenceFactory;
+import org.jf.dexlib2.iface.instruction.formats.Instruction3rms;
 import org.jf.dexlib2.util.Preconditions;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableInstruction3rc extends ImmutableInstruction implements Instruction3rc {
-    public static final Format FORMAT = Format.Format3rc;
+public class ImmutableInstruction3rms extends ImmutableInstruction implements Instruction3rms {
+    public static final Format FORMAT = Format.Format3rms;
 
     protected final int startRegister;
     protected final int registerCount;
 
-    @Nonnull protected final ImmutableReference reference;
+    protected final int vtableIndex;
 
-    public ImmutableInstruction3rc(@Nonnull Opcode opcode,
-                                   int startRegister,
-                                   int registerCount,
-                                   @Nonnull Reference reference) {
+    public ImmutableInstruction3rms(@Nonnull Opcode opcode,
+                                    int startRegister,
+                                    int registerCount,
+                                    int vtableIndex) {
         super(opcode);
         Preconditions.checkFormat(opcode, FORMAT);
         this.startRegister = Preconditions.checkShortRegister(startRegister);
         this.registerCount = Preconditions.checkRegisterRangeCount(registerCount);
-        this.reference = ImmutableReferenceFactory.of(opcode.referenceType, reference);
+        this.vtableIndex = Preconditions.checkVtableIndex(vtableIndex);
     }
 
-    public static ImmutableInstruction3rc of(Instruction3rc instruction) {
-        if (instruction instanceof ImmutableInstruction3rc) {
-            return (ImmutableInstruction3rc)instruction;
+    public static ImmutableInstruction3rms of(Instruction3rms instruction) {
+        if (instruction instanceof ImmutableInstruction3rms) {
+            return (ImmutableInstruction3rms)instruction;
         }
-        return new ImmutableInstruction3rc(
+        return new ImmutableInstruction3rms(
                 instruction.getOpcode(),
                 instruction.getStartRegister(),
                 instruction.getRegisterCount(),
-                instruction.getReference());
+                instruction.getVtableIndex());
     }
 
     @Override public int getStartRegister() { return startRegister; }
     @Override public int getRegisterCount() { return registerCount; }
-    @Nonnull @Override public ImmutableReference getReference() { return reference; }
+    @Override public int getVtableIndex() { return vtableIndex; }
 
     @Override public Format getFormat() { return FORMAT; }
 }

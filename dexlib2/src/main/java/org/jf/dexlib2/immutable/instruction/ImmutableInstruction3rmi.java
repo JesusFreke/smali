@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,47 +33,44 @@ package org.jf.dexlib2.immutable.instruction;
 
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.iface.instruction.formats.Instruction3rc;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.immutable.reference.ImmutableReference;
-import org.jf.dexlib2.immutable.reference.ImmutableReferenceFactory;
+import org.jf.dexlib2.iface.instruction.formats.Instruction3rmi;
 import org.jf.dexlib2.util.Preconditions;
 
 import javax.annotation.Nonnull;
 
-public class ImmutableInstruction3rc extends ImmutableInstruction implements Instruction3rc {
-    public static final Format FORMAT = Format.Format3rc;
+public class ImmutableInstruction3rmi extends ImmutableInstruction implements Instruction3rmi {
+    public static final Format FORMAT = Format.Format3rmi;
 
     protected final int startRegister;
     protected final int registerCount;
 
-    @Nonnull protected final ImmutableReference reference;
+    protected final int inlineIndex;
 
-    public ImmutableInstruction3rc(@Nonnull Opcode opcode,
-                                   int startRegister,
-                                   int registerCount,
-                                   @Nonnull Reference reference) {
+    public ImmutableInstruction3rmi(@Nonnull Opcode opcode,
+                                    int startRegister,
+                                    int registerCount,
+                                    int inlineIndex) {
         super(opcode);
         Preconditions.checkFormat(opcode, FORMAT);
         this.startRegister = Preconditions.checkShortRegister(startRegister);
         this.registerCount = Preconditions.checkRegisterRangeCount(registerCount);
-        this.reference = ImmutableReferenceFactory.of(opcode.referenceType, reference);
+        this.inlineIndex = Preconditions.checkInlineIndex(inlineIndex);
     }
 
-    public static ImmutableInstruction3rc of(Instruction3rc instruction) {
-        if (instruction instanceof ImmutableInstruction3rc) {
-            return (ImmutableInstruction3rc)instruction;
+    public static ImmutableInstruction3rmi of(Instruction3rmi instruction) {
+        if (instruction instanceof ImmutableInstruction3rmi) {
+            return (ImmutableInstruction3rmi)instruction;
         }
-        return new ImmutableInstruction3rc(
+        return new ImmutableInstruction3rmi(
                 instruction.getOpcode(),
                 instruction.getStartRegister(),
                 instruction.getRegisterCount(),
-                instruction.getReference());
+                instruction.getInlineIndex());
     }
 
     @Override public int getStartRegister() { return startRegister; }
     @Override public int getRegisterCount() { return registerCount; }
-    @Nonnull @Override public ImmutableReference getReference() { return reference; }
+    @Override public int getInlineIndex() { return inlineIndex; }
 
     @Override public Format getFormat() { return FORMAT; }
 }

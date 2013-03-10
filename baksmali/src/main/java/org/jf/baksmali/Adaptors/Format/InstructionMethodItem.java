@@ -212,8 +212,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeReference(writer);
                 return true;
-            //TODO: uncomment
-            /*case Format3rmi:
+            case Format3rmi:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeInvokeRangeRegisters(writer);
@@ -226,7 +225,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeInvokeRangeRegisters(writer);
                 writer.write(", ");
                 writeVtableIndex(writer);
-                return true;*/
+                return true;
         }
         assert false;
         return false;
