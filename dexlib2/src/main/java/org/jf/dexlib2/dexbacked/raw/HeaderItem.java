@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import org.jf.dexlib2.dexbacked.BaseDexBuffer;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.StringUtils;
@@ -216,5 +217,38 @@ public class HeaderItem {
             return "Big Endian";
         }
         return "Invalid";
+    }
+
+    private static int getVersion(byte[] buf, int offset) {
+        if (buf.length - offset < 8) {
+            return 0;
+        }
+
+        boolean matches = true;
+        for (int i=0; i<MAGIC_VALUES.length; i++) {
+            byte[] expected = MAGIC_VALUES[i];
+            matches = true;
+            for (int j=0; j<8; j++) {
+                if (buf[offset + j] != expected[j]) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) {
+                return i==0?35:36;
+            }
+        }
+        return 0;
+    }
+
+    public static boolean verifyMagic(byte[] buf, int offset) {
+        // verifies the magic value
+        return getVersion(buf, offset) != 0;
+    }
+
+
+    public static int getEndian(byte[] buf, int offset) {
+        BaseDexBuffer bdb = new BaseDexBuffer(buf);
+        return bdb.readInt(offset + ENDIAN_TAG_OFFSET);
     }
 }

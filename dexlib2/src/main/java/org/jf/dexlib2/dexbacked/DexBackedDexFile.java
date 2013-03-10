@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
@@ -38,6 +39,9 @@ import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 
 public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
@@ -54,15 +58,13 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int classCount;
     private final int classStartOffset;
 
-    public DexBackedDexFile (@Nonnull BaseDexBuffer buf) {
-        this(buf.buf);
-    }
-
-    public DexBackedDexFile (@Nonnull byte[] buf) {
+    private DexBackedDexFile(@Nonnull byte[] buf, int offset, boolean verifyMagic) {
         super(buf);
 
-        verifyMagic();
-        verifyEndian();
+        if (verifyMagic) {
+            verifyMagicAndByteOrder(buf, offset);
+        }
+
         stringCount = readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
         stringStartOffset = readSmallUint(HeaderItem.STRING_START_OFFSET);
         typeCount = readSmallUint(HeaderItem.TYPE_COUNT_OFFSET);
@@ -75,6 +77,42 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         methodStartOffset = readSmallUint(HeaderItem.METHOD_START_OFFSET);
         classCount = readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
         classStartOffset = readSmallUint(HeaderItem.CLASS_START_OFFSET);
+    }
+
+    public DexBackedDexFile(@Nonnull BaseDexBuffer buf) {
+        this(buf.buf);
+    }
+
+    public DexBackedDexFile(@Nonnull byte[] buf, int offset) {
+        this(buf, offset, false);
+    }
+
+    public DexBackedDexFile(@Nonnull byte[] buf) {
+        this(buf, 0, true);
+    }
+
+    public static DexBackedDexFile fromInputStream(@Nonnull InputStream is) throws IOException {
+        if (!is.markSupported()) {
+            throw new IllegalArgumentException("InputStream must support mark");
+        }
+        is.mark(44);
+        byte[] partialHeader = new byte[44];
+        try {
+            ByteStreams.readFully(is, partialHeader);
+        } catch (EOFException ex) {
+            throw new NotADexFile("File is too short");
+        } finally {
+            is.reset();
+        }
+
+        verifyMagicAndByteOrder(partialHeader, 0);
+
+        byte[] buf = ByteStreams.toByteArray(is);
+        return new DexBackedDexFile(buf, 0, false);
+    }
+
+    public boolean isOdexFile() {
+        return false;
     }
 
     @Nonnull
@@ -94,32 +132,22 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         };
     }
 
-    private void verifyMagic() {
-        outer: for (byte[] magic: HeaderItem.MAGIC_VALUES) {
-            for (int i=0; i<magic.length; i++) {
-                if (buf[i] != magic[i]) {
-                    continue outer;
-                }
+    private static void verifyMagicAndByteOrder(@Nonnull byte[] buf, int offset) {
+        if (!HeaderItem.verifyMagic(buf, offset)) {
+            StringBuilder sb = new StringBuilder("Invalid magic value:");
+            for (int i=0; i<8; i++) {
+                sb.append(String.format(" %02x", buf[i]));
             }
-            return;
+            throw new NotADexFile(sb.toString());
         }
-        StringBuilder sb = new StringBuilder("Invalid magic value:");
-        for (int i=0; i<8; i++) {
-            sb.append(String.format(" %02x", buf[i]));
-        }
-        throw new ExceptionWithContext(sb.toString());
-    }
 
-    private void verifyEndian() {
-        int endian = readInt(HeaderItem.ENDIAN_TAG_OFFSET);
+        int endian = HeaderItem.getEndian(buf, offset);
         if (endian == HeaderItem.BIG_ENDIAN_TAG) {
-            throw new ExceptionWithContext("dexlib does not currently support big endian dex files.");
-        } else if (endian != HeaderItem.LITTLE_ENDIAN_TAG) {
-            StringBuilder sb = new StringBuilder("Invalid endian tag:");
-            for (int i=0; i<4; i++) {
-                sb.append(String.format(" %02x", buf[HeaderItem.ENDIAN_TAG_OFFSET+i]));
-            }
-            throw new ExceptionWithContext(sb.toString());
+            throw new ExceptionWithContext("Big endian dex files are not currently supported");
+        }
+
+        if (endian != HeaderItem.LITTLE_ENDIAN_TAG) {
+            throw new ExceptionWithContext("Invalid endian tag: 0x%x", endian);
         }
     }
 
@@ -205,5 +233,22 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     @Nonnull
     public DexReader readerAt(int offset) {
         return new DexReader(this, offset);
+    }
+
+    public static class NotADexFile extends RuntimeException {
+        public NotADexFile() {
+        }
+
+        public NotADexFile(Throwable cause) {
+            super(cause);
+        }
+
+        public NotADexFile(String message) {
+            super(message);
+        }
+
+        public NotADexFile(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

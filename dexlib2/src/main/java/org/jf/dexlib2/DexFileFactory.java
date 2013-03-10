@@ -32,14 +32,13 @@
 package org.jf.dexlib2;
 
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -51,10 +50,8 @@ public final class DexFileFactory {
 
     @Nonnull
     public static DexBackedDexFile loadDexFile(File dexFile) throws IOException {
-        boolean isZipFile = false;
-        byte[] dexBytes = null;
         ZipFile zipFile = null;
-        boolean zipSuccess = false;
+        boolean isZipFile = false;
         try {
             zipFile = new ZipFile(dexFile);
             // if we get here, it's safe to assume we have a zip file
@@ -71,10 +68,11 @@ public final class DexFileFactory {
             } else if (fileLength > Integer.MAX_VALUE) {
                 throw new ExceptionWithContext("The classes.dex file in %s is too large to read in", dexFile.getName());
             }
-            dexBytes = new byte[(int)fileLength];
+            byte[] dexBytes = new byte[(int)fileLength];
             ByteStreams.readFully(zipFile.getInputStream(zipEntry), dexBytes);
-            zipSuccess = true;
+            return new DexBackedDexFile(dexBytes);
         } catch (IOException ex) {
+            // don't continue on if we know it's a zip file
             if (isZipFile) {
                 throw ex;
             }
@@ -88,12 +86,23 @@ public final class DexFileFactory {
             }
         }
 
-        if (!zipSuccess) {
-            // nope, it doesn't looks like a zip file. Let's see if it's a dex file
-            dexBytes = Files.toByteArray(dexFile);
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(dexFile));
+
+        try {
+            return DexBackedDexFile.fromInputStream(inputStream);
+        } catch (DexBackedDexFile.NotADexFile ex) {
+            // just eat it
         }
 
-        return new DexBackedDexFile(dexBytes);
+        // Note: DexBackedDexFile.fromInputStream will reset inputStream back to the same position, if it fails
+
+        try {
+            return DexBackedOdexFile.fromInputStream(inputStream);
+        } catch (DexBackedOdexFile.NotAnOdexFile ex) {
+            // just eat it
+        }
+
+        throw new ExceptionWithContext("%s is not an apk, dex file or odex file.", dexFile.getPath());
     }
 
     public static void writeDexFile(String path, DexFile dexFile) throws IOException {
