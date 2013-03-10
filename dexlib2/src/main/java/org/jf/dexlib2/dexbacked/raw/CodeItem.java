@@ -290,6 +290,9 @@ public class CodeItem {
                 } else if (instruction instanceof VtableIndexInstruction) {
                     int vtableIndex = ((VtableIndexInstruction)instruction).getVtableIndex();
                     args.add(String.format("vtable@%d", vtableIndex));
+                } else if (instruction instanceof InlineIndexInstruction) {
+                    int inlineIndex = ((InlineIndexInstruction)instruction).getInlineIndex();
+                    args.add(String.format("inline@%d", inlineIndex));
                 }
 
                 out.annotate(instruction.getCodeUnits()*2, "%s %s",

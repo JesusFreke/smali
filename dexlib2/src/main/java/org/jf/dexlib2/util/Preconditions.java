@@ -167,4 +167,12 @@ public class Preconditions {
         }
         return vtableIndex;
     }
+
+    public static int checkInlineIndex(int inlineIndex) {
+        if (inlineIndex < 0 || inlineIndex > 65535) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid inline index: %d. Must be between 0 and 65535, inclusive", inlineIndex));
+        }
+        return inlineIndex;
+    }
 }

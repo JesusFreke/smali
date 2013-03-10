@@ -105,6 +105,8 @@ public abstract class ImmutableInstruction implements Instruction {
                 return ImmutableInstruction32x.of((Instruction32x)instruction);
             case Format35c:
                 return ImmutableInstruction35c.of((Instruction35c)instruction);
+            case Format35mi:
+                return ImmutableInstruction35mi.of((Instruction35mi)instruction);
             case Format35ms:
                 return ImmutableInstruction35ms.of((Instruction35ms)instruction);
             case Format3rc:

@@ -191,14 +191,13 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeReference(writer);
                 return true;
-            //TODO: uncomment
-            /*case Format35mi:
+            case Format35mi:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeInvokeRegisters(writer);
                 writer.write(", ");
                 writeInlineIndex(writer);
-                return true;*/
+                return true;
             case Format35ms:
                 writeOpcode(writer);
                 writer.write(' ');
@@ -326,12 +325,10 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         writer.printUnsignedLongAsHex(((FieldOffsetInstruction)instruction).getFieldOffset());
     }
 
-    //TODO: uncomment
-    /*
     protected void writeInlineIndex(IndentingWriter writer) throws IOException {
-        writer.write("inline@0x");
-        writer.printUnsignedLongAsHex(((OdexedInvokeInline) instruction).getInlineIndex());
-    }*/
+        writer.write("inline@");
+        writer.printSignedIntAsDec(((InlineIndexInstruction)instruction).getInlineIndex());
+    }
 
     protected void writeVtableIndex(IndentingWriter writer) throws IOException {
         writer.write("vtable@");
