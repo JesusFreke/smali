@@ -31,11 +31,10 @@ package org.jf.baksmali.Adaptors.Format;
 import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
+import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.dexlib.Code.Format.UnknownInstruction;
-import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.instruction.*;
 import org.jf.util.IndentingWriter;
-import org.jf.baksmali.Renderers.LongRenderer;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -150,8 +149,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeReference(writer);
                 return true;
-            //TODO: uncomment
-            /*case Format22cs:
+            case Format22cs:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeFirstRegister(writer);
@@ -159,7 +157,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeSecondRegister(writer);
                 writer.write(", ");
                 writeFieldOffset(writer);
-                return true;*/
+                return true;
             case Format22t:
                 writeOpcode(writer);
                 writer.write(' ');
@@ -322,12 +320,14 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         LongRenderer.writeSignedIntOrLongTo(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
     }
 
-    //TODO: uncomment
-    /*protected void writeFieldOffset(IndentingWriter writer) throws IOException {
+
+    protected void writeFieldOffset(IndentingWriter writer) throws IOException {
         writer.write("field@0x");
-        writer.printUnsignedLongAsHex(((OdexedFieldAccess) instruction).getFieldOffset());
+        writer.printUnsignedLongAsHex(((FieldOffsetInstruction)instruction).getFieldOffset());
     }
 
+    //TODO: uncomment
+    /*
     protected void writeInlineIndex(IndentingWriter writer) throws IOException {
         writer.write("inline@0x");
         writer.printUnsignedLongAsHex(((OdexedInvokeInline) instruction).getInlineIndex());

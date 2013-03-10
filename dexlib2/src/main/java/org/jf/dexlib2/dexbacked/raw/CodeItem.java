@@ -290,6 +290,11 @@ public class CodeItem {
                     }
                 }
 
+                if (instruction instanceof FieldOffsetInstruction) {
+                    int fieldOffset = ((FieldOffsetInstruction)instruction).getFieldOffset();
+                    args.add(String.format("field@0x%x", fieldOffset));
+                }
+
                 out.annotate(instruction.getCodeUnits()*2, "%s %s",
                         instruction.getOpcode().name, Joiner.on(", ").join(args));
             }

@@ -150,4 +150,13 @@ public class Preconditions {
                             valueArg, maxValue));
         }
     }
+
+    public static int checkFieldOffset(int fieldOffset) {
+        if (fieldOffset < 0 || fieldOffset > 65535) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid field offset: 0x%x. Must be between 0x0000 and 0xFFFF inclusive",
+                            fieldOffset));
+        }
+        return fieldOffset;
+    }
 }
