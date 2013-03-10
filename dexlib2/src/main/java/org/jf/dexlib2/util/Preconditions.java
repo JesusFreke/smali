@@ -159,4 +159,12 @@ public class Preconditions {
         }
         return fieldOffset;
     }
+
+    public static int checkVtableIndex(int vtableIndex) {
+        if (vtableIndex < 0 || vtableIndex > 65535) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid vtable index: %d. Must be between 0 and 65535, inclusive", vtableIndex));
+        }
+        return vtableIndex;
+    }
 }

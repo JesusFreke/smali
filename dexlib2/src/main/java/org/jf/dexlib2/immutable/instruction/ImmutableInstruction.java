@@ -105,6 +105,8 @@ public abstract class ImmutableInstruction implements Instruction {
                 return ImmutableInstruction32x.of((Instruction32x)instruction);
             case Format35c:
                 return ImmutableInstruction35c.of((Instruction35c)instruction);
+            case Format35ms:
+                return ImmutableInstruction35ms.of((Instruction35ms)instruction);
             case Format3rc:
                 return ImmutableInstruction3rc.of((Instruction3rc)instruction);
             case Format51l:
@@ -121,7 +123,7 @@ public abstract class ImmutableInstruction implements Instruction {
         }
     }
 
-    public Opcode getOpcode() {
+    @Nonnull public Opcode getOpcode() {
         return opcode;
     }
 

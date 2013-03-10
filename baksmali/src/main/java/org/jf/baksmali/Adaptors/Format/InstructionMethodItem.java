@@ -198,14 +198,14 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeInvokeRegisters(writer);
                 writer.write(", ");
                 writeInlineIndex(writer);
-                return true;
+                return true;*/
             case Format35ms:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeInvokeRegisters(writer);
                 writer.write(", ");
                 writeVtableIndex(writer);
-                return true;*/
+                return true;
             case Format3rc:
                 writeOpcode(writer);
                 writer.write(' ');
@@ -331,12 +331,12 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     protected void writeInlineIndex(IndentingWriter writer) throws IOException {
         writer.write("inline@0x");
         writer.printUnsignedLongAsHex(((OdexedInvokeInline) instruction).getInlineIndex());
-    }
+    }*/
 
     protected void writeVtableIndex(IndentingWriter writer) throws IOException {
-        writer.write("vtable@0x");
-        writer.printUnsignedLongAsHex(((OdexedInvokeVirtual) instruction).getVtableIndex());
-    }*/
+        writer.write("vtable@");
+        writer.printSignedIntAsDec(((VtableIndexInstruction)instruction).getVtableIndex());
+    }
 
     protected void writeReference(IndentingWriter writer) throws IOException {
         ReferenceFormatter.writeReference(writer, instruction.getOpcode().referenceType,

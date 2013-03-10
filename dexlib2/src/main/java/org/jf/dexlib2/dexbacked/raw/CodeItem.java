@@ -266,15 +266,11 @@ public class CodeItem {
                 if (instruction instanceof ReferenceInstruction) {
                     args.add(ReferenceUtil.getReferenceString(
                             ((ReferenceInstruction)instruction).getReference()));
-                }
-
-                if (instruction instanceof OffsetInstruction) {
+                } else if (instruction instanceof OffsetInstruction) {
                     int offset = ((OffsetInstruction)instruction).getCodeOffset();
                     String sign = offset>=0?"+":"-";
                     args.add(String.format("%s0x%x", sign, offset));
-                }
-
-                if (instruction instanceof NarrowLiteralInstruction) {
+                } else if (instruction instanceof NarrowLiteralInstruction) {
                     int value = ((NarrowLiteralInstruction)instruction).getNarrowLiteral();
                     if (NumberUtils.isLikelyFloat(value)) {
                         args.add(String.format("%d # %f", value, Float.intBitsToFloat(value)));
@@ -288,11 +284,12 @@ public class CodeItem {
                     } else {
                         args.add(String.format("%d", value));
                     }
-                }
-
-                if (instruction instanceof FieldOffsetInstruction) {
+                } else if (instruction instanceof FieldOffsetInstruction) {
                     int fieldOffset = ((FieldOffsetInstruction)instruction).getFieldOffset();
                     args.add(String.format("field@0x%x", fieldOffset));
+                } else if (instruction instanceof VtableIndexInstruction) {
+                    int vtableIndex = ((VtableIndexInstruction)instruction).getVtableIndex();
+                    args.add(String.format("vtable@%d", vtableIndex));
                 }
 
                 out.annotate(instruction.getCodeUnits()*2, "%s %s",
