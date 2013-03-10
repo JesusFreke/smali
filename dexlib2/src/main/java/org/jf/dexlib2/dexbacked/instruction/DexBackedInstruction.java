@@ -84,6 +84,8 @@ public abstract class DexBackedInstruction implements Instruction {
                 return new DexBackedInstruction11x(dexFile, opcode, instructionStartOffset);
             case Format12x:
                 return new DexBackedInstruction12x(dexFile, opcode, instructionStartOffset);
+            case Format20bc:
+                return new DexBackedInstruction20bc(dexFile, opcode, instructionStartOffset);
             case Format20t:
                 return new DexBackedInstruction20t(dexFile, opcode, instructionStartOffset);
             case Format21c:

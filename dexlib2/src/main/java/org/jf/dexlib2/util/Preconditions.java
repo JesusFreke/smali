@@ -33,6 +33,7 @@ package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.VerificationError;
 
 public class Preconditions {
     public static void checkFormat(Opcode opcode, Format expectedFormat) {
@@ -174,5 +175,14 @@ public class Preconditions {
                     String.format("Invalid inline index: %d. Must be between 0 and 65535, inclusive", inlineIndex));
         }
         return inlineIndex;
+    }
+
+    public static int checkVerificationError(int verificationError) {
+        if (!VerificationError.isValidVerificationError(verificationError)) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid verification error value: %d. Must be between 1 and 9, inclusive",
+                            verificationError));
+        }
+        return verificationError;
     }
 }

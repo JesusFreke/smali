@@ -33,7 +33,9 @@ import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.dexlib.Code.Format.UnknownInstruction;
+import org.jf.dexlib2.VerificationError;
 import org.jf.dexlib2.iface.instruction.*;
+import org.jf.dexlib2.iface.instruction.formats.Instruction20bc;
 import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
@@ -89,14 +91,13 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeSecondRegister(writer);
                 return true;
-            //TODO: uncomment
-            /*case Format20bc:
+            case Format20bc:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeVerificationErrorType(writer);
                 writer.write(", ");
                 writeReference(writer);
-                return true;*/
+                return true;
             case Format20t:
             case Format30t:
                 writeOpcode(writer);
@@ -236,7 +237,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeTargetLabel(IndentingWriter writer) throws IOException {
-        //this method is overrided by OffsetInstructionMethodItem, and should only be called for the formats that
+        //this method is overridden by OffsetInstructionMethodItem, and should only be called for the formats that
         //have a target
         throw new RuntimeException();
     }
@@ -339,9 +340,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 ((ReferenceInstruction)instruction).getReference());
     }
 
-    //TODO: uncomment
-    /*protected void writeVerificationErrorType(IndentingWriter writer) throws IOException {
-        VerificationErrorType validationErrorType = ((Instruction20bc)instruction).getValidationErrorType();
-        writer.write(validationErrorType.getName());
-    }*/
+    protected void writeVerificationErrorType(IndentingWriter writer) throws IOException {
+        int verificationError = ((Instruction20bc)instruction).getVerificationError();
+        writer.write(VerificationError.getVerificationErrorName(verificationError));
+    }
 }

@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked.raw;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.jf.dexlib2.VerificationError;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
@@ -261,6 +262,9 @@ public class CodeItem {
                             args.add(formatRegister(((ThreeRegisterInstruction)instruction).getRegisterC()));
                         }
                     }
+                }  else if (instruction instanceof VerificationErrorInstruction) {
+                    args.add(VerificationError.getVerificationErrorName(
+                            ((VerificationErrorInstruction)instruction).getVerificationError()));
                 }
 
                 if (instruction instanceof ReferenceInstruction) {
