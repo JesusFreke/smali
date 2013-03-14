@@ -279,6 +279,15 @@ public class RegisterType {
             assert other.category == UNKNOWN;
             return this;
         }
+
+        if (mergedType != null) {
+            if (mergedType.equals(this.type)) {
+                return this;
+            }
+            if (mergedType.equals(other.type)) {
+                return other;
+            }
+        }
         return RegisterType.getRegisterType(mergedCategory, mergedType);
     }
 
