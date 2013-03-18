@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.util;
+package org.jf.dexlib2.analysis;
 
-public final class TypeUtils {
-    public static boolean isWideType(String type) {
-        char c = type.charAt(0);
-        return c == 'J' || c == 'D';
+import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.immutable.ImmutableClassDef;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public class TestUtils {
+    public static ClassDef makeClassDef(@Nonnull String classType, @Nullable String superType, String... interfaces) {
+        return new ImmutableClassDef(classType, 0, superType, ImmutableSet.copyOf(interfaces), null, null, null, null);
     }
 
-    public static boolean isPrimitiveType(String type) {
-        return type.length() == 1;
+    public static ClassDef makeInterfaceDef(@Nonnull String classType, String... interfaces) {
+        return new ImmutableClassDef(classType, AccessFlags.INTERFACE.getValue(), "Ljava/lang/Object;",
+                ImmutableSet.copyOf(interfaces), null, null, null, null);
     }
-
-    private TypeUtils() {}
 }

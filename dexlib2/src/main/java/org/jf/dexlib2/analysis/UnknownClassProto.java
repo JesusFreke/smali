@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.util;
+package org.jf.dexlib2.analysis;
 
-public final class TypeUtils {
-    public static boolean isWideType(String type) {
-        char c = type.charAt(0);
-        return c == 'J' || c == 'D';
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public class UnknownClassProto implements TypeProto {
+    @Nonnull protected final ClassPath classPath;
+
+    public UnknownClassProto(@Nonnull ClassPath classPath) {
+        this.classPath = classPath;
     }
 
-    public static boolean isPrimitiveType(String type) {
-        return type.length() == 1;
+    @Override public String toString() { return "Ujava/lang/Object;"; }
+    @Nonnull @Override public ClassPath getClassPath() { return classPath; }
+    @Nullable @Override public String getSuperclass() { return null; }
+    @Override public boolean isInterface() { return false; }
+    @Override public boolean implementsInterface(@Nonnull String iface) { return false; }
+
+    @Nonnull @Override public TypeProto getCommonSuperclass(@Nonnull TypeProto other) {
+        if (other.getType().equals("Ljava/lang/Object;")) {
+            return other;
+        }
+        if (other instanceof ArrayProto) {
+            // if it's an array class, it's safe to assume this unknown class isn't related, and so
+            // java.lang.Object is the only possible superclass
+            return classPath.getClass("Ljava/lang/Object;");
+        }
+        return this;
     }
 
-    private TypeUtils() {}
+    @Nonnull @Override public String getType() {
+        // use the otherwise used U prefix for an unknown/unresolvable class
+        return "Ujava/lang/Object;";
+    }
 }

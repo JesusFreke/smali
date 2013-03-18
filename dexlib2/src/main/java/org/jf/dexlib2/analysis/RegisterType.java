@@ -41,9 +41,9 @@ import java.io.Writer;
 
 public class RegisterType {
     public final byte category;
-    @Nullable public final String type;
+    @Nullable public final TypeProto type;
 
-    private RegisterType(byte category, @Nullable String type) {
+    private RegisterType(byte category, @Nullable TypeProto type) {
         assert ((category == REFERENCE || category == UNINIT_REF || category == UNINIT_THIS) && type != null) ||
                ((category != REFERENCE && category != UNINIT_REF && category != UNINIT_THIS) && type == null);
 
@@ -61,7 +61,7 @@ public class RegisterType {
         writer.write(CATEGORY_NAMES[category]);
         if (type != null) {
             writer.write(',');
-            writer.write(type);
+            writer.write(type.getType());
         }
         writer.write(')');
     }
@@ -185,34 +185,6 @@ public class RegisterType {
     public static final RegisterType CONFLICTED_TYPE = new RegisterType(CONFLICTED, null);
 
     @Nonnull
-    public static RegisterType getRegisterTypeForType(@Nonnull String type) {
-        switch (type.charAt(0)) {
-            case 'Z':
-                return getRegisterType(BOOLEAN, null);
-            case 'B':
-                return getRegisterType(BYTE, null);
-            case 'S':
-                return getRegisterType(SHORT, null);
-            case 'C':
-                return getRegisterType(CHAR, null);
-            case 'I':
-                return getRegisterType(INTEGER, null);
-            case 'F':
-                return getRegisterType(FLOAT, null);
-            case 'J':
-                return getRegisterType(LONG_LO, null);
-            case 'D':
-                return getRegisterType(DOUBLE_LO, null);
-            case 'L':
-            case 'U':
-            case '[':
-                return getRegisterType(REFERENCE, type);
-            default:
-                throw new RuntimeException("Invalid type: " + type);
-        }
-    }
-
-    @Nonnull
     public static RegisterType getWideRegisterTypeForType(@Nonnull String type, boolean firstRegister) {
         switch (type.charAt(0)) {
             case 'J':
@@ -260,18 +232,18 @@ public class RegisterType {
         return getRegisterType(INTEGER, null);
     }
 
-    public RegisterType merge(RegisterType other) {
-        if (other == null || other == this) {
+    public RegisterType merge(@Nonnull RegisterType other) {
+        if (other == this) {
             return this;
         }
 
         byte mergedCategory = mergeTable[this.category][other.category];
 
-        String mergedType = null;
+        TypeProto mergedType = null;
         if (mergedCategory == REFERENCE) {
-            // TODO: uncomment
-            // TODO: make sure to handle unresolved types in getCommonSuperclass (using U prefix?)
-            //mergedType = ClassPath.getCommonSuperclass(this.type, other.type);
+            assert type != null;
+            assert other.type != null;
+            mergedType = this.type.getCommonSuperclass(other.type);
         } else if (mergedCategory == UNINIT_REF || mergedCategory == UNINIT_THIS) {
             if (this.category == UNKNOWN) {
                 return other;
@@ -291,7 +263,7 @@ public class RegisterType {
         return RegisterType.getRegisterType(mergedCategory, mergedType);
     }
 
-    public static RegisterType getRegisterType(byte category, String classType) {
+    public static RegisterType getRegisterType(byte category, @Nullable TypeProto typeProto) {
         switch (category) {
             case UNKNOWN:
                 return UNKNOWN_TYPE;
@@ -310,7 +282,7 @@ public class RegisterType {
             case SHORT:
                 return SHORT_TYPE;
             case POS_SHORT:
-                return POS_BYTE_TYPE;
+                return POS_SHORT_TYPE;
             case CHAR:
                 return CHAR_TYPE;
             case INTEGER:
@@ -329,6 +301,6 @@ public class RegisterType {
                 return CONFLICTED_TYPE;
         }
 
-        return new RegisterType(category, classType);
+        return new RegisterType(category, typeProto);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.util;
+package org.jf.dexlib2.analysis.reflection;
 
-public final class TypeUtils {
-    public static boolean isWideType(String type) {
-        char c = type.charAt(0);
-        return c == 'J' || c == 'D';
+import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.analysis.reflection.util.ReflectionUtils;
+import org.jf.dexlib2.base.reference.BaseFieldReference;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.Field;
+import org.jf.dexlib2.iface.value.EncodedValue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Set;
+
+public class ReflectionField extends BaseFieldReference implements Field {
+    private final java.lang.reflect.Field field;
+
+    public ReflectionField(java.lang.reflect.Field field) {
+        this.field = field;
     }
 
-    public static boolean isPrimitiveType(String type) {
-        return type.length() == 1;
+    @Override public int getAccessFlags() {
+        return field.getModifiers();
     }
 
-    private TypeUtils() {}
+    @Nullable @Override public EncodedValue getInitialValue() {
+        return null;
+    }
+
+    @Nonnull @Override public Set<? extends Annotation> getAnnotations() {
+        return ImmutableSet.of();
+    }
+
+    @Nonnull @Override public String getDefiningClass() {
+        return ReflectionUtils.javaToDexName(field.getDeclaringClass().getName());
+    }
+
+    @Nonnull @Override public String getName() {
+        return field.getName();
+    }
+
+    @Nonnull @Override public String getType() {
+        return ReflectionUtils.javaToDexName(field.getType().getName());
+    }
 }

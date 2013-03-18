@@ -32,17 +32,13 @@
 package org.jf.dexlib2.analysis;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public class ArrayClassProto extends ClassProto {
-    public ArrayClassProto(@Nonnull ClassPath classPath, @Nonnull String type) {
-        super(classPath, type);
-    }
-
-    @Nonnull @Override
-    public ClassProto getCommonSuperclass(@Nonnull ClassProto other) {
-        if (other instanceof ArrayClassProto) {
-            // TODO: implement this
-        }
-        return super.getCommonSuperclass(other);
-    }
+public interface TypeProto {
+    @Nonnull ClassPath getClassPath();
+    @Nonnull String getType();
+    boolean isInterface();
+    boolean implementsInterface(@Nonnull String iface);
+    @Nullable String getSuperclass();
+    @Nonnull TypeProto getCommonSuperclass(@Nonnull TypeProto other);
 }

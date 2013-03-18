@@ -31,18 +31,22 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.analysis.reflection.ReflectionClassDef;
 import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.immutable.ImmutableDexFile;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 
 public class ClassPath {
-    private DexBackedDexFile[] dexFiles;
-
-    private HashMap<String, ClassProto> loadedClasses = Maps.newHashMap();
+    @Nonnull private final TypeProto unknownClass;
+    @Nonnull private DexFile[] dexFiles;
+    @Nonnull private HashMap<String, TypeProto> loadedClasses = Maps.newHashMap();
 
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
@@ -50,25 +54,44 @@ public class ClassPath {
      * @param classPath An array of DexBackedDexFile objects. When loading a class, these dex files will be searched
      *                  in order
      */
-    public ClassPath(DexBackedDexFile[] classPath) throws IOException {
-        dexFiles = new DexBackedDexFile[classPath.length];
+    public ClassPath(DexFile... classPath) throws IOException {
+        dexFiles = new DexFile[classPath.length+1];
         System.arraycopy(classPath, 0, dexFiles, 0, classPath.length);
+        // add fallbacks for certain special classes that must be present
+        dexFiles[dexFiles.length - 1] = getBasicClasses();
+
+        unknownClass = new UnknownClassProto(this);
+        loadedClasses.put(unknownClass.getType(), unknownClass);
+    }
+
+    private static DexFile getBasicClasses() {
+        return new ImmutableDexFile(ImmutableSet.of(
+                new ReflectionClassDef(Object.class),
+                new ReflectionClassDef(Cloneable.class),
+                new ReflectionClassDef(Serializable.class)));
     }
 
     @Nonnull
-    public ClassProto getClass(String type) {
-        ClassProto loadedClass = loadedClasses.get(type);
-        if (loadedClass != null) {
-            return loadedClass;
+    public TypeProto getClass(String type) {
+        TypeProto typeProto = loadedClasses.get(type);
+        if (typeProto != null) {
+            return typeProto;
         }
-        ClassProto classProto = new ClassProto(this, type);
-        loadedClasses.put(type, classProto);
-        return classProto;
+
+        if (type.charAt(0) == '[') {
+            typeProto = new ArrayProto(this, type);
+        } else {
+            typeProto = new ClassProto(this, type);
+        }
+
+        loadedClasses.put(type, typeProto);
+        return typeProto;
     }
 
     @Nonnull
     public ClassDef getClassDef(String type) {
-        for (DexBackedDexFile dexFile: dexFiles) {
+        // TODO: need a <= O(log) way to look up classes
+        for (DexFile dexFile: dexFiles) {
             for (ClassDef classDef: dexFile.getClasses()) {
                 if (classDef.getType().equals(type)) {
                     return classDef;
@@ -76,5 +99,38 @@ public class ClassPath {
             }
         }
         throw new UnresolvedClassException("Could not resolve class %s", type);
+    }
+
+    @Nonnull
+    public RegisterType getRegisterTypeForType(@Nonnull String type) {
+        switch (type.charAt(0)) {
+            case 'Z':
+                return RegisterType.getRegisterType(RegisterType.BOOLEAN, null);
+            case 'B':
+                return RegisterType.getRegisterType(RegisterType.BYTE, null);
+            case 'S':
+                return RegisterType.getRegisterType(RegisterType.SHORT, null);
+            case 'C':
+                return RegisterType.getRegisterType(RegisterType.CHAR, null);
+            case 'I':
+                return RegisterType.getRegisterType(RegisterType.INTEGER, null);
+            case 'F':
+                return RegisterType.getRegisterType(RegisterType.FLOAT, null);
+            case 'J':
+                return RegisterType.getRegisterType(RegisterType.LONG_LO, null);
+            case 'D':
+                return RegisterType.getRegisterType(RegisterType.DOUBLE_LO, null);
+            case 'L':
+            case 'U':
+            case '[':
+                return RegisterType.getRegisterType(RegisterType.REFERENCE, getClass(type));
+            default:
+                throw new RuntimeException("Invalid type: " + type);
+        }
+    }
+
+    @Nonnull
+    public TypeProto getUnknownClass() {
+        return unknownClass;
     }
 }

@@ -31,177 +31,237 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.iface.ClassDef;
-import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  * A class "prototype". This contains things like the interfaces, the superclass, the vtable and the instance fields
  * and their offsets.
  */
-public class ClassProto {
-    @Nonnull public final ClassPath classPath;
-    @Nonnull public final String type;
-    @Nullable private ClassDef classDef;
+public class ClassProto implements TypeProto {
+    @Nonnull protected final ClassPath classPath;
+    @Nonnull protected final String type;
+    @Nullable protected ClassDef classDef;
+    @Nullable protected Set<String> interfaces;
+    protected boolean interfacesFullyResolved = true;
 
     public ClassProto(@Nonnull ClassPath classPath, @Nonnull String type) {
         this.classPath = classPath;
         this.type = type;
     }
 
+    @Override public String toString() { return type; }
+    @Nonnull @Override public ClassPath getClassPath() { return classPath; }
+    @Nonnull @Override public String getType() { return type; }
+
     @Nonnull
-    public ClassDef getClassDef() {
+    protected ClassDef getClassDef() {
         if (classDef == null) {
             classDef = classPath.getClassDef(type);
         }
         return classDef;
     }
 
-    @Nonnull
-    public String getType() {
-        return type;
-    }
-
+    /**
+     * Returns true if this class is an interface.
+     *
+     * If this class is not defined, then this will throw an UnresolvedClassException
+     *
+     * @return True if this class is an interface
+     */
     public boolean isInterface() {
-        // TODO: implement
-        return false;
+        ClassDef classDef = getClassDef();
+        return (classDef.getAccessFlags() & AccessFlags.INTERFACE.getValue()) != 0;
     }
 
-    public boolean implementsInterface(String iface) {
-        // TODO: implement
-        return false;
+    private void addInterfacesRecursively(@Nonnull ClassDef classDef) {
+        assert interfaces != null;
+        for (String iface: classDef.getInterfaces()) {
+            interfaces.add(iface);
+            addInterfacesRecursively(iface);
+        }
+    }
+
+    private void addInterfacesRecursively(@Nonnull String cls) {
+        ClassDef classDef;
+        try {
+            classDef = classPath.getClassDef(cls);
+            addInterfacesRecursively(classDef);
+        } catch (UnresolvedClassException ex) {
+            interfacesFullyResolved = false;
+        }
+    }
+
+    @Nonnull
+    protected Set<String> getInterfaces() {
+        if (interfaces != null) {
+            return interfaces;
+        }
+
+        interfaces = Sets.newHashSet();
+
+        try {
+            ClassDef classDef = getClassDef();
+
+            if (isInterface()) {
+                interfaces.add(getType());
+            }
+
+            while (true) {
+                addInterfacesRecursively(classDef);
+
+                String superclass = classDef.getSuperclass();
+                if (superclass != null) {
+                    classDef = classPath.getClassDef(superclass);
+                } else {
+                    break;
+                }
+            }
+        } catch (UnresolvedClassException ex) {
+            interfacesFullyResolved = false;
+        }
+
+        return interfaces;
     }
 
     /**
-     * Get the chain of superclasses of this class. The first element will be the immediate superclass followed by
-     * it's superclass, etc. up to java.lang.Object.
+     * Checks if this class implements the given interface.
      *
-     * Returns an empty iterable if called on java.lang.Object.
+     * If the interfaces of this class cannot be fully resolved then this
+     * method will either return true or throw an UnresolvedClassException
      *
-     * @return An iterable containing the superclasses of this class.
-     * @throws UnresolvedClassException if any class in the chain can't be resolved
+     * @param iface The interface to check for
+     * @return true if this class implements the given interface, otherwise false
      */
-    @Nonnull
-    public Iterable<String> getSuperclassChain() {
-        final ClassDef topClassDef = this.getClassDef();
-
-        return new Iterable<String>() {
-            private ClassDef classDef = topClassDef;
-
-            @Override public Iterator<String> iterator() {
-                return new Iterator<String>() {
-                    @Override public boolean hasNext() {
-                        return classDef == null || classDef.getSuperclass() == null;
-                    }
-
-                    @Override public String next() {
-                        if (classDef == null) {
-                            throw new NoSuchElementException();
-                        }
-
-                        String next = classDef.getSuperclass();
-                        if (next == null) {
-                            throw new NoSuchElementException();
-                        }
-
-                        classDef = classPath.getClassDef(next);
-                        return next;
-                    }
-
-                    @Override public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
+    @Override
+    public boolean implementsInterface(@Nonnull String iface) {
+        for (String implementIface: getInterfaces()) {
+            if (implementIface.equals(iface)) {
+                return true;
             }
-        };
+        }
+        if (!interfacesFullyResolved) {
+            throw new UnresolvedClassException("Interfaces for class %s not fully resolved", getType());
+        }
+        return false;
     }
 
-    @Nonnull public ClassProto getCommonSuperclass(@Nonnull ClassProto other) {
+    @Nullable @Override
+    public String getSuperclass() {
+        return getClassDef().getSuperclass();
+    }
+
+    /**
+     * This is a helper method for getCommonSuperclass
+     *
+     * It checks if this class is an interface, and if so, if other implements it.
+     *
+     * If this class is undefined, we go ahead and check if it is listed in other's interfaces. If not, we throw an
+     * UndefinedClassException
+     *
+     * If the interfaces of other cannot be fully resolved, we check the interfaces that can be resolved. If not found,
+     * we throw an UndefinedClassException
+     *
+     * @param other The class to check the interfaces of
+     * @return true if this class is an interface (or is undefined) other implements this class
+     *
+     */
+    private boolean checkInterface(@Nonnull ClassProto other) {
+        boolean isResolved = true;
+        boolean isInterface = true;
+        try {
+            isInterface = isInterface();
+        } catch (UnresolvedClassException ex) {
+            isResolved = false;
+            // if we don't know if this class is an interface or not,
+            // we can still try to call other.implementsInterface(this)
+        }
+        if (isInterface) {
+            try {
+                if (other.implementsInterface(getType())) {
+                    return true;
+                }
+            } catch (UnresolvedClassException ex) {
+                // There are 2 possibilities here, depending on whether we were able to resolve this class.
+                // 1. If this class is resolved, then we know it is an interface class. The other class either
+                //    isn't defined, or its interfaces couldn't be fully resolved.
+                //    In this case, we throw an UnresolvedClassException
+                // 2. If this class is not resolved, we had tried to call implementsInterface anyway. We don't
+                //    know for sure if this class is an interface or not. We return false, and let processing
+                //    continue in getCommonSuperclass
+                if (isResolved) {
+                    throw ex;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override @Nonnull
+    public TypeProto getCommonSuperclass(@Nonnull TypeProto other) {
+        // use the other type's more specific implementation
+        if (!(other instanceof ClassProto)) {
+            return other.getCommonSuperclass(this);
+        }
+
         if (this == other || getType().equals(other.getType())) {
             return this;
         }
 
-        if (isInterface()) {
-            if (other.implementsInterface(getType())) {
+        if (this.getType().equals("Ljava/lang/Object;")) {
+            return this;
+        }
+
+        if (other.getType().equals("Ljava/lang/Object;")) {
+            return other;
+        }
+
+        boolean gotException = false;
+        try {
+            if (checkInterface((ClassProto)other)) {
                 return this;
             }
-            return classPath.getClass("Ljava/lang/Object;");
+        } catch (UnresolvedClassException ex) {
+            gotException = true;
         }
 
-        if (other.isInterface()) {
-            if (implementsInterface(other.getType())) {
+        try {
+            if (((ClassProto)other).checkInterface(this)) {
                 return other;
             }
-            return classPath.getClass("Ljava/lang/Object;");
-        }
-
-        boolean thisResolved = true;
-        boolean otherResolved = true;
-        List<String> thisChain = Lists.newArrayList(getType());
-        List<String> otherChain = Lists.newArrayList(other.getType());
-
-        // grab as much of the superclass chain as we can for both types,
-        // and keep track of whether we were able to get all of it
-        try {
-            for (String type: getSuperclassChain()) {
-                thisChain.add(type);
-            }
         } catch (UnresolvedClassException ex) {
-            thisResolved = false;
+            gotException = true;
+        }
+        if (gotException) {
+            return classPath.getUnknownClass();
         }
 
-        try {
-            for (String type: other.getSuperclassChain()) {
-                otherChain.add(type);
-            }
-        } catch (UnresolvedClassException ex) {
-            otherResolved = false;
-        }
+        List<TypeProto> thisChain = Lists.<TypeProto>newArrayList(this);
+        Iterables.addAll(thisChain, TypeProtoUtils.getSuperclassChain(this));
 
-        // if both were resolved, then we start looking backwards from the end of the shorter chain, until
-        // we find a pair of entries in the chains that match
-        if (thisResolved && otherResolved) {
-            for (int i=Math.min(thisChain.size(), otherChain.size()); i>=0; i--) {
-                String type = thisChain.get(i);
-                if (type.equals(otherChain.get(i))) {
-                    return classPath.getClass(type);
-                }
-            }
-            // "This should never happen"
-            throw new ExceptionWithContext("Wasn't able to find a common superclass for %s and %s", this.getType(),
-                    other.getType());
-        }
+        List<TypeProto> otherChain = Lists.newArrayList(other);
+        Iterables.addAll(otherChain, TypeProtoUtils.getSuperclassChain(other));
 
-        // we weren't able to fully resolve both classes. Let's see if we can find a common superclass in what we
-        // were able to resolve
-        for (String thisType: thisChain) {
-            for (String otherType: otherChain) {
-                if (thisType.equals(otherType)) {
-                    return classPath.getClass(thisType);
-                }
+        // reverse them, so that the first entry is either Ljava/lang/Object; or Ujava/lang/Object;
+        thisChain = Lists.reverse(thisChain);
+        otherChain = Lists.reverse(otherChain);
+
+        for (int i=Math.min(thisChain.size(), otherChain.size())-1; i>=0; i--) {
+            TypeProto typeProto = thisChain.get(i);
+            if (typeProto.getType().equals(otherChain.get(i).getType())) {
+                return typeProto;
             }
         }
 
-        // Nope. We'll throw an UnresolvedClassException. The caller can catch the exception and use java.lang.Object
-        // as the superclass, if it is appropriate to do so
-        if (!thisResolved) {
-            if (!otherResolved) {
-                throw new UnresolvedClassException(
-                        "Could not fully resolve %s or %s while getting their common superclass",
-                        getType(), other.getType());
-            } else {
-                throw new UnresolvedClassException(
-                        "Could not fully resolve %s while getting common superclass with %s",
-                        getType(), other.getType());
-            }
-        }
-        throw new UnresolvedClassException(
-                "Could not fully resolve %s while getting common superclass with %s", other.getType(), getType());
+        return classPath.getUnknownClass();
     }
 }

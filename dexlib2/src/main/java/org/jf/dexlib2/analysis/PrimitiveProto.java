@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.util;
+package org.jf.dexlib2.analysis;
 
-public final class TypeUtils {
-    public static boolean isWideType(String type) {
-        char c = type.charAt(0);
-        return c == 'J' || c == 'D';
+import org.jf.util.ExceptionWithContext;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public class PrimitiveProto implements TypeProto {
+    protected final ClassPath classPath;
+    protected final String type;
+
+    public PrimitiveProto(@Nonnull ClassPath classPath, @Nonnull String type) {
+        this.classPath = classPath;
+        this.type = type;
     }
 
-    public static boolean isPrimitiveType(String type) {
-        return type.length() == 1;
+    @Override public String toString() { return type; }
+    @Nonnull @Override public ClassPath getClassPath() { return classPath; }
+    @Nonnull @Override public String getType() { return type; }
+    @Override public boolean isInterface() { return false; }
+    @Override public boolean implementsInterface(@Nonnull String iface) { return false; }
+    @Nullable @Override public String getSuperclass() { return null; }
+    @Nonnull @Override public TypeProto getCommonSuperclass(@Nonnull TypeProto other) {
+        throw new ExceptionWithContext("Cannot call getCommonSuperclass on PrimitiveProto");
     }
-
-    private TypeUtils() {}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.util;
+package org.jf.dexlib2.analysis.reflection.util;
 
-public final class TypeUtils {
-    public static boolean isWideType(String type) {
-        char c = type.charAt(0);
-        return c == 'J' || c == 'D';
+public class ReflectionUtils {
+    public static String javaToDexName(String javaName) {
+        javaName = javaName.replace('.', '/');
+        if (javaName.length() > 1 && javaName.charAt(javaName.length()-1) != ';') {
+            javaName = 'L' + javaName + ';';
+        }
+        return javaName;
     }
-
-    public static boolean isPrimitiveType(String type) {
-        return type.length() == 1;
-    }
-
-    private TypeUtils() {}
 }
