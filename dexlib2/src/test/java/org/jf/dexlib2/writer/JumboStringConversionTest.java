@@ -384,4 +384,35 @@ public class JumboStringConversionTest {
         Assert.assertEquals("goto/16 was not converted to goto/32 properly", instr.getOpcode(), Opcode.GOTO_32);
     }
 
+    @Test
+    public void testGotoIterative() {
+        ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
+
+        instructions.add(new ImmutableInstruction10t(Opcode.GOTO, 126));
+        instructions.add(new ImmutableInstruction10t(Opcode.GOTO, 127));
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(mJumboStrings.get(0))));
+        for (int i=0;i<122;i++) {
+            instructions.add(new ImmutableInstruction10x(Opcode.NOP));
+        }
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(mJumboStrings.get(1))));
+        instructions.add(new ImmutableInstruction10x(Opcode.NOP));
+
+        // this misaligned array payload will cause nop insertion on the first pass and its removal on the second pass
+        instructions.add(new ImmutableInstruction10x(Opcode.NOP));
+        instructions.add(new ImmutableArrayPayload(4, null));
+
+        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
+        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+
+        Instruction instr = writeUtil.getInstructions().iterator().next();
+        Assert.assertEquals("goto was not converted to goto/16 properly", instr.getOpcode(), Opcode.GOTO_16);
+
+        int codeOffset = 0;
+        for (Instruction instruction: writeUtil.getInstructions()) {
+            if (instruction instanceof ArrayPayload) {
+                Assert.assertEquals("packed switch payload was not aligned properly", codeOffset%2, 0);
+            }
+            codeOffset += instruction.getCodeUnits();
+        }
+    }
 }
