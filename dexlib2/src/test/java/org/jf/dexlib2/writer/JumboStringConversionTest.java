@@ -337,4 +337,51 @@ public class JumboStringConversionTest {
             codeOffset += instr.getCodeUnits();
         }
     }
+
+    @Test
+    public void testGotoToGoto16() {
+        ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
+
+        ImmutableInstruction10t gotoInstr = new ImmutableInstruction10t(Opcode.GOTO, 127);
+        instructions.add(gotoInstr);
+
+        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(0));
+        ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
+        instructions.add(stringInstr);
+
+        for (int i=0;i<127;i++) {
+            ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
+            instructions.add(nopInstr);
+        }
+
+        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
+        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+
+        Instruction instr = writeUtil.getInstructions().iterator().next();
+        Assert.assertEquals("goto was not converted to goto/16 properly", instr.getOpcode(), Opcode.GOTO_16);
+    }
+
+    @Test
+    public void testGoto16ToGoto32() {
+        ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
+
+        ImmutableInstruction20t gotoInstr = new ImmutableInstruction20t(Opcode.GOTO_16, Short.MAX_VALUE);
+        instructions.add(gotoInstr);
+
+        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(0));
+        ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
+        instructions.add(stringInstr);
+
+        for (int i=0;i<Short.MAX_VALUE;i++) {
+            ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
+            instructions.add(nopInstr);
+        }
+
+        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
+        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+
+        Instruction instr = writeUtil.getInstructions().iterator().next();
+        Assert.assertEquals("goto/16 was not converted to goto/32 properly", instr.getOpcode(), Opcode.GOTO_32);
+    }
+
 }
