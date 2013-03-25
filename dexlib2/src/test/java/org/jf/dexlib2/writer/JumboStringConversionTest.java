@@ -249,7 +249,7 @@ public class JumboStringConversionTest {
             if (instr instanceof PackedSwitchPayload) {
                 PackedSwitchPayload instruction = (PackedSwitchPayload) instr;
                 for (SwitchElement switchElement: instruction.getSwitchElements()) {
-                    Assert.assertEquals("packed switch payload affset was not modified properly", switchElement.getOffset(), 6);
+                    Assert.assertEquals("packed switch payload offset was not modified properly", switchElement.getOffset(), 6);
                 }
                 break;
             }
@@ -270,10 +270,71 @@ public class JumboStringConversionTest {
             if (instr instanceof SparseSwitchPayload) {
                 SparseSwitchPayload instruction = (SparseSwitchPayload) instr;
                 for (SwitchElement switchElement: instruction.getSwitchElements()) {
-                    Assert.assertEquals("packed switch payload affset was not modified properly", switchElement.getOffset(), 6);
+                    Assert.assertEquals("packed switch payload offset was not modified properly", switchElement.getOffset(), 6);
                 }
                 break;
             }
+        }
+    }
+
+    @Test
+    public void testArrayPayloadAlignment() {
+        ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
+
+        // add misaligned array payload
+        ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
+        instructions.add(nopInstr);
+
+        ImmutableArrayPayload arrayPayload = new ImmutableArrayPayload(4, null);
+        instructions.add(arrayPayload);
+
+        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
+        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+
+        int codeOffset = 0;
+        for (Instruction instr: writeUtil.getInstructions()) {
+            if (codeOffset == 21) {
+                Assert.assertEquals("array payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+            }
+            codeOffset += instr.getCodeUnits();
+        }
+    }
+
+    @Test
+    public void testPackedSwitchAlignment() {
+        ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
+
+        // packed switch instruction is already misaligned
+
+        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
+        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+
+        int codeOffset = 0;
+        for (Instruction instr: writeUtil.getInstructions()) {
+            if (codeOffset == 7) {
+                Assert.assertEquals("packed switch payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+            }
+            codeOffset += instr.getCodeUnits();
+        }
+    }
+
+    @Test
+    public void testSparseSwitchAlignment() {
+        ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
+
+        // insert a nop to mis-align sparse switch payload
+        ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
+        instructions.add(4, nopInstr);
+
+        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
+        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+
+        int codeOffset = 0;
+        for (Instruction instr: writeUtil.getInstructions()) {
+            if (codeOffset == 15) {
+                Assert.assertEquals("packed switch payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+            }
+            codeOffset += instr.getCodeUnits();
         }
     }
 }
