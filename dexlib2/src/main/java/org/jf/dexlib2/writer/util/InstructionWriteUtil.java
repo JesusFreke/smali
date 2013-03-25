@@ -205,7 +205,7 @@ public class InstructionWriteUtil {
                     int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
                     if ((currentCodeOffset+codeOffsetDelta)%2 != 0) {
                         if (codeOffsetShifts.contains(currentCodeOffset)) {
-                            codeOffsetShifts.remove(codeOffsetDelta);
+                            codeOffsetShifts.remove(codeOffsetDelta-1);
                             offsetToNewInstructionMap.remove(currentCodeOffset);
                         } else {
                             codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset);
