@@ -154,7 +154,7 @@ public class InstructionWriteUtil {
                     	offsetToNewInstructionMap = new HashMap<Integer,Format>();
                     }
                     codeOffsetShifts.add(currentCodeOffset+instruction.getCodeUnits());
-                    offsetToNewInstructionMap.put(currentCodeOffset, instruction.getOpcode().format);
+                    offsetToNewInstructionMap.put(currentCodeOffset, Opcode.CONST_STRING_JUMBO.format);
                 }
             }
             currentCodeOffset += instruction.getCodeUnits();
