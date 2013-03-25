@@ -100,6 +100,10 @@ public class JumboStringConversionTest {
         ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
         instructions.add(stringInstr);
 
+        reference = new ImmutableStringReference(mJumboStrings.get(1));
+        stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
+        instructions.add(stringInstr);
+
         ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
         instructions.add(nopInstr);
 
@@ -111,13 +115,18 @@ public class JumboStringConversionTest {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
 
         ImmutableInstruction10t gotoInstr = new ImmutableInstruction10t(Opcode.GOTO, 3);
-        instructions.add(0, gotoInstr);
+        instructions.add(1, gotoInstr);
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
 
-        Instruction10t instruction = (Instruction10t) writeUtil.getInstructions().iterator().next();
-        Assert.assertEquals("goto (Format10t) target was not modified properly", instruction.getCodeOffset(), 4);
+        for (Instruction instr: writeUtil.getInstructions()) {
+            if (instr instanceof Instruction10t) {
+                Instruction10t instruction = (Instruction10t) instr;
+                Assert.assertEquals("goto (Format10t) target was not modified properly", instruction.getCodeOffset(), 4);
+                break;
+            }
+        }
     }
 
     @Test
@@ -125,13 +134,18 @@ public class JumboStringConversionTest {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
 
         ImmutableInstruction20t gotoInstr = new ImmutableInstruction20t(Opcode.GOTO_16, 4);
-        instructions.add(0, gotoInstr);
+        instructions.add(1, gotoInstr);
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
 
-        Instruction20t instruction = (Instruction20t) writeUtil.getInstructions().iterator().next();
-        Assert.assertEquals("goto/16 (Format20t) target was not modified properly", instruction.getCodeOffset(), 5);
+        for (Instruction instr: writeUtil.getInstructions()) {
+            if (instr instanceof Instruction20t) {
+                Instruction20t instruction = (Instruction20t) instr;
+                Assert.assertEquals("goto/16 (Format20t) target was not modified properly", instruction.getCodeOffset(), 5);
+                break;
+            }
+        }
     }
 
     @Test
@@ -139,13 +153,18 @@ public class JumboStringConversionTest {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
 
         ImmutableInstruction30t gotoInstr = new ImmutableInstruction30t(Opcode.GOTO_32, 5);
-        instructions.add(0, gotoInstr);
+        instructions.add(1, gotoInstr);
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
 
-        Instruction30t instruction = (Instruction30t) writeUtil.getInstructions().iterator().next();
-        Assert.assertEquals("goto/32 (Format30t) target was not modified properly", instruction.getCodeOffset(), 6);
+        for (Instruction instr: writeUtil.getInstructions()) {
+            if (instr instanceof Instruction30t) {
+                Instruction30t instruction = (Instruction30t) instr;
+                Assert.assertEquals("goto/32 (Format30t) target was not modified properly", instruction.getCodeOffset(), 6);
+                break;
+            }
+        }
     }
 
     @Test
@@ -153,12 +172,7 @@ public class JumboStringConversionTest {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
 
         ImmutableInstruction21t branchInstr = new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 4);
-        instructions.add(0, branchInstr);
-
-        // jam a jumbo string before the branch target instruction, to make sure that relative offset is modified
-        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(1));
-        ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
-        instructions.add(0, stringInstr);
+        instructions.add(1, branchInstr);
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -177,12 +191,7 @@ public class JumboStringConversionTest {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
 
         ImmutableInstruction22t branchInstr = new ImmutableInstruction22t(Opcode.IF_EQ, 0, 1, 4);
-        instructions.add(0, branchInstr);
-
-        // jam a jumbo string before the branch target instruction, to make sure that relative offset is modified
-        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(1));
-        ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
-        instructions.add(0, stringInstr);
+        instructions.add(1, branchInstr);
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -201,12 +210,7 @@ public class JumboStringConversionTest {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
 
         ImmutableInstruction31t branchInstr = new ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 5);
-        instructions.add(0, branchInstr);
-
-        // jam a jumbo string before the branch target instruction, to make sure that relative offset is modified
-        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(1));
-        ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
-        instructions.add(0, stringInstr);
+        instructions.add(1, branchInstr);
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
