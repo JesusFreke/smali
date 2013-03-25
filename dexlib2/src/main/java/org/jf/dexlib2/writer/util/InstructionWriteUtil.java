@@ -193,7 +193,7 @@ public class InstructionWriteUtil {
                 } else if (instruction.getOpcode().format.equals(Format.Format20t) && !offsetToNewInstructionMap.containsKey(currentCodeOffset)) {
                     int targetOffset = ((Instruction20t)instruction).getCodeOffset();
                     int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
-                    int newTargetOffset = targetOffsetShift(currentCodeOffset, targetOffset);
+                    int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
                     if ((short)newTargetOffset != newTargetOffset) {
                         codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset+instruction.getCodeUnits());
                         offsetToNewInstructionMap.put(currentCodeOffset, Format.Format30t);
