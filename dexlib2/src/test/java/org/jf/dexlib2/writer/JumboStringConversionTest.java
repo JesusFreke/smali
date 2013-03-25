@@ -35,6 +35,7 @@ import com.google.common.collect.Lists;
 import junit.framework.Assert;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.immutable.ImmutableMethodImplementation;
 import org.jf.dexlib2.immutable.instruction.*;
@@ -106,6 +107,16 @@ public class JumboStringConversionTest {
 
         ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
         instructions.add(nopInstr);
+
+        ArrayList<SwitchElement> switchElements = Lists.newArrayList();
+        ImmutableSwitchElement switchElement = new ImmutableSwitchElement(0, 5);
+        switchElements.add(switchElement);
+
+        ImmutablePackedSwitchPayload packedSwitchInstr = new ImmutablePackedSwitchPayload(switchElements);
+        instructions.add(packedSwitchInstr);
+
+        ImmutableSparseSwitchPayload sparseSwitchPayload = new ImmutableSparseSwitchPayload(switchElements);
+        instructions.add(sparseSwitchPayload);
 
         return instructions;
     }
@@ -219,6 +230,48 @@ public class JumboStringConversionTest {
             if (instr instanceof Instruction31t) {
                 Instruction31t instruction = (Instruction31t) instr;
                 Assert.assertEquals("branch instruction (Format31t) target was not modified properly", instruction.getCodeOffset(), 6);
+                break;
+            }
+        }
+    }
+
+    @Test
+    public void testPackedSwitchPayload() {
+        ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
+
+        ImmutableInstruction31t branchInstr = new ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 6);
+        instructions.add(1, branchInstr);
+
+        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
+        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+
+        for (Instruction instr: writeUtil.getInstructions()) {
+            if (instr instanceof PackedSwitchPayload) {
+                PackedSwitchPayload instruction = (PackedSwitchPayload) instr;
+                for (SwitchElement switchElement: instruction.getSwitchElements()) {
+                    Assert.assertEquals("packed switch payload affset was not modified properly", switchElement.getOffset(), 6);
+                }
+                break;
+            }
+        }
+    }
+
+    @Test
+    public void testSparseSwitchPayload() {
+        ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
+
+        ImmutableInstruction31t branchInstr = new ImmutableInstruction31t(Opcode.SPARSE_SWITCH, 0, 12);
+        instructions.add(1, branchInstr);
+
+        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
+        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+
+        for (Instruction instr: writeUtil.getInstructions()) {
+            if (instr instanceof SparseSwitchPayload) {
+                SparseSwitchPayload instruction = (SparseSwitchPayload) instr;
+                for (SwitchElement switchElement: instruction.getSwitchElements()) {
+                    Assert.assertEquals("packed switch payload affset was not modified properly", switchElement.getOffset(), 6);
+                }
                 break;
             }
         }
