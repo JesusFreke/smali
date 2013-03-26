@@ -47,7 +47,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 
 public class JumboStringConversionTest {
-    private static final int MIN_NUM_JUMBO_STRINGS = 256;
+    private static final int MIN_NUM_JUMBO_STRINGS = 2;
 
     private MockStringPool mStringPool;
     ArrayList<String> mJumboStrings;
@@ -81,10 +81,7 @@ public class JumboStringConversionTest {
     @Test
     public void testInstruction21c() {
         ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
-
-        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(0));
-        ImmutableInstruction21c instruction = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
-        instructions.add(instruction);
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(mJumboStrings.get(0))));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -96,27 +93,14 @@ public class JumboStringConversionTest {
 
     private ArrayList<ImmutableInstruction> createSimpleInstructionList() {
         ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
-
-        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(0));
-        ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
-        instructions.add(stringInstr);
-
-        reference = new ImmutableStringReference(mJumboStrings.get(1));
-        stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
-        instructions.add(stringInstr);
-
-        ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
-        instructions.add(nopInstr);
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(mJumboStrings.get(0))));
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(mJumboStrings.get(1))));
+        instructions.add(new ImmutableInstruction10x(Opcode.NOP));
 
         ArrayList<SwitchElement> switchElements = Lists.newArrayList();
-        ImmutableSwitchElement switchElement = new ImmutableSwitchElement(0, 5);
-        switchElements.add(switchElement);
-
-        ImmutablePackedSwitchPayload packedSwitchInstr = new ImmutablePackedSwitchPayload(switchElements);
-        instructions.add(packedSwitchInstr);
-
-        ImmutableSparseSwitchPayload sparseSwitchPayload = new ImmutableSparseSwitchPayload(switchElements);
-        instructions.add(sparseSwitchPayload);
+        switchElements.add(new ImmutableSwitchElement(0, 5));
+        instructions.add(new ImmutablePackedSwitchPayload(switchElements));
+        instructions.add(new ImmutableSparseSwitchPayload(switchElements));
 
         return instructions;
     }
@@ -124,9 +108,7 @@ public class JumboStringConversionTest {
     @Test
     public void testInstruction10tSimple() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
-        ImmutableInstruction10t gotoInstr = new ImmutableInstruction10t(Opcode.GOTO, 3);
-        instructions.add(1, gotoInstr);
+        instructions.add(1, new ImmutableInstruction10t(Opcode.GOTO, 3));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -143,9 +125,7 @@ public class JumboStringConversionTest {
     @Test
     public void testInstruction20tSimple() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
-        ImmutableInstruction20t gotoInstr = new ImmutableInstruction20t(Opcode.GOTO_16, 4);
-        instructions.add(1, gotoInstr);
+        instructions.add(1, new ImmutableInstruction20t(Opcode.GOTO_16, 4));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -162,9 +142,7 @@ public class JumboStringConversionTest {
     @Test
     public void testInstruction30t() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
-        ImmutableInstruction30t gotoInstr = new ImmutableInstruction30t(Opcode.GOTO_32, 5);
-        instructions.add(1, gotoInstr);
+        instructions.add(1, new ImmutableInstruction30t(Opcode.GOTO_32, 5));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -181,9 +159,7 @@ public class JumboStringConversionTest {
     @Test
     public void testInstruction21t() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
-        ImmutableInstruction21t branchInstr = new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 4);
-        instructions.add(1, branchInstr);
+        instructions.add(1, new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 4));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -200,9 +176,7 @@ public class JumboStringConversionTest {
     @Test
     public void testInstruction22t() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
-        ImmutableInstruction22t branchInstr = new ImmutableInstruction22t(Opcode.IF_EQ, 0, 1, 4);
-        instructions.add(1, branchInstr);
+        instructions.add(1, new ImmutableInstruction22t(Opcode.IF_EQ, 0, 1, 4));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -219,9 +193,7 @@ public class JumboStringConversionTest {
     @Test
     public void testInstruction31t() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
-        ImmutableInstruction31t branchInstr = new ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 5);
-        instructions.add(1, branchInstr);
+        instructions.add(1, new ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 5));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -238,9 +210,7 @@ public class JumboStringConversionTest {
     @Test
     public void testPackedSwitchPayload() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
-        ImmutableInstruction31t branchInstr = new ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 6);
-        instructions.add(1, branchInstr);
+        instructions.add(1, new ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 6));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -259,9 +229,7 @@ public class JumboStringConversionTest {
     @Test
     public void testSparseSwitchPayload() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
-        ImmutableInstruction31t branchInstr = new ImmutableInstruction31t(Opcode.SPARSE_SWITCH, 0, 12);
-        instructions.add(1, branchInstr);
+        instructions.add(1, new ImmutableInstruction31t(Opcode.SPARSE_SWITCH, 0, 12));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -280,13 +248,9 @@ public class JumboStringConversionTest {
     @Test
     public void testArrayPayloadAlignment() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
         // add misaligned array payload
-        ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
-        instructions.add(nopInstr);
-
-        ImmutableArrayPayload arrayPayload = new ImmutableArrayPayload(4, null);
-        instructions.add(arrayPayload);
+        instructions.add(new ImmutableInstruction10x(Opcode.NOP));
+        instructions.add(new ImmutableArrayPayload(4, null));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -303,7 +267,6 @@ public class JumboStringConversionTest {
     @Test
     public void testPackedSwitchAlignment() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
         // packed switch instruction is already misaligned
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
@@ -321,10 +284,8 @@ public class JumboStringConversionTest {
     @Test
     public void testSparseSwitchAlignment() {
         ArrayList<ImmutableInstruction> instructions = createSimpleInstructionList();
-
         // insert a nop to mis-align sparse switch payload
-        ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
-        instructions.add(4, nopInstr);
+        instructions.add(4, new ImmutableInstruction10x(Opcode.NOP));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
         InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
@@ -341,17 +302,10 @@ public class JumboStringConversionTest {
     @Test
     public void testGotoToGoto16() {
         ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
-
-        ImmutableInstruction10t gotoInstr = new ImmutableInstruction10t(Opcode.GOTO, 127);
-        instructions.add(gotoInstr);
-
-        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(0));
-        ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
-        instructions.add(stringInstr);
-
+        instructions.add(new ImmutableInstruction10t(Opcode.GOTO, 127));
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(mJumboStrings.get(0))));
         for (int i=0;i<127;i++) {
-            ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
-            instructions.add(nopInstr);
+            instructions.add(new ImmutableInstruction10x(Opcode.NOP));
         }
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
@@ -364,17 +318,10 @@ public class JumboStringConversionTest {
     @Test
     public void testGoto16ToGoto32() {
         ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
-
-        ImmutableInstruction20t gotoInstr = new ImmutableInstruction20t(Opcode.GOTO_16, Short.MAX_VALUE);
-        instructions.add(gotoInstr);
-
-        ImmutableStringReference reference = new ImmutableStringReference(mJumboStrings.get(0));
-        ImmutableInstruction21c stringInstr = new ImmutableInstruction21c(Opcode.CONST_STRING, 0, reference);
-        instructions.add(stringInstr);
-
+        instructions.add(new ImmutableInstruction20t(Opcode.GOTO_16, Short.MAX_VALUE));
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(mJumboStrings.get(0))));
         for (int i=0;i<Short.MAX_VALUE;i++) {
-            ImmutableInstruction10x nopInstr = new ImmutableInstruction10x(Opcode.NOP);
-            instructions.add(nopInstr);
+            instructions.add(new ImmutableInstruction10x(Opcode.NOP));
         }
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
