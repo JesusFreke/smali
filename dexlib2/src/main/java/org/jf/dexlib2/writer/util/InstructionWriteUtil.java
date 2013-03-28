@@ -133,12 +133,12 @@ public class InstructionWriteUtil {
         return shift;
     }
 
-    /**
-    * This method creates a list of code offsets of instructions, whose (and subsequent instructions') 
-    * code offset will get shifted by one code unit with respect to previous instruction(s). 
-    * This happens when the previous instruction has to be changed to a larger sized one 
-    * to fit the new value or payload instruction has to be prepended by nop to ensure alignment.
-    */
+    /*
+     * This method creates a list of code offsets of instructions, whose (and subsequent instructions')
+     * code offset will get shifted by one code unit with respect to previous instruction(s).
+     * This happens when the previous instruction has to be changed to a larger sized one
+     * to fit the new value or payload instruction has to be prepended by nop to ensure alignment.
+     */
     private void findCodeOffsetShifts() {
         // first, process const-string to const-string/jumbo conversions
         int currentCodeOffset = 0;
