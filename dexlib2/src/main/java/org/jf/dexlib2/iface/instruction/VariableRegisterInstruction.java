@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,6 @@
 
 package org.jf.dexlib2.iface.instruction;
 
-public interface RegisterRangeInstruction extends VariableRegisterInstruction {
-    int getStartRegister();
+public interface VariableRegisterInstruction extends Instruction {
+    int getRegisterCount();
 }

@@ -31,8 +31,7 @@
 
 package org.jf.dexlib2.iface.instruction;
 
-public interface FiveRegisterInstruction extends Instruction {
-    int getRegisterCount();
+public interface FiveRegisterInstruction extends VariableRegisterInstruction {
     int getRegisterC();
     int getRegisterD();
     int getRegisterE();
