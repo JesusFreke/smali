@@ -36,6 +36,7 @@ import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.util.ExceptionWithContext;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
@@ -74,13 +75,6 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
      * information. When this happens, we need to restore the original (odexed) instruction, so we can deodex it again
      */
     protected final Instruction originalInstruction;
-
-    /**
-     * An analyzed instruction's "deadness" is set during analysis (i.e. MethodAnalyzer.analyzer()). A dead instruction
-     * is one that the analyzer never reaches. This occurs either with natural "dead code" - code that simply has no
-     * code path that can ever reach it, or code that follows an odexed instruction that can't be deodexed.
-     */
-    protected boolean dead = false;
 
     public AnalyzedInstruction(Instruction instruction, int instructionIndex, int registerCount) {
         this.instruction = instruction;
@@ -139,10 +133,6 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
 
     public Instruction getOriginalInstruction() {
         return originalInstruction;
-    }
-
-    public boolean isDead() {
-        return dead;
     }
 
     /**
@@ -319,10 +309,12 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
         return postRegisterMap.length;
     }
 
+    @Nonnull
     public RegisterType getPostInstructionRegisterType(int registerNumber) {
         return postRegisterMap[registerNumber];
     }
 
+    @Nonnull
     public RegisterType getPreInstructionRegisterType(int registerNumber) {
         return preRegisterMap[registerNumber];
     }

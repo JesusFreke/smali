@@ -49,6 +49,14 @@ public final class MethodUtil {
         return AccessFlags.STATIC.isSet(method.getAccessFlags());
     }
 
+    public static boolean isConstructor(@Nonnull MethodReference methodReference) {
+        return methodReference.getName().equals("<init>");
+    }
+
+    public static int getParameterRegisterCount(@Nonnull Method method) {
+        return getParameterRegisterCount(method, MethodUtil.isStatic(method));
+    }
+
     public static int getParameterRegisterCount(@Nonnull MethodReference methodRef, boolean isStatic) {
         int regCount = 0;
         for (CharSequence paramType: methodRef.getParameterTypes()) {

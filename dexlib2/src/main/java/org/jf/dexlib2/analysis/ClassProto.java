@@ -37,6 +37,9 @@ import com.google.common.collect.Sets;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,6 +58,9 @@ public class ClassProto implements TypeProto {
     protected boolean interfacesFullyResolved = true;
 
     public ClassProto(@Nonnull ClassPath classPath, @Nonnull String type) {
+        if (type.charAt(0) != 'L') {
+            throw new ExceptionWithContext("Cannot construct ClassProto for non reference type: %s", type);
+        }
         this.classPath = classPath;
         this.type = type;
     }
@@ -263,5 +269,19 @@ public class ClassProto implements TypeProto {
         }
 
         return classPath.getUnknownClass();
+    }
+
+    @Override
+    @Nullable
+    public FieldReference getFieldByOffset(int fieldOffset) {
+        // TODO: implement this
+        return null;
+    }
+
+    @Override
+    @Nullable
+    public MethodReference getMethodByVtableIndex(int vtableIndex) {
+        // TODO: implement this
+        return null;
     }
 }

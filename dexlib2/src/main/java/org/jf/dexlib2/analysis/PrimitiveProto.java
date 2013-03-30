@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.analysis;
 
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -53,5 +55,17 @@ public class PrimitiveProto implements TypeProto {
     @Nullable @Override public String getSuperclass() { return null; }
     @Nonnull @Override public TypeProto getCommonSuperclass(@Nonnull TypeProto other) {
         throw new ExceptionWithContext("Cannot call getCommonSuperclass on PrimitiveProto");
+    }
+
+    @Override
+    @Nullable
+    public FieldReference getFieldByOffset(int fieldOffset) {
+        return null;
+    }
+
+    @Override
+    @Nullable
+    public MethodReference getMethodByVtableIndex(int vtableIndex) {
+        return null;
     }
 }

@@ -32,6 +32,8 @@
 package org.jf.dexlib2.analysis;
 
 import com.google.common.base.Strings;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.util.TypeUtils;
 import org.jf.util.ExceptionWithContext;
 
@@ -53,6 +55,10 @@ public class ArrayProto implements TypeProto {
             }
         }
 
+        if (i == 0) {
+            throw new ExceptionWithContext("Invalid array type: %s", type);
+        }
+
         dimensions = i;
         elementType = type.substring(i);
     }
@@ -60,8 +66,24 @@ public class ArrayProto implements TypeProto {
     @Override public String toString() { return getType(); }
     @Nonnull @Override public ClassPath getClassPath() { return classPath; }
     @Nonnull @Override public String getType() { return makeArrayType(elementType, dimensions); }
-    @Nonnull public String getElementType() { return elementType; }
+    public int getDimensions() { return dimensions; }
     @Override public boolean isInterface() { return false; }
+
+    /**
+     * @return The base element type of this array. E.g. This would return Ljava/lang/String; for [[Ljava/lang/String;
+     */
+    @Nonnull public String getElementType() { return elementType; }
+
+    /**
+     * @return The immediate element type of this array. E.g. This would return [Ljava/lang/String; for
+     * [[Ljava/lang/String;
+     */
+    @Nonnull public String getImmediateElementType() {
+        if (dimensions > 1) {
+            return makeArrayType(elementType, dimensions-1);
+        }
+        return elementType;
+    }
 
     @Override public boolean implementsInterface(@Nonnull String iface) {
         return iface.equals("Ljava/lang/Cloneable;") || iface.equals("Ljava/io/Serializable;");
@@ -123,5 +145,18 @@ public class ArrayProto implements TypeProto {
     @Nonnull
     private static String makeArrayType(@Nonnull String elementType, int dimensions) {
         return BRACKETS.substring(0, dimensions) + elementType;
+    }
+
+
+    @Override
+    @Nullable
+    public FieldReference getFieldByOffset(int fieldOffset) {
+        return classPath.getClass("Ljava/lang/Array;").getFieldByOffset(fieldOffset);
+    }
+
+    @Override
+    @Nullable
+    public MethodReference getMethodByVtableIndex(int vtableIndex) {
+        return classPath.getClass("Ljava/lang/Array;").getMethodByVtableIndex(vtableIndex);
     }
 }

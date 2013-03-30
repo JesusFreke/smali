@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.util;
+package org.jf.util;
 
-import org.jf.dexlib2.iface.reference.TypeReference;
+import java.util.BitSet;
 
-import javax.annotation.Nonnull;
-
-public final class TypeUtils {
-    public static boolean isWideType(@Nonnull String type) {
-        char c = type.charAt(0);
-        return c == 'J' || c == 'D';
+public class BitSetUtils {
+    public static BitSet bitSetOfIndexes(int... indexes) {
+        BitSet bitSet = new BitSet();
+        for (int index: indexes) {
+            bitSet.set(index);
+        }
+        return bitSet;
     }
-
-    public static boolean isWideType(@Nonnull TypeReference type) {
-        return isWideType(type.getType());
-    }
-
-    public static boolean isPrimitiveType(String type) {
-        return type.length() == 1;
-    }
-
-    private TypeUtils() {}
 }

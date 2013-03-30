@@ -32,7 +32,6 @@
 package org.jf.dexlib2.analysis;
 
 import com.google.common.collect.ImmutableList;
-import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.instruction.InlineIndexInstruction;
 import org.jf.dexlib2.iface.instruction.VariableRegisterInstruction;
@@ -40,11 +39,17 @@ import org.jf.dexlib2.immutable.ImmutableMethod;
 import org.jf.dexlib2.immutable.ImmutableMethodParameter;
 import org.jf.dexlib2.immutable.util.ParamUtil;
 
-public abstract class InlineMethodResolver {
-    private static final int STATIC = AccessFlags.STATIC.getValue();
-    private static final int VIRTUAL = AccessFlags.PUBLIC.getValue();
-    private static final int PRIVATE = AccessFlags.PRIVATE.getValue();
+import javax.annotation.Nonnull;
 
+public abstract class InlineMethodResolver {
+    // These are the possible values for the accessFlag field on a resolved inline method
+    // We can't use, e.g. AccessFlags.STATIC.value, because we need them to be a constant in order to use them as cases
+    // in switch statements
+    public static final int STATIC = 0x8; // AccessFlags.STATIC.value;
+    public static final int VIRTUAL = 0x1; // AccessFlags.PRIVATE.value;
+    public static final int DIRECT = 0x2; // AccessFlags.PRIVATE.value;
+
+    @Nonnull
     public static InlineMethodResolver createInlineMethodResolver(int odexVersion) {
         if (odexVersion == 35) {
             return new InlineMethodResolver_version35();
@@ -58,12 +63,14 @@ public abstract class InlineMethodResolver {
     protected InlineMethodResolver() {
     }
 
-    private static Method inlineMethod(int accessFlags, String cls, String name, String params, String returnType) {
+    @Nonnull
+    private static Method inlineMethod(int accessFlags, @Nonnull String cls, @Nonnull String name,
+                                       @Nonnull String params, @Nonnull String returnType) {
         ImmutableList<ImmutableMethodParameter> paramList = ImmutableList.copyOf(ParamUtil.parseParamString(params));
         return new ImmutableMethod(cls, name, paramList, returnType, accessFlags, null, null);
     }
 
-    public abstract Method resolveExecuteInline(AnalyzedInstruction instruction);
+    @Nonnull public abstract Method resolveExecuteInline(@Nonnull AnalyzedInstruction instruction);
 
     private static class InlineMethodResolver_version35 extends InlineMethodResolver
     {
@@ -89,7 +96,8 @@ public abstract class InlineMethodResolver {
         }
 
         @Override
-        public Method resolveExecuteInline(AnalyzedInstruction analyzedInstruction) {
+        @Nonnull
+        public Method resolveExecuteInline(@Nonnull AnalyzedInstruction analyzedInstruction) {
             InlineIndexInstruction instruction = (InlineIndexInstruction)analyzedInstruction.instruction;
             int inlineIndex = instruction.getInlineIndex();
 
@@ -118,7 +126,7 @@ public abstract class InlineMethodResolver {
             indexOfIIMethod = inlineMethod(VIRTUAL, "Ljava/lang/String;", "indexOf", "II", "I");
 
             //gingerbread
-            fastIndexOfMethod = inlineMethod(PRIVATE, "Ljava/lang/String;", "fastIndexOf", "II", "I");
+            fastIndexOfMethod = inlineMethod(DIRECT, "Ljava/lang/String;", "fastIndexOf", "II", "I");
             isEmptyMethod = inlineMethod(VIRTUAL, "Ljava/lang/String;", "isEmpty", "", "Z");
 
             inlineMethods = new Method[] {
@@ -159,7 +167,8 @@ public abstract class InlineMethodResolver {
         }
 
         @Override
-        public Method resolveExecuteInline(AnalyzedInstruction analyzedInstruction) {
+        @Nonnull
+        public Method resolveExecuteInline(@Nonnull AnalyzedInstruction analyzedInstruction) {
             InlineIndexInstruction instruction = (InlineIndexInstruction)analyzedInstruction.instruction;
             int inlineIndex = instruction.getInlineIndex();
 

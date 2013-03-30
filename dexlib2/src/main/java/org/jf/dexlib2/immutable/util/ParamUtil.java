@@ -33,10 +33,11 @@ package org.jf.dexlib2.immutable.util;
 
 import org.jf.dexlib2.immutable.ImmutableMethodParameter;
 
+import javax.annotation.Nonnull;
 import java.util.Iterator;
 
 public class ParamUtil {
-    private static int findTypeEnd(String str, int index) {
+    private static int findTypeEnd(@Nonnull String str, int index) {
         char c = str.charAt(index);
         switch (c) {
             case 'Z':
@@ -60,7 +61,8 @@ public class ParamUtil {
         }
     }
 
-    public static Iterable<ImmutableMethodParameter> parseParamString(final String params) {
+    @Nonnull
+    public static Iterable<ImmutableMethodParameter> parseParamString(@Nonnull final String params) {
         return new Iterable<ImmutableMethodParameter>() {
             @Override public Iterator<ImmutableMethodParameter> iterator() {
                 return new Iterator<ImmutableMethodParameter>() {

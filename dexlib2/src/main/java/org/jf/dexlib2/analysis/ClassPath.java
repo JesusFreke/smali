@@ -62,29 +62,49 @@ public class ClassPath {
 
         unknownClass = new UnknownClassProto(this);
         loadedClasses.put(unknownClass.getType(), unknownClass);
+
+        loadPrimitiveType("Z");
+        loadPrimitiveType("B");
+        loadPrimitiveType("S");
+        loadPrimitiveType("C");
+        loadPrimitiveType("I");
+        loadPrimitiveType("J");
+        loadPrimitiveType("F");
+        loadPrimitiveType("D");
+        loadPrimitiveType("L");
+    }
+
+    private void loadPrimitiveType(String type) {
+        loadedClasses.put(type, new PrimitiveProto(this, type));
     }
 
     private static DexFile getBasicClasses() {
+        // fallbacks for some special classes that we assume are present
         return new ImmutableDexFile(ImmutableSet.of(
-                new ReflectionClassDef(Object.class),
+                new ReflectionClassDef(Class.class),
                 new ReflectionClassDef(Cloneable.class),
-                new ReflectionClassDef(Serializable.class)));
+                new ReflectionClassDef(Object.class),
+                new ReflectionClassDef(Serializable.class),
+                new ReflectionClassDef(String.class),
+                new ReflectionClassDef(Throwable.class)));
     }
 
     @Nonnull
-    public TypeProto getClass(String type) {
-        TypeProto typeProto = loadedClasses.get(type);
+    public TypeProto getClass(CharSequence type) {
+        String typeString = type.toString();
+        TypeProto typeProto = loadedClasses.get(typeString);
         if (typeProto != null) {
             return typeProto;
         }
 
         if (type.charAt(0) == '[') {
-            typeProto = new ArrayProto(this, type);
+            typeProto = new ArrayProto(this, typeString);
         } else {
-            typeProto = new ClassProto(this, type);
+            typeProto = new ClassProto(this, typeString);
         }
+        // All primitive types are preloaded into loadedClasses, so we don't need to check for that here
 
-        loadedClasses.put(type, typeProto);
+        loadedClasses.put(typeString, typeProto);
         return typeProto;
     }
 
@@ -99,34 +119,6 @@ public class ClassPath {
             }
         }
         throw new UnresolvedClassException("Could not resolve class %s", type);
-    }
-
-    @Nonnull
-    public RegisterType getRegisterTypeForType(@Nonnull String type) {
-        switch (type.charAt(0)) {
-            case 'Z':
-                return RegisterType.getRegisterType(RegisterType.BOOLEAN, null);
-            case 'B':
-                return RegisterType.getRegisterType(RegisterType.BYTE, null);
-            case 'S':
-                return RegisterType.getRegisterType(RegisterType.SHORT, null);
-            case 'C':
-                return RegisterType.getRegisterType(RegisterType.CHAR, null);
-            case 'I':
-                return RegisterType.getRegisterType(RegisterType.INTEGER, null);
-            case 'F':
-                return RegisterType.getRegisterType(RegisterType.FLOAT, null);
-            case 'J':
-                return RegisterType.getRegisterType(RegisterType.LONG_LO, null);
-            case 'D':
-                return RegisterType.getRegisterType(RegisterType.DOUBLE_LO, null);
-            case 'L':
-            case 'U':
-            case '[':
-                return RegisterType.getRegisterType(RegisterType.REFERENCE, getClass(type));
-            default:
-                throw new RuntimeException("Invalid type: " + type);
-        }
     }
 
     @Nonnull

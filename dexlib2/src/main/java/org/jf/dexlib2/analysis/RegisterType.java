@@ -185,7 +185,7 @@ public class RegisterType {
     public static final RegisterType CONFLICTED_TYPE = new RegisterType(CONFLICTED, null);
 
     @Nonnull
-    public static RegisterType getWideRegisterTypeForType(@Nonnull String type, boolean firstRegister) {
+    public static RegisterType getWideRegisterType(@Nonnull CharSequence type, boolean firstRegister) {
         switch (type.charAt(0)) {
             case 'J':
                 if (firstRegister) {
@@ -204,34 +204,63 @@ public class RegisterType {
         }
     }
 
-    public static RegisterType getRegisterTypeForLiteral(long literalValue) {
-        if (literalValue < -32768) {
-            return getRegisterType(INTEGER, null);
+    @Nonnull
+    public static RegisterType getRegisterType(@Nonnull ClassPath classPath, @Nonnull CharSequence type) {
+        switch (type.charAt(0)) {
+            case 'Z':
+                return BOOLEAN_TYPE;
+            case 'B':
+                return BYTE_TYPE;
+            case 'S':
+                return SHORT_TYPE;
+            case 'C':
+                return CHAR_TYPE;
+            case 'I':
+                return INTEGER_TYPE;
+            case 'F':
+                return FLOAT_TYPE;
+            case 'J':
+                return LONG_LO_TYPE;
+            case 'D':
+                return DOUBLE_LO_TYPE;
+            case 'L':
+            case '[':
+                return getRegisterType(REFERENCE, classPath.getClass(type));
+            default:
+                throw new ExceptionWithContext("Invalid type: " + type);
         }
-        if (literalValue < -128) {
-            return getRegisterType(SHORT, null);
-        }
-        if (literalValue < 0) {
-            return getRegisterType(BYTE, null);
-        }
-        if (literalValue == 0) {
-            return getRegisterType(NULL, null);
-        }
-        if (literalValue == 1) {
-            return getRegisterType(ONE, null);
-        }
-        if (literalValue < 128) {
-            return getRegisterType(POS_BYTE, null);
-        }
-        if (literalValue < 32768) {
-            return getRegisterType(POS_SHORT, null);
-        }
-        if (literalValue < 65536) {
-            return getRegisterType(CHAR, null);
-        }
-        return getRegisterType(INTEGER, null);
     }
 
+    @Nonnull
+    public static RegisterType getRegisterTypeForLiteral(int literalValue) {
+        if (literalValue < -32768) {
+            return INTEGER_TYPE;
+        }
+        if (literalValue < -128) {
+            return SHORT_TYPE;
+        }
+        if (literalValue < 0) {
+            return BYTE_TYPE;
+        }
+        if (literalValue == 0) {
+            return NULL_TYPE;
+        }
+        if (literalValue == 1) {
+            return ONE_TYPE;
+        }
+        if (literalValue < 128) {
+            return POS_BYTE_TYPE;
+        }
+        if (literalValue < 32768) {
+            return POS_SHORT_TYPE;
+        }
+        if (literalValue < 65536) {
+            return CHAR_TYPE;
+        }
+        return INTEGER_TYPE;
+    }
+
+    @Nonnull
     public RegisterType merge(@Nonnull RegisterType other) {
         if (other == this) {
             return this;
@@ -263,6 +292,10 @@ public class RegisterType {
         return RegisterType.getRegisterType(mergedCategory, mergedType);
     }
 
+    // TODO: consider making TypeProto extend/implement RegisterType?
+    // TODO: add a getReferenceRegisterType convenience method
+
+    @Nonnull
     public static RegisterType getRegisterType(byte category, @Nullable TypeProto typeProto) {
         switch (category) {
             case UNKNOWN:

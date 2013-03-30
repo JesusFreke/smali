@@ -31,6 +31,9 @@
 
 package org.jf.dexlib2.analysis;
 
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -62,5 +65,17 @@ public class UnknownClassProto implements TypeProto {
     @Nonnull @Override public String getType() {
         // use the otherwise used U prefix for an unknown/unresolvable class
         return "Ujava/lang/Object;";
+    }
+
+    @Override
+    @Nullable
+    public FieldReference getFieldByOffset(int fieldOffset) {
+        return classPath.getClass("Ljava/lang/Object;").getFieldByOffset(fieldOffset);
+    }
+
+    @Override
+    @Nullable
+    public MethodReference getMethodByVtableIndex(int vtableIndex) {
+        return classPath.getClass("Ljava/lang/Object;").getMethodByVtableIndex(vtableIndex);
     }
 }

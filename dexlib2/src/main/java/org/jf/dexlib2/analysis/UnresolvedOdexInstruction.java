@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.util;
+package org.jf.dexlib2.analysis;
 
-import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.Format;
+import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.iface.instruction.Instruction;
 
-import javax.annotation.Nonnull;
+/**
+ * This represents a "fixed" odexed instruction, where the object register is always null and so the correct type
+ * can't be determined. Typically, these are replaced by an equivalent instruction that would have the same
+ * effect (namely, an NPE)
+ */
+public class UnresolvedOdexInstruction implements Instruction {
+    public final Instruction originalInstruction;
+    //the register number that holds the (null) reference type that the instruction operates on
+    public final int objectRegisterNum;
 
-public final class TypeUtils {
-    public static boolean isWideType(@Nonnull String type) {
-        char c = type.charAt(0);
-        return c == 'J' || c == 'D';
+    public UnresolvedOdexInstruction(Instruction originalInstruction, int objectRegisterNumber) {
+        this.originalInstruction = originalInstruction;
+        this.objectRegisterNum = objectRegisterNumber;
     }
 
-    public static boolean isWideType(@Nonnull TypeReference type) {
-        return isWideType(type.getType());
+    public Format getFormat() {
+        return Format.UnresolvedOdexInstruction;
     }
 
-    public static boolean isPrimitiveType(String type) {
-        return type.length() == 1;
+    @Override public Opcode getOpcode() {
+        return originalInstruction.getOpcode();
     }
 
-    private TypeUtils() {}
+    @Override public int getCodeUnits() {
+        return originalInstruction.getCodeUnits();
+    }
 }
