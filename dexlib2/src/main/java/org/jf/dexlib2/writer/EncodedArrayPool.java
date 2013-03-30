@@ -140,13 +140,12 @@ public class EncodedArrayPool {
 
         @Nullable
         public static Key of(@Nonnull ClassDef classDef) {
-        	Set<? extends Field> fields = FluentIterable.from(classDef.getFields()).toImmutableSortedSet(new FieldComparator());
+            Set<? extends Field> staticFields = FluentIterable.from(classDef.getFields()).filter(IS_STATIC_FIELD).toSet();
+            Iterable<? extends Field> staticFieldsSorted = FluentIterable.from(staticFields).toSortedSet(new FieldComparator());
 
-            Iterable<? extends Field> staticFields = FluentIterable.from(fields).filter(IS_STATIC_FIELD);
-            int lastIndex = CollectionUtils.lastIndexOf(staticFields, HAS_INITIALIZER);
-
+            int lastIndex = CollectionUtils.lastIndexOf(staticFieldsSorted, HAS_INITIALIZER);
             if (lastIndex > -1) {
-                return new Key(fields, lastIndex+1);
+                return new Key(staticFields, lastIndex+1);
             }
             return null;
         }
@@ -158,7 +157,6 @@ public class EncodedArrayPool {
         @Nonnull
         public Iterable<EncodedValue> getElements() {
             return FluentIterable.from(fields)
-                    .filter(IS_STATIC_FIELD)
                     .limit(size)
                     .transform(GET_INITIAL_VALUE);
         }
