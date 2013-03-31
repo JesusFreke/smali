@@ -1029,7 +1029,7 @@ public class MethodAnalyzer {
             }
         }
 
-        if (exceptionType == null) {
+        if (exceptionType.category == RegisterType.UNKNOWN) {
             throw new AnalysisException("move-exception must be the first instruction in an exception handler block");
         }
 
