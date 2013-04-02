@@ -577,6 +577,10 @@ public class ClassDataItem extends Item<ClassDataItem> {
     }
 
     private static EncodedMethod findMethodByMethodIdInternal(int methodIdItemIndex, EncodedMethod[] encodedMethods) {
+        if (encodedMethods == null) {
+            return null;
+        }
+
         int min = 0;
         int max = encodedMethods.length;
 
