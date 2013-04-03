@@ -43,17 +43,15 @@ import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.*;
-import org.jf.dexlib2.util.InstructionUtil;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.util.ReferenceUtil;
+import org.jf.dexlib2.writer.util.InstructionWriteUtil;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CodeItemPool {
     @Nonnull private final Map<Method, Integer> codeItemOffsetMap = Maps.newHashMap();
@@ -149,33 +147,18 @@ public class CodeItemPool {
                 writer.writeUshort(methodImpl.getRegisterCount());
                 writer.writeUshort(MethodUtil.getParameterRegisterCount(method, MethodUtil.isStatic(method)));
 
-                int maxOutParamCount = 0;
-                int codeUnitCount = 0;
-                for (Instruction instruction: methodImpl.getInstructions()) {
-                    codeUnitCount += instruction.getCodeUnits();
-                    if (instruction.getOpcode().referenceType == ReferenceType.METHOD) {
-                        ReferenceInstruction refInsn = (ReferenceInstruction)instruction;
-                        MethodReference methodRef = (MethodReference)refInsn.getReference();
-                        int paramCount = MethodUtil.getParameterRegisterCount(methodRef,
-                                InstructionUtil.isInvokeStatic(instruction.getOpcode()));
-                        if (paramCount > maxOutParamCount) {
-                            maxOutParamCount = paramCount;
-                        }
-                    }
-                }
-                writer.writeUshort(maxOutParamCount);
+                InstructionWriteUtil instrWriteUtil = new InstructionWriteUtil(methodImpl, dexFile.stringPool);
+                writer.writeUshort(instrWriteUtil.getOutParamCount());
 
                 List<? extends TryBlock> tryBlocks = methodImpl.getTryBlocks();
                 writer.writeUshort(tryBlocks.size());
                 writer.writeInt(dexFile.debugInfoPool.getOffset(method));
-                writer.writeInt(codeUnitCount);
+                writer.writeInt(instrWriteUtil.getCodeUnitCount());
 
-                // TODO: need to fix up instructions. Add alignment nops, convert to const-string/jumbos, etc.
-
-                for (Instruction instruction: methodImpl.getInstructions()) {
+                for (Instruction instruction: instrWriteUtil.getInstructions()) {
                     switch (instruction.getOpcode().format) {
                         case Format10t:
-                            writeFormat10t(writer, (Instruction10t)instruction);
+                            writeFormat10t(writer, ((Instruction10t)instruction));
                             break;
                         case Format10x:
                             writeFormat10x(writer, (Instruction10x)instruction);
@@ -274,8 +257,15 @@ public class CodeItemPool {
                     DexWriter.writeUleb128(ehBuf, exceptionHandlerOffsetMap.size());
 
                     for (TryBlock tryBlock: tryBlocks) {
-                        writer.writeInt(tryBlock.getStartCodeAddress());
-                        writer.writeUshort(tryBlock.getCodeUnitCount());
+                        int startAddress = tryBlock.getStartCodeAddress();
+                        int endAddress = startAddress + tryBlock.getCodeUnitCount();
+
+                        startAddress += instrWriteUtil.codeOffsetShift(startAddress);
+                        endAddress += instrWriteUtil.codeOffsetShift(endAddress);
+                        int tbCodeUnitCount = endAddress - startAddress;
+
+                        writer.writeInt(startAddress);
+                        writer.writeUshort(tbCodeUnitCount);
 
                         if (tryBlock.getExceptionHandlers().size() == 0) {
                             throw new ExceptionWithContext("No exception handlers for the try block!");
@@ -303,6 +293,7 @@ public class CodeItemPool {
                             for (ExceptionHandler eh : tryBlock.getExceptionHandlers()) {
                                 String exceptionType = eh.getExceptionType();
                                 int codeAddress = eh.getHandlerCodeAddress();
+                                codeAddress += instrWriteUtil.codeOffsetShift(codeAddress);
 
                                 if (exceptionType != null) {
                                     //regular exception handling
