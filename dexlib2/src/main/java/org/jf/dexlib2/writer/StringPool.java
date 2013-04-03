@@ -46,7 +46,7 @@ import java.util.Map;
 public class StringPool {
     public final static int STRING_ID_ITEM_SIZE = 0x04;
 
-    @Nonnull private final Map<String, Integer> internedStringIdItems = Maps.newHashMap();
+    @Nonnull protected final Map<String, Integer> internedStringIdItems = Maps.newHashMap();
     private int indexSectionOffset = -1;
     private int dataSectionOffset = -1;
 
