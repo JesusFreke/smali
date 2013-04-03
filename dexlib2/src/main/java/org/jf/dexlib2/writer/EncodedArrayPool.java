@@ -114,6 +114,13 @@ public class EncodedArrayPool {
         private final Set<? extends Field> fields;
         private final int size;
 
+        private static class FieldComparator implements Comparator<Field> {
+            @Override
+            public int compare(Field o1, Field o2) {
+                return o1.compareTo(o2);
+            }
+        }
+
         private static final Function<Field, EncodedValue> GET_INITIAL_VALUE =
                 new Function<Field, EncodedValue>() {
                     @Override
@@ -133,13 +140,13 @@ public class EncodedArrayPool {
 
         @Nullable
         public static Key of(@Nonnull ClassDef classDef) {
-            Set<? extends Field> fields = classDef.getFields();
+            Set<? extends Field> staticFieldsSorted = FluentIterable.from(classDef.getFields())
+                    .filter(IS_STATIC_FIELD)
+                    .toSortedSet(new FieldComparator());
 
-            Iterable<? extends Field> staticFields = FluentIterable.from(classDef.getFields()).filter(IS_STATIC_FIELD);
-            int lastIndex = CollectionUtils.lastIndexOf(staticFields, HAS_INITIALIZER);
-
+            int lastIndex = CollectionUtils.lastIndexOf(staticFieldsSorted, HAS_INITIALIZER);
             if (lastIndex > -1) {
-                return new Key(fields, lastIndex+1);
+                return new Key(staticFieldsSorted, lastIndex+1);
             }
             return null;
         }
@@ -151,7 +158,6 @@ public class EncodedArrayPool {
         @Nonnull
         public Iterable<EncodedValue> getElements() {
             return FluentIterable.from(fields)
-                    .filter(IS_STATIC_FIELD)
                     .limit(size)
                     .transform(GET_INITIAL_VALUE);
         }
