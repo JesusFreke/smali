@@ -101,9 +101,6 @@ public class main {
 
         boolean disassemble = true;
         boolean doDump = false;
-        boolean write = false;
-        boolean sort = false;
-        boolean fixRegisters = false;
         boolean noParameterRegisters = false;
         boolean useLocalsDirective = false;
         boolean useSequentialLabels = false;
@@ -111,7 +108,6 @@ public class main {
         boolean addCodeOffsets = false;
         boolean noAccessorComments = false;
         boolean deodex = false;
-        boolean verify = false;
         boolean ignoreErrors = false;
         boolean checkPackagePrivateAccess = false;
 
@@ -121,7 +117,6 @@ public class main {
 
         String outputDirectory = "out";
         String dumpFileName = null;
-        String outputDexFileName = null;
         String inputDexFileName = null;
         String bootClassPath = null;
         StringBuffer extraBootClassPathEntries = new StringBuffer();
@@ -230,19 +225,6 @@ public class main {
                 case 'I':
                     ignoreErrors = true;
                     break;
-                case 'W':
-                    write = true;
-                    outputDexFileName = commandLine.getOptionValue("W");
-                    break;
-                case 'S':
-                    sort = true;
-                    break;
-                case 'F':
-                    fixRegisters = true;
-                    break;
-                case 'V':
-                    verify = true;
-                    break;
                 case 'T':
                     inlineTable = commandLine.getOptionValue("T");
                     break;
@@ -304,7 +286,7 @@ public class main {
                 baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
                         bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
                         noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
-                        noAccessorComments, registerInfo, verify, ignoreErrors, inlineTable, checkPackagePrivateAccess);
+                        noAccessorComments, registerInfo, ignoreErrors, inlineTable, checkPackagePrivateAccess);
             }
 
             // TODO: implement rewrite + optional sort functionality
@@ -456,29 +438,9 @@ public class main {
                         " behavior is to stop disassembling and exit once an error is encountered")
                 .create("I");
 
-
         Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
                 .withDescription("suppresses the output of the disassembly")
                 .create("N");
-
-        Option writeDexOption = OptionBuilder.withLongOpt("write-dex")
-                .withDescription("additionally rewrites the input dex file to FILE")
-                .hasArg()
-                .withArgName("FILE")
-                .create("W");
-
-        Option sortOption = OptionBuilder.withLongOpt("sort")
-                .withDescription("sort the items in the dex file into a canonical order before dumping/writing")
-                .create("S");
-
-        Option fixSignedRegisterOption = OptionBuilder.withLongOpt("fix-signed-registers")
-                .withDescription("when dumping or rewriting, fix any registers in the debug info that are encoded as" +
-                        " a signed value")
-                .create("F");
-
-        Option verifyDexOption = OptionBuilder.withLongOpt("verify")
-                .withDescription("perform bytecode verification")
-                .create("V");
 
         Option inlineTableOption = OptionBuilder.withLongOpt("inline-table")
                 .withDescription("specify a file containing a custom inline method table to use for deodexing")
@@ -510,10 +472,6 @@ public class main {
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);
         debugOptions.addOption(noDisassemblyOption);
-        debugOptions.addOption(writeDexOption);
-        debugOptions.addOption(sortOption);
-        debugOptions.addOption(fixSignedRegisterOption);
-        debugOptions.addOption(verifyDexOption);
         debugOptions.addOption(inlineTableOption);
         debugOptions.addOption(checkPackagePrivateAccess);
 

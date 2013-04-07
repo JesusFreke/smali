@@ -53,7 +53,6 @@ public class baksmali {
     public static boolean addCodeOffsets = false;
     public static boolean noAccessorComments = false;
     public static boolean deodex = false;
-    public static boolean verify = false;
     public static InlineMethodResolver inlineResolver = null;
     public static int registerInfo = 0;
     public static String bootClassPath;
@@ -64,8 +63,8 @@ public class baksmali {
                                           String[] classPathDirs, String bootClassPath, String extraBootClassPath,
                                           boolean noParameterRegisters, boolean useLocalsDirective,
                                           boolean useSequentialLabels, boolean outputDebugInfo, boolean addCodeOffsets,
-                                          boolean noAccessorComments, int registerInfo, boolean verify,
-                                          boolean ignoreErrors, String inlineTable, boolean checkPackagePrivateAccess)
+                                          boolean noAccessorComments, int registerInfo, boolean ignoreErrors,
+                                          String inlineTable, boolean checkPackagePrivateAccess)
     {
         baksmali.noParameterRegisters = noParameterRegisters;
         baksmali.useLocalsDirective = useLocalsDirective;
@@ -76,7 +75,6 @@ public class baksmali {
         baksmali.deodex = deodex;
         baksmali.registerInfo = registerInfo;
         baksmali.bootClassPath = bootClassPath;
-        baksmali.verify = verify;
 
         //TODO: uncomment
         /*if (registerInfo != 0 || deodex || verify) {
