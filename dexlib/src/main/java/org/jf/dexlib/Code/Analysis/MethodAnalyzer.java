@@ -3128,7 +3128,7 @@ public class MethodAnalyzer {
         TypeIdItem methodClass = methodIdItem.getContainingClass();
         boolean isInit = false;
 
-        if (methodIdItem.getMethodName().getStringValue().charAt(0) == '<') {
+        if (methodIdItem.getMethodName().getStringValue().equals("<init>")) {
             if ((invokeType & INVOKE_DIRECT) != 0) {
                 isInit = true;
             } else {

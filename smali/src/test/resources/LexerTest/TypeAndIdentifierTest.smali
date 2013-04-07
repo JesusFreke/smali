@@ -46,3 +46,4 @@ L[Ljava/lang/String;
 [;
 
 <linit>
+<anonymous>

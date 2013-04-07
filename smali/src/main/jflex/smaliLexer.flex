@@ -631,7 +631,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     {PrimitiveType} {PrimitiveType}+ { return newToken(PARAM_LIST_OR_ID); }
     {Type} {Type}+ { return newToken(PARAM_LIST); }
     {SimpleName} { return newToken(SIMPLE_NAME); }
-    "<init>" | "<clinit>" { return newToken(METHOD_NAME); }
+    "<" {SimpleName} ">" { return newToken(METHOD_NAME); }
 }
 
 /*Symbols/Whitespace/EOF*/
