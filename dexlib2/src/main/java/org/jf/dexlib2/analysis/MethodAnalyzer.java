@@ -202,6 +202,7 @@ public class MethodAnalyzer {
                     } catch (AnalysisException ex) {
                         this.analysisException = ex;
                         int codeAddress = getInstructionAddress(instructionToAnalyze);
+                        ex.codeAddress = codeAddress;
                         ex.addContext(String.format("opcode: %s", instructionToAnalyze.instruction.getOpcode().name));
                         ex.addContext(String.format("code address: %d", codeAddress));
                         ex.addContext(String.format("method: %s", ReferenceUtil.getReferenceString(method)));

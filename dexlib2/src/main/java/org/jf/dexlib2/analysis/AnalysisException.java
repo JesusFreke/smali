@@ -34,6 +34,8 @@ package org.jf.dexlib2.analysis;
 import org.jf.util.ExceptionWithContext;
 
 public class AnalysisException extends ExceptionWithContext {
+    public int codeAddress;
+
     public AnalysisException(Throwable cause) {
         super(cause);
     }
