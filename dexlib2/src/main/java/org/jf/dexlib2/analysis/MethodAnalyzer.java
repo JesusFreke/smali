@@ -462,7 +462,7 @@ public class MethodAnalyzer {
                         addPredecessorSuccessor(instruction, targetInstruction, exceptionHandlers,
                                 instructionsToProcess);
                     }
-                } else {
+                } else if (instructionOpcode != Opcode.FILL_ARRAY_DATA) {
                     int targetAddressOffset = offsetInstruction.getCodeOffset();
                     AnalyzedInstruction targetInstruction = analyzedInstructions.get(instructionCodeAddress +
                             targetAddressOffset);
