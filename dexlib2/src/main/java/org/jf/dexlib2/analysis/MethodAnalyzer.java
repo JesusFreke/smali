@@ -295,6 +295,15 @@ public class MethodAnalyzer {
         }
     }
 
+    public List<AnalyzedInstruction> getAnalyzedInstructions() {
+        return analyzedInstructions.getValues();
+    }
+
+    @Nullable
+    public AnalysisException getAnalysisException() {
+        return analysisException;
+    }
+
     public int getParamRegisterCount() {
         return paramRegisterCount;
     }
