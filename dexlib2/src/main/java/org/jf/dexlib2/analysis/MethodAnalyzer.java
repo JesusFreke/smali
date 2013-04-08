@@ -67,6 +67,8 @@ public class MethodAnalyzer {
     @Nonnull private final Method method;
     @Nonnull private final MethodImplementation methodImpl;
 
+    private final int paramRegisterCount;
+
     @Nonnull private final ClassPath classPath;
     @Nullable private final InlineMethodResolver inlineResolver;
 
@@ -126,6 +128,7 @@ public class MethodAnalyzer {
         buildInstructionList();
 
         analyzedState = new BitSet(analyzedInstructions.size());
+        paramRegisterCount = MethodUtil.getParameterRegisterCount(method);
         analyze();
     }
 
@@ -134,7 +137,7 @@ public class MethodAnalyzer {
         MethodImplementation methodImpl = this.methodImpl;
 
         int totalRegisters = methodImpl.getRegisterCount();
-        int parameterRegisters = MethodUtil.getParameterRegisterCount(method);
+        int parameterRegisters = paramRegisterCount;
 
         int nonParameterRegisters = totalRegisters - parameterRegisters;
 
@@ -290,7 +293,10 @@ public class MethodAnalyzer {
                         RegisterType.getRegisterType(classPath, parameter));
             }
         }
+    }
 
+    public int getParamRegisterCount() {
+        return paramRegisterCount;
     }
 
     public int getInstructionAddress(@Nonnull AnalyzedInstruction instruction) {
