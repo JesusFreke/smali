@@ -39,6 +39,8 @@ dependencies {
     compile depends.commons_cli
     compile depends.guava
 
+    testCompile depends.junit
+
     proguard depends.proguard
 }
 
