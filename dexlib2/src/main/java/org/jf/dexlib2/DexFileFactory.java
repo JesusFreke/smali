@@ -59,7 +59,7 @@ public final class DexFileFactory {
 
             ZipEntry zipEntry = zipFile.getEntry("classes.dex");
             if (zipEntry == null) {
-                throw new ExceptionWithContext("zip file %s does not contain a classes.dex file", dexFile.getName());
+                throw new NoClassesDexException("zip file %s does not contain a classes.dex file", dexFile.getName());
             }
             long fileLength = zipEntry.getSize();
             if (fileLength < 40) {
@@ -110,4 +110,18 @@ public final class DexFileFactory {
     }
 
     private DexFileFactory() {}
+
+    public static class NoClassesDexException extends ExceptionWithContext {
+        public NoClassesDexException(Throwable cause) {
+            super(cause);
+        }
+
+        public NoClassesDexException(Throwable cause, String message, Object... formatArgs) {
+            super(cause, message, formatArgs);
+        }
+
+        public NoClassesDexException(String message, Object... formatArgs) {
+            super(message, formatArgs);
+        }
+    }
 }
