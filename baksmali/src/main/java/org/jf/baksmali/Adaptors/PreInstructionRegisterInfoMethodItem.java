@@ -28,16 +28,31 @@
 
 package org.jf.baksmali.Adaptors;
 
-//TODO: uncomment
-/*public class PreInstructionRegisterInfoMethodItem extends MethodItem {
-    private final AnalyzedInstruction analyzedInstruction;
-    private final MethodAnalyzer methodAnalyzer;
+import org.jf.baksmali.baksmali;
+import org.jf.baksmali.main;
+import org.jf.dexlib2.analysis.AnalyzedInstruction;
+import org.jf.dexlib2.analysis.MethodAnalyzer;
+import org.jf.dexlib2.analysis.RegisterType;
+import org.jf.dexlib2.iface.instruction.*;
+import org.jf.util.IndentingWriter;
 
-    public PreInstructionRegisterInfoMethodItem(AnalyzedInstruction analyzedInstruction, MethodAnalyzer methodAnalyzer,
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.BitSet;
+
+public class PreInstructionRegisterInfoMethodItem extends MethodItem {
+    @Nonnull private final MethodAnalyzer methodAnalyzer;
+    @Nonnull private final RegisterFormatter registerFormatter;
+    @Nonnull private final AnalyzedInstruction analyzedInstruction;
+
+    public PreInstructionRegisterInfoMethodItem(@Nonnull MethodAnalyzer methodAnalyzer,
+                                                @Nonnull RegisterFormatter registerFormatter,
+                                                @Nonnull AnalyzedInstruction analyzedInstruction,
                                                 int codeAddress) {
         super(codeAddress);
-        this.analyzedInstruction = analyzedInstruction;
         this.methodAnalyzer = methodAnalyzer;
+        this.registerFormatter = registerFormatter;
+        this.analyzedInstruction = analyzedInstruction;
     }
 
     @Override
@@ -84,25 +99,25 @@ package org.jf.baksmali.Adaptors;
             RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.getInstruction();
 
             registers.set(instruction.getStartRegister(),
-                    instruction.getStartRegister() + instruction.getRegCount());
+                    instruction.getStartRegister() + instruction.getRegisterCount());
         } else if (analyzedInstruction.getInstruction() instanceof FiveRegisterInstruction) {
             FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.getInstruction();
-            int regCount = instruction.getRegCount();
+            int regCount = instruction.getRegisterCount();
             switch (regCount) {
                 case 5:
-                    registers.set(instruction.getRegisterA());
-                    //fall through
-                case 4:
                     registers.set(instruction.getRegisterG());
                     //fall through
-                case 3:
+                case 4:
                     registers.set(instruction.getRegisterF());
                     //fall through
-                case 2:
+                case 3:
                     registers.set(instruction.getRegisterE());
                     //fall through
-                case 1:
+                case 2:
                     registers.set(instruction.getRegisterD());
+                    //fall through
+                case 1:
+                    registers.set(instruction.getRegisterC());
             }
         } else if (analyzedInstruction.getInstruction() instanceof ThreeRegisterInstruction) {
             ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.getInstruction();
@@ -113,8 +128,8 @@ package org.jf.baksmali.Adaptors;
             TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.getInstruction();
             registers.set(instruction.getRegisterA());
             registers.set(instruction.getRegisterB());
-        } else if (analyzedInstruction.getInstruction() instanceof SingleRegisterInstruction) {
-            SingleRegisterInstruction instruction = (SingleRegisterInstruction)analyzedInstruction.getInstruction();
+        } else if (analyzedInstruction.getInstruction() instanceof OneRegisterInstruction) {
+            OneRegisterInstruction instruction = (OneRegisterInstruction)analyzedInstruction.getInstruction();
             registers.set(instruction.getRegisterA());
         }
     }
@@ -137,19 +152,13 @@ package org.jf.baksmali.Adaptors;
             for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
                 if (predecessor.getPostInstructionRegisterType(registerNum) != mergedRegisterType) {
                     registers.set(registerNum);
-                    continue;
                 }
             }
         }
     }
 
     private void addParamRegs(BitSet registers, int registerCount) {
-        ClassDataItem.EncodedMethod encodedMethod = methodAnalyzer.getMethod();
-        int parameterRegisterCount = encodedMethod.method.getPrototype().getParameterRegisterCount();
-        if ((encodedMethod.accessFlags & AccessFlags.STATIC.getValue()) == 0) {
-            parameterRegisterCount++;
-        }
-
+        int parameterRegisterCount = methodAnalyzer.getParamRegisterCount();
         registers.set(registerCount-parameterRegisterCount, registerCount);
     }
 
@@ -159,8 +168,6 @@ package org.jf.baksmali.Adaptors;
             return false;
         }
 
-        ClassDataItem.EncodedMethod encodedMethod = methodAnalyzer.getMethod();
-
         boolean firstRegister = true;
 
         for (int registerNum=0; registerNum<registerCount; registerNum++) {
@@ -169,7 +176,7 @@ package org.jf.baksmali.Adaptors;
 
             for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
                 RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
-                if (predecessorRegisterType.category != RegisterType.Category.Unknown &&
+                if (predecessorRegisterType.category != RegisterType.UNKNOWN &&
                         predecessorRegisterType != mergedRegisterType) {
 
                     addRegister = true;
@@ -188,7 +195,7 @@ package org.jf.baksmali.Adaptors;
             }
 
             writer.write('#');
-            RegisterFormatter.writeTo(writer, encodedMethod.codeItem, registerNum);
+            registerFormatter.writeTo(writer, registerNum);
             writer.write('=');
             analyzedInstruction.getPreInstructionRegisterType(registerNum).writeTo(writer);
             writer.write(":merge{");
@@ -221,10 +228,7 @@ package org.jf.baksmali.Adaptors;
         return !firstRegister;
     }
 
-    private boolean writeRegisterInfo(IndentingWriter writer, BitSet registers,
-                                      boolean addNewline) throws IOException {
-        ClassDataItem.EncodedMethod encodedMethod = methodAnalyzer.getMethod();
-
+    private boolean writeRegisterInfo(IndentingWriter writer, BitSet registers, boolean addNewline) throws IOException {
         int registerNum = registers.nextSetBit(0);
         if (registerNum < 0) {
             return false;
@@ -233,21 +237,18 @@ package org.jf.baksmali.Adaptors;
         if (addNewline) {
             writer.write('\n');
         }
+
         writer.write('#');
         for (; registerNum >= 0; registerNum = registers.nextSetBit(registerNum + 1)) {
 
             RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(registerNum);
 
-            RegisterFormatter.writeTo(writer, encodedMethod.codeItem, registerNum);
+            registerFormatter.writeTo(writer, registerNum);
             writer.write('=');
 
-            if (registerType == null) {
-                writer.write("null");
-            } else {
-                registerType.writeTo(writer);
-            }
+            registerType.writeTo(writer);
             writer.write(';');
         }
         return true;
     }
-}*/
+}

@@ -28,8 +28,11 @@
 
 package org.jf.baksmali;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
@@ -38,10 +41,7 @@ import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +56,7 @@ public class baksmali {
     public static InlineMethodResolver inlineResolver = null;
     public static int registerInfo = 0;
     public static String bootClassPath;
+    public static ClassPath classPath = null;
 
     public static SyntheticAccessorResolver syntheticAccessorResolver = null;
 
@@ -76,43 +77,34 @@ public class baksmali {
         baksmali.registerInfo = registerInfo;
         baksmali.bootClassPath = bootClassPath;
 
-        //TODO: uncomment
-        /*if (registerInfo != 0 || deodex || verify) {
+        if (registerInfo != 0 || deodex) {
             try {
-                String[] extraBootClassPathArray = null;
+                Iterable<String> extraBootClassPaths = null;
                 if (extraBootClassPath != null && extraBootClassPath.length() > 0) {
                     assert extraBootClassPath.charAt(0) == ':';
-                    extraBootClassPathArray = extraBootClassPath.substring(1).split(":");
-                }
-
-                if (dexFile.isOdex() && bootClassPath == null) {
-                    //ext.jar is a special case - it is typically the 2nd jar in the boot class path, but it also
-                    //depends on classes in framework.jar (typically the 3rd jar in the BCP). If the user didn't
-                    //specify a -c option, we should add framework.jar to the boot class path by default, so that it
-                    //"just works"
-                    if (extraBootClassPathArray == null && isExtJar(dexFilePath)) {
-                        extraBootClassPathArray = new String[] {"framework.jar"};
-                    }
-                    ClassPath.InitializeClassPathFromOdex(classPathDirs, extraBootClassPathArray, dexFilePath, dexFile,
-                            checkPackagePrivateAccess);
+                    extraBootClassPaths = Splitter.on(':').split(extraBootClassPath.substring(1));
                 } else {
-                    String[] bootClassPathArray = null;
-                    if (bootClassPath != null) {
-                        bootClassPathArray = bootClassPath.split(":");
-                    }
-                    ClassPath.InitializeClassPath(classPathDirs, bootClassPathArray, extraBootClassPathArray,
-                            dexFilePath, dexFile, checkPackagePrivateAccess);
+                    extraBootClassPaths = ImmutableList.of();
                 }
 
-                if (inlineTable != null) {
-                    inlineResolver = new CustomInlineMethodResolver(inlineTable);
+                Iterable<String> bootClassPaths = null;
+                if (bootClassPath != null) {
+                    bootClassPaths = Splitter.on(':').split(bootClassPath);
                 }
+
+                classPath = ClassPath.fromClassPath(Arrays.asList(classPathDirs),
+                        Iterables.concat(bootClassPaths, extraBootClassPaths), dexFile);
+
+                // TODO: uncomment
+                /*if (inlineTable != null) {
+                    inlineResolver = new CustomInlineMethodResolver(inlineTable);
+                }*/
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
                 ex.printStackTrace(System.err);
                 System.exit(1);
             }
-        }*/
+        }
 
         File outputDirectoryFile = new File(outputDirectory);
         if (!outputDirectoryFile.exists()) {

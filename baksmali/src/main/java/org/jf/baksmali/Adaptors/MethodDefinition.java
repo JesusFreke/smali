@@ -33,8 +33,12 @@ import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
 import org.jf.baksmali.baksmali;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.analysis.AnalysisException;
+import org.jf.dexlib2.analysis.AnalyzedInstruction;
+import org.jf.dexlib2.analysis.MethodAnalyzer;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -72,7 +76,6 @@ public class MethodDefinition {
         this.classDef = classDef;
         this.method = method;
         this.methodImpl = methodImpl;
-
 
         try {
             //TODO: what about try/catch blocks inside the dead code? those will need to be commented out too. ugh.
@@ -265,8 +268,11 @@ public class MethodDefinition {
     private List<MethodItem> getMethodItems() {
         ArrayList<MethodItem> methodItems = new ArrayList<MethodItem>();
 
-        //TODO: addAnalyzedInstructionMethodItems
-        addInstructionMethodItems(methodItems);
+        if ((baksmali.registerInfo != 0) || (baksmali.deodex && needsAnalyzed())) {
+            addAnalyzedInstructionMethodItems(methodItems);
+        } else {
+            addInstructionMethodItems(methodItems);
+        }
 
         addTries(methodItems);
         if (baksmali.outputDebugInfo) {
@@ -284,6 +290,15 @@ public class MethodDefinition {
         Collections.sort(methodItems);
 
         return methodItems;
+    }
+
+    private boolean needsAnalyzed() {
+        for (Instruction instruction: methodImpl.getInstructions()) {
+            if (instruction.getOpcode().odexOnly()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void addInstructionMethodItems(List<MethodItem> methodItems) {
@@ -338,43 +353,31 @@ public class MethodDefinition {
         }
     }
 
-    //TODO: uncomment
-    /*private void addAnalyzedInstructionMethodItems(List<MethodItem> methodItems) {
-        methodAnalyzer = new MethodAnalyzer(encodedMethod, baksmali.deodex, baksmali.inlineResolver);
+    private void addAnalyzedInstructionMethodItems(List<MethodItem> methodItems) {
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(baksmali.classPath, method, baksmali.inlineResolver);
 
-        methodAnalyzer.analyze();
-
-        ValidationException validationException = methodAnalyzer.getValidationException();
-        if (validationException != null) {
+        AnalysisException analysisException = methodAnalyzer.getAnalysisException();
+        if (analysisException != null) {
             methodItems.add(new CommentMethodItem(
-                    String.format("ValidationException: %s" ,validationException.getMessage()),
-                    validationException.getCodeAddress(), Integer.MIN_VALUE));
-        } else if (baksmali.verify) {
-            methodAnalyzer.verify();
-
-            validationException = methodAnalyzer.getValidationException();
-            if (validationException != null) {
-                methodItems.add(new CommentMethodItem(
-                        String.format("ValidationException: %s" ,validationException.getMessage()),
-                        validationException.getCodeAddress(), Integer.MIN_VALUE));
-            }
+                    String.format("AnalysisException: %s" ,analysisException.getMessage()),
+                    analysisException.codeAddress, Integer.MIN_VALUE));
         }
 
-        List<AnalyzedInstruction> instructions = methodAnalyzer.getInstructions();
+        List<AnalyzedInstruction> instructions = methodAnalyzer.getAnalyzedInstructions();
 
         int currentCodeAddress = 0;
         for (int i=0; i<instructions.size(); i++) {
             AnalyzedInstruction instruction = instructions.get(i);
 
-            MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
-                    encodedMethod.codeItem, currentCodeAddress, instruction.getInstruction());
+            MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(
+                    this, currentCodeAddress, instruction.getInstruction());
 
             methodItems.add(methodItem);
 
-            if (instruction.getInstruction().getFormat() == Format.UnresolvedOdexInstruction) {
+            if (instruction.getInstruction().getOpcode().format == Format.UnresolvedOdexInstruction) {
                 methodItems.add(new CommentedOutMethodItem(
-                        InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
-                                encodedMethod.codeItem, currentCodeAddress, instruction.getOriginalInstruction())));
+                        InstructionMethodItemFactory.makeInstructionFormatMethodItem(
+                                this, currentCodeAddress, instruction.getOriginalInstruction())));
             }
 
             if (i != instructions.size() - 1) {
@@ -392,23 +395,24 @@ public class MethodDefinition {
                     @Override
                     public boolean writeTo(IndentingWriter writer) throws IOException {
                         writer.write("#@");
-                        writer.printUnsignedLongAsHex(codeAddress & 0xFFFFFFFF);
+                        writer.printUnsignedLongAsHex(codeAddress & 0xFFFFFFFFL);
                         return true;
                     }
                 });
             }
 
-            if (baksmali.registerInfo != 0 && !instruction.getInstruction().getFormat().variableSizeFormat) {
+            if (baksmali.registerInfo != 0 && !instruction.getInstruction().getOpcode().format.isPayloadFormat) {
                 methodItems.add(
-                        new PreInstructionRegisterInfoMethodItem(instruction, methodAnalyzer, currentCodeAddress));
+                        new PreInstructionRegisterInfoMethodItem(
+                                methodAnalyzer, registerFormatter, instruction, currentCodeAddress));
 
                 methodItems.add(
-                        new PostInstructionRegisterInfoMethodItem(instruction, methodAnalyzer, currentCodeAddress));
+                        new PostInstructionRegisterInfoMethodItem(registerFormatter, instruction, currentCodeAddress));
             }
 
-            currentCodeAddress += instruction.getInstruction().getSize(currentCodeAddress);
+            currentCodeAddress += instruction.getInstruction().getCodeUnits();
         }
-    }*/
+    }
 
     private void addTries(List<MethodItem> methodItems) {
         List<? extends TryBlock> tryBlocks = methodImpl.getTryBlocks();

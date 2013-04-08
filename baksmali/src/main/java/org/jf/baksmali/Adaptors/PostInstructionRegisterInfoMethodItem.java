@@ -28,16 +28,26 @@
 
 package org.jf.baksmali.Adaptors;
 
-//TODO: uncomment
-/*public class PostInstructionRegisterInfoMethodItem extends MethodItem {
-    private final AnalyzedInstruction analyzedInstruction;
-    private final MethodAnalyzer methodAnalyzer;
+import org.jf.baksmali.baksmali;
+import org.jf.baksmali.main;
+import org.jf.dexlib2.analysis.AnalyzedInstruction;
+import org.jf.dexlib2.analysis.RegisterType;
+import org.jf.util.IndentingWriter;
 
-    public PostInstructionRegisterInfoMethodItem(AnalyzedInstruction analyzedInstruction, MethodAnalyzer methodAnalyzer,
-                                                int codeAddress) {
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.BitSet;
+
+public class PostInstructionRegisterInfoMethodItem extends MethodItem {
+    @Nonnull private final RegisterFormatter registerFormatter;
+    @Nonnull private final AnalyzedInstruction analyzedInstruction;
+
+    public PostInstructionRegisterInfoMethodItem(@Nonnull RegisterFormatter registerFormatter,
+                                                 @Nonnull AnalyzedInstruction analyzedInstruction,
+                                                 int codeAddress) {
         super(codeAddress);
+        this.registerFormatter = registerFormatter;
         this.analyzedInstruction = analyzedInstruction;
-        this.methodAnalyzer = methodAnalyzer;
     }
 
     @Override
@@ -74,8 +84,6 @@ package org.jf.baksmali.Adaptors;
     }
 
     private boolean writeRegisterInfo(IndentingWriter writer, BitSet registers) throws IOException {
-        ClassDataItem.EncodedMethod encodedMethod = methodAnalyzer.getMethod();
-
         int registerNum = registers.nextSetBit(0);
         if (registerNum < 0) {
             return false;
@@ -83,19 +91,13 @@ package org.jf.baksmali.Adaptors;
 
         writer.write('#');
         for (; registerNum >= 0; registerNum = registers.nextSetBit(registerNum + 1)) {
-
             RegisterType registerType = analyzedInstruction.getPostInstructionRegisterType(registerNum);
 
-            RegisterFormatter.writeTo(writer, encodedMethod.codeItem, registerNum);
+            registerFormatter.writeTo(writer, registerNum);
             writer.write('=');
-
-            if (registerType == null) {
-                writer.write("null");
-            } else {
-                registerType.writeTo(writer);
-            }
+            registerType.writeTo(writer);
             writer.write(';');
         }
         return true;
     }
-}*/
+}
