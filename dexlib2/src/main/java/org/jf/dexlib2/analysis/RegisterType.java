@@ -270,9 +270,16 @@ public class RegisterType {
 
         TypeProto mergedType = null;
         if (mergedCategory == REFERENCE) {
-            assert type != null;
-            assert other.type != null;
-            mergedType = this.type.getCommonSuperclass(other.type);
+            TypeProto type = this.type;
+            if (type != null) {
+                if (other.type != null) {
+                    mergedType = type.getCommonSuperclass(other.type);
+                } else {
+                    mergedType = type;
+                }
+            } else {
+                mergedType = other.type;
+            }
         } else if (mergedCategory == UNINIT_REF || mergedCategory == UNINIT_THIS) {
             if (this.category == UNKNOWN) {
                 return other;
