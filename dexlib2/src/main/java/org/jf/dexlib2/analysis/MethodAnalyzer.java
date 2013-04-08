@@ -154,16 +154,10 @@ public class MethodAnalyzer {
                         RegisterType.getRegisterType(RegisterType.REFERENCE,
                                 classPath.getClass(method.getDefiningClass())));
             }
-        }
 
-        List<? extends MethodParameter> parameters = method.getParameters();
-        if (parameters != null) {
-            RegisterType[] parameterTypes = getParameterTypes(parameters);
-            for (int i=0; i<parameterTypes.length; i++) {
-                RegisterType registerType = parameterTypes[i];
-                int registerNum = (totalRegisters - parameterRegisters) + i;
-                setPostRegisterTypeAndPropagateChanges(startOfMethod, registerNum, registerType);
-            }
+            propagateParameterTypes(totalRegisters-parameterRegisters+1);
+        } else {
+            propagateParameterTypes(totalRegisters-parameterRegisters);
         }
 
         RegisterType uninit = RegisterType.getRegisterType(RegisterType.UNINIT, null);
@@ -282,20 +276,20 @@ public class MethodAnalyzer {
         }
     }
 
-    private RegisterType[] getParameterTypes(@Nonnull List<? extends MethodParameter> parameters) {
-        RegisterType[] registerTypes = new RegisterType[parameters.size()];
-
-        int registerNum = 0;
-        for (MethodParameter parameter: parameters) {
+    private void propagateParameterTypes(int parameterStartRegister) {
+        int i=0;
+        for (MethodParameter parameter: method.getParameters()) {
             if (TypeUtils.isWideType(parameter)) {
-                registerTypes[registerNum++] = RegisterType.getWideRegisterType(parameter, true);
-                registerTypes[registerNum++] = RegisterType.getWideRegisterType(parameter, false);
+                setPostRegisterTypeAndPropagateChanges(startOfMethod, parameterStartRegister + i++,
+                        RegisterType.getWideRegisterType(parameter, true));
+                setPostRegisterTypeAndPropagateChanges(startOfMethod, parameterStartRegister + i++,
+                        RegisterType.getWideRegisterType(parameter, false));
             } else {
-                registerTypes[registerNum++] = RegisterType.getRegisterType(classPath, parameter);
+                setPostRegisterTypeAndPropagateChanges(startOfMethod, parameterStartRegister + i++,
+                        RegisterType.getRegisterType(classPath, parameter));
             }
         }
 
-        return registerTypes;
     }
 
     public int getInstructionAddress(@Nonnull AnalyzedInstruction instruction) {
