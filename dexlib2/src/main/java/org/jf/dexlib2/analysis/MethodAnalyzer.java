@@ -144,7 +144,6 @@ public class MethodAnalyzer {
         //if this isn't a static method, determine which register is the "this" register and set the type to the
         //current class
         if (!MethodUtil.isStatic(method)) {
-            nonParameterRegisters--;
             int thisRegister = totalRegisters - parameterRegisters;
 
             //if this is a constructor, then set the "this" register to an uninitialized reference of the current class
