@@ -28,8 +28,11 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.baksmali.baksmaliOptions;
 import org.jf.util.IndentingWriter;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 public class CatchMethodItem extends MethodItem {
@@ -39,21 +42,22 @@ public class CatchMethodItem extends MethodItem {
     private final LabelMethodItem tryEndLabel;
     private final LabelMethodItem handlerLabel;
 
-    public CatchMethodItem(MethodDefinition.LabelCache labelCache, int codeAddress, String exceptionType,
-                           int startAddress, int endAddress, int handlerAddress) {
+    public CatchMethodItem(@Nonnull baksmaliOptions options, @Nonnull MethodDefinition.LabelCache labelCache,
+                           int codeAddress, @Nullable String exceptionType, int startAddress, int endAddress,
+                           int handlerAddress) {
         super(codeAddress);
         this.exceptionType = exceptionType;
 
-        tryStartLabel = labelCache.internLabel(new LabelMethodItem(startAddress, "try_start_"));
+        tryStartLabel = labelCache.internLabel(new LabelMethodItem(options, startAddress, "try_start_"));
 
         //use the address from the last covered instruction, but make the label
         //name refer to the address of the next instruction
-        tryEndLabel = labelCache.internLabel(new EndTryLabelMethodItem(codeAddress, endAddress));
+        tryEndLabel = labelCache.internLabel(new EndTryLabelMethodItem(options, codeAddress, endAddress));
 
         if (exceptionType == null) {
-            handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, "catchall_"));
+            handlerLabel = labelCache.internLabel(new LabelMethodItem(options, handlerAddress, "catchall_"));
         } else {
-            handlerLabel = labelCache.internLabel(new LabelMethodItem(handlerAddress, "catch_"));
+            handlerLabel = labelCache.internLabel(new LabelMethodItem(options, handlerAddress, "catch_"));
         }
     }
 

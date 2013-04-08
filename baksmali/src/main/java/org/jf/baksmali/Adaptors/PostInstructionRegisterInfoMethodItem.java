@@ -28,8 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.baksmali;
-import org.jf.baksmali.main;
+import org.jf.baksmali.baksmaliOptions;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.RegisterType;
 import org.jf.util.IndentingWriter;
@@ -57,16 +56,16 @@ public class PostInstructionRegisterInfoMethodItem extends MethodItem {
 
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
-        int registerInfo = baksmali.registerInfo;
+        int registerInfo = registerFormatter.options.registerInfo;
         int registerCount = analyzedInstruction.getRegisterCount();
         BitSet registers = new BitSet(registerCount);
 
-        if ((registerInfo & main.ALL) != 0) {
+        if ((registerInfo & baksmaliOptions.ALL) != 0) {
             registers.set(0, registerCount);
         } else {
-            if ((registerInfo & main.ALLPOST) != 0) {
+            if ((registerInfo & baksmaliOptions.ALLPOST) != 0) {
                 registers.set(0, registerCount);
-            } else if ((registerInfo & main.DEST) != 0) {
+            } else if ((registerInfo & baksmaliOptions.DEST) != 0) {
                 addDestRegs(registers, registerCount);
             }
         }

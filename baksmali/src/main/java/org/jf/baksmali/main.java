@@ -51,14 +51,6 @@ public class main {
     private static final Options debugOptions;
     private static final Options options;
 
-    public static final int ALL = 1;
-    public static final int ALLPRE = 2;
-    public static final int ALLPOST = 4;
-    public static final int ARGS = 8;
-    public static final int DEST = 16;
-    public static final int MERGE = 32;
-    public static final int FULLMERGE = 64;
-
     static {
         options = new Options();
         basicOptions = new Options();
@@ -170,31 +162,31 @@ public class main {
                     String[] values = commandLine.getOptionValues('r');
 
                     if (values == null || values.length == 0) {
-                        registerInfo = ARGS | DEST;
+                        registerInfo = baksmaliOptions.ARGS | baksmaliOptions.DEST;
                     } else {
                         for (String value: values) {
                             if (value.equalsIgnoreCase("ALL")) {
-                                registerInfo |= ALL;
+                                registerInfo |= baksmaliOptions.ALL;
                             } else if (value.equalsIgnoreCase("ALLPRE")) {
-                                registerInfo |= ALLPRE;
+                                registerInfo |= baksmaliOptions.ALLPRE;
                             } else if (value.equalsIgnoreCase("ALLPOST")) {
-                                registerInfo |= ALLPOST;
+                                registerInfo |= baksmaliOptions.ALLPOST;
                             } else if (value.equalsIgnoreCase("ARGS")) {
-                                registerInfo |= ARGS;
+                                registerInfo |= baksmaliOptions.ARGS;
                             } else if (value.equalsIgnoreCase("DEST")) {
-                                registerInfo |= DEST;
+                                registerInfo |= baksmaliOptions.DEST;
                             } else if (value.equalsIgnoreCase("MERGE")) {
-                                registerInfo |= MERGE;
+                                registerInfo |= baksmaliOptions.MERGE;
                             } else if (value.equalsIgnoreCase("FULLMERGE")) {
-                                registerInfo |= FULLMERGE;
+                                registerInfo |= baksmaliOptions.FULLMERGE;
                             } else {
                                 usage();
                                 return;
                             }
                         }
 
-                        if ((registerInfo & FULLMERGE) != 0) {
-                            registerInfo &= ~MERGE;
+                        if ((registerInfo & baksmaliOptions.FULLMERGE) != 0) {
+                            registerInfo &= ~baksmaliOptions.MERGE;
                         }
                     }
                     break;

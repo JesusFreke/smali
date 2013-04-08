@@ -31,7 +31,6 @@ package org.jf.baksmali.Adaptors;
 import com.google.common.collect.ImmutableList;
 import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
-import org.jf.baksmali.baksmali;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
@@ -157,7 +156,7 @@ public class MethodDefinition {
         writer.write('\n');
 
         writer.indent(4);
-        if (baksmali.useLocalsDirective) {
+        if (classDef.options.useLocalsDirective) {
             writer.write(".locals ");
             writer.printSignedIntAsDec(methodImpl.getRegisterCount() - parameterRegisterCount);
         } else {
@@ -168,7 +167,8 @@ public class MethodDefinition {
         writeParameters(writer, method, methodParameters);
 
         if (registerFormatter == null) {
-            registerFormatter = new RegisterFormatter(methodImpl.getRegisterCount(), parameterRegisterCount);
+            registerFormatter = new RegisterFormatter(classDef.options, methodImpl.getRegisterCount(),
+                    parameterRegisterCount);
         }
 
         AnnotationFormatter.writeTo(writer, method.getAnnotations());
@@ -268,18 +268,18 @@ public class MethodDefinition {
     private List<MethodItem> getMethodItems() {
         ArrayList<MethodItem> methodItems = new ArrayList<MethodItem>();
 
-        if ((baksmali.registerInfo != 0) || (baksmali.deodex && needsAnalyzed())) {
+        if ((classDef.options.registerInfo != 0) || (classDef.options.deodex && needsAnalyzed())) {
             addAnalyzedInstructionMethodItems(methodItems);
         } else {
             addInstructionMethodItems(methodItems);
         }
 
         addTries(methodItems);
-        if (baksmali.outputDebugInfo) {
+        if (classDef.options.outputDebugInfo) {
             addDebugInfo(methodItems);
         }
 
-        if (baksmali.useSequentialLabels) {
+        if (classDef.options.useSequentialLabels) {
             setLabelSequentialNumbers();
         }
 
@@ -315,7 +315,7 @@ public class MethodDefinition {
                 methodItems.add(new BlankMethodItem(currentCodeAddress));
             }
 
-            if (baksmali.addCodeOffsets) {
+            if (classDef.options.addCodeOffsets) {
                 methodItems.add(new MethodItem(currentCodeAddress) {
 
                     @Override
@@ -332,7 +332,7 @@ public class MethodDefinition {
                 });
             }
 
-            if (!baksmali.noAccessorComments && (instruction instanceof ReferenceInstruction)) {
+            if (!classDef.options.noAccessorComments && (instruction instanceof ReferenceInstruction)) {
                 Opcode opcode = instruction.getOpcode();
 
                 if (opcode.referenceType == ReferenceType.METHOD) {
@@ -341,7 +341,7 @@ public class MethodDefinition {
 
                     if (SyntheticAccessorResolver.looksLikeSyntheticAccessor(methodReference.getName())) {
                         SyntheticAccessorResolver.AccessedMember accessedMember =
-                                baksmali.syntheticAccessorResolver.getAccessedMember(methodReference);
+                                classDef.options.syntheticAccessorResolver.getAccessedMember(methodReference);
                         if (accessedMember != null) {
                             methodItems.add(new SyntheticAccessCommentMethodItem(accessedMember, currentCodeAddress));
                         }
@@ -354,7 +354,8 @@ public class MethodDefinition {
     }
 
     private void addAnalyzedInstructionMethodItems(List<MethodItem> methodItems) {
-        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(baksmali.classPath, method, baksmali.inlineResolver);
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classDef.options.classPath, method,
+                classDef.options.inlineResolver);
 
         AnalysisException analysisException = methodAnalyzer.getAnalysisException();
         if (analysisException != null) {
@@ -384,7 +385,7 @@ public class MethodDefinition {
                 methodItems.add(new BlankMethodItem(currentCodeAddress));
             }
 
-            if (baksmali.addCodeOffsets) {
+            if (classDef.options.addCodeOffsets) {
                 methodItems.add(new MethodItem(currentCodeAddress) {
 
                     @Override
@@ -401,9 +402,10 @@ public class MethodDefinition {
                 });
             }
 
-            if (baksmali.registerInfo != 0 && !instruction.getInstruction().getOpcode().format.isPayloadFormat) {
+            if (classDef.options.registerInfo != 0 &&
+                    !instruction.getInstruction().getOpcode().format.isPayloadFormat) {
                 methodItems.add(
-                        new PreInstructionRegisterInfoMethodItem(
+                        new PreInstructionRegisterInfoMethodItem(classDef.options.registerInfo,
                                 methodAnalyzer, registerFormatter, instruction, currentCodeAddress));
 
                 methodItems.add(
@@ -455,7 +457,7 @@ public class MethodDefinition {
                 }
 
                 //use the address from the last covered instruction
-                CatchMethodItem catchMethodItem = new CatchMethodItem(labelCache, lastCoveredAddress,
+                CatchMethodItem catchMethodItem = new CatchMethodItem(classDef.options, labelCache, lastCoveredAddress,
                         handler.getExceptionType(), startAddress, endAddress, handlerAddress);
                 methodItems.add(catchMethodItem);
             }

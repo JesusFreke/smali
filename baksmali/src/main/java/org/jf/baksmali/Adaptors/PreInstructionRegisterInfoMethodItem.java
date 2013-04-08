@@ -28,8 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.baksmali;
-import org.jf.baksmali.main;
+import org.jf.baksmali.baksmaliOptions;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.MethodAnalyzer;
 import org.jf.dexlib2.analysis.RegisterType;
@@ -41,15 +40,18 @@ import java.io.IOException;
 import java.util.BitSet;
 
 public class PreInstructionRegisterInfoMethodItem extends MethodItem {
+    private final int registerInfo;
     @Nonnull private final MethodAnalyzer methodAnalyzer;
     @Nonnull private final RegisterFormatter registerFormatter;
     @Nonnull private final AnalyzedInstruction analyzedInstruction;
 
-    public PreInstructionRegisterInfoMethodItem(@Nonnull MethodAnalyzer methodAnalyzer,
+    public PreInstructionRegisterInfoMethodItem(int registerInfo,
+                                                @Nonnull MethodAnalyzer methodAnalyzer,
                                                 @Nonnull RegisterFormatter registerFormatter,
                                                 @Nonnull AnalyzedInstruction analyzedInstruction,
                                                 int codeAddress) {
         super(codeAddress);
+        this.registerInfo = registerInfo;
         this.methodAnalyzer = methodAnalyzer;
         this.registerFormatter = registerFormatter;
         this.analyzedInstruction = analyzedInstruction;
@@ -62,22 +64,21 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
 
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
-        int registerInfo = baksmali.registerInfo;
         int registerCount = analyzedInstruction.getRegisterCount();
         BitSet registers = new BitSet(registerCount);
 
-        if ((registerInfo & main.ALL) != 0) {
+        if ((registerInfo & baksmaliOptions.ALL) != 0) {
             registers.set(0, registerCount);
         } else {
-            if ((registerInfo & main.ALLPRE) != 0) {
+            if ((registerInfo & baksmaliOptions.ALLPRE) != 0) {
                 registers.set(0, registerCount);
             } else {
-                if ((registerInfo & main.ARGS) != 0) {
+                if ((registerInfo & baksmaliOptions.ARGS) != 0) {
                     addArgsRegs(registers);
                 }
-                if ((registerInfo & main.MERGE) != 0) {
+                if ((registerInfo & baksmaliOptions.MERGE) != 0) {
                     addMergeRegs(registers, registerCount);
-                } else if ((registerInfo & main.FULLMERGE) != 0 &&
+                } else if ((registerInfo & baksmaliOptions.FULLMERGE) != 0 &&
                         (analyzedInstruction.isBeginningInstruction())) {
                     addParamRegs(registers, registerCount);
                 }
@@ -85,7 +86,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
         }
 
         boolean printedSomething = false;
-        if ((registerInfo & main.FULLMERGE) != 0) {
+        if ((registerInfo & baksmaliOptions.FULLMERGE) != 0) {
             printedSomething = writeFullMergeRegs(writer, registers, registerCount);
         }
 

@@ -29,6 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import com.google.common.collect.Lists;
+import org.jf.baksmali.baksmaliOptions;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -46,12 +47,14 @@ import java.util.HashSet;
 import java.util.List;
 
 public class ClassDefinition {
+    @Nonnull public final baksmaliOptions options;
     @Nonnull public final ClassDef classDef;
     @Nonnull private final HashSet<String> fieldsSetInStaticConstructor;
 
     protected boolean validationErrors;
 
-    public ClassDefinition(ClassDef classDef) {
+    public ClassDefinition(@Nonnull baksmaliOptions options, @Nonnull ClassDef classDef) {
+        this.options = options;
         this.classDef = classDef;
         fieldsSetInStaticConstructor = findFieldsSetInStaticConstructor();
     }

@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.analysis.ClassPath;
-import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
@@ -46,20 +45,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class baksmali {
-    public static boolean noParameterRegisters = false;
-    public static boolean useLocalsDirective = false;
-    public static boolean useSequentialLabels = false;
-    public static boolean outputDebugInfo = true;
-    public static boolean addCodeOffsets = false;
-    public static boolean noAccessorComments = false;
-    public static boolean deodex = false;
-    public static InlineMethodResolver inlineResolver = null;
-    public static int registerInfo = 0;
-    public static String bootClassPath;
-    public static ClassPath classPath = null;
-
-    public static SyntheticAccessorResolver syntheticAccessorResolver = null;
-
     public static void disassembleDexFile(String dexFilePath, DexFile dexFile, boolean deodex, String outputDirectory,
                                           String[] classPathDirs, String bootClassPath, String extraBootClassPath,
                                           boolean noParameterRegisters, boolean useLocalsDirective,
@@ -67,15 +52,17 @@ public class baksmali {
                                           boolean noAccessorComments, int registerInfo, boolean ignoreErrors,
                                           String inlineTable, boolean checkPackagePrivateAccess)
     {
-        baksmali.noParameterRegisters = noParameterRegisters;
-        baksmali.useLocalsDirective = useLocalsDirective;
-        baksmali.useSequentialLabels = useSequentialLabels;
-        baksmali.outputDebugInfo = outputDebugInfo;
-        baksmali.addCodeOffsets = addCodeOffsets;
-        baksmali.noAccessorComments = noAccessorComments;
-        baksmali.deodex = deodex;
-        baksmali.registerInfo = registerInfo;
-        baksmali.bootClassPath = bootClassPath;
+        baksmaliOptions options = new baksmaliOptions();
+
+        options.noParameterRegisters = noParameterRegisters;
+        options.useLocalsDirective = useLocalsDirective;
+        options.useSequentialLabels = useSequentialLabels;
+        options.outputDebugInfo = outputDebugInfo;
+        options.addCodeOffsets = addCodeOffsets;
+        options.noAccessorComments = noAccessorComments;
+        options.deodex = deodex;
+        options.registerInfo = registerInfo;
+        options.bootClassPath = bootClassPath;
 
         if (registerInfo != 0 || deodex) {
             try {
@@ -92,7 +79,7 @@ public class baksmali {
                     bootClassPaths = Splitter.on(':').split(bootClassPath);
                 }
 
-                classPath = ClassPath.fromClassPath(Arrays.asList(classPathDirs),
+                options.classPath = ClassPath.fromClassPath(Arrays.asList(classPathDirs),
                         Iterables.concat(bootClassPaths, extraBootClassPaths), dexFile);
 
                 // TODO: uncomment
@@ -127,7 +114,7 @@ public class baksmali {
         classDefs = ImmutableList.copyOf(classDefs);
 
         if (!noAccessorComments) {
-            syntheticAccessorResolver = new SyntheticAccessorResolver(classDefs);
+            options.syntheticAccessorResolver = new SyntheticAccessorResolver(classDefs);
         }
 
         ClassFileNameHandler fileNameHandler = new ClassFileNameHandler(outputDirectoryFile, ".smali");
@@ -153,7 +140,7 @@ public class baksmali {
             File smaliFile = fileNameHandler.getUniqueFilenameForClass(classDescriptor);
 
             //create and initialize the top level string template
-            ClassDefinition classDefinition = new ClassDefinition(classDef);
+            ClassDefinition classDefinition = new ClassDefinition(options, classDef);
 
             //write the disassembly
             Writer writer = null;

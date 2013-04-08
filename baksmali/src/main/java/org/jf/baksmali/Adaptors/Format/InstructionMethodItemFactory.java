@@ -43,7 +43,8 @@ public class InstructionMethodItemFactory {
             MethodDefinition methodDef, int codeAddress, Instruction instruction) {
 
         if (instruction instanceof OffsetInstruction) {
-            return new OffsetInstructionFormatMethodItem(methodDef, codeAddress, (OffsetInstruction)instruction);
+            return new OffsetInstructionFormatMethodItem(methodDef.classDef.options, methodDef, codeAddress,
+                    (OffsetInstruction)instruction);
         }
 
         switch (instruction.getOpcode().format) {
