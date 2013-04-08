@@ -28,11 +28,8 @@
 
 package org.jf.baksmali.Adaptors;
 
-import com.google.common.base.Preconditions;
-import org.jf.util.IndentingWriter;
 import org.jf.baksmali.baksmali;
-import org.jf.dexlib.CodeItem;
-import org.jf.dexlib.Util.AccessFlags;
+import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
 

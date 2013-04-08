@@ -29,7 +29,6 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.util.IndentingWriter;
-import org.jf.dexlib.TypeIdItem;
 
 import java.io.IOException;
 

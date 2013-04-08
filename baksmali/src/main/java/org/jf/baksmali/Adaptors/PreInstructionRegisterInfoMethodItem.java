@@ -28,19 +28,6 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.util.IndentingWriter;
-import org.jf.baksmali.baksmali;
-import org.jf.baksmali.main;
-import org.jf.dexlib.ClassDataItem;
-import org.jf.dexlib.Code.Analysis.AnalyzedInstruction;
-import org.jf.dexlib.Code.Analysis.MethodAnalyzer;
-import org.jf.dexlib.Code.Analysis.RegisterType;
-import org.jf.dexlib.Code.*;
-import org.jf.dexlib.Util.AccessFlags;
-
-import java.io.IOException;
-import java.util.BitSet;
-
 //TODO: uncomment
 /*public class PreInstructionRegisterInfoMethodItem extends MethodItem {
     private final AnalyzedInstruction analyzedInstruction;

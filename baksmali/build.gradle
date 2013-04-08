@@ -35,7 +35,6 @@ configurations {
 
 dependencies {
     compile project(':util')
-    compile project(':dexlib')
     compile project(':dexlib2')
     compile depends.commons_cli
     compile depends.guava

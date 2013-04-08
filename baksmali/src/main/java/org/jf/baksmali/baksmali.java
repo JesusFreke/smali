@@ -30,7 +30,7 @@ package org.jf.baksmali;
 
 import com.google.common.collect.ImmutableList;
 import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.dexlib.Code.Analysis.InlineMethodResolver;
+import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;

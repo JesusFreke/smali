@@ -28,12 +28,6 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.util.IndentingWriter;
-import org.jf.dexlib.Code.Format.UnresolvedOdexInstruction;
-import org.jf.dexlib.CodeItem;
-
-import java.io.IOException;
-
 //TODO: uncomment
 /*public class UnresolvedOdexInstructionMethodItem extends InstructionMethodItem<UnresolvedOdexInstruction> {
     public UnresolvedOdexInstructionMethodItem(CodeItem codeItem, int codeAddress, UnresolvedOdexInstruction instruction) {
