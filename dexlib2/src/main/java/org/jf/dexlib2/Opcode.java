@@ -320,7 +320,7 @@ public enum Opcode
         opcodesByName = new HashMap<Integer, Opcode>();
 
         for (Opcode opcode: Opcode.values()) {
-            if (!opcode.format.payloadFormat) {
+            if (!opcode.format.isPayloadFormat) {
                 //INVOKE_DIRECT_EMPTY was changed to INVOKE_OBJECT_INIT_RANGE in ICS
                 if (opcode != INVOKE_DIRECT_EMPTY) {
                     opcodesByValue[opcode.value] = opcode;

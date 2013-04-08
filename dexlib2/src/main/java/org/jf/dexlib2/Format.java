@@ -69,14 +69,14 @@ public enum Format {
     UnresolvedOdexInstruction(-1);
 
     public final int size;
-    public final boolean payloadFormat;
+    public final boolean isPayloadFormat;
 
     private Format(int size) {
         this(size, false);
     }
 
-    private Format(int size, boolean payloadFormat) {
+    private Format(int size, boolean isPayloadFormat) {
         this.size = size;
-        this.payloadFormat = payloadFormat;
+        this.isPayloadFormat = isPayloadFormat;
     }
 }
