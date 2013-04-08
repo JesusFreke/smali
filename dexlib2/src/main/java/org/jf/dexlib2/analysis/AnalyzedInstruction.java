@@ -259,7 +259,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
         if (isInvokeInit()) {
             int destinationRegister;
             if (instruction instanceof FiveRegisterInstruction) {
-                destinationRegister = ((FiveRegisterInstruction)instruction).getRegisterD();
+                destinationRegister = ((FiveRegisterInstruction)instruction).getRegisterC();
             } else {
                 assert instruction instanceof RegisterRangeInstruction;
                 RegisterRangeInstruction rangeInstruction = (RegisterRangeInstruction)instruction;
