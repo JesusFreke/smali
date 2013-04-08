@@ -149,7 +149,7 @@ public class MethodAnalyzer {
             //if this is a constructor, then set the "this" register to an uninitialized reference of the current class
             if (MethodUtil.isConstructor(method)) {
                 setPostRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
-                        RegisterType.getRegisterType(RegisterType.UNINIT,
+                        RegisterType.getRegisterType(RegisterType.UNINIT_THIS,
                                 classPath.getClass(method.getDefiningClass())));
             } else {
                 setPostRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
