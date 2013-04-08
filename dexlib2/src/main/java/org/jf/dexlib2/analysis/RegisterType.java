@@ -86,8 +86,10 @@ public class RegisterType {
         return result;
     }
     
-    //the Unknown category denotes a register type that hasn't been determined yet
+    // The Unknown category denotes a register type that hasn't been determined yet
     public static final byte UNKNOWN = 0;
+    // The Uninit category is for registers that haven't been set yet. e.g. the non-parameter registers in a method
+    // start out as unint
     public static final byte UNINIT = 1;
     public static final byte NULL = 2;
     public static final byte ONE = 3;
@@ -103,15 +105,15 @@ public class RegisterType {
     public static final byte LONG_HI = 13;
     public static final byte DOUBLE_LO = 14;
     public static final byte DOUBLE_HI = 15;
-    //the UninitRef category is used after a new-instance operation, and before the corresponding <init> is called
+    // The UninitRef category is used after a new-instance operation, and before the corresponding <init> is called
     public static final byte UNINIT_REF = 16;
-    //the UninitThis category is used the "this" register inside an <init> method, before the superclass' <init>
-    //method is called
+    // The UninitThis category is used the "this" register inside an <init> method, before the superclass' <init>
+    // method is called
     public static final byte UNINIT_THIS = 17;
     public static final byte REFERENCE = 18;
-    //This is used when there are multiple incoming execution paths that have incompatible register types. For
-    //example if the register's type is an Integer on one incoming code path, but is a Reference type on another
-    //incomming code path. There is no register type that can hold either an Integer or a Reference.
+    // This is used when there are multiple incoming execution paths that have incompatible register types. For
+    // example if the register's type is an Integer on one incoming code path, but is a Reference type on another
+    // incomming code path. There is no register type that can hold either an Integer or a Reference.
     public static final byte CONFLICTED = 19;
 
     public static final String[] CATEGORY_NAMES = new String[] {
