@@ -32,15 +32,21 @@
 package org.jf.dexlib2.analysis;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.analysis.reflection.ReflectionClassDef;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.immutable.ImmutableDexFile;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ClassPath {
@@ -51,14 +57,30 @@ public class ClassPath {
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
      *
-     * @param classPath An array of DexBackedDexFile objects. When loading a class, these dex files will be searched
-     *                  in order
+     * @param classPath An array of DexFile objects. When loading a class, these dex files will be searched in order
      */
     public ClassPath(DexFile... classPath) throws IOException {
-        dexFiles = new DexFile[classPath.length+1];
-        System.arraycopy(classPath, 0, dexFiles, 0, classPath.length);
-        // add fallbacks for certain special classes that must be present
-        dexFiles[dexFiles.length - 1] = getBasicClasses();
+        this(classPath, true);
+    }
+
+    /**
+     * Creates a new ClassPath instance that can load classes from the given dex files
+     *
+     * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
+     */
+    public ClassPath(Iterable<DexFile> classPath) {
+        this(Iterables.toArray(classPath, DexFile.class), false);
+    }
+
+    private ClassPath(@Nonnull DexFile[] classPath, boolean copyArray) {
+        if (copyArray) {
+            dexFiles = new DexFile[classPath.length+1];
+            System.arraycopy(classPath, 0, dexFiles, 0, classPath.length);
+            // add fallbacks for certain special classes that must be present
+            dexFiles[dexFiles.length - 1] = getBasicClasses();
+        } else {
+            dexFiles = classPath;
+        }
 
         unknownClass = new UnknownClassProto(this);
         loadedClasses.put(unknownClass.getType(), unknownClass);
@@ -124,5 +146,55 @@ public class ClassPath {
     @Nonnull
     public TypeProto getUnknownClass() {
         return unknownClass;
+    }
+
+    @Nonnull
+    public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile) {
+        ArrayList<DexFile> dexFiles = Lists.newArrayList();
+
+        for (String classPathEntry: classPath) {
+            dexFiles.add(loadClassPathEntry(classPathDirs, classPathEntry));
+        }
+        dexFiles.add(dexFile);
+        return new ClassPath(dexFiles);
+    }
+
+    @Nonnull
+    private static DexFile loadClassPathEntry(Iterable<String> classPathDirs, String bootClassPathEntry) {
+        for (String classPathDir: classPathDirs) {
+            File rawEntry = new File(bootClassPathEntry);
+            // strip off the path - we only care about the filename
+            String entryName = rawEntry.getName();
+
+            int extIndex = entryName.lastIndexOf(".");
+
+            String baseEntryName;
+            if (extIndex == -1) {
+                baseEntryName = entryName;
+            } else {
+                baseEntryName = entryName.substring(0, extIndex);
+            }
+
+            for (String ext: new String[]{"", ".odex", ".jar", ".apk", ".zip"}) {
+                File file = new File(classPathDir, baseEntryName + ext);
+
+                if (file.exists()) {
+                    if (!file.canRead()) {
+                        System.err.println(String.format(
+                                "warning: cannot open %s for reading. Will continue looking.", file.getPath()));
+                    } else {
+                        try {
+                            return DexFileFactory.loadDexFile(file);
+                        } catch (DexFileFactory.NoClassesDexException ex) {
+                            // ignore and continue
+                        } catch (Exception ex) {
+                            throw ExceptionWithContext.withContext(ex,
+                                    "Error while reading boot class path entry \"%s\"", bootClassPathEntry);
+                        }
+                    }
+                }
+            }
+        }
+        throw new ExceptionWithContext("Cannot locate boot class path file %s", bootClassPathEntry);
     }
 }
