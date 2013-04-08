@@ -40,6 +40,7 @@ import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.util.ExceptionWithContext;
+import org.jf.util.SparseArray;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,6 +56,7 @@ public class ClassProto implements TypeProto {
     @Nonnull protected final String type;
     @Nullable protected ClassDef classDef;
     @Nullable protected Set<String> interfaces;
+    @Nullable protected final SparseArray<FieldReference> instanceFields;
     protected boolean interfacesFullyResolved = true;
 
     public ClassProto(@Nonnull ClassPath classPath, @Nonnull String type) {
@@ -63,6 +65,8 @@ public class ClassProto implements TypeProto {
         }
         this.classPath = classPath;
         this.type = type;
+
+        instanceFields = loadFields();
     }
 
     @Override public String toString() { return type; }
@@ -274,8 +278,7 @@ public class ClassProto implements TypeProto {
     @Override
     @Nullable
     public FieldReference getFieldByOffset(int fieldOffset) {
-        // TODO: implement this
-        return null;
+        return instanceFields.get(fieldOffset);
     }
 
     @Override
@@ -283,5 +286,179 @@ public class ClassProto implements TypeProto {
     public MethodReference getMethodByVtableIndex(int vtableIndex) {
         // TODO: implement this
         return null;
+    }
+
+    private SparseArray<FieldReference> loadFields() {
+        //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
+        //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
+        //See mydroid/dalvik/vm/oo/Class.c - computeFieldOffsets()
+
+        final byte REFERENCE = 0;
+        final byte WIDE = 1;
+        final byte OTHER = 2;
+
+        FieldReference[] fields = null;
+        //the "type" for each field in fields. 0=reference,1=wide,2=other
+        byte[] fieldTypes = null;
+
+        if (fields == null) {
+            fields = new FieldReference[0];
+            fieldTypes = new byte[0];
+        }
+
+        //The first operation is to move all of the reference fields to the front. To do this, find the first
+        //non-reference field, then find the last reference field, swap them and repeat
+        int back = fields.length - 1;
+        int front;
+        for (front = 0; front<fields.length; front++) {
+            if (fieldTypes[front] != REFERENCE) {
+                while (back > front) {
+                    if (fieldTypes[back] == REFERENCE) {
+                        swap(fieldTypes, fields, front, back--);
+                        break;
+                    }
+                    back--;
+                }
+            }
+
+            if (fieldTypes[front] != REFERENCE) {
+                break;
+            }
+        }
+
+        int startFieldOffset = 8;
+        ClassProto superClass = (ClassProto) classPath.getClass(getSuperclass());
+        if (superClass != null) {
+            startFieldOffset = superClass.getNextFieldOffset();
+        }
+
+        int fieldIndexMod;
+        if ((startFieldOffset % 8) == 0) {
+            fieldIndexMod = 0;
+        } else {
+            fieldIndexMod = 1;
+        }
+
+        //next, we need to group all the wide fields after the reference fields. But the wide fields have to be
+        //8-byte aligned. If we're on an odd field index, we need to insert a 32-bit field. If the next field
+        //is already a 32-bit field, use that. Otherwise, find the first 32-bit field from the end and swap it in.
+        //If there are no 32-bit fields, do nothing for now. We'll add padding when calculating the field offsets
+        if (front < fields.length && (front % 2) != fieldIndexMod) {
+            if (fieldTypes[front] == WIDE) {
+                //we need to swap in a 32-bit field, so the wide fields will be correctly aligned
+                back = fields.length - 1;
+                while (back > front) {
+                    if (fieldTypes[back] == OTHER) {
+                        swap(fieldTypes, fields, front++, back);
+                        break;
+                    }
+                    back--;
+                }
+            } else {
+                //there's already a 32-bit field here that we can use
+                front++;
+            }
+        }
+
+        //do the swap thing for wide fields
+        back = fields.length - 1;
+        for (; front<fields.length; front++) {
+            if (fieldTypes[front] != WIDE) {
+                while (back > front) {
+                    if (fieldTypes[back] == WIDE) {
+                        swap(fieldTypes, fields, front, back--);
+                        break;
+                    }
+                    back--;
+                }
+            }
+
+            if (fieldTypes[front] != WIDE) {
+                break;
+            }
+        }
+
+        int superFieldCount = 0;
+        if (superClass != null) {
+            superFieldCount = superClass.instanceFields.size();
+        }
+
+        //now the fields are in the correct order. Add them to the SparseArray and lookup, and calculate the offsets
+        int totalFieldCount = superFieldCount + fields.length;
+        SparseArray<FieldReference> instanceFields = new SparseArray<FieldReference>(totalFieldCount);
+
+        int fieldOffset;
+
+        if (superClass != null && superFieldCount > 0) {
+            for (int i=0; i<superFieldCount; i++) {
+                instanceFields.append(superClass.instanceFields.keyAt(i), superClass.instanceFields.valueAt(i));
+            }
+
+            fieldOffset = instanceFields.keyAt(superFieldCount-1);
+
+            FieldReference lastSuperField = superClass.instanceFields.valueAt(superFieldCount-1);
+            char fieldType = lastSuperField.getType().charAt(0);
+            if (fieldType == 'J' || fieldType == 'D') {
+                fieldOffset += 8;
+            } else {
+                fieldOffset += 4;
+            }
+        } else {
+            //the field values start at 8 bytes into the DataObject dalvik structure
+            fieldOffset = 8;
+        }
+
+        boolean gotDouble = false;
+        for (int i=0; i<fields.length; i++) {
+            FieldReference field = fields[i];
+
+            //add padding to align the wide fields, if needed
+            if (fieldTypes[i] == WIDE && !gotDouble) {
+                if (!gotDouble) {
+                    if (fieldOffset % 8 != 0) {
+                        assert fieldOffset % 8 == 4;
+                        fieldOffset += 4;
+                    }
+                    gotDouble = true;
+                }
+            }
+
+            instanceFields.append(fieldOffset, field);
+            if (fieldTypes[i] == WIDE) {
+                fieldOffset += 8;
+            } else {
+                fieldOffset += 4;
+            }
+        }
+
+        return instanceFields;
+    }
+
+    private void swap(byte[] fieldTypes, FieldReference[] fields, int position1, int position2) {
+        byte tempType = fieldTypes[position1];
+        fieldTypes[position1] = fieldTypes[position2];
+        fieldTypes[position2] = tempType;
+
+        FieldReference tempField = fields[position1];
+        fields[position1] = fields[position2];
+        fields[position2] = tempField;
+    }
+
+    private int getNextFieldOffset() {
+        if (instanceFields == null || instanceFields.size() == 0) {
+            return 8;
+        }
+
+        int lastItemIndex = instanceFields.size()-1;
+        int fieldOffset = instanceFields.keyAt(lastItemIndex);
+        FieldReference lastField = instanceFields.valueAt(lastItemIndex);
+
+        switch (lastField.getType().charAt(0)) {
+            case 'J':
+            case 'D':
+                return fieldOffset + 8;
+            default:
+                return fieldOffset + 4;
+        }
     }
 }
