@@ -271,19 +271,25 @@ public class RegisterType {
         Category mergedCategory = Category.mergeTable[this.category.ordinal()][type.category.ordinal()];
 
         ClassDef mergedType = null;
+        if (this.category == Category.Unknown) {
+            return type;
+        }
+        if (type.category == Category.Unknown) {
+            return this;
+        }
         if (mergedCategory == Category.Reference) {
+            if (this.category == Category.Null) {
+                return type;
+            }
+            if (type.category == Category.Null) {
+                return this;
+            }
             if (this.type instanceof ClassPath.UnresolvedClassDef ||
                 type.type instanceof ClassPath.UnresolvedClassDef) {
                 mergedType = ClassPath.getUnresolvedObjectClassDef();
             } else {
                 mergedType = ClassPath.getCommonSuperclass(this.type, type.type);
             }
-        } else if (mergedCategory == Category.UninitRef || mergedCategory == Category.UninitThis) {
-            if (this.category == Category.Unknown) {
-                return type;
-            }
-            assert type.category == Category.Unknown;
-            return this;
         }
         return RegisterType.getRegisterType(mergedCategory, mergedType);
     }
