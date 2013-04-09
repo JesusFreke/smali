@@ -865,6 +865,14 @@ public class ClassPath {
             }
         }
 
+        private static void addInterfaceToSet(Set<ClassDef> interfaces, ClassDef iface) {
+            if (interfaces.add(iface)) {
+                for (ClassDef subiface: iface.implementedInterfaces) {
+                    addInterfaceToSet(interfaces, subiface);
+                }
+            }
+        }
+
         private TreeSet<ClassDef> loadAllImplementedInterfaces(UnresolvedClassInfo classInfo) {
             assert classType != null;
             assert classType.equals("Ljava/lang/Object;") || superclass != null;
@@ -874,10 +882,9 @@ public class ClassPath {
 
             if (superclass != null) {
                 for (ClassDef interfaceDef: superclass.implementedInterfaces) {
-                    implementedInterfaceSet.add(interfaceDef);
+                    addInterfaceToSet(implementedInterfaceSet, interfaceDef);
                 }
             }
-
 
             if (classInfo.interfaces != null) {
                 for (String interfaceType: classInfo.interfaces) {
@@ -889,14 +896,7 @@ public class ClassPath {
                                 String.format("Could not find interface %s", interfaceType));
                     }
                     assert interfaceDef.isInterface();
-                    implementedInterfaceSet.add(interfaceDef);
-
-                    interfaceDef = interfaceDef.getSuperclass();
-                    while (!interfaceDef.getClassType().equals("Ljava/lang/Object;")) {
-                        assert interfaceDef.isInterface();
-                        implementedInterfaceSet.add(interfaceDef);
-                        interfaceDef = interfaceDef.getSuperclass();
-                    }
+                    addInterfaceToSet(implementedInterfaceSet, interfaceDef);
                 }
             }
 
