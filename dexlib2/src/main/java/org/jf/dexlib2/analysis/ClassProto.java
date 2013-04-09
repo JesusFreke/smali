@@ -33,19 +33,21 @@ package org.jf.dexlib2.analysis;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.util.MethodUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A class "prototype". This contains things like the interfaces, the superclass, the vtable and the instance fields
@@ -56,6 +58,7 @@ public class ClassProto implements TypeProto {
     @Nonnull protected final String type;
     @Nullable protected ClassDef classDef;
     @Nullable protected Set<String> interfaces;
+    @Nullable protected final Method[] vtable;
     @Nullable protected final SparseArray<FieldReference> instanceFields;
     protected boolean interfacesFullyResolved = true;
 
@@ -66,6 +69,7 @@ public class ClassProto implements TypeProto {
         this.classPath = classPath;
         this.type = type;
 
+        vtable = loadVtable();
         instanceFields = loadFields();
     }
 
@@ -284,8 +288,7 @@ public class ClassProto implements TypeProto {
     @Override
     @Nullable
     public MethodReference getMethodByVtableIndex(int vtableIndex) {
-        // TODO: implement this
-        return null;
+        return vtable[vtableIndex];
     }
 
     private SparseArray<FieldReference> loadFields() {
@@ -455,5 +458,119 @@ public class ClassProto implements TypeProto {
             default:
                 return fieldOffset + 4;
         }
+    }
+
+    //TODO: check the case when we have a package private method that overrides an interface method
+    private Method[] loadVtable() {
+        //TODO: it might be useful to keep track of which class's implementation is used for each virtual method. In other words, associate the implementing class type with each vtable entry
+        List<Method> virtualMethodList = Lists.newLinkedList();
+
+        //copy the virtual methods from the superclass
+        ClassProto superclass = (ClassProto) classPath.getClass(getSuperclass());
+        int methodIndex = 0;
+        if (superclass != null) {
+            for (int i=0; i<superclass.vtable.length; i++) {
+                virtualMethodList.add(superclass.vtable[i]);
+            }
+
+            assert superclass.instanceFields != null;
+        }
+
+        //iterate over the virtual methods in the current class, and only add them when we don't already have the
+        //method (i.e. if it was implemented by the superclass)
+        if (!isInterface()) {
+            addToVtable(getVirtualMethods(getClassDef()), virtualMethodList);
+
+            LinkedHashMap<String, ClassDef> interfaceTable = loadInterfaceTable();
+            if (interfaceTable != null) {
+                for (ClassDef interfaceDef: interfaceTable.values()) {
+                    addToVtable(getVirtualMethods(interfaceDef), virtualMethodList);
+                }
+            }
+        }
+
+        Method[] vtable = new Method[virtualMethodList.size()];
+        for (int i=0; i<virtualMethodList.size(); i++) {
+            vtable[i] = virtualMethodList.get(i);
+        }
+
+        return vtable;
+    }
+
+    private LinkedHashMap<String, ClassDef> loadInterfaceTable() {
+        if (getClassDef().getInterfaces() == null) {
+            return null;
+        }
+
+        LinkedHashMap<String, ClassDef> interfaceTable = Maps.newLinkedHashMap();
+
+        for (String interfaceType: getInterfaces()) {
+            if (!interfaceTable.containsKey(interfaceType)) {
+                ClassDef interfaceDef;
+                try {
+                    interfaceDef = classPath.getClassDef(interfaceType);
+                } catch (Exception ex) {
+                    throw ExceptionWithContext.withContext(ex,
+                            String.format("Could not find interface %s", interfaceType));
+                }
+                interfaceTable.put(interfaceType, interfaceDef);
+            }
+        }
+
+        return interfaceTable;
+    }
+
+    private LinkedList<Method> getVirtualMethods(ClassDef classDef) {
+        LinkedList<Method> virtualMethods = Lists.newLinkedList();
+        for (Method method: classDef.getMethods()) {
+            if (!MethodUtil.isDirect(method)) {
+                virtualMethods.add(method);
+            }
+        }
+
+        return virtualMethods;
+    }
+
+    private void addToVtable(List<Method> localMethods, List<Method> vtable) {
+        for (Method virtualMethod: localMethods) {
+            boolean found = false;
+            for (int i=0; i<vtable.size(); i++) {
+                Method superMethod = vtable.get(i);
+                if (superMethod.equals(virtualMethod)) {
+                    if (canAccess(superMethod)) {
+                        found = true;
+                        vtable.set(i, virtualMethod);
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                vtable.add(virtualMethod);
+            }
+        }
+    }
+
+    private boolean canAccess(Method virtualMethod) {
+        if (!methodIsPackagePrivate(virtualMethod.getAccessFlags())) {
+            return true;
+        }
+
+        String otherPackage = getPackage(virtualMethod.getDefiningClass());
+        String ourPackage = getPackage(getClassDef().getType());
+        return otherPackage.equals(ourPackage);
+    }
+
+    private String getPackage(String classType) {
+        int lastSlash = classType.lastIndexOf('/');
+        if (lastSlash < 0) {
+            return "";
+        }
+        return classType.substring(1, lastSlash);
+    }
+
+    private static boolean methodIsPackagePrivate(int accessFlags) {
+        return (accessFlags & (AccessFlags.PRIVATE.getValue() |
+                AccessFlags.PROTECTED.getValue() |
+                AccessFlags.PUBLIC.getValue())) == 0;
     }
 }
