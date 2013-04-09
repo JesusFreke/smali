@@ -297,14 +297,9 @@ public class ClassProto implements TypeProto {
         final byte WIDE = 1;
         final byte OTHER = 2;
 
-        FieldReference[] fields = null;
+        FieldReference[] fields = new FieldReference[0];
         //the "type" for each field in fields. 0=reference,1=wide,2=other
-        byte[] fieldTypes = null;
-
-        if (fields == null) {
-            fields = new FieldReference[0];
-            fieldTypes = new byte[0];
-        }
+        byte[] fieldTypes = new byte[0];
 
         //The first operation is to move all of the reference fields to the front. To do this, find the first
         //non-reference field, then find the last reference field, swap them and repeat
@@ -327,9 +322,9 @@ public class ClassProto implements TypeProto {
         }
 
         int startFieldOffset = 8;
-        ClassProto superClass = (ClassProto) classPath.getClass(getSuperclass());
-        if (superClass != null) {
-            startFieldOffset = superClass.getNextFieldOffset();
+        ClassProto superclass = (ClassProto) classPath.getClass(getSuperclass());
+        if (superclass != null) {
+            startFieldOffset = superclass.getNextFieldOffset();
         }
 
         int fieldIndexMod;
@@ -379,8 +374,8 @@ public class ClassProto implements TypeProto {
         }
 
         int superFieldCount = 0;
-        if (superClass != null) {
-            superFieldCount = superClass.instanceFields.size();
+        if (superclass != null) {
+            superFieldCount = superclass.instanceFields.size();
         }
 
         //now the fields are in the correct order. Add them to the SparseArray and lookup, and calculate the offsets
@@ -389,14 +384,14 @@ public class ClassProto implements TypeProto {
 
         int fieldOffset;
 
-        if (superClass != null && superFieldCount > 0) {
+        if (superclass != null && superFieldCount > 0) {
             for (int i=0; i<superFieldCount; i++) {
-                instanceFields.append(superClass.instanceFields.keyAt(i), superClass.instanceFields.valueAt(i));
+                instanceFields.append(superclass.instanceFields.keyAt(i), superclass.instanceFields.valueAt(i));
             }
 
             fieldOffset = instanceFields.keyAt(superFieldCount-1);
 
-            FieldReference lastSuperField = superClass.instanceFields.valueAt(superFieldCount-1);
+            FieldReference lastSuperField = superclass.instanceFields.valueAt(superFieldCount-1);
             char fieldType = lastSuperField.getType().charAt(0);
             if (fieldType == 'J' || fieldType == 'D') {
                 fieldOffset += 8;
