@@ -58,8 +58,8 @@ public class ClassProto implements TypeProto {
     @Nonnull protected final String type;
     @Nullable protected ClassDef classDef;
     @Nullable protected Set<String> interfaces;
-    @Nullable protected final Method[] vtable;
-    @Nullable protected final SparseArray<FieldReference> instanceFields;
+    @Nullable protected Method[] vtable;
+    @Nullable protected SparseArray<FieldReference> instanceFields;
     protected boolean interfacesFullyResolved = true;
 
     public ClassProto(@Nonnull ClassPath classPath, @Nonnull String type) {
@@ -68,9 +68,6 @@ public class ClassProto implements TypeProto {
         }
         this.classPath = classPath;
         this.type = type;
-
-        vtable = loadVtable();
-        instanceFields = loadFields();
     }
 
     @Override public String toString() { return type; }
@@ -83,6 +80,20 @@ public class ClassProto implements TypeProto {
             classDef = classPath.getClassDef(type);
         }
         return classDef;
+    }
+
+    private Method[] getVtable() {
+        if (vtable == null) {
+            vtable = loadVtable();
+        }
+        return vtable;
+    }
+
+    private SparseArray<FieldReference> getInstanceFields() {
+        if (instanceFields == null) {
+            instanceFields = loadFields();
+        }
+        return instanceFields;
     }
 
     /**
@@ -282,13 +293,19 @@ public class ClassProto implements TypeProto {
     @Override
     @Nullable
     public FieldReference getFieldByOffset(int fieldOffset) {
-        return instanceFields.get(fieldOffset);
+        if (getInstanceFields() == null) {
+            return null;
+        }
+        return getInstanceFields().get(fieldOffset);
     }
 
     @Override
     @Nullable
     public MethodReference getMethodByVtableIndex(int vtableIndex) {
-        return vtable[vtableIndex];
+        if (getVtable() == null) {
+            return null;
+        }
+        return getVtable()[vtableIndex];
     }
 
     private SparseArray<FieldReference> loadFields() {
