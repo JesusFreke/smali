@@ -151,7 +151,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
             RegisterType mergedRegisterType = analyzedInstruction.getPreInstructionRegisterType(registerNum);
 
             for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
-                if (predecessor.getPostInstructionRegisterType(registerNum) != mergedRegisterType) {
+                if (!predecessor.getPostInstructionRegisterType(registerNum).equals(mergedRegisterType)) {
                     registers.set(registerNum);
                 }
             }
@@ -178,7 +178,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
             for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
                 RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
                 if (predecessorRegisterType.category != RegisterType.UNKNOWN &&
-                        predecessorRegisterType != mergedRegisterType) {
+                        !predecessorRegisterType.equals(mergedRegisterType)) {
 
                     addRegister = true;
                     break;

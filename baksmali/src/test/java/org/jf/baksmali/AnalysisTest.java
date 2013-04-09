@@ -56,6 +56,11 @@ public class AnalysisTest {
         runTest("ConstructorTest");
     }
 
+    @Test
+    public void RegisterEqualityOnMergeTest() throws IOException, URISyntaxException {
+        runTest("RegisterEqualityOnMergeTest");
+    }
+
     public void runTest(String test) throws IOException, URISyntaxException {
         String dexFilePath = String.format("%s%sclasses.dex", test, File.separatorChar);
 

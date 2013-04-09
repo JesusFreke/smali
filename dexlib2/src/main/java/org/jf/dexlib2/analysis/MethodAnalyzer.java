@@ -1253,7 +1253,7 @@ public class MethodAnalyzer {
                 if (preInstructionRegisterType.category == RegisterType.UNINIT_REF ||
                         preInstructionRegisterType.category == RegisterType.UNINIT_THIS) {
                     RegisterType registerType;
-                    if (preInstructionRegisterType == objectRegisterType) {
+                    if (preInstructionRegisterType.equals(objectRegisterType)) {
                         registerType = analyzedInstruction.postRegisterMap[objectRegister];
                     } else {
                         registerType = preInstructionRegisterType;

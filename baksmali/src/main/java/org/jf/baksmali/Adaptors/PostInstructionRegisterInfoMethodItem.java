@@ -75,8 +75,8 @@ public class PostInstructionRegisterInfoMethodItem extends MethodItem {
 
     private void addDestRegs(BitSet printPostRegister, int registerCount) {
         for (int registerNum=0; registerNum<registerCount; registerNum++) {
-            if (analyzedInstruction.getPreInstructionRegisterType(registerNum) !=
-                    analyzedInstruction.getPostInstructionRegisterType(registerNum)) {
+            if (!analyzedInstruction.getPreInstructionRegisterType(registerNum).equals(
+                    analyzedInstruction.getPostInstructionRegisterType(registerNum))) {
                 printPostRegister.set(registerNum);
             }
         }

@@ -176,7 +176,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
         RegisterType oldRegisterType = preRegisterMap[registerNumber];
         RegisterType mergedRegisterType = oldRegisterType.merge(registerType);
 
-        if (mergedRegisterType == oldRegisterType) {
+        if (mergedRegisterType.equals(oldRegisterType)) {
             return false;
         }
 
@@ -218,7 +218,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
          assert registerType != null;
 
          RegisterType oldRegisterType = postRegisterMap[registerNumber];
-         if (oldRegisterType == registerType) {
+         if (oldRegisterType.equals(registerType)) {
              return false;
          }
 
@@ -277,7 +277,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
                 return false;
             }
             //check if the uninit ref has been copied to another register
-            if (getPreInstructionRegisterType(registerNumber) == preInstructionDestRegisterType) {
+            if (getPreInstructionRegisterType(registerNumber).equals(preInstructionDestRegisterType)) {
                 return true;
             }
             return false;

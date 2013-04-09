@@ -264,7 +264,7 @@ public class RegisterType {
 
     @Nonnull
     public RegisterType merge(@Nonnull RegisterType other) {
-        if (other == this) {
+        if (other.equals(this)) {
             return this;
         }
 
