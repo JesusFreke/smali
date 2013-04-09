@@ -61,6 +61,11 @@ public class AnalysisTest {
         runTest("RegisterEqualityOnMergeTest");
     }
 
+    @Test
+    public void UninitRefIdentityTest() throws IOException, URISyntaxException {
+        runTest("UninitRefIdentityTest");
+    }
+
     public void runTest(String test) throws IOException, URISyntaxException {
         String dexFilePath = String.format("%s%sclasses.dex", test, File.separatorChar);
 
@@ -83,8 +88,6 @@ public class AnalysisTest {
             String smaliContents = readResource(smaliPath);
 
             Assert.assertEquals(smaliContents, stringWriter.toString());
-
-            System.out.println(String.format("%d, %d", smaliContents.length(), stringWriter.toString().length()));
         }
     }
 

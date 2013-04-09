@@ -76,6 +76,12 @@ public class RegisterType {
         if (category != that.category) {
             return false;
         }
+
+        // These require strict reference equality. Every instance represents a unique
+        // reference that can't be merged with a different one, even if they have the same type.
+        if (category == UNINIT_REF || category == UNINIT_THIS) {
+            return false;
+        }
         return (type != null ? type.equals(that.type) : that.type == null);
     }
 
