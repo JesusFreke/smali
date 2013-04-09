@@ -352,17 +352,22 @@ public class ClassPath {
 
         //TODO: do we want to handle primitive types here? I don't think so.. (if not, add assert)
 
+        boolean gotInterface = false;
         if (class2.isInterface) {
             if (class1.implementsInterface(class2)) {
                 return class2;
             }
-            return theClassPath.javaLangObjectClassDef;
+            gotInterface = true;
         }
 
         if (class1.isInterface) {
             if (class2.implementsInterface(class1)) {
                 return class1;
             }
+            gotInterface = true;
+        }
+
+        if (gotInterface) {
             return theClassPath.javaLangObjectClassDef;
         }
 
