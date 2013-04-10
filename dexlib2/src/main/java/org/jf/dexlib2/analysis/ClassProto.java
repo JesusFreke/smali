@@ -38,9 +38,11 @@ import com.google.common.collect.Sets;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.util.FieldUtil;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
@@ -317,9 +319,14 @@ public class ClassProto implements TypeProto {
         final byte WIDE = 1;
         final byte OTHER = 2;
 
-        FieldReference[] fields = new FieldReference[0];
+        ArrayList<Field> loadedFields = getInstanceFields(getClassDef());
+        Field[] fields = new Field[loadedFields.size()];
         //the "type" for each field in fields. 0=reference,1=wide,2=other
-        byte[] fieldTypes = new byte[0];
+        byte[] fieldTypes = new byte[fields.length];
+        for (int i=0;i<fields.length;i++) {
+            fields[i] = loadedFields.get(i);
+            fieldTypes[i] = getFieldType(fields[i].getType());
+        }
 
         //The first operation is to move all of the reference fields to the front. To do this, find the first
         //non-reference field, then find the last reference field, swap them and repeat
@@ -342,9 +349,13 @@ public class ClassProto implements TypeProto {
         }
 
         int startFieldOffset = 8;
-        ClassProto superclass = (ClassProto) classPath.getClass(getSuperclass());
-        if (superclass != null) {
-            startFieldOffset = superclass.getNextFieldOffset();
+        String superclassType = getSuperclass();
+        ClassProto superclass = null;
+        if (superclassType != null) {
+            superclass = (ClassProto) classPath.getClass(superclassType);
+            if (superclass != null) {
+                startFieldOffset = superclass.getNextFieldOffset();
+            }
         }
 
         int fieldIndexMod;
@@ -449,6 +460,29 @@ public class ClassProto implements TypeProto {
         return instanceFields;
     }
 
+    private ArrayList<Field> getInstanceFields(ClassDef classDef) {
+        ArrayList<Field> instanceFields = Lists.newArrayList();
+        for (Field field: classDef.getFields()) {
+            if (!FieldUtil.isStatic(field)) {
+                instanceFields.add(field);
+            }
+        }
+        return instanceFields;
+    }
+
+    private byte getFieldType(String fieldType) {
+        switch (fieldType.charAt(0)) {
+            case '[':
+            case 'L':
+                return 0; //REFERENCE
+            case 'J':
+            case 'D':
+                return 1; //WIDE
+            default:
+                return 2; //OTHER
+        }
+    }
+
     private void swap(byte[] fieldTypes, FieldReference[] fields, int position1, int position2) {
         byte tempType = fieldTypes[position1];
         fieldTypes[position1] = fieldTypes[position2];
@@ -460,7 +494,7 @@ public class ClassProto implements TypeProto {
     }
 
     private int getNextFieldOffset() {
-        if (instanceFields == null || instanceFields.size() == 0) {
+        if (getInstanceFields() == null || getInstanceFields().size() == 0) {
             return 8;
         }
 
