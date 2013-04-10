@@ -82,4 +82,9 @@ public class OdexHeaderItem {
         BaseDexBuffer bdb = new BaseDexBuffer(buf);
         return bdb.readSmallUint(DEX_OFFSET);
     }
+
+    public static int getDependenciesOffset(byte[] buf) {
+        BaseDexBuffer bdb = new BaseDexBuffer(buf);
+        return bdb.readSmallUint(DEPENDENCIES_OFFSET);
+    }
 }
