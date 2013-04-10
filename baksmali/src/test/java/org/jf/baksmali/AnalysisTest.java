@@ -66,6 +66,11 @@ public class AnalysisTest {
         runTest("UninitRefIdentityTest");
     }
 
+    @Test
+    public void MultipleStartInstructionsTest() throws IOException, URISyntaxException {
+        runTest("MultipleStartInstructionsTest");
+    }
+
     public void runTest(String test) throws IOException, URISyntaxException {
         String dexFilePath = String.format("%s%sclasses.dex", test, File.separatorChar);
 
