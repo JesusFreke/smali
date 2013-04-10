@@ -66,6 +66,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
     public boolean writeTo(IndentingWriter writer) throws IOException {
         int registerCount = analyzedInstruction.getRegisterCount();
         BitSet registers = new BitSet(registerCount);
+        BitSet mergeRegisters = null;
 
         if ((registerInfo & baksmaliOptions.ALL) != 0) {
             registers.set(0, registerCount);
@@ -77,7 +78,11 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
                     addArgsRegs(registers);
                 }
                 if ((registerInfo & baksmaliOptions.MERGE) != 0) {
-                    addMergeRegs(registers, registerCount);
+                    if (analyzedInstruction.isBeginningInstruction()) {
+                        addParamRegs(registers, registerCount);
+                    }
+                    mergeRegisters = new BitSet(registerCount);
+                    addMergeRegs(mergeRegisters, registerCount);
                 } else if ((registerInfo & baksmaliOptions.FULLMERGE) != 0 &&
                         (analyzedInstruction.isBeginningInstruction())) {
                     addParamRegs(registers, registerCount);
@@ -85,14 +90,18 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
             }
         }
 
-        boolean printedSomething = false;
         if ((registerInfo & baksmaliOptions.FULLMERGE) != 0) {
-            printedSomething = writeFullMergeRegs(writer, registers, registerCount);
+            if (mergeRegisters == null) {
+                mergeRegisters = new BitSet(registerCount);
+                addMergeRegs(mergeRegisters, registerCount);
+            }
+            registers.or(mergeRegisters);
+        } else if (mergeRegisters != null) {
+            registers.or(mergeRegisters);
+            mergeRegisters = null;
         }
 
-        printedSomething |= writeRegisterInfo(writer, registers, printedSomething);
-
-        return printedSomething;
+        return writeRegisterInfo(writer, registers, mergeRegisters);
     }
 
     private void addArgsRegs(BitSet registers) {
@@ -136,10 +145,6 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
     }
 
     private void addMergeRegs(BitSet registers, int registerCount) {
-        if (analyzedInstruction.isBeginningInstruction()) {
-            addParamRegs(registers, registerCount);
-        }
-
         if (analyzedInstruction.getPredecessorCount() <= 1) {
             //in the common case of an instruction that only has a single predecessor which is the previous
             //instruction, the pre-instruction registers will always match the previous instruction's
@@ -151,7 +156,9 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
             RegisterType mergedRegisterType = analyzedInstruction.getPreInstructionRegisterType(registerNum);
 
             for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
-                if (!predecessor.getPostInstructionRegisterType(registerNum).equals(mergedRegisterType)) {
+                RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
+                if (predecessorRegisterType.category != RegisterType.UNKNOWN &&
+                        !predecessorRegisterType.equals(mergedRegisterType)) {
                     registers.set(registerNum);
                 }
             }
@@ -163,92 +170,72 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
         registers.set(registerCount-parameterRegisterCount, registerCount);
     }
 
-    private boolean writeFullMergeRegs(IndentingWriter writer, BitSet registers, int registerCount)
-                                    throws IOException {
-        if (analyzedInstruction.getPredecessorCount() <= 1) {
-            return false;
-        }
+    private void writeFullMerge(IndentingWriter writer, int registerNum) throws IOException {
+        registerFormatter.writeTo(writer, registerNum);
+        writer.write('=');
+        analyzedInstruction.getPreInstructionRegisterType(registerNum).writeTo(writer);
+        writer.write(":merge{");
 
-        boolean firstRegister = true;
+        boolean first = true;
 
-        for (int registerNum=0; registerNum<registerCount; registerNum++) {
-            RegisterType mergedRegisterType = analyzedInstruction.getPreInstructionRegisterType(registerNum);
-            boolean addRegister = false;
+        for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
+            RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
 
-            for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
-                RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
-                if (predecessorRegisterType.category != RegisterType.UNKNOWN &&
-                        !predecessorRegisterType.equals(mergedRegisterType)) {
-
-                    addRegister = true;
-                    break;
-                }
+            if (!first) {
+                writer.write(',');
             }
 
-            if (!addRegister) {
-                continue;
-            }
-
-            if (firstRegister) {
-                firstRegister = false;
+            if (predecessor.getInstructionIndex() == -1) {
+                //the fake "StartOfMethod" instruction
+                writer.write("Start:");
             } else {
-                writer.write('\n');
+                writer.write("0x");
+                writer.printUnsignedLongAsHex(methodAnalyzer.getInstructionAddress(predecessor));
+                writer.write(':');
             }
+            predecessorRegisterType.writeTo(writer);
 
-            writer.write('#');
-            registerFormatter.writeTo(writer, registerNum);
-            writer.write('=');
-            analyzedInstruction.getPreInstructionRegisterType(registerNum).writeTo(writer);
-            writer.write(":merge{");
-
-            boolean first = true;
-
-            for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
-                RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
-
-                if (!first) {
-                    writer.write(',');
-                }
-
-                if (predecessor.getInstructionIndex() == -1) {
-                    //the fake "StartOfMethod" instruction
-                    writer.write("Start:");
-                } else {
-                    writer.write("0x");
-                    writer.printUnsignedLongAsHex(methodAnalyzer.getInstructionAddress(predecessor));
-                    writer.write(':');
-                }
-                predecessorRegisterType.writeTo(writer);
-
-                first = false;
-            }
-            writer.write('}');
-
-            registers.clear(registerNum);
+            first = false;
         }
-        return !firstRegister;
+        writer.write('}');
     }
 
-    private boolean writeRegisterInfo(IndentingWriter writer, BitSet registers, boolean addNewline) throws IOException {
+    private boolean writeRegisterInfo(IndentingWriter writer, BitSet registers,
+                                      BitSet fullMergeRegisters) throws IOException {
+        boolean firstRegister = true;
+        boolean previousWasFullMerge = false;
         int registerNum = registers.nextSetBit(0);
         if (registerNum < 0) {
             return false;
         }
 
-        if (addNewline) {
-            writer.write('\n');
-        }
-
         writer.write('#');
         for (; registerNum >= 0; registerNum = registers.nextSetBit(registerNum + 1)) {
+            boolean fullMerge = fullMergeRegisters!=null && fullMergeRegisters.get(registerNum);
+            if (fullMerge) {
+                if (!firstRegister) {
+                    writer.write('\n');
+                    writer.write('#');
+                }
+                writeFullMerge(writer, registerNum);
+                previousWasFullMerge = true;
+            } else {
+                if (previousWasFullMerge) {
+                    writer.write('\n');
+                    writer.write('#');
+                    previousWasFullMerge = false;
+                }
 
-            RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(registerNum);
+                RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(registerNum);
 
-            registerFormatter.writeTo(writer, registerNum);
-            writer.write('=');
+                registerFormatter.writeTo(writer, registerNum);
+                writer.write('=');
 
-            registerType.writeTo(writer);
-            writer.write(';');
+                registerType.writeTo(writer);
+                writer.write(';');
+            }
+
+            firstRegister = false;
         }
         return true;
     }

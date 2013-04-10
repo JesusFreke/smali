@@ -23,16 +23,18 @@
 
     :catchall_6
     :try_start_6
+    #v0=(Uninit);v1=(Uninit);
     #p0=(Conflicted):merge{Start:(UninitThis,LMultipleStartInstructionsTest;),0x0:(Reference,LMultipleStartInstructionsTest;)}
-    #v0=(Uninit);v1=(Uninit);p1=(Reference,Ljava/lang/String;);
+    #p1=(Reference,Ljava/lang/String;);
     invoke-static {}, LMultipleStartInstructionsTest;->blah()V
     #v0=(Uninit);v1=(Uninit);p0=(Conflicted);p1=(Reference,Ljava/lang/String;);
     :try_end_9
     .catchall {:try_start_6 .. :try_end_9} :catchall_9
 
     :catchall_9
+    #v0=(Uninit);v1=(Uninit);
     #p0=(Conflicted):merge{Start:(UninitThis,LMultipleStartInstructionsTest;),0x0:(Reference,LMultipleStartInstructionsTest;),0x6:(Conflicted)}
-    #v0=(Uninit);v1=(Uninit);p1=(Reference,Ljava/lang/String;);
+    #p1=(Reference,Ljava/lang/String;);
     return-void
     #v0=(Uninit);v1=(Uninit);p0=(Conflicted);p1=(Reference,Ljava/lang/String;);
 .end method
