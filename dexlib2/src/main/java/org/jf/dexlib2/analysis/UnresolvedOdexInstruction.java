@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.analysis;
 
-import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.Instruction;
 
@@ -48,10 +47,6 @@ public class UnresolvedOdexInstruction implements Instruction {
     public UnresolvedOdexInstruction(Instruction originalInstruction, int objectRegisterNumber) {
         this.originalInstruction = originalInstruction;
         this.objectRegisterNum = objectRegisterNumber;
-    }
-
-    public Format getFormat() {
-        return Format.UnresolvedOdexInstruction;
     }
 
     @Override public Opcode getOpcode() {
