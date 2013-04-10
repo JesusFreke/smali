@@ -517,14 +517,16 @@ public class ClassProto implements TypeProto {
         List<Method> virtualMethodList = Lists.newLinkedList();
 
         //copy the virtual methods from the superclass
-        ClassProto superclass = (ClassProto) classPath.getClass(getSuperclass());
-        int methodIndex = 0;
-        if (superclass != null) {
-            for (int i=0; i<superclass.vtable.length; i++) {
-                virtualMethodList.add(superclass.vtable[i]);
-            }
+        String superclassType = getSuperclass();
+        if (superclassType != null) {
+            ClassProto superclass = (ClassProto) classPath.getClass(superclassType);
+            if (superclass != null) {
+                for (int i=0; i<superclass.getVtable().length; i++) {
+                    virtualMethodList.add(superclass.getVtable()[i]);
+                }
 
-            assert superclass.instanceFields != null;
+                assert superclass.getInstanceFields() != null;
+            }
         }
 
         //iterate over the virtual methods in the current class, and only add them when we don't already have the
