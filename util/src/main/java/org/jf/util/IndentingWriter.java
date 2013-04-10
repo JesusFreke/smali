@@ -43,9 +43,6 @@ public class IndentingWriter extends Writer {
         this.writer = writer;
     }
 
-    protected void writeLineStart() throws IOException {
-    }
-
     protected void writeIndent() throws IOException {
         for (int i=0; i<indentLevel; i++) {
             writer.write(' ');
@@ -54,9 +51,6 @@ public class IndentingWriter extends Writer {
 
     @Override
     public void write(int chr) throws IOException {
-        if (beginningOfLine) {
-            writeLineStart();
-        }
         if (chr == '\n') {
             writer.write(newLine);
             beginningOfLine = true;
@@ -69,34 +63,73 @@ public class IndentingWriter extends Writer {
         }
     }
 
+    /**
+     * Writes out a block of text that contains no newlines
+     */
+    private void writeLine(char[] chars, int start, int len) throws IOException {
+        if (beginningOfLine && len > 0) {
+            writeIndent();
+            beginningOfLine = false;
+        }
+        writer.write(chars, start, len);
+    }
+
+
+    /**
+     * Writes out a block of text that contains no newlines
+     */
+    private void writeLine(String str, int start, int len) throws IOException {
+        if (beginningOfLine && len > 0) {
+            writeIndent();
+            beginningOfLine = false;
+        }
+        writer.write(str, start, len);
+    }
+
     @Override
     public void write(char[] chars) throws IOException {
-        for (char chr: chars) {
-            write(chr);
-        }
+        write(chars, 0, chars.length);
     }
 
     @Override
     public void write(char[] chars, int start, int len) throws IOException {
-        // TODO: it might improve performance to scan until we reach a newline, and then submit a full chunk of chars at once
-        len = start+len;
-        while (start < len) {
-            write(chars[start++]);
+        final int end = start+len;
+        int pos = start;
+        while (pos < end) {
+            if (chars[pos] == '\n') {
+                writeLine(chars, start, pos-start);
+
+                writer.write(newLine);
+                beginningOfLine = true;
+                pos++;
+                start = pos;
+            } else {
+                pos++;
+            }
         }
+        writeLine(chars, start, pos-start);
     }
 
     @Override
     public void write(String s) throws IOException {
-        for (int i=0; i<s.length(); i++) {
-            write(s.charAt(i));
-        }
+        write(s, 0, s.length());
     }
 
     @Override
     public void write(String str, int start, int len) throws IOException {
-        len = start+len;
-        while (start < len) {
-            write(str.charAt(start++));
+        final int end = start+len;
+        int pos = start;
+        while (pos < end) {
+            pos = str.indexOf('\n', start);
+            if (pos == -1) {
+                writeLine(str, start, end-start);
+                return;
+            } else {
+                writeLine(str, start, pos-start);
+                writer.write(newLine);
+                beginningOfLine = true;
+                start = pos+1;
+            }
         }
     }
 
@@ -155,9 +188,7 @@ public class IndentingWriter extends Writer {
             value >>>= 4;
         } while (value != 0);
 
-        while (bufferIndex>0) {
-            write(buffer[--bufferIndex]);
-        }
+        writeLine(buffer, 0, bufferIndex);
     }
 
     public void printSignedIntAsDec(int value) throws IOException {
@@ -175,8 +206,6 @@ public class IndentingWriter extends Writer {
             value = value / 10;
         } while (value != 0);
 
-        while (bufferIndex>0) {
-            write(buffer[--bufferIndex]);
-        }
+        writeLine(buffer, 0, bufferIndex);
     }
 }
