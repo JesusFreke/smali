@@ -178,7 +178,7 @@ public class ClassPath {
             for (String ext: new String[]{"", ".odex", ".jar", ".apk", ".zip"}) {
                 File file = new File(classPathDir, baseEntryName + ext);
 
-                if (file.exists()) {
+                if (file.exists() && file.isFile()) {
                     if (!file.canRead()) {
                         System.err.println(String.format(
                                 "warning: cannot open %s for reading. Will continue looking.", file.getPath()));
