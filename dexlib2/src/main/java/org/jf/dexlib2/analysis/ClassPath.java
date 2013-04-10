@@ -48,6 +48,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ClassPath {
     @Nonnull private final TypeProto unknownClass;
@@ -159,22 +161,35 @@ public class ClassPath {
         return new ClassPath(dexFiles);
     }
 
+    private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
+
     @Nonnull
     private static DexFile loadClassPathEntry(Iterable<String> classPathDirs, String bootClassPathEntry) {
-        for (String classPathDir: classPathDirs) {
-            File rawEntry = new File(bootClassPathEntry);
-            // strip off the path - we only care about the filename
-            String entryName = rawEntry.getName();
+        File rawEntry = new File(bootClassPathEntry);
+        // strip off the path - we only care about the filename
+        String entryName = rawEntry.getName();
 
-            int extIndex = entryName.lastIndexOf(".");
+        // if it's a dalvik-cache entry, grab the name of the jar/apk
+        if (entryName.endsWith("@classes.dex")) {
+            Matcher m = dalvikCacheOdexPattern.matcher(entryName);
 
-            String baseEntryName;
-            if (extIndex == -1) {
-                baseEntryName = entryName;
-            } else {
-                baseEntryName = entryName.substring(0, extIndex);
+            if (!m.find()) {
+                throw new ExceptionWithContext(String.format("Cannot parse dependency value %s", bootClassPathEntry));
             }
 
+            entryName = m.group(1);
+        }
+
+        int extIndex = entryName.lastIndexOf(".");
+
+        String baseEntryName;
+        if (extIndex == -1) {
+            baseEntryName = entryName;
+        } else {
+            baseEntryName = entryName.substring(0, extIndex);
+        }
+
+        for (String classPathDir: classPathDirs) {
             for (String ext: new String[]{"", ".odex", ".jar", ".apk", ".zip"}) {
                 File file = new File(classPathDir, baseEntryName + ext);
 
@@ -184,7 +199,9 @@ public class ClassPath {
                                 "warning: cannot open %s for reading. Will continue looking.", file.getPath()));
                     } else {
                         try {
-                            return DexFileFactory.loadDexFile(file);
+                            DexFile dexfile = DexFileFactory.loadDexFile(file);
+                            System.out.println(file.toString());
+                            return dexfile;
                         } catch (DexFileFactory.NoClassesDexException ex) {
                             // ignore and continue
                         } catch (Exception ex) {
