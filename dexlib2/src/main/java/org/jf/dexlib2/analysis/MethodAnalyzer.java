@@ -1486,7 +1486,7 @@ public class MethodAnalyzer {
         Instruction3rc instruction = (Instruction3rc)analyzedInstruction.instruction;
 
         Instruction3rc deodexedInstruction = new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE,
-                instruction.getRegisterCount(), instruction.getStartRegister(), instruction.getReference());
+                instruction.getStartRegister(), instruction.getRegisterCount(), instruction.getReference());
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
 
