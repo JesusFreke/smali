@@ -248,26 +248,19 @@ public class main {
             //TODO: add "fix registers" functionality?
             DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile);
 
-            //TODO: uncomment
-            /*if (dexFile.isOdex()) {
-                if (doDump) {
-                    System.err.println("-D cannot be used with on odex file. Ignoring -D");
-                }
-                if (write) {
-                    System.err.println("-W cannot be used with an odex file. Ignoring -W");
-                }
+            if (dexFile.isOdexFile()) {
                 if (!deodex) {
                     System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
                     System.err.println("won't be able to re-assemble the results unless you deodex it with the -x");
                     System.err.println("option");
                 }
-            } else {*/
+            } else {
                 deodex = false;
 
                 if (bootClassPath == null) {
                     bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
                 }
-            //}
+            }
 
             if (disassemble) {
                 String[] bootClassPathDirsArray = new String[bootClassPathDirs.size()];
@@ -281,12 +274,8 @@ public class main {
                         noAccessorComments, registerInfo, ignoreErrors, inlineTable, checkPackagePrivateAccess);
             }
 
-            // TODO: implement rewrite + optional sort functionality
-
-            // TODO: need to check if odex file
             if (doDump) {
-                try
-                {
+                try {
                     dump.dump(dexFile, dumpFileName);
                 }catch (IOException ex) {
                     System.err.println("Error occured while writing dump file");

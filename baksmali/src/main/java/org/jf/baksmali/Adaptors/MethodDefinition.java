@@ -359,9 +359,11 @@ public class MethodDefinition {
 
         AnalysisException analysisException = methodAnalyzer.getAnalysisException();
         if (analysisException != null) {
+            // TODO: need to keep track of whether any errors occurred, so we can exit with a non-zero result
             methodItems.add(new CommentMethodItem(
-                    String.format("AnalysisException: %s" ,analysisException.getMessage()),
+                    String.format("AnalysisException: %s", analysisException.getMessage()),
                     analysisException.codeAddress, Integer.MIN_VALUE));
+            analysisException.printStackTrace(System.err);
         }
 
         List<AnalyzedInstruction> instructions = methodAnalyzer.getAnalyzedInstructions();

@@ -29,6 +29,7 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.MethodDefinition;
+import org.jf.dexlib2.analysis.UnresolvedOdexInstruction;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;
 import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
@@ -47,6 +48,11 @@ public class InstructionMethodItemFactory {
                     (OffsetInstruction)instruction);
         }
 
+        if (instruction instanceof UnresolvedOdexInstruction) {
+            return new UnresolvedOdexInstructionMethodItem(methodDef, codeAddress,
+                    (UnresolvedOdexInstruction)instruction);
+        }
+
         switch (instruction.getOpcode().format) {
             case ArrayPayload:
                 return new ArrayDataMethodItem(methodDef, codeAddress, (ArrayPayload)instruction);
@@ -54,10 +60,6 @@ public class InstructionMethodItemFactory {
                 return new PackedSwitchMethodItem(methodDef, codeAddress, (PackedSwitchPayload)instruction);
             case SparseSwitchPayload:
                 return new SparseSwitchMethodItem(methodDef, codeAddress, (SparseSwitchPayload)instruction);
-            //TODO: uncomment
-            /*case UnresolvedOdexInstruction:
-                return new UnresolvedOdexInstructionMethodItem(codeItem, codeAddress,
-                        (UnresolvedOdexInstruction)instruction);*/
             default:
                 return new InstructionMethodItem<Instruction>(methodDef, codeAddress, instruction);
         }

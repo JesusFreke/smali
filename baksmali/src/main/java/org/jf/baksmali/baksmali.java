@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.analysis.ClassPath;
+import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
@@ -77,6 +78,10 @@ public class baksmali {
                 Iterable<String> bootClassPaths = null;
                 if (bootClassPath != null) {
                     bootClassPaths = Splitter.on(':').split(bootClassPath);
+                } else if (dexFile instanceof DexBackedOdexFile) {
+                    bootClassPaths = ((DexBackedOdexFile)dexFile).getDependencies();
+                }else {
+                    bootClassPaths = ImmutableList.of();
                 }
 
                 options.classPath = ClassPath.fromClassPath(Arrays.asList(classPathDirs),
