@@ -1549,7 +1549,6 @@ public class MethodAnalyzer {
         RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, objectRegister,
                 ReferenceOrUninitCategories);
         TypeProto objectRegisterTypeProto = objectRegisterType.type;
-        assert objectRegisterTypeProto != null;
 
         if (objectRegisterType.category == RegisterType.NULL) {
             return false;
