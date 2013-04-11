@@ -39,7 +39,6 @@ import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ImmutableMethodReference extends BaseMethodReference implements ImmutableReference {
     @Nonnull protected final String definingClass;
@@ -49,11 +48,11 @@ public class ImmutableMethodReference extends BaseMethodReference implements Imm
 
     public ImmutableMethodReference(@Nonnull String definingClass,
                                     @Nonnull String name,
-                                    @Nullable List<String> parameters,
+                                    @Nullable Iterable<? extends CharSequence> parameters,
                                     @Nonnull String returnType) {
         this.definingClass = definingClass;
         this.name = name;
-        this.parameters = ImmutableList.copyOf(parameters);
+        this.parameters = CharSequenceConverter.immutableStringList(parameters);
         this.returnType = returnType;
     }
 
@@ -75,7 +74,7 @@ public class ImmutableMethodReference extends BaseMethodReference implements Imm
         return new ImmutableMethodReference(
                 methodReference.getDefiningClass(),
                 methodReference.getName(),
-                CharSequenceConverter.immutableStringList(methodReference.getParameterTypes()),
+                methodReference.getParameterTypes(),
                 methodReference.getReturnType());
     }
 

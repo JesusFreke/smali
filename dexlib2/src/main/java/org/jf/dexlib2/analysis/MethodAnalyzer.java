@@ -31,7 +31,10 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.*;
@@ -45,7 +48,6 @@ import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.util.TypeUtils;
 import org.jf.util.BitSetUtils;
-import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
 
 import javax.annotation.Nonnull;
@@ -296,6 +298,17 @@ public class MethodAnalyzer {
 
     public List<AnalyzedInstruction> getAnalyzedInstructions() {
         return analyzedInstructions.getValues();
+    }
+
+    public List<Instruction> getInstructions() {
+        return Lists.transform(analyzedInstructions.getValues(), new Function<AnalyzedInstruction, Instruction>() {
+            @Nullable @Override public Instruction apply(@Nullable AnalyzedInstruction input) {
+                if (input == null) {
+                    return null;
+                }
+                return input.instruction;
+            }
+        });
     }
 
     @Nullable
@@ -1406,19 +1419,13 @@ public class MethodAnalyzer {
         Method resolvedMethod = inlineResolver.resolveExecuteInline(analyzedInstruction);
 
         Opcode deodexedOpcode;
-        switch (resolvedMethod.getAccessFlags()) {
-            case InlineMethodResolver.DIRECT:
-                deodexedOpcode = Opcode.INVOKE_DIRECT;
-                break;
-            case InlineMethodResolver.STATIC:
-                deodexedOpcode = Opcode.INVOKE_STATIC;
-                break;
-            case InlineMethodResolver.VIRTUAL:
-                deodexedOpcode = Opcode.INVOKE_VIRTUAL;
-                break;
-            default:
-                throw new ExceptionWithContext("Unexpected access flags on resolved inline method: %d, %s",
-                        resolvedMethod.getAccessFlags(), ReferenceUtil.getReferenceString(resolvedMethod));
+        int acccessFlags = resolvedMethod.getAccessFlags();
+        if (AccessFlags.STATIC.isSet(acccessFlags)) {
+            deodexedOpcode = Opcode.INVOKE_STATIC;
+        } else if (AccessFlags.PRIVATE.isSet(acccessFlags)) {
+            deodexedOpcode = Opcode.INVOKE_DIRECT;
+        } else {
+            deodexedOpcode = Opcode.INVOKE_VIRTUAL;
         }
 
         Instruction35c deodexedInstruction = new ImmutableInstruction35c(deodexedOpcode, instruction.getRegisterCount(),
@@ -1437,19 +1444,14 @@ public class MethodAnalyzer {
         Instruction3rmi instruction = (Instruction3rmi)analyzedInstruction.instruction;
         Method resolvedMethod = inlineResolver.resolveExecuteInline(analyzedInstruction);
 
-        Opcode deodexedOpcode = null;
-        switch (resolvedMethod.getAccessFlags()) {
-            case InlineMethodResolver.DIRECT:
-                deodexedOpcode = Opcode.INVOKE_DIRECT_RANGE;
-                break;
-            case InlineMethodResolver.STATIC:
-                deodexedOpcode = Opcode.INVOKE_STATIC_RANGE;
-                break;
-            case InlineMethodResolver.VIRTUAL:
-                deodexedOpcode = Opcode.INVOKE_VIRTUAL_RANGE;
-                break;
-            default:
-                assert false;
+        Opcode deodexedOpcode;
+        int acccessFlags = resolvedMethod.getAccessFlags();
+        if (AccessFlags.STATIC.isSet(acccessFlags)) {
+            deodexedOpcode = Opcode.INVOKE_STATIC_RANGE;
+        } else if (AccessFlags.PRIVATE.isSet(acccessFlags)) {
+            deodexedOpcode = Opcode.INVOKE_DIRECT_RANGE;
+        } else {
+            deodexedOpcode = Opcode.INVOKE_VIRTUAL_RANGE;
         }
 
         Instruction3rc deodexedInstruction = new ImmutableInstruction3rc(deodexedOpcode, instruction.getRegisterCount(),

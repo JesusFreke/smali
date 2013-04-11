@@ -45,7 +45,6 @@ import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 
 public class ImmutableMethod extends BaseMethodReference implements Method {
@@ -59,7 +58,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
 
     public ImmutableMethod(@Nonnull String definingClass,
                            @Nonnull String name,
-                           @Nullable List<? extends MethodParameter> parameters,
+                           @Nullable Iterable<? extends MethodParameter> parameters,
                            @Nonnull String returnType,
                            int accessFlags,
                            @Nullable Set<? extends Annotation> annotations,

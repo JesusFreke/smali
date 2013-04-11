@@ -36,15 +36,14 @@ import org.jf.util.ImmutableConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public final class CharSequenceConverter {
     private CharSequenceConverter() {
     }
 
     @Nonnull
-    public static ImmutableList<String> immutableStringList(@Nullable List<? extends CharSequence> list) {
-        return CONVERTER.toList(list);
+    public static ImmutableList<String> immutableStringList(@Nullable Iterable<? extends CharSequence> iterable) {
+        return CONVERTER.toList(iterable);
     }
 
     private static final ImmutableConverter<String, CharSequence> CONVERTER =

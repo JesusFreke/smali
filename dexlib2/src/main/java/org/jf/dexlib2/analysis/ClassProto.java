@@ -70,7 +70,7 @@ public class ClassProto implements TypeProto {
     @Nonnull @Override public String getType() { return type; }
 
     @Nonnull
-    protected ClassDef getClassDef() {
+    public ClassDef getClassDef() {
         if (classDef == null) {
             classDef = classPath.getClassDef(type);
         }

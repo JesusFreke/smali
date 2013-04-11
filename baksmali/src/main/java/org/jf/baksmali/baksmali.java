@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.analysis.ClassPath;
+import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
@@ -87,10 +88,9 @@ public class baksmali {
                 options.classPath = ClassPath.fromClassPath(Arrays.asList(classPathDirs),
                         Iterables.concat(bootClassPaths, extraBootClassPaths), dexFile);
 
-                // TODO: uncomment
-                /*if (inlineTable != null) {
-                    inlineResolver = new CustomInlineMethodResolver(inlineTable);
-                }*/
+                if (inlineTable != null) {
+                    options.inlineResolver = new CustomInlineMethodResolver(options.classPath, new File(inlineTable));
+                }
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
                 ex.printStackTrace(System.err);

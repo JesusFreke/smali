@@ -46,7 +46,7 @@ public abstract class InlineMethodResolver {
     // We can't use, e.g. AccessFlags.STATIC.value, because we need them to be a constant in order to use them as cases
     // in switch statements
     public static final int STATIC = 0x8; // AccessFlags.STATIC.value;
-    public static final int VIRTUAL = 0x1; // AccessFlags.PRIVATE.value;
+    public static final int VIRTUAL = 0x1; // AccessFlags.PUBLIC.value;
     public static final int DIRECT = 0x2; // AccessFlags.PRIVATE.value;
 
     @Nonnull
@@ -115,7 +115,6 @@ public abstract class InlineMethodResolver {
         private final Method indexOfIIMethod;
         private final Method fastIndexOfMethod;
         private final Method isEmptyMethod;
-
 
         public InlineMethodResolver_version36() {
             //The 5th and 6th entries differ between froyo and gingerbread. We have to look at the parameters being
