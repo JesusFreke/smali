@@ -60,6 +60,9 @@ public abstract class ImmutableInstruction implements Instruction {
             case Format10t:
                 return ImmutableInstruction10t.of((Instruction10t)instruction);
             case Format10x:
+                if (instruction instanceof UnknownInstruction) {
+                    return ImmutableUnknownInstruction.of((UnknownInstruction)instruction);
+                }
                 return ImmutableInstruction10x.of((Instruction10x)instruction);
             case Format11n:
                 return ImmutableInstruction11n.of((Instruction11n)instruction);

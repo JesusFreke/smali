@@ -38,6 +38,7 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class DexBackedInstruction implements Instruction {
     @Nonnull public final DexBackedDexFile dexFile;
@@ -65,14 +66,16 @@ public abstract class DexBackedInstruction implements Instruction {
 
         Opcode opcode = Opcode.getOpcodeByValue(opcodeValue);
 
-        //TODO: handle unexpected/unknown opcodes
         Instruction instruction = buildInstruction(reader.dexBuf, opcode, reader.getOffset());
         reader.moveRelative(instruction.getCodeUnits()*2);
         return instruction;
     }
     
-    private static DexBackedInstruction buildInstruction(@Nonnull DexBackedDexFile dexFile, Opcode opcode,
+    private static DexBackedInstruction buildInstruction(@Nonnull DexBackedDexFile dexFile, @Nullable Opcode opcode,
                                                          int instructionStartOffset) {
+        if (opcode == null) {
+            return new DexBackedUnknownInstruction(dexFile, instructionStartOffset);
+        }
         switch (opcode.format) {
             case Format10t:
                 return new DexBackedInstruction10t(dexFile, opcode, instructionStartOffset);

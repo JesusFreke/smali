@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 
 public enum Opcode
@@ -330,10 +331,12 @@ public enum Opcode
         }
     }
 
+    @Nullable
     public static Opcode getOpcodeByName(String opcodeName) {
         return opcodesByName.get(opcodeName.toLowerCase().hashCode());
     }
 
+    @Nullable
     public static Opcode getOpcodeByValue(int opcodeValue) {
         switch (opcodeValue) {
             case 0x100:
@@ -343,7 +346,6 @@ public enum Opcode
             case 0x300:
                 return ARRAY_PAYLOAD;
             default:
-                // TODO: handle unknown opcodes (treat as nop)
                 return opcodesByValue[opcodeValue];
         }
     }
@@ -460,6 +462,7 @@ public enum Opcode
         return jumboOpcode != -1 && Opcode.getOpcodeByValue(jumboOpcode) != null;
     }
 
+    @Nullable
     public final Opcode getJumboOpcode() {
         return Opcode.getOpcodeByValue(jumboOpcode);
     }
