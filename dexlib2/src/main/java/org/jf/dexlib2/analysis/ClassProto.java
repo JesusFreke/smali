@@ -84,14 +84,14 @@ public class ClassProto implements TypeProto {
         return classDef;
     }
 
-    private Method[] getVtable() {
+    Method[] getVtable() {
         if (vtable == null) {
             vtable = loadVtable();
         }
         return vtable;
     }
 
-    private SparseArray<FieldReference> getInstanceFields() {
+    SparseArray<FieldReference> getInstanceFields() {
         if (instanceFields == null) {
             instanceFields = loadFields();
         }
