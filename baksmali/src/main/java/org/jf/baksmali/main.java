@@ -245,7 +245,6 @@ public class main {
             Opcode.updateMapsForApiLevel(apiLevel);
 
             //Read in and parse the dex file
-            //TODO: add "fix registers" functionality?
             DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile);
 
             if (dexFile.isOdexFile()) {
