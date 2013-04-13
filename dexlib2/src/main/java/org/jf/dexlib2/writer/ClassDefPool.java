@@ -31,17 +31,16 @@
 
 package org.jf.dexlib2.writer;
 
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.jf.dexlib2.iface.*;
-import org.jf.dexlib2.util.FieldUtil;
-import org.jf.dexlib2.util.MethodUtil;
+import com.google.common.collect.*;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.Field;
+import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -73,17 +72,32 @@ public class ClassDefPool {
         dexFile.typeListPool.intern(ImmutableSortedSet.copyOf(classDef.getInterfaces()));
         dexFile.stringPool.internNullable(classDef.getSourceFile());
         dexFile.encodedArrayPool.intern(classDef);
-        dexFile.annotationDirectoryPool.intern(classDef);
         boolean hasClassData = false;
+
+        HashSet<String> fields = new HashSet<String>();
         for (Field field: classDef.getFields()) {
             hasClassData = true;
+            String fieldDescriptor = ReferenceUtil.getShortFieldDescriptor(field);
+            if (!fields.add(fieldDescriptor)) {
+                throw new ExceptionWithContext("Multiple definitions for field %s->%s",
+                        classDef.getType(), fieldDescriptor);
+            }
             dexFile.fieldPool.intern(field);
         }
+
+        HashSet<String> methods = new HashSet<String>();
         for (Method method: classDef.getMethods()) {
             hasClassData = true;
+            String methodDescriptor = ReferenceUtil.getShortMethodDescriptor(method);
+            if (!methods.add(methodDescriptor)) {
+                throw new ExceptionWithContext("Multiple definitions for method %s->%s",
+                        classDef.getType(), methodDescriptor);
+            }
             dexFile.methodPool.intern(method);
             dexFile.codeItemPool.intern(method);
         }
+
+        dexFile.annotationDirectoryPool.intern(classDef);
         if (hasClassData) {
             classDataCount++;
         }
@@ -187,8 +201,6 @@ public class ClassDefPool {
 
     private class ClassDataItem {
         ClassDef classDef;
-        List<Field> fields;
-        List<Method> methods;
 
         int numStaticFields = 0;
         int numInstanceFields = 0;
@@ -198,26 +210,10 @@ public class ClassDefPool {
         private ClassDataItem(ClassDef classDef) {
             this.classDef = classDef;
 
-            fields = Lists.newArrayList(classDef.getFields());
-            Collections.sort(fields);
-
-            methods = Lists.newArrayList(classDef.getMethods());
-            Collections.sort(methods);
-
-            for (Field field: fields) {
-                if (FieldUtil.isStatic(field)) {
-                    numStaticFields++;
-                } else {
-                    numInstanceFields++;
-                }
-            }
-            for (Method method: methods) {
-                if (MethodUtil.isDirect(method)) {
-                    numDirectMethods++;
-                } else {
-                    numVirtualMethods++;
-                }
-            }
+            numStaticFields = Iterables.size(classDef.getStaticFields());
+            numInstanceFields = Iterables.size(classDef.getInstanceFields());
+            numDirectMethods = Iterables.size(classDef.getDirectMethods());
+            numVirtualMethods = Iterables.size(classDef.getVirtualMethods());
         }
 
         private boolean hasData() {
@@ -230,55 +226,63 @@ public class ClassDefPool {
 
         private void writeStaticFields(DexWriter writer) throws IOException {
             int lastIdx = 0;
-            for (Field field: fields) {
-                if (FieldUtil.isStatic(field)) {
-                    int idx = dexFile.fieldPool.getIndex(field);
-                    writer.writeUleb128(idx - lastIdx);
-                    lastIdx = idx;
 
-                    writer.writeUleb128(field.getAccessFlags());
-                }
+            Iterable<? extends Field> sortedStaticFields =
+                    Ordering.natural().immutableSortedCopy(classDef.getStaticFields());
+
+            for (Field field: sortedStaticFields) {
+                int idx = dexFile.fieldPool.getIndex(field);
+                writer.writeUleb128(idx - lastIdx);
+                lastIdx = idx;
+
+                writer.writeUleb128(field.getAccessFlags());
             }
         }
 
         private void writeInstanceFields(DexWriter writer) throws IOException {
             int lastIdx = 0;
-            for (Field field: fields) {
-                if (!FieldUtil.isStatic(field)) {
-                    int idx = dexFile.fieldPool.getIndex(field);
-                    writer.writeUleb128(idx - lastIdx);
-                    lastIdx = idx;
 
-                    writer.writeUleb128(field.getAccessFlags());
-                }
+            Iterable<? extends Field> sortedInstanceFields =
+                    Ordering.natural().immutableSortedCopy(classDef.getInstanceFields());
+
+            for (Field field: sortedInstanceFields) {
+                int idx = dexFile.fieldPool.getIndex(field);
+                writer.writeUleb128(idx - lastIdx);
+                lastIdx = idx;
+
+                writer.writeUleb128(field.getAccessFlags());
             }
         }
 
         private void writeDirectMethods(DexWriter writer) throws IOException {
             int lastIdx = 0;
-            for (Method method: methods) {
-                if (MethodUtil.isDirect(method)) {
-                    int idx = dexFile.methodPool.getIndex(method);
-                    writer.writeUleb128(idx - lastIdx);
-                    lastIdx = idx;
 
-                    writer.writeUleb128(method.getAccessFlags());
-                    writer.writeUleb128(dexFile.codeItemPool.getOffset(method));
-                }
+            Iterable<? extends Method> sortedDirectMethods =
+                    Ordering.natural().immutableSortedCopy(classDef.getDirectMethods());
+
+            for (Method method: sortedDirectMethods) {
+                int idx = dexFile.methodPool.getIndex(method);
+                writer.writeUleb128(idx - lastIdx);
+                lastIdx = idx;
+
+                writer.writeUleb128(method.getAccessFlags());
+                writer.writeUleb128(dexFile.codeItemPool.getOffset(method));
             }
         }
 
         private void writeVirtualMethods(DexWriter writer) throws IOException {
             int lastIdx = 0;
-            for (Method method: methods) {
-                if (!MethodUtil.isDirect(method)) {
-                    int idx = dexFile.methodPool.getIndex(method);
-                    writer.writeUleb128(idx - lastIdx);
-                    lastIdx = idx;
 
-                    writer.writeUleb128(method.getAccessFlags());
-                    writer.writeUleb128(dexFile.codeItemPool.getOffset(method));
-                }
+            Iterable<? extends Method> sortedVirtualMethods =
+                    Ordering.natural().immutableSortedCopy(classDef.getVirtualMethods());
+            
+            for (Method method: sortedVirtualMethods) {
+                int idx = dexFile.methodPool.getIndex(method);
+                writer.writeUleb128(idx - lastIdx);
+                lastIdx = idx;
+
+                writer.writeUleb128(method.getAccessFlags());
+                writer.writeUleb128(dexFile.codeItemPool.getOffset(method));
             }
         }
 

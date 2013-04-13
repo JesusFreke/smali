@@ -64,7 +64,7 @@ public class CustomMethodInlineTableTest {
                 methodImpl);
 
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
-                null, null, null, ImmutableList.of(method));
+                null, null, null, null, null, ImmutableList.of(method));
 
         DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
 
@@ -90,7 +90,7 @@ public class CustomMethodInlineTableTest {
                 methodImpl);
 
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
-                null, null, null, ImmutableList.of(method));
+                null, null, null, null, ImmutableList.of(method), null);
 
         DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
 
@@ -116,7 +116,7 @@ public class CustomMethodInlineTableTest {
                 methodImpl);
 
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
-                null, null, null, ImmutableList.of(method));
+                null, null, null, null, ImmutableList.of(method), null);
 
         DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
 

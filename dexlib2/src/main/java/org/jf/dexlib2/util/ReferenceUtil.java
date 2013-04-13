@@ -39,6 +39,19 @@ import java.io.IOException;
 import java.io.Writer;
 
 public final class ReferenceUtil {
+    public static String getShortMethodDescriptor(MethodReference methodReference) {
+        // TODO: try using a thread local StringBuilder
+        StringBuilder sb = new StringBuilder();
+        sb.append(methodReference.getName());
+        sb.append('(');
+        for (CharSequence paramType: methodReference.getParameterTypes()) {
+            sb.append(paramType);
+        }
+        sb.append(')');
+        sb.append(methodReference.getReturnType());
+        return sb.toString();
+    }
+
     public static String getMethodDescriptor(MethodReference methodReference) {
         // TODO: try using a thread local StringBuilder
         StringBuilder sb = new StringBuilder();

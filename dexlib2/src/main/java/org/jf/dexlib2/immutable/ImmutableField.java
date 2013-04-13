@@ -32,6 +32,8 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Ordering;
 import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
@@ -102,8 +104,8 @@ public class ImmutableField extends BaseFieldReference implements Field {
     @Nonnull @Override public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
 
     @Nonnull
-    public static ImmutableSet<ImmutableField> immutableSetOf(@Nullable Iterable<? extends Field> list) {
-        return CONVERTER.toSet(list);
+    public static ImmutableSortedSet<ImmutableField> immutableSetOf(@Nullable Iterable<? extends Field> list) {
+        return CONVERTER.toSortedSet(Ordering.natural(), list);
     }
 
     private static final ImmutableConverter<ImmutableField, Field> CONVERTER =

@@ -98,20 +98,68 @@ public interface ClassDef extends TypeReference {
     @Nonnull Set<? extends Annotation> getAnnotations();
 
     /**
-     * Gets a set of the fields that are defined by this class.
+     * Gets the static fields that are defined by this class.
      *
-     * TODO: uniqueness?
+     * The static fields that are returned must have no duplicates.
+     *
+     * @return The static fields that are defined by this class
+     */
+    @Nonnull Iterable<? extends Field> getStaticFields();
+
+    /**
+     * Gets the instance fields that are defined by this class.
+     *
+     * The instance fields that are returned must have no duplicates.
+     *
+     * @return The instance fields that are defined by this class
+     */
+    @Nonnull Iterable<? extends Field> getInstanceFields();
+
+    /**
+     * Gets all the fields that are defined by this class.
+     *
+     * This is a convenience method that combines getStaticFields() and getInstanceFields()
+     *
+     * The returned fields may be in any order. I.e. It's not safe to assume that all instance fields will come after
+     * all static fields.
+     *
+     * Note that there typically should not be any duplicate fields between the two, but some versions of
+     * dalvik inadvertently allow duplicate static/instance fields, and are supported here for completeness
      *
      * @return A set of the fields that are defined by this class
      */
-    @Nonnull Set<? extends Field> getFields();
+    @Nonnull Iterable<? extends Field> getFields();
 
     /**
-     * Gets a set of the methods that are defined by this class.
+     * Gets the direct methods that are defined by this class.
      *
-     * TODO: uniqueness?
+     * The direct methods that are returned must have no duplicates.
      *
-     * @return A set of the methods that are defined by this class.
+     * @return The direct methods that are defined by this class.
      */
-    @Nonnull Set<? extends Method> getMethods();
+    @Nonnull Iterable<? extends Method> getDirectMethods();
+
+    /**
+     * Gets the virtual methods that are defined by this class.
+     *
+     * The virtual methods that are returned must have no duplicates.
+     *
+     * @return The virtual methods that are defined by this class.
+     */
+    @Nonnull Iterable<? extends Method> getVirtualMethods();
+
+    /**
+     * Gets all the methods that are defined by this class.
+     *
+     * This is a convenience method that combines getDirectMethods() and getVirtualMethods().
+     *
+     * The returned methods may be in any order. I.e. It's not safe to assume that all virtual methods will come after
+     * all direct methods.
+     *
+     * Note that there typically should not be any duplicate methods between the two, but some versions of
+     * dalvik inadvertently allow duplicate direct/virtual methods, and are supported here for completeness
+     *
+     * @return An iterable of the methods that are defined by this class.
+     */
+    @Nonnull Iterable<? extends Method> getMethods();
 }

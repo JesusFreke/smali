@@ -71,6 +71,21 @@ public class DexBackedField extends BaseFieldReference implements Field {
         this.initialValue = staticInitialValueIterator.getNextOrNull();
     }
 
+    public DexBackedField(@Nonnull DexReader reader,
+                          @Nonnull DexBackedClassDef classDef,
+                          int previousFieldIndex,
+                          @Nonnull AnnotationsDirectory.AnnotationIterator annotationIterator) {
+        this.dexFile = reader.dexBuf;
+        this.classDef = classDef;
+
+        int fieldIndexDiff = reader.readSmallUleb128();
+        this.fieldIndex = fieldIndexDiff + previousFieldIndex;
+        this.accessFlags = reader.readSmallUleb128();
+
+        this.annotationSetOffset = annotationIterator.seekTo(fieldIndex);
+        this.initialValue = null;
+    }
+
     @Nonnull
     @Override
     public String getName() {

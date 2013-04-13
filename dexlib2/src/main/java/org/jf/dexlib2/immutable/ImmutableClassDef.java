@@ -32,6 +32,8 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterators;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.ClassDef;
@@ -42,7 +44,9 @@ import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.AbstractCollection;
 import java.util.Collection;
+import java.util.Iterator;
 
 public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull protected final String type;
@@ -51,8 +55,10 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull protected final ImmutableSet<String> interfaces;
     @Nullable protected final String sourceFile;
     @Nonnull protected final ImmutableSet<? extends ImmutableAnnotation> annotations;
-    @Nonnull protected final ImmutableSet<? extends ImmutableField> fields;
-    @Nonnull protected final ImmutableSet<? extends ImmutableMethod> methods;
+    @Nonnull protected final ImmutableSortedSet<? extends ImmutableField> staticFields;
+    @Nonnull protected final ImmutableSortedSet<? extends ImmutableField> instanceFields;
+    @Nonnull protected final ImmutableSortedSet<? extends ImmutableMethod> directMethods;
+    @Nonnull protected final ImmutableSortedSet<? extends ImmutableMethod> virtualMethods;
 
     public ImmutableClassDef(@Nonnull String type,
                              int accessFlags,
@@ -60,16 +66,20 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
                              @Nullable Collection<String> interfaces,
                              @Nullable String sourceFile,
                              @Nullable Collection<? extends Annotation> annotations,
-                             @Nullable Collection<? extends Field> fields,
-                             @Nullable Collection<? extends Method> methods) {
+                             @Nullable Iterable<? extends Field> staticFields,
+                             @Nullable Iterable<? extends Field> instanceFields,
+                             @Nullable Iterable<? extends Method> directMethods,
+                             @Nullable Iterable<? extends Method> virtualMethods) {
         this.type = type;
         this.accessFlags = accessFlags;
         this.superclass = superclass;
         this.interfaces = interfaces==null ? ImmutableSet.<String>of() : ImmutableSet.copyOf(interfaces);
         this.sourceFile = sourceFile;
         this.annotations = ImmutableAnnotation.immutableSetOf(annotations);
-        this.fields = ImmutableField.immutableSetOf(fields);
-        this.methods = ImmutableMethod.immutableSetOf(methods);
+        this.staticFields = ImmutableField.immutableSetOf(staticFields);
+        this.instanceFields = ImmutableField.immutableSetOf(instanceFields);
+        this.directMethods = ImmutableMethod.immutableSetOf(directMethods);
+        this.virtualMethods = ImmutableMethod.immutableSetOf(virtualMethods);
     }
 
     public ImmutableClassDef(@Nonnull String type,
@@ -78,16 +88,20 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
                              @Nullable ImmutableSet<String> interfaces,
                              @Nullable String sourceFile,
                              @Nullable ImmutableSet<? extends ImmutableAnnotation> annotations,
-                             @Nullable ImmutableSet<? extends ImmutableField> fields,
-                             @Nullable ImmutableSet<? extends ImmutableMethod> methods) {
+                             @Nullable ImmutableSortedSet<? extends ImmutableField> staticFields,
+                             @Nullable ImmutableSortedSet<? extends ImmutableField> instanceFields,
+                             @Nullable ImmutableSortedSet<? extends ImmutableMethod> directMethods,
+                             @Nullable ImmutableSortedSet<? extends ImmutableMethod> virtualMethods) {
         this.type = type;
         this.accessFlags = accessFlags;
         this.superclass = superclass;
         this.interfaces = ImmutableUtils.nullToEmptySet(interfaces);
         this.sourceFile = sourceFile;
         this.annotations = ImmutableUtils.nullToEmptySet(annotations);
-        this.fields = ImmutableUtils.nullToEmptySet(fields);
-        this.methods = ImmutableUtils.nullToEmptySet(methods);
+        this.staticFields = ImmutableUtils.nullToEmptySortedSet(staticFields);
+        this.instanceFields = ImmutableUtils.nullToEmptySortedSet(instanceFields);
+        this.directMethods = ImmutableUtils.nullToEmptySortedSet(directMethods);
+        this.virtualMethods = ImmutableUtils.nullToEmptySortedSet(virtualMethods);
     }
 
     public static ImmutableClassDef of(ClassDef classDef) {
@@ -101,8 +115,10 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
                 classDef.getInterfaces(),
                 classDef.getSourceFile(),
                 classDef.getAnnotations(),
-                classDef.getFields(),
-                classDef.getMethods());
+                classDef.getStaticFields(),
+                classDef.getInstanceFields(),
+                classDef.getDirectMethods(),
+                classDef.getVirtualMethods());
     }
 
     @Nonnull @Override public String getType() { return type; }
@@ -111,8 +127,42 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull @Override public ImmutableSet<String> getInterfaces() { return interfaces; }
     @Nullable @Override public String getSourceFile() { return sourceFile; }
     @Nonnull @Override public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
-    @Nonnull @Override public ImmutableSet<? extends ImmutableField> getFields() { return fields; }
-    @Nonnull @Override public ImmutableSet<? extends ImmutableMethod> getMethods() { return methods; }
+    @Nonnull @Override public ImmutableSet<? extends ImmutableField> getStaticFields() { return staticFields; }
+    @Nonnull @Override public ImmutableSet<? extends ImmutableField> getInstanceFields() { return instanceFields; }
+    @Nonnull @Override public ImmutableSet<? extends ImmutableMethod> getDirectMethods() { return directMethods; }
+    @Nonnull @Override public ImmutableSet<? extends ImmutableMethod> getVirtualMethods() { return virtualMethods; }
+
+    @Nonnull
+    @Override
+    public Collection<? extends ImmutableField> getFields() {
+        return new AbstractCollection<ImmutableField>() {
+            @Nonnull
+            @Override
+            public Iterator<ImmutableField> iterator() {
+                return Iterators.concat(staticFields.iterator(), instanceFields.iterator());
+            }
+
+            @Override public int size() {
+                return staticFields.size() + instanceFields.size();
+            }
+        };
+    }
+
+    @Nonnull
+    @Override
+    public Collection<? extends ImmutableMethod> getMethods() {
+        return new AbstractCollection<ImmutableMethod>() {
+            @Nonnull
+            @Override
+            public Iterator<ImmutableMethod> iterator() {
+                return Iterators.concat(directMethods.iterator(), virtualMethods.iterator());
+            }
+
+            @Override public int size() {
+                return directMethods.size() + virtualMethods.size();
+            }
+        };
+    }
 
     @Nonnull
     public static ImmutableSet<ImmutableClassDef> immutableSetOf(@Nullable Iterable<? extends ClassDef> iterable) {

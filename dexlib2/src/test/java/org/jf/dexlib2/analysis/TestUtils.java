@@ -41,11 +41,12 @@ import javax.annotation.Nullable;
 
 public class TestUtils {
     public static ClassDef makeClassDef(@Nonnull String classType, @Nullable String superType, String... interfaces) {
-        return new ImmutableClassDef(classType, 0, superType, ImmutableSet.copyOf(interfaces), null, null, null, null);
+        return new ImmutableClassDef(classType, 0, superType, ImmutableSet.copyOf(interfaces),
+                null, null, null, null, null, null);
     }
 
     public static ClassDef makeInterfaceDef(@Nonnull String classType, String... interfaces) {
         return new ImmutableClassDef(classType, AccessFlags.INTERFACE.getValue(), "Ljava/lang/Object;",
-                ImmutableSet.copyOf(interfaces), null, null, null, null);
+                ImmutableSet.copyOf(interfaces), null, null, null, null, null, null);
     }
 }

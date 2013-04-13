@@ -32,6 +32,7 @@
 package org.jf.dexlib2.writer;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.*;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
@@ -42,7 +43,9 @@ import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class AnnotationDirectoryPool {
     @Nonnull private final Map<Key, Integer> internedAnnotationDirectoryItems = Maps.newHashMap();
@@ -72,16 +75,17 @@ public class AnnotationDirectoryPool {
         }
 
         dexFile.annotationSetPool.intern(classDef.getAnnotations());
-        for (Field field: key.getFieldsWithAnnotations()) {
+        for (Field field: Iterables.filter(classDef.getFields(), FIELD_HAS_ANNOTATION)) {
             dexFile.annotationSetPool.intern(field.getAnnotations());
         }
 
-        for (Method method: key.getMethodsWithAnnotations()) {
-            dexFile.annotationSetPool.intern(method.getAnnotations());
-        }
-
-        for (Method method: key.getMethodsWithParameterAnnotations()) {
-            dexFile.annotationSetRefPool.intern(method);
+        for (Method method: classDef.getMethods()) {
+            if (METHOD_HAS_ANNOTATION.apply(method)) {
+                dexFile.annotationSetPool.intern(method.getAnnotations());
+            }
+            if (METHOD_HAS_PARAMETER_ANNOTATION.apply(method)) {
+                dexFile.annotationSetRefPool.intern(method);
+            }
         }
     }
 
@@ -140,39 +144,33 @@ public class AnnotationDirectoryPool {
             writer.writeInt(key.methodAnnotationCount);
             writer.writeInt(key.parameterAnnotationCount);
 
-            Iterable<? extends Field> fieldsWithAnnotations;
-            if (CollectionUtils.isNaturalSortedSet(key.classDef.getFields())) {
-                fieldsWithAnnotations = key.getFieldsWithAnnotations();
-            } else {
-                fieldsWithAnnotations = Ordering.natural().immutableSortedCopy(key.getFieldsWithAnnotations());
-            }
-            for (Field field: fieldsWithAnnotations) {
+            List<? extends Field> sortedFieldsWithAnnotations = Ordering.natural().immutableSortedCopy(
+                    Iterables.filter(key.classDef.getFields(), FIELD_HAS_ANNOTATION));
+
+            for (Field field: sortedFieldsWithAnnotations) {
                 writer.writeInt(dexFile.fieldPool.getIndex(field));
                 writer.writeInt(dexFile.annotationSetPool.getOffset(field.getAnnotations()));
             }
 
-            boolean sortMethods = !CollectionUtils.isNaturalSortedSet(key.classDef.getMethods());
-            Iterable<? extends Method> methodsWithAnnotations;
-            if (sortMethods) {
-                methodsWithAnnotations = Ordering.natural().immutableSortedCopy(key.getMethodsWithAnnotations());
-            } else {
-                methodsWithAnnotations = key.getMethodsWithAnnotations();
-            }
-            for (Method method: methodsWithAnnotations) {
-                writer.writeInt(dexFile.methodPool.getIndex(method));
-                writer.writeInt(dexFile.annotationSetPool.getOffset(method.getAnnotations()));
+            List<? extends Method> sortedMethods = Ordering.natural().immutableSortedCopy(
+                    Iterables.filter(
+                            key.classDef.getMethods(),
+                            Predicates.or(METHOD_HAS_ANNOTATION, METHOD_HAS_PARAMETER_ANNOTATION)));
+
+            // It's safe to assume that we don't have any duplicate methods here. We would have already caught that and
+            // thrown an exception
+            for (Method method: sortedMethods) {
+                if (METHOD_HAS_ANNOTATION.apply(method)) {
+                    writer.writeInt(dexFile.methodPool.getIndex(method));
+                    writer.writeInt(dexFile.annotationSetPool.getOffset(method.getAnnotations()));
+                }
             }
 
-            Iterable<? extends Method> methodsWithParameterAnnotations;
-            if (sortMethods) {
-                methodsWithParameterAnnotations = Ordering.natural().immutableSortedCopy(
-                        key.getMethodsWithParameterAnnotations());
-            } else {
-                methodsWithParameterAnnotations = key.getMethodsWithParameterAnnotations();
-            }
-            for (Method method: methodsWithParameterAnnotations) {
-                writer.writeInt(dexFile.methodPool.getIndex(method));
-                writer.writeInt(dexFile.annotationSetRefPool.getOffset(method));
+            for (Method method: sortedMethods) {
+                if (METHOD_HAS_PARAMETER_ANNOTATION.apply(method)) {
+                    writer.writeInt(dexFile.methodPool.getIndex(method));
+                    writer.writeInt(dexFile.annotationSetRefPool.getOffset(method));
+                }
             }
         }
     }
@@ -207,28 +205,19 @@ public class AnnotationDirectoryPool {
 
         public Key(@Nonnull ClassDef classDef) {
             this.classDef = classDef;
-            this.fieldAnnotationCount = Iterables.size(getFieldsWithAnnotations());
-            this.methodAnnotationCount = Iterables.size(getMethodsWithAnnotations());
-            this.parameterAnnotationCount = Iterables.size(getMethodsWithParameterAnnotations());
-        }
-
-        public int getFieldAnnotationCount() { return fieldAnnotationCount; }
-        public int getMethodAnnotationCount() { return methodAnnotationCount; }
-        public int getParameterAnnotationCount() { return parameterAnnotationCount; }
-
-        @Nonnull
-        public Iterable<? extends Field> getFieldsWithAnnotations() {
-            return FluentIterable.from(classDef.getFields()).filter(FIELD_HAS_ANNOTATION);
-        }
-
-        @Nonnull
-        public Iterable<? extends Method> getMethodsWithAnnotations() {
-            return FluentIterable.from(classDef.getMethods()).filter(METHOD_HAS_ANNOTATION);
-        }
-
-        @Nonnull
-        public Iterable<? extends Method> getMethodsWithParameterAnnotations() {
-            return FluentIterable.from(classDef.getMethods()).filter(METHOD_HAS_PARAMETER_ANNOTATION);
+            this.fieldAnnotationCount = Iterables.size(Iterables.filter(classDef.getFields(), FIELD_HAS_ANNOTATION));
+            int methodAnnotationCount = 0;
+            int parameterAnnotationCount = 0;
+            for (Method method: classDef.getMethods()) {
+                if (METHOD_HAS_ANNOTATION.apply(method)) {
+                    methodAnnotationCount++;
+                }
+                if (METHOD_HAS_PARAMETER_ANNOTATION.apply(method)) {
+                    parameterAnnotationCount++;
+                }
+            }
+            this.methodAnnotationCount = methodAnnotationCount;
+            this.parameterAnnotationCount = parameterAnnotationCount;
         }
 
         public boolean hasClassAnnotations() {

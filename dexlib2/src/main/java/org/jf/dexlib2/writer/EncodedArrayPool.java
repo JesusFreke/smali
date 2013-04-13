@@ -33,17 +33,13 @@ package org.jf.dexlib2.writer;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValueFactory;
 import org.jf.dexlib2.util.EncodedValueUtils;
-import org.jf.dexlib2.util.FieldUtil;
 import org.jf.util.CollectionUtils;
 import org.jf.util.ExceptionWithContext;
 
@@ -57,7 +53,7 @@ public class EncodedArrayPool {
     @Nonnull private final DexFile dexFile;
     private int sectionOffset = -1;
 
-    public EncodedArrayPool(DexFile dexFile) {
+    public EncodedArrayPool(@Nonnull DexFile dexFile) {
         this.dexFile = dexFile;
     }
 
@@ -111,15 +107,8 @@ public class EncodedArrayPool {
     }
 
     public static class Key implements Comparable<Key> {
-        private final Set<? extends Field> fields;
+        private final List<? extends Field> fields;
         private final int size;
-
-        private static class FieldComparator implements Comparator<Field> {
-            @Override
-            public int compare(Field o1, Field o2) {
-                return o1.compareTo(o2);
-            }
-        }
 
         private static final Function<Field, EncodedValue> GET_INITIAL_VALUE =
                 new Function<Field, EncodedValue>() {
@@ -133,16 +122,15 @@ public class EncodedArrayPool {
                     }
                 };
 
-        private Key(@Nonnull Set<? extends Field> fields, int size) {
+        private Key(@Nonnull List<? extends Field> fields, int size) {
             this.fields = fields;
             this.size = size;
         }
 
         @Nullable
         public static Key of(@Nonnull ClassDef classDef) {
-            Set<? extends Field> staticFieldsSorted = FluentIterable.from(classDef.getFields())
-                    .filter(IS_STATIC_FIELD)
-                    .toSortedSet(new FieldComparator());
+            List<? extends Field> staticFieldsSorted = Ordering.natural().immutableSortedCopy(
+                    classDef.getStaticFields());
 
             int lastIndex = CollectionUtils.lastIndexOf(staticFieldsSorted, HAS_INITIALIZER);
             if (lastIndex > -1) {
@@ -184,13 +172,6 @@ public class EncodedArrayPool {
             public boolean apply(Field input) {
                 EncodedValue encodedValue = input.getInitialValue();
                 return encodedValue != null && !EncodedValueUtils.isDefaultValue(encodedValue);
-            }
-        };
-
-        private static final Predicate<Field> IS_STATIC_FIELD = new Predicate<Field>() {
-            @Override
-            public boolean apply(Field input) {
-                return FieldUtil.isStatic(input);
             }
         };
 

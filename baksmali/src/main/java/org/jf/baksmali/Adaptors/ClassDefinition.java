@@ -67,7 +67,7 @@ public class ClassDefinition {
     private HashSet<String> findFieldsSetInStaticConstructor() {
         HashSet<String> fieldsSetInStaticConstructor = new HashSet<String>();
 
-        for (Method method: classDef.getMethods()) {
+        for (Method method: classDef.getDirectMethods()) {
             if (method.getName().equals("<clinit>")) {
                 MethodImplementation impl = method.getImplementation();
                 if (impl != null) {
@@ -165,93 +165,77 @@ public class ClassDefinition {
 
     private void writeStaticFields(IndentingWriter writer) throws IOException {
         boolean wroteHeader = false;
-        for (Field field: classDef.getFields()) {
-            if (AccessFlags.STATIC.isSet(field.getAccessFlags())) {
-                if (!wroteHeader) {
-                    writer.write("\n\n");
-                    writer.write("# static fields");
-                    wroteHeader = true;
-                }
-                writer.write('\n');
-                // TODO: detect duplicate fields.
-
-                boolean setInStaticConstructor =
-                        fieldsSetInStaticConstructor.contains(ReferenceUtil.getShortFieldDescriptor(field));
-
-                FieldDefinition.writeTo(writer, field, setInStaticConstructor);
+        for (Field field: classDef.getStaticFields()) {
+            if (!wroteHeader) {
+                writer.write("\n\n");
+                writer.write("# static fields");
+                wroteHeader = true;
             }
+            writer.write('\n');
+            // TODO: detect duplicate fields.
+
+            boolean setInStaticConstructor =
+                    fieldsSetInStaticConstructor.contains(ReferenceUtil.getShortFieldDescriptor(field));
+
+            FieldDefinition.writeTo(writer, field, setInStaticConstructor);
         }
     }
 
     private void writeInstanceFields(IndentingWriter writer) throws IOException {
         boolean wroteHeader = false;
-        for (Field field: classDef.getFields()) {
-            if (!AccessFlags.STATIC.isSet(field.getAccessFlags())) {
-                if (!wroteHeader) {
-                    writer.write("\n\n");
-                    writer.write("# instance fields");
-                    wroteHeader = true;
-                }
-                writer.write('\n');
-                // TODO: detect duplicate fields.
-
-                FieldDefinition.writeTo(writer, field, false);
+        for (Field field: classDef.getInstanceFields()) {
+            if (!wroteHeader) {
+                writer.write("\n\n");
+                writer.write("# instance fields");
+                wroteHeader = true;
             }
+            writer.write('\n');
+            // TODO: detect duplicate fields.
+
+            FieldDefinition.writeTo(writer, field, false);
         }
     }
 
     private void writeDirectMethods(IndentingWriter writer) throws IOException {
         boolean wroteHeader = false;
-        for (Method method: classDef.getMethods()) {
-            int accessFlags = method.getAccessFlags();
+        for (Method method: classDef.getDirectMethods()) {
+            if (!wroteHeader) {
+                writer.write("\n\n");
+                writer.write("# direct methods");
+                wroteHeader = true;
+            }
+            writer.write('\n');
+            // TODO: detect duplicate methods.
+            // TODO: check for method validation errors
 
-            if (AccessFlags.STATIC.isSet(accessFlags) ||
-                    AccessFlags.PRIVATE.isSet(accessFlags) ||
-                    AccessFlags.CONSTRUCTOR.isSet(accessFlags)) {
-                if (!wroteHeader) {
-                    writer.write("\n\n");
-                    writer.write("# direct methods");
-                    wroteHeader = true;
-                }
-                writer.write('\n');
-                // TODO: detect duplicate methods.
-                // TODO: check for method validation errors
-
-                MethodImplementation methodImpl = method.getImplementation();
-                if (methodImpl == null) {
-                    MethodDefinition.writeEmptyMethodTo(writer, method);
-                } else {
-                    MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
-                    methodDefinition.writeTo(writer);
-                }
+            MethodImplementation methodImpl = method.getImplementation();
+            if (methodImpl == null) {
+                MethodDefinition.writeEmptyMethodTo(writer, method);
+            } else {
+                MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
+                methodDefinition.writeTo(writer);
             }
         }
     }
 
     private void writeVirtualMethods(IndentingWriter writer) throws IOException {
         boolean wroteHeader = false;
-        for (Method method: classDef.getMethods()) {
-            int accessFlags = method.getAccessFlags();
+        for (Method method: classDef.getVirtualMethods()) {
+            if (!wroteHeader) {
+                writer.write("\n\n");
+                writer.write("# virtual methods");
+                wroteHeader = true;
+            }
+            writer.write('\n');
+            // TODO: detect duplicate methods.
+            // TODO: check for method validation errors
 
-            if (!AccessFlags.STATIC.isSet(accessFlags) &&
-                    !AccessFlags.PRIVATE.isSet(accessFlags) &&
-                    !AccessFlags.CONSTRUCTOR.isSet(accessFlags)) {
-                if (!wroteHeader) {
-                    writer.write("\n\n");
-                    writer.write("# virtual methods");
-                    wroteHeader = true;
-                }
-                writer.write('\n');
-                // TODO: detect duplicate methods.
-                // TODO: check for method validation errors
-
-                MethodImplementation methodImpl = method.getImplementation();
-                if (methodImpl == null) {
-                    MethodDefinition.writeEmptyMethodTo(writer, method);
-                } else {
-                    MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
-                    methodDefinition.writeTo(writer);
-                }
+            MethodImplementation methodImpl = method.getImplementation();
+            if (methodImpl == null) {
+                MethodDefinition.writeEmptyMethodTo(writer, method);
+            } else {
+                MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
+                methodDefinition.writeTo(writer);
             }
         }
     }
