@@ -115,9 +115,9 @@ public class DumpVtables {
                     StringBuilder method = new StringBuilder();
                     method.append(i + ":" + methods[i].getDefiningClass() + "->" + methods[i].getName() + "(");
                     for (CharSequence parameter: methods[i].getParameterTypes()) {
-                        method.append(parameter + " ");
+                        method.append(parameter);
                     }
-                    method.append(")\n");
+                    method.append(")" + methods[i].getReturnType() + "\n");
                     outStream.write(method.toString().getBytes());
                 }
                 outStream.write("\n".getBytes());
