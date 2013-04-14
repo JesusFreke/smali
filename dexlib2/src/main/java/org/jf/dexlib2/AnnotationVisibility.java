@@ -47,5 +47,19 @@ public final class AnnotationVisibility {
         return NAMES[visibility];
     }
 
+    public static int getVisibility(String visibility) {
+        visibility = visibility.toLowerCase();
+        if (visibility.equals("build")) {
+            return BUILD;
+        }
+        if (visibility.equals("runtime")) {
+            return RUNTIME;
+        }
+        if (visibility.equals("system")) {
+            return SYSTEM;
+        }
+        throw new ExceptionWithContext("Invalid annotation visibility: %s", visibility);
+    }
+
     private AnnotationVisibility() {}
 }
