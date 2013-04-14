@@ -101,7 +101,7 @@ public abstract class DexBackedEncodedValue {
                     return ImmutableNullEncodedValue.INSTANCE;
                 case ValueType.BOOLEAN:
                     Preconditions.checkValueArg(valueArg, 1);
-                    return new ImmutableBooleanEncodedValue(valueArg == 1);
+                    return ImmutableBooleanEncodedValue.forBoolean(valueArg == 1);
                 default:
                     throw new ExceptionWithContext("Invalid encoded_value type: 0x%x", valueType);
             }

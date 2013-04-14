@@ -87,7 +87,7 @@ public class ImmutableEncodedValueFactory {
     public static EncodedValue defaultValueForType(String type) {
         switch (type.charAt(0)) {
             case 'Z':
-                return new ImmutableBooleanEncodedValue(false);
+                return ImmutableBooleanEncodedValue.FALSE_VALUE;
             case 'B':
                 return new ImmutableByteEncodedValue((byte)0);
             case 'S':
