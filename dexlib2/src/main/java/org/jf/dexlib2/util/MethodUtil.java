@@ -31,15 +31,29 @@
 
 package org.jf.dexlib2.util;
 
+import com.google.common.base.Predicate;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public final class MethodUtil {
     private static int directMask = AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
             AccessFlags.CONSTRUCTOR.getValue();
+
+    public static Predicate<Method> METHOD_IS_DIRECT = new Predicate<Method>() {
+        @Override public boolean apply(@Nullable Method input) {
+            return input != null && isDirect(input);
+        }
+    };
+
+    public static Predicate<Method> METHOD_IS_VIRTUAL = new Predicate<Method>() {
+        @Override public boolean apply(@Nullable Method input) {
+            return input != null && !isDirect(input);
+        }
+    };
 
     public static boolean isDirect(@Nonnull Method method) {
         return (method.getAccessFlags() & directMask) != 0;

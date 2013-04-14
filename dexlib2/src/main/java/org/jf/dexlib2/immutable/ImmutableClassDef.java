@@ -33,12 +33,15 @@ package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.util.FieldUtil;
+import org.jf.dexlib2.util.MethodUtil;
 import org.jf.util.ImmutableConverter;
 import org.jf.util.ImmutableUtils;
 
@@ -59,6 +62,26 @@ public class ImmutableClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull protected final ImmutableSortedSet<? extends ImmutableField> instanceFields;
     @Nonnull protected final ImmutableSortedSet<? extends ImmutableMethod> directMethods;
     @Nonnull protected final ImmutableSortedSet<? extends ImmutableMethod> virtualMethods;
+
+    public ImmutableClassDef(@Nonnull String type,
+                             int accessFlags,
+                             @Nullable String superclass,
+                             @Nullable Collection<String> interfaces,
+                             @Nullable String sourceFile,
+                             @Nullable Collection<? extends Annotation> annotations,
+                             @Nullable Iterable<? extends Field> fields,
+                             @Nullable Iterable<? extends Method> methods) {
+        this.type = type;
+        this.accessFlags = accessFlags;
+        this.superclass = superclass;
+        this.interfaces = interfaces==null ? ImmutableSet.<String>of() : ImmutableSet.copyOf(interfaces);
+        this.sourceFile = sourceFile;
+        this.annotations = ImmutableAnnotation.immutableSetOf(annotations);
+        this.staticFields = ImmutableField.immutableSetOf(Iterables.filter(fields, FieldUtil.FIELD_IS_STATIC));
+        this.instanceFields = ImmutableField.immutableSetOf(Iterables.filter(fields, FieldUtil.FIELD_IS_INSTANCE));
+        this.directMethods = ImmutableMethod.immutableSetOf(Iterables.filter(methods, MethodUtil.METHOD_IS_DIRECT));
+        this.virtualMethods = ImmutableMethod.immutableSetOf(Iterables.filter(methods, MethodUtil.METHOD_IS_VIRTUAL));
+    }
 
     public ImmutableClassDef(@Nonnull String type,
                              int accessFlags,
