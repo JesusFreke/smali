@@ -141,6 +141,11 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull
     @Override
     public Iterable<? extends DexBackedField> getStaticFields() {
+        return getStaticFields(true);
+    }
+
+    @Nonnull
+    public Iterable<? extends DexBackedField> getStaticFields(final boolean skipDuplicates) {
         if (staticFieldCount > 0) {
             DexReader reader = dexFile.readerAt(staticFieldsOffset);
 
@@ -183,7 +188,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                                 previousField = nextField;
                                 previousIndex = item.fieldIndex;
 
-                                if (currentField != null && currentField.equals(nextField)) {
+                                if (skipDuplicates && currentField != null && currentField.equals(nextField)) {
                                     continue;
                                 }
 
@@ -202,6 +207,11 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull
     @Override
     public Iterable<? extends DexBackedField> getInstanceFields() {
+        return getInstanceFields(true);
+    }
+
+    @Nonnull
+    public Iterable<? extends DexBackedField> getInstanceFields(final boolean skipDuplicates) {
         if (instanceFieldCount > 0) {
             DexReader reader = dexFile.readerAt(getInstanceFieldsOffset());
 
@@ -239,7 +249,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                                 previousField = nextField;
                                 previousIndex = item.fieldIndex;
 
-                                if (currentField != null && currentField.equals(nextField)) {
+                                if (skipDuplicates && currentField != null && currentField.equals(nextField)) {
                                     continue;
                                 }
 
@@ -257,7 +267,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
         }
     }
 
-
     @Nonnull
     @Override
     public Iterable<? extends DexBackedField> getFields() {
@@ -267,6 +276,11 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull
     @Override
     public Iterable<? extends DexBackedMethod> getDirectMethods() {
+        return getDirectMethods(true);
+    }
+
+    @Nonnull
+    public Iterable<? extends DexBackedMethod> getDirectMethods(final boolean skipDuplicates) {
         if (directMethodCount > 0) {
             DexReader reader = dexFile.readerAt(getDirectMethodsOffset());
 
@@ -306,7 +320,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                                 previousMethod = nextMethod;
                                 previousIndex = item.methodIndex;
 
-                                if (currentMethod != null && currentMethod.equals(nextMethod)) {
+                                if (skipDuplicates && currentMethod != null && currentMethod.equals(nextMethod)) {
                                     continue;
 
                                 }
@@ -325,8 +339,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     }
 
     @Nonnull
-    @Override
-    public Iterable<? extends DexBackedMethod> getVirtualMethods() {
+    public Iterable<? extends DexBackedMethod> getVirtualMethods(final boolean skipDuplicates) {
         if (virtualMethodCount > 0) {
             DexReader reader = dexFile.readerAt(getVirtualMethodsOffset());
 
@@ -365,7 +378,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                                 previousMethod = nextMethod;
                                 previousIndex = item.methodIndex;
 
-                                if (currentMethod != null && currentMethod.equals(nextMethod)) {
+                                if (skipDuplicates && currentMethod != null && currentMethod.equals(nextMethod)) {
                                     continue;
                                 }
                                 return item;
@@ -377,6 +390,12 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
         } else {
             return ImmutableSet.of();
         }
+    }
+
+    @Nonnull
+    @Override
+    public Iterable<? extends DexBackedMethod> getVirtualMethods() {
+        return getVirtualMethods(true);
     }
 
     @Nonnull

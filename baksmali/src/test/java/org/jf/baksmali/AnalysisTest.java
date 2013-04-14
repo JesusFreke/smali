@@ -53,32 +53,39 @@ public class AnalysisTest {
 
     @Test
     public void ConstructorTest() throws IOException, URISyntaxException {
-        runTest("ConstructorTest");
+        runTest("ConstructorTest", true);
     }
 
     @Test
     public void RegisterEqualityOnMergeTest() throws IOException, URISyntaxException {
-        runTest("RegisterEqualityOnMergeTest");
+        runTest("RegisterEqualityOnMergeTest", true);
     }
 
     @Test
     public void UninitRefIdentityTest() throws IOException, URISyntaxException {
-        runTest("UninitRefIdentityTest");
+        runTest("UninitRefIdentityTest", true);
     }
 
     @Test
     public void MultipleStartInstructionsTest() throws IOException, URISyntaxException {
-        runTest("MultipleStartInstructionsTest");
+        runTest("MultipleStartInstructionsTest", true);
     }
 
-    public void runTest(String test) throws IOException, URISyntaxException {
+    @Test
+    public void DuplicateTest() throws IOException, URISyntaxException {
+        runTest("DuplicateTest", false);
+    }
+
+    public void runTest(String test, boolean registerInfo) throws IOException, URISyntaxException {
         String dexFilePath = String.format("%s%sclasses.dex", test, File.separatorChar);
 
         DexFile dexFile = DexFileFactory.loadDexFile(findResource(dexFilePath));
 
         baksmaliOptions options = new baksmaliOptions();
-        options.registerInfo = baksmaliOptions.ALL | baksmaliOptions.FULLMERGE;
-        options.classPath = new ClassPath();
+        if (registerInfo) {
+            options.registerInfo = baksmaliOptions.ALL | baksmaliOptions.FULLMERGE;
+            options.classPath = new ClassPath();
+        }
 
         for (ClassDef classDef: dexFile.getClasses()) {
             StringWriter stringWriter = new StringWriter();

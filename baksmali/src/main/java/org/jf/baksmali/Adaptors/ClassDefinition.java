@@ -31,6 +31,7 @@ package org.jf.baksmali.Adaptors;
 import com.google.common.collect.Lists;
 import org.jf.baksmali.baksmaliOptions;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
@@ -41,10 +42,7 @@ import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class ClassDefinition {
     @Nonnull public final baksmaliOptions options;
@@ -101,10 +99,10 @@ public class ClassDefinition {
         writeSourceFile(writer);
         writeInterfaces(writer);
         writeAnnotations(writer);
-        writeStaticFields(writer);
-        writeInstanceFields(writer);
-        writeDirectMethods(writer);
-        writeVirtualMethods(writer);
+        Set<String> staticFields = writeStaticFields(writer);
+        writeInstanceFields(writer, staticFields);
+        Set<String> directMethods = writeDirectMethods(writer);
+        writeVirtualMethods(writer, directMethods);
     }
 
     private void writeClass(IndentingWriter writer) throws IOException {
@@ -163,79 +161,157 @@ public class ClassDefinition {
         }
     }
 
-    private void writeStaticFields(IndentingWriter writer) throws IOException {
+    private Set<String> writeStaticFields(IndentingWriter writer) throws IOException {
         boolean wroteHeader = false;
-        for (Field field: classDef.getStaticFields()) {
+        Set<String> writtenFields = new HashSet<String>();
+
+        Iterable<? extends Field> staticFields;
+        if (classDef instanceof DexBackedClassDef) {
+            staticFields = ((DexBackedClassDef)classDef).getStaticFields(false);
+        } else {
+            staticFields = classDef.getStaticFields();
+        }
+
+        for (Field field: staticFields) {
             if (!wroteHeader) {
                 writer.write("\n\n");
                 writer.write("# static fields");
                 wroteHeader = true;
             }
             writer.write('\n');
-            // TODO: detect duplicate fields.
 
-            boolean setInStaticConstructor =
-                    fieldsSetInStaticConstructor.contains(ReferenceUtil.getShortFieldDescriptor(field));
-
-            FieldDefinition.writeTo(writer, field, setInStaticConstructor);
+            boolean setInStaticConstructor;
+            IndentingWriter fieldWriter = writer;
+            String fieldString = ReferenceUtil.getShortFieldDescriptor(field);
+            if (!writtenFields.add(fieldString)) {
+                writer.write("# duplicate field ignored\n");
+                fieldWriter = new CommentingIndentingWriter(writer);
+                System.err.println(String.format("Ignoring duplicate field: %s->%s", classDef.getType(), fieldString));
+                setInStaticConstructor = false;
+            } else {
+                setInStaticConstructor = fieldsSetInStaticConstructor.contains(fieldString);
+            }
+            FieldDefinition.writeTo(fieldWriter, field, setInStaticConstructor);
         }
+        return writtenFields;
     }
 
-    private void writeInstanceFields(IndentingWriter writer) throws IOException {
+    private void writeInstanceFields(IndentingWriter writer, Set<String> staticFields) throws IOException {
         boolean wroteHeader = false;
-        for (Field field: classDef.getInstanceFields()) {
+        Set<String> writtenFields = new HashSet<String>();
+
+        Iterable<? extends Field> instanceFields;
+        if (classDef instanceof DexBackedClassDef) {
+            instanceFields = ((DexBackedClassDef)classDef).getInstanceFields(false);
+        } else {
+            instanceFields = classDef.getInstanceFields();
+        }
+
+        for (Field field: instanceFields) {
             if (!wroteHeader) {
                 writer.write("\n\n");
                 writer.write("# instance fields");
                 wroteHeader = true;
             }
             writer.write('\n');
-            // TODO: detect duplicate fields.
 
-            FieldDefinition.writeTo(writer, field, false);
+            IndentingWriter fieldWriter = writer;
+            String fieldString = ReferenceUtil.getShortFieldDescriptor(field);
+            if (!writtenFields.add(fieldString)) {
+                writer.write("# duplicate field ignored\n");
+                fieldWriter = new CommentingIndentingWriter(writer);
+                System.err.println(String.format("Ignoring duplicate field: %s->%s", classDef.getType(), fieldString));
+            } else if (staticFields.contains(fieldString)) {
+                System.err.println(String.format("Duplicate static+instance field found: %s->%s",
+                        classDef.getType(), fieldString));
+                System.err.println("You will need to rename one of these fields, including all references.");
+
+                writer.write("# There is both a static and instance field with this signature.\n" +
+                             "# You will need to rename one of these fields, including all references.\n");
+            }
+            FieldDefinition.writeTo(fieldWriter, field, false);
         }
     }
 
-    private void writeDirectMethods(IndentingWriter writer) throws IOException {
+    private Set<String> writeDirectMethods(IndentingWriter writer) throws IOException {
         boolean wroteHeader = false;
-        for (Method method: classDef.getDirectMethods()) {
+        Set<String> writtenMethods = new HashSet<String>();
+
+        Iterable<? extends Method> directMethods;
+        if (classDef instanceof DexBackedClassDef) {
+            directMethods = ((DexBackedClassDef)classDef).getDirectMethods(false);
+        } else {
+            directMethods = classDef.getDirectMethods();
+        }
+
+        for (Method method: directMethods) {
             if (!wroteHeader) {
                 writer.write("\n\n");
                 writer.write("# direct methods");
                 wroteHeader = true;
             }
             writer.write('\n');
-            // TODO: detect duplicate methods.
+
             // TODO: check for method validation errors
+            String methodString = ReferenceUtil.getShortMethodDescriptor(method);
+
+            IndentingWriter methodWriter = writer;
+            if (!writtenMethods.add(methodString)) {
+                writer.write("# duplicate method ignored\n");
+                methodWriter = new CommentingIndentingWriter(writer);
+            }
 
             MethodImplementation methodImpl = method.getImplementation();
             if (methodImpl == null) {
-                MethodDefinition.writeEmptyMethodTo(writer, method);
+                MethodDefinition.writeEmptyMethodTo(methodWriter, method);
             } else {
                 MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
-                methodDefinition.writeTo(writer);
+                methodDefinition.writeTo(methodWriter);
             }
         }
+        return writtenMethods;
     }
 
-    private void writeVirtualMethods(IndentingWriter writer) throws IOException {
+    private void writeVirtualMethods(IndentingWriter writer, Set<String> directMethods) throws IOException {
         boolean wroteHeader = false;
-        for (Method method: classDef.getVirtualMethods()) {
+        Set<String> writtenMethods = new HashSet<String>();
+
+        Iterable<? extends Method> virtualMethods;
+        if (classDef instanceof DexBackedClassDef) {
+            virtualMethods = ((DexBackedClassDef)classDef).getVirtualMethods(false);
+        } else {
+            virtualMethods = classDef.getVirtualMethods();
+        }
+
+        for (Method method: virtualMethods) {
             if (!wroteHeader) {
                 writer.write("\n\n");
                 writer.write("# virtual methods");
                 wroteHeader = true;
             }
             writer.write('\n');
-            // TODO: detect duplicate methods.
+
             // TODO: check for method validation errors
+            String methodString = ReferenceUtil.getShortMethodDescriptor(method);
+
+            IndentingWriter methodWriter = writer;
+            if (!writtenMethods.add(methodString)) {
+                writer.write("# duplicate method ignored\n");
+                methodWriter = new CommentingIndentingWriter(writer);
+            } else if (directMethods.contains(methodString)) {
+                writer.write("# There is both a direct and virtual method with this signature.\n" +
+                             "# You will need to rename one of these methods, including all references.\n");
+                System.err.println(String.format("Duplicate direct+virtual method found: %s->%s",
+                        classDef.getType(), methodString));
+                System.err.println("You will need to rename one of these methods, including all references.");
+            }
 
             MethodImplementation methodImpl = method.getImplementation();
             if (methodImpl == null) {
-                MethodDefinition.writeEmptyMethodTo(writer, method);
+                MethodDefinition.writeEmptyMethodTo(methodWriter, method);
             } else {
                 MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
-                methodDefinition.writeTo(writer);
+                methodDefinition.writeTo(methodWriter);
             }
         }
     }
