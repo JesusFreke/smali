@@ -109,7 +109,7 @@ public class DumpVtables {
             for (ClassDef classDef: dexFile.getClasses()) {
                 ClassProto classProto = (ClassProto) classPath.getClass(classDef);
                 Method[] methods = classProto.getVtable();
-                String className = "Class "  + classDef.getType() + " : " + methods.length + " methods\n";
+                String className = "Class "  + classDef.getType() + " extends " + classDef.getSuperclass() + " : " + methods.length + " methods\n";
                 outStream.write(className.getBytes());
                 for (int i=0;i<methods.length;i++) {
                     StringBuilder method = new StringBuilder();
