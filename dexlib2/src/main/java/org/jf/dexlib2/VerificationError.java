@@ -31,6 +31,11 @@
 
 package org.jf.dexlib2;
 
+import com.google.common.collect.Maps;
+import org.jf.util.ExceptionWithContext;
+
+import java.util.HashMap;
+
 public class VerificationError {
     public static final int GENERIC = 1;
     public static final int NO_SUCH_CLASS = 2;
@@ -41,6 +46,20 @@ public class VerificationError {
     public static final int ILLEGAL_METHOD_ACCESS = 7;
     public static final int CLASS_CHANGE_ERROR = 8;
     public static final int INSTANTIATION_ERROR = 9;
+
+    private static final HashMap<String, Integer> verificationErrorNames = Maps.newHashMap();
+
+    static {
+        verificationErrorNames.put("generic-error", GENERIC);
+        verificationErrorNames.put("no-such-class", NO_SUCH_CLASS);
+        verificationErrorNames.put("no-such-field", NO_SUCH_FIELD);
+        verificationErrorNames.put("no-such-method", NO_SUCH_METHOD);
+        verificationErrorNames.put("illegal-class-access", ILLEGAL_CLASS_ACCESS);
+        verificationErrorNames.put("illegal-field-access", ILLEGAL_FIELD_ACCESS);
+        verificationErrorNames.put("illegal-method-access", ILLEGAL_METHOD_ACCESS);
+        verificationErrorNames.put("class-change-error", CLASS_CHANGE_ERROR);
+        verificationErrorNames.put("instantiation-error", INSTANTIATION_ERROR);
+    }
 
     public static String getVerificationErrorName(int verificationError) {
         switch (verificationError) {
@@ -65,6 +84,14 @@ public class VerificationError {
             default:
                 return null;
         }
+    }
+
+    public static int getVerificationError(String verificationError) {
+        Integer ret = verificationErrorNames.get(verificationError);
+        if (ret == null) {
+            throw new ExceptionWithContext("Invalid verification error: %s", verificationError);
+        }
+        return ret;
     }
 
     public static boolean isValidVerificationError(int verificationError) {

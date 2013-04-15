@@ -37,21 +37,38 @@ options {
 package org.jf.smali;
 
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.regex.*;
-import java.lang.Float;
-import java.lang.Double;
 
-import org.jf.dexlib.*;
-import org.jf.dexlib.EncodedValue.*;
-import org.jf.dexlib.Util.*;
-import org.jf.dexlib.Code.*;
-import org.jf.dexlib.Code.Format.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.AnnotationVisibility;
+import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.VerificationError;
+import org.jf.dexlib2.dexbacked.raw.*;
+import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.debug.DebugItem;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.SwitchElement;
+import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.immutable.*;
+import org.jf.dexlib2.immutable.debug.*;
+import org.jf.dexlib2.immutable.instruction.*;
+import org.jf.dexlib2.immutable.reference.*;
+import org.jf.dexlib2.immutable.value.*;
+import org.jf.dexlib2.util.MethodUtil;
+
+
 }
 
 @members {
-  public DexFile dexFile;
-  public TypeIdItem classType;
+  public String classType;
   private boolean verboseErrors = false;
 
   public void setVerboseErrors(boolean verboseErrors) {
@@ -114,36 +131,11 @@ import org.jf.dexlib.Code.Format.*;
   }
 }
 
-
-
-smali_file
+smali_file returns[ClassDef classDef]
   : ^(I_CLASS_DEF header methods fields annotations)
   {
-    AnnotationDirectoryItem annotationDirectoryItem = null;
-    ClassDefItem classDefItem = null;
-    ClassDataItem classDataItem = null;
-
-    if ($methods.methodAnnotations != null ||
-        $methods.parameterAnnotations != null ||
-        $fields.fieldAnnotations != null ||
-        $annotations.annotationSetItem != null) {
-        annotationDirectoryItem = AnnotationDirectoryItem.internAnnotationDirectoryItem(
-          dexFile,
-          $annotations.annotationSetItem,
-          $fields.fieldAnnotations,
-          $methods.methodAnnotations,
-          $methods.parameterAnnotations);
-    }
-
-    if ($fields.staticFields.size() != 0 || $fields.instanceFields.size() != 0 ||
-        $methods.directMethods.size() != 0 || $methods.virtualMethods.size()!= 0) {
-      classDataItem = ClassDataItem.internClassDataItem(dexFile, $fields.staticFields, $fields.instanceFields,
-                  $methods.directMethods, $methods.virtualMethods);
-    }
-
-    classDefItem = ClassDefItem.internClassDefItem(dexFile, $header.classType, $header.accessFlags,
-        $header.superType, $header.implementsList, $header.sourceSpec, annotationDirectoryItem,
-        classDataItem, $fields.staticFieldInitialValues);
+    $classDef = new ImmutableClassDef($header.classType, $header.accessFlags, $header.superType,
+            $header.implementsList, $header.sourceSpec, $annotations.annotations, $fields.fields, $methods.methods);
   };
   catch [Exception ex] {
     if (verboseErrors) {
@@ -153,7 +145,7 @@ smali_file
   }
 
 
-header returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, TypeListItem implementsList, StringIdItem sourceSpec]
+header returns[String classType, int accessFlags, String superType, List<String> implementsList, String sourceSpec]
 : class_spec super_spec? implements_list source_spec
   {
     classType = $class_spec.type;
@@ -165,44 +157,42 @@ header returns[TypeIdItem classType, int accessFlags, TypeIdItem superType, Type
   };
 
 
-class_spec returns[TypeIdItem type, int accessFlags]
-  : class_type_descriptor access_list
+class_spec returns[String type, int accessFlags]
+  : CLASS_DESCRIPTOR access_list
   {
-    $type = $class_type_descriptor.type;
+    $type = $CLASS_DESCRIPTOR.text;
     $accessFlags = $access_list.value;
   };
 
-super_spec returns[TypeIdItem type]
-  : ^(I_SUPER class_type_descriptor)
+super_spec returns[String type]
+  : ^(I_SUPER CLASS_DESCRIPTOR)
   {
-    $type = $class_type_descriptor.type;
+    $type = $CLASS_DESCRIPTOR.text;
   };
 
 
-implements_spec returns[TypeIdItem type]
-  : ^(I_IMPLEMENTS class_type_descriptor)
+implements_spec returns[String type]
+  : ^(I_IMPLEMENTS CLASS_DESCRIPTOR)
   {
-    $type = $class_type_descriptor.type;
+    $type = $CLASS_DESCRIPTOR.text;
   };
 
-implements_list returns[TypeListItem implementsList]
-@init { List<TypeIdItem> typeList; }
-  : {typeList = new LinkedList<TypeIdItem>();}
+implements_list returns[List<String> implementsList]
+@init { List<String> typeList; }
+  : {typeList = Lists.newArrayList();}
     (implements_spec {typeList.add($implements_spec.type);} )*
   {
     if (typeList.size() > 0) {
-      $implementsList = TypeListItem.internTypeListItem(dexFile, typeList);
+      $implementsList = typeList;
     } else {
       $implementsList = null;
     }
   };
 
-source_spec returns[StringIdItem source]
+source_spec returns[String source]
   : {$source = null;}
-    ^(I_SOURCE string_literal {$source = StringIdItem.internStringIdItem(dexFile, $string_literal.value);})
+    ^(I_SOURCE string_literal {$source = $string_literal.value;})
   | /*epsilon*/;
-
-
 
 access_list returns [int value]
   @init
@@ -218,92 +208,34 @@ access_list returns [int value]
       )*);
 
 
-fields returns[List<ClassDataItem.EncodedField> staticFields, List<ClassDataItem.EncodedField> instanceFields,
-         List<ClassDefItem.StaticFieldInitializer> staticFieldInitialValues, List<AnnotationDirectoryItem.FieldAnnotation> fieldAnnotations]
-  @init
-  {
-    $staticFields = new LinkedList<ClassDataItem.EncodedField>();
-    $instanceFields = new LinkedList<ClassDataItem.EncodedField>();
-    $staticFieldInitialValues = new ArrayList<ClassDefItem.StaticFieldInitializer>();
-  }
+fields returns[List<Field> fields]
+  @init {$fields = Lists.newArrayList();}
   : ^(I_FIELDS
       (field
       {
-        if ($field.encodedField.isStatic()) {
-          $staticFields.add($field.encodedField);
-          $staticFieldInitialValues.add(new ClassDefItem.StaticFieldInitializer(
-            $field.encodedValue, $field.encodedField));
-        } else {
-          $instanceFields.add($field.encodedField);
-        }
-        if ($field.fieldAnnotationSet != null) {
-          if ($fieldAnnotations == null) {
-            $fieldAnnotations = new LinkedList<AnnotationDirectoryItem.FieldAnnotation>();
-          }
-          AnnotationDirectoryItem.FieldAnnotation fieldAnnotation = new AnnotationDirectoryItem.FieldAnnotation(
-            $field.encodedField.field, $field.fieldAnnotationSet);
-          $fieldAnnotations.add(fieldAnnotation);
-        }
+        $fields.add($field.field);
       })*);
 
-methods returns[List<ClassDataItem.EncodedMethod> directMethods,
-    List<ClassDataItem.EncodedMethod> virtualMethods,
-    List<AnnotationDirectoryItem.MethodAnnotation> methodAnnotations,
-    List<AnnotationDirectoryItem.ParameterAnnotation> parameterAnnotations]
-  @init
-  {
-    $directMethods = new LinkedList<ClassDataItem.EncodedMethod>();
-    $virtualMethods = new LinkedList<ClassDataItem.EncodedMethod>();
-  }
+methods returns[List<Method> methods]
+  @init {$methods = Lists.newArrayList();}
   : ^(I_METHODS
       (method
       {
-        if ($method.encodedMethod.isDirect()) {
-          $directMethods.add($method.encodedMethod);
-        } else {
-          $virtualMethods.add($method.encodedMethod);
-        }
-        if ($method.methodAnnotationSet != null) {
-          if ($methodAnnotations == null) {
-            $methodAnnotations = new LinkedList<AnnotationDirectoryItem.MethodAnnotation>();
-          }
-          AnnotationDirectoryItem.MethodAnnotation methodAnnotation =
-            new AnnotationDirectoryItem.MethodAnnotation($method.encodedMethod.method, $method.methodAnnotationSet);
-          $methodAnnotations.add(methodAnnotation);
-        }
-        if ($method.parameterAnnotationSets != null) {
-          if ($parameterAnnotations == null) {
-            $parameterAnnotations = new LinkedList<AnnotationDirectoryItem.ParameterAnnotation>();
-          }
-          AnnotationDirectoryItem.ParameterAnnotation parameterAnnotation =
-            new AnnotationDirectoryItem.ParameterAnnotation($method.encodedMethod.method,
-              $method.parameterAnnotationSets);
-          $parameterAnnotations.add(parameterAnnotation);
-        }
+        $methods.add($method.ret);
       })*);
 
-field returns [ClassDataItem.EncodedField encodedField, EncodedValue encodedValue, AnnotationSetItem fieldAnnotationSet]
+field returns [Field field]
   :^(I_FIELD SIMPLE_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
   {
-    StringIdItem memberName = StringIdItem.internStringIdItem(dexFile, $SIMPLE_NAME.text);
-    TypeIdItem fieldType = $nonvoid_type_descriptor.type;
+    int accessFlags = $access_list.value;
 
-    FieldIdItem fieldIdItem = FieldIdItem.internFieldIdItem(dexFile, classType, fieldType, memberName);
-    $encodedField = new ClassDataItem.EncodedField(fieldIdItem, $access_list.value);
 
-    if ($field_initial_value.encodedValue != null) {
-      if (!$encodedField.isStatic()) {
+    if (!AccessFlags.STATIC.isSet(accessFlags) && $field_initial_value.encodedValue != null) {
         throw new SemanticException(input, "Initial field values can only be specified for static fields.");
-      }
-
-      $encodedValue = $field_initial_value.encodedValue;
-    } else {
-      $encodedValue = null;
     }
 
-    if ($annotations.annotationSetItem != null) {
-      $fieldAnnotationSet = $annotations.annotationSetItem;
-    }
+    $field = new ImmutableField(classType, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type, $access_list.value,
+            $field_initial_value.encodedValue, $annotations.annotations);
   };
 
 
@@ -312,22 +244,22 @@ field_initial_value returns[EncodedValue encodedValue]
   | /*epsilon*/;
 
 literal returns[EncodedValue encodedValue]
-  : integer_literal { $encodedValue = new IntEncodedValue($integer_literal.value); }
-  | long_literal { $encodedValue = new LongEncodedValue($long_literal.value); }
-  | short_literal { $encodedValue = new ShortEncodedValue($short_literal.value); }
-  | byte_literal { $encodedValue = new ByteEncodedValue($byte_literal.value); }
-  | float_literal { $encodedValue = new FloatEncodedValue($float_literal.value); }
-  | double_literal { $encodedValue = new DoubleEncodedValue($double_literal.value); }
-  | char_literal { $encodedValue = new CharEncodedValue($char_literal.value); }
-  | string_literal { $encodedValue = new StringEncodedValue(StringIdItem.internStringIdItem(dexFile, $string_literal.value)); }
-  | bool_literal { $encodedValue = $bool_literal.value?BooleanEncodedValue.TrueValue:BooleanEncodedValue.FalseValue; }
-  | NULL_LITERAL { $encodedValue = NullEncodedValue.NullValue; }
-  | type_descriptor { $encodedValue = new TypeEncodedValue($type_descriptor.type); }
-  | array_literal { $encodedValue = new ArrayEncodedValue($array_literal.values); }
-  | subannotation { $encodedValue = new AnnotationEncodedValue($subannotation.annotationType, $subannotation.elementNames, $subannotation.elementValues); }
-  | field_literal { $encodedValue = new FieldEncodedValue($field_literal.value); }
-  | method_literal { $encodedValue = new MethodEncodedValue($method_literal.value); }
-  | enum_literal { $encodedValue = new EnumEncodedValue($enum_literal.value); };
+  : integer_literal { $encodedValue = new ImmutableIntEncodedValue($integer_literal.value); }
+  | long_literal { $encodedValue = new ImmutableLongEncodedValue($long_literal.value); }
+  | short_literal { $encodedValue = new ImmutableShortEncodedValue($short_literal.value); }
+  | byte_literal { $encodedValue = new ImmutableByteEncodedValue($byte_literal.value); }
+  | float_literal { $encodedValue = new ImmutableFloatEncodedValue($float_literal.value); }
+  | double_literal { $encodedValue = new ImmutableDoubleEncodedValue($double_literal.value); }
+  | char_literal { $encodedValue = new ImmutableCharEncodedValue($char_literal.value); }
+  | string_literal { $encodedValue = new ImmutableStringEncodedValue($string_literal.value); }
+  | bool_literal { $encodedValue = ImmutableBooleanEncodedValue.forBoolean($bool_literal.value); }
+  | NULL_LITERAL { $encodedValue = ImmutableNullEncodedValue.INSTANCE; }
+  | type_descriptor { $encodedValue = new ImmutableTypeEncodedValue($type_descriptor.type); }
+  | array_literal { $encodedValue = new ImmutableArrayEncodedValue($array_literal.values); }
+  | subannotation { $encodedValue = new ImmutableAnnotationEncodedValue($subannotation.annotationType, $subannotation.elements); }
+  | field_literal { $encodedValue = new ImmutableFieldEncodedValue($field_literal.value); }
+  | method_literal { $encodedValue = new ImmutableMethodEncodedValue($method_literal.value); }
+  | enum_literal { $encodedValue = new ImmutableEnumEncodedValue($enum_literal.value); };
 
 
 //everything but string
@@ -371,92 +303,57 @@ array_elements returns[List<byte[\]> values]
         $values.add($fixed_size_literal.value);
       })*);
 
-packed_switch_target_count returns[int targetCount]
-  : I_PACKED_SWITCH_TARGET_COUNT {$targetCount = Integer.parseInt($I_PACKED_SWITCH_TARGET_COUNT.text);};
-
-packed_switch_targets[int baseAddress] returns[int[\] targets]
+packed_switch_elements[int baseAddress, int firstKey] returns[List<SwitchElement> elements]
+  @init {$elements = Lists.newArrayList();}
   :
-    ^(I_PACKED_SWITCH_TARGETS
-      packed_switch_target_count
-      {
-        int targetCount = $packed_switch_target_count.targetCount;
-        $targets = new int[targetCount];
-        int targetsPosition = 0;
-      }
+    ^(I_PACKED_SWITCH_ELEMENTS
 
       (offset_or_label
       {
-        $targets[targetsPosition++] = ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress;
+        $elements.add(new ImmutableSwitchElement(firstKey++,
+                ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress));
       })*
     );
 
-sparse_switch_target_count returns[int targetCount]
-  : I_SPARSE_SWITCH_TARGET_COUNT {$targetCount = Integer.parseInt($I_SPARSE_SWITCH_TARGET_COUNT.text);};
+sparse_switch_elements[int baseAddress] returns[List<SwitchElement> elements]
+  @init {$elements = Lists.newArrayList();}
+  :
+    ^(I_SPARSE_SWITCH_ELEMENTS
+       (fixed_32bit_literal offset_or_label
+       {
+         $elements.add(new ImmutableSwitchElement($fixed_32bit_literal.value,
+                       ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress));
 
-sparse_switch_keys[int targetCount] returns[int[\] keys]
-  : {
-      $keys = new int[$targetCount];
-      int keysPosition = 0;
-    }
-    ^(I_SPARSE_SWITCH_KEYS
-      (fixed_32bit_literal
-      {
-        $keys[keysPosition++] = $fixed_32bit_literal.value;
-      })*
+       })*
     );
 
-
-sparse_switch_targets[int baseAddress, int targetCount] returns[int[\] targets]
-  : {
-      $targets = new int[$targetCount];
-      int targetsPosition = 0;
-    }
-    ^(I_SPARSE_SWITCH_TARGETS
-      (offset_or_label
-      {
-        $targets[targetsPosition++] = ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress;
-      })*
-    );
-
-method returns[ClassDataItem.EncodedMethod encodedMethod,
-    AnnotationSetItem methodAnnotationSet,
-    AnnotationSetRefList parameterAnnotationSets]
+method returns[Method ret]
   scope
   {
     HashMap<String, Integer> labels;
-    TryListBuilder tryList;
     int currentAddress;
-    DebugInfoBuilder debugInfo;
     HashMap<Integer, Integer> packedSwitchDeclarations;
     HashMap<Integer, Integer> sparseSwitchDeclarations;
   }
   @init
   {
-    MethodIdItem methodIdItem = null;
     int totalMethodRegisters = 0;
     int methodParameterRegisters = 0;
     int accessFlags = 0;
     boolean isStatic = false;
+    $method::labels = new HashMap<String, Integer>();
+    $method::currentAddress = 0;
+    $method::packedSwitchDeclarations = new HashMap<Integer, Integer>();
+    $method::sparseSwitchDeclarations = new HashMap<Integer, Integer>();
   }
-  : {
-      $method::labels = new HashMap<String, Integer>();
-      $method::tryList = new TryListBuilder();
-      $method::currentAddress = 0;
-      $method::debugInfo = new DebugInfoBuilder();
-      $method::packedSwitchDeclarations = new HashMap<Integer, Integer>();
-      $method::sparseSwitchDeclarations = new HashMap<Integer, Integer>();
-    }
+  :
     ^(I_METHOD
       method_name_and_prototype
       access_list
       {
-        methodIdItem = $method_name_and_prototype.methodIdItem;
         accessFlags = $access_list.value;
-        isStatic = (accessFlags & AccessFlags.STATIC.getValue()) != 0;
-        methodParameterRegisters = methodIdItem.getPrototype().getParameterRegisterCount();
-        if (!isStatic) {
-          methodParameterRegisters++;
-        }
+        isStatic = AccessFlags.STATIC.isSet(accessFlags);
+        methodParameterRegisters = MethodUtil.getParameterRegisterCount($method_name_and_prototype.parameters, isStatic);
       }
       (registers_directive
        {
@@ -472,18 +369,15 @@ method returns[ClassDataItem.EncodedMethod encodedMethod,
       sparse_switch_declarations
       statements[totalMethodRegisters, methodParameterRegisters]
       catches
-      parameters
+      parameters[$method_name_and_prototype.parameters]
       ordered_debug_directives[totalMethodRegisters, methodParameterRegisters]
       annotations
     )
   {
-    Pair<List<CodeItem.TryItem>, List<CodeItem.EncodedCatchHandler>> temp = $method::tryList.encodeTries();
-    List<CodeItem.TryItem> tries = temp.first;
-    List<CodeItem.EncodedCatchHandler> handlers = temp.second;
+    List<TryBlock> tryBlocks = $catches.tryBlocks;
+    List<DebugItem> debugItems = $ordered_debug_directives.debugItems;
 
-    DebugInfoItem debugInfoItem = $method::debugInfo.encodeDebugInfo(dexFile);
-
-    CodeItem codeItem;
+    MethodImplementation methodImplementation = null;
 
     boolean isAbstract = false;
     boolean isNative = false;
@@ -506,27 +400,25 @@ method returns[ClassDataItem.EncodedMethod encodedMethod,
         methodType = "a native";
       }
 
-          if ($registers_directive.start != null) {
-            if ($registers_directive.isLocalsDirective) {
-              throw new SemanticException(input, $registers_directive.start, "A .locals directive is not valid in \%s method", methodType);
-            } else {
-              throw new SemanticException(input, $registers_directive.start, "A  .registers directive is not valid in \%s method", methodType);
-            }
-          }
+      if ($registers_directive.start != null) {
+        if ($registers_directive.isLocalsDirective) {
+          throw new SemanticException(input, $registers_directive.start, "A .locals directive is not valid in \%s method", methodType);
+        } else {
+          throw new SemanticException(input, $registers_directive.start, "A .registers directive is not valid in \%s method", methodType);
+        }
+      }
 
-          if ($method::labels.size() > 0) {
-            throw new SemanticException(input, $I_METHOD, "Labels cannot be present in \%s method", methodType);
-          }
+      if ($method::labels.size() > 0) {
+        throw new SemanticException(input, $I_METHOD, "Labels cannot be present in \%s method", methodType);
+      }
 
-          if ((tries != null && tries.size() > 0) || (handlers != null && handlers.size() > 0)) {
-            throw new SemanticException(input, $I_METHOD, "try/catch blocks cannot be present in \%s method", methodType);
-          }
+      if ((tryBlocks != null && tryBlocks.size() > 0)) {
+        throw new SemanticException(input, $I_METHOD, "try/catch blocks cannot be present in \%s method", methodType);
+      }
 
-          if (debugInfoItem != null) {
-            throw new SemanticException(input, $I_METHOD, "debug directives cannot be present in \%s method", methodType);
-          }
-
-          codeItem = null;
+      if (debugItems != null && debugItems.size() > 0) {
+        throw new SemanticException(input, $I_METHOD, "debug directives cannot be present in \%s method", methodType);
+      }
     } else {
       if (isAbstract) {
         throw new SemanticException(input, $I_METHOD, "An abstract method cannot have any instructions");
@@ -545,61 +437,42 @@ method returns[ClassDataItem.EncodedMethod encodedMethod,
                 " registers, for the method parameters");
       }
 
-      int methodParameterCount = methodIdItem.getPrototype().getParameterRegisterCount();
-      if ($method::debugInfo.getParameterNameCount() > methodParameterCount) {
-        throw new SemanticException(input, $I_METHOD, "Too many parameter names specified. This method only has " +
-                Integer.toString(methodParameterCount) +
-                " parameters.");
-      }
-
-      codeItem = CodeItem.internCodeItem(dexFile,
-            totalMethodRegisters,
-            methodParameterRegisters,
-            $statements.maxOutRegisters,
-            debugInfoItem,
-            $statements.instructions,
-            tries,
-            handlers);
+      methodImplementation = new ImmutableMethodImplementation(
+              totalMethodRegisters,
+              $statements.instructions,
+              tryBlocks,
+              debugItems);
     }
 
-    $encodedMethod = new ClassDataItem.EncodedMethod(methodIdItem, accessFlags, codeItem);
-
-    if ($annotations.annotationSetItem != null) {
-      $methodAnnotationSet = $annotations.annotationSetItem;
-    }
-
-    if ($parameters.parameterAnnotations != null) {
-      $parameterAnnotationSets = $parameters.parameterAnnotations;
-    }
+    $ret = new ImmutableMethod(
+            classType,
+            $method_name_and_prototype.name,
+            $parameters.parameters,
+            $method_name_and_prototype.returnType,
+            accessFlags,
+            $annotations.annotations,
+            methodImplementation);
   };
 
-method_prototype returns[ProtoIdItem protoIdItem]
+method_prototype returns[List<String> parameters, String returnType]
   : ^(I_METHOD_PROTOTYPE ^(I_METHOD_RETURN_TYPE type_descriptor) field_type_list)
   {
-    TypeIdItem returnType = $type_descriptor.type;
-    List<TypeIdItem> parameterTypes = $field_type_list.types;
-    TypeListItem parameterTypeListItem = null;
-    if (parameterTypes != null && parameterTypes.size() > 0) {
-      parameterTypeListItem = TypeListItem.internTypeListItem(dexFile, parameterTypes);
-    }
-
-    $protoIdItem = ProtoIdItem.internProtoIdItem(dexFile, returnType, parameterTypeListItem);
+    $returnType = $type_descriptor.type;
+    $parameters = $field_type_list.types;
   };
 
-method_name_and_prototype returns[MethodIdItem methodIdItem]
+method_name_and_prototype returns[String name, List<String> parameters, String returnType]
   : SIMPLE_NAME method_prototype
   {
-    String methodNameString = $SIMPLE_NAME.text;
-    StringIdItem methodName = StringIdItem.internStringIdItem(dexFile, methodNameString);
-    ProtoIdItem protoIdItem = $method_prototype.protoIdItem;
-
-    $methodIdItem = MethodIdItem.internMethodIdItem(dexFile, classType, protoIdItem, methodName);
+    $name = $SIMPLE_NAME.text;
+    $parameters = $method_prototype.parameters;
+    $returnType = $method_prototype.returnType;
   };
 
-field_type_list returns[List<TypeIdItem> types]
+field_type_list returns[List<String> types]
   @init
   {
-    $types = new LinkedList<TypeIdItem>();
+    $types = Lists.newArrayList();
   }
   : (
       nonvoid_type_descriptor
@@ -609,22 +482,18 @@ field_type_list returns[List<TypeIdItem> types]
     )*;
 
 
-fully_qualified_method returns[MethodIdItem methodIdItem]
+fully_qualified_method returns[ImmutableMethodReference methodReference]
   : reference_type_descriptor SIMPLE_NAME method_prototype
   {
-    TypeIdItem classType = $reference_type_descriptor.type;
-    StringIdItem methodName = StringIdItem.internStringIdItem(dexFile, $SIMPLE_NAME.text);
-    ProtoIdItem prototype = $method_prototype.protoIdItem;
-    $methodIdItem = MethodIdItem.internMethodIdItem(dexFile, classType, prototype, methodName);
+    $methodReference = new ImmutableMethodReference($reference_type_descriptor.type, $SIMPLE_NAME.text,
+             $method_prototype.parameters, $method_prototype.returnType);
   };
 
-fully_qualified_field returns[FieldIdItem fieldIdItem]
+fully_qualified_field returns[ImmutableFieldReference fieldReference]
   : reference_type_descriptor SIMPLE_NAME nonvoid_type_descriptor
   {
-    TypeIdItem classType = $reference_type_descriptor.type;
-    StringIdItem fieldName = StringIdItem.internStringIdItem(dexFile, $SIMPLE_NAME.text);
-    TypeIdItem fieldType = $nonvoid_type_descriptor.type;
-    $fieldIdItem = FieldIdItem.internFieldIdItem(dexFile, classType, fieldType, fieldName);
+    $fieldReference = new ImmutableFieldReference($reference_type_descriptor.type, $SIMPLE_NAME.text,
+            $nonvoid_type_descriptor.type);
   };
 
 registers_directive returns[boolean isLocalsDirective, int registers]
@@ -674,24 +543,29 @@ sparse_switch_declaration
       if (!$method::sparseSwitchDeclarations.containsKey(switchDataAddress)) {
         $method::sparseSwitchDeclarations.put(switchDataAddress, $address.address);
       }
-
     };
 
-catches : ^(I_CATCHES catch_directive* catchall_directive*);
+catches returns[List<TryBlock> tryBlocks]
+  @init {tryBlocks = Lists.newArrayList();}
+  : ^(I_CATCHES (catch_directive { tryBlocks.add($catch_directive.tryBlock); })*
+                (catchall_directive { tryBlocks.add($catchall_directive.tryBlock); })*);
 
-catch_directive
+catch_directive returns[TryBlock tryBlock]
   : ^(I_CATCH address nonvoid_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
         using=offset_or_label_absolute[$address.address])
     {
-      TypeIdItem type = $nonvoid_type_descriptor.type;
+      String type = $nonvoid_type_descriptor.type;
       int startAddress = $from.address;
       int endAddress = $to.address;
       int handlerAddress = $using.address;
 
-      $method::tryList.addHandler(type, startAddress, endAddress, handlerAddress);
+      // We always create try blocks with a single exception handler. These will be merged appropriately when written
+      // to a dex file
+      $tryBlock = new ImmutableTryBlock(startAddress, endAddress-startAddress,
+              ImmutableList.of(new ImmutableExceptionHandler(type, handlerAddress)));
     };
 
-catchall_directive
+catchall_directive returns[TryBlock tryBlock]
   : ^(I_CATCHALL address from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
         using=offset_or_label_absolute[$address.address])
     {
@@ -699,7 +573,10 @@ catchall_directive
       int endAddress = $to.address;
       int handlerAddress = $using.address;
 
-      $method::tryList.addCatchAllHandler(startAddress, endAddress, handlerAddress);
+      // We always create try blocks with a single exception handler. These will be merged appropriately when written
+      // to a dex file
+      $tryBlock = new ImmutableTryBlock(startAddress, endAddress-startAddress,
+              ImmutableList.of(new ImmutableExceptionHandler(null, handlerAddress)));
     };
 
 address returns[int address]
@@ -708,113 +585,106 @@ address returns[int address]
       $address = Integer.parseInt($I_ADDRESS.text);
     };
 
-parameters returns[AnnotationSetRefList parameterAnnotations]
+parameters[List<String> parameterTypes] returns[List<MethodParameter> parameters]
   @init
   {
-    int parameterCount = 0;
-    List<AnnotationSetItem> annotationSetItems = new ArrayList<AnnotationSetItem>();
+    Iterator<String> parameterIter = parameterTypes.iterator();
+    $parameters = Lists.newArrayList();
   }
-  : ^(I_PARAMETERS (parameter
+  : ^(I_PARAMETERS (parameter[parameterIter] { $parameters.add($parameter.parameter); })*)
+  {
+    String paramType;
+    while (parameterIter.hasNext()) {
+      paramType = parameterIter.next();
+      $parameters.add(new ImmutableMethodParameter(paramType, null, null));
+    }
+  };
+
+parameter[Iterator<String> parameterTypes] returns[MethodParameter parameter]
+  : ^(I_PARAMETER string_literal? annotations
         {
-          if ($parameter.parameterAnnotationSet != null) {
-            while (annotationSetItems.size() < parameterCount) {
-              annotationSetItems.add(AnnotationSetItem.internAnnotationSetItem(dexFile, null));
+            if (!$parameterTypes.hasNext()) {
+                throw new SemanticException(input, $I_PARAMETER, "Too many .parameter directives specified.");
             }
-            annotationSetItems.add($parameter.parameterAnnotationSet);
-          }
+            String type = $parameterTypes.next();
+            String name = $string_literal.value;
+            Set<Annotation> annotations = $annotations.annotations;
 
-          parameterCount++;
-        })*
-    )
-    {
-      if (annotationSetItems.size() > 0) {
-        while (annotationSetItems.size() < parameterCount) {
-          annotationSetItems.add(AnnotationSetItem.internAnnotationSetItem(dexFile, null));
+            $parameter = new ImmutableMethodParameter(type, annotations, name);
         }
-        $parameterAnnotations = AnnotationSetRefList.internAnnotationSetRefList(dexFile, annotationSetItems);
-      }
-    };
-
-parameter returns[AnnotationSetItem parameterAnnotationSet]
-  : ^(I_PARAMETER (string_literal {$method::debugInfo.addParameterName($string_literal.value);}
-                  | {$method::debugInfo.addParameterName(null);}
-                  )
-        annotations {$parameterAnnotationSet = $annotations.annotationSetItem;}
     );
 
-ordered_debug_directives[int totalMethodRegisters, int methodParameterRegisters]
+ordered_debug_directives[int totalMethodRegisters, int methodParameterRegisters] returns[List<DebugItem> debugItems]
+  @init {debugItems = Lists.newArrayList();}
   : ^(I_ORDERED_DEBUG_DIRECTIVES
-       ( line
-       | local[$totalMethodRegisters, $methodParameterRegisters]
-       | end_local[$totalMethodRegisters, $methodParameterRegisters]
-       | restart_local[$totalMethodRegisters, $methodParameterRegisters]
-       | prologue
-       | epilogue
-       | source
+       ( line { $debugItems.add($line.debugItem); }
+       | local[$totalMethodRegisters, $methodParameterRegisters] { $debugItems.add($local.debugItem); }
+       | end_local[$totalMethodRegisters, $methodParameterRegisters] { $debugItems.add($end_local.debugItem); }
+       | restart_local[$totalMethodRegisters, $methodParameterRegisters] { $debugItems.add($restart_local.debugItem); }
+       | prologue { $debugItems.add($prologue.debugItem); }
+       | epilogue { $debugItems.add($epilogue.debugItem); }
+       | source { $debugItems.add($source.debugItem); }
        )*
      );
 
-line
+line returns[DebugItem debugItem]
   : ^(I_LINE integral_literal address)
     {
-      $method::debugInfo.addLine($address.address, $integral_literal.value);
+        $debugItem = new ImmutableLineNumber($address.address, $integral_literal.value);
     };
 
-local[int totalMethodRegisters, int methodParameterRegisters]
+local[int totalMethodRegisters, int methodParameterRegisters] returns[DebugItem debugItem]
   : ^(I_LOCAL REGISTER SIMPLE_NAME nonvoid_type_descriptor string_literal? address)
     {
       int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      if ($string_literal.value != null) {
-        $method::debugInfo.addLocalExtended($address.address, registerNumber, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type.getTypeDescriptor(), $string_literal.value);
-      } else {
-        $method::debugInfo.addLocal($address.address, registerNumber, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type.getTypeDescriptor());
-      }
+      $debugItem = new ImmutableStartLocal($address.address, registerNumber, $SIMPLE_NAME.text,
+              $nonvoid_type_descriptor.type, $string_literal.value);
     };
 
-end_local[int totalMethodRegisters, int methodParameterRegisters]
+end_local[int totalMethodRegisters, int methodParameterRegisters] returns[DebugItem debugItem]
   : ^(I_END_LOCAL REGISTER address)
     {
       int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      $method::debugInfo.addEndLocal($address.address, registerNumber);
+      $debugItem = new ImmutableEndLocal($address.address, registerNumber);
     };
 
-restart_local[int totalMethodRegisters, int methodParameterRegisters]
+restart_local[int totalMethodRegisters, int methodParameterRegisters] returns[DebugItem debugItem]
   : ^(I_RESTART_LOCAL REGISTER address)
     {
       int registerNumber = parseRegister_short($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      $method::debugInfo.addRestartLocal($address.address, registerNumber);
+      $debugItem = new ImmutableRestartLocal($address.address, registerNumber);
     };
 
-prologue
+prologue returns[DebugItem debugItem]
   : ^(I_PROLOGUE address)
     {
-      $method::debugInfo.addPrologue($address.address);
+      $debugItem = new ImmutablePrologueEnd($address.address);
     };
 
-epilogue
+epilogue returns[DebugItem debugItem]
   : ^(I_EPILOGUE address)
     {
-      $method::debugInfo.addEpilogue($address.address);
+      $debugItem = new ImmutableEpilogueBegin($address.address);
     };
 
-source
+source returns[DebugItem debugItem]
   : ^(I_SOURCE string_literal address)
     {
-      $method::debugInfo.addSetFile($address.address, $string_literal.value);
+      $debugItem = new ImmutableSetSourceFile($address.address, $string_literal.value);
     };
 
 statements[int totalMethodRegisters, int methodParameterRegisters] returns[List<Instruction> instructions, int maxOutRegisters]
   @init
   {
-    $instructions = new LinkedList<Instruction>();
+    $instructions = Lists.newArrayList();
     $maxOutRegisters = 0;
   }
   : ^(I_STATEMENTS (instruction[$totalMethodRegisters, $methodParameterRegisters, $instructions]
         {
-          $method::currentAddress += $instructions.get($instructions.size() - 1).getSize($method::currentAddress);
+          $method::currentAddress += $instructions.get($instructions.size() - 1).getCodeUnits();
           if ($maxOutRegisters < $instruction.outRegisters) {
             $maxOutRegisters = $instruction.outRegisters;
           }
@@ -885,27 +755,26 @@ register_range[int totalMethodRegisters, int methodParameterRegisters] returns[i
                     throw new SemanticException(input, $I_REGISTER_RANGE, "A register range must have the lower register listed first");
                 }
             }
-    }
-  ;
+    };
 
-verification_error_reference returns[Item item]
+verification_error_reference returns[ImmutableReference reference]
   : CLASS_DESCRIPTOR
   {
-    $item = TypeIdItem.internTypeIdItem(dexFile, $start.getText());
+    $reference = new ImmutableTypeReference($CLASS_DESCRIPTOR.text);
   }
   | fully_qualified_field
   {
-    $item = $fully_qualified_field.fieldIdItem;
+    $reference = $fully_qualified_field.fieldReference;
   }
   | fully_qualified_method
   {
-    $item = $fully_qualified_method.methodIdItem;
+    $reference = $fully_qualified_method.methodReference;
   };
 
-verification_error_type returns[VerificationErrorType verificationErrorType]
+verification_error_type returns[int verificationError]
   : VERIFICATION_ERROR_TYPE
   {
-    $verificationErrorType = VerificationErrorType.fromString($VERIFICATION_ERROR_TYPE.text);
+    $verificationError = VerificationError.getVerificationError($VERIFICATION_ERROR_TYPE.text);
   };
 
 instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -919,7 +788,8 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
   | insn_format21c_field[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21c_field.outRegisters; }
   | insn_format21c_string[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21c_string.outRegisters; }
   | insn_format21c_type[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21c_type.outRegisters; }
-  | insn_format21h[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21h.outRegisters; }
+  | insn_format21ih[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21ih.outRegisters; }
+  | insn_format21lh[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21lh.outRegisters; }
   | insn_format21s[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21s.outRegisters; }
   | insn_format21t[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format21t.outRegisters; }
   | insn_format22b[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_format22b.outRegisters; }
@@ -957,7 +827,7 @@ insn_format10t[int totalMethodRegisters, int methodParameterRegisters, List<Inst
 
       int addressOffset = $offset_or_label.offsetValue;
 
-      $instructions.add(new Instruction10t(opcode, addressOffset));
+      $instructions.add(new ImmutableInstruction10t(opcode, addressOffset));
     };
 
 insn_format10x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -965,7 +835,7 @@ insn_format10x[int totalMethodRegisters, int methodParameterRegisters, List<Inst
     ^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
     {
       Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
-      $instructions.add(new Instruction10x(opcode));
+      $instructions.add(new ImmutableInstruction10x(opcode));
     };
 
 insn_format11n[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -978,7 +848,7 @@ insn_format11n[int totalMethodRegisters, int methodParameterRegisters, List<Inst
       short litB = $short_integral_literal.value;
       LiteralTools.checkNibble(litB);
 
-      $instructions.add(new Instruction11n(opcode, regA, (byte)litB));
+      $instructions.add(new ImmutableInstruction11n(opcode, regA, litB));
     };
 
 insn_format11x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -988,7 +858,7 @@ insn_format11x[int totalMethodRegisters, int methodParameterRegisters, List<Inst
       Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
       short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      $instructions.add(new Instruction11x(opcode, regA));
+      $instructions.add(new ImmutableInstruction11x(opcode, regA));
     };
 
 insn_format12x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -999,7 +869,7 @@ insn_format12x[int totalMethodRegisters, int methodParameterRegisters, List<Inst
       byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
       byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      $instructions.add(new Instruction12x(opcode, regA, regB));
+      $instructions.add(new ImmutableInstruction12x(opcode, regA, regB));
     };
 
 insn_format20bc[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1008,10 +878,10 @@ insn_format20bc[int totalMethodRegisters, int methodParameterRegisters, List<Ins
     {
       Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT20bc.text);
 
-      VerificationErrorType verificationErrorType = $verification_error_type.verificationErrorType;
-      Item referencedItem = $verification_error_reference.item;
+      int verificationError = $verification_error_type.verificationError;
+      ImmutableReference referencedItem = $verification_error_reference.reference;
 
-      $instructions.add(new Instruction20bc(opcode, verificationErrorType, referencedItem));
+      $instructions.add(new ImmutableInstruction20bc(opcode, verificationError, referencedItem));
     };
 
 insn_format20t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1022,7 +892,7 @@ insn_format20t[int totalMethodRegisters, int methodParameterRegisters, List<Inst
 
       int addressOffset = $offset_or_label.offsetValue;
 
-      $instructions.add(new Instruction20t(opcode, addressOffset));
+      $instructions.add(new ImmutableInstruction20t(opcode, addressOffset));
     };
 
 insn_format21c_field[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1032,9 +902,9 @@ insn_format21c_field[int totalMethodRegisters, int methodParameterRegisters, Lis
       Opcode opcode = Opcode.getOpcodeByName($inst.text);
       short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
+      ImmutableFieldReference fieldReference = $fully_qualified_field.fieldReference;
 
-      $instructions.add(new Instruction21c(opcode, regA, fieldIdItem));
+      $instructions.add(new ImmutableInstruction21c(opcode, regA, fieldReference));
     };
 
 insn_format21c_string[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1044,9 +914,9 @@ insn_format21c_string[int totalMethodRegisters, int methodParameterRegisters, Li
       Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
       short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, $string_literal.value);
+      ImmutableStringReference stringReference = new ImmutableStringReference($string_literal.value);
 
-      instructions.add(new Instruction21c(opcode, regA, stringIdItem));
+      instructions.add(new ImmutableInstruction21c(opcode, regA, stringReference));
     };
 
 insn_format21c_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1056,21 +926,33 @@ insn_format21c_type[int totalMethodRegisters, int methodParameterRegisters, List
       Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
       short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      TypeIdItem typeIdItem = $reference_type_descriptor.type;
+      ImmutableTypeReference typeReference = new ImmutableTypeReference($reference_type_descriptor.type);
 
-      $instructions.add(new Instruction21c(opcode, regA, typeIdItem));
+      $instructions.add(new ImmutableInstruction21c(opcode, regA, typeReference));
     };
 
-insn_format21h[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+insn_format21ih[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const/high16 v1, 1234
-    ^(I_STATEMENT_FORMAT21h INSTRUCTION_FORMAT21h REGISTER short_integral_literal)
+    ^(I_STATEMENT_FORMAT21ih INSTRUCTION_FORMAT21ih REGISTER short_integral_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21h.text);
+      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21ih.text);
       short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
       short litB = $short_integral_literal.value;
 
-      instructions.add(new Instruction21h(opcode, regA, litB));
+      instructions.add(new ImmutableInstruction21ih(opcode, regA, litB<<16));
+    };
+
+insn_format21lh[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
+  : //e.g. const-wide/high16 v1, 1234
+    ^(I_STATEMENT_FORMAT21lh INSTRUCTION_FORMAT21lh REGISTER short_integral_literal)
+    {
+      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21lh.text);
+      short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
+
+      short litB = $short_integral_literal.value;
+
+      instructions.add(new ImmutableInstruction21lh(opcode, regA, ((long)litB)<<48));
     };
 
 insn_format21s[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1082,7 +964,7 @@ insn_format21s[int totalMethodRegisters, int methodParameterRegisters, List<Inst
 
       short litB = $short_integral_literal.value;
 
-      $instructions.add(new Instruction21s(opcode, regA, litB));
+      $instructions.add(new ImmutableInstruction21s(opcode, regA, litB));
     };
 
 insn_format21t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1098,7 +980,7 @@ insn_format21t[int totalMethodRegisters, int methodParameterRegisters, List<Inst
         throw new SemanticException(input, $offset_or_label.start, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
       }
 
-      $instructions.add(new Instruction21t(opcode, regA, (short)addressOffset));
+      $instructions.add(new ImmutableInstruction21t(opcode, regA, addressOffset));
     };
 
 insn_format22b[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1112,7 +994,7 @@ insn_format22b[int totalMethodRegisters, int methodParameterRegisters, List<Inst
       short litC = $short_integral_literal.value;
       LiteralTools.checkByte(litC);
 
-      $instructions.add(new Instruction22b(opcode, regA, regB, (byte)litC));
+      $instructions.add(new ImmutableInstruction22b(opcode, regA, regB, litC));
     };
 
 insn_format22c_field[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1123,9 +1005,9 @@ insn_format22c_field[int totalMethodRegisters, int methodParameterRegisters, Lis
       byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
       byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      FieldIdItem fieldIdItem = $fully_qualified_field.fieldIdItem;
+      ImmutableFieldReference fieldReference = $fully_qualified_field.fieldReference;
 
-      $instructions.add(new Instruction22c(opcode, regA, regB, fieldIdItem));
+      $instructions.add(new ImmutableInstruction22c(opcode, regA, regB, fieldReference));
     };
 
 insn_format22c_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1136,9 +1018,9 @@ insn_format22c_type[int totalMethodRegisters, int methodParameterRegisters, List
       byte regA = parseRegister_nibble($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
       byte regB = parseRegister_nibble($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
+      ImmutableTypeReference typeReference = new ImmutableTypeReference($nonvoid_type_descriptor.type);
 
-      $instructions.add(new Instruction22c(opcode, regA, regB, typeIdItem));
+      $instructions.add(new ImmutableInstruction22c(opcode, regA, regB, typeReference));
     };
 
 insn_format22s[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1151,7 +1033,7 @@ insn_format22s[int totalMethodRegisters, int methodParameterRegisters, List<Inst
 
       short litC = $short_integral_literal.value;
 
-      $instructions.add(new Instruction22s(opcode, regA, regB, litC));
+      $instructions.add(new ImmutableInstruction22s(opcode, regA, regB, litC));
     };
 
 insn_format22t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1168,7 +1050,7 @@ insn_format22t[int totalMethodRegisters, int methodParameterRegisters, List<Inst
         throw new SemanticException(input, $offset_or_label.start, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
       }
 
-      $instructions.add(new Instruction22t(opcode, regA, regB, (short)addressOffset));
+      $instructions.add(new ImmutableInstruction22t(opcode, regA, regB, addressOffset));
     };
 
 insn_format22x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1179,7 +1061,7 @@ insn_format22x[int totalMethodRegisters, int methodParameterRegisters, List<Inst
       short regA = parseRegister_byte($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
       int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      $instructions.add(new Instruction22x(opcode, regA, regB));
+      $instructions.add(new ImmutableInstruction22x(opcode, regA, regB));
     };
 
 insn_format23x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1191,7 +1073,7 @@ insn_format23x[int totalMethodRegisters, int methodParameterRegisters, List<Inst
       short regB = parseRegister_byte($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
       short regC = parseRegister_byte($registerC.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      $instructions.add(new Instruction23x(opcode, regA, regB, regC));
+      $instructions.add(new ImmutableInstruction23x(opcode, regA, regB, regC));
     };
 
 insn_format30t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1202,7 +1084,7 @@ insn_format30t[int totalMethodRegisters, int methodParameterRegisters, List<Inst
 
       int addressOffset = $offset_or_label.offsetValue;
 
-      $instructions.add(new Instruction30t(opcode, addressOffset));
+      $instructions.add(new ImmutableInstruction30t(opcode, addressOffset));
     };
 
 insn_format31c[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1212,9 +1094,9 @@ insn_format31c[int totalMethodRegisters, int methodParameterRegisters, List<Inst
       Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
       short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      StringIdItem stringIdItem = StringIdItem.internStringIdItem(dexFile, $string_literal.value);
+      ImmutableStringReference stringReference = new ImmutableStringReference($string_literal.value);
 
-      $instructions.add(new Instruction31c(opcode, regA, stringIdItem));
+      $instructions.add(new ImmutableInstruction31c(opcode, regA, stringReference));
     };
 
 insn_format31i[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1226,7 +1108,7 @@ insn_format31i[int totalMethodRegisters, int methodParameterRegisters, List<Inst
 
       int litB = $fixed_32bit_literal.value;
 
-      $instructions.add(new Instruction31i(opcode, regA, litB));
+      $instructions.add(new ImmutableInstruction31i(opcode, regA, litB));
     };
 
 insn_format31t[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1242,7 +1124,7 @@ insn_format31t[int totalMethodRegisters, int methodParameterRegisters, List<Inst
         addressOffset++;
       }
 
-      $instructions.add(new Instruction31t(opcode, regA, addressOffset));
+      $instructions.add(new ImmutableInstruction31t(opcode, regA, addressOffset));
     };
 
 insn_format32x[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1253,7 +1135,7 @@ insn_format32x[int totalMethodRegisters, int methodParameterRegisters, List<Inst
       int regA = parseRegister_short($registerA.text, $totalMethodRegisters, $methodParameterRegisters);
       int regB = parseRegister_short($registerB.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      $instructions.add(new Instruction32x(opcode, regA, regB));
+      $instructions.add(new ImmutableInstruction32x(opcode, regA, regB));
     };
 
 insn_format35c_method[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1267,9 +1149,9 @@ insn_format35c_method[int totalMethodRegisters, int methodParameterRegisters, Li
       byte registerCount = $register_list.registerCount;
       $outRegisters = registerCount;
 
-      MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
+      ImmutableMethodReference methodReference = $fully_qualified_method.methodReference;
 
-      $instructions.add(new Instruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodIdItem));
+      $instructions.add(new ImmutableInstruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodReference));
     };
 
 insn_format35c_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1283,9 +1165,9 @@ insn_format35c_type[int totalMethodRegisters, int methodParameterRegisters, List
       byte registerCount = $register_list.registerCount;
       $outRegisters = registerCount;
 
-      TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
+      ImmutableTypeReference typeReference = new ImmutableTypeReference($nonvoid_type_descriptor.type);
 
-      $instructions.add(new Instruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeIdItem));
+      $instructions.add(new ImmutableInstruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeReference));
     };
 
 insn_format3rc_method[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1299,9 +1181,9 @@ insn_format3rc_method[int totalMethodRegisters, int methodParameterRegisters, Li
       int registerCount = endRegister-startRegister+1;
       $outRegisters = registerCount;
 
-      MethodIdItem methodIdItem = $fully_qualified_method.methodIdItem;
+      ImmutableMethodReference methodReference = $fully_qualified_method.methodReference;
 
-      $instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, methodIdItem));
+      $instructions.add(new ImmutableInstruction3rc(opcode, startRegister, registerCount, methodReference));
     };
 
 insn_format3rc_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1315,9 +1197,9 @@ insn_format3rc_type[int totalMethodRegisters, int methodParameterRegisters, List
       int registerCount = endRegister-startRegister+1;
       $outRegisters = registerCount;
 
-      TypeIdItem typeIdItem = $nonvoid_type_descriptor.type;
+      ImmutableTypeReference typeReference = new ImmutableTypeReference($nonvoid_type_descriptor.type);
 
-      $instructions.add(new Instruction3rc(opcode, (short)registerCount, startRegister, typeIdItem));
+      $instructions.add(new ImmutableInstruction3rc(opcode, startRegister, registerCount, typeReference));
     };
 
 insn_format51l_type[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
@@ -1329,18 +1211,15 @@ insn_format51l_type[int totalMethodRegisters, int methodParameterRegisters, List
 
       long litB = $fixed_64bit_literal.value;
 
-      $instructions.add(new Instruction51l(opcode, regA, litB));
+      $instructions.add(new ImmutableInstruction51l(opcode, regA, litB));
     };
 
 insn_array_data_directive[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
   : //e.g. .array-data 4 1000000 .end array-data
     ^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
     {
-      if (($method::currentAddress \% 2) != 0) {
-        $instructions.add(new Instruction10x(Opcode.NOP));
-        $method::currentAddress++;
-      }
-
+      // TODO: reimplement, after changing how it's parsed
+      /*
       int elementWidth = $short_integral_literal.value;
       List<byte[]> byteValues = $array_elements.values;
 
@@ -1356,82 +1235,56 @@ insn_array_data_directive[int totalMethodRegisters, int methodParameterRegisters
         index+=byteValue.length;
       }
 
-      $instructions.add(new ArrayDataPseudoInstruction(elementWidth, encodedValues));
+      $instructions.add(new ImmutableArrayPayload(elementWidth, null));
+      */
     };
 
 insn_packed_switch_directive[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
   :
     ^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal)
       {
-        if (($method::currentAddress \% 2) != 0) {
-          $instructions.add(new Instruction10x(Opcode.NOP));
-          $method::currentAddress++;
-        }
+        int startKey = $fixed_32bit_literal.value;
         Integer baseAddress = $method::packedSwitchDeclarations.get($method::currentAddress);
         if (baseAddress == null) {
           baseAddress = 0;
         }
       }
-      packed_switch_targets[baseAddress])
-    {
-
-      int startKey = $fixed_32bit_literal.value;
-      int[] targets = $packed_switch_targets.targets;
-
-      $instructions.add(new PackedSwitchDataPseudoInstruction(startKey, targets));
-    };
+      packed_switch_elements[baseAddress, startKey])
+      {
+        $instructions.add(new ImmutablePackedSwitchPayload($packed_switch_elements.elements));
+      };
 
 insn_sparse_switch_directive[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
   :
-    ^(I_STATEMENT_SPARSE_SWITCH sparse_switch_target_count sparse_switch_keys[$sparse_switch_target_count.targetCount]
-      {
-        if (($method::currentAddress \% 2) != 0) {
-          $instructions.add(new Instruction10x(Opcode.NOP));
-          $method::currentAddress++;
-        }
-        Integer baseAddress = $method::sparseSwitchDeclarations.get($method::currentAddress);
-        if (baseAddress == null) {
-          baseAddress = 0;
-        }
-      }
-
-      sparse_switch_targets[baseAddress, $sparse_switch_target_count.targetCount])
     {
-      int[] keys = $sparse_switch_keys.keys;
-      int[] targets = $sparse_switch_targets.targets;
-
-      $instructions.add(new SparseSwitchDataPseudoInstruction(keys, targets));
+      Integer baseAddress = $method::sparseSwitchDeclarations.get($method::currentAddress);
+      if (baseAddress == null) {
+        baseAddress = 0;
+      }
+    }
+    ^(I_STATEMENT_SPARSE_SWITCH sparse_switch_elements[baseAddress])
+    {
+      $instructions.add(new ImmutableSparseSwitchPayload($sparse_switch_elements.elements));
     };
 
-nonvoid_type_descriptor returns [TypeIdItem type]
+nonvoid_type_descriptor returns [String type]
   : (PRIMITIVE_TYPE
   | CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR)
   {
-    $type = TypeIdItem.internTypeIdItem(dexFile, $start.getText());
+    $type = $start.getText();
   };
 
 
-reference_type_descriptor returns [TypeIdItem type]
+reference_type_descriptor returns [String type]
   : (CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR)
   {
-    $type = TypeIdItem.internTypeIdItem(dexFile, $start.getText());
+    $type = $start.getText();
   };
 
-
-
-
-
-
-class_type_descriptor returns [TypeIdItem type]
-  : CLASS_DESCRIPTOR
-  {
-    $type = TypeIdItem.internTypeIdItem(dexFile, $CLASS_DESCRIPTOR.text);
-  };
-
-type_descriptor returns [TypeIdItem type]
-  : VOID_TYPE {$type = TypeIdItem.internTypeIdItem(dexFile, "V");}
+type_descriptor returns [String type]
+  : VOID_TYPE {$type = "V";}
   | nonvoid_type_descriptor {$type = $nonvoid_type_descriptor.type;}
   ;
 
@@ -1492,75 +1345,71 @@ string_literal returns[String value]
 bool_literal returns[boolean value]
   : BOOL_LITERAL { $value = Boolean.parseBoolean($BOOL_LITERAL.text); };
 
-array_literal returns[EncodedValue[\] values]
+array_literal returns[List<EncodedValue> values]
   : {ArrayList<EncodedValue> valuesList = new ArrayList<EncodedValue>();}
     ^(I_ENCODED_ARRAY (literal {valuesList.add($literal.encodedValue);})*)
     {
-      $values = new EncodedValue[valuesList.size()];
-      valuesList.toArray($values);
+      $values = valuesList;
     };
 
 
-annotations returns[AnnotationSetItem annotationSetItem]
-  : {ArrayList<AnnotationItem> annotationList = new ArrayList<AnnotationItem>();}
-    ^(I_ANNOTATIONS (annotation {annotationList.add($annotation.annotationItem);} )*)
+annotations returns[Set<Annotation> annotations]
+  : {HashMap<String, Annotation> annotationMap = Maps.newHashMap();}
+    ^(I_ANNOTATIONS (annotation
     {
-      if (annotationList.size() > 0) {
-        $annotationSetItem = AnnotationSetItem.internAnnotationSetItem(dexFile, annotationList);
+        Annotation anno = $annotation.annotation;
+        Annotation old = annotationMap.put(anno.getType(), anno);
+        if (old != null) {
+            throw new SemanticException(input, "Multiple annotations of type \%s", anno.getType());
+        }
+    })*)
+    {
+      if (annotationMap.size() > 0) {
+        $annotations = ImmutableSet.copyOf(annotationMap.values());
       }
     };
 
-
-annotation returns[AnnotationItem annotationItem]
+annotation returns[Annotation annotation]
   : ^(I_ANNOTATION ANNOTATION_VISIBILITY subannotation)
     {
-      AnnotationVisibility visibility = AnnotationVisibility.valueOf($ANNOTATION_VISIBILITY.text.toUpperCase());
-      AnnotationEncodedSubValue encodedAnnotation = new AnnotationEncodedSubValue($subannotation.annotationType,
-          $subannotation.elementNames, $subannotation.elementValues);
-      $annotationItem = AnnotationItem.internAnnotationItem(dexFile, visibility, encodedAnnotation);
+      int visibility = AnnotationVisibility.getVisibility($ANNOTATION_VISIBILITY.text);
+      $annotation = new ImmutableAnnotation(visibility, $subannotation.annotationType, $subannotation.elements);
     };
 
-annotation_element returns[StringIdItem elementName, EncodedValue elementValue]
+annotation_element returns[AnnotationElement element]
   : ^(I_ANNOTATION_ELEMENT SIMPLE_NAME literal)
     {
-      $elementName = StringIdItem.internStringIdItem(dexFile, $SIMPLE_NAME.text);
-      $elementValue = $literal.encodedValue;
+      $element = new ImmutableAnnotationElement($SIMPLE_NAME.text, $literal.encodedValue);
     };
 
-subannotation returns[TypeIdItem annotationType, StringIdItem[\] elementNames, EncodedValue[\] elementValues]
-  : {ArrayList<StringIdItem> elementNamesList = new ArrayList<StringIdItem>();
-    ArrayList<EncodedValue> elementValuesList = new ArrayList<EncodedValue>();}
+subannotation returns[String annotationType, List<AnnotationElement> elements]
+  : {ArrayList<AnnotationElement> elements = Lists.newArrayList();}
     ^(I_SUBANNOTATION
-        class_type_descriptor
+        CLASS_DESCRIPTOR
         (annotation_element
         {
-          elementNamesList.add($annotation_element.elementName);
-          elementValuesList.add($annotation_element.elementValue);
-        }
-        )*
+           elements.add($annotation_element.element);
+        })*
      )
     {
-      $annotationType = $class_type_descriptor.type;
-      $elementNames = new StringIdItem[elementNamesList.size()];
-      elementNamesList.toArray($elementNames);
-      $elementValues = new EncodedValue[elementValuesList.size()];
-      elementValuesList.toArray($elementValues);
+      $annotationType = $CLASS_DESCRIPTOR.text;
+      $elements = elements;
     };
 
-field_literal returns[FieldIdItem value]
+field_literal returns[FieldReference value]
   : ^(I_ENCODED_FIELD fully_qualified_field)
     {
-      $value = $fully_qualified_field.fieldIdItem;
+      $value = $fully_qualified_field.fieldReference;
     };
 
-method_literal returns[MethodIdItem value]
+method_literal returns[MethodReference value]
   : ^(I_ENCODED_METHOD fully_qualified_method)
     {
-      $value = $fully_qualified_method.methodIdItem;
+      $value = $fully_qualified_method.methodReference;
     };
 
-enum_literal returns[FieldIdItem value]
+enum_literal returns[FieldReference value]
   : ^(I_ENCODED_ENUM fully_qualified_field)
     {
-      $value = $fully_qualified_field.fieldIdItem;
+      $value = $fully_qualified_field.fieldReference;
     };

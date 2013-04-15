@@ -28,22 +28,22 @@
 
 package org.jf.smali;
 
-import org.antlr.runtime.*;
+import com.google.common.collect.Lists;
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.Token;
+import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.apache.commons.cli.*;
-import org.jf.dexlib.Code.Opcode;
-import org.jf.dexlib.CodeItem;
-import org.jf.dexlib.DexFile;
-import org.jf.dexlib.Util.ByteArrayAnnotatedOutput;
+import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.immutable.ImmutableDexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
 import java.io.*;
-import java.util.LinkedHashSet;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Main class for smali. It recognizes enough options to be able to dispatch
@@ -189,16 +189,17 @@ public class main {
 
             Opcode.updateMapsForApiLevel(apiLevel);
 
-            DexFile dexFile = new DexFile();
+            List<ClassDef> classes = Lists.newArrayList();
 
-            if (apiSet && apiLevel >= 14) {
+            // TODO: uncomment
+            /*if (apiSet && apiLevel >= 14) {
                 dexFile.HeaderItem.setVersion(36);
-            }
+            }*/
 
             boolean errors = false;
 
             for (File file: filesToProcess) {
-                if (!assembleSmaliFile(file, dexFile, verboseErrors, printTokens, allowOdex, apiLevel)) {
+                if (!assembleSmaliFile(file, classes, verboseErrors, printTokens, allowOdex, apiLevel)) {
                     errors = true;
                 }
             }
@@ -208,41 +209,18 @@ public class main {
             }
 
 
-            if (sort) {
+            // TODO: uncomment
+            /*if (sort) {
                 dexFile.setSortAllItems(true);
-            }
+            }*/
 
-            if (fixJumbo || fixGoto) {
+            // TODO: uncomment
+            /*if (fixJumbo || fixGoto) {
                 fixInstructions(dexFile, fixJumbo, fixGoto);
-            }
+            }*/
 
-            dexFile.place();
 
-            ByteArrayAnnotatedOutput out = new ByteArrayAnnotatedOutput();
-
-            if (dumpFileName != null) {
-                out.enableAnnotations(120, true);
-            }
-
-            dexFile.writeTo(out);
-
-            byte[] bytes = out.toByteArray();
-
-            DexFile.calcSignature(bytes);
-            DexFile.calcChecksum(bytes);
-
-            if (dumpFileName != null) {
-                out.finishAnnotating();
-
-                FileWriter fileWriter = new FileWriter(dumpFileName);
-                out.writeAnnotationsTo(fileWriter);
-                fileWriter.close();
-            }
-
-            FileOutputStream fileOutputStream = new FileOutputStream(outputDexFile);
-
-            fileOutputStream.write(bytes);
-            fileOutputStream.close();
+            DexFileFactory.writeDexFile(outputDexFile, new ImmutableDexFile(classes));
         } catch (RuntimeException ex) {
             System.err.println("\nUNEXPECTED TOP-LEVEL EXCEPTION:");
             ex.printStackTrace();
@@ -264,15 +242,16 @@ public class main {
         }
     }
 
-    private static void fixInstructions(DexFile dexFile, boolean fixJumbo, boolean fixGoto) {
+    // TODO: uncomment
+    /*private static void fixInstructions(DexFile dexFile, boolean fixJumbo, boolean fixGoto) {
         dexFile.place();
 
         for (CodeItem codeItem: dexFile.CodeItemsSection.getItems()) {
             codeItem.fixInstructions(fixJumbo, fixGoto);
         }
-    }
+    }*/
 
-    private static boolean assembleSmaliFile(File smaliFile, DexFile dexFile, boolean verboseErrors,
+    private static boolean assembleSmaliFile(File smaliFile, List<ClassDef> classes, boolean verboseErrors,
                                              boolean printTokens, boolean allowOdex, int apiLevel)
             throws Exception {
         CommonTokenStream tokens;
@@ -319,8 +298,12 @@ public class main {
 
         smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
         dexGen.setVerboseErrors(verboseErrors);
-        dexGen.dexFile = dexFile;
-        dexGen.smali_file();
+        ClassDef classDef = dexGen.smali_file();
+
+        // TODO: will this ever be null? if so, what should happen?
+        if (classDef != null) {
+            classes.add(classDef);
+        }
 
         if (dexGen.getNumberOfSyntaxErrors() > 0) {
             return false;

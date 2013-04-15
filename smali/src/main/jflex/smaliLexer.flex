@@ -447,8 +447,12 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
         return newToken(INSTRUCTION_FORMAT21c_TYPE);
     }
 
-    "const/high16" | "const-wide/high16" {
-        return newToken(INSTRUCTION_FORMAT21h);
+    "const/high16" {
+        return newToken(INSTRUCTION_FORMAT21ih);
+    }
+
+    "const-wide/high16" {
+        return newToken(INSTRUCTION_FORMAT21lh);
     }
 
     "const/16" | "const-wide/16" {

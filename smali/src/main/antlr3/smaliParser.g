@@ -102,7 +102,8 @@ tokens {
   INSTRUCTION_FORMAT21c_FIELD_ODEX;
   INSTRUCTION_FORMAT21c_STRING;
   INSTRUCTION_FORMAT21c_TYPE;
-  INSTRUCTION_FORMAT21h;
+  INSTRUCTION_FORMAT21ih;
+  INSTRUCTION_FORMAT21lh;
   INSTRUCTION_FORMAT21s;
   INSTRUCTION_FORMAT21t;
   INSTRUCTION_FORMAT22b;
@@ -200,13 +201,10 @@ tokens {
   I_ARRAY_ELEMENT_SIZE;
   I_ARRAY_ELEMENTS;
   I_PACKED_SWITCH_START_KEY;
-  I_PACKED_SWITCH_TARGET_COUNT;
-  I_PACKED_SWITCH_TARGETS;
+  I_PACKED_SWITCH_ELEMENTS;
   I_PACKED_SWITCH_DECLARATION;
   I_PACKED_SWITCH_DECLARATIONS;
-  I_SPARSE_SWITCH_KEYS;
-  I_SPARSE_SWITCH_TARGET_COUNT;
-  I_SPARSE_SWITCH_TARGETS;
+  I_SPARSE_SWITCH_ELEMENTS;
   I_SPARSE_SWITCH_DECLARATION;
   I_SPARSE_SWITCH_DECLARATIONS;
   I_ADDRESS;
@@ -234,7 +232,8 @@ tokens {
   I_STATEMENT_FORMAT21c_TYPE;
   I_STATEMENT_FORMAT21c_FIELD;
   I_STATEMENT_FORMAT21c_STRING;
-  I_STATEMENT_FORMAT21h;
+  I_STATEMENT_FORMAT21ih;
+  I_STATEMENT_FORMAT21lh;
   I_STATEMENT_FORMAT21s;
   I_STATEMENT_FORMAT21t;
   I_STATEMENT_FORMAT22b;
@@ -264,8 +263,8 @@ tokens {
 @header {
 package org.jf.smali;
 
-import org.jf.dexlib.Code.Format.*;
-import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib2.Format;
+import org.jf.dexlib2.Opcode;
 }
 
 
@@ -831,7 +830,8 @@ instruction returns [int size]
   | insn_format21c_field_odex { $size = $insn_format21c_field_odex.size; }
   | insn_format21c_string { $size = $insn_format21c_string.size; }
   | insn_format21c_type { $size = $insn_format21c_type.size; }
-  | insn_format21h { $size = $insn_format21h.size; }
+  | insn_format21ih { $size = $insn_format21ih.size; }
+  | insn_format21lh { $size = $insn_format21lh.size; }
   | insn_format21s { $size = $insn_format21s.size; }
   | insn_format21t { $size = $insn_format21t.size; }
   | insn_format22b { $size = $insn_format22b.size; }
@@ -937,10 +937,15 @@ insn_format21c_type returns [int size]
     INSTRUCTION_FORMAT21c_TYPE REGISTER COMMA reference_type_descriptor {$size = Format.Format21c.size;}
     -> ^(I_STATEMENT_FORMAT21c_TYPE[$start, "I_STATEMENT_FORMAT21c"] INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor);
 
-insn_format21h returns [int size]
+insn_format21ih returns [int size]
   : //e.g. const/high16 v1, 1234
-    INSTRUCTION_FORMAT21h REGISTER COMMA integral_literal {$size = Format.Format21h.size;}
-    -> ^(I_STATEMENT_FORMAT21h[$start, "I_STATEMENT_FORMAT21h"] INSTRUCTION_FORMAT21h REGISTER integral_literal);
+    INSTRUCTION_FORMAT21ih REGISTER COMMA integral_literal {$size = Format.Format21ih.size;}
+    -> ^(I_STATEMENT_FORMAT21ih[$start, "I_STATEMENT_FORMAT21ih"] INSTRUCTION_FORMAT21ih REGISTER integral_literal);
+
+insn_format21lh returns [int size]
+  : //e.g. const-wide/high16 v1, 1234
+    INSTRUCTION_FORMAT21lh REGISTER COMMA integral_literal {$size = Format.Format21lh.size;}
+    -> ^(I_STATEMENT_FORMAT21lh[$start, "I_STATEMENT_FORMAT21lh"] INSTRUCTION_FORMAT21lh REGISTER integral_literal);
 
 insn_format21s returns [int size]
   : //e.g. const/16 v1, 1234
@@ -1112,87 +1117,33 @@ insn_format51l returns [int size]
     -> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal);
 
 insn_array_data_directive returns [int size]
-    @init {boolean needsNop = false;}
   :   ARRAY_DATA_DIRECTIVE
-    {
-      if (($method::currentAddress \% 2) != 0) {
-        needsNop = true;
-        $size = 2;
-      } else {
-        $size = 0;
-      }
-    }
 
     integral_literal (fixed_literal {$size+=$fixed_literal.size;})* END_ARRAY_DATA_DIRECTIVE
     {$size = (($size + 1)/2)*2 + 8;}
-
-    /*add a nop statement before this if needed to force the correct alignment*/
-    -> {needsNop}? ^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"])
-       ^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE integral_literal) ^(I_ARRAY_ELEMENTS fixed_literal*))
 
     -> ^(I_STATEMENT_ARRAY_DATA[$start, "I_STATEMENT_ARRAY_DATA"] ^(I_ARRAY_ELEMENT_SIZE integral_literal)
        ^(I_ARRAY_ELEMENTS fixed_literal*));
 
 insn_packed_switch_directive returns [int size]
-    @init {boolean needsNop = false; int targetCount = 0;}
     :   PACKED_SWITCH_DIRECTIVE
-    {
-      targetCount = 0;
-      if (($method::currentAddress \% 2) != 0) {
-        needsNop = true;
-        $size = 2;
-      } else {
-        $size = 0;
-      }
-    }
-
     fixed_32bit_literal
 
-    (switch_target += label_ref_or_offset {$size+=4; targetCount++;})*
+    (switch_target += label_ref_or_offset {$size+=4;})*
 
     END_PACKED_SWITCH_DIRECTIVE {$size = $size + 8;}
 
-    /*add a nop statement before this if needed to force the correct alignment*/
-    -> {needsNop}? ^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"])
-         ^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"]
-         ^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal)
-         ^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"]
-           I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
-       )
-
     -> ^(I_STATEMENT_PACKED_SWITCH[$start, "I_STATEMENT_PACKED_SWITCH"]
          ^(I_PACKED_SWITCH_START_KEY[$start, "I_PACKED_SWITCH_START_KEY"] fixed_32bit_literal)
-         ^(I_PACKED_SWITCH_TARGETS[$start, "I_PACKED_SWITCH_TARGETS"]
-           I_PACKED_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)] $switch_target*)
+         ^(I_PACKED_SWITCH_ELEMENTS[$start, "I_PACKED_SWITCH_ELEMENTS"]
+          $switch_target*)
        );
 
 insn_sparse_switch_directive returns [int size]
-    @init {boolean needsNop = false; int targetCount = 0;}
   :   SPARSE_SWITCH_DIRECTIVE
-    {
-      targetCount = 0;
-      if (($method::currentAddress \% 2) != 0) {
-        needsNop = true;
-        $size = 2;
-      } else {
-        $size = 0;
-      }
-    }
-
-    (fixed_32bit_literal ARROW switch_target += label_ref_or_offset {$size += 8; targetCount++;})*
+    (fixed_32bit_literal ARROW switch_target += label_ref_or_offset {$size += 8;})*
 
     END_SPARSE_SWITCH_DIRECTIVE {$size = $size + 4;}
 
-    /*add a nop statement before this if needed to force the correct alignment*/
-    -> {needsNop}?
-       ^(I_STATEMENT_FORMAT10x[$start,  "I_STATEMENT_FORMAT10x"] INSTRUCTION_FORMAT10x[$start, "nop"])
-       ^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
-         I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
-         ^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
-         ^(I_SPARSE_SWITCH_TARGETS $switch_target*)
-       )
-
     -> ^(I_STATEMENT_SPARSE_SWITCH[$start, "I_STATEMENT_SPARSE_SWITCH"]
-       I_SPARSE_SWITCH_TARGET_COUNT[$start, Integer.toString(targetCount)]
-       ^(I_SPARSE_SWITCH_KEYS[$start, "I_SPARSE_SWITCH_KEYS"] fixed_32bit_literal*)
-       ^(I_SPARSE_SWITCH_TARGETS $switch_target*));
+       ^(I_SPARSE_SWITCH_ELEMENTS[$start, "I_SPARSE_SWITCH_ELEMENTS"] (fixed_32bit_literal $switch_target)*));
