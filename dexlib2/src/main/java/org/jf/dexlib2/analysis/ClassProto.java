@@ -60,6 +60,7 @@ public class ClassProto implements TypeProto {
     @Nonnull protected final String type;
     @Nullable protected ClassDef classDef;
     @Nullable protected Set<String> interfaces;
+    @Nullable protected LinkedHashMap<String, ClassDef> interfaceTable;
     @Nullable protected Method[] vtable;
     @Nullable protected SparseArray<FieldReference> instanceFields;
     protected boolean interfacesFullyResolved = true;
@@ -96,6 +97,13 @@ public class ClassProto implements TypeProto {
             instanceFields = loadFields();
         }
         return instanceFields;
+    }
+
+    LinkedHashMap<String, ClassDef> getInterfaceTable() {
+        if (interfaceTable == null) {
+            interfaceTable = loadInterfaceTable();
+        }
+        return interfaceTable;
     }
 
     /**
@@ -557,7 +565,7 @@ public class ClassProto implements TypeProto {
 
         LinkedHashMap<String, ClassDef> interfaceTable = Maps.newLinkedHashMap();
 
-        for (String interfaceType: getInterfaces()) {
+        for (String interfaceType: getClassDef().getInterfaces()) {
             if (!interfaceTable.containsKey(interfaceType)) {
                 ClassDef interfaceDef;
                 try {
@@ -567,6 +575,15 @@ public class ClassProto implements TypeProto {
                             String.format("Could not find interface %s", interfaceType));
                 }
                 interfaceTable.put(interfaceType, interfaceDef);
+
+                ClassProto interfaceProto = (ClassProto) classPath.getClass(interfaceType);
+                if (interfaceProto != null) {
+                    for (ClassDef superInterface: interfaceProto.getInterfaceTable().values()) {
+                        if (!interfaceTable.containsKey(superInterface.getType())) {
+                            interfaceTable.put(superInterface.getType(), superInterface);
+                        }
+                    }
+                }
             }
         }
 
