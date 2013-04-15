@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import org.jf.dexlib2.base.BaseTryBlock;
 import org.jf.dexlib2.dexbacked.raw.CodeItem;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 import org.jf.dexlib2.iface.ExceptionHandler;
@@ -39,7 +40,7 @@ import org.jf.dexlib2.iface.TryBlock;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class DexBackedTryBlock implements TryBlock {
+public class DexBackedTryBlock extends BaseTryBlock implements TryBlock {
     @Nonnull public final DexBackedDexFile dexFile;
     private final int tryItemOffset;
     private final int handlersStartOffset;

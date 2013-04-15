@@ -32,7 +32,7 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.base.BaseTryBlock;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.util.ImmutableConverter;
@@ -41,9 +41,8 @@ import org.jf.util.ImmutableUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Set;
 
-public class ImmutableTryBlock implements TryBlock {
+public class ImmutableTryBlock extends BaseTryBlock implements TryBlock {
     protected final int startCodeAddress;
     protected final int codeUnitCount;
     @Nonnull protected final ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers;

@@ -32,6 +32,7 @@
 package org.jf.dexlib2.iface;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -67,4 +68,15 @@ public interface TryBlock {
      * @return A list of ExceptionHandler objects
      */
     @Nonnull List<? extends ExceptionHandler> getExceptionHandlers();
+
+    /**
+     * Compares this TryBlock to another TryBlock for equality.
+     *
+     * This TryBlock is equal to another TryBlock if all 3 fields are equal. The exception handlers are tested for
+     * equality using the usual List equality semantics.
+     *
+     * @param o The object to be compared for equality with this TryBlock
+     * @return true if the specified object is equal to this TryBlock
+     */
+    @Override boolean equals(@Nullable Object o);
 }
