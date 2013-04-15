@@ -46,6 +46,7 @@ import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.writer.util.InstructionWriteUtil;
+import org.jf.dexlib2.writer.util.TryListBuilder;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -152,7 +153,7 @@ public class CodeItemPool {
                 InstructionWriteUtil instrWriteUtil = new InstructionWriteUtil(methodImpl, dexFile.stringPool);
                 writer.writeUshort(instrWriteUtil.getOutParamCount());
 
-                List<? extends TryBlock> tryBlocks = methodImpl.getTryBlocks();
+                List<? extends TryBlock> tryBlocks = TryListBuilder.massageTryBlocks(methodImpl.getTryBlocks());
                 writer.writeUshort(tryBlocks.size());
                 writer.writeInt(dexFile.debugInfoPool.getOffset(method));
                 writer.writeInt(instrWriteUtil.getCodeUnitCount());

@@ -62,6 +62,20 @@ public class TryListBuilder
         listEnd.prev = listStart;
     }
 
+    public static List<TryBlock> massageTryBlocks(List<? extends TryBlock> tryBlocks) {
+        TryListBuilder tlb = new TryListBuilder();
+        for (TryBlock tryBlock: tryBlocks) {
+            int startAddress = tryBlock.getStartCodeAddress();
+            int endAddress = startAddress + tryBlock.getCodeUnitCount();
+
+            for (ExceptionHandler exceptionHandler: tryBlock.getExceptionHandlers()) {
+                tlb.addHandler(exceptionHandler.getExceptionType(), startAddress, endAddress,
+                        exceptionHandler.getHandlerCodeAddress());
+            }
+        }
+        return tlb.getTryBlocks();
+    }
+
     private static class TryBounds {
         @Nonnull public final MutableTryBlock start;
         @Nonnull public final MutableTryBlock end;
