@@ -589,7 +589,7 @@ public class ClassProto implements TypeProto {
             boolean found = false;
             for (int i=0; i<vtable.size(); i++) {
                 Method superMethod = vtable.get(i);
-                if (superMethod.equals(virtualMethod)) {
+                if (methodSignaturesMatch(superMethod, virtualMethod)) {
                     if (canAccess(superMethod)) {
                         found = true;
                         vtable.set(i, virtualMethod);
@@ -601,6 +601,15 @@ public class ClassProto implements TypeProto {
                 vtable.add(virtualMethod);
             }
         }
+    }
+
+    private boolean methodSignaturesMatch(Method a, Method b) {
+        if (a.getName().equals(b.getName())
+                && a.getReturnType().equals(b.getReturnType())
+                && a.getParameters().equals(b.getParameters())) {
+            return true;
+        }
+        return false;
     }
 
     private boolean canAccess(Method virtualMethod) {
