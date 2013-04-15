@@ -409,13 +409,7 @@ public class TryListBuilderTest {
         List<TryBlock> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
-                new ImmutableTryBlock(0, 5,
-                        ImmutableList.of(
-                                new ImmutableExceptionHandler("LException1;", 5))),
-                new ImmutableTryBlock(5, 5,
-                        ImmutableList.of(
-                                new ImmutableExceptionHandler("LException1;", 5))),
-                new ImmutableTryBlock(10, 5,
+                new ImmutableTryBlock(0, 15,
                         ImmutableList.of(
                                 new ImmutableExceptionHandler("LException1;", 5))));
 
@@ -517,13 +511,7 @@ public class TryListBuilderTest {
         List<TryBlock> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
-                new ImmutableTryBlock(0, 5,
-                        ImmutableList.of(
-                                new ImmutableExceptionHandler(null, 5))),
-                new ImmutableTryBlock(5, 5,
-                        ImmutableList.of(
-                                new ImmutableExceptionHandler(null, 5))),
-                new ImmutableTryBlock(10, 5,
+                new ImmutableTryBlock(0, 15,
                         ImmutableList.of(
                                 new ImmutableExceptionHandler(null, 5))));
 
@@ -541,5 +529,38 @@ public class TryListBuilderTest {
             return;
         }
         Assert.fail();
+    }
+
+    @Test
+    public void testHandlerMerge_MergeSame() {
+        TryListBuilder tlb = new TryListBuilder();
+
+        tlb.addHandler(null, 0, 15, 6);
+        tlb.addHandler("LException1;", 10, 20, 5);
+        tlb.addHandler("LException1;", 20, 30, 5);
+        tlb.addHandler(null, 25, 40, 6);
+
+        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+
+        List<? extends TryBlock> expected = ImmutableList.of(
+                new ImmutableTryBlock(0, 10,
+                        ImmutableList.of(
+                                new ImmutableExceptionHandler(null, 6))),
+                new ImmutableTryBlock(10, 5,
+                        ImmutableList.of(
+                                new ImmutableExceptionHandler(null, 6),
+                                new ImmutableExceptionHandler("LException1;", 5))),
+                new ImmutableTryBlock(15, 10,
+                        ImmutableList.of(
+                                new ImmutableExceptionHandler("LException1;", 5))),
+                new ImmutableTryBlock(25, 5,
+                        ImmutableList.of(
+                                new ImmutableExceptionHandler("LException1;", 5),
+                                new ImmutableExceptionHandler(null, 6))),
+                new ImmutableTryBlock(30, 10,
+                        ImmutableList.of(
+                                new ImmutableExceptionHandler(null, 6))));
+
+        Assert.assertEquals(expected, tryBlocks);
     }
 }

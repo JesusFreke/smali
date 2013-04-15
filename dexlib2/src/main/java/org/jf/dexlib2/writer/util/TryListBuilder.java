@@ -39,6 +39,7 @@ import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -123,6 +124,17 @@ public class TryListBuilder
             endCodeAddress = splitAddress;
             append(newTryBlock);
             return newTryBlock;
+        }
+
+        public void delete() {
+            next.prev = prev;
+            prev.next = next;
+        }
+
+        public void mergeNext() {
+            //assert next.startCodeAddress == this.endCodeAddress;
+            this.endCodeAddress = next.endCodeAddress;
+            next.delete();
         }
 
         public void append(@Nonnull MutableTryBlock tryBlock) {
@@ -296,18 +308,48 @@ public class TryListBuilder
 
     public List<TryBlock> getTryBlocks() {
         return Lists.newArrayList(new Iterator<TryBlock>() {
-            private MutableTryBlock tryBlock = listStart;
+            // The next TryBlock to return. This has already been merged, if needed.
+            @Nullable private MutableTryBlock next;
+
+            {
+                next = listStart;
+                next = readNextItem();
+            }
+
+            /**
+             * Read the item that comes after the current value of the next field.
+             * @return The next item, or null if there is no next item
+             */
+            @Nullable protected MutableTryBlock readNextItem() {
+                // We can assume that next is not null
+                MutableTryBlock ret = next.next;
+
+                if (ret == listEnd) {
+                    return null;
+                }
+
+                while (ret.next != listEnd) {
+                    if (ret.endCodeAddress == ret.next.startCodeAddress &&
+                            ret.getExceptionHandlers().equals(ret.next.getExceptionHandlers())) {
+                        ret.mergeNext();
+                    } else {
+                        break;
+                    }
+                }
+                return ret;
+            }
 
             @Override public boolean hasNext() {
-                return tryBlock.next != listEnd;
+                return next != null;
             }
 
             @Override public TryBlock next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
-                tryBlock = tryBlock.next;
-                return tryBlock;
+                TryBlock ret = next;
+                next = readNextItem();
+                return ret;
             }
 
             @Override public void remove() {
