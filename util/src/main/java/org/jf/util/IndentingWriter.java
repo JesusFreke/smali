@@ -34,7 +34,7 @@ import java.io.Writer;
 // TODO: add a write(String) method that doesn't scan for embedded newlines?
 public class IndentingWriter extends Writer {
     protected final Writer writer;
-    protected final char[] buffer = new char[16];
+    protected final char[] buffer = new char[24];
     protected int indentLevel = 0;
     private boolean beginningOfLine = true;
     private static final String newLine = System.getProperty("line.separator");
@@ -176,23 +176,25 @@ public class IndentingWriter extends Writer {
     }
 
     public void printUnsignedLongAsHex(long value) throws IOException {
-        int bufferIndex = 0;
+        int bufferIndex = 23;
         do {
             int digit = (int)(value & 15);
             if (digit < 10) {
-                buffer[bufferIndex++] = (char)(digit + '0');
+                buffer[bufferIndex--] = (char)(digit + '0');
             } else {
-                buffer[bufferIndex++] = (char)((digit - 10) + 'a');
+                buffer[bufferIndex--] = (char)((digit - 10) + 'a');
             }
 
             value >>>= 4;
         } while (value != 0);
 
-        writeLine(buffer, 0, bufferIndex);
+        bufferIndex++;
+
+        writeLine(buffer, bufferIndex, 24-bufferIndex);
     }
 
     public void printSignedIntAsDec(int value) throws IOException {
-        int bufferIndex = 0;
+        int bufferIndex = 15;
 
         if (value < 0) {
             value *= -1;
@@ -201,11 +203,13 @@ public class IndentingWriter extends Writer {
 
         do {
             int digit = value % 10;
-            buffer[bufferIndex++] = (char)(digit + '0');
+            buffer[bufferIndex--] = (char)(digit + '0');
 
             value = value / 10;
         } while (value != 0);
 
-        writeLine(buffer, 0, bufferIndex);
+        bufferIndex++;
+
+        writeLine(buffer, bufferIndex, 16-bufferIndex);
     }
 }
