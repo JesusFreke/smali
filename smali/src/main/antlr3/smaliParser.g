@@ -756,14 +756,13 @@ the annotations. If it turns out that they are parameter annotations, we include
 add them to the $statements_and_directives::methodAnnotations list*/
 parameter_directive
   @init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
-  : PARAMETER_DIRECTIVE
-    STRING_LITERAL?
+  : PARAMETER_DIRECTIVE REGISTER COMMA simple_name
     ({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation {annotations.add($annotation.tree);})*
 
     ( END_PARAMETER_DIRECTIVE
-      -> ^(I_PARAMETER[$start, "I_PARAMETER"] STRING_LITERAL? ^(I_ANNOTATIONS annotation*))
+      -> ^(I_PARAMETER[$start, "I_PARAMETER"] REGISTER simple_name ^(I_ANNOTATIONS annotation*))
     | /*epsilon*/ {$statements_and_directives::methodAnnotations.addAll(annotations);}
-      -> ^(I_PARAMETER[$start, "I_PARAMETER"] STRING_LITERAL? ^(I_ANNOTATIONS))
+      -> ^(I_PARAMETER[$start, "I_PARAMETER"] REGISTER simple_name ^(I_ANNOTATIONS))
     );
 
 ordered_debug_directive

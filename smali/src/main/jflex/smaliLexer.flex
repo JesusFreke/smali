@@ -254,8 +254,8 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     ".catch" { return newToken(CATCH_DIRECTIVE); }
     ".catchall" { return newToken(CATCHALL_DIRECTIVE); }
     ".line" { return newToken(LINE_DIRECTIVE); }
-    ".parameter" { return newToken(PARAMETER_DIRECTIVE); }
-    ".end parameter" { return newToken(END_PARAMETER_DIRECTIVE); }
+    ".param" { return newToken(PARAMETER_DIRECTIVE); }
+    ".end param" { return newToken(END_PARAMETER_DIRECTIVE); }
     ".local" { return newToken(LOCAL_DIRECTIVE); }
     ".end local" { return newToken(END_LOCAL_DIRECTIVE); }
     ".restart local" { return newToken(RESTART_LOCAL_DIRECTIVE); }

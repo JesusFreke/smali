@@ -63,6 +63,7 @@ import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.dexlib2.immutable.reference.*;
 import org.jf.dexlib2.immutable.value.*;
 import org.jf.dexlib2.util.MethodUtil;
+import org.jf.util.LinearSearch;
 
 
 }
@@ -341,6 +342,7 @@ method returns[Method ret]
     int currentAddress;
     HashMap<Integer, Integer> packedSwitchDeclarations;
     HashMap<Integer, Integer> sparseSwitchDeclarations;
+    boolean isStatic;
     int totalMethodRegisters;
     int methodParameterRegisters;
   }
@@ -349,11 +351,11 @@ method returns[Method ret]
     $method::totalMethodRegisters = 0;
     $method::methodParameterRegisters = 0;
     int accessFlags = 0;
-    boolean isStatic = false;
     $method::labels = new HashMap<String, Integer>();
     $method::currentAddress = 0;
     $method::packedSwitchDeclarations = new HashMap<Integer, Integer>();
     $method::sparseSwitchDeclarations = new HashMap<Integer, Integer>();
+    $method::isStatic = false;
   }
   :
     ^(I_METHOD
@@ -361,8 +363,9 @@ method returns[Method ret]
       access_list
       {
         accessFlags = $access_list.value;
-        isStatic = AccessFlags.STATIC.isSet(accessFlags);
-        $method::methodParameterRegisters = MethodUtil.getParameterRegisterCount($method_name_and_prototype.parameters, isStatic);
+        $method::isStatic = AccessFlags.STATIC.isSet(accessFlags);
+        $method::methodParameterRegisters =
+                MethodUtil.getParameterRegisterCount($method_name_and_prototype.parameters, $method::isStatic);
       }
       (registers_directive
        {
@@ -456,7 +459,7 @@ method returns[Method ret]
     $ret = new ImmutableMethod(
             classType,
             $method_name_and_prototype.name,
-            $parameters.parameters,
+            $method_name_and_prototype.parameters,
             $method_name_and_prototype.returnType,
             accessFlags,
             $annotations.annotations,
@@ -470,11 +473,20 @@ method_prototype returns[List<String> parameters, String returnType]
     $parameters = $field_type_list.types;
   };
 
-method_name_and_prototype returns[String name, List<String> parameters, String returnType]
+method_name_and_prototype returns[String name, List<SmaliMethodParameter> parameters, String returnType]
   : SIMPLE_NAME method_prototype
   {
     $name = $SIMPLE_NAME.text;
-    $parameters = $method_prototype.parameters;
+    $parameters = Lists.newArrayList();
+
+    int paramRegister = 0;
+    for (String type: $method_prototype.parameters) {
+        $parameters.add(new SmaliMethodParameter(paramRegister++, type));
+        char c = type.charAt(0);
+        if (c == 'J' || c == 'J') {
+            paramRegister++;
+        }
+    }
     $returnType = $method_prototype.returnType;
   };
 
@@ -594,34 +606,42 @@ address returns[int address]
       $address = Integer.parseInt($I_ADDRESS.text);
     };
 
-parameters[List<String> parameterTypes] returns[List<MethodParameter> parameters]
-  @init
-  {
-    Iterator<String> parameterIter = parameterTypes.iterator();
-    $parameters = Lists.newArrayList();
-  }
-  : ^(I_PARAMETERS (parameter[parameterIter] { $parameters.add($parameter.parameter); })*)
-  {
-    String paramType;
-    while (parameterIter.hasNext()) {
-      paramType = parameterIter.next();
-      $parameters.add(new ImmutableMethodParameter(paramType, null, null));
-    }
-  };
+parameters[List<SmaliMethodParameter> parameters]
+  : ^(I_PARAMETERS (parameter[parameters])*);
 
-parameter[Iterator<String> parameterTypes] returns[MethodParameter parameter]
-  : ^(I_PARAMETER string_literal? annotations
-        {
-            if (!$parameterTypes.hasNext()) {
-                throw new SemanticException(input, $I_PARAMETER, "Too many .parameter directives specified.");
-            }
-            String type = $parameterTypes.next();
-            String name = $string_literal.value;
-            Set<Annotation> annotations = $annotations.annotations;
+parameter[List<SmaliMethodParameter> parameters]
+  : ^(I_PARAMETER REGISTER SIMPLE_NAME annotations)
+    {
+        final int registerNumber = parseRegister_short($REGISTER.text);
+        int totalMethodRegisters = $method::totalMethodRegisters;
+        int methodParameterRegisters = $method::methodParameterRegisters;
 
-            $parameter = new ImmutableMethodParameter(type, annotations, name);
+        if (registerNumber >= totalMethodRegisters) {
+            throw new SemanticException(input, $I_PARAMETER, "Register \%s is larger than the maximum register v\%d " +
+                    "for this method", $REGISTER.text, totalMethodRegisters-1);
         }
-    );
+        final int indexGuess = registerNumber - (totalMethodRegisters - methodParameterRegisters) - ($method::isStatic?0:1);
+
+        if (indexGuess < 0) {
+            throw new SemanticException(input, $I_PARAMETER, "Register \%s is not a parameter register.",
+                    $REGISTER.text);
+        }
+
+        int parameterIndex = LinearSearch.linearSearch(parameters, SmaliMethodParameter.COMPARATOR,
+            new WithRegister() { public int getRegister() { return indexGuess; } },
+                indexGuess);
+
+        if (parameterIndex < 0) {
+            throw new SemanticException(input, $I_PARAMETER, "Register \%s is the second half of a wide parameter.",
+                                $REGISTER.text);
+        }
+
+        SmaliMethodParameter methodParameter = parameters.get(parameterIndex);
+        methodParameter.name = $SIMPLE_NAME.text;
+        if ($annotations.annotations != null && $annotations.annotations.size() > 0) {
+            methodParameter.annotations = $annotations.annotations;
+        }
+    };
 
 ordered_debug_directives returns[List<DebugItem> debugItems]
   @init {debugItems = Lists.newArrayList();}
