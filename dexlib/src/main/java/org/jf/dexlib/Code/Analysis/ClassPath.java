@@ -724,6 +724,14 @@ public class ClassPath {
             return superclass;
         }
 
+        VirtualMethod[] getVtable() {
+            return vtable;
+        }
+
+        SparseArray<FieldDef> getInstanceFields() {
+            return instanceFields;
+        }
+
         public int getClassDepth() {
             return classDepth;
         }
@@ -1207,7 +1215,7 @@ public class ClassPath {
         }
     }
 
-    private static class VirtualMethod {
+    static class VirtualMethod {
         public String containingClass;
         public String method;
         public boolean isPackagePrivate;
