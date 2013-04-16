@@ -777,7 +777,7 @@ ordered_debug_directive
 
 line_directive
   : LINE_DIRECTIVE integral_literal
-    -> ^(I_LINE integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+    -> ^(I_LINE[$start, "I_LINE"] integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 local_directive
   : LOCAL_DIRECTIVE REGISTER COMMA simple_name COLON nonvoid_type_descriptor (COMMA STRING_LITERAL)?
