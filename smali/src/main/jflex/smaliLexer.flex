@@ -45,7 +45,7 @@ import static org.jf.smali.smaliParser.*;
         }
         catch (java.io.IOException e) {
             System.err.println("shouldn't happen: " + e.getMessage());
-            return Token.EOF_TOKEN;
+            return newToken(EOF);
         }
     }
 

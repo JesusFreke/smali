@@ -255,7 +255,7 @@ literal returns[EncodedValue encodedValue]
   | bool_literal { $encodedValue = ImmutableBooleanEncodedValue.forBoolean($bool_literal.value); }
   | NULL_LITERAL { $encodedValue = ImmutableNullEncodedValue.INSTANCE; }
   | type_descriptor { $encodedValue = new ImmutableTypeEncodedValue($type_descriptor.type); }
-  | array_literal { $encodedValue = new ImmutableArrayEncodedValue($array_literal.values); }
+  | array_literal { $encodedValue = new ImmutableArrayEncodedValue($array_literal.elements); }
   | subannotation { $encodedValue = new ImmutableAnnotationEncodedValue($subannotation.annotationType, $subannotation.elements); }
   | field_literal { $encodedValue = new ImmutableFieldEncodedValue($field_literal.value); }
   | method_literal { $encodedValue = new ImmutableMethodEncodedValue($method_literal.value); }
@@ -295,12 +295,12 @@ fixed_32bit_literal returns[int value]
   | char_literal { $value = $char_literal.value; }
   | bool_literal { $value = $bool_literal.value?1:0; };
 
-array_elements returns[List<byte[\]> values]
-  : {$values = new ArrayList<byte[]>();}
+array_elements returns[List<byte[\]> elements]
+  : {$elements = Lists.newArrayList();}
     ^(I_ARRAY_ELEMENTS
       (fixed_size_literal
       {
-        $values.add($fixed_size_literal.value);
+        $elements.add($fixed_size_literal.value);
       })*);
 
 packed_switch_elements[int baseAddress, int firstKey] returns[List<SwitchElement> elements]
@@ -1221,7 +1221,7 @@ insn_array_data_directive[int totalMethodRegisters, int methodParameterRegisters
       // TODO: reimplement, after changing how it's parsed
       /*
       int elementWidth = $short_integral_literal.value;
-      List<byte[]> byteValues = $array_elements.values;
+      List<byte[]> byteValues = $array_elements.elements;
 
       int length = 0;
       for (byte[] byteValue: byteValues) {
@@ -1345,13 +1345,9 @@ string_literal returns[String value]
 bool_literal returns[boolean value]
   : BOOL_LITERAL { $value = Boolean.parseBoolean($BOOL_LITERAL.text); };
 
-array_literal returns[List<EncodedValue> values]
-  : {ArrayList<EncodedValue> valuesList = new ArrayList<EncodedValue>();}
-    ^(I_ENCODED_ARRAY (literal {valuesList.add($literal.encodedValue);})*)
-    {
-      $values = valuesList;
-    };
-
+array_literal returns[List<EncodedValue> elements]
+  : {$elements = Lists.newArrayList();}
+    ^(I_ENCODED_ARRAY (literal {$elements.add($literal.encodedValue);})*);
 
 annotations returns[Set<Annotation> annotations]
   : {HashMap<String, Annotation> annotationMap = Maps.newHashMap();}
