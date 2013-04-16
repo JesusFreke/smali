@@ -813,7 +813,7 @@ instruction[int totalMethodRegisters, int methodParameterRegisters, List<Instruc
   | insn_packed_switch_directive[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_packed_switch_directive.outRegisters; }
   | insn_sparse_switch_directive[$totalMethodRegisters, $methodParameterRegisters, $instructions] { $outRegisters = $insn_sparse_switch_directive.outRegisters; };
     catch [Exception ex] {
-      reportError(new SemanticException(input, ex));
+      reportError(new SemanticException(input, $start, ex.getMessage()));
       recover(input, null);
     }
 
