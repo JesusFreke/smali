@@ -933,26 +933,26 @@ insn_format21c_type[int totalMethodRegisters, int methodParameterRegisters, List
 
 insn_format21ih[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const/high16 v1, 1234
-    ^(I_STATEMENT_FORMAT21ih INSTRUCTION_FORMAT21ih REGISTER short_integral_literal)
+    ^(I_STATEMENT_FORMAT21ih INSTRUCTION_FORMAT21ih REGISTER fixed_32bit_literal)
     {
       Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21ih.text);
       short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      short litB = $short_integral_literal.value;
+      int litB = $fixed_32bit_literal.value;
 
-      instructions.add(new ImmutableInstruction21ih(opcode, regA, litB<<16));
+      instructions.add(new ImmutableInstruction21ih(opcode, regA, litB));
     };
 
 insn_format21lh[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const-wide/high16 v1, 1234
-    ^(I_STATEMENT_FORMAT21lh INSTRUCTION_FORMAT21lh REGISTER short_integral_literal)
+    ^(I_STATEMENT_FORMAT21lh INSTRUCTION_FORMAT21lh REGISTER fixed_64bit_literal)
     {
       Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21lh.text);
       short regA = parseRegister_byte($REGISTER.text, $totalMethodRegisters, $methodParameterRegisters);
 
-      short litB = $short_integral_literal.value;
+      long litB = $fixed_64bit_literal.value;
 
-      instructions.add(new ImmutableInstruction21lh(opcode, regA, ((long)litB)<<48));
+      instructions.add(new ImmutableInstruction21lh(opcode, regA, litB));
     };
 
 insn_format21s[int totalMethodRegisters, int methodParameterRegisters, List<Instruction> instructions] returns[int outRegisters]

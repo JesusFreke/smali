@@ -939,13 +939,13 @@ insn_format21c_type returns [int size]
 
 insn_format21ih returns [int size]
   : //e.g. const/high16 v1, 1234
-    INSTRUCTION_FORMAT21ih REGISTER COMMA integral_literal {$size = Format.Format21ih.size;}
-    -> ^(I_STATEMENT_FORMAT21ih[$start, "I_STATEMENT_FORMAT21ih"] INSTRUCTION_FORMAT21ih REGISTER integral_literal);
+    INSTRUCTION_FORMAT21ih REGISTER COMMA fixed_32bit_literal {$size = Format.Format21ih.size;}
+    -> ^(I_STATEMENT_FORMAT21ih[$start, "I_STATEMENT_FORMAT21ih"] INSTRUCTION_FORMAT21ih REGISTER fixed_32bit_literal);
 
 insn_format21lh returns [int size]
   : //e.g. const-wide/high16 v1, 1234
-    INSTRUCTION_FORMAT21lh REGISTER COMMA integral_literal {$size = Format.Format21lh.size;}
-    -> ^(I_STATEMENT_FORMAT21lh[$start, "I_STATEMENT_FORMAT21lh"] INSTRUCTION_FORMAT21lh REGISTER integral_literal);
+    INSTRUCTION_FORMAT21lh REGISTER COMMA fixed_32bit_literal {$size = Format.Format21lh.size;}
+    -> ^(I_STATEMENT_FORMAT21lh[$start, "I_STATEMENT_FORMAT21lh"] INSTRUCTION_FORMAT21lh REGISTER fixed_32bit_literal);
 
 insn_format21s returns [int size]
   : //e.g. const/16 v1, 1234
