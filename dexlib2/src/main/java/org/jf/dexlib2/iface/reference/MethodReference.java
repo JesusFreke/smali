@@ -77,7 +77,7 @@ public interface MethodReference extends Reference, Comparable<MethodReference> 
      * int hashCode =  getDefiningClass().hashCode();
      * hashCode = hashCode*31 + getName().hashCode();
      * hashCode = hashCode*31 + getReturnType().hashCode();
-     * hashCode = hashCode*31 + getParameters().hashCode();
+     * hashCode = hashCode*31 + CharSequenceUtils.listHashCode(getParameters());
      * }</pre>
      *
      * @return The hash code value for this MethodReference
@@ -88,7 +88,10 @@ public interface MethodReference extends Reference, Comparable<MethodReference> 
      * Compares this MethodReference to another MethodReference for equality.
      *
      * This MethodReference is equal to another MethodReference if all of it's "fields" are equal. That is, if
-     * the return values of getDefiningClass(), getName(), getReturnType() and getParameters() are all equal.
+     * the return values of getDefiningClass(), getName(), getReturnType() and getParameterTypes() are all equal.
+     *
+     * Equality for getParameters() should be tested by comparing the string representation of each element. I.e.
+     * CharSequenceUtils.listEquals(this.getParameterTypes(), other.getParameterTypes())
      *
      * @param o The object to be compared for equality with this MethodReference
      * @return true if the specified object is equal to this MethodReference
