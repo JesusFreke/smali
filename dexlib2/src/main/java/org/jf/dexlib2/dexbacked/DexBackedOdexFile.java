@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.io.ByteStreams;
+import org.jf.dexlib2.dexbacked.raw.HeaderItem;
 import org.jf.dexlib2.dexbacked.raw.OdexHeaderItem;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 
@@ -47,7 +48,7 @@ public class DexBackedOdexFile extends DexBackedDexFile {
     private static final int DEPENDENCY_START_OFFSET = 16;
 
     private final byte[] odexBuf;
-
+    private static int odexVersion = 0;
 
     public DexBackedOdexFile(@Nonnull byte[] odexBuf, byte[] dexBuf) {
         super(dexBuf);
@@ -57,6 +58,10 @@ public class DexBackedOdexFile extends DexBackedDexFile {
 
     @Override public boolean isOdexFile() {
         return true;
+    }
+
+    public int getOdexVersion() {
+        return odexVersion;
     }
 
     public List<String> getDependencies() {
@@ -95,6 +100,7 @@ public class DexBackedOdexFile extends DexBackedDexFile {
         }
 
         verifyMagic(partialHeader);
+        odexVersion = OdexHeaderItem.getVersion(partialHeader);
 
         is.reset();
         byte[] odexBuf = new byte[OdexHeaderItem.ITEM_SIZE];
