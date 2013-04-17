@@ -75,7 +75,7 @@ public class ClassDefItem {
                 out.annotate(4, "access_flags = 0x%x: %s", accessFlags,
                         Joiner.on('|').join(AccessFlags.getAccessFlagsForClass(accessFlags)));
 
-                int superclassIndex = dexFile.readSmallUint(out.getCursor());
+                int superclassIndex = dexFile.readOptionalUint(out.getCursor());
                 out.annotate(4, "superclass_idx = %s",
                         TypeIdItem.getOptionalReferenceAnnotation(dexFile, superclassIndex));
 
