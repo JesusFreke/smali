@@ -658,6 +658,9 @@ literal
   | type_field_method_literal
   | enum_literal;
 
+parsed_integer_literal returns[int value]
+  : integer_literal { $value = LiteralTools.parseInt($integer_literal.text); };
+
 integral_literal
   : LONG_LITERAL
   | integer_literal
@@ -1116,12 +1119,19 @@ insn_format51l returns [int size]
     -> ^(I_STATEMENT_FORMAT51l[$start, "I_STATEMENT_FORMAT51l"] INSTRUCTION_FORMAT51l REGISTER fixed_literal);
 
 insn_array_data_directive returns [int size]
-  :   ARRAY_DATA_DIRECTIVE
+  : ARRAY_DATA_DIRECTIVE
+    parsed_integer_literal
+    {
+        int elementWidth = $parsed_integer_literal.value;
+        if (elementWidth != 4 && elementWidth != 8 && elementWidth != 1 && elementWidth != 2) {
+            throw new SemanticException(input, $start, "Invalid element width: \%d. Must be 1, 2, 4 or 8", elementWidth);
+        }
+    }
 
-    integral_literal (fixed_literal {$size+=$fixed_literal.size;})* END_ARRAY_DATA_DIRECTIVE
-    {$size = (($size + 1)/2)*2 + 8;}
+    (fixed_literal {$size+=elementWidth;})* END_ARRAY_DATA_DIRECTIVE
+    {$size = (($size + 1) & ~1) + 8;}
 
-    -> ^(I_STATEMENT_ARRAY_DATA[$start, "I_STATEMENT_ARRAY_DATA"] ^(I_ARRAY_ELEMENT_SIZE integral_literal)
+    -> ^(I_STATEMENT_ARRAY_DATA[$start, "I_STATEMENT_ARRAY_DATA"] ^(I_ARRAY_ELEMENT_SIZE parsed_integer_literal)
        ^(I_ARRAY_ELEMENTS fixed_literal*));
 
 insn_packed_switch_directive returns [int size]

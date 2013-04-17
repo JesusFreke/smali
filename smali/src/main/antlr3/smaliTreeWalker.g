@@ -269,19 +269,17 @@ literal returns[EncodedValue encodedValue]
   | method_literal { $encodedValue = new ImmutableMethodEncodedValue($method_literal.value); }
   | enum_literal { $encodedValue = new ImmutableEnumEncodedValue($enum_literal.value); };
 
-
 //everything but string
-fixed_size_literal returns[byte[\] value]
-  : integer_literal { $value = LiteralTools.intToBytes($integer_literal.value); }
-  | long_literal { $value = LiteralTools.longToBytes($long_literal.value); }
-  | short_literal { $value = LiteralTools.shortToBytes($short_literal.value); }
-  | byte_literal { $value = new byte[] { $byte_literal.value }; }
-  | float_literal { $value = LiteralTools.floatToBytes($float_literal.value); }
-  | double_literal { $value = LiteralTools.doubleToBytes($double_literal.value); }
-  | char_literal { $value = LiteralTools.charToBytes($char_literal.value); }
-  | bool_literal { $value = LiteralTools.boolToBytes($bool_literal.value); };
+fixed_64bit_literal_number returns[Number value]
+  : integer_literal { $value = $integer_literal.value; }
+  | long_literal { $value = $long_literal.value; }
+  | short_literal { $value = $short_literal.value; }
+  | byte_literal { $value = $byte_literal.value; }
+  | float_literal { $value = Float.floatToRawIntBits($float_literal.value); }
+  | double_literal { $value = Double.doubleToRawLongBits($double_literal.value); }
+  | char_literal { $value = (int)$char_literal.value; }
+  | bool_literal { $value = $bool_literal.value?1:0; };
 
-//everything but string
 fixed_64bit_literal returns[long value]
   : integer_literal { $value = $integer_literal.value; }
   | long_literal { $value = $long_literal.value; }
@@ -303,12 +301,12 @@ fixed_32bit_literal returns[int value]
   | char_literal { $value = $char_literal.value; }
   | bool_literal { $value = $bool_literal.value?1:0; };
 
-array_elements returns[List<byte[\]> elements]
+array_elements returns[List<Number> elements]
   : {$elements = Lists.newArrayList();}
     ^(I_ARRAY_ELEMENTS
-      (fixed_size_literal
+      (fixed_64bit_literal_number
       {
-        $elements.add($fixed_size_literal.value);
+        $elements.add($fixed_64bit_literal_number.value);
       })*);
 
 packed_switch_elements[int baseAddress, int firstKey] returns[List<SwitchElement> elements]
@@ -1248,25 +1246,10 @@ insn_array_data_directive[List<Instruction> instructions] returns[int outRegiste
   : //e.g. .array-data 4 1000000 .end array-data
     ^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
     {
-      // TODO: reimplement, after changing how it's parsed
-      /*
       int elementWidth = $short_integral_literal.value;
-      List<byte[]> byteValues = $array_elements.elements;
+      List<Number> elements = $array_elements.elements;
 
-      int length = 0;
-      for (byte[] byteValue: byteValues) {
-        length+=byteValue.length;
-      }
-
-      byte[] encodedValues = new byte[length];
-      int index = 0;
-      for (byte[] byteValue: byteValues) {
-        System.arraycopy(byteValue, 0, encodedValues, index, byteValue.length);
-        index+=byteValue.length;
-      }
-
-      $instructions.add(new ImmutableArrayPayload(elementWidth, null));
-      */
+      $instructions.add(new ImmutableArrayPayload(elementWidth, $array_elements.elements));
     };
 
 insn_packed_switch_directive[List<Instruction> instructions] returns[int outRegisters]
