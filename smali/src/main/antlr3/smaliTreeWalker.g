@@ -481,7 +481,7 @@ method_name_and_prototype returns[String name, List<SmaliMethodParameter> parame
     for (String type: $method_prototype.parameters) {
         $parameters.add(new SmaliMethodParameter(paramRegister++, type));
         char c = type.charAt(0);
-        if (c == 'J' || c == 'J') {
+        if (c == 'D' || c == 'J') {
             paramRegister++;
         }
     }
