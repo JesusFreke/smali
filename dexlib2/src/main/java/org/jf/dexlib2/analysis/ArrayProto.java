@@ -34,6 +34,8 @@ package org.jf.dexlib2.analysis;
 import com.google.common.base.Strings;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.immutable.ImmutableField;
+import org.jf.dexlib2.immutable.value.ImmutableIntEncodedValue;
 import org.jf.dexlib2.util.TypeUtils;
 import org.jf.util.ExceptionWithContext;
 
@@ -151,12 +153,16 @@ public class ArrayProto implements TypeProto {
     @Override
     @Nullable
     public FieldReference getFieldByOffset(int fieldOffset) {
-        return classPath.getClass("Ljava/lang/Array;").getFieldByOffset(fieldOffset);
+        if (fieldOffset==0) {
+            ImmutableIntEncodedValue value = new ImmutableIntEncodedValue(dimensions);
+            return new ImmutableField(getType(), "length", "int", 0, value, null);
+        }
+        return null;
     }
 
     @Override
     @Nullable
     public MethodReference getMethodByVtableIndex(int vtableIndex) {
-        return classPath.getClass("Ljava/lang/Array;").getMethodByVtableIndex(vtableIndex);
+        return classPath.getClass("Ljava/lang/Object;").getMethodByVtableIndex(vtableIndex);
     }
 }
