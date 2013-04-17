@@ -35,6 +35,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.util.CharSequenceUtils;
 import org.jf.util.CollectionUtils;
 import org.jf.util.ExceptionWithContext;
 
@@ -116,7 +117,7 @@ public class ProtoPool {
         }
 
         @Nonnull public String getReturnType() { return method.getReturnType(); }
-        @Nonnull public Collection<? extends CharSequence> getParameters() {
+        @Nonnull public List<? extends CharSequence> getParameters() {
             return method.getParameterTypes();
         }
 
@@ -151,7 +152,7 @@ public class ProtoPool {
         @Override
         public int hashCode() {
             int hashCode = getReturnType().hashCode();
-            return hashCode*31 + getParameters().hashCode();
+            return hashCode*31 + CharSequenceUtils.listHashCode(getParameters());
         }
 
         @Override
@@ -159,7 +160,7 @@ public class ProtoPool {
             if (o instanceof Key) {
                 Key other = (Key)o;
                 return getReturnType().equals(other.getReturnType()) &&
-                       getParameters().equals(other.getParameters());
+                       CharSequenceUtils.listEquals(getParameters(), other.getParameters());
             }
             return false;
         }
