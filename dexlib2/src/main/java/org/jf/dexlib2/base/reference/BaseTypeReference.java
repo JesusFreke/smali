@@ -43,8 +43,13 @@ public abstract class BaseTypeReference implements TypeReference {
 
     @Override
     public boolean equals(Object o) {
-        if (o != null && o instanceof TypeReference) {
-            return getType().equals(((TypeReference)o).getType());
+        if (o != null) {
+            if (o instanceof TypeReference) {
+                return getType().equals(((TypeReference)o).getType());
+            }
+            if (o instanceof CharSequence) {
+                return getType().equals(o.toString());
+            }
         }
         return false;
     }

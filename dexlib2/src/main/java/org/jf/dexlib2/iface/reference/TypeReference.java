@@ -69,7 +69,7 @@ public interface TypeReference extends Reference, CharSequence, Comparable<CharS
     /**
      * Compares this TypeReference to another TypeReference, or more generally to another CharSequence for equality.
      *
-     * This TypeReference is equal to a CharSequence iff this.getType().equals(other.getString()).
+     * This TypeReference is equal to a CharSequence iff this.getType().equals(other.toString()).
      *
      * Equivalently, This TypeReference is equal to another TypeReference iff this.getType().equals(other.getType()).
      *
