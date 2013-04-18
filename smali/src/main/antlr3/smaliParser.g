@@ -910,7 +910,6 @@ insn_format20bc returns [int size]
       }
     }
     -> ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE verification_error_reference);
-    //TODO: check if dalvik has a jumbo version of throw-verification-error
 
 insn_format20t returns [int size]
   : //e.g. goto/16 endloop:
