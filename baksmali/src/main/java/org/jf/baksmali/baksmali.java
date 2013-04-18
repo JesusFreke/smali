@@ -47,12 +47,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class baksmali {
-    public static void disassembleDexFile(String dexFilePath, DexFile dexFile, boolean deodex, String outputDirectory,
-                                          String[] classPathDirs, String bootClassPath, String extraBootClassPath,
-                                          boolean noParameterRegisters, boolean useLocalsDirective,
-                                          boolean useSequentialLabels, boolean outputDebugInfo, boolean addCodeOffsets,
-                                          boolean noAccessorComments, int registerInfo, boolean ignoreErrors,
-                                          String inlineTable, boolean checkPackagePrivateAccess)
+    public static void disassembleDexFile(String dexFilePath, DexFile dexFile, int apiLevel, boolean deodex,
+                                          String outputDirectory, String[] classPathDirs, String bootClassPath,
+                                          String extraBootClassPath, boolean noParameterRegisters,
+                                          boolean useLocalsDirective, boolean useSequentialLabels,
+                                          boolean outputDebugInfo, boolean addCodeOffsets, boolean noAccessorComments,
+                                          int registerInfo, boolean ignoreErrors, String inlineTable,
+                                          boolean checkPackagePrivateAccess)
     {
         baksmaliOptions options = new baksmaliOptions();
 
@@ -86,7 +87,7 @@ public class baksmali {
                 }
 
                 options.classPath = ClassPath.fromClassPath(Arrays.asList(classPathDirs),
-                        Iterables.concat(bootClassPaths, extraBootClassPaths), dexFile);
+                        Iterables.concat(bootClassPaths, extraBootClassPaths), dexFile, apiLevel);
 
                 if (inlineTable != null) {
                     options.inlineResolver = new CustomInlineMethodResolver(options.classPath, new File(inlineTable));

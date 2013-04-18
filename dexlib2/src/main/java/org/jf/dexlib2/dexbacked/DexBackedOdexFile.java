@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.io.ByteStreams;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.raw.OdexHeaderItem;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 
@@ -49,8 +50,8 @@ public class DexBackedOdexFile extends DexBackedDexFile {
     private final byte[] odexBuf;
 
 
-    public DexBackedOdexFile(@Nonnull byte[] odexBuf, byte[] dexBuf) {
-        super(dexBuf);
+    public DexBackedOdexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] odexBuf, byte[] dexBuf) {
+        super(opcodes, dexBuf);
 
         this.odexBuf = odexBuf;
     }
@@ -80,7 +81,8 @@ public class DexBackedOdexFile extends DexBackedDexFile {
         };
     }
 
-    public static DexBackedOdexFile fromInputStream(@Nonnull InputStream is) throws IOException {
+    public static DexBackedOdexFile fromInputStream(@Nonnull Opcodes opcodes, @Nonnull InputStream is)
+            throws IOException {
         if (!is.markSupported()) {
             throw new IllegalArgumentException("InputStream must support mark");
         }
@@ -106,7 +108,7 @@ public class DexBackedOdexFile extends DexBackedDexFile {
 
         byte[] dexBuf = ByteStreams.toByteArray(is);
 
-        return new DexBackedOdexFile(odexBuf, dexBuf);
+        return new DexBackedOdexFile(opcodes, odexBuf, dexBuf);
     }
 
     private static void verifyMagic(byte[] buf) {

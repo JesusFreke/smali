@@ -30,7 +30,6 @@ package org.jf.baksmali;
 
 import org.apache.commons.cli.*;
 import org.jf.dexlib2.DexFileFactory;
-import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
@@ -103,7 +102,7 @@ public class main {
         boolean ignoreErrors = false;
         boolean checkPackagePrivateAccess = false;
 
-        int apiLevel = 14;
+        int apiLevel = 15;
 
         int registerInfo = 0;
 
@@ -242,10 +241,8 @@ public class main {
                 System.exit(1);
             }
 
-            Opcode.updateMapsForApiLevel(apiLevel);
-
             //Read in and parse the dex file
-            DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile);
+            DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile, apiLevel);
 
             if (dexFile.isOdexFile()) {
                 if (!deodex) {
@@ -267,7 +264,7 @@ public class main {
                     bootClassPathDirsArray[i] = bootClassPathDirs.get(i);
                 }
 
-                baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, deodex, outputDirectory,
+                baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, apiLevel, deodex, outputDirectory,
                         bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
                         noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
                         noAccessorComments, registerInfo, ignoreErrors, inlineTable, checkPackagePrivateAccess);
@@ -275,7 +272,7 @@ public class main {
 
             if (doDump) {
                 try {
-                    dump.dump(dexFile, dumpFileName);
+                    dump.dump(dexFile, dumpFileName, apiLevel);
                 }catch (IOException ex) {
                     System.err.println("Error occured while writing dump file");
                     ex.printStackTrace();
@@ -400,7 +397,7 @@ public class main {
 
         Option apiLevelOption = OptionBuilder.withLongOpt("api-level")
                 .withDescription("The numeric api-level of the file being disassembled. If not " +
-                        "specified, it defaults to 14 (ICS).")
+                        "specified, it defaults to 15 (ICS).")
                 .hasArg()
                 .withArgName("API_LEVEL")
                 .create("a");

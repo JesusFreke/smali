@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.BaseDexBuffer;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
@@ -46,16 +47,17 @@ import java.util.List;
 public class RawDexFile extends DexBackedDexFile {
     @Nonnull public final HeaderItem headerItem;
 
-    public RawDexFile(BaseDexBuffer buf) {
-        super(buf);
+    public RawDexFile(@Nonnull Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
+        super(opcodes, buf);
         this.headerItem = new HeaderItem(this);
     }
 
-    public RawDexFile(byte[] buf) {
-        super(buf);
+    public RawDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf) {
+        super(opcodes, buf);
         this.headerItem = new HeaderItem(this);
     }
 
+    @Nonnull
     public byte[] readByteRange(int start, int length) {
         return Arrays.copyOfRange(getBuf(), start, start+length);
     }

@@ -28,6 +28,7 @@
 
 package org.jf.baksmali;
 
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
@@ -39,7 +40,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 public class dump {
-    public static void dump(DexBackedDexFile dexFile, String dumpFileName)
+    public static void dump(DexBackedDexFile dexFile, String dumpFileName, int apiLevel)
             throws IOException {
 
         if (dumpFileName != null) {
@@ -53,7 +54,7 @@ public class dump {
                     consoleWidth = 120;
                 }
 
-                RawDexFile rawDexFile = new RawDexFile(dexFile);
+                RawDexFile rawDexFile = new RawDexFile(new Opcodes(apiLevel), dexFile);
                 DexAnnotator annotator = new DexAnnotator(rawDexFile, consoleWidth);
                 annotator.writeAnnotations(writer);
             } catch (IOException ex) {

@@ -265,6 +265,7 @@ package org.jf.smali;
 
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.Opcodes;
 }
 
 
@@ -273,7 +274,8 @@ import org.jf.dexlib2.Opcode;
 
   private boolean verboseErrors = false;
   private boolean allowOdex = false;
-  private int apiLevel;
+  private int apiLevel = 15;
+  private Opcodes opcodes = new Opcodes(apiLevel);
 
   public void setVerboseErrors(boolean verboseErrors) {
     this.verboseErrors = verboseErrors;
@@ -284,6 +286,7 @@ import org.jf.dexlib2.Opcode;
   }
 
   public void setApiLevel(int apiLevel) {
+      this.opcodes = new Opcodes(apiLevel);
       this.apiLevel = apiLevel;
   }
 
@@ -902,7 +905,7 @@ insn_format20bc returns [int size]
   : //e.g. throw-verification-error generic-error, Lsome/class;
     INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE COMMA verification_error_reference {$size += Format.Format20bc.size;}
     {
-      if (!allowOdex || Opcode.getOpcodeByName($INSTRUCTION_FORMAT20bc.text) == null || apiLevel >= 14) {
+      if (!allowOdex || opcodes.getOpcodeByName($INSTRUCTION_FORMAT20bc.text) == null || apiLevel >= 14) {
         throwOdexedInstructionException(input, $INSTRUCTION_FORMAT20bc.text);
       }
     }
@@ -923,7 +926,7 @@ insn_format21c_field_odex returns [int size]
   : //e.g. sget-object-volatile v0, java/lang/System/out LJava/io/PrintStream;
     INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER COMMA fully_qualified_field {$size = Format.Format21c.size;}
     {
-      if (!allowOdex || Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_FIELD_ODEX.text) == null || apiLevel >= 14) {
+      if (!allowOdex || opcodes.getOpcodeByName($INSTRUCTION_FORMAT21c_FIELD_ODEX.text) == null || apiLevel >= 14) {
         throwOdexedInstructionException(input, $INSTRUCTION_FORMAT21c_FIELD_ODEX.text);
       }
     }
@@ -973,7 +976,7 @@ insn_format22c_field_odex returns [int size]
   : //e.g. iput-object-volatile v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
     INSTRUCTION_FORMAT22c_FIELD_ODEX REGISTER COMMA REGISTER COMMA fully_qualified_field {$size = Format.Format22c.size;}
     {
-      if (!allowOdex || Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD_ODEX.text) == null || apiLevel >= 14) {
+      if (!allowOdex || opcodes.getOpcodeByName($INSTRUCTION_FORMAT22c_FIELD_ODEX.text) == null || apiLevel >= 14) {
         throwOdexedInstructionException(input, $INSTRUCTION_FORMAT22c_FIELD_ODEX.text);
       }
     }

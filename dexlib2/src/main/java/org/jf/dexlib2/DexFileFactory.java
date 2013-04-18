@@ -44,12 +44,17 @@ import java.util.zip.ZipFile;
 
 public final class DexFileFactory {
     @Nonnull
-    public static DexBackedDexFile loadDexFile(String path) throws IOException {
-        return loadDexFile(new File(path));
+    public static DexBackedDexFile loadDexFile(String path, int api) throws IOException {
+        return loadDexFile(new File(path), new Opcodes(api));
     }
 
     @Nonnull
-    public static DexBackedDexFile loadDexFile(File dexFile) throws IOException {
+    public static DexBackedDexFile loadDexFile(File dexFile, int api) throws IOException {
+        return loadDexFile(dexFile, new Opcodes(api));
+    }
+
+    @Nonnull
+    public static DexBackedDexFile loadDexFile(File dexFile, @Nonnull Opcodes opcodes) throws IOException {
         ZipFile zipFile = null;
         boolean isZipFile = false;
         try {
@@ -70,7 +75,7 @@ public final class DexFileFactory {
             }
             byte[] dexBytes = new byte[(int)fileLength];
             ByteStreams.readFully(zipFile.getInputStream(zipEntry), dexBytes);
-            return new DexBackedDexFile(dexBytes);
+            return new DexBackedDexFile(opcodes, dexBytes);
         } catch (IOException ex) {
             // don't continue on if we know it's a zip file
             if (isZipFile) {
@@ -89,7 +94,7 @@ public final class DexFileFactory {
         InputStream inputStream = new BufferedInputStream(new FileInputStream(dexFile));
 
         try {
-            return DexBackedDexFile.fromInputStream(inputStream);
+            return DexBackedDexFile.fromInputStream(opcodes, inputStream);
         } catch (DexBackedDexFile.NotADexFile ex) {
             // just eat it
         }
@@ -97,7 +102,7 @@ public final class DexFileFactory {
         // Note: DexBackedDexFile.fromInputStream will reset inputStream back to the same position, if it fails
 
         try {
-            return DexBackedOdexFile.fromInputStream(inputStream);
+            return DexBackedOdexFile.fromInputStream(opcodes, inputStream);
         } catch (DexBackedOdexFile.NotAnOdexFile ex) {
             // just eat it
         }

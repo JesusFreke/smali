@@ -79,7 +79,7 @@ public class AnalysisTest {
     public void runTest(String test, boolean registerInfo) throws IOException, URISyntaxException {
         String dexFilePath = String.format("%s%sclasses.dex", test, File.separatorChar);
 
-        DexFile dexFile = DexFileFactory.loadDexFile(findResource(dexFilePath));
+        DexFile dexFile = DexFileFactory.loadDexFile(findResource(dexFilePath), 15);
 
         baksmaliOptions options = new baksmaliOptions();
         if (registerInfo) {

@@ -151,11 +151,12 @@ public class ClassPath {
     }
 
     @Nonnull
-    public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile) {
+    public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile,
+                                          int api) {
         ArrayList<DexFile> dexFiles = Lists.newArrayList();
 
         for (String classPathEntry: classPath) {
-            dexFiles.add(loadClassPathEntry(classPathDirs, classPathEntry));
+            dexFiles.add(loadClassPathEntry(classPathDirs, classPathEntry, api));
         }
         dexFiles.add(dexFile);
         return new ClassPath(dexFiles);
@@ -164,7 +165,8 @@ public class ClassPath {
     private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
 
     @Nonnull
-    private static DexFile loadClassPathEntry(Iterable<String> classPathDirs, String bootClassPathEntry) {
+    private static DexFile loadClassPathEntry(@Nonnull Iterable<String> classPathDirs,
+                                              @Nonnull String bootClassPathEntry, int api) {
         File rawEntry = new File(bootClassPathEntry);
         // strip off the path - we only care about the filename
         String entryName = rawEntry.getName();
@@ -199,7 +201,7 @@ public class ClassPath {
                                 "warning: cannot open %s for reading. Will continue looking.", file.getPath()));
                     } else {
                         try {
-                            DexFile dexfile = DexFileFactory.loadDexFile(file);
+                            DexFile dexfile = DexFileFactory.loadDexFile(file, api);
                             System.out.println(file.toString());
                             return dexfile;
                         } catch (DexFileFactory.NoClassesDexException ex) {

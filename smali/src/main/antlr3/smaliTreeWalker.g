@@ -45,10 +45,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.jf.dexlib2.AccessFlags;
-import org.jf.dexlib2.AnnotationVisibility;
-import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.VerificationError;
+import org.jf.dexlib2.*;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.DebugItem;
@@ -71,6 +68,13 @@ import org.jf.util.LinearSearch;
 @members {
   public String classType;
   private boolean verboseErrors = false;
+  private int apiLevel = 15;
+  private Opcodes opcodes = new Opcodes(apiLevel);
+
+  public void setApiLevel(int apiLevel) {
+      this.opcodes = new Opcodes(apiLevel);
+      this.apiLevel = apiLevel;
+  }
 
   public void setVerboseErrors(boolean verboseErrors) {
     this.verboseErrors = verboseErrors;
@@ -851,7 +855,7 @@ insn_format10t[List<Instruction> instructions] returns[int outRegisters]
     {$outRegisters = 0;}
     ^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10t.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT10t.text);
 
       int addressOffset = $offset_or_label.offsetValue;
 
@@ -862,7 +866,7 @@ insn_format10x[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. return
     ^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
       $instructions.add(new ImmutableInstruction10x(opcode));
     };
 
@@ -870,7 +874,7 @@ insn_format11n[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const/4 v0, 5
     ^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER short_integral_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11n.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT11n.text);
       byte regA = parseRegister_nibble($REGISTER.text);
 
       short litB = $short_integral_literal.value;
@@ -883,7 +887,7 @@ insn_format11x[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. move-result-object v1
     ^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       $instructions.add(new ImmutableInstruction11x(opcode, regA));
@@ -893,7 +897,7 @@ insn_format12x[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. move v1 v2
     ^(I_STATEMENT_FORMAT12x INSTRUCTION_FORMAT12x registerA=REGISTER registerB=REGISTER)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT12x.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT12x.text);
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
@@ -904,7 +908,7 @@ insn_format20bc[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. throw-verification-error generic-error, Lsome/class;
     ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc verification_error_type verification_error_reference)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT20bc.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT20bc.text);
 
       int verificationError = $verification_error_type.verificationError;
       ImmutableReference referencedItem = $verification_error_reference.reference;
@@ -916,7 +920,7 @@ insn_format20t[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. goto/16 endloop:
     ^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT20t.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT20t.text);
 
       int addressOffset = $offset_or_label.offsetValue;
 
@@ -927,7 +931,7 @@ insn_format21c_field[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. sget_object v0, java/lang/System/out LJava/io/PrintStream;
     ^(I_STATEMENT_FORMAT21c_FIELD inst=(INSTRUCTION_FORMAT21c_FIELD | INSTRUCTION_FORMAT21c_FIELD_ODEX) REGISTER fully_qualified_field)
     {
-      Opcode opcode = Opcode.getOpcodeByName($inst.text);
+      Opcode opcode = opcodes.getOpcodeByName($inst.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       ImmutableFieldReference fieldReference = $fully_qualified_field.fieldReference;
@@ -939,7 +943,7 @@ insn_format21c_string[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const-string v1, "Hello World!"
     ^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       ImmutableStringReference stringReference = new ImmutableStringReference($string_literal.value);
@@ -951,7 +955,7 @@ insn_format21c_type[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const-class v2, org/jf/HelloWorld2/HelloWorld2
     ^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       ImmutableTypeReference typeReference = new ImmutableTypeReference($reference_type_descriptor.type);
@@ -963,7 +967,7 @@ insn_format21ih[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const/high16 v1, 1234
     ^(I_STATEMENT_FORMAT21ih INSTRUCTION_FORMAT21ih REGISTER fixed_32bit_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21ih.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21ih.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       int litB = $fixed_32bit_literal.value;
@@ -975,7 +979,7 @@ insn_format21lh[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const-wide/high16 v1, 1234
     ^(I_STATEMENT_FORMAT21lh INSTRUCTION_FORMAT21lh REGISTER fixed_64bit_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21lh.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21lh.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       long litB = $fixed_64bit_literal.value;
@@ -987,7 +991,7 @@ insn_format21s[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const/16 v1, 1234
     ^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER short_integral_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21s.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21s.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       short litB = $short_integral_literal.value;
@@ -999,7 +1003,7 @@ insn_format21t[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. if-eqz v0, endloop:
     ^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT21t.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21t.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       int addressOffset = $offset_or_label.offsetValue;
@@ -1015,7 +1019,7 @@ insn_format22b[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. add-int v0, v1, 123
     ^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER short_integral_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22b.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT22b.text);
       short regA = parseRegister_byte($registerA.text);
       short regB = parseRegister_byte($registerB.text);
 
@@ -1029,7 +1033,7 @@ insn_format22c_field[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. iput-object v1, v0, org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
     ^(I_STATEMENT_FORMAT22c_FIELD inst=(INSTRUCTION_FORMAT22c_FIELD | INSTRUCTION_FORMAT22c_FIELD_ODEX) registerA=REGISTER registerB=REGISTER fully_qualified_field)
     {
-      Opcode opcode = Opcode.getOpcodeByName($inst.text);
+      Opcode opcode = opcodes.getOpcodeByName($inst.text);
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
@@ -1042,7 +1046,7 @@ insn_format22c_type[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. instance-of v0, v1, Ljava/lang/String;
     ^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22c_TYPE.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT22c_TYPE.text);
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
@@ -1055,7 +1059,7 @@ insn_format22s[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. add-int/lit16 v0, v1, 12345
     ^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER short_integral_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22s.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT22s.text);
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
@@ -1068,7 +1072,7 @@ insn_format22t[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. if-eq v0, v1, endloop:
     ^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22t.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT22t.text);
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
@@ -1085,7 +1089,7 @@ insn_format22x[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. move/from16 v1, v1234
     ^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT22x.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT22x.text);
       short regA = parseRegister_byte($registerA.text);
       int regB = parseRegister_short($registerB.text);
 
@@ -1096,7 +1100,7 @@ insn_format23x[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. add-int v1, v2, v3
     ^(I_STATEMENT_FORMAT23x INSTRUCTION_FORMAT23x registerA=REGISTER registerB=REGISTER registerC=REGISTER)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT23x.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT23x.text);
       short regA = parseRegister_byte($registerA.text);
       short regB = parseRegister_byte($registerB.text);
       short regC = parseRegister_byte($registerC.text);
@@ -1108,7 +1112,7 @@ insn_format30t[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. goto/32 endloop:
     ^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT30t.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT30t.text);
 
       int addressOffset = $offset_or_label.offsetValue;
 
@@ -1119,7 +1123,7 @@ insn_format31c[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const-string/jumbo v1 "Hello World!"
     ^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       ImmutableStringReference stringReference = new ImmutableStringReference($string_literal.value);
@@ -1131,7 +1135,7 @@ insn_format31i[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const v0, 123456
     ^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31i.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT31i.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       int litB = $fixed_32bit_literal.value;
@@ -1143,7 +1147,7 @@ insn_format31t[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. fill-array-data v0, ArrayData:
     ^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER offset_or_label)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT31t.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT31t.text);
 
       short regA = parseRegister_byte($REGISTER.text);
 
@@ -1159,7 +1163,7 @@ insn_format32x[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. move/16 v5678, v1234
     ^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT32x.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT32x.text);
       int regA = parseRegister_short($registerA.text);
       int regB = parseRegister_short($registerB.text);
 
@@ -1170,7 +1174,7 @@ insn_format35c_method[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
     ^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT35c_METHOD.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT35c_METHOD.text);
 
       //this depends on the fact that register_list returns a byte[5]
       byte[] registers = $register_list.registers;
@@ -1186,7 +1190,7 @@ insn_format35c_type[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. filled-new-array {v0,v1}, I
     ^(I_STATEMENT_FORMAT35c_TYPE INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT35c_TYPE.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT35c_TYPE.text);
 
       //this depends on the fact that register_list returns a byte[5]
       byte[] registers = $register_list.registers;
@@ -1202,7 +1206,7 @@ insn_format3rc_method[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     ^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_METHOD.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT3rc_METHOD.text);
       int startRegister = $register_range.startRegister;
       int endRegister = $register_range.endRegister;
 
@@ -1218,7 +1222,7 @@ insn_format3rc_type[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. filled-new-array/range {v0..v6} I
     ^(I_STATEMENT_FORMAT3rc_TYPE INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT3rc_TYPE.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT3rc_TYPE.text);
       int startRegister = $register_range.startRegister;
       int endRegister = $register_range.endRegister;
 
@@ -1234,7 +1238,7 @@ insn_format51l_type[List<Instruction> instructions] returns[int outRegisters]
   : //e.g. const-wide v0, 5000000000L
     ^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
     {
-      Opcode opcode = Opcode.getOpcodeByName($INSTRUCTION_FORMAT51l.text);
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT51l.text);
       short regA = parseRegister_byte($REGISTER.text);
 
       long litB = $fixed_64bit_literal.value;

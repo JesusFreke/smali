@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.io.ByteStreams;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
@@ -45,6 +46,8 @@ import java.io.InputStream;
 import java.util.Set;
 
 public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
+    private final Opcodes opcodes;
+
     private final int stringCount;
     private final int stringStartOffset;
     private final int typeCount;
@@ -58,8 +61,10 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int classCount;
     private final int classStartOffset;
 
-    private DexBackedDexFile(@Nonnull byte[] buf, int offset, boolean verifyMagic) {
+    private DexBackedDexFile(Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
         super(buf);
+
+        this.opcodes = opcodes;
 
         if (verifyMagic) {
             verifyMagicAndByteOrder(buf, offset);
@@ -79,19 +84,20 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         classStartOffset = readSmallUint(HeaderItem.CLASS_START_OFFSET);
     }
 
-    public DexBackedDexFile(@Nonnull BaseDexBuffer buf) {
-        this(buf.buf);
+    public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
+        this(opcodes, buf.buf);
     }
 
-    public DexBackedDexFile(@Nonnull byte[] buf, int offset) {
-        this(buf, offset, false);
+    public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset) {
+        this(opcodes, buf, offset, false);
     }
 
-    public DexBackedDexFile(@Nonnull byte[] buf) {
-        this(buf, 0, true);
+    public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf) {
+        this(opcodes, buf, 0, true);
     }
 
-    public static DexBackedDexFile fromInputStream(@Nonnull InputStream is) throws IOException {
+    public static DexBackedDexFile fromInputStream(@Nonnull Opcodes opcodes, @Nonnull InputStream is)
+            throws IOException {
         if (!is.markSupported()) {
             throw new IllegalArgumentException("InputStream must support mark");
         }
@@ -108,7 +114,11 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         verifyMagicAndByteOrder(partialHeader, 0);
 
         byte[] buf = ByteStreams.toByteArray(is);
-        return new DexBackedDexFile(buf, 0, false);
+        return new DexBackedDexFile(opcodes, buf, 0, false);
+    }
+
+    public Opcodes getOpcodes() {
+        return opcodes;
     }
 
     public boolean isOdexFile() {

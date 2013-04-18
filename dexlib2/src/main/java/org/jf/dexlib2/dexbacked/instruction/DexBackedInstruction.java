@@ -64,7 +64,7 @@ public abstract class DexBackedInstruction implements Instruction {
             opcodeValue = reader.peekUshort();
         }
 
-        Opcode opcode = Opcode.getOpcodeByValue(opcodeValue);
+        Opcode opcode = reader.dexBuf.getOpcodes().getOpcodeByValue(opcodeValue);
 
         Instruction instruction = buildInstruction(reader.dexBuf, opcode, reader.getOffset());
         reader.moveRelative(instruction.getCodeUnits()*2);

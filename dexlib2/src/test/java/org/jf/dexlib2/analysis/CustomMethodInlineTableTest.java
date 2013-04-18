@@ -68,7 +68,8 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);
+        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
+                15);
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver);
 
@@ -94,7 +95,8 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);
+        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
+                15);
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver);
 
@@ -120,7 +122,8 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);
+        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
+                15);
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver);
 

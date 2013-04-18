@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 
 public enum Opcode
@@ -255,22 +254,22 @@ public enum Opcode
     SHR_INT_LIT8((short)0xe1, "shr-int/lit8", ReferenceType.NONE, Format.Format22b, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     USHR_INT_LIT8((short)0xe2, "ushr-int/lit8", ReferenceType.NONE, Format.Format22b, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
 
-    IGET_VOLATILE((short)0xe3, "iget-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IPUT_VOLATILE((short)0xe4, "iput-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SGET_VOLATILE((short)0xe5, "sget-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SPUT_VOLATILE((short)0xe6, "sput-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IGET_OBJECT_VOLATILE((short)0xe7, "iget-object-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_WIDE_VOLATILE((short)0xe8, "iget-wide-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    IPUT_WIDE_VOLATILE((short)0xe9, "iput-wide-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SGET_WIDE_VOLATILE((short)0xea, "sget-wide-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    SPUT_WIDE_VOLATILE((short)0xeb, "sput-wide-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IGET_VOLATILE((short)0xe3, "iget-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IPUT_VOLATILE((short)0xe4, "iput-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SGET_VOLATILE((short)0xe5, "sget-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SPUT_VOLATILE((short)0xe6, "sput-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IGET_OBJECT_VOLATILE((short)0xe7, "iget-object-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IGET_WIDE_VOLATILE((short)0xe8, "iget-wide-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    IPUT_WIDE_VOLATILE((short)0xe9, "iput-wide-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SGET_WIDE_VOLATILE((short)0xea, "sget-wide-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    SPUT_WIDE_VOLATILE((short)0xeb, "sput-wide-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
 
-    THROW_VERIFICATION_ERROR((short)0xed, "throw-verification-error", ReferenceType.NONE, Format.Format20bc, Opcode.ODEX_ONLY | Opcode.CAN_THROW),
+    THROW_VERIFICATION_ERROR((short)0xed, "throw-verification-error", minApi(5), ReferenceType.NONE, Format.Format20bc, Opcode.ODEX_ONLY | Opcode.CAN_THROW),
     EXECUTE_INLINE((short)0xee, "execute-inline", ReferenceType.NONE,  Format.Format35mi, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    EXECUTE_INLINE_RANGE((short)0xef, "execute-inline/range", ReferenceType.NONE,  Format.Format3rmi,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_DIRECT_EMPTY((short)0xf0, "invoke-direct-empty", ReferenceType.METHOD,  Format.Format35c, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.CAN_INITIALIZE_REFERENCE),
-    INVOKE_OBJECT_INIT_RANGE((short)0xf0, "invoke-object-init/range", ReferenceType.METHOD,  Format.Format3rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.CAN_INITIALIZE_REFERENCE),
-    RETURN_VOID_BARRIER((short)0xf1, "return-void-barrier", ReferenceType.NONE, Format.Format10x, Opcode.ODEX_ONLY),
+    EXECUTE_INLINE_RANGE((short)0xef, "execute-inline/range", minApi(8), ReferenceType.NONE,  Format.Format3rmi,  Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_DIRECT_EMPTY((short)0xf0, "invoke-direct-empty", maxApi(13), ReferenceType.METHOD,  Format.Format35c, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.CAN_INITIALIZE_REFERENCE),
+    INVOKE_OBJECT_INIT_RANGE((short)0xf0, "invoke-object-init/range", minApi(14), ReferenceType.METHOD,  Format.Format3rc, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT | Opcode.CAN_INITIALIZE_REFERENCE),
+    RETURN_VOID_BARRIER((short)0xf1, "return-void-barrier", minApi(11), ReferenceType.NONE, Format.Format10x, Opcode.ODEX_ONLY),
     IGET_QUICK((short)0xf2, "iget-quick", ReferenceType.NONE,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     IGET_WIDE_QUICK((short)0xf3, "iget-wide-quick", ReferenceType.NONE,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
     IGET_OBJECT_QUICK((short)0xf4, "iget-object-quick", ReferenceType.NONE,  Format.Format22cs, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
@@ -282,9 +281,9 @@ public enum Opcode
     INVOKE_SUPER_QUICK((short)0xfa, "invoke-super-quick", ReferenceType.NONE,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_SUPER_QUICK_RANGE((short)0xfb, "invoke-super-quick/range", ReferenceType.NONE,  Format.Format3rms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
 
-    IPUT_OBJECT_VOLATILE((short)0xfc, "iput-object-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SGET_OBJECT_VOLATILE((short)0xfd, "sget-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IPUT_OBJECT_VOLATILE((short)0xfc, "iput-object-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SGET_OBJECT_VOLATILE((short)0xfd, "sget-object-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
 
     PACKED_SWITCH_PAYLOAD((short)0x100, "packed-switch-payload", ReferenceType.NONE, Format.PackedSwitchPayload, 0),
     SPARSE_SWITCH_PAYLOAD((short)0x200, "sparse-switch-payload", ReferenceType.NONE, Format.SparseSwitchPayload, 0),
@@ -331,87 +330,68 @@ public enum Opcode
         }
     }
 
-    @Nullable
-    public static Opcode getOpcodeByName(String opcodeName) {
-        return opcodesByName.get(opcodeName.toLowerCase().hashCode());
+    private static final int ALL_APIS = 0xFFFF0000;
+
+    private static int minApi(int api) {
+        return 0xFFFF0000 | (api & 0xFFFF);
     }
 
-    @Nullable
-    public static Opcode getOpcodeByValue(int opcodeValue) {
-        switch (opcodeValue) {
-            case 0x100:
-                return PACKED_SWITCH_PAYLOAD;
-            case 0x200:
-                return SPARSE_SWITCH_PAYLOAD;
-            case 0x300:
-                return ARRAY_PAYLOAD;
-            default:
-                return opcodesByValue[opcodeValue];
-        }
-    }
-
-    private static void removeOpcodes(Opcode... toRemove) {
-        for (Opcode opcode: toRemove) {
-            opcodesByName.remove(opcode.name.toLowerCase().hashCode());
-            opcodesByValue[opcode.value] = null;
-        }
-    }
-
-    private static void addOpcodes(Opcode... toAdd) {
-        for (Opcode opcode: toAdd) {
-            opcodesByValue[opcode.value] = opcode;
-            opcodesByName.put(opcode.name.hashCode(), opcode);
-        }
-    }
-
-    /**
-     * This will add/remove/replace various opcodes in the value/name maps as needed,
-     * based on the idiosyncrasies of that api level
-     * @param apiLevel
-     */
-    public static void updateMapsForApiLevel(int apiLevel) {
-        if (apiLevel < 5) {
-            removeOpcodes(THROW_VERIFICATION_ERROR);
-        }
-        if (apiLevel < 8) {
-            removeOpcodes(EXECUTE_INLINE_RANGE);
-        }
-        if (apiLevel < 9) {
-            removeOpcodes(IGET_VOLATILE, IPUT_VOLATILE, SGET_VOLATILE, SPUT_VOLATILE, IGET_OBJECT_VOLATILE,
-                    IGET_WIDE_VOLATILE, IPUT_WIDE_VOLATILE, SGET_WIDE_VOLATILE, SPUT_WIDE_VOLATILE,
-                    IPUT_OBJECT_VOLATILE, SGET_OBJECT_VOLATILE, SPUT_OBJECT_VOLATILE);
-        }
-        if (apiLevel < 11) {
-            removeOpcodes(RETURN_VOID_BARRIER);
-        }
-        if (apiLevel < 14) {
-            removeOpcodes(INVOKE_OBJECT_INIT_RANGE);
-            addOpcodes(INVOKE_DIRECT_EMPTY);
-        }
+    private static int maxApi(int api) {
+        return 0xFFFF | (api << 16);
     }
 
     public final short value;
     public final String name;
+    // high 16-bits is the max api, low 16-bits is the min api
+    public final int apiConstraints;
     public final int referenceType;
     public final Format format;
     public final int flags;
-    private final short jumboOpcode;
 
     Opcode(short opcodeValue, String opcodeName, int referenceType, Format format) {
-        this(opcodeValue, opcodeName, referenceType, format, 0);
+        this(opcodeValue, opcodeName, ALL_APIS, referenceType, format, 0, (short)-1);
     }
 
     Opcode(short opcodeValue, String opcodeName, int referenceType, Format format, int flags) {
-        this(opcodeValue, opcodeName, referenceType, format, flags, (short)-1);
+        this(opcodeValue, opcodeName, ALL_APIS, referenceType, format, flags, (short)-1);
     }
 
     Opcode(short opcodeValue, String opcodeName, int referenceType, Format format, int flags, short jumboOpcodeValue) {
+        this(opcodeValue, opcodeName, ALL_APIS, referenceType, format, flags, jumboOpcodeValue);
+    }
+
+    Opcode(short opcodeValue, String opcodeName, int apiConstraints, int referenceType, Format format) {
+        this(opcodeValue, opcodeName, apiConstraints, referenceType, format, 0, (short)-1);
+    }
+
+    Opcode(short opcodeValue, String opcodeName, int apiConstraints, int referenceType, Format format, int flags) {
+        this(opcodeValue, opcodeName, apiConstraints, referenceType, format, flags, (short)-1);
+    }
+
+    Opcode(short opcodeValue, String opcodeName, int apiConstraints, int referenceType, Format format, int flags,
+           short jumboOpcodeValue) {
         this.value = opcodeValue;
         this.name = opcodeName;
+        this.apiConstraints = apiConstraints;
         this.referenceType = referenceType;
         this.format = format;
         this.flags = flags;
-        this.jumboOpcode = jumboOpcodeValue;
+        // TODO: implement jumbo opcodes for dexlib2 and uncomment
+        // this.jumboOpcode = jumboOpcodeValue;
+    }
+
+    /**
+     * @return the minimum api level that can use this opcode (inclusive)
+     */
+    public int getMinApi() {
+        return apiConstraints & 0xFFFF;
+    }
+
+    /**
+     * @return the maximum api level that can to use this opcode (inclusive)
+     */
+    public int getMaxApi() {
+        return apiConstraints >>> 16;
     }
 
     public final boolean canThrow() {
@@ -456,14 +436,5 @@ public enum Opcode
 
     public final boolean canInitializeReference() {
         return (flags & CAN_INITIALIZE_REFERENCE) != 0;
-    }
-
-    public final boolean hasJumboOpcode() {
-        return jumboOpcode != -1 && Opcode.getOpcodeByValue(jumboOpcode) != null;
-    }
-
-    @Nullable
-    public final Opcode getJumboOpcode() {
-        return Opcode.getOpcodeByValue(jumboOpcode);
     }
 }

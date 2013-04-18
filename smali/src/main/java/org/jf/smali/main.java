@@ -36,7 +36,6 @@ import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.apache.commons.cli.*;
 import org.jf.dexlib2.DexFileFactory;
-import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.immutable.ImmutableDexFile;
 import org.jf.util.ConsoleUtil;
@@ -105,8 +104,7 @@ public class main {
         boolean verboseErrors = false;
         boolean printTokens = false;
 
-        boolean apiSet = false;
-        int apiLevel = 14;
+        int apiLevel = 15;
 
         String outputDexFile = "out.dex";
         String dumpFileName = null;
@@ -140,7 +138,6 @@ public class main {
                     break;
                 case 'a':
                     apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
-                    apiSet = true;
                     break;
                 case 'D':
                     dumpFileName = commandLine.getOptionValue("D", outputDexFile + ".dump");
@@ -186,8 +183,6 @@ public class main {
                         filesToProcess.add(argFile);
                     }
             }
-
-            Opcode.updateMapsForApiLevel(apiLevel);
 
             List<ClassDef> classes = Lists.newArrayList();
 
@@ -367,7 +362,7 @@ public class main {
 
         Option apiLevelOption = OptionBuilder.withLongOpt("api-level")
                 .withDescription("The numeric api-level of the file to generate, e.g. 14 for ICS. If not " +
-                        "specified, it defaults to 14 (ICS).")
+                        "specified, it defaults to 15 (ICS).")
                 .hasArg()
                 .withArgName("API_LEVEL")
                 .create("a");
