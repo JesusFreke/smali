@@ -54,19 +54,12 @@ public class EndLocalMethodItem extends DebugMethodItem {
         writer.write(".end local ");
         registerFormatter.writeTo(writer, endLocal.getRegister());
 
-        //TODO: what if name is null, but there is a type?
         String name = endLocal.getName();
-        if (name != null) {
+        String type = endLocal.getType();
+        String signature = endLocal.getSignature();
+        if (name != null || type != null || signature != null) {
             writer.write("    # ");
-            writer.write(name);
-            writer.write(':');
-            writer.write(endLocal.getType());
-            String signature = endLocal.getSignature();
-            if (signature != null) {
-                writer.write(",\"");
-                writer.write(signature);
-                writer.write('"');
-            }
+            LocalFormatter.writeLocal(writer, name, type, signature);
         }
         return true;
     }

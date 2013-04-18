@@ -54,19 +54,12 @@ public class RestartLocalMethodItem extends DebugMethodItem {
         writer.write(".restart local ");
         registerFormatter.writeTo(writer, restartLocal.getRegister());
 
-        //TODO: what if name is null, but there is a type?
         String name = restartLocal.getName();
-        if (name != null) {
+        String type = restartLocal.getType();
+        String signature = restartLocal.getSignature();
+        if (name != null || type != null || signature != null) {
             writer.write("    # ");
-            writer.write(name);
-            writer.write(':');
-            writer.write(restartLocal.getType());
-            String signature = restartLocal.getSignature();
-            if (signature != null) {
-                writer.write(",\"");
-                writer.write(signature);
-                writer.write('"');
-            }
+            LocalFormatter.writeLocal(writer, name, type, signature);
         }
         return true;
     }

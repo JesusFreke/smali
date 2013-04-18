@@ -612,7 +612,7 @@ parameters[List<SmaliMethodParameter> parameters]
   : ^(I_PARAMETERS (parameter[parameters])*);
 
 parameter[List<SmaliMethodParameter> parameters]
-  : ^(I_PARAMETER REGISTER SIMPLE_NAME annotations)
+  : ^(I_PARAMETER REGISTER string_literal? annotations)
     {
         final int registerNumber = parseRegister_short($REGISTER.text);
         int totalMethodRegisters = $method::totalMethodRegisters;
@@ -639,7 +639,7 @@ parameter[List<SmaliMethodParameter> parameters]
         }
 
         SmaliMethodParameter methodParameter = parameters.get(parameterIndex);
-        methodParameter.name = $SIMPLE_NAME.text;
+        methodParameter.name = $string_literal.value;
         if ($annotations.annotations != null && $annotations.annotations.size() > 0) {
             methodParameter.annotations = $annotations.annotations;
         }
@@ -665,12 +665,12 @@ line returns[DebugItem debugItem]
     };
 
 local returns[DebugItem debugItem]
-  : ^(I_LOCAL REGISTER SIMPLE_NAME nonvoid_type_descriptor string_literal? address)
+  : ^(I_LOCAL REGISTER ((NULL_LITERAL | name=string_literal) nonvoid_type_descriptor? signature=string_literal?)? address)
     {
       int registerNumber = parseRegister_short($REGISTER.text);
 
-      $debugItem = new ImmutableStartLocal($address.address, registerNumber, $SIMPLE_NAME.text,
-              $nonvoid_type_descriptor.type, $string_literal.value);
+      $debugItem = new ImmutableStartLocal($address.address, registerNumber, $name.value,
+              $nonvoid_type_descriptor.type, $signature.value);
     };
 
 end_local returns[DebugItem debugItem]

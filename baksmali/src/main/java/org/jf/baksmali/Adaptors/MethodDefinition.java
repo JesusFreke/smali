@@ -230,10 +230,10 @@ public class MethodDefinition {
             if (parameterName != null || annotations.size() != 0) {
                 writer.write(".param p");
                 writer.printSignedIntAsDec(registerNumber);
+
                 if (parameterName != null) {
                     writer.write(", ");
-                    // TODO: does dalvik allow non-identifier parameter and/or local names?
-                    writer.write(parameterName);
+                    ReferenceFormatter.writeStringReference(writer, parameterName);
                 }
                 writer.write("    # ");
                 writer.write(parameterType);

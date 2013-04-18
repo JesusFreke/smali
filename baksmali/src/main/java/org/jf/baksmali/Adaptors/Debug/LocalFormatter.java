@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,37 +31,43 @@
 
 package org.jf.baksmali.Adaptors.Debug;
 
-import org.jf.baksmali.Adaptors.RegisterFormatter;
-import org.jf.dexlib2.iface.debug.StartLocal;
+import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 
-public class StartLocalMethodItem extends DebugMethodItem {
-    @Nonnull private final StartLocal startLocal;
-    @Nonnull private final RegisterFormatter registerFormatter;
-
-    public StartLocalMethodItem(int codeAddress, int sortOrder, @Nonnull RegisterFormatter registerFormatter,
-                                @Nonnull StartLocal startLocal) {
-        super(codeAddress, sortOrder);
-        this.startLocal = startLocal;
-        this.registerFormatter = registerFormatter;
-    }
-
-    @Override
-    public boolean writeTo(IndentingWriter writer) throws IOException {
-        writer.write(".local ");
-        registerFormatter.writeTo(writer, startLocal.getRegister());
-
-        String name = startLocal.getName();
-        String type = startLocal.getType();
-        String signature = startLocal.getSignature();
-
-        if (name != null || type != null || signature != null) {
-            writer.write(", ");
-            LocalFormatter.writeLocal(writer, name, type, signature);
+public class LocalFormatter {
+    /**
+     * Writes out the given local info
+     *
+     * The written string will be something like:
+     *
+     * "localVar":Ljava/lang/String;, "SomeSignature"
+     * "localVar":Ljava/lang/String;
+     * "localVar":V, "SomeSignature"
+     * null:Ljava/lang/String;, "SomeSignature"
+     * null:V, "SomeSignature"
+     *
+     * One of name, type or signature must be non-null
+     */
+    public static void writeLocal(@Nonnull IndentingWriter writer, @Nullable String name, @Nullable String type,
+                                  @Nullable String signature) throws IOException {
+        if (name != null) {
+            ReferenceFormatter.writeStringReference(writer, name);
+        } else {
+            writer.write("null");
         }
-        return true;
+        writer.write(':');
+        if (type != null) {
+            writer.write(type);
+        } else {
+            writer.write("V");
+        }
+        if (signature != null) {
+            writer.write(", ");
+            ReferenceFormatter.writeStringReference(writer, signature);
+        }
     }
 }

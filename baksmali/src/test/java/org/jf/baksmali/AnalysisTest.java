@@ -76,6 +76,11 @@ public class AnalysisTest {
         runTest("DuplicateTest", false);
     }
 
+    @Test
+    public void LocalTest() throws IOException, URISyntaxException {
+        runTest("LocalTest", false);
+    }
+
     public void runTest(String test, boolean registerInfo) throws IOException, URISyntaxException {
         String dexFilePath = String.format("%s%sclasses.dex", test, File.separatorChar);
 

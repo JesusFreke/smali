@@ -762,13 +762,13 @@ the annotations. If it turns out that they are parameter annotations, we include
 add them to the $statements_and_directives::methodAnnotations list*/
 parameter_directive
   @init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
-  : PARAMETER_DIRECTIVE REGISTER COMMA simple_name
+  : PARAMETER_DIRECTIVE REGISTER (COMMA STRING_LITERAL)?
     ({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation {annotations.add($annotation.tree);})*
 
     ( END_PARAMETER_DIRECTIVE
-      -> ^(I_PARAMETER[$start, "I_PARAMETER"] REGISTER simple_name ^(I_ANNOTATIONS annotation*))
+      -> ^(I_PARAMETER[$start, "I_PARAMETER"] REGISTER STRING_LITERAL? ^(I_ANNOTATIONS annotation*))
     | /*epsilon*/ {$statements_and_directives::methodAnnotations.addAll(annotations);}
-      -> ^(I_PARAMETER[$start, "I_PARAMETER"] REGISTER simple_name ^(I_ANNOTATIONS))
+      -> ^(I_PARAMETER[$start, "I_PARAMETER"] REGISTER STRING_LITERAL? ^(I_ANNOTATIONS))
     );
 
 ordered_debug_directive
@@ -785,8 +785,10 @@ line_directive
     -> ^(I_LINE[$start, "I_LINE"] integral_literal I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 local_directive
-  : LOCAL_DIRECTIVE REGISTER COMMA simple_name COLON nonvoid_type_descriptor (COMMA STRING_LITERAL)?
-    -> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER simple_name nonvoid_type_descriptor STRING_LITERAL? I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+  : LOCAL_DIRECTIVE REGISTER (COMMA (NULL_LITERAL | name=STRING_LITERAL) COLON (VOID_TYPE | nonvoid_type_descriptor)
+                              (COMMA signature=STRING_LITERAL)? )?
+    -> ^(I_LOCAL[$start, "I_LOCAL"] REGISTER NULL_LITERAL? $name? nonvoid_type_descriptor? $signature?
+         I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 end_local_directive
   : END_LOCAL_DIRECTIVE REGISTER
