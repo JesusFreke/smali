@@ -269,7 +269,7 @@ public class DebugInfoPool {
         public void emitSetSourceFile(@Nonnull SetSourceFile setSourceFile) throws IOException {
             emitAdvancePC(setSourceFile.getCodeAddress());
             writer.write(9);
-            writer.write(dexFile.stringPool.getIndexNullable(setSourceFile.getSourceFile()));
+            writer.writeUleb128(dexFile.stringPool.getIndexNullable(setSourceFile.getSourceFile()) + 1);
         }
 
         private static final int LINE_BASE = -4;

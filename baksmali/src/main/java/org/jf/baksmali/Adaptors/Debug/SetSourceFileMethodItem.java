@@ -49,7 +49,6 @@ public class SetSourceFileMethodItem extends DebugMethodItem {
 
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
-        //TODO: make sure smali can handle an empty .source directive
         writer.write(".source");
 
         if (sourceFile != null) {

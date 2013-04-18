@@ -807,8 +807,8 @@ epilogue_directive
     -> ^(I_EPILOGUE[$start, "I_EPILOGUE"] I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 source_directive
-  : SOURCE_DIRECTIVE STRING_LITERAL
-    -> ^(I_SOURCE[$start, "I_SOURCE"] STRING_LITERAL I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
+  : SOURCE_DIRECTIVE STRING_LITERAL?
+    -> ^(I_SOURCE[$start, "I_SOURCE"] STRING_LITERAL? I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
 instruction_format12x
   : INSTRUCTION_FORMAT12x

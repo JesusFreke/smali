@@ -702,7 +702,7 @@ epilogue returns[DebugItem debugItem]
     };
 
 source returns[DebugItem debugItem]
-  : ^(I_SOURCE string_literal address)
+  : ^(I_SOURCE string_literal? address)
     {
       $debugItem = new ImmutableSetSourceFile($address.address, $string_literal.value);
     };
