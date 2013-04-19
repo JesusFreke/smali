@@ -417,7 +417,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
             return instanceFieldsOffset;
         }
         DexReader reader = new DexReader(dexFile, staticFieldsOffset);
-        DexBackedField.skipAllFields(reader, staticFieldCount);
+        DexBackedField.skipFields(reader, staticFieldCount);
         instanceFieldsOffset = reader.getOffset();
         return instanceFieldsOffset;
     }
@@ -427,7 +427,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
             return directMethodsOffset;
         }
         DexReader reader = dexFile.readerAt(getInstanceFieldsOffset());
-        DexBackedField.skipAllFields(reader, instanceFieldCount);
+        DexBackedField.skipFields(reader, instanceFieldCount);
         directMethodsOffset = reader.getOffset();
         return directMethodsOffset;
     }
@@ -437,7 +437,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
             return virtualMethodsOffset;
         }
         DexReader reader = dexFile.readerAt(getDirectMethodsOffset());
-        DexBackedField.skipAllFields(reader, instanceFieldCount);
+        DexBackedMethod.skipMethods(reader, directMethodCount);
         virtualMethodsOffset = reader.getOffset();
         return virtualMethodsOffset;
     }

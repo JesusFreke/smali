@@ -206,4 +206,18 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         }
         return parametersOffset;
     }
+
+    /**
+     * Skips the reader over the specified number of encoded_method structures
+     *
+     * @param reader The reader to skip
+     * @param count The number of encoded_method structures to skip over
+     */
+    public static void skipMethods(@Nonnull DexReader reader, int count) {
+        for (int i=0; i<count; i++) {
+            reader.skipUleb128();
+            reader.skipUleb128();
+            reader.skipUleb128();
+        }
+    }
 }

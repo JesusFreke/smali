@@ -114,7 +114,7 @@ public class DexBackedField extends BaseFieldReference implements Field {
      * @param reader The reader to skip
      * @param count The number of encoded_field structures to skip over
      */
-    public static void skipAllFields(@Nonnull DexReader reader, int count) {
+    public static void skipFields(@Nonnull DexReader reader, int count) {
         for (int i=0; i<count; i++) {
             reader.skipUleb128();
             reader.skipUleb128();
