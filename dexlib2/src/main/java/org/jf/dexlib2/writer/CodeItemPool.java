@@ -525,7 +525,8 @@ public class CodeItemPool {
 
     public void writeSparseSwitchPayload(@Nonnull DexWriter writer, @Nonnull SparseSwitchPayload instruction)
             throws IOException {
-        writer.writeUshort(instruction.getOpcode().value);
+        writer.writeUbyte(0);
+        writer.writeUbyte(instruction.getOpcode().value >> 8);
         List<? extends SwitchElement> elements = instruction.getSwitchElements();
         writer.writeUshort(elements.size());
         for (SwitchElement element: elements) {
@@ -538,12 +539,17 @@ public class CodeItemPool {
 
     public void writePackedSwitchPayload(@Nonnull DexWriter writer, @Nonnull PackedSwitchPayload instruction)
             throws IOException {
-        writer.writeUshort(instruction.getOpcode().value);
+        writer.writeUbyte(0);
+        writer.writeUbyte(instruction.getOpcode().value >> 8);
         List<? extends SwitchElement> elements = instruction.getSwitchElements();
         writer.writeUshort(elements.size());
-        writer.writeInt(elements.get(0).getKey());
-        for (SwitchElement element: elements) {
-            writer.writeInt(element.getOffset());
+        if (elements.size() == 0) {
+            writer.writeInt(0);
+        } else {
+            writer.writeInt(elements.get(0).getKey());
+            for (SwitchElement element: elements) {
+                writer.writeInt(element.getOffset());
+            }
         }
     }
 }

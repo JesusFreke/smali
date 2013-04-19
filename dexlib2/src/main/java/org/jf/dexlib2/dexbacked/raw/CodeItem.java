@@ -345,13 +345,17 @@ public class CodeItem {
                 out.indent();
 
                 out.annotate(2, "size = %d", elements.size());
-                out.annotate(4, "first_key = %d", elements.get(0).getKey());
-                out.annotate(0, "targets:");
-                out.indent();
-                for (int i=0; i<elements.size(); i++) {
-                    out.annotate(4, "target[%d] = %d", i, elements.get(i).getOffset());
+                if (elements.size() == 0) {
+                    out.annotate(4, "first_key");
+                } else {
+                    out.annotate(4, "first_key = %d", elements.get(0).getKey());
+                    out.annotate(0, "targets:");
+                    out.indent();
+                    for (int i=0; i<elements.size(); i++) {
+                        out.annotate(4, "target[%d] = %d", i, elements.get(i).getOffset());
+                    }
+                    out.deindent();
                 }
-                out.deindent();
                 out.deindent();
             }
 
