@@ -159,11 +159,11 @@ public class DumpVtables {
         .create("o");
 
         Option apiLevelOption = OptionBuilder.withLongOpt("api-level")
-                .withDescription("The numeric api-level of the file being disassembled. If not " +
-                        "specified, it defaults to 15 (ICS).")
-                .hasArg()
-                .withArgName("API_LEVEL")
-                .create("a");
+        .withDescription("The numeric api-level of the file being disassembled. If not " +
+                "specified, it defaults to 15 (ICS).")
+        .hasArg()
+        .withArgName("API_LEVEL")
+        .create("a");
 
         options.addOption(classPathDirOption);
         options.addOption(outputFileOption);
