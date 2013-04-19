@@ -92,7 +92,7 @@ public class baksmali {
                     // TODO: implement
                     // options.inlineResolver = InlineMethodResolver.createCustomInlineMethodResolver(
                     // ((DexBackedOdexFile) dexFile).getOdexVersion(), inlineTable);
-                } else {
+                } else if (dexFile instanceof DexBackedOdexFile) {
                     options.inlineResolver = InlineMethodResolver.createInlineMethodResolver(((DexBackedOdexFile) dexFile).getOdexVersion());
                 }
             } catch (Exception ex) {
