@@ -139,7 +139,7 @@ public class DumpFields {
             consoleWidth = 80;
         }
 
-        System.out.println("java -cp baksmali.jar org.jf.dexlib2.analysis.DumpFields -d path/to/jar/files <dex-file>");
+        System.out.println("java -cp baksmali.jar org.jf.dexlib2.analysis.DumpFields -d path/to/framework/jar/files <dex-file>");
     }
 
     private static void buildOptions() {
