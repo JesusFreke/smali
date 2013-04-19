@@ -65,11 +65,7 @@ public class DexFile {
     @Nonnull final MapItem mapItem = new MapItem(this);
     @Nonnull final HeaderItem headerItem = new HeaderItem(this);
 
-    @Nonnull private final Set<? extends ClassDef> classes;
-
     private DexFile(Set<? extends ClassDef> classes) {
-        this.classes = classes;
-
         for (ClassDef classDef: classes) {
             classDefPool.intern(classDef);
         }
