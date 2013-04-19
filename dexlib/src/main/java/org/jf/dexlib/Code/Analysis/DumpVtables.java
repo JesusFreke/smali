@@ -115,9 +115,8 @@ public class DumpVtables {
                 String className = "Class "  + classDef.getClassType() + " extends " + classDef.getSuperclass().getClassType() + " : " + methods.length + " methods\n";
                 outStream.write(className.getBytes());
                 for (int i=0;i<methods.length;i++) {
-                    StringBuilder method = new StringBuilder();
-                    method.append(i + ":" + methods[i].containingClass + "->" + methods[i].method + "\n");
-                    outStream.write(method.toString().getBytes());
+                    String method = i + ":" + methods[i].containingClass + "->" + methods[i].method + "\n";
+                    outStream.write(method.getBytes());
                 }
                 outStream.write("\n".getBytes());
             }
@@ -137,7 +136,7 @@ public class DumpVtables {
             consoleWidth = 80;
         }
 
-        System.out.println("java -jar dexlib2.jar -d path/to/jar/files <dex-file>");
+        System.out.println("java -cp baksmali.jar org.jf.dexlib.Code.Analysis.DumpVtables -d path/to/jar/files <dex-file>");
     }
 
     private static void buildOptions() {
