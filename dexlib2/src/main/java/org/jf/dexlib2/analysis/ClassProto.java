@@ -502,7 +502,8 @@ public class ClassProto implements TypeProto {
     }
 
     private int getNextFieldOffset() {
-        if (getInstanceFields() == null || getInstanceFields().size() == 0) {
+        SparseArray<FieldReference> instanceFields = getInstanceFields();
+        if (instanceFields == null || instanceFields.size() == 0) {
             return 8;
         }
 
@@ -528,12 +529,8 @@ public class ClassProto implements TypeProto {
         String superclassType = getSuperclass();
         if (superclassType != null) {
             ClassProto superclass = (ClassProto) classPath.getClass(superclassType);
-            if (superclass != null) {
-                for (int i=0; i<superclass.getVtable().length; i++) {
-                    virtualMethodList.add(superclass.getVtable()[i]);
-                }
-
-                assert superclass.getInstanceFields() != null;
+            for (int i=0; i<superclass.getVtable().length; i++) {
+                virtualMethodList.add(superclass.getVtable()[i]);
             }
         }
 
@@ -559,10 +556,6 @@ public class ClassProto implements TypeProto {
     }
 
     private LinkedHashMap<String, ClassDef> loadInterfaceTable() {
-        if (getClassDef().getInterfaces() == null) {
-            return null;
-        }
-
         LinkedHashMap<String, ClassDef> interfaceTable = Maps.newLinkedHashMap();
 
         for (String interfaceType: getClassDef().getInterfaces()) {
@@ -577,11 +570,9 @@ public class ClassProto implements TypeProto {
                 interfaceTable.put(interfaceType, interfaceDef);
 
                 ClassProto interfaceProto = (ClassProto) classPath.getClass(interfaceType);
-                if (interfaceProto != null) {
-                    for (ClassDef superInterface: interfaceProto.getInterfaceTable().values()) {
-                        if (!interfaceTable.containsKey(superInterface.getType())) {
-                            interfaceTable.put(superInterface.getType(), superInterface);
-                        }
+                for (ClassDef superInterface: interfaceProto.getInterfaceTable().values()) {
+                    if (!interfaceTable.containsKey(superInterface.getType())) {
+                        interfaceTable.put(superInterface.getType(), superInterface);
                     }
                 }
             }
@@ -621,12 +612,9 @@ public class ClassProto implements TypeProto {
     }
 
     private boolean methodSignaturesMatch(Method a, Method b) {
-        if (a.getName().equals(b.getName())
+        return (a.getName().equals(b.getName())
                 && a.getReturnType().equals(b.getReturnType())
-                && a.getParameters().equals(b.getParameters())) {
-            return true;
-        }
-        return false;
+                && a.getParameters().equals(b.getParameters()));
     }
 
     private boolean canAccess(Method virtualMethod) {
