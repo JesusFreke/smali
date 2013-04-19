@@ -195,6 +195,7 @@ public class DexFile {
 
     private void writeTo(@Nonnull String path) throws IOException {
         RandomAccessFile raf = new RandomAccessFile(path, "rw");
+        raf.setLength(0);
         try {
             int dataSectionOffset = getDataSectionOffset();
             DexWriter headerWriter  = outputAt(raf, 0);
