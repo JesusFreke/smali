@@ -312,7 +312,9 @@ public class ClassProto implements TypeProto {
     @Override
     @Nullable
     public MethodReference getMethodByVtableIndex(int vtableIndex) {
-        if (getVtable() == null) {
+        if (getVtable() == null
+            || vtableIndex < 0
+            || vtableIndex >= getVtable().length) {
             return null;
         }
         return getVtable()[vtableIndex];
