@@ -366,18 +366,20 @@ public class CodeItem {
                 out.annotate(2, instruction.getOpcode().name);
                 out.indent();
                 out.annotate(2, "size = %d", elements.size());
-                out.annotate(0, "keys:");
-                out.indent();
-                for (int i=0; i<elements.size(); i++) {
-                    out.annotate(4, "key[%d] = %d", i, elements.get(i).getKey());
+                if (elements.size() > 0) {
+                    out.annotate(0, "keys:");
+                    out.indent();
+                    for (int i=0; i<elements.size(); i++) {
+                        out.annotate(4, "key[%d] = %d", i, elements.get(i).getKey());
+                    }
+                    out.deindent();
+                    out.annotate(0, "targets:");
+                    out.indent();
+                    for (int i=0; i<elements.size(); i++) {
+                        out.annotate(4, "target[%d] = %d", i, elements.get(i).getOffset());
+                    }
+                    out.deindent();
                 }
-                out.deindent();
-                out.annotate(0, "targets:");
-                out.indent();
-                for (int i=0; i<elements.size(); i++) {
-                    out.annotate(4, "target[%d] = %d", i, elements.get(i).getOffset());
-                }
-                out.deindent();
                 out.deindent();
             }
 
