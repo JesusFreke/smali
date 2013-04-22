@@ -123,7 +123,7 @@ public class DexBackedOdexFile extends DexBackedDexFile {
     }
 
     public int getVersion() {
-        return HeaderItem.getVersion(getBuf(), 0);
+        return OdexHeaderItem.getVersion(odexBuf);
     }
 
     public static class NotAnOdexFile extends RuntimeException {

@@ -219,7 +219,7 @@ public class HeaderItem {
         return "Invalid";
     }
 
-    public static int getVersion(byte[] buf, int offset) {
+    private static int getVersion(byte[] buf, int offset) {
         if (buf.length - offset < 8) {
             return 0;
         }
