@@ -1545,7 +1545,7 @@ public class MethodAnalyzer {
         } else {
             Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;
             methodIndex = instruction.getVtableIndex();
-            objectRegister = instruction.getRegisterD();
+            objectRegister = instruction.getRegisterC();
         }
 
         RegisterType objectRegisterType = getAndCheckSourceRegister(analyzedInstruction, objectRegister,
