@@ -159,12 +159,14 @@ public class DexAnnotator extends AnnotatedBytes {
 
         mapItems = ordering.immutableSortedCopy(mapItems);
 
-        for (MapItem mapItem: mapItems) {
-            SectionAnnotator annotator = annotators.get(mapItem.getType());
-            annotator.annotateSection(this);
+        try {
+            for (MapItem mapItem: mapItems) {
+                SectionAnnotator annotator = annotators.get(mapItem.getType());
+                annotator.annotateSection(this);
+            }
+        } finally {
+            dexFile.writeAnnotations(out, this);
         }
-
-        dexFile.writeAnnotations(out, this);
     }
 
     @Nullable
