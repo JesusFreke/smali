@@ -63,7 +63,7 @@ public class DebugInfoItem {
                     out.indent();
                     for (int i=0; i<parametersSize; i++) {
                         int paramaterIndex = reader.readSmallUleb128() - 1;
-                        out.annotateTo(reader.getOffset(),
+                        out.annotateTo(reader.getOffset(), "%s",
                                 StringIdItem.getOptionalReferenceAnnotation(dexFile, paramaterIndex, true));
                     }
                     out.deindent();
