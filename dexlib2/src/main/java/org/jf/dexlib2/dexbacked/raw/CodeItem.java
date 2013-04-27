@@ -273,7 +273,7 @@ public class CodeItem {
                 } else if (instruction instanceof OffsetInstruction) {
                     int offset = ((OffsetInstruction)instruction).getCodeOffset();
                     String sign = offset>=0?"+":"-";
-                    args.add(String.format("%s0x%x", sign, offset));
+                    args.add(String.format("%s0x%x", sign, Math.abs(offset)));
                 } else if (instruction instanceof NarrowLiteralInstruction) {
                     int value = ((NarrowLiteralInstruction)instruction).getNarrowLiteral();
                     if (NumberUtils.isLikelyFloat(value)) {
