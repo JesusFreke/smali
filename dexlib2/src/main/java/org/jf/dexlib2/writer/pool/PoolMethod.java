@@ -46,6 +46,7 @@ import java.util.Set;
 
 class PoolMethod extends BaseMethodReference implements Method {
     @Nonnull private final Method method;
+    protected int annotationSetRefListOffset = DexPool.NO_OFFSET;
     protected int codeItemOffset = DexPool.NO_OFFSET;
     protected int debugInfoOffset = DexPool.NO_OFFSET;
 

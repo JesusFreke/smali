@@ -41,8 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ClassSection<StringKey extends CharSequence, TypeKey extends CharSequence, TypeListKey, ClassKey,
-        FieldKey, MethodKey, AnnotationSetKey,
-        AnnotationSetRefKey, EncodedValue, DebugItem, Insn,
+        FieldKey, MethodKey, AnnotationSetKey, EncodedValue, DebugItem, Insn,
         ExceptionHandler extends org.jf.dexlib2.iface.ExceptionHandler> extends IndexSection<ClassKey> {
     @Nonnull Collection<? extends ClassKey> getSortedClasses();
 
@@ -68,7 +67,7 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
     @Nullable AnnotationSetKey getClassAnnotations(@Nonnull ClassKey key);
     @Nullable AnnotationSetKey getFieldAnnotations(@Nonnull FieldKey key);
     @Nullable AnnotationSetKey getMethodAnnotations(@Nonnull MethodKey key);
-    @Nullable AnnotationSetRefKey getParameterAnnotations(@Nonnull MethodKey key);
+    @Nullable List<? extends AnnotationSetKey> getParameterAnnotations(@Nonnull MethodKey key);
 
     @Nullable Iterable<? extends DebugItem> getDebugItems(@Nonnull MethodKey key);
     @Nullable Iterable<? extends StringKey> getParameterNames(@Nonnull MethodKey key);
@@ -83,6 +82,9 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
 
     void setAnnotationDirectoryOffset(@Nonnull ClassKey key, int offset);
     int getAnnotationDirectoryOffset(@Nonnull ClassKey key);
+
+    void setAnnotationSetRefListOffset(@Nonnull MethodKey key, int offset);
+    int getAnnotationSetRefListOffset(@Nonnull MethodKey key);
 
     void setCodeItemOffset(@Nonnull MethodKey key, int offset);
     int getCodeItemOffset(@Nonnull MethodKey key);

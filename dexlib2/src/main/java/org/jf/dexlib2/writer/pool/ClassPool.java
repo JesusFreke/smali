@@ -47,6 +47,7 @@ import org.jf.dexlib2.util.EncodedValueUtils;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.writer.ClassSection;
 import org.jf.dexlib2.writer.DebugWriter;
+import org.jf.util.AbstractForwardSequentialList;
 import org.jf.util.CollectionUtils;
 import org.jf.util.ExceptionWithContext;
 
@@ -58,7 +59,7 @@ import java.util.Map.Entry;
 
 public class ClassPool implements ClassSection<CharSequence, CharSequence,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, PoolClassDef, Field, PoolMethod,
-        Set<? extends Annotation>, AnnotationSetRefPool.Key,
+        Set<? extends Annotation>,
         EncodedValue, DebugItem, Instruction, ExceptionHandler> {
     @Nonnull private HashMap<String, PoolClassDef> internedItems = Maps.newHashMap();
 
@@ -67,7 +68,6 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
     @Nonnull private final FieldPool fieldPool;
     @Nonnull private final MethodPool methodPool;
     @Nonnull private final AnnotationSetPool annotationSetPool;
-    @Nonnull private final AnnotationSetRefPool annotationSetRefPool;
     @Nonnull private final TypeListPool typeListPool;
 
     public ClassPool(@Nonnull StringPool stringPool,
@@ -75,14 +75,12 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
                      @Nonnull FieldPool fieldPool,
                      @Nonnull MethodPool methodPool,
                      @Nonnull AnnotationSetPool annotationSetPool,
-                     @Nonnull AnnotationSetRefPool annotationSetRefPool,
                      @Nonnull TypeListPool typeListPool) {
         this.stringPool = stringPool;
         this.typePool = typePool;
         this.fieldPool = fieldPool;
         this.methodPool = methodPool;
         this.annotationSetPool = annotationSetPool;
-        this.annotationSetRefPool = annotationSetRefPool;
         this.typeListPool = typeListPool;
     }
 
@@ -127,7 +125,10 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
             internCode(method);
             internDebug(method);
             annotationSetPool.intern(method.getAnnotations());
-            annotationSetRefPool.intern(method);
+
+            for (MethodParameter parameter: method.getParameters()) {
+                annotationSetPool.intern(parameter.getAnnotations());
+            }
         }
 
         annotationSetPool.intern(poolClassDef.getAnnotations());
@@ -353,13 +354,39 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return annotations;
     }
 
-    @Nullable @Override public AnnotationSetRefPool.Key getParameterAnnotations(@Nonnull PoolMethod method) {
-        AnnotationSetRefPool.Key key = new AnnotationSetRefPool.Key(method);
-        Collection<Set<? extends Annotation>> annotations = key.getAnnotationSets();
-        if (annotations.size() == 0) {
-            return null;
+    private static final Predicate<MethodParameter> HAS_PARAMETER_ANNOTATIONS = new Predicate<MethodParameter>() {
+        @Override
+        public boolean apply(MethodParameter input) {
+            return input.getAnnotations().size() > 0;
         }
-        return key;
+    };
+
+    private static final Function<MethodParameter, Set<? extends Annotation>> PARAMETER_ANNOTATIONS =
+            new Function<MethodParameter, Set<? extends Annotation>>() {
+                @Override
+                public Set<? extends Annotation> apply(MethodParameter input) {
+                    return input.getAnnotations();
+                }
+            };
+
+    @Nullable @Override public List<? extends Set<? extends Annotation>> getParameterAnnotations(
+            @Nonnull final PoolMethod method) {
+        final int lastIndex = CollectionUtils.lastIndexOf(method.getParameters(), HAS_PARAMETER_ANNOTATIONS);
+
+        if (lastIndex > -1) {
+            return new AbstractForwardSequentialList<Set<? extends Annotation>>() {
+                @Nonnull @Override public Iterator<Set<? extends Annotation>> iterator() {
+                    return FluentIterable.from(method.getParameters())
+                            .limit(lastIndex+1)
+                            .transform(PARAMETER_ANNOTATIONS).iterator();
+                }
+
+                @Override public int size() {
+                    return lastIndex+1;
+                }
+            };
+        }
+        return null;
     }
 
     @Nullable @Override public Iterable<? extends DebugItem> getDebugItems(@Nonnull PoolMethod method) {
@@ -421,6 +448,14 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
 
     @Override public int getAnnotationDirectoryOffset(@Nonnull PoolClassDef classDef) {
         return classDef.annotationDirectoryOffset;
+    }
+
+    @Override public void setAnnotationSetRefListOffset(@Nonnull PoolMethod method, int offset) {
+        method.annotationSetRefListOffset = offset;
+
+    }
+    @Override public int getAnnotationSetRefListOffset(@Nonnull PoolMethod method) {
+        return method.annotationSetRefListOffset;
     }
 
     @Override public void setCodeItemOffset(@Nonnull PoolMethod method, int offset) {

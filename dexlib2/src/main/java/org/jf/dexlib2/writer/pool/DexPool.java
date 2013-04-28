@@ -52,7 +52,7 @@ import java.util.Set;
 
 public class DexPool extends DexWriter<CharSequence, StringReference, CharSequence, TypeReference, Key,
         FieldReference, MethodReference, PoolClassDef,
-        Annotation, Set<? extends Annotation>, AnnotationSetRefPool.Key,
+        Annotation, Set<? extends Annotation>,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
         EncodedValue, AnnotationElement, DebugItem, Instruction, ExceptionHandler> {
 
@@ -65,21 +65,19 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         MethodPool methodPool = new MethodPool(stringPool, typePool, protoPool);
         AnnotationPool annotationPool = new AnnotationPool(stringPool, typePool, fieldPool, methodPool);
         AnnotationSetPool annotationSetPool = new AnnotationSetPool(annotationPool);
-        AnnotationSetRefPool annotationSetRefPool = new AnnotationSetRefPool(annotationSetPool);
         ClassPool classPool = new ClassPool(stringPool, typePool, fieldPool, methodPool, annotationSetPool,
-                annotationSetRefPool, typeListPool);
+                typeListPool);
 
         return new DexPool(stringPool, typePool, protoPool, fieldPool, methodPool, classPool, typeListPool,
-                annotationPool, annotationSetPool, annotationSetRefPool);
+                annotationPool, annotationSetPool);
 
     }
 
     private DexPool(StringPool stringPool, TypePool typePool, ProtoPool protoPool, FieldPool fieldPool,
                     MethodPool methodPool, ClassPool classPool, TypeListPool typeListPool,
-                    AnnotationPool annotationPool, AnnotationSetPool annotationSetPool,
-                    AnnotationSetRefPool annotationSetRefPool) {
+                    AnnotationPool annotationPool, AnnotationSetPool annotationSetPool) {
         super(ImmutableInstructionFactory.INSTANCE, stringPool, typePool, protoPool, fieldPool, methodPool, classPool,
-                typeListPool, annotationPool, annotationSetPool, annotationSetRefPool);
+                typeListPool, annotationPool, annotationSetPool);
     }
 
     public static void writeTo(@Nonnull String path, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
