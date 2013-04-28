@@ -88,8 +88,6 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         for (ClassDef classDef: input.getClasses()) {
             ((ClassPool)dexPool.classSection).intern(classDef);
         }
-        /*System.out.println("here");
-        while(true);*/
         dexPool.writeTo(path);
     }
 

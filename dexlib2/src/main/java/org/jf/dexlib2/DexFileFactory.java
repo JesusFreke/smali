@@ -35,6 +35,7 @@ import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.writer.pool.DexPool;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -111,7 +112,7 @@ public final class DexFileFactory {
     }
 
     public static void writeDexFile(String path, DexFile dexFile) throws IOException {
-        org.jf.dexlib2.writer.pool.DexPool.writeTo(path, dexFile);
+        DexPool.writeTo(path, dexFile);
     }
 
     private DexFileFactory() {}
