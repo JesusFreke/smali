@@ -1590,8 +1590,8 @@ public class MethodAnalyzer {
                 opcode = Opcode.INVOKE_VIRTUAL_RANGE;
             }
 
-            deodexedInstruction = new ImmutableInstruction3rc(opcode, instruction.getRegisterCount(),
-                    instruction.getStartRegister(), resolvedMethod);
+            deodexedInstruction = new ImmutableInstruction3rc(opcode, instruction.getStartRegister(),
+                    instruction.getRegisterCount(), resolvedMethod);
         } else {
             Instruction35ms instruction = (Instruction35ms)analyzedInstruction.instruction;
             Opcode opcode;
