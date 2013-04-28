@@ -102,9 +102,9 @@ public abstract class DexWriter<
     protected int mapSectionOffset = NO_OFFSET;
 
     protected int numEncodedArrayItems = 0;
-    protected int numAnnotationDirectoryPoolItems = 0;
-    protected int numDebugInfoPoolItems = 0;
-    protected int numCodeItemPoolItems = 0;
+    protected int numAnnotationDirectoryItems = 0;
+    protected int numDebugInfoItems = 0;
+    protected int numCodeItemItems = 0;
     protected int numClassDataItems = 0;
 
     protected InstructionFactory<? extends Insn> instructionFactory;
@@ -922,7 +922,7 @@ public abstract class DexWriter<
             }
 
             // yep, we need to write it out
-            numAnnotationDirectoryPoolItems++;
+            numAnnotationDirectoryItems++;
             classSection.setAnnotationDirectoryOffset(key, writer.getPosition());
 
             writer.writeInt(annotationSetSection.getNullableItemOffset(classAnnotationKey));
@@ -963,7 +963,7 @@ public abstract class DexWriter<
                     continue;
                 }
 
-                numDebugInfoPoolItems++;
+                numDebugInfoItems++;
 
                 classSection.setDebugItemOffset(methodKey, writer.getPosition());
                 int startingLineNumber = 0;
@@ -1022,7 +1022,7 @@ public abstract class DexWriter<
                     continue;
                 }
 
-                numCodeItemPoolItems++;
+                numCodeItemItems++;
 
                 writer.align();
                 classSection.setCodeItemOffset(methodKey, writer.getPosition());
@@ -1261,13 +1261,13 @@ public abstract class DexWriter<
         if (annotationSetRefSection.getItems().size() > 0) {
             numItems++;
         }
-        if (numAnnotationDirectoryPoolItems > 0) {
+        if (numAnnotationDirectoryItems > 0) {
             numItems++;
         }
-        if (numDebugInfoPoolItems > 0) {
+        if (numDebugInfoItems > 0) {
             numItems++;
         }
-        if (numCodeItemPoolItems > 0) {
+        if (numCodeItemItems > 0) {
             numItems++;
         }
         if (classSection.getItems().size() > 0) {
@@ -1307,10 +1307,10 @@ public abstract class DexWriter<
                 annotationSetSectionOffset);
         writeMapItem(writer, ItemType.ANNOTATION_SET_REF_LIST, annotationSetRefSection.getItems().size(),
                 annotationSetRefSectionOffset);
-        writeMapItem(writer, ItemType.ANNOTATION_DIRECTORY_ITEM, numAnnotationDirectoryPoolItems,
+        writeMapItem(writer, ItemType.ANNOTATION_DIRECTORY_ITEM, numAnnotationDirectoryItems,
                 annotationDirectorySectionOffset);
-        writeMapItem(writer, ItemType.DEBUG_INFO_ITEM, numDebugInfoPoolItems, debugSectionOffset);
-        writeMapItem(writer, ItemType.CODE_ITEM, numCodeItemPoolItems, codeSectionOffset);
+        writeMapItem(writer, ItemType.DEBUG_INFO_ITEM, numDebugInfoItems, debugSectionOffset);
+        writeMapItem(writer, ItemType.CODE_ITEM, numCodeItemItems, codeSectionOffset);
         writeMapItem(writer, ItemType.CLASS_DATA_ITEM, numClassDataItems, classDataSectionOffset);
         writeMapItem(writer, ItemType.MAP_LIST, 1, mapSectionOffset);
     }
