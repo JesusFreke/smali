@@ -634,272 +634,30 @@ public abstract class DexWriter<
             int methodAnnotations = 0;
             int parameterAnnotations = 0;
 
-            // the following logic for merging fields/methods is rather verbose and repetitive, but it's intentionally
-            // so, for efficiency (rather than adding yet another layer of indirection, to simplify it)
-            {
-                Iterator<? extends FieldKey> staticIterator = staticFields.iterator();
-                Iterator<? extends FieldKey> instanceIterator = instanceFields.iterator();
-
-                FieldKey nextStaticField;
-                int nextStaticFieldIndex = 0;
-                AnnotationSetKey nextStaticFieldAnnotationSetKey = null;
-                FieldKey nextInstanceField;
-                int nextInstanceFieldIndex = 0;
-                AnnotationSetKey nextInstanceFieldAnnotationSetKey = null;
-
-                try {
-                    do {
-                        nextStaticField = staticIterator.next();
-                        nextStaticFieldIndex = fieldSection.getItemIndex(nextStaticField);
-                        nextStaticFieldAnnotationSetKey = classSection.getFieldAnnotations(nextStaticField);
-                    } while (nextStaticFieldAnnotationSetKey == null);
-                } catch (NoSuchElementException ex) {
-                    nextStaticField = null;
-                }
-                try {
-                    do {
-                        nextInstanceField = instanceIterator.next();
-                        nextInstanceFieldIndex = fieldSection.getItemIndex(nextInstanceField);
-                        nextInstanceFieldAnnotationSetKey =
-                                classSection.getFieldAnnotations(nextInstanceField);
-                    } while (nextInstanceFieldAnnotationSetKey == null);
-                } catch (NoSuchElementException ex) {
-                    nextInstanceField = null;
-                }
-
-                while (true) {
-                    int nextFieldIndex;
-                    AnnotationSetKey nextFieldAnnotationSetKey;
-
-                    if (nextStaticField == null) {
-                        if (nextInstanceField == null) {
-                            break;
-                        }
-
-                        nextFieldIndex = nextInstanceFieldIndex;
-                        nextFieldAnnotationSetKey = nextInstanceFieldAnnotationSetKey;
-                        try {
-                            do {
-                                nextInstanceField = instanceIterator.next();
-                                nextInstanceFieldIndex = fieldSection.getItemIndex(nextInstanceField);
-                                nextInstanceFieldAnnotationSetKey =
-                                        classSection.getFieldAnnotations(nextInstanceField);
-                            } while (nextInstanceFieldAnnotationSetKey == null);
-                        } catch (NoSuchElementException ex) {
-                            nextInstanceField = null;
-                        }
-                    } else {
-                        if (nextInstanceField == null || nextStaticFieldIndex < nextInstanceFieldIndex) {
-                            nextFieldIndex = nextStaticFieldIndex;
-                            nextFieldAnnotationSetKey = nextStaticFieldAnnotationSetKey;
-                            try {
-                                do {
-                                    nextStaticField = staticIterator.next();
-                                    nextStaticFieldIndex = fieldSection.getItemIndex(nextStaticField);
-                                    nextStaticFieldAnnotationSetKey =
-                                            classSection.getFieldAnnotations(nextStaticField);
-                                } while (nextStaticFieldAnnotationSetKey == null);
-                            } catch (NoSuchElementException ex) {
-                                nextStaticField = null;
-                            }
-                        } else {
-                            nextFieldIndex = nextInstanceFieldIndex;
-                            nextFieldAnnotationSetKey = nextInstanceFieldAnnotationSetKey;
-                            try {
-                                do {
-                                    nextInstanceField = instanceIterator.next();
-                                    nextInstanceFieldIndex = fieldSection.getItemIndex(nextInstanceField);
-                                    nextInstanceFieldAnnotationSetKey =
-                                            classSection.getFieldAnnotations(nextInstanceField);
-                                } while (nextInstanceFieldAnnotationSetKey == null);
-                            } catch (NoSuchElementException ex) {
-                                nextInstanceField = null;
-                            }
-                        }
-                    }
-
+            for (FieldKey field: classSection.getSortedFields(key)) {
+                AnnotationSetKey fieldAnnotationsKey = classSection.getFieldAnnotations(field);
+                if (fieldAnnotationsKey != null) {
                     fieldAnnotations++;
-                    tempBuffer.putInt(nextFieldIndex);
-                    tempBuffer.putInt(annotationSetSection.getItemOffset(nextFieldAnnotationSetKey));
+                    tempBuffer.putInt(fieldSection.getItemIndex(field));
+                    tempBuffer.putInt(annotationSetSection.getItemOffset(fieldAnnotationsKey));
                 }
             }
 
-            {
-                // weeee! now do it all again, except for methods this time
-                Iterator<? extends MethodKey> directIterator = classSection.getSortedDirectMethods(key).iterator();
-                Iterator<? extends MethodKey> virtualIterator = classSection.getSortedVirtualMethods(key).iterator();
-
-                MethodKey nextDirectMethod;
-                int nextDirectMethodIndex = 0;
-                AnnotationSetKey nextDirectMethodAnnotationKey = null;
-                MethodKey nextVirtualMethod;
-                int nextVirtualMethodIndex = 0;
-                AnnotationSetKey nextVirtualMethodAnnotationKey = null;
-
-                try {
-                    do {
-                        nextDirectMethod = directIterator.next();
-                        nextDirectMethodIndex = methodSection.getItemIndex(nextDirectMethod);
-                        nextDirectMethodAnnotationKey = classSection.getMethodAnnotations(nextDirectMethod);
-                    } while (nextDirectMethodAnnotationKey == null);
-                } catch (NoSuchElementException ex) {
-                    nextDirectMethod = null;
-                }
-                try {
-                    do {
-                        nextVirtualMethod = virtualIterator.next();
-                        nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
-                        nextVirtualMethodAnnotationKey =
-                                classSection.getMethodAnnotations(nextVirtualMethod);
-                    } while (nextVirtualMethodAnnotationKey == null);
-                } catch (NoSuchElementException ex) {
-                    nextVirtualMethod = null;
-                }
-
-                while (true) {
-                    int nextMethodIndex;
-                    AnnotationSetKey nextAnnotationKey;
-
-                    if (nextDirectMethod == null) {
-                        if (nextVirtualMethod == null) {
-                            break;
-                        }
-
-                        nextMethodIndex = nextVirtualMethodIndex;
-                        nextAnnotationKey = nextVirtualMethodAnnotationKey;
-                        try {
-                            do {
-                                nextVirtualMethod = virtualIterator.next();
-                                nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
-                                nextVirtualMethodAnnotationKey =
-                                        classSection.getMethodAnnotations(nextVirtualMethod);
-                            } while (nextVirtualMethodAnnotationKey == null);
-                        } catch (NoSuchElementException ex) {
-                            nextVirtualMethod = null;
-                        }
-                    } else {
-                        if (nextVirtualMethod == null || nextDirectMethodIndex < nextVirtualMethodIndex) {
-                            nextMethodIndex = nextDirectMethodIndex;
-                            nextAnnotationKey = nextDirectMethodAnnotationKey;
-                            try {
-                                do {
-                                    nextDirectMethod = directIterator.next();
-                                    nextDirectMethodIndex = methodSection.getItemIndex(nextDirectMethod);
-                                    nextDirectMethodAnnotationKey =
-                                            classSection.getMethodAnnotations(nextDirectMethod);
-                                } while (nextDirectMethodAnnotationKey == null);
-                            } catch (NoSuchElementException ex) {
-                                nextDirectMethod = null;
-                            }
-                        } else {
-                            nextMethodIndex = nextVirtualMethodIndex;
-                            nextAnnotationKey = nextVirtualMethodAnnotationKey;
-                            try {
-                                do {
-                                    nextVirtualMethod = virtualIterator.next();
-                                    nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
-                                    nextVirtualMethodAnnotationKey =
-                                            classSection.getMethodAnnotations(nextVirtualMethod);
-                                } while (nextVirtualMethodAnnotationKey == null);
-                            } catch (NoSuchElementException ex) {
-                                nextVirtualMethod = null;
-                            }
-                        }
-                    }
-
+            for (MethodKey method: classSection.getSortedMethods(key)) {
+                AnnotationSetKey methodAnnotationsKey = classSection.getMethodAnnotations(method);
+                if (methodAnnotationsKey != null) {
                     methodAnnotations++;
-                    tempBuffer.putInt(nextMethodIndex);
-                    tempBuffer.putInt(annotationSetSection.getItemOffset(nextAnnotationKey));
+                    tempBuffer.putInt(methodSection.getItemIndex(method));
+                    tempBuffer.putInt(annotationSetSection.getItemOffset(methodAnnotationsKey));
                 }
             }
 
-            {
-                // AAAAAAAAAAAnd one final time, for parameter annotations
-                Iterator<? extends MethodKey> directIterator = classSection.getSortedDirectMethods(key).iterator();
-                Iterator<? extends MethodKey> virtualIterator = classSection.getSortedVirtualMethods(key).iterator();
-
-                MethodKey nextDirectMethod;
-                int nextDirectMethodIndex = 0;
-                AnnotationSetRefKey nextDirectMethodAnnotationKey = null;
-                MethodKey nextVirtualMethod;
-                int nextVirtualMethodIndex = 0;
-                AnnotationSetRefKey nextVirtualMethodAnnotationKey = null;
-
-                try {
-                    do {
-                        nextDirectMethod = directIterator.next();
-                        nextDirectMethodIndex = methodSection.getItemIndex(nextDirectMethod);
-                        nextDirectMethodAnnotationKey =
-                                classSection.getParameterAnnotations(nextDirectMethod);
-                    } while (nextDirectMethodAnnotationKey == null);
-                } catch (NoSuchElementException ex) {
-                    nextDirectMethod = null;
-                }
-                try {
-                    do {
-                        nextVirtualMethod = virtualIterator.next();
-                        nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
-                        nextVirtualMethodAnnotationKey =
-                                classSection.getParameterAnnotations(nextVirtualMethod);
-                    } while (nextVirtualMethodAnnotationKey == null);
-                } catch (NoSuchElementException ex) {
-                    nextVirtualMethod = null;
-                }
-
-                while (true) {
-                    int nextMethodIndex;
-                    AnnotationSetRefKey nextAnnotationKey;
-
-                    if (nextDirectMethod == null) {
-                        if (nextVirtualMethod == null) {
-                            break;
-                        }
-
-                        nextMethodIndex = nextVirtualMethodIndex;
-                        nextAnnotationKey = nextVirtualMethodAnnotationKey;
-                        try {
-                            do {
-                                nextVirtualMethod = virtualIterator.next();
-                                nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
-                                nextVirtualMethodAnnotationKey =
-                                        classSection.getParameterAnnotations(nextVirtualMethod);
-                            } while (nextVirtualMethodAnnotationKey == null);
-                        } catch (NoSuchElementException ex) {
-                            nextVirtualMethod = null;
-                        }
-                    } else {
-                        if (nextVirtualMethod == null || nextDirectMethodIndex < nextVirtualMethodIndex) {
-                            nextMethodIndex = nextDirectMethodIndex;
-                            nextAnnotationKey = nextDirectMethodAnnotationKey;
-                            try {
-                                do {
-                                    nextDirectMethod = directIterator.next();
-                                    nextDirectMethodIndex = methodSection.getItemIndex(nextDirectMethod);
-                                    nextDirectMethodAnnotationKey =
-                                            classSection.getParameterAnnotations(nextDirectMethod);
-                                } while (nextDirectMethodAnnotationKey == null);
-                            } catch (NoSuchElementException ex) {
-                                nextDirectMethod = null;
-                            }
-                        } else {
-                            nextMethodIndex = nextVirtualMethodIndex;
-                            nextAnnotationKey = nextVirtualMethodAnnotationKey;
-                            try {
-                                do {
-                                    nextVirtualMethod = virtualIterator.next();
-                                    nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
-                                    nextVirtualMethodAnnotationKey =
-                                            classSection.getParameterAnnotations(nextVirtualMethod);
-                                } while (nextVirtualMethodAnnotationKey == null);
-                            } catch (NoSuchElementException ex) {
-                                nextVirtualMethod = null;
-                            }
-                        }
-                    }
-
-                    parameterAnnotations++;
-                    tempBuffer.putInt(nextMethodIndex);
-                    tempBuffer.putInt(annotationSetRefSection.getItemOffset(nextAnnotationKey));
+            for (MethodKey method: classSection.getSortedMethods(key)) {
+                AnnotationSetRefKey parameterAnnotationsKey = classSection.getParameterAnnotations(method);
+                if (parameterAnnotationsKey != null) {
+                    methodAnnotations++;
+                    tempBuffer.putInt(methodSection.getItemIndex(method));
+                    tempBuffer.putInt(annotationSetRefSection.getItemOffset(parameterAnnotationsKey));
                 }
             }
 

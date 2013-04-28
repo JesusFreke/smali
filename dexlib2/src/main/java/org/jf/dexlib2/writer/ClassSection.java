@@ -57,8 +57,10 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
 
     @Nonnull Collection<? extends FieldKey> getSortedStaticFields(@Nonnull ClassKey key);
     @Nonnull Collection<? extends FieldKey> getSortedInstanceFields(@Nonnull ClassKey key);
+    @Nonnull Collection<? extends FieldKey> getSortedFields(@Nonnull ClassKey key);
     @Nonnull Collection<? extends MethodKey> getSortedDirectMethods(@Nonnull ClassKey key);
     @Nonnull Collection<? extends MethodKey> getSortedVirtualMethods(@Nonnull ClassKey key);
+    @Nonnull Collection<? extends MethodKey> getSortedMethods(@Nonnull ClassKey key);
 
     int getFieldAccessFlags(@Nonnull FieldKey key);
     int getMethodAccessFlags(@Nonnull MethodKey key);

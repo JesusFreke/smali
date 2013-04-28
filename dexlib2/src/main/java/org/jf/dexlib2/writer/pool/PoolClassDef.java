@@ -119,7 +119,7 @@ class PoolClassDef extends BaseTypeReference implements ClassDef {
         return virtualMethods;
     }
 
-    @Nonnull @Override public Iterable<PoolMethod> getMethods() {
+    @Nonnull @Override public Collection<PoolMethod> getMethods() {
         return new AbstractCollection<PoolMethod>() {
             @Nonnull @Override public Iterator<PoolMethod> iterator() {
                 return Iterators.mergeSorted(

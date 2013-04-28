@@ -305,12 +305,20 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return classDef.getInstanceFields();
     }
 
+    @Nonnull @Override public Collection<? extends Field> getSortedFields(@Nonnull PoolClassDef classDef) {
+        return classDef.getFields();
+    }
+
     @Nonnull @Override public Collection<PoolMethod> getSortedDirectMethods(@Nonnull PoolClassDef classDef) {
         return classDef.getDirectMethods();
     }
 
     @Nonnull @Override public Collection<PoolMethod> getSortedVirtualMethods(@Nonnull PoolClassDef classDef) {
         return classDef.getVirtualMethods();
+    }
+
+    @Nonnull @Override public Collection<? extends PoolMethod> getSortedMethods(@Nonnull PoolClassDef classDef) {
+        return classDef.getMethods();
     }
 
     @Override public int getFieldAccessFlags(@Nonnull Field field) {
