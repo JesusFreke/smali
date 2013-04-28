@@ -48,7 +48,7 @@ public class DexBackedMethodEncodedValue extends BaseMethodEncodedValue {
         MethodIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 
-    @Override public MethodReference getValue() {
+    @Nonnull @Override public MethodReference getValue() {
         return new DexBackedMethodReference(dexFile, MethodIndex);
     }
 }

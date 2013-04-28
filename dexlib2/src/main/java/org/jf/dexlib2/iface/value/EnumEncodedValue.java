@@ -47,7 +47,7 @@ public interface EnumEncodedValue extends EncodedValue {
      *
      * @return a reference to the field on the enum class that holds the enum value, as a FieldReference
      */
-    FieldReference getValue();
+    @Nonnull FieldReference getValue();
 
     /**
      * Returns a hashcode for this EncodedEnumValue.

@@ -45,7 +45,7 @@ public interface FieldEncodedValue extends EncodedValue {
      *
      * @return the field value as a FieldReference
      */
-    FieldReference getValue();
+    @Nonnull FieldReference getValue();
 
     /**
      * Returns a hashcode for this EncodedFieldValue.
@@ -59,8 +59,7 @@ public interface FieldEncodedValue extends EncodedValue {
      *
      * @return The hash code value for this EncodedFieldValue
      */
-    @Override
-    int hashCode();
+    @Override int hashCode();
 
     /**
      * Compares this FieldEncodedValue to another FieldEncodedValue for equality.
@@ -70,8 +69,7 @@ public interface FieldEncodedValue extends EncodedValue {
      * @param o The object to be compared for equality with this FieldEncodedValue
      * @return true if the specified object is equal to this FieldEncodedValue
      */
-    @Override
-    boolean equals(@Nullable Object o);
+    @Override boolean equals(@Nullable Object o);
 
     /**
      * Compare this FieldEncodedValue to another EncodedValue.
@@ -82,6 +80,5 @@ public interface FieldEncodedValue extends EncodedValue {
      * @param o The EncodedValue to compare with this FieldEncodedValue
      * @return An integer representing the result of the comparison
      */
-    @Override
-    int compareTo(@Nonnull EncodedValue o);
+    @Override int compareTo(@Nonnull EncodedValue o);
 }

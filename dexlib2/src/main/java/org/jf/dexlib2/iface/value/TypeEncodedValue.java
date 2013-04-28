@@ -43,7 +43,7 @@ public interface TypeEncodedValue extends EncodedValue {
      *
      * @return the type value
      */
-    String getValue();
+    @Nonnull String getValue();
 
     /**
      * Returns a hashcode for this EncodedTypeValue.

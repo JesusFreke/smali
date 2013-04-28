@@ -46,7 +46,7 @@ public class DexBackedTypeEncodedValue extends BaseTypeEncodedValue {
         typeIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 
-    @Override public String getValue() {
+    @Nonnull @Override public String getValue() {
         return dexFile.getType(typeIndex);
     }
 }

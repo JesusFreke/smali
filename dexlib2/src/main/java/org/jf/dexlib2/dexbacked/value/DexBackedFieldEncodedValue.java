@@ -48,7 +48,7 @@ public class DexBackedFieldEncodedValue extends BaseFieldEncodedValue {
         fieldIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 
-    @Override public FieldReference getValue() {
+    @Nonnull @Override public FieldReference getValue() {
         return new DexBackedFieldReference(dexFile, fieldIndex);
     }
 }

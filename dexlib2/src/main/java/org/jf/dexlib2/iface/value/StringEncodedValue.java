@@ -43,7 +43,7 @@ public interface StringEncodedValue extends EncodedValue {
      *
      * @return the string value
      */
-    String getValue();
+    @Nonnull String getValue();
 
     /**
      * Returns a hashcode for this EncodedStringValue.

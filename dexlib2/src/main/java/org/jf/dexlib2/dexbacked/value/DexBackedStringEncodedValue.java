@@ -46,7 +46,7 @@ public class DexBackedStringEncodedValue extends BaseStringEncodedValue {
         stringIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 
-    @Override public String getValue() {
+    @Nonnull @Override public String getValue() {
         return dexFile.getString(stringIndex);
     }
 }
