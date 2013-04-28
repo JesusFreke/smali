@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,252 +31,1304 @@
 
 package org.jf.dexlib2.writer;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
+import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.base.BaseAnnotation;
+import org.jf.dexlib2.dexbacked.raw.*;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.TryBlock;
+import org.jf.dexlib2.iface.debug.LineNumber;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.StringReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.util.MethodUtil;
+import org.jf.dexlib2.writer.util.InstructionWriteUtil;
+import org.jf.dexlib2.writer.util.TryListBuilder;
 import org.jf.util.ExceptionWithContext;
+import org.jf.util.RandomAccessFileOutputStream;
 
 import javax.annotation.Nonnull;
-import java.io.BufferedOutputStream;
+import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.zip.Adler32;
 
-public class DexWriter extends BufferedOutputStream {
+public abstract class DexWriter<
+        StringKey extends CharSequence, StringRef extends StringReference, TypeKey extends CharSequence,
+        TypeRef extends TypeReference, ProtoKey extends Comparable<ProtoKey>,
+        FieldRefKey extends FieldReference, MethodRefKey extends MethodReference,
+        ClassKey extends Comparable<? super ClassKey>,
+        AnnotationKey extends Annotation, AnnotationSetKey, AnnotationSetRefKey,
+        TypeListKey, EncodedArrayKey,
+        FieldKey extends FieldRefKey, MethodKey extends MethodRefKey, EncodedValue, AnnotationElement,
+        DebugItem extends org.jf.dexlib2.iface.debug.DebugItem,
+        Insn extends Instruction, ExceptionHandler extends org.jf.dexlib2.iface.ExceptionHandler> {
+    public static final int NO_INDEX = -1;
+    public static final int NO_OFFSET = 0;
+
+    protected int stringIndexSectionOffset = NO_OFFSET;
+    protected int typeSectionOffset = NO_OFFSET;
+    protected int protoSectionOffset = NO_OFFSET;
+    protected int fieldSectionOffset = NO_OFFSET;
+    protected int methodSectionOffset = NO_OFFSET;
+    protected int classIndexSectionOffset = NO_OFFSET;
+
+    protected int stringDataSectionOffset = NO_OFFSET;
+    protected int classDataSectionOffset = NO_OFFSET;
+    protected int typeListSectionOffset = NO_OFFSET;
+    protected int encodedArraySectionOffset = NO_OFFSET;
+    protected int annotationSectionOffset = NO_OFFSET;
+    protected int annotationSetSectionOffset = NO_OFFSET;
+    protected int annotationSetRefSectionOffset = NO_OFFSET;
+    protected int annotationDirectorySectionOffset = NO_OFFSET;
+    protected int debugSectionOffset = NO_OFFSET;
+    protected int codeSectionOffset = NO_OFFSET;
+    protected int mapSectionOffset = NO_OFFSET;
+
+    protected int numAnnotationDirectoryPoolItems = 0;
+    protected int numDebugInfoPoolItems = 0;
+    protected int numCodeItemPoolItems = 0;
+    protected int numClassDataItems = 0;
+
+    protected InstructionFactory<? extends Insn> instructionFactory;
+
+    protected StringSection<StringKey, StringRef> stringSection;
+    protected TypeSection<StringKey, TypeKey, TypeRef> typeSection;
+    protected ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection;
+    protected FieldSection<StringKey, TypeKey, FieldRefKey> fieldSection;
+    protected MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey> methodSection;
+    protected ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
+            AnnotationSetRefKey, EncodedArrayKey, DebugItem, Insn, ExceptionHandler> classSection;
+    
+    protected TypeListSection<TypeKey, TypeListKey> typeListSection;
+    protected AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue> annotationSection;
+    protected AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection;
+    protected AnnotationSetRefSection<AnnotationSetKey, AnnotationSetRefKey> annotationSetRefSection;
+
+    protected EncodedArraySection<EncodedArrayKey, EncodedValue> encodedArraySection;
+
+    protected DexWriter(InstructionFactory<? extends Insn> instructionFactory,
+                        StringSection<StringKey, StringRef> stringSection,
+                        TypeSection<StringKey, TypeKey, TypeRef> typeSection,
+                        ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection,
+                        FieldSection<StringKey, TypeKey, FieldRefKey> fieldSection,
+                        MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey> methodSection,
+                        ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
+                                AnnotationSetRefKey, EncodedArrayKey, DebugItem, Insn, ExceptionHandler> classSection,
+                        TypeListSection<TypeKey, TypeListKey> typeListSection,
+                        AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement,
+                                EncodedValue> annotationSection,
+                        AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection,
+                        AnnotationSetRefSection<AnnotationSetKey, AnnotationSetRefKey> annotationSetRefSection,
+                        EncodedArraySection<EncodedArrayKey, EncodedValue> encodedArraySection) {
+        this.instructionFactory = instructionFactory;
+        this.stringSection = stringSection;
+        this.typeSection = typeSection;
+        this.protoSection = protoSection;
+        this.fieldSection = fieldSection;
+        this.methodSection = methodSection;
+        this.classSection = classSection;
+        this.typeListSection = typeListSection;
+        this.annotationSection = annotationSection;
+        this.annotationSetSection = annotationSetSection;
+        this.annotationSetRefSection = annotationSetRefSection;
+        this.encodedArraySection = encodedArraySection;
+    }
+
+    protected abstract void writeEncodedValue(@Nonnull InternalEncodedValueWriter writer,
+                                              @Nonnull EncodedValue encodedValue) throws IOException;
+
+    private static Comparator<Map.Entry> toStringKeyComparator =
+            new Comparator<Map.Entry>() {
+                @Override public int compare(Entry o1, Entry o2) {
+                    return o1.getKey().toString().compareTo(o2.getKey().toString());
+                }
+            };
+
+    private static <T extends Comparable<? super T>> Comparator<Map.Entry<? extends T, ?>> comparableKeyComparator() {
+        return new Comparator<Entry<? extends T, ?>>() {
+            @Override public int compare(Entry<? extends T, ?> o1, Entry<? extends T, ?> o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+        };
+    }
+
+    protected class InternalEncodedValueWriter extends EncodedValueWriter<StringKey, TypeKey, FieldRefKey, MethodRefKey,
+            AnnotationElement, EncodedValue> {
+        private InternalEncodedValueWriter(@Nonnull DexDataWriter writer) {
+            super(writer, stringSection, typeSection, fieldSection, methodSection, annotationSection);
+        }
+
+        @Override protected void writeEncodedValue(@Nonnull EncodedValue encodedValue) throws IOException {
+            DexWriter.this.writeEncodedValue(this, encodedValue);
+        }
+    }
+
+    private int getDataSectionOffset() {
+        return HeaderItem.ITEM_SIZE +
+                stringSection.getItems().size() * StringIdItem.ITEM_SIZE +
+                typeSection.getItems().size() * TypeIdItem.ITEM_SIZE +
+                protoSection.getItems().size() * ProtoIdItem.ITEM_SIZE +
+                fieldSection.getItems().size() * FieldIdItem.ITEM_SIZE +
+                methodSection.getItems().size() * MethodIdItem.ITEM_SIZE +
+                classSection.getItems().size() * ClassDefItem.ITEM_SIZE;
+    }
+
+    public void writeTo(String path) throws IOException {
+        RandomAccessFile raf = new RandomAccessFile(path, "rw");
+        raf.setLength(0);
+        try {
+            int dataSectionOffset = getDataSectionOffset();
+            DexDataWriter headerWriter  = outputAt(raf, 0);
+            DexDataWriter indexWriter   = outputAt(raf, HeaderItem.ITEM_SIZE);
+            DexDataWriter offsetWriter  = outputAt(raf, dataSectionOffset);
+            try {
+                writeStrings(indexWriter, offsetWriter);
+                writeTypes(indexWriter);
+                writeTypeLists(offsetWriter);
+                writeProtos(indexWriter);
+                writeFields(indexWriter);
+                writeMethods(indexWriter);
+                writeEncodedArrays(offsetWriter);
+                writeAnnotations(offsetWriter);
+                writeAnnotationSets(offsetWriter);
+                writeAnnotationSetRefs(offsetWriter);
+                writeAnnotationDirectories(offsetWriter);
+                writeDebugItems(offsetWriter);
+                writeCodeItems(offsetWriter);
+                writeClasses(indexWriter, offsetWriter);
+                writeMapItem(offsetWriter);
+                writeHeader(headerWriter, dataSectionOffset, offsetWriter.getPosition());
+            } finally {
+                headerWriter.close();
+                indexWriter.close();
+                offsetWriter.close();
+            }
+            FileChannel fileChannel = raf.getChannel();
+            updateSignature(fileChannel);
+            updateChecksum(fileChannel);
+        } finally {
+            raf.close();
+        }
+    }
+
+    private void updateSignature(FileChannel fileChannel) throws IOException {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        ByteBuffer buffer = ByteBuffer.allocate(128 * 1024);
+        fileChannel.position(HeaderItem.HEADER_SIZE_OFFSET);
+        int bytesRead = fileChannel.read(buffer);
+        while (bytesRead >= 0) {
+            buffer.rewind();
+            md.update(buffer);
+            buffer.clear();
+            bytesRead = fileChannel.read(buffer);
+        }
+
+        byte[] signature = md.digest();
+        if (signature.length != HeaderItem.SIGNATURE_SIZE) {
+            throw new RuntimeException("unexpected digest write: " + signature.length + " bytes");
+        }
+
+        // write signature
+        fileChannel.position(HeaderItem.SIGNATURE_OFFSET);
+        fileChannel.write(ByteBuffer.wrap(signature));
+
+        // flush
+        fileChannel.force(false);
+    }
+
+    private void updateChecksum(FileChannel fileChannel) throws IOException {
+        Adler32 a32 = new Adler32();
+
+        ByteBuffer buffer = ByteBuffer.allocate(128 * 1024);
+        fileChannel.position(HeaderItem.SIGNATURE_OFFSET);
+        int bytesRead = fileChannel.read(buffer);
+        while (bytesRead >= 0) {
+            a32.update(buffer.array(), 0, bytesRead);
+            buffer.clear();
+            bytesRead = fileChannel.read(buffer);
+        }
+
+        // write checksum, utilizing logic in DexWriter to write the integer value properly
+        fileChannel.position(HeaderItem.CHECKSUM_OFFSET);
+        int checksum = (int) a32.getValue();
+        ByteArrayOutputStream checksumBuf = new ByteArrayOutputStream();
+        DexDataWriter.writeInt(checksumBuf, checksum);
+        fileChannel.write(ByteBuffer.wrap(checksumBuf.toByteArray()));
+
+        // flush
+        fileChannel.force(false);
+    }
+
+    private static DexDataWriter outputAt(RandomAccessFile raf, int filePosition) throws IOException {
+        return new DexDataWriter(new RandomAccessFileOutputStream(raf, filePosition), filePosition);
+    }
+
+    private void writeStrings(@Nonnull DexDataWriter indexWriter, @Nonnull DexDataWriter offsetWriter) throws IOException {
+        stringIndexSectionOffset = indexWriter.getPosition();
+        stringDataSectionOffset = offsetWriter.getPosition();
+        int index = 0;
+        List<Entry<? extends StringKey, Integer>> stringEntries = Lists.newArrayList(stringSection.getItems());
+        Collections.sort(stringEntries, toStringKeyComparator);
+
+        for (Map.Entry<? extends StringKey, Integer>  entry: stringEntries) {
+            entry.setValue(index++);
+            indexWriter.writeInt(offsetWriter.getPosition());
+            String stringValue = entry.getKey().toString();
+            offsetWriter.writeUleb128(stringValue.length());
+            offsetWriter.writeString(stringValue);
+            offsetWriter.write(0);
+        }
+    }
+
+    private void writeTypes(@Nonnull DexDataWriter writer) throws IOException {
+        typeSectionOffset = writer.getPosition();
+        int index = 0;
+
+        List<Map.Entry<? extends TypeKey, Integer>> typeEntries = Lists.newArrayList(typeSection.getItems());
+        Collections.sort(typeEntries, toStringKeyComparator);
+
+        for (Map.Entry<? extends TypeKey, Integer> entry : typeEntries) {
+            entry.setValue(index++);
+            writer.writeInt(stringSection.getItemIndex(typeSection.getString(entry.getKey())));
+        }
+    }
+
+    private void writeProtos(@Nonnull DexDataWriter writer) throws IOException {
+        protoSectionOffset = writer.getPosition();
+        int index = 0;
+
+        List<Map.Entry<? extends ProtoKey, Integer>> protoEntries = Lists.newArrayList(protoSection.getItems());
+        Collections.sort(protoEntries, DexWriter.<ProtoKey>comparableKeyComparator());
+
+        for (Map.Entry<? extends ProtoKey, Integer> entry: protoEntries) {
+            entry.setValue(index++);
+            ProtoKey key = entry.getKey();
+            writer.writeInt(stringSection.getItemIndex(protoSection.getShorty(key)));
+            writer.writeInt(typeSection.getItemIndex(protoSection.getReturnType(key)));
+            writer.writeInt(typeListSection.getNullableItemOffset(protoSection.getParameters(key)));
+        }
+    }
+
+    private void writeFields(@Nonnull DexDataWriter writer) throws IOException {
+        fieldSectionOffset = writer.getPosition();
+        int index = 0;
+
+        List<Map.Entry<? extends FieldRefKey, Integer>> fieldEntries = Lists.newArrayList(fieldSection.getItems());
+        Collections.sort(fieldEntries, DexWriter.<FieldRefKey>comparableKeyComparator());
+        
+        for (Map.Entry<? extends FieldRefKey, Integer> entry: fieldEntries) {
+            entry.setValue(index++);
+            FieldRefKey key = entry.getKey();
+            writer.writeUshort(typeSection.getItemIndex(fieldSection.getDefiningClass(key)));
+            writer.writeUshort(typeSection.getItemIndex(fieldSection.getFieldType(key)));
+            writer.writeInt(stringSection.getItemIndex(fieldSection.getName(key)));
+        }
+    }
+
+    private void writeMethods(@Nonnull DexDataWriter writer) throws IOException {
+        methodSectionOffset = writer.getPosition();
+        int index = 0;
+
+        List<Map.Entry<? extends MethodRefKey, Integer>> methodEntries = Lists.newArrayList(methodSection.getItems());
+        Collections.sort(methodEntries, DexWriter.<MethodRefKey>comparableKeyComparator());
+        
+        for (Map.Entry<? extends MethodRefKey, Integer> entry: methodEntries) {
+            entry.setValue(index++);
+            MethodRefKey key = entry.getKey();
+            writer.writeUshort(typeSection.getItemIndex(methodSection.getDefiningClass(key)));
+            writer.writeUshort(protoSection.getItemIndex(methodSection.getPrototype(key)));
+            writer.writeInt(stringSection.getItemIndex(methodSection.getName(key)));
+        }
+    }
+
+    private void writeClasses(@Nonnull DexDataWriter indexWriter, @Nonnull DexDataWriter offsetWriter) throws IOException {
+        classIndexSectionOffset = indexWriter.getPosition();
+        classDataSectionOffset = offsetWriter.getPosition();
+
+        List<Map.Entry<? extends ClassKey, Integer>> classEntries = Lists.newArrayList(classSection.getItems());
+        Collections.sort(classEntries, DexWriter.<ClassKey>comparableKeyComparator());
+
+        int index = 0;
+        for (Map.Entry<? extends ClassKey, Integer> key: classEntries) {
+            index = writeClass(indexWriter, offsetWriter, index, key);
+        }
+    }
+
     /**
-     * The position within the file that we will write to next. This is only updated when the buffer is flushed to the
-     * outputStream.
-     */
-    private int filePosition;
-
-    /**
-     * A temporary buffer that can be used for larger writes. Can be replaced with a larger buffer if needed.
-     * Must be at least 8 bytes
-     */
-    private byte[] tempBuf = new byte[8];
-
-    /** A buffer of 0s to use for writing alignment values */
-    private byte[] zeroBuf = new byte[3];
-
-    /**
-     * Construct a new DexWriter instance that writes to output.
+     * Writes out the class_def_item and class_data_item for the given class.
      *
-     * @param output An OutputStream to write the data to.
-     * @param filePosition The position within the file that OutputStream will write to.
+     * This will recursively write out any unwritten superclass/interface before writing the class itself, as per the
+     * dex specification.
+     *
+     * @return the index for the next class to be written
      */
-    public DexWriter(@Nonnull OutputStream output, int filePosition) {
-        this(output, filePosition, 256 * 1024);
-    }
-
-    public DexWriter(@Nonnull OutputStream output, int filePosition, int bufferSize) {
-        super(output, bufferSize);
-
-        this.filePosition = filePosition;
-    }
-
-    @Override
-    public void write(int b) throws IOException {
-        filePosition++;
-        super.write(b);
-    }
-
-    @Override
-    public void write(byte[] b) throws IOException {
-        write(b, 0, b.length);
-    }
-
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-        filePosition += len;
-        super.write(b, off, len);
-    }
-
-    public void writeLong(long value) throws IOException {
-        writeInt((int)value);
-        writeInt((int)(value >> 32));
-    }
-
-    public static void writeInt(OutputStream out, int value) throws IOException {
-        out.write(value);
-        out.write(value >> 8);
-        out.write(value >> 16);
-        out.write(value >> 24);
-    }
-
-    public void writeInt(int value) throws IOException {
-        writeInt(this, value);
-    }
-
-    public void writeShort(int value) throws IOException {
-        if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
-            throw new ExceptionWithContext("Short value out of range: %d", value);
+    private int writeClass(@Nonnull DexDataWriter indexWriter, @Nonnull DexDataWriter offsetWriter,
+                           int nextIndex, @Nullable Map.Entry<? extends ClassKey, Integer> entry) throws IOException {
+        if (entry == null) {
+            // class does not exist in this dex file, cannot write it
+            return nextIndex;
         }
-        write(value);
-        write(value >> 8);
-    }
 
-    public void writeUshort(int value) throws IOException {
-        if (value < 0 || value > 0xFFFF) {
-            throw new ExceptionWithContext("Unsigned short value out of range: %d", value);
+        if (entry.getValue() != NO_INDEX) {
+            // class has already been written, no need to write it
+            return nextIndex;
         }
-        write(value);
-        write(value >> 8);
-    }
 
-    public void writeUbyte(int value) throws IOException {
-        if (value < 0 || value > 0xFF) {
-            throw new ExceptionWithContext("Unsigned byte value out of range: %d", value);
+        ClassKey key = entry.getKey();
+
+        // set a bogus index, to make sure we don't recuse and double-write it
+        entry.setValue(0);
+
+        // first, try to write the superclass
+        Map.Entry<? extends ClassKey, Integer> superEntry =
+                classSection.getClassEntryByType(classSection.getSuperclass(key));
+        nextIndex = writeClass(indexWriter, offsetWriter, nextIndex, superEntry);
+
+        // then, try to write interfaces
+        for (TypeKey interfaceTypeKey: typeListSection.getTypes(classSection.getSortedInterfaces(key))) {
+            Map.Entry<? extends ClassKey, Integer> interfaceEntry = classSection.getClassEntryByType(interfaceTypeKey);
+            nextIndex = writeClass(indexWriter, offsetWriter, nextIndex, interfaceEntry);
         }
-        write(value);
-    }
 
-    public static void writeUleb128(OutputStream out, int value) throws IOException {
-        while (value > 0x7f) {
-            out.write((value & 0x7f) | 0x80);
-            value >>>= 7;
-        }
-        out.write(value);
-    }
+        // now set the index for real
+        entry.setValue(nextIndex++);
 
-    public void writeUleb128(int value) throws IOException {
-        writeUleb128(this, value);
-    }
+        // and finally, write the class itself
+        // first, the class_def_item
+        indexWriter.writeInt(typeSection.getItemIndex(classSection.getType(key)));
+        indexWriter.writeInt(classSection.getAccessFlags(key));
+        indexWriter.writeInt(typeSection.getNullableItemIndex(classSection.getSuperclass(key)));
+        indexWriter.writeInt(typeListSection.getNullableItemOffset(classSection.getSortedInterfaces(key)));
+        indexWriter.writeInt(stringSection.getNullableItemIndex(classSection.getSourceFile(key)));
+        indexWriter.writeInt(classSection.getAnnotationDirectoryOffset(key));
 
-    public static void writeSleb128(OutputStream out, int value) throws IOException {
-        if (value >= 0) {
-            while (value > 0x3f) {
-                out.write((value & 0x7f) | 0x80);
-                value >>>= 7;
-            }
-            out.write(value & 0x7f);
+        Collection<? extends FieldKey> staticFields = classSection.getSortedStaticFields(key);
+        Collection<? extends FieldKey> instanceFields = classSection.getSortedInstanceFields(key);
+        Collection<? extends MethodKey> directMethods = classSection.getSortedDirectMethods(key);
+        Collection<? extends MethodKey> virtualMethods = classSection.getSortedVirtualMethods(key);
+        boolean classHasData = staticFields.size() > 0 ||
+                instanceFields.size() > 0 ||
+                directMethods.size() > 0 ||
+                virtualMethods.size() > 0;
+
+        if (classHasData) {
+            indexWriter.writeInt(offsetWriter.getPosition());
         } else {
-            while (value < -0x40) {
-                out.write((value & 0x7f) | 0x80);
-                value >>= 7;
-            }
-            out.write(value & 0x7f);
+            indexWriter.writeInt(0);
+        }
+
+        indexWriter.writeInt(encodedArraySection.getNullableItemOffset(classSection.getStaticInitializers(key)));
+
+        // now write the class_data_item
+        if (classHasData) {
+            numClassDataItems++;
+
+            offsetWriter.writeUleb128(staticFields.size());
+            offsetWriter.writeUleb128(instanceFields.size());
+            offsetWriter.writeUleb128(directMethods.size());
+            offsetWriter.writeUleb128(virtualMethods.size());
+
+            writeEncodedFields(offsetWriter, staticFields);
+            writeEncodedFields(offsetWriter, instanceFields);
+            writeEncodedMethods(offsetWriter, directMethods);
+            writeEncodedMethods(offsetWriter, virtualMethods);
+        }
+
+        return nextIndex;
+    }
+
+    private void writeEncodedFields(@Nonnull DexDataWriter writer, @Nonnull Collection<? extends FieldKey> fields)
+            throws IOException {
+        int prevIndex = 0;
+        for (FieldKey key: fields) {
+            int index = fieldSection.getItemIndex(key);
+            writer.writeUleb128(index-prevIndex);
+            writer.writeUleb128(classSection.getFieldAccessFlags(key));
+            prevIndex = index;
         }
     }
 
-    public void writeSleb128(int value) throws IOException {
-        writeSleb128(this, value);
+    private void writeEncodedMethods(@Nonnull DexDataWriter writer, @Nonnull Collection<? extends MethodKey> methods)
+            throws IOException {
+        int prevIndex = 0;
+        for (MethodKey key: methods) {
+            int index = methodSection.getItemIndex(key);
+            writer.writeUleb128(index-prevIndex);
+            writer.writeUleb128(classSection.getMethodAccessFlags(key));
+            writer.writeUleb128(classSection.getCodeItemOffset(key));
+            prevIndex = index;
+        }
     }
 
-    public void writeEncodedValueHeader(int valueType, int valueArg) throws IOException {
-        write(valueType | (valueArg << 5));
-    }
+    private void writeTypeLists(@Nonnull DexDataWriter writer) throws IOException {
+        writer.align();
+        typeListSectionOffset = writer.getPosition();
+        for (Map.Entry<? extends TypeListKey, Integer> entry: typeListSection.getItems()) {
+            writer.align();
+            entry.setValue(writer.getPosition());
 
-    public void writeEncodedInt(int valueType, int value) throws IOException {
-        int index = 0;
-        if (value >= 0) {
-            while (value > 0x7f) {
-                tempBuf[index++] = (byte)value;
-                value >>= 8;
+            Collection<? extends TypeKey> types = typeListSection.getTypes(entry.getKey());
+            writer.writeInt(types.size());
+            for (TypeKey typeKey: types) {
+                writer.writeUshort(typeSection.getItemIndex(typeKey));
             }
+        }
+    }
+
+    private void writeEncodedArrays(@Nonnull DexDataWriter writer) throws IOException {
+        InternalEncodedValueWriter encodedValueWriter = new InternalEncodedValueWriter(writer);
+        encodedArraySectionOffset = writer.getPosition();
+        for (Map.Entry<? extends EncodedArrayKey, Integer> entry: encodedArraySection.getItems()) {
+            entry.setValue(writer.getPosition());
+
+            Collection<EncodedValue> elements = encodedArraySection.getElements(entry.getKey());
+
+            writer.writeUleb128(elements.size());
+            for (EncodedValue value: elements) {
+                writeEncodedValue(encodedValueWriter, value);
+            }
+        }
+    }
+
+    private void writeAnnotations(@Nonnull DexDataWriter writer) throws IOException {
+        InternalEncodedValueWriter encodedValueWriter = new InternalEncodedValueWriter(writer);
+
+        annotationSectionOffset = writer.getPosition();
+        for (Map.Entry<? extends AnnotationKey, Integer> entry: annotationSection.getItems()) {
+            entry.setValue(writer.getPosition());
+
+            AnnotationKey key = entry.getKey();
+
+            writer.writeUbyte(annotationSection.getVisibility(key));
+            writer.writeUleb128(typeSection.getItemIndex(annotationSection.getType(key)));
+
+            Collection<? extends AnnotationElement> elements = annotationSection.getElements(key);
+            writer.writeUleb128(elements.size());
+
+            for (AnnotationElement element: elements) {
+                writer.writeUleb128(stringSection.getItemIndex(annotationSection.getElementName(element)));
+                writeEncodedValue(encodedValueWriter, annotationSection.getElementValue(element));
+            }
+        }
+    }
+
+
+    private void writeAnnotationSets(@Nonnull DexDataWriter writer) throws IOException {
+        writer.align();
+        annotationSetSectionOffset = writer.getPosition();
+        for (Map.Entry<? extends AnnotationSetKey, Integer> entry: annotationSetSection.getItems()) {
+            Collection<? extends AnnotationKey> annotations = Ordering.from(BaseAnnotation.BY_TYPE)
+                    .immutableSortedCopy(annotationSetSection.getAnnotations(entry.getKey()));
+
+            writer.align();
+            entry.setValue(writer.getPosition());
+            writer.writeInt(annotations.size());
+            for (AnnotationKey annotationKey: annotations) {
+                writer.writeInt(annotationSection.getItemOffset(annotationKey));
+            }
+        }
+    }
+
+    private void writeAnnotationSetRefs(@Nonnull DexDataWriter writer) throws IOException {
+        writer.align();
+        annotationSetRefSectionOffset = writer.getPosition();
+        for (Map.Entry<? extends AnnotationSetRefKey, Integer> entry: annotationSetRefSection.getItems()) {
+            writer.align();
+            entry.setValue(writer.getPosition());
+
+            Collection<AnnotationSetKey> annotationSets = annotationSetRefSection.getAnnotationSets(entry.getKey());
+
+            writer.writeInt(annotationSets.size());
+            for (AnnotationSetKey annotationSetKey: annotationSets) {
+                writer.writeInt(annotationSetSection.getItemOffset(annotationSetKey));
+            }
+        }
+    }
+
+    private void writeAnnotationDirectories(@Nonnull DexDataWriter writer) throws IOException {
+        writer.align();
+        annotationDirectorySectionOffset = writer.getPosition();
+        HashMap<AnnotationSetKey, Integer> internedItems = Maps.newHashMap();
+
+        ByteBuffer tempBuffer = ByteBuffer.allocate(65536);
+        tempBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        for (ClassKey key: classSection.getSortedClasses()) {
+            // first, we write the field/method/parameter items to a temporary buffer, so that we can get a count
+            // of each type, and determine if we even need to write an annotation directory for this class
+
+            Collection<? extends FieldKey> staticFields = classSection.getSortedStaticFields(key);
+            Collection<? extends FieldKey> instanceFields = classSection.getSortedInstanceFields(key);
+            Collection<? extends MethodKey> directMethods = classSection.getSortedDirectMethods(key);
+            Collection<? extends MethodKey> virtualMethods = classSection.getSortedVirtualMethods(key);
+
+            // this is how much space we'll need if every field and method has annotations.
+            int maxSize = (staticFields.size() + instanceFields.size()) * 8 +
+                    (directMethods.size() + virtualMethods.size()) * 16;
+            if (maxSize > tempBuffer.capacity()) {
+                tempBuffer = ByteBuffer.allocate(maxSize);
+                tempBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            }
+
+            tempBuffer.clear();
+
+            int fieldAnnotations = 0;
+            int methodAnnotations = 0;
+            int parameterAnnotations = 0;
+
+            // the following logic for merging fields/methods is rather verbose and repetitive, but it's intentionally
+            // so, for efficiency (rather than adding yet another layer of indirection, to simplify it)
+            {
+                Iterator<? extends FieldKey> staticIterator = staticFields.iterator();
+                Iterator<? extends FieldKey> instanceIterator = instanceFields.iterator();
+
+                FieldKey nextStaticField;
+                int nextStaticFieldIndex = 0;
+                AnnotationSetKey nextStaticFieldAnnotationSetKey = null;
+                FieldKey nextInstanceField;
+                int nextInstanceFieldIndex = 0;
+                AnnotationSetKey nextInstanceFieldAnnotationSetKey = null;
+
+                try {
+                    do {
+                        nextStaticField = staticIterator.next();
+                        nextStaticFieldIndex = fieldSection.getItemIndex(nextStaticField);
+                        nextStaticFieldAnnotationSetKey = classSection.getFieldAnnotations(nextStaticField);
+                    } while (nextStaticFieldAnnotationSetKey == null);
+                } catch (NoSuchElementException ex) {
+                    nextStaticField = null;
+                }
+                try {
+                    do {
+                        nextInstanceField = instanceIterator.next();
+                        nextInstanceFieldIndex = fieldSection.getItemIndex(nextInstanceField);
+                        nextInstanceFieldAnnotationSetKey =
+                                classSection.getFieldAnnotations(nextInstanceField);
+                    } while (nextInstanceFieldAnnotationSetKey == null);
+                } catch (NoSuchElementException ex) {
+                    nextInstanceField = null;
+                }
+
+                while (true) {
+                    int nextFieldIndex;
+                    AnnotationSetKey nextFieldAnnotationSetKey;
+
+                    if (nextStaticField == null) {
+                        if (nextInstanceField == null) {
+                            break;
+                        }
+
+                        nextFieldIndex = nextInstanceFieldIndex;
+                        nextFieldAnnotationSetKey = nextInstanceFieldAnnotationSetKey;
+                        try {
+                            do {
+                                nextInstanceField = instanceIterator.next();
+                                nextInstanceFieldIndex = fieldSection.getItemIndex(nextInstanceField);
+                                nextInstanceFieldAnnotationSetKey =
+                                        classSection.getFieldAnnotations(nextInstanceField);
+                            } while (nextInstanceFieldAnnotationSetKey == null);
+                        } catch (NoSuchElementException ex) {
+                            nextInstanceField = null;
+                        }
+                    } else {
+                        if (nextInstanceField == null || nextStaticFieldIndex < nextInstanceFieldIndex) {
+                            nextFieldIndex = nextStaticFieldIndex;
+                            nextFieldAnnotationSetKey = nextStaticFieldAnnotationSetKey;
+                            try {
+                                do {
+                                    nextStaticField = staticIterator.next();
+                                    nextStaticFieldIndex = fieldSection.getItemIndex(nextStaticField);
+                                    nextStaticFieldAnnotationSetKey =
+                                            classSection.getFieldAnnotations(nextStaticField);
+                                } while (nextStaticFieldAnnotationSetKey == null);
+                            } catch (NoSuchElementException ex) {
+                                nextStaticField = null;
+                            }
+                        } else {
+                            nextFieldIndex = nextInstanceFieldIndex;
+                            nextFieldAnnotationSetKey = nextInstanceFieldAnnotationSetKey;
+                            try {
+                                do {
+                                    nextInstanceField = instanceIterator.next();
+                                    nextInstanceFieldIndex = fieldSection.getItemIndex(nextInstanceField);
+                                    nextInstanceFieldAnnotationSetKey =
+                                            classSection.getFieldAnnotations(nextInstanceField);
+                                } while (nextInstanceFieldAnnotationSetKey == null);
+                            } catch (NoSuchElementException ex) {
+                                nextInstanceField = null;
+                            }
+                        }
+                    }
+
+                    fieldAnnotations++;
+                    tempBuffer.putInt(nextFieldIndex);
+                    tempBuffer.putInt(annotationSetSection.getItemOffset(nextFieldAnnotationSetKey));
+                }
+            }
+
+            {
+                // weeee! now do it all again, except for methods this time
+                Iterator<? extends MethodKey> directIterator = classSection.getSortedDirectMethods(key).iterator();
+                Iterator<? extends MethodKey> virtualIterator = classSection.getSortedVirtualMethods(key).iterator();
+
+                MethodKey nextDirectMethod;
+                int nextDirectMethodIndex = 0;
+                AnnotationSetKey nextDirectMethodAnnotationKey = null;
+                MethodKey nextVirtualMethod;
+                int nextVirtualMethodIndex = 0;
+                AnnotationSetKey nextVirtualMethodAnnotationKey = null;
+
+                try {
+                    do {
+                        nextDirectMethod = directIterator.next();
+                        nextDirectMethodIndex = methodSection.getItemIndex(nextDirectMethod);
+                        nextDirectMethodAnnotationKey = classSection.getMethodAnnotations(nextDirectMethod);
+                    } while (nextDirectMethodAnnotationKey == null);
+                } catch (NoSuchElementException ex) {
+                    nextDirectMethod = null;
+                }
+                try {
+                    do {
+                        nextVirtualMethod = virtualIterator.next();
+                        nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
+                        nextVirtualMethodAnnotationKey =
+                                classSection.getMethodAnnotations(nextVirtualMethod);
+                    } while (nextVirtualMethodAnnotationKey == null);
+                } catch (NoSuchElementException ex) {
+                    nextVirtualMethod = null;
+                }
+
+                while (true) {
+                    int nextMethodIndex;
+                    AnnotationSetKey nextAnnotationKey;
+
+                    if (nextDirectMethod == null) {
+                        if (nextVirtualMethod == null) {
+                            break;
+                        }
+
+                        nextMethodIndex = nextVirtualMethodIndex;
+                        nextAnnotationKey = nextVirtualMethodAnnotationKey;
+                        try {
+                            do {
+                                nextVirtualMethod = virtualIterator.next();
+                                nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
+                                nextVirtualMethodAnnotationKey =
+                                        classSection.getMethodAnnotations(nextVirtualMethod);
+                            } while (nextVirtualMethodAnnotationKey == null);
+                        } catch (NoSuchElementException ex) {
+                            nextVirtualMethod = null;
+                        }
+                    } else {
+                        if (nextVirtualMethod == null || nextDirectMethodIndex < nextVirtualMethodIndex) {
+                            nextMethodIndex = nextDirectMethodIndex;
+                            nextAnnotationKey = nextDirectMethodAnnotationKey;
+                            try {
+                                do {
+                                    nextDirectMethod = directIterator.next();
+                                    nextDirectMethodIndex = methodSection.getItemIndex(nextDirectMethod);
+                                    nextDirectMethodAnnotationKey =
+                                            classSection.getMethodAnnotations(nextDirectMethod);
+                                } while (nextDirectMethodAnnotationKey == null);
+                            } catch (NoSuchElementException ex) {
+                                nextDirectMethod = null;
+                            }
+                        } else {
+                            nextMethodIndex = nextVirtualMethodIndex;
+                            nextAnnotationKey = nextVirtualMethodAnnotationKey;
+                            try {
+                                do {
+                                    nextVirtualMethod = virtualIterator.next();
+                                    nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
+                                    nextVirtualMethodAnnotationKey =
+                                            classSection.getMethodAnnotations(nextVirtualMethod);
+                                } while (nextVirtualMethodAnnotationKey == null);
+                            } catch (NoSuchElementException ex) {
+                                nextVirtualMethod = null;
+                            }
+                        }
+                    }
+
+                    methodAnnotations++;
+                    tempBuffer.putInt(nextMethodIndex);
+                    tempBuffer.putInt(annotationSetSection.getItemOffset(nextAnnotationKey));
+                }
+            }
+
+            {
+                // AAAAAAAAAAAnd one final time, for parameter annotations
+                Iterator<? extends MethodKey> directIterator = classSection.getSortedDirectMethods(key).iterator();
+                Iterator<? extends MethodKey> virtualIterator = classSection.getSortedVirtualMethods(key).iterator();
+
+                MethodKey nextDirectMethod;
+                int nextDirectMethodIndex = 0;
+                AnnotationSetRefKey nextDirectMethodAnnotationKey = null;
+                MethodKey nextVirtualMethod;
+                int nextVirtualMethodIndex = 0;
+                AnnotationSetRefKey nextVirtualMethodAnnotationKey = null;
+
+                try {
+                    do {
+                        nextDirectMethod = directIterator.next();
+                        nextDirectMethodIndex = methodSection.getItemIndex(nextDirectMethod);
+                        nextDirectMethodAnnotationKey =
+                                classSection.getParameterAnnotations(nextDirectMethod);
+                    } while (nextDirectMethodAnnotationKey == null);
+                } catch (NoSuchElementException ex) {
+                    nextDirectMethod = null;
+                }
+                try {
+                    do {
+                        nextVirtualMethod = virtualIterator.next();
+                        nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
+                        nextVirtualMethodAnnotationKey =
+                                classSection.getParameterAnnotations(nextVirtualMethod);
+                    } while (nextVirtualMethodAnnotationKey == null);
+                } catch (NoSuchElementException ex) {
+                    nextVirtualMethod = null;
+                }
+
+                while (true) {
+                    int nextMethodIndex;
+                    AnnotationSetRefKey nextAnnotationKey;
+
+                    if (nextDirectMethod == null) {
+                        if (nextVirtualMethod == null) {
+                            break;
+                        }
+
+                        nextMethodIndex = nextVirtualMethodIndex;
+                        nextAnnotationKey = nextVirtualMethodAnnotationKey;
+                        try {
+                            do {
+                                nextVirtualMethod = virtualIterator.next();
+                                nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
+                                nextVirtualMethodAnnotationKey =
+                                        classSection.getParameterAnnotations(nextVirtualMethod);
+                            } while (nextVirtualMethodAnnotationKey == null);
+                        } catch (NoSuchElementException ex) {
+                            nextVirtualMethod = null;
+                        }
+                    } else {
+                        if (nextVirtualMethod == null || nextDirectMethodIndex < nextVirtualMethodIndex) {
+                            nextMethodIndex = nextDirectMethodIndex;
+                            nextAnnotationKey = nextDirectMethodAnnotationKey;
+                            try {
+                                do {
+                                    nextDirectMethod = directIterator.next();
+                                    nextDirectMethodIndex = methodSection.getItemIndex(nextDirectMethod);
+                                    nextDirectMethodAnnotationKey =
+                                            classSection.getParameterAnnotations(nextDirectMethod);
+                                } while (nextDirectMethodAnnotationKey == null);
+                            } catch (NoSuchElementException ex) {
+                                nextDirectMethod = null;
+                            }
+                        } else {
+                            nextMethodIndex = nextVirtualMethodIndex;
+                            nextAnnotationKey = nextVirtualMethodAnnotationKey;
+                            try {
+                                do {
+                                    nextVirtualMethod = virtualIterator.next();
+                                    nextVirtualMethodIndex = methodSection.getItemIndex(nextVirtualMethod);
+                                    nextVirtualMethodAnnotationKey =
+                                            classSection.getParameterAnnotations(nextVirtualMethod);
+                                } while (nextVirtualMethodAnnotationKey == null);
+                            } catch (NoSuchElementException ex) {
+                                nextVirtualMethod = null;
+                            }
+                        }
+                    }
+
+                    parameterAnnotations++;
+                    tempBuffer.putInt(nextMethodIndex);
+                    tempBuffer.putInt(annotationSetRefSection.getItemOffset(nextAnnotationKey));
+                }
+            }
+
+            // now, we finally know how many field/method/parameter annotations were written to the temp buffer
+
+            AnnotationSetKey classAnnotationKey = classSection.getClassAnnotations(key);
+            if (fieldAnnotations == 0 && methodAnnotations == 0 && parameterAnnotations == 0) {
+                if (classAnnotationKey != null) {
+                    // This is an internable directory. Let's see if we've already written one like it
+                    Integer directoryOffset = internedItems.get(classAnnotationKey);
+                    if (directoryOffset != null) {
+                        classSection.setAnnotationDirectoryOffset(key, directoryOffset);
+                        continue;
+                    } else {
+                        internedItems.put(classAnnotationKey, writer.getPosition());
+                    }
+                } else {
+                    continue;
+                }
+            }
+
+            // yep, we need to write it out
+            numAnnotationDirectoryPoolItems++;
+            classSection.setAnnotationDirectoryOffset(key, writer.getPosition());
+
+            writer.writeInt(annotationSetSection.getNullableItemOffset(classAnnotationKey));
+            writer.writeInt(fieldAnnotations);
+            writer.writeInt(methodAnnotations);
+            writer.writeInt(parameterAnnotations);
+            writer.write(tempBuffer.array(), 0, tempBuffer.position());
+        }
+    }
+
+    private void writeDebugItems(@Nonnull DexDataWriter writer) throws IOException {
+        debugSectionOffset = writer.getPosition();
+        DebugWriter<StringKey, TypeKey> debugWriter =
+                new DebugWriter<StringKey, TypeKey>(stringSection, typeSection, writer);
+
+        for (ClassKey classKey: classSection.getSortedClasses()) {
+            Collection<? extends MethodKey> directMethods = classSection.getSortedDirectMethods(classKey);
+            Collection<? extends MethodKey> virtualMethods = classSection.getSortedVirtualMethods(classKey);
+
+            Iterable<MethodKey> methods = Iterables.concat(directMethods, virtualMethods);
+
+            for (MethodKey methodKey: methods) {
+                Iterable<? extends DebugItem> debugItems = classSection.getDebugItems(methodKey);
+                Iterable<? extends StringKey> parameterNames = classSection.getParameterNames(methodKey);
+
+                int parameterCount = 0;
+                if (parameterNames != null) {
+                    int index = 0;
+                    for (StringKey parameterName: parameterNames) {
+                        index++;
+                        if (parameterName != null) {
+                            parameterCount = index;
+                        }
+                    }
+                }
+
+                if (debugItems == null && parameterCount == 0) {
+                    continue;
+                }
+
+                numDebugInfoPoolItems++;
+
+                classSection.setDebugItemOffset(methodKey, writer.getPosition());
+                int startingLineNumber = 0;
+
+                if (debugItems != null) {
+                    for (org.jf.dexlib2.iface.debug.DebugItem debugItem: debugItems) {
+                        if (debugItem instanceof LineNumber) {
+                            startingLineNumber = ((LineNumber)debugItem).getLineNumber();
+                            break;
+                        }
+                    }
+                }
+                writer.writeUleb128(startingLineNumber);
+
+                writer.writeUleb128(parameterCount);
+                if (parameterNames != null) {
+                    int index = 0;
+                    for (StringKey parameterName: parameterNames) {
+                        if (index == parameterCount) {
+                            break;
+                        }
+                        index++;
+                        writer.writeUleb128(stringSection.getNullableItemIndex(parameterName) + 1);
+                    }
+                }
+
+                if (debugItems != null) {
+                    debugWriter.reset(startingLineNumber);
+
+                    for (DebugItem debugItem: debugItems) {
+                        classSection.writeDebugItem(debugWriter, debugItem);
+                    }
+                }
+                // write an END_SEQUENCE opcode, to end the debug item
+                writer.write(0);
+            }
+        }
+    }
+
+    private void writeCodeItems(@Nonnull DexDataWriter writer) throws IOException {
+        ByteArrayOutputStream ehBuf = new ByteArrayOutputStream();
+
+        writer.align();
+        codeSectionOffset = writer.getPosition();
+        for (ClassKey classKey: classSection.getSortedClasses()) {
+            Collection<? extends MethodKey> directMethods = classSection.getSortedDirectMethods(classKey);
+            Collection<? extends MethodKey> virtualMethods = classSection.getSortedVirtualMethods(classKey);
+
+            Iterable<MethodKey> methods = Iterables.concat(directMethods, virtualMethods);
+
+            for (MethodKey methodKey: methods) {
+                Iterable<? extends Insn> instructions = classSection.getInstructions(methodKey);
+                int debugItemOffset = classSection.getDebugItemOffset(methodKey);
+
+                if (instructions == null && debugItemOffset == NO_OFFSET) {
+                    continue;
+                }
+
+                numCodeItemPoolItems++;
+
+                writer.align();
+                classSection.setCodeItemOffset(methodKey, writer.getPosition());
+
+                writer.writeUshort(classSection.getRegisterCount(methodKey));
+
+                boolean isStatic = AccessFlags.STATIC.isSet(classSection.getMethodAccessFlags(methodKey));
+                Collection<? extends TypeKey> parameters = typeListSection.getTypes(
+                        protoSection.getParameters(methodSection.getPrototype(methodKey)));
+
+                List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = classSection.getTryBlocks(methodKey);
+                writer.writeUshort(MethodUtil.getParameterRegisterCount(parameters, isStatic));
+
+                if (instructions != null) {
+                    tryBlocks = TryListBuilder.massageTryBlocks(tryBlocks);
+
+                    InstructionWriteUtil<Insn, StringRef> instrWriteUtil =
+                            new InstructionWriteUtil<Insn, StringRef>(instructions, stringSection, instructionFactory);
+                    writer.writeUshort(instrWriteUtil.getOutParamCount());
+                    writer.writeUshort(tryBlocks.size());
+                    writer.writeInt(debugItemOffset);
+
+                    InstructionWriter instructionWriter =
+                            InstructionWriter.makeInstructionWriter(writer, stringSection, typeSection, fieldSection,
+                                    methodSection);
+
+                    writer.writeInt(instrWriteUtil.getCodeUnitCount());
+                    for (Insn instruction: instrWriteUtil.getInstructions()) {
+                        switch (instruction.getOpcode().format) {
+                            case Format10t:
+                                instructionWriter.write((Instruction10t)instruction);
+                                break;
+                            case Format10x:
+                                instructionWriter.write((Instruction10x)instruction);
+                                break;
+                            case Format11n:
+                                instructionWriter.write((Instruction11n)instruction);
+                                break;
+                            case Format11x:
+                                instructionWriter.write((Instruction11x)instruction);
+                                break;
+                            case Format12x:
+                                instructionWriter.write((Instruction12x)instruction);
+                                break;
+                            case Format20bc:
+                                instructionWriter.write((Instruction20bc)instruction);
+                                break;
+                            case Format20t:
+                                instructionWriter.write((Instruction20t)instruction);
+                                break;
+                            case Format21c:
+                                instructionWriter.write((Instruction21c)instruction);
+                                break;
+                            case Format21ih:
+                                instructionWriter.write((Instruction21ih)instruction);
+                                break;
+                            case Format21lh:
+                                instructionWriter.write((Instruction21lh)instruction);
+                                break;
+                            case Format21s:
+                                instructionWriter.write((Instruction21s)instruction);
+                                break;
+                            case Format21t:
+                                instructionWriter.write((Instruction21t)instruction);
+                                break;
+                            case Format22b:
+                                instructionWriter.write((Instruction22b)instruction);
+                                break;
+                            case Format22c:
+                                instructionWriter.write((Instruction22c)instruction);
+                                break;
+                            case Format22s:
+                                instructionWriter.write((Instruction22s)instruction);
+                                break;
+                            case Format22t:
+                                instructionWriter.write((Instruction22t)instruction);
+                                break;
+                            case Format22x:
+                                instructionWriter.write((Instruction22x)instruction);
+                                break;
+                            case Format23x:
+                                instructionWriter.write((Instruction23x)instruction);
+                                break;
+                            case Format30t:
+                                instructionWriter.write((Instruction30t)instruction);
+                                break;
+                            case Format31c:
+                                instructionWriter.write((Instruction31c)instruction);
+                                break;
+                            case Format31i:
+                                instructionWriter.write((Instruction31i)instruction);
+                                break;
+                            case Format31t:
+                                instructionWriter.write((Instruction31t)instruction);
+                                break;
+                            case Format32x:
+                                instructionWriter.write((Instruction32x)instruction);
+                                break;
+                            case Format35c:
+                                instructionWriter.write((Instruction35c)instruction);
+                                break;
+                            case Format3rc:
+                                instructionWriter.write((Instruction3rc)instruction);
+                                break;
+                            case Format51l:
+                                instructionWriter.write((Instruction51l)instruction);
+                                break;
+                            case ArrayPayload:
+                                instructionWriter.write((ArrayPayload)instruction);
+                                break;
+                            case PackedSwitchPayload:
+                                instructionWriter.write((PackedSwitchPayload)instruction);
+                                break;
+                            case SparseSwitchPayload:
+                                instructionWriter.write((SparseSwitchPayload)instruction);
+                                break;
+                            default:
+                                throw new ExceptionWithContext("Unsupported instruction format: %s",
+                                        instruction.getOpcode().format);
+                        }
+                    }
+
+                    if (tryBlocks.size() > 0) {
+                        writer.align();
+
+
+
+                        // filter out unique lists of exception handlers
+                        Map<List<? extends ExceptionHandler>, Integer> exceptionHandlerOffsetMap = Maps.newHashMap();
+                        for (TryBlock<? extends ExceptionHandler> tryBlock: tryBlocks) {
+                            exceptionHandlerOffsetMap.put(tryBlock.getExceptionHandlers(), 0);
+                        }
+                        DexDataWriter.writeUleb128(ehBuf, exceptionHandlerOffsetMap.size());
+
+                        for (TryBlock<? extends ExceptionHandler> tryBlock: tryBlocks) {
+                            int startAddress = tryBlock.getStartCodeAddress();
+                            int endAddress = startAddress + tryBlock.getCodeUnitCount();
+
+                            startAddress += instrWriteUtil.codeOffsetShift(startAddress);
+                            endAddress += instrWriteUtil.codeOffsetShift(endAddress);
+                            int tbCodeUnitCount = endAddress - startAddress;
+
+                            writer.writeInt(startAddress);
+                            writer.writeUshort(tbCodeUnitCount);
+
+                            if (tryBlock.getExceptionHandlers().size() == 0) {
+                                throw new ExceptionWithContext("No exception handlers for the try block!");
+                            }
+
+                            Integer offset = exceptionHandlerOffsetMap.get(tryBlock.getExceptionHandlers());
+                            if (offset != 0) {
+                                // exception handler has already been written out, just use it
+                                writer.writeUshort(offset);
+                            } else {
+                                // if offset has not been set yet, we are about to write out a new exception handler
+                                offset = ehBuf.size();
+                                writer.writeUshort(offset);
+                                exceptionHandlerOffsetMap.put(tryBlock.getExceptionHandlers(), offset);
+
+                                // check if the last exception handler is a catch-all and adjust the size accordingly
+                                int ehSize = tryBlock.getExceptionHandlers().size();
+                                ExceptionHandler ehLast = tryBlock.getExceptionHandlers().get(ehSize-1);
+                                if (ehLast.getExceptionType() == null) {
+                                    ehSize = ehSize * (-1) + 1;
+                                }
+
+                                // now let's layout the exception handlers, assuming that catch-all is always last
+                                DexDataWriter.writeSleb128(ehBuf, ehSize);
+                                for (ExceptionHandler eh : tryBlock.getExceptionHandlers()) {
+                                    TypeKey exceptionTypeKey = classSection.getExceptionType(eh);
+
+                                    int codeAddress = eh.getHandlerCodeAddress();
+                                    codeAddress += instrWriteUtil.codeOffsetShift(codeAddress);
+
+                                    if (exceptionTypeKey != null) {
+                                        //regular exception handling
+                                        DexDataWriter.writeUleb128(ehBuf, typeSection.getItemIndex(exceptionTypeKey));
+                                        DexDataWriter.writeUleb128(ehBuf, codeAddress);
+                                    } else {
+                                        //catch-all
+                                        DexDataWriter.writeUleb128(ehBuf, codeAddress);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (ehBuf.size() > 0) {
+                            ehBuf.writeTo(writer);
+                            ehBuf.reset();
+                        }
+                    }
+                } else {
+                    // no instructions, all we have is the debug item offset
+                    writer.writeUshort(0);
+                    writer.writeUshort(0);
+                    writer.writeInt(debugItemOffset);
+                    writer.writeInt(0);
+                }
+            }
+        }
+    }
+
+    private int calcNumItems() {
+        int numItems = 0;
+
+        // header item
+        numItems++;
+
+        if (stringSection.getItems().size() > 0) {
+            numItems += 2; // index and data
+        }
+        if (typeSection.getItems().size()  > 0) {
+            numItems++;
+        }
+        if (protoSection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (fieldSection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (methodSection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (typeListSection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (encodedArraySection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (annotationSection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (annotationSetSection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (annotationSetRefSection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (numAnnotationDirectoryPoolItems > 0) {
+            numItems++;
+        }
+        if (numDebugInfoPoolItems > 0) {
+            numItems++;
+        }
+        if (numCodeItemPoolItems > 0) {
+            numItems++;
+        }
+        if (classSection.getItems().size() > 0) {
+            numItems++;
+        }
+        if (numClassDataItems > 0) {
+            numItems++;
+        }
+        // map item itself
+        numItems++;
+
+        return numItems;
+    }
+
+    private void writeMapItem(@Nonnull DexDataWriter writer) throws IOException{
+        writer.align();
+        mapSectionOffset = writer.getPosition();
+        int numItems = calcNumItems();
+
+        writer.writeInt(numItems);
+
+        // index section
+        writeMapItem(writer, ItemType.HEADER_ITEM, 1, 0);
+        writeMapItem(writer, ItemType.STRING_ID_ITEM, stringSection.getItems().size(), stringIndexSectionOffset);
+        writeMapItem(writer, ItemType.TYPE_ID_ITEM, typeSection.getItems().size(), typeSectionOffset);
+        writeMapItem(writer, ItemType.PROTO_ID_ITEM, protoSection.getItems().size(), protoSectionOffset);
+        writeMapItem(writer, ItemType.FIELD_ID_ITEM, fieldSection.getItems().size(), fieldSectionOffset);
+        writeMapItem(writer, ItemType.METHOD_ID_ITEM, methodSection.getItems().size(), methodSectionOffset);
+        writeMapItem(writer, ItemType.CLASS_DEF_ITEM, classSection.getItems().size(), classIndexSectionOffset);
+
+        // data section
+        writeMapItem(writer, ItemType.STRING_DATA_ITEM, stringSection.getItems().size(), stringDataSectionOffset);
+        writeMapItem(writer, ItemType.TYPE_LIST, typeListSection.getItems().size(), typeListSectionOffset);
+        writeMapItem(writer, ItemType.ENCODED_ARRAY_ITEM, encodedArraySection.getItems().size(),
+                encodedArraySectionOffset);
+        writeMapItem(writer, ItemType.ANNOTATION_ITEM, annotationSection.getItems().size(), annotationSectionOffset);
+        writeMapItem(writer, ItemType.ANNOTATION_SET_ITEM, annotationSetSection.getItems().size(),
+                annotationSetSectionOffset);
+        writeMapItem(writer, ItemType.ANNOTATION_SET_REF_LIST, annotationSetRefSection.getItems().size(),
+                annotationSetRefSectionOffset);
+        writeMapItem(writer, ItemType.ANNOTATION_DIRECTORY_ITEM, numAnnotationDirectoryPoolItems,
+                annotationDirectorySectionOffset);
+        writeMapItem(writer, ItemType.DEBUG_INFO_ITEM, numDebugInfoPoolItems, debugSectionOffset);
+        writeMapItem(writer, ItemType.CODE_ITEM, numCodeItemPoolItems, codeSectionOffset);
+        writeMapItem(writer, ItemType.CLASS_DATA_ITEM, numClassDataItems, classDataSectionOffset);
+        writeMapItem(writer, ItemType.MAP_LIST, 1, mapSectionOffset);
+    }
+
+    private void writeMapItem(@Nonnull DexDataWriter writer, int type, int size, int offset) throws IOException {
+        if (size > 0) {
+            writer.writeUshort(type);
+            writer.writeUshort(0);
+            writer.writeInt(size);
+            writer.writeInt(offset);
+        }
+    }
+
+    private void writeHeader(@Nonnull DexDataWriter writer, int dataOffset, int fileSize) throws IOException {
+        // TODO: need to determine which magic value to write
+        writer.write(HeaderItem.MAGIC_VALUES[0]);
+
+        // checksum placeholder
+        writer.writeInt(0);
+
+        // signature placeholder
+        writer.write(new byte[20]);
+
+        writer.writeInt(fileSize);
+        writer.writeInt(HeaderItem.ITEM_SIZE);
+        writer.writeInt(HeaderItem.LITTLE_ENDIAN_TAG);
+
+        // link
+        writer.writeInt(0);
+        writer.writeInt(0);
+
+        // map
+        writer.writeInt(mapSectionOffset);
+
+        // index sections
+
+        writeSectionInfo(writer, stringSection.getItems().size(), stringIndexSectionOffset);
+        writeSectionInfo(writer, typeSection.getItems().size(), typeSectionOffset);
+        writeSectionInfo(writer, protoSection.getItems().size(), protoSectionOffset);
+        writeSectionInfo(writer, fieldSection.getItems().size(), fieldSectionOffset);
+        writeSectionInfo(writer, methodSection.getItems().size(), methodSectionOffset);
+        writeSectionInfo(writer, classSection.getItems().size(), classIndexSectionOffset);
+
+        // data section
+        writer.writeInt(fileSize - dataOffset);
+        writer.writeInt(dataOffset);
+    }
+
+    private void writeSectionInfo(DexDataWriter writer, int numItems, int offset) throws IOException {
+        writer.writeInt(numItems);
+        if (numItems > 0) {
+            writer.writeInt(offset);
         } else {
-            while (value < -0x80) {
-                tempBuf[index++] = (byte)value;
-                value >>= 8;
-            }
+            writer.writeInt(0);
         }
-        tempBuf[index++] = (byte)value;
-        writeEncodedValueHeader(valueType, index-1);
-        write(tempBuf, 0, index);
-    }
-
-    public void writeEncodedLong(int valueType, long value) throws IOException {
-        int index = 0;
-        if (value >= 0) {
-            while (value > 0x7f) {
-                tempBuf[index++] = (byte)value;
-                value >>= 8;
-            }
-        } else {
-            while (value < -0x80) {
-                tempBuf[index++] = (byte)value;
-                value >>= 8;
-            }
-        }
-        tempBuf[index++] = (byte)value;
-        writeEncodedValueHeader(valueType, index-1);
-        write(tempBuf, 0, index);
-    }
-
-    public void writeEncodedUint(int valueType, int value) throws IOException {
-        int index = 0;
-        do {
-            tempBuf[index++] = (byte)value;
-            value >>>= 8;
-        } while (value != 0);
-        writeEncodedValueHeader(valueType, index-1);
-        write(tempBuf, 0, index);
-    }
-
-    public void writeEncodedFloat(int valueType, float value) throws IOException {
-        writeRightZeroExtendedInt(valueType, Float.floatToRawIntBits(value));
-    }
-
-    protected void writeRightZeroExtendedInt(int valueType, int value) throws IOException {
-        int index = 3;
-        do {
-            tempBuf[index--] = (byte)((value & 0xFF000000) >>> 24);
-            value <<= 8;
-        } while (value != 0);
-
-        int firstElement = index+1;
-        int encodedLength = 4-firstElement;
-        writeEncodedValueHeader(valueType, encodedLength - 1);
-        write(tempBuf, firstElement, encodedLength);
-    }
-
-    public void writeEncodedDouble(int valueType, double value) throws IOException {
-        writeRightZeroExtendedLong(valueType, Double.doubleToRawLongBits(value));
-    }
-
-    protected void writeRightZeroExtendedLong(int valueType, long value) throws IOException {
-        int index = 7;
-        do {
-            tempBuf[index--] = (byte)((value & 0xFF00000000000000L) >>> 56);
-            value <<= 8;
-        } while (value != 0);
-
-        int firstElement = index+1;
-        int encodedLength = 8-firstElement;
-        writeEncodedValueHeader(valueType, encodedLength - 1);
-        write(tempBuf, firstElement, encodedLength);
-    }
-
-    public void writeString(String string) throws IOException {
-        int len = string.length();
-
-        // make sure we have enough room in the temporary buffer
-        if (tempBuf.length <= string.length()*3) {
-            tempBuf = new byte[string.length()*3];
-        }
-
-        final byte[] buf = tempBuf;
-
-        int bufPos = 0;
-        for (int i = 0; i < len; i++) {
-            char c = string.charAt(i);
-            if ((c != 0) && (c < 0x80)) {
-                buf[bufPos++] = (byte)c;
-            } else if (c < 0x800) {
-                buf[bufPos++] = (byte)(((c >> 6) & 0x1f) | 0xc0);
-                buf[bufPos++] = (byte)((c & 0x3f) | 0x80);
-            } else {
-                buf[bufPos++] = (byte)(((c >> 12) & 0x0f) | 0xe0);
-                buf[bufPos++] = (byte)(((c >> 6) & 0x3f) | 0x80);
-                buf[bufPos++] = (byte)((c & 0x3f) | 0x80);
-            }
-        }
-        write(buf, 0, bufPos);
-    }
-
-    public void align() throws IOException {
-        int zeros = (-getPosition()) & 3;
-        if (zeros > 0) {
-            write(zeroBuf, 0, zeros);
-        }
-    }
-
-    public int getPosition() {
-        return filePosition;
     }
 }

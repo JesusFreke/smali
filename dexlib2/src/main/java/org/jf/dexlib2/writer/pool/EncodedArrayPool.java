@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,84 +29,64 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.writer.pool;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValueFactory;
 import org.jf.dexlib2.util.EncodedValueUtils;
+import org.jf.dexlib2.writer.pool.EncodedArrayPool.Key;
+import org.jf.dexlib2.writer.EncodedArraySection;
 import org.jf.util.CollectionUtils;
-import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
-public class EncodedArrayPool {
-    @Nonnull private final Map<Key, Integer> internedEncodedArrayItems = Maps.newHashMap();
-    @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+public class EncodedArrayPool extends BaseNullableOffsetPool<Key>
+        implements EncodedArraySection<Key, EncodedValue> {
+    @Nonnull private final StringPool stringPool;
+    @Nonnull private final TypePool typePool;
+    @Nonnull private final FieldPool fieldPool;
+    @Nonnull private final MethodPool methodPool;
 
-    public EncodedArrayPool(@Nonnull DexFile dexFile) {
-        this.dexFile = dexFile;
+    public EncodedArrayPool(@Nonnull StringPool stringPool,
+                            @Nonnull TypePool typePool,
+                            @Nonnull FieldPool fieldPool,
+                            @Nonnull MethodPool methodPool) {
+        this.stringPool = stringPool;
+        this.typePool = typePool;
+        this.fieldPool = fieldPool;
+        this.methodPool = methodPool;
     }
 
     public void intern(@Nonnull ClassDef classDef) {
         Key key = Key.of(classDef);
         if (key != null) {
-            Integer prev = internedEncodedArrayItems.put(key, 0);
+            Integer prev = internedItems.put(key, 0);
             if (prev == null) {
-                for (EncodedValue encodedValue: key.getElements()) {
-                    dexFile.internEncodedValue(encodedValue);
+                for (EncodedValue encodedValue: key) {
+                    DexPool.internEncodedValue(encodedValue, stringPool, typePool, fieldPool, methodPool);
                 }
             }
         }
     }
 
-    public int getOffset(@Nonnull ClassDef classDef) {
-        Key key = Key.of(classDef);
-        if (key != null) {
-            Integer offset = internedEncodedArrayItems.get(key);
-            if (offset == null) {
-                throw new ExceptionWithContext("Encoded array not found.");
-            }
-            return offset;
-        }
-        return 0;
+    @Nonnull @Override public Collection<EncodedValue> getElements(@Nonnull Key key) {
+        return key;
     }
 
-    public int getNumItems() {
-        return internedEncodedArrayItems.size();
-    }
-
-    public int getSectionOffset() {
-        if (sectionOffset < 0) {
-            throw new ExceptionWithContext("Section offset has not been set yet!");
-        }
-        return sectionOffset;
-    }
-
-    public void write(@Nonnull DexWriter writer) throws IOException {
-        List<Key> encodedArrays = Lists.newArrayList(internedEncodedArrayItems.keySet());
-        Collections.sort(encodedArrays);
-
-        sectionOffset = writer.getPosition();
-        for (Key encodedArray: encodedArrays) {
-            internedEncodedArrayItems.put(encodedArray, writer.getPosition());
-            writer.writeUleb128(encodedArray.getElementCount());
-            for (EncodedValue value: encodedArray.getElements()) {
-                dexFile.writeEncodedValue(writer, value);
-            }
-        }
-    }
-
-    public static class Key implements Comparable<Key> {
+    public static class Key extends AbstractCollection<EncodedValue> implements Comparable<Key> {
         private final List<? extends Field> fields;
         private final int size;
 
@@ -139,20 +119,9 @@ public class EncodedArrayPool {
             return null;
         }
 
-        public int getElementCount() {
-            return size;
-        }
-
-        @Nonnull
-        public Iterable<EncodedValue> getElements() {
-            return FluentIterable.from(fields)
-                    .limit(size)
-                    .transform(GET_INITIAL_VALUE);
-        }
-
         @Override
         public int hashCode() {
-            return CollectionUtils.listHashCode(getElements());
+            return CollectionUtils.listHashCode(this);
         }
 
         @Override
@@ -162,7 +131,7 @@ public class EncodedArrayPool {
                 if (size != other.size) {
                     return false;
                 }
-                return Iterables.elementsEqual(getElements(), other.getElements());
+                return Iterables.elementsEqual(this, other);
             }
             return false;
         }
@@ -181,14 +150,24 @@ public class EncodedArrayPool {
             if (res != 0) {
                 return res;
             }
-            Iterator<EncodedValue> otherElements = o.getElements().iterator();
-            for (EncodedValue element: getElements()) {
+            Iterator<EncodedValue> otherElements = o.iterator();
+            for (EncodedValue element: this) {
                 res = element.compareTo(otherElements.next());
                 if (res != 0) {
                     return res;
                 }
             }
             return 0;
+        }
+
+        @Nonnull @Override public Iterator<EncodedValue> iterator() {
+            return FluentIterable.from(fields)
+                    .limit(size)
+                    .transform(GET_INITIAL_VALUE).iterator();
+        }
+
+        @Override public int size() {
+            return size;
         }
     }
 }

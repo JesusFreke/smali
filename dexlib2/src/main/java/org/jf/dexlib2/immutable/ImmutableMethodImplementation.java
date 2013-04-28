@@ -32,6 +32,7 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
@@ -52,7 +53,7 @@ public class ImmutableMethodImplementation implements MethodImplementation {
 
     public ImmutableMethodImplementation(int registerCount,
                                          @Nullable Iterable<? extends Instruction> instructions,
-                                         @Nullable List<? extends TryBlock> tryBlocks,
+                                         @Nullable List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks,
                                          @Nullable Iterable<? extends DebugItem> debugItems) {
         this.registerCount = registerCount;
         this.instructions = ImmutableInstruction.immutableListOf(instructions);

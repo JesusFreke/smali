@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,82 +29,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.writer.pool;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodParameter;
+import org.jf.dexlib2.writer.pool.AnnotationSetRefPool.Key;
+import org.jf.dexlib2.writer.AnnotationSetRefSection;
 import org.jf.util.CollectionUtils;
-import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 
-public class AnnotationSetRefPool {
-    @Nonnull private final Map<Key, Integer> internedAnnotationSetRefItems = Maps.newHashMap();
-    @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+public class AnnotationSetRefPool extends BaseNullableOffsetPool<Key>
+        implements AnnotationSetRefSection<Set<? extends Annotation>, Key> {
+    @Nonnull private final AnnotationSetPool annotationSetPool;
 
-    public AnnotationSetRefPool(@Nonnull DexFile dexFile) {
-        this.dexFile = dexFile;
+    public AnnotationSetRefPool(@Nonnull AnnotationSetPool annotationSetPool) {
+        this.annotationSetPool = annotationSetPool;
     }
 
     public void intern(@Nonnull Method method) {
         Key annotationSetRefKey = new Key(method);
-        Integer prev = internedAnnotationSetRefItems.put(annotationSetRefKey, 0);
+        Integer prev = internedItems.put(annotationSetRefKey, 0);
         if (prev == null) {
             for (Set<? extends Annotation> annotationSet: annotationSetRefKey.getAnnotationSets()) {
-                dexFile.annotationSetPool.intern(annotationSet);
+                annotationSetPool.intern(annotationSet);
             }
         }
     }
 
-    public int getOffset(@Nonnull Method method) {
-        Key annotationSetRefKey = new Key(method);
-        Integer offset = internedAnnotationSetRefItems.get(annotationSetRefKey);
-        if (offset == null) {
-            throw new ExceptionWithContext("Annotation set ref not found.");
-        }
-        return offset;
+    @Nonnull @Override public Collection<Set<? extends Annotation>> getAnnotationSets(@Nonnull Key key) {
+        return key.getAnnotationSets();
     }
 
-    public int getNumItems() {
-        return internedAnnotationSetRefItems.size();
-    }
-
-    public int getSectionOffset() {
-        if (sectionOffset < 0) {
-            throw new ExceptionWithContext("Section offset has not been set yet!");
-        }
-        return sectionOffset;
-    }
-
-    public void write(@Nonnull DexWriter writer) throws IOException {
-        List<Key> annotationSetRefs =
-                Lists.newArrayList(internedAnnotationSetRefItems.keySet());
-        Collections.sort(annotationSetRefs);
-
-        writer.align();
-        sectionOffset = writer.getPosition();
-        for (Key key: annotationSetRefs) {
-            writer.align();
-            internedAnnotationSetRefItems.put(key, writer.getPosition());
-            writer.writeInt(key.getAnnotationSetCount());
-            for (Set<? extends Annotation> annotationSet: key.getAnnotationSets()) {
-                writer.writeInt(dexFile.annotationSetPool.getOffset(annotationSet));
-            }
-        }
-    }
-
-    private static class Key implements Comparable<Key> {
+    public static class Key implements Comparable<Key> {
         @Nonnull private final Method method;
         private final int size;
 
@@ -113,14 +80,18 @@ public class AnnotationSetRefPool {
             this.size = CollectionUtils.lastIndexOf(method.getParameters(), HAS_ANNOTATIONS) + 1;
         }
 
-        public int getAnnotationSetCount() {
-            return size;
-        }
+        public Collection<Set<? extends Annotation>> getAnnotationSets() {
+            return new AbstractCollection<Set<? extends Annotation>>() {
+                @Nonnull @Override public Iterator<Set<? extends Annotation>> iterator() {
+                    return FluentIterable.from(method.getParameters())
+                            .limit(size)
+                            .transform(PARAMETER_ANNOTATIONS).iterator();
+                }
 
-        public Iterable<Set<? extends Annotation>> getAnnotationSets() {
-            return FluentIterable.from(method.getParameters())
-                    .limit(size)
-                    .transform(PARAMETER_ANNOTATIONS);
+                @Override public int size() {
+                    return size;
+                }
+            };
         }
 
         @Override

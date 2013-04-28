@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * This class represents an individual try block and associated set of handlers.
  */
-public interface TryBlock {
+public interface TryBlock<EH extends ExceptionHandler> {
     /**
      * Gets the code offset of the start of this try block.
      *
@@ -67,7 +67,7 @@ public interface TryBlock {
      *
      * @return A list of ExceptionHandler objects
      */
-    @Nonnull List<? extends ExceptionHandler> getExceptionHandlers();
+    @Nonnull List<? extends EH> getExceptionHandlers();
 
     /**
      * Compares this TryBlock to another TryBlock for equality.

@@ -111,7 +111,7 @@ public final class DexFileFactory {
     }
 
     public static void writeDexFile(String path, DexFile dexFile) throws IOException {
-        org.jf.dexlib2.writer.DexFile.writeTo(path, dexFile);
+        org.jf.dexlib2.writer.pool.DexPool.writeTo(path, dexFile);
     }
 
     private DexFileFactory() {}

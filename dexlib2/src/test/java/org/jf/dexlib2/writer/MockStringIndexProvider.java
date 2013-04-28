@@ -29,46 +29,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base;
+package org.jf.dexlib2.writer;
 
-import com.google.common.primitives.Ints;
-import org.jf.dexlib2.iface.Annotation;
-import org.jf.util.CollectionUtils;
+import com.google.common.collect.Maps;
+import org.jf.dexlib2.iface.reference.StringReference;
+import org.jf.dexlib2.writer.util.InstructionWriteUtil.StringIndexProvider;
 
-import java.util.Comparator;
+import javax.annotation.Nonnull;
+import java.util.HashMap;
 
-public abstract class BaseAnnotation implements Annotation {
-    @Override
-    public int hashCode() {
-        int hashCode = getVisibility();
-        hashCode = hashCode*31 + getType().hashCode();
-        return hashCode*31 + getElements().hashCode();
+public class MockStringIndexProvider implements StringIndexProvider<StringReference> {
+    private HashMap<String, Integer> internedItems = Maps.newHashMap();
+
+    public void intern(@Nonnull CharSequence string, int index) {
+        internedItems.put(string.toString(), index);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Annotation) {
-            Annotation other = (Annotation)o;
-            return (getVisibility() == other.getVisibility()) &&
-                   getType().equals(other.getType()) &&
-                   getElements().equals(other.getElements());
-        }
-        return false;
+    @Override public int getItemIndex(@Nonnull StringReference reference) {
+        return internedItems.get(reference.getString());
     }
 
-    @Override
-    public int compareTo(Annotation o) {
-        int res = Ints.compare(getVisibility(), o.getVisibility());
-        if (res != 0) return res;
-        res = getType().compareTo(o.getType());
-        if (res != 0) return res;
-        return CollectionUtils.compareAsSet(getElements(), o.getElements());
+    public int getNumItems() {
+        return internedItems.size();
     }
-
-    public static final Comparator<? super Annotation> BY_TYPE = new Comparator<Annotation>() {
-        @Override
-        public int compare(Annotation annotation1, Annotation annotation2) {
-            return annotation1.getType().compareTo(annotation2.getType());
-        }
-    };
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,87 +29,74 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.writer.pool;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.writer.pool.ProtoPool.Key;
+import org.jf.dexlib2.writer.ProtoSection;
 import org.jf.util.CharSequenceUtils;
 import org.jf.util.CollectionUtils;
-import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-public class ProtoPool {
-    public final static int PROTO_ID_ITEM_SIZE = 0x0C;
+public class ProtoPool extends BaseIndexPool<Key>
+        implements ProtoSection<CharSequence, CharSequence, Key, TypeListPool.Key<? extends Collection<? extends CharSequence>>> {
+    @Nonnull private final StringPool stringPool;
+    @Nonnull private final TypePool typePool;
+    @Nonnull private final TypeListPool typeListPool;
 
-    @Nonnull private final Map<Key, Integer> internedProtoIdItems = Maps.newHashMap();
-    @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
-
-    public ProtoPool(@Nonnull DexFile dexFile) {
-        this.dexFile = dexFile;
+    public ProtoPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool,
+                     @Nonnull TypeListPool typeListPool) {
+        this.stringPool = stringPool;
+        this.typePool = typePool;
+        this.typeListPool = typeListPool;
     }
 
     public void intern(@Nonnull MethodReference method) {
         // We can't use method directly, because it is likely a full MethodReference. We use a wrapper that computes
         // hashCode and equals based only on the prototype fields
         Key key = new Key(method);
-        Integer prev = internedProtoIdItems.put(key, 0);
+        Integer prev = internedItems.put(key, 0);
         if (prev == null) {
-            dexFile.stringPool.intern(key.getShorty());
-            dexFile.typePool.intern(method.getReturnType());
-            dexFile.typeListPool.intern(method.getParameterTypes());
+            stringPool.intern(key.getShorty());
+            typePool.intern(method.getReturnType());
+            typeListPool.intern(method.getParameterTypes());
         }
     }
 
-    public int getIndex(@Nonnull MethodReference method) {
-        Key key = new Key(method);
-        Integer index = internedProtoIdItems.get(key);
-        if (index == null) {
-            throw new ExceptionWithContext("Prototype not found.: %s", key);
+    @Nonnull @Override public CharSequence getShorty(@Nonnull Key key) {
+        return key.getShorty();
+    }
+
+    @Nonnull @Override public CharSequence getReturnType(@Nonnull Key key) {
+        return key.getReturnType();
+    }
+
+    @Nullable @Override public TypeListPool.Key<List<? extends CharSequence>> getParameters(@Nonnull Key key) {
+        return new TypeListPool.Key<List<? extends CharSequence>>(key.getParameters());
+    }
+
+    private static char getShortyType(CharSequence type) {
+        if (type.length() > 1) {
+            return 'L';
         }
-        return index;
+        return type.charAt(0);
     }
 
-    public int getIndexedSectionSize() {
-        return internedProtoIdItems.size() * PROTO_ID_ITEM_SIZE;
-    }
-
-    public int getNumItems() {
-        return internedProtoIdItems.size();
-    }
-
-    public int getSectionOffset() {
-        if (sectionOffset < 0) {
-            throw new ExceptionWithContext("Section offset has not been set yet!");
+    private static String getShorty(Collection<? extends CharSequence> params, CharSequence returnType) {
+        StringBuilder sb = new StringBuilder(params.size() + 1);
+        sb.append(getShortyType(returnType));
+        for (CharSequence typeRef: params) {
+            sb.append(getShortyType(typeRef));
         }
-        return sectionOffset;
+        return sb.toString();
     }
 
-    public void write(@Nonnull DexWriter writer) throws IOException {
-        List<Key> prototypes = Lists.newArrayList(internedProtoIdItems.keySet());
-        Collections.sort(prototypes);
-
-        sectionOffset = writer.getPosition();
-        int index = 0;
-        for (Key proto: prototypes) {
-            internedProtoIdItems.put(proto, index++);
-
-            writer.writeInt(dexFile.stringPool.getIndex(proto.getShorty()));
-            writer.writeInt(dexFile.typePool.getIndex(proto.getReturnType()));
-            writer.writeInt(dexFile.typeListPool.getOffset(proto.getParameters()));
-        }
-    }
-
-    private static class Key implements Comparable<Key> {
+    public static class Key implements Comparable<Key> {
         @Nonnull private final MethodReference method;
 
         public Key(@Nonnull MethodReference method) {
@@ -122,20 +109,7 @@ public class ProtoPool {
         }
 
         public String getShorty() {
-            Collection<? extends CharSequence> params = getParameters();
-            StringBuilder sb = new StringBuilder(params.size() + 1);
-            sb.append(getShortyType(method.getReturnType()));
-            for (CharSequence typeRef: params) {
-                sb.append(getShortyType(typeRef));
-            }
-            return sb.toString();
-        }
-
-        private static char getShortyType(CharSequence type) {
-            if (type.length() > 1) {
-                return 'L';
-            }
-            return type.charAt(0);
+            return ProtoPool.getShorty(method.getParameterTypes(), method.getReturnType());
         }
 
         public String toString() {
@@ -160,7 +134,7 @@ public class ProtoPool {
             if (o instanceof Key) {
                 Key other = (Key)o;
                 return getReturnType().equals(other.getReturnType()) &&
-                       CharSequenceUtils.listEquals(getParameters(), other.getParameters());
+                        CharSequenceUtils.listEquals(getParameters(), other.getParameters());
             }
             return false;
         }

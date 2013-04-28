@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,46 +29,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base;
+package org.jf.dexlib2.writer;
 
-import com.google.common.primitives.Ints;
-import org.jf.dexlib2.iface.Annotation;
-import org.jf.util.CollectionUtils;
+import javax.annotation.Nonnull;
+import java.util.Collection;
 
-import java.util.Comparator;
+public interface AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue>
+        extends OffsetSection<AnnotationKey> {
+    int getVisibility(@Nonnull AnnotationKey key);
+    @Nonnull TypeKey getType(@Nonnull AnnotationKey key);
+    @Nonnull Collection<? extends AnnotationElement> getElements(@Nonnull AnnotationKey key);
 
-public abstract class BaseAnnotation implements Annotation {
-    @Override
-    public int hashCode() {
-        int hashCode = getVisibility();
-        hashCode = hashCode*31 + getType().hashCode();
-        return hashCode*31 + getElements().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Annotation) {
-            Annotation other = (Annotation)o;
-            return (getVisibility() == other.getVisibility()) &&
-                   getType().equals(other.getType()) &&
-                   getElements().equals(other.getElements());
-        }
-        return false;
-    }
-
-    @Override
-    public int compareTo(Annotation o) {
-        int res = Ints.compare(getVisibility(), o.getVisibility());
-        if (res != 0) return res;
-        res = getType().compareTo(o.getType());
-        if (res != 0) return res;
-        return CollectionUtils.compareAsSet(getElements(), o.getElements());
-    }
-
-    public static final Comparator<? super Annotation> BY_TYPE = new Comparator<Annotation>() {
-        @Override
-        public int compare(Annotation annotation1, Annotation annotation2) {
-            return annotation1.getType().compareTo(annotation2.getType());
-        }
-    };
+    @Nonnull StringKey getElementName(@Nonnull AnnotationElement element);
+    @Nonnull EncodedValue getElementValue(@Nonnull AnnotationElement element);
 }

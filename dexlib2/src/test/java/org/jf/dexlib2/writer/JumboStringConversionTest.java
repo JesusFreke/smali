@@ -34,9 +34,11 @@ package org.jf.dexlib2.writer;
 import com.google.common.collect.Lists;
 import junit.framework.Assert;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.immutable.ImmutableMethodImplementation;
 import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.dexlib2.immutable.reference.ImmutableStringReference;
@@ -44,17 +46,24 @@ import org.jf.dexlib2.writer.util.InstructionWriteUtil;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
 public class JumboStringConversionTest {
     private static final int MIN_NUM_JUMBO_STRINGS = 2;
 
-    private MockStringPool mStringPool;
+    private MockStringIndexProvider mockStringIndexProvider;
     ArrayList<String> mJumboStrings;
+
+    private class InsnWriteUtil extends InstructionWriteUtil<Instruction, StringReference> {
+        public InsnWriteUtil(@Nonnull MethodImplementation implementation) {
+            super(implementation.getInstructions(), mockStringIndexProvider, ImmutableInstructionFactory.INSTANCE);
+        }
+    }
 
     @Before
     public void setup() {
-        mStringPool = new MockStringPool();
+        mockStringIndexProvider = new MockStringIndexProvider();
         StringBuilder stringBuilder = new StringBuilder("a");
         mJumboStrings = Lists.newArrayList();
         int index = 0;
@@ -64,8 +73,8 @@ public class JumboStringConversionTest {
             for (int pos=stringBuilder.length()-1;pos>=0;pos--) {
                 for (char ch='a';ch<='z';ch++) {
                     stringBuilder.setCharAt(pos, ch);
-                    mStringPool.intern(stringBuilder.toString(), index++);
-                    if (mStringPool.getNumItems()>0xFFFF) {
+                    mockStringIndexProvider.intern(stringBuilder.toString(), index++);
+                    if (mockStringIndexProvider.getNumItems()>0xFFFF) {
                         mJumboStrings.add(stringBuilder.toString());
                     }
                 }
@@ -81,13 +90,16 @@ public class JumboStringConversionTest {
     @Test
     public void testInstruction21c() {
         ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
-        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(mJumboStrings.get(0))));
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0,
+                new ImmutableStringReference(mJumboStrings.get(0))));
 
-        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        ImmutableMethodImplementation methodImplementation =
+                new ImmutableMethodImplementation(1, instructions, null, null);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
-            Assert.assertEquals("Jumbo string conversion was not performed!", instr.getOpcode(), Opcode.CONST_STRING_JUMBO);
+            Assert.assertEquals("Jumbo string conversion was not performed!",
+                    instr.getOpcode(), Opcode.CONST_STRING_JUMBO);
         }
     }
 
@@ -111,7 +123,7 @@ public class JumboStringConversionTest {
         instructions.add(1, new ImmutableInstruction10t(Opcode.GOTO, 3));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
             if (instr instanceof Instruction10t) {
@@ -128,7 +140,7 @@ public class JumboStringConversionTest {
         instructions.add(1, new ImmutableInstruction20t(Opcode.GOTO_16, 4));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
             if (instr instanceof Instruction20t) {
@@ -145,7 +157,7 @@ public class JumboStringConversionTest {
         instructions.add(1, new ImmutableInstruction30t(Opcode.GOTO_32, 5));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
             if (instr instanceof Instruction30t) {
@@ -162,7 +174,7 @@ public class JumboStringConversionTest {
         instructions.add(1, new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 4));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
             if (instr instanceof Instruction21t) {
@@ -179,7 +191,7 @@ public class JumboStringConversionTest {
         instructions.add(1, new ImmutableInstruction22t(Opcode.IF_EQ, 0, 1, 4));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
             if (instr instanceof Instruction22t) {
@@ -196,7 +208,7 @@ public class JumboStringConversionTest {
         instructions.add(1, new ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 5));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
             if (instr instanceof Instruction31t) {
@@ -213,7 +225,7 @@ public class JumboStringConversionTest {
         instructions.add(1, new ImmutableInstruction31t(Opcode.PACKED_SWITCH, 0, 6));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
             if (instr instanceof PackedSwitchPayload) {
@@ -232,7 +244,7 @@ public class JumboStringConversionTest {
         instructions.add(1, new ImmutableInstruction31t(Opcode.SPARSE_SWITCH, 0, 12));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         for (Instruction instr: writeUtil.getInstructions()) {
             if (instr instanceof SparseSwitchPayload) {
@@ -253,7 +265,7 @@ public class JumboStringConversionTest {
         instructions.add(new ImmutableArrayPayload(4, null));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         int codeOffset = 0;
         for (Instruction instr: writeUtil.getInstructions()) {
@@ -270,7 +282,7 @@ public class JumboStringConversionTest {
         // packed switch instruction is already misaligned
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         int codeOffset = 0;
         for (Instruction instr: writeUtil.getInstructions()) {
@@ -288,7 +300,7 @@ public class JumboStringConversionTest {
         instructions.add(4, new ImmutableInstruction10x(Opcode.NOP));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         int codeOffset = 0;
         for (Instruction instr: writeUtil.getInstructions()) {
@@ -309,7 +321,7 @@ public class JumboStringConversionTest {
         }
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         Instruction instr = writeUtil.getInstructions().iterator().next();
         Assert.assertEquals("goto was not converted to goto/16 properly", instr.getOpcode(), Opcode.GOTO_16);
@@ -325,7 +337,7 @@ public class JumboStringConversionTest {
         }
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         Instruction instr = writeUtil.getInstructions().iterator().next();
         Assert.assertEquals("goto/16 was not converted to goto/32 properly", instr.getOpcode(), Opcode.GOTO_32);
@@ -349,7 +361,7 @@ public class JumboStringConversionTest {
         instructions.add(new ImmutableArrayPayload(4, null));
 
         ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InstructionWriteUtil writeUtil = new InstructionWriteUtil(methodImplementation, mStringPool);
+        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
 
         Instruction instr = writeUtil.getInstructions().iterator().next();
         Assert.assertEquals("goto was not converted to goto/16 properly", instr.getOpcode(), Opcode.GOTO_16);

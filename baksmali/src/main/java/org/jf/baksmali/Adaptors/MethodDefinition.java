@@ -419,7 +419,7 @@ public class MethodDefinition {
     }
 
     private void addTries(List<MethodItem> methodItems) {
-        List<? extends TryBlock> tryBlocks = methodImpl.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = methodImpl.getTryBlocks();
         if (tryBlocks.size() == 0) {
             return;
         }
@@ -427,7 +427,7 @@ public class MethodDefinition {
         int lastInstructionAddress = instructionOffsetMap.getInstructionCodeOffset(instructions.size() - 1);
         int codeSize = lastInstructionAddress + instructions.get(instructions.size() - 1).getCodeUnits();
 
-        for (TryBlock tryBlock: tryBlocks) {
+        for (TryBlock<? extends ExceptionHandler> tryBlock: tryBlocks) {
             int startAddress = tryBlock.getStartCodeAddress();
             int endAddress = startAddress + tryBlock.getCodeUnitCount();
 

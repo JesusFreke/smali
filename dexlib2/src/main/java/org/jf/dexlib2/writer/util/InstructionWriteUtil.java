@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
@@ -45,7 +44,7 @@ import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.dexlib2.util.InstructionUtil;
 import org.jf.dexlib2.util.MethodUtil;
-import org.jf.dexlib2.writer.StringPool;
+import org.jf.dexlib2.writer.InstructionFactory;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -53,28 +52,35 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class InstructionWriteUtil {
-    private final StringPool stringPool;
-    MethodImplementation methodImplementation;
+public class InstructionWriteUtil<Insn extends Instruction, StringRef extends StringReference> {
+    private final StringIndexProvider<StringRef> stringIndexProvider;
+    private final InstructionFactory<? extends Insn> instructionFactory;
+    private final Iterable<? extends Insn> originalInstructions;
 
-    private List<Instruction> instructions;
+    private List<Insn> instructions;
     private ArrayList<Integer> codeOffsetShifts;
     private HashMap<Integer,Format> offsetToNewInstructionMap;
 
     private int codeUnitCount;
     private int outParamCount;
 
-    public InstructionWriteUtil(@Nonnull MethodImplementation methodImpl, @Nonnull StringPool stringPool) {
-        this.stringPool = stringPool;
-        methodImplementation = methodImpl;
-        
+    public static interface StringIndexProvider<StringRef extends StringReference> {
+        int getItemIndex(@Nonnull StringRef reference);
+    }
+
+    public InstructionWriteUtil(@Nonnull Iterable<? extends Insn> instructions,
+                                @Nonnull StringIndexProvider<StringRef> stringIndexProvider,
+                                @Nonnull InstructionFactory<? extends Insn> instructionFactory) {
+        this.stringIndexProvider = stringIndexProvider;
+        this.instructionFactory = instructionFactory;
+        this.originalInstructions = instructions;
         calculateMaxOutParamCount();
         findCodeOffsetShifts();
         modifyInstructions();
     }
 
     private void calculateMaxOutParamCount() {
-        for (Instruction instruction: methodImplementation.getInstructions()) {
+        for (Insn instruction: originalInstructions) {
             codeUnitCount += instruction.getCodeUnits();
             if (instruction.getOpcode().referenceType == ReferenceType.METHOD) {
                 ReferenceInstruction refInsn = (ReferenceInstruction)instruction;
@@ -86,12 +92,11 @@ public class InstructionWriteUtil {
             }
         }
     }
-    
-    public Iterable<? extends Instruction> getInstructions() {
+    public Iterable<? extends Insn> getInstructions() {
         if (instructions != null) {
             return instructions;
         } else {
-            return methodImplementation.getInstructions();
+            return originalInstructions;
         }
     }
 
@@ -142,16 +147,17 @@ public class InstructionWriteUtil {
     private void findCodeOffsetShifts() {
         // first, process const-string to const-string/jumbo conversions
         int currentCodeOffset = 0;
-        for (Instruction instruction: methodImplementation.getInstructions()) {
+        for (Instruction instruction: originalInstructions) {
             if (instruction.getOpcode().equals(Opcode.CONST_STRING)) {
                 ReferenceInstruction refInstr = (ReferenceInstruction) instruction;
-                int referenceIndex = stringPool.getIndex((StringReference)refInstr.getReference());
+                // TODO: add the necessary generic plumbing to the Instruction interface to make this work without a warning (ugh)
+                int referenceIndex = stringIndexProvider.getItemIndex((StringRef)refInstr.getReference());
                 if (referenceIndex > 0xFFFF) {
                     if (codeOffsetShifts == null) {
                         codeOffsetShifts = new ArrayList<Integer>();
                     }
                     if (offsetToNewInstructionMap == null) {
-                    	offsetToNewInstructionMap = new HashMap<Integer,Format>();
+                        offsetToNewInstructionMap = new HashMap<Integer,Format>();
                     }
                     codeOffsetShifts.add(currentCodeOffset+instruction.getCodeUnits());
                     offsetToNewInstructionMap.put(currentCodeOffset, Opcode.CONST_STRING_JUMBO.format);
@@ -172,16 +178,16 @@ public class InstructionWriteUtil {
         do {
             currentCodeOffset = 0;
             shiftsInserted = false;
-            for (Instruction instruction: methodImplementation.getInstructions()) {
+            for (Instruction instruction: originalInstructions) {
                 if (instruction.getOpcode().format.equals(Format.Format10t) && !offsetToNewInstructionMap.containsKey(currentCodeOffset)) {
                     int targetOffset = ((Instruction10t)instruction).getCodeOffset();
                     int codeOffsetDelta = codeOffsetShift(currentCodeOffset);
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
                     if ((byte)newTargetOffset != newTargetOffset) {
                         if ((short)newTargetOffset != newTargetOffset) {
-                        	// handling very small (negligible) possibility of goto becoming goto/32
-                        	// we insert extra 1 code unit shift referring to the same position
-                        	// this will cause subsequent code offsets to be shifted by 2 code units
+                            // handling very small (negligible) possibility of goto becoming goto/32
+                            // we insert extra 1 code unit shift referring to the same position
+                            // this will cause subsequent code offsets to be shifted by 2 code units
                             codeOffsetShifts.add(codeOffsetDelta, currentCodeOffset+instruction.getCodeUnits());
                             offsetToNewInstructionMap.put(currentCodeOffset, Format.Format30t);
                         } else {
@@ -228,8 +234,8 @@ public class InstructionWriteUtil {
 
         instructions = Lists.newArrayList();
         int currentCodeOffset = 0;
-        for (Instruction instruction: methodImplementation.getInstructions()) { 
-        	Instruction modifiedInstruction = null;
+        for (Insn instruction: originalInstructions) {
+            Insn modifiedInstruction = null;
             switch (instruction.getOpcode().format) {
                 case Format10t: {
                     Instruction10t instr = (Instruction10t)instruction;
@@ -237,13 +243,13 @@ public class InstructionWriteUtil {
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
                     Format newInstructionFormat = offsetToNewInstructionMap.get(currentCodeOffset);
                     if (newInstructionFormat != null) {
-                    	if (newInstructionFormat.equals(Format.Format30t)) {
-                        	modifiedInstruction = new ImmutableInstruction30t(Opcode.GOTO_32, newTargetOffset);
+                        if (newInstructionFormat.equals(Format.Format30t)) {
+                            modifiedInstruction = instructionFactory.makeInstruction30t(Opcode.GOTO_32, newTargetOffset);
                         } else if (newInstructionFormat.equals(Format.Format20t)) {
-                        	modifiedInstruction = new ImmutableInstruction20t(Opcode.GOTO_16, newTargetOffset);
+                            modifiedInstruction = instructionFactory.makeInstruction20t(Opcode.GOTO_16, newTargetOffset);
                         }
                     } else if (newTargetOffset != targetOffset) {
-                    	modifiedInstruction = new ImmutableInstruction10t(instr.getOpcode(), newTargetOffset);
+                        modifiedInstruction = instructionFactory.makeInstruction10t(instr.getOpcode(), newTargetOffset);
                     }
                     break;
                 }
@@ -253,18 +259,19 @@ public class InstructionWriteUtil {
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
                     Format newInstructionFormat = offsetToNewInstructionMap.get(currentCodeOffset);
                     if (newInstructionFormat != null && newInstructionFormat.equals(Format.Format30t)) {
-                    	modifiedInstruction = new ImmutableInstruction30t(Opcode.GOTO_32, newTargetOffset);
+                        modifiedInstruction = instructionFactory.makeInstruction30t(Opcode.GOTO_32, newTargetOffset);
                     } else if (newTargetOffset != targetOffset) {
-                    	modifiedInstruction = new ImmutableInstruction20t(Opcode.GOTO_16, newTargetOffset);
+                        modifiedInstruction = instructionFactory.makeInstruction20t(Opcode.GOTO_16, newTargetOffset);
                     }
                     break;
                 }
                 case Format21c: {
                     Instruction21c instr = (Instruction21c)instruction;
                     if (instr.getOpcode().equals(Opcode.CONST_STRING)) {
-                        int referenceIndex = stringPool.getIndex((StringReference)instr.getReference());
+                        int referenceIndex = stringIndexProvider.getItemIndex((StringRef)instr.getReference());
                         if (referenceIndex > 0xFFFF) {
-                        	modifiedInstruction = new ImmutableInstruction31c(Opcode.CONST_STRING_JUMBO, instr.getRegisterA(), instr.getReference());
+                            modifiedInstruction = instructionFactory.makeInstruction31c(Opcode.CONST_STRING_JUMBO,
+                                    instr.getRegisterA(), instr.getReference());
                         }
                     }
                     break;
@@ -274,7 +281,8 @@ public class InstructionWriteUtil {
                     int targetOffset = instr.getCodeOffset();
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
                     if (newTargetOffset != targetOffset) {
-                    	modifiedInstruction = new ImmutableInstruction21t(instr.getOpcode(), instr.getRegisterA(), newTargetOffset);
+                        modifiedInstruction = instructionFactory.makeInstruction21t(instr.getOpcode(),
+                                instr.getRegisterA(), newTargetOffset);
                     }
                     break;
                 }
@@ -283,7 +291,8 @@ public class InstructionWriteUtil {
                     int targetOffset = instr.getCodeOffset();
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
                     if (newTargetOffset != targetOffset) {
-                    	modifiedInstruction = new ImmutableInstruction22t(instr.getOpcode(), instr.getRegisterA(), instr.getRegisterB(), newTargetOffset);
+                        modifiedInstruction = instructionFactory.makeInstruction22t(instr.getOpcode(),
+                                instr.getRegisterA(), instr.getRegisterB(), newTargetOffset);
                     }
                     break;
                 }
@@ -292,7 +301,7 @@ public class InstructionWriteUtil {
                     int targetOffset = instr.getCodeOffset();
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
                     if (newTargetOffset != targetOffset) {
-                    	modifiedInstruction = new ImmutableInstruction30t(instr.getOpcode(), newTargetOffset);
+                        modifiedInstruction = instructionFactory.makeInstruction30t(instr.getOpcode(), newTargetOffset);
                     }
                     break;
                 }
@@ -301,40 +310,41 @@ public class InstructionWriteUtil {
                     int targetOffset = instr.getCodeOffset();
                     int newTargetOffset = targetOffset + targetOffsetShift(currentCodeOffset, targetOffset);
                     if (newTargetOffset != targetOffset) {
-                    	modifiedInstruction = new ImmutableInstruction31t(instr.getOpcode(), instr.getRegisterA(), newTargetOffset);
+                        modifiedInstruction = instructionFactory.makeInstruction31t(instr.getOpcode(),
+                                instr.getRegisterA(), newTargetOffset);
                     }
                     break;
                 }
                 case SparseSwitchPayload: {
-                	alignPayload(currentCodeOffset);
-                	int switchInstructionOffset = findSwitchInstructionOffset(currentCodeOffset);
+                    alignPayload(currentCodeOffset);
+                    int switchInstructionOffset = findSwitchInstructionOffset(currentCodeOffset);
                     SwitchPayload payload = (SwitchPayload)instruction;
                     if (isSwitchTargetOffsetChanged(payload, switchInstructionOffset)) {
-                    	List<SwitchElement> newSwitchElements = modifySwitchElements(payload, switchInstructionOffset);
-                        modifiedInstruction = new ImmutableSparseSwitchPayload(newSwitchElements);
+                        List<SwitchElement> newSwitchElements = modifySwitchElements(payload, switchInstructionOffset);
+                        modifiedInstruction = instructionFactory.makeSparseSwitchPayload(newSwitchElements);
                     }
                     break;
                 }
                 case PackedSwitchPayload: {
-                	alignPayload(currentCodeOffset);
-                	int switchInstructionOffset = findSwitchInstructionOffset(currentCodeOffset);
+                    alignPayload(currentCodeOffset);
+                    int switchInstructionOffset = findSwitchInstructionOffset(currentCodeOffset);
                     SwitchPayload payload = (SwitchPayload)instruction;
                     if (isSwitchTargetOffsetChanged(payload, switchInstructionOffset)) {
                         List<SwitchElement> newSwitchElements = modifySwitchElements(payload, switchInstructionOffset);
-                        modifiedInstruction = new ImmutablePackedSwitchPayload(newSwitchElements);
+                        modifiedInstruction = instructionFactory.makePackedSwitchPayload(newSwitchElements);
                     }
                     break;
                 }
                 case ArrayPayload: {
-                	alignPayload(currentCodeOffset);
+                    alignPayload(currentCodeOffset);
                     break;
                 }
             }
             
             if (modifiedInstruction != null) {
-            	instructions.add(modifiedInstruction);
+                instructions.add(modifiedInstruction);
             } else {
-            	instructions.add(instruction);
+                instructions.add(instruction);
             }
             
             currentCodeOffset += instruction.getCodeUnits();
@@ -342,25 +352,25 @@ public class InstructionWriteUtil {
     }
     
     private void alignPayload(int codeOffset) {
-    	Format newInstructionFormat = offsetToNewInstructionMap.get(codeOffset);
-    	if (newInstructionFormat != null && newInstructionFormat.equals(Format.Format10x)) {
-    		instructions.add(new ImmutableInstruction10x(Opcode.NOP));
-    	}
+        Format newInstructionFormat = offsetToNewInstructionMap.get(codeOffset);
+        if (newInstructionFormat != null && newInstructionFormat.equals(Format.Format10x)) {
+            instructions.add(instructionFactory.makeInstruction10x(Opcode.NOP));
+        }
     }
     
     private int findSwitchInstructionOffset(int payloadOffset) {
         int currentCodeOffset = 0;
         int switchInstructionOffset = -1;
-        for (Instruction instruction: methodImplementation.getInstructions()) {
+        for (Instruction instruction: originalInstructions) {
             if (instruction.getOpcode().equals(Opcode.PACKED_SWITCH)
                     || instruction.getOpcode().equals(Opcode.SPARSE_SWITCH)) {
                 int targetOffset = currentCodeOffset + ((Instruction31t)instruction).getCodeOffset();
                 if (targetOffset == payloadOffset) {
-                	if (switchInstructionOffset < 0) {
-                		switchInstructionOffset = currentCodeOffset;
-                	} else {
-                		throw new ExceptionWithContext("Multiple switch instructions refer to the same switch payload!");
-                	}
+                    if (switchInstructionOffset < 0) {
+                        switchInstructionOffset = currentCodeOffset;
+                    } else {
+                        throw new ExceptionWithContext("Multiple switch instructions refer to the same switch payload!");
+                    }
                 }
             }
             currentCodeOffset += instruction.getCodeUnits();

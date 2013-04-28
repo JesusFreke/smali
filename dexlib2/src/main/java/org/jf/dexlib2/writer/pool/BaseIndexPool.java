@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.writer.pool;
+
+import com.google.common.collect.Maps;
+import org.jf.dexlib2.writer.IndexSection;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.Map;
 
-public class MockStringPool extends StringPool {
-    public void intern(@Nonnull CharSequence string, int index) {
-        internedStringIdItems.put(string.toString(), index);
+public abstract class BaseIndexPool<Key> implements IndexSection<Key> {
+    @Nonnull protected final Map<Key, Integer> internedItems = Maps.newHashMap();
+
+    @Nonnull @Override public Collection<? extends Map.Entry<? extends Key, Integer>> getItems() {
+        return internedItems.entrySet();
+    }
+
+    @Override public int getItemIndex(@Nonnull Key key) {
+        Integer index = internedItems.get(key);
+        if (index == null) {
+            throw new ExceptionWithContext("Item not found.: %s", getItemString(key));
+        }
+        return index;
+    }
+
+    @Nonnull protected String getItemString(@Nonnull Key key) {
+        return key.toString();
     }
 }

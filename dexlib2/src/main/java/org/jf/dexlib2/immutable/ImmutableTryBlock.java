@@ -42,7 +42,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ImmutableTryBlock extends BaseTryBlock implements TryBlock {
+public class ImmutableTryBlock extends BaseTryBlock<ImmutableExceptionHandler> {
     protected final int startCodeAddress;
     protected final int codeUnitCount;
     @Nonnull protected final ImmutableList<? extends ImmutableExceptionHandler> exceptionHandlers;
@@ -63,7 +63,7 @@ public class ImmutableTryBlock extends BaseTryBlock implements TryBlock {
         this.exceptionHandlers = ImmutableUtils.nullToEmptyList(exceptionHandlers);
     }
 
-    public static ImmutableTryBlock of(TryBlock tryBlock) {
+    public static ImmutableTryBlock of(TryBlock<? extends ExceptionHandler> tryBlock) {
         if (tryBlock instanceof ImmutableTryBlock) {
             return (ImmutableTryBlock)tryBlock;
         }
@@ -81,12 +81,13 @@ public class ImmutableTryBlock extends BaseTryBlock implements TryBlock {
     }
 
     @Nonnull
-    public static ImmutableList<ImmutableTryBlock> immutableListOf(@Nullable List<? extends TryBlock> list) {
+    public static ImmutableList<ImmutableTryBlock> immutableListOf(
+            @Nullable List<? extends TryBlock<? extends ExceptionHandler>> list) {
         return CONVERTER.toList(list);
     }
 
-    private static final ImmutableConverter<ImmutableTryBlock, TryBlock> CONVERTER =
-            new ImmutableConverter<ImmutableTryBlock, TryBlock>() {
+    private static final ImmutableConverter<ImmutableTryBlock, TryBlock<? extends ExceptionHandler>> CONVERTER =
+            new ImmutableConverter<ImmutableTryBlock, TryBlock<? extends ExceptionHandler>>() {
                 @Override
                 protected boolean isImmutable(@Nonnull TryBlock item) {
                     return item instanceof ImmutableTryBlock;
@@ -94,7 +95,7 @@ public class ImmutableTryBlock extends BaseTryBlock implements TryBlock {
 
                 @Nonnull
                 @Override
-                protected ImmutableTryBlock makeImmutable(@Nonnull TryBlock item) {
+                protected ImmutableTryBlock makeImmutable(@Nonnull TryBlock<? extends ExceptionHandler> item) {
                     return ImmutableTryBlock.of(item);
                 }
             };

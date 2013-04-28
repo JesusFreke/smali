@@ -70,7 +70,7 @@ public interface MethodImplementation {
      *
      * @return A list of the TryBlock items
      */
-    @Nonnull List<? extends TryBlock> getTryBlocks();
+    @Nonnull List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks();
 
     /**
      * Get a list of debug items for this method.

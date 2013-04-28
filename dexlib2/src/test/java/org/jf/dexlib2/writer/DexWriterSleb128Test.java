@@ -40,13 +40,13 @@ import java.io.IOException;
 public class DexWriterSleb128Test {
     private NakedByteArrayOutputStream output = new NakedByteArrayOutputStream();
     private int startPosition;
-    private DexWriter writer;
+    private DexDataWriter writer;
 
     public void setup() throws IOException {
         output.reset();
         startPosition = 123;
         int bufferSize = 256;
-        writer = new DexWriter(output, startPosition, bufferSize);
+        writer = new DexDataWriter(output, startPosition, bufferSize);
     }
 
     @Test

@@ -38,7 +38,6 @@ import org.jf.dexlib2.dexbacked.util.DebugInfo;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.VariableSizeLookaheadIterator;
 import org.jf.dexlib2.iface.MethodImplementation;
-import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.util.AlignmentUtils;
@@ -87,7 +86,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     @Nonnull
     @Override
-    public List<? extends TryBlock> getTryBlocks() {
+    public List<? extends DexBackedTryBlock> getTryBlocks() {
         // TODO: provide utility to put try blocks into a "canonical", easy to use format, which more closely matches java's try blocks
         final int triesSize = dexFile.readUshort(codeOffset + CodeItem.TRIES_SIZE_OFFSET);
         if (triesSize > 0) {
@@ -96,10 +95,10 @@ public class DexBackedMethodImplementation implements MethodImplementation {
                     codeOffset + CodeItem.INSTRUCTION_START_OFFSET + (instructionsSize*2), 4);
             final int handlersStartOffset = triesStartOffset + triesSize*CodeItem.TryItem.ITEM_SIZE;
 
-            return new FixedSizeList<TryBlock>() {
+            return new FixedSizeList<DexBackedTryBlock>() {
                 @Nonnull
                 @Override
-                public TryBlock readItem(int index) {
+                public DexBackedTryBlock readItem(int index) {
                     return new DexBackedTryBlock(dexFile,
                             triesStartOffset + index*CodeItem.TryItem.ITEM_SIZE,
                             handlersStartOffset);

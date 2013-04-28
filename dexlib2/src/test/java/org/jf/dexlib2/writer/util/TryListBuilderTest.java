@@ -33,6 +33,7 @@ package org.jf.dexlib2.writer.util;
 
 import com.google.common.collect.ImmutableList;
 import junit.framework.Assert;
+import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.immutable.ImmutableExceptionHandler;
 import org.jf.dexlib2.immutable.ImmutableTryBlock;
@@ -41,13 +42,16 @@ import org.junit.Test;
 import java.util.List;
 
 public class TryListBuilderTest {
+    private static class TryListBuilder extends org.jf.dexlib2.writer.util.TryListBuilder<ExceptionHandler> {
+    }
+
     @Test
     public void testSingleCatchAll_Beginning() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler(null, 0, 10, 5);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler(null, 5));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(new ImmutableTryBlock(0, 10,
                 ImmutableList.of(new ImmutableExceptionHandler(null, 5))));
@@ -59,9 +63,9 @@ public class TryListBuilderTest {
     public void testSingleCatchAll_Middle() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler(null, 5, 10, 15);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler(null, 15));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(new ImmutableTryBlock(5, 5,
                 ImmutableList.of(new ImmutableExceptionHandler(null, 15))));
@@ -73,9 +77,9 @@ public class TryListBuilderTest {
     public void testSingleCatch_Beginning() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("Ljava/lang/Exception;", 0, 10, 5);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("Ljava/lang/Exception;", 5));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(new ImmutableTryBlock(0, 10,
                 ImmutableList.of(new ImmutableExceptionHandler("Ljava/lang/Exception;", 5))));
@@ -87,9 +91,9 @@ public class TryListBuilderTest {
     public void testSingleCatch_Middle() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("Ljava/lang/Exception;", 5, 10, 15);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("Ljava/lang/Exception;", 15));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(new ImmutableTryBlock(5, 5,
                 ImmutableList.of(new ImmutableExceptionHandler("Ljava/lang/Exception;", 15))));
@@ -101,10 +105,10 @@ public class TryListBuilderTest {
     public void testOverlap_End_After() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 0, 10, 5);
-        tlb.addHandler("LException2;", 10, 20, 6);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(10, 20, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 10,
@@ -119,10 +123,10 @@ public class TryListBuilderTest {
     public void testOverlap_After_After() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 0, 10, 5);
-        tlb.addHandler("LException2;", 15, 20, 6);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(15, 20, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 10,
@@ -137,10 +141,10 @@ public class TryListBuilderTest {
     public void testOverlap_Before_Start() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
-        tlb.addHandler("LException2;", 0, 5, 6);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 5, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -155,10 +159,10 @@ public class TryListBuilderTest {
     public void testOverlap_Before_Before() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
-        tlb.addHandler("LException2;", 0, 3, 6);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 3, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 3,
@@ -173,10 +177,10 @@ public class TryListBuilderTest {
     public void testOverlap_Start_End() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 0, 10, 5);
-        tlb.addHandler("LException2;", 0, 10, 6);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 10,
@@ -191,10 +195,10 @@ public class TryListBuilderTest {
     public void testOverlap_Start_Middle() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 0, 10, 5);
-        tlb.addHandler("LException2;", 0, 5, 6);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 5, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -212,10 +216,10 @@ public class TryListBuilderTest {
     public void testOverlap_Middle_Middle() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 0, 10, 5);
-        tlb.addHandler("LException2;", 2, 7, 6);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(2, 7, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 2,
@@ -236,10 +240,10 @@ public class TryListBuilderTest {
     public void testOverlap_Middle_End() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 0, 10, 5);
-        tlb.addHandler("LException2;", 5, 10, 6);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -257,10 +261,10 @@ public class TryListBuilderTest {
     public void testOverlap_Beginning_After() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 0, 10, 5);
-        tlb.addHandler("LException2;", 0, 15, 6);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 10,
@@ -278,10 +282,10 @@ public class TryListBuilderTest {
     public void testOverlap_Middle_After() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 0, 10, 5);
-        tlb.addHandler("LException2;", 5, 15, 6);
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(5, 15, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -302,10 +306,10 @@ public class TryListBuilderTest {
     public void testOverlap_Before_End() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
-        tlb.addHandler("LException2;", 0, 10, 6);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 10, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -323,10 +327,10 @@ public class TryListBuilderTest {
     public void testOverlap_Before_Middle() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
-        tlb.addHandler("LException2;", 0, 7, 6);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 7, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -347,10 +351,10 @@ public class TryListBuilderTest {
     public void testOverlap_Before_After() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
-        tlb.addHandler("LException2;", 0, 15, 6);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -371,11 +375,11 @@ public class TryListBuilderTest {
     public void testOverlap_Hole() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 1, 5, 5);
-        tlb.addHandler("LException1;", 10, 14, 5);
-        tlb.addHandler("LException2;", 0, 15, 6);
+        tlb.addHandler(1, 5, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(10, 14, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 1,
@@ -403,10 +407,10 @@ public class TryListBuilderTest {
     public void testHandlerMerge_Same() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
-        tlb.addHandler("LException1;", 0, 15, 5);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler("LException1;", 5));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 15,
@@ -420,10 +424,10 @@ public class TryListBuilderTest {
     public void testHandlerMerge_DifferentType() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
-        tlb.addHandler("LException2;", 0, 15, 6);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler("LException2;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -444,9 +448,9 @@ public class TryListBuilderTest {
     public void testHandlerMerge_DifferentAddress() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
         try {
-            tlb.addHandler("LException1;", 0, 15, 6);
+            tlb.addHandler(0, 15, new ImmutableExceptionHandler("LException1;", 6));
         } catch (TryListBuilder.InvalidTryException ex) {
             return;
         }
@@ -457,10 +461,10 @@ public class TryListBuilderTest {
     public void testHandlerMerge_Exception_Catchall() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler("LException1;", 5, 10, 5);
-        tlb.addHandler(null, 0, 15, 6);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler(null, 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -481,10 +485,10 @@ public class TryListBuilderTest {
     public void testHandlerMerge_Catchall_Exception() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler(null, 5, 10, 5);
-        tlb.addHandler("LException1;", 0, 15, 6);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler(null, 5));
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler("LException1;", 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 5,
@@ -505,10 +509,10 @@ public class TryListBuilderTest {
     public void testHandlerMerge_Catchall_Catchall() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler(null, 5, 10, 5);
-        tlb.addHandler(null, 0, 15, 5);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler(null, 5));
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler(null, 5));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 15,
@@ -522,9 +526,9 @@ public class TryListBuilderTest {
     public void testHandlerMerge_Catchall_Catchall_DifferentAddress() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler(null, 5, 10, 5);
+        tlb.addHandler(5, 10, new ImmutableExceptionHandler(null, 5));
         try {
-            tlb.addHandler(null, 0, 15, 6);
+            tlb.addHandler(0, 15, new ImmutableExceptionHandler(null, 6));
         } catch (TryListBuilder.InvalidTryException ex) {
             return;
         }
@@ -535,12 +539,12 @@ public class TryListBuilderTest {
     public void testHandlerMerge_MergeSame() {
         TryListBuilder tlb = new TryListBuilder();
 
-        tlb.addHandler(null, 0, 15, 6);
-        tlb.addHandler("LException1;", 10, 20, 5);
-        tlb.addHandler("LException1;", 20, 30, 5);
-        tlb.addHandler(null, 25, 40, 6);
+        tlb.addHandler(0, 15, new ImmutableExceptionHandler(null, 6));
+        tlb.addHandler(10, 20, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(20, 30, new ImmutableExceptionHandler("LException1;", 5));
+        tlb.addHandler(25, 40, new ImmutableExceptionHandler(null, 6));
 
-        List<TryBlock> tryBlocks = tlb.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = tlb.getTryBlocks();
 
         List<? extends TryBlock> expected = ImmutableList.of(
                 new ImmutableTryBlock(0, 10,

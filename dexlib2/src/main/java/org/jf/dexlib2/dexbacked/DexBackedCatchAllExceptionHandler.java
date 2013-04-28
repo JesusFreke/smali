@@ -37,7 +37,7 @@ import org.jf.dexlib2.iface.ExceptionHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class DexBackedCatchAllExceptionHandler extends BaseExceptionHandler implements ExceptionHandler {
+public class DexBackedCatchAllExceptionHandler extends DexBackedExceptionHandler {
     private final int handlerCodeAddress;
 
     public DexBackedCatchAllExceptionHandler(@Nonnull DexReader reader) {

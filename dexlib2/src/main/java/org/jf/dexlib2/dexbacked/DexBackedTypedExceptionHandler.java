@@ -29,46 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base;
+package org.jf.dexlib2.dexbacked;
 
-import com.google.common.primitives.Ints;
-import org.jf.dexlib2.iface.Annotation;
-import org.jf.util.CollectionUtils;
+import org.jf.dexlib2.base.BaseExceptionHandler;
+import org.jf.dexlib2.iface.ExceptionHandler;
 
-import java.util.Comparator;
+import javax.annotation.Nonnull;
 
-public abstract class BaseAnnotation implements Annotation {
-    @Override
-    public int hashCode() {
-        int hashCode = getVisibility();
-        hashCode = hashCode*31 + getType().hashCode();
-        return hashCode*31 + getElements().hashCode();
+public class DexBackedTypedExceptionHandler extends DexBackedExceptionHandler {
+    @Nonnull private final DexBackedDexFile dexFile;
+    private final int typeId;
+    private final int handlerCodeAddress;
+
+    public DexBackedTypedExceptionHandler(@Nonnull DexReader reader) {
+        // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
+        this.dexFile = reader.dexBuf;
+        this.typeId = reader.readSmallUleb128();
+        this.handlerCodeAddress = reader.readSmallUleb128();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Annotation) {
-            Annotation other = (Annotation)o;
-            return (getVisibility() == other.getVisibility()) &&
-                   getType().equals(other.getType()) &&
-                   getElements().equals(other.getElements());
-        }
-        return false;
-    }
-
-    @Override
-    public int compareTo(Annotation o) {
-        int res = Ints.compare(getVisibility(), o.getVisibility());
-        if (res != 0) return res;
-        res = getType().compareTo(o.getType());
-        if (res != 0) return res;
-        return CollectionUtils.compareAsSet(getElements(), o.getElements());
-    }
-
-    public static final Comparator<? super Annotation> BY_TYPE = new Comparator<Annotation>() {
-        @Override
-        public int compare(Annotation annotation1, Annotation annotation2) {
-            return annotation1.getType().compareTo(annotation2.getType());
-        }
-    };
+    @Nonnull @Override public String getExceptionType() { return dexFile.getType(typeId); }
+    @Override public int getHandlerCodeAddress() { return handlerCodeAddress; }
 }

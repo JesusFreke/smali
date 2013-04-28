@@ -38,7 +38,7 @@ import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Collection;
 
 public final class MethodUtil {
     private static int directMask = AccessFlags.STATIC.getValue() | AccessFlags.PRIVATE.getValue() |
@@ -76,7 +76,8 @@ public final class MethodUtil {
         return getParameterRegisterCount(methodRef.getParameterTypes(), isStatic);
     }
 
-    public static int getParameterRegisterCount(@Nonnull List<? extends CharSequence> parameterTypes, boolean isStatic) {
+    public static int getParameterRegisterCount(@Nonnull Collection<? extends CharSequence> parameterTypes,
+                                                boolean isStatic) {
         int regCount = 0;
         for (CharSequence paramType: parameterTypes) {
             int firstChar = paramType.charAt(0);

@@ -1035,7 +1035,7 @@ public class MethodAnalyzer {
 
         RegisterType exceptionType = RegisterType.UNKNOWN_TYPE;
 
-        for (TryBlock tryBlock: methodImpl.getTryBlocks()) {
+        for (TryBlock<? extends ExceptionHandler> tryBlock: methodImpl.getTryBlocks()) {
             for (ExceptionHandler handler: tryBlock.getExceptionHandlers()) {
 
                 if (handler.getHandlerCodeAddress() == instructionAddress) {

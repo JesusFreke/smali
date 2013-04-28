@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,76 +29,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.writer.pool;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.jf.util.ExceptionWithContext;
+import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.writer.pool.TypeListPool.Key;
+import org.jf.dexlib2.writer.TypeListSection;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
 
-public class TypeListPool {
-    @Nonnull private final Map<Key, Integer> internedTypeListItems = Maps.newHashMap();
-    @Nonnull private final DexFile dexFile;
-    private int sectionOffset = -1;
+public class TypeListPool extends BaseNullableOffsetPool<Key<? extends Collection<? extends CharSequence>>>
+        implements TypeListSection<CharSequence, Key<? extends Collection<? extends CharSequence>>> {
+    @Nonnull private final TypePool typePool;
 
-    public TypeListPool(@Nonnull DexFile dexFile) {
-        this.dexFile = dexFile;
+    public TypeListPool(@Nonnull TypePool typePool) {
+        this.typePool = typePool;
     }
 
     public void intern(@Nonnull Collection<? extends CharSequence> types) {
-        Key key = new Key(types);
-        Integer prev = internedTypeListItems.put(key, 0);
+        Key<? extends Collection<? extends CharSequence>> key = new Key<Collection<? extends CharSequence>>(types);
+        Integer prev = internedItems.put(key, 0);
         if (prev == null) {
             for (CharSequence type: types) {
-                dexFile.typePool.intern(type);
+                typePool.intern(type);
             }
         }
     }
 
-    public int getOffset(@Nonnull Collection<? extends CharSequence> types) {
-        Key key = new Key(types);
-        Integer offset = internedTypeListItems.get(key);
-        if (offset == null) {
-            throw new ExceptionWithContext("Type list not found.: %s", key);
+    @Nonnull @Override
+    public Collection<? extends CharSequence> getTypes(Key<? extends Collection<? extends CharSequence>> typesKey) {
+        if (typesKey == null) {
+            return ImmutableList.of();
         }
-        return offset;
+        return typesKey.types;
     }
 
-    public int getNumItems() {
-        return internedTypeListItems.size();
-    }
+    public static class Key<TypeCollection extends Collection<? extends CharSequence>>
+            implements Comparable<Key<? extends Collection<? extends CharSequence>>> {
+        @Nonnull TypeCollection types;
 
-    public int getSectionOffset() {
-        if (sectionOffset < 0) {
-            throw new ExceptionWithContext("Section offset has not been set yet!");
-        }
-        return sectionOffset;
-    }
-
-    public void write(@Nonnull DexWriter writer) throws IOException {
-        List<Key> typeLists = Lists.newArrayList(internedTypeListItems.keySet());
-        Collections.sort(typeLists);
-
-        writer.align();
-        sectionOffset = writer.getPosition();
-        for (Key typeList: typeLists) {
-            writer.align();
-            internedTypeListItems.put(typeList, writer.getPosition());
-            Collection<? extends CharSequence> types = typeList.getTypes();
-            writer.writeInt(types.size());
-            for (CharSequence type: types) {
-                writer.writeUshort(dexFile.typePool.getIndex(type));
-            }
-        }
-    }
-
-    public static class Key implements Comparable<Key> {
-        @Nonnull private Collection<? extends CharSequence> types;
-
-        public Key(@Nonnull Collection<? extends CharSequence> types) {
+        public Key(@Nonnull TypeCollection types) {
             this.types = types;
         }
 
@@ -114,7 +85,8 @@ public class TypeListPool {
         @Override
         public boolean equals(Object o) {
             if (o instanceof Key) {
-                Key other = (Key)o;
+                Key<? extends Collection<? extends CharSequence>> other =
+                        (Key<? extends Collection<? extends CharSequence>>)o;
                 if (types.size() != other.types.size()) {
                     return false;
                 }
@@ -138,13 +110,8 @@ public class TypeListPool {
             return sb.toString();
         }
 
-        @Nonnull
-        public Collection<? extends CharSequence> getTypes() {
-            return types;
-        }
-
         @Override
-        public int compareTo(Key o) {
+        public int compareTo(Key<? extends Collection<? extends CharSequence>> o) {
             Iterator<? extends CharSequence> other = o.types.iterator();
             for (CharSequence type: types) {
                 if (!other.hasNext()) {

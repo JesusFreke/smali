@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,46 +29,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base;
+package org.jf.dexlib2.writer.pool;
 
-import com.google.common.primitives.Ints;
-import org.jf.dexlib2.iface.Annotation;
-import org.jf.util.CollectionUtils;
+import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.writer.TypeSection;
 
-import java.util.Comparator;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public abstract class BaseAnnotation implements Annotation {
-    @Override
-    public int hashCode() {
-        int hashCode = getVisibility();
-        hashCode = hashCode*31 + getType().hashCode();
-        return hashCode*31 + getElements().hashCode();
+public class TypePool extends StringTypeBasePool
+        implements TypeSection<CharSequence, CharSequence, TypeReference> {
+    @Nonnull private final StringPool stringPool;
+
+    public TypePool(@Nonnull StringPool stringPool) {
+        this.stringPool = stringPool;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Annotation) {
-            Annotation other = (Annotation)o;
-            return (getVisibility() == other.getVisibility()) &&
-                   getType().equals(other.getType()) &&
-                   getElements().equals(other.getElements());
+    public void intern(@Nonnull CharSequence type) {
+        String typeString = type.toString();
+        Integer prev = internedItems.put(typeString, 0);
+        if (prev == null) {
+            stringPool.intern(typeString);
         }
-        return false;
     }
 
-    @Override
-    public int compareTo(Annotation o) {
-        int res = Ints.compare(getVisibility(), o.getVisibility());
-        if (res != 0) return res;
-        res = getType().compareTo(o.getType());
-        if (res != 0) return res;
-        return CollectionUtils.compareAsSet(getElements(), o.getElements());
-    }
-
-    public static final Comparator<? super Annotation> BY_TYPE = new Comparator<Annotation>() {
-        @Override
-        public int compare(Annotation annotation1, Annotation annotation2) {
-            return annotation1.getType().compareTo(annotation2.getType());
+    public void internNullable(@Nullable CharSequence type) {
+        if (type != null) {
+            intern(type);
         }
-    };
+    }
+
+    @Override public int getItemIndex(@Nonnull TypeReference key) {
+        return getItemIndex(key.getType());
+    }
+
+    @Nonnull @Override public CharSequence getString(@Nonnull CharSequence type) {
+        return type;
+    }
 }

@@ -388,7 +388,7 @@ method returns[Method ret]
       annotations
     )
   {
-    List<TryBlock> tryBlocks = $catches.tryBlocks;
+    List<TryBlock<? extends ExceptionHandler>> tryBlocks = $catches.tryBlocks;
     List<DebugItem> debugItems = $ordered_debug_directives.debugItems;
 
     MethodImplementation methodImplementation = null;
@@ -568,12 +568,12 @@ sparse_switch_declaration
       }
     };
 
-catches returns[List<TryBlock> tryBlocks]
+catches returns[List<TryBlock<? extends ExceptionHandler>> tryBlocks]
   @init {tryBlocks = Lists.newArrayList();}
   : ^(I_CATCHES (catch_directive { tryBlocks.add($catch_directive.tryBlock); })*
                 (catchall_directive { tryBlocks.add($catchall_directive.tryBlock); })*);
 
-catch_directive returns[TryBlock tryBlock]
+catch_directive returns[TryBlock<? extends ExceptionHandler> tryBlock]
   : ^(I_CATCH address nonvoid_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
         using=offset_or_label_absolute[$address.address])
     {
@@ -588,7 +588,7 @@ catch_directive returns[TryBlock tryBlock]
               ImmutableList.of(new ImmutableExceptionHandler(type, handlerAddress)));
     };
 
-catchall_directive returns[TryBlock tryBlock]
+catchall_directive returns[TryBlock<? extends ExceptionHandler> tryBlock]
   : ^(I_CATCHALL address from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
         using=offset_or_label_absolute[$address.address])
     {

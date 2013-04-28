@@ -42,11 +42,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
-public class DexWriterTest {
+public class DexDataWriterTest {
     private Random random;
     private NakedByteArrayOutputStream output = new NakedByteArrayOutputStream();
     private int startPosition;
-    private DexWriter writer;
+    private DexDataWriter writer;
 
     @Before
     public void setup() throws IOException {
@@ -55,7 +55,7 @@ public class DexWriterTest {
         output.reset();
         startPosition = 123;
         int bufferSize = 256;
-        writer = new DexWriter(output, startPosition, bufferSize);
+        writer = new DexDataWriter(output, startPosition, bufferSize);
     }
 
     // Note: we use int[] rather than byte[] so that we don't have to cast every value when manually constructing an
@@ -500,7 +500,7 @@ public class DexWriterTest {
     public void testAlign() throws IOException {
         // create a new writer so we can start at file position 0
         startPosition = 0;
-        writer = new DexWriter(output, startPosition, 256);
+        writer = new DexDataWriter(output, startPosition, 256);
 
         writer.align();
         writer.write(1);

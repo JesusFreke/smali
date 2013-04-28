@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,46 +29,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.base;
+package org.jf.dexlib2.writer.pool;
 
-import com.google.common.primitives.Ints;
-import org.jf.dexlib2.iface.Annotation;
-import org.jf.util.CollectionUtils;
+import com.google.common.collect.Maps;
+import org.jf.dexlib2.writer.OffsetSection;
+import org.jf.util.ExceptionWithContext;
 
-import java.util.Comparator;
+import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.Map;
 
-public abstract class BaseAnnotation implements Annotation {
-    @Override
-    public int hashCode() {
-        int hashCode = getVisibility();
-        hashCode = hashCode*31 + getType().hashCode();
-        return hashCode*31 + getElements().hashCode();
+public abstract class BaseOffsetPool<Key> implements OffsetSection<Key> {
+    @Nonnull protected final Map<Key, Integer> internedItems = Maps.newHashMap();
+
+    @Nonnull @Override public Collection<? extends Map.Entry<? extends Key, Integer>> getItems() {
+        return internedItems.entrySet();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Annotation) {
-            Annotation other = (Annotation)o;
-            return (getVisibility() == other.getVisibility()) &&
-                   getType().equals(other.getType()) &&
-                   getElements().equals(other.getElements());
+    @Override public int getItemOffset(@Nonnull Key key) {
+        Integer offset = internedItems.get(key);
+        if (offset == null) {
+            throw new ExceptionWithContext("Item not found.: %s", getItemString(key));
         }
-        return false;
+        return offset;
     }
 
-    @Override
-    public int compareTo(Annotation o) {
-        int res = Ints.compare(getVisibility(), o.getVisibility());
-        if (res != 0) return res;
-        res = getType().compareTo(o.getType());
-        if (res != 0) return res;
-        return CollectionUtils.compareAsSet(getElements(), o.getElements());
+    @Nonnull protected String getItemString(@Nonnull Key key) {
+        return key.toString();
     }
-
-    public static final Comparator<? super Annotation> BY_TYPE = new Comparator<Annotation>() {
-        @Override
-        public int compare(Annotation annotation1, Annotation annotation2) {
-            return annotation1.getType().compareTo(annotation2.getType());
-        }
-    };
 }
