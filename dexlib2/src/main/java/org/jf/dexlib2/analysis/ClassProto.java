@@ -34,7 +34,6 @@ package org.jf.dexlib2.analysis;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.iface.ClassDef;
@@ -43,7 +42,6 @@ import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.util.FieldUtil;
-import org.jf.dexlib2.util.MethodUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
 
@@ -59,8 +57,7 @@ public class ClassProto implements TypeProto {
     @Nonnull protected final ClassPath classPath;
     @Nonnull protected final String type;
     @Nullable protected ClassDef classDef;
-    @Nullable protected Set<String> interfaces;
-    @Nullable protected LinkedHashMap<String, ClassDef> interfaceTable;
+    @Nullable protected LinkedHashMap<String, ClassDef> interfaces;
     @Nullable protected Method[] vtable;
     @Nullable protected SparseArray<FieldReference> instanceFields;
     protected boolean interfacesFullyResolved = true;
@@ -99,13 +96,6 @@ public class ClassProto implements TypeProto {
         return instanceFields;
     }
 
-    LinkedHashMap<String, ClassDef> getInterfaceTable() {
-        if (interfaceTable == null) {
-            interfaceTable = loadInterfaceTable();
-        }
-        return interfaceTable;
-    }
-
     /**
      * Returns true if this class is an interface.
      *
@@ -118,47 +108,31 @@ public class ClassProto implements TypeProto {
         return (classDef.getAccessFlags() & AccessFlags.INTERFACE.getValue()) != 0;
     }
 
-    private void addInterfacesRecursively(@Nonnull ClassDef classDef) {
-        assert interfaces != null;
-        for (String iface: classDef.getInterfaces()) {
-            interfaces.add(iface);
-            addInterfacesRecursively(iface);
-        }
-    }
-
-    private void addInterfacesRecursively(@Nonnull String cls) {
-        ClassDef classDef;
-        try {
-            classDef = classPath.getClassDef(cls);
-            addInterfacesRecursively(classDef);
-        } catch (UnresolvedClassException ex) {
-            interfacesFullyResolved = false;
-        }
-    }
-
     @Nonnull
-    protected Set<String> getInterfaces() {
+    protected LinkedHashMap<String, ClassDef> getInterfaces() {
         if (interfaces != null) {
             return interfaces;
         }
 
-        interfaces = Sets.newHashSet();
+        interfaces = Maps.newLinkedHashMap();
 
         try {
-            ClassDef classDef = getClassDef();
+            for (String interfaceType: getClassDef().getInterfaces()) {
+                if (!interfaces.containsKey(interfaceType)) {
+                    ClassDef interfaceDef;
+                    try {
+                        interfaceDef = classPath.getClassDef(interfaceType);
+                        interfaces.put(interfaceType, interfaceDef);
+                    } catch (UnresolvedClassException ex) {
+                        interfacesFullyResolved = false;
+                    }
 
-            if (isInterface()) {
-                interfaces.add(getType());
-            }
-
-            while (true) {
-                addInterfacesRecursively(classDef);
-
-                String superclass = classDef.getSuperclass();
-                if (superclass != null) {
-                    classDef = classPath.getClassDef(superclass);
-                } else {
-                    break;
+                    ClassProto interfaceProto = (ClassProto) classPath.getClass(interfaceType);
+                    for (ClassDef superInterface: interfaceProto.getInterfaces().values()) {
+                        if (!interfaces.containsKey(superInterface.getType())) {
+                            interfaces.put(superInterface.getType(), superInterface);
+                        }
+                    }
                 }
             }
         } catch (UnresolvedClassException ex) {
@@ -179,10 +153,8 @@ public class ClassProto implements TypeProto {
      */
     @Override
     public boolean implementsInterface(@Nonnull String iface) {
-        for (String implementIface: getInterfaces()) {
-            if (implementIface.equals(iface)) {
-                return true;
-            }
+        if (getInterfaces().containsKey(iface)) {
+            return true;
         }
         if (!interfacesFullyResolved) {
             throw new UnresolvedClassException("Interfaces for class %s not fully resolved", getType());
@@ -541,11 +513,8 @@ public class ClassProto implements TypeProto {
         if (!isInterface()) {
             addToVtable(getClassDef().getVirtualMethods(), virtualMethodList);
 
-            LinkedHashMap<String, ClassDef> interfaceTable = loadInterfaceTable();
-            if (interfaceTable != null) {
-                for (ClassDef interfaceDef: interfaceTable.values()) {
-                    addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList);
-                }
+            for (ClassDef interfaceDef: getInterfaces().values()) {
+                addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList);
             }
         }
 
@@ -555,32 +524,6 @@ public class ClassProto implements TypeProto {
         }
 
         return vtable;
-    }
-
-    private LinkedHashMap<String, ClassDef> loadInterfaceTable() {
-        LinkedHashMap<String, ClassDef> interfaceTable = Maps.newLinkedHashMap();
-
-        for (String interfaceType: getClassDef().getInterfaces()) {
-            if (!interfaceTable.containsKey(interfaceType)) {
-                ClassDef interfaceDef;
-                try {
-                    interfaceDef = classPath.getClassDef(interfaceType);
-                } catch (Exception ex) {
-                    throw ExceptionWithContext.withContext(ex,
-                            String.format("Could not find interface %s", interfaceType));
-                }
-                interfaceTable.put(interfaceType, interfaceDef);
-
-                ClassProto interfaceProto = (ClassProto) classPath.getClass(interfaceType);
-                for (ClassDef superInterface: interfaceProto.getInterfaceTable().values()) {
-                    if (!interfaceTable.containsKey(superInterface.getType())) {
-                        interfaceTable.put(superInterface.getType(), superInterface);
-                    }
-                }
-            }
-        }
-
-        return interfaceTable;
     }
 
     private void addToVtable(Iterable<? extends Method> localMethods, List<Method> vtable) {
