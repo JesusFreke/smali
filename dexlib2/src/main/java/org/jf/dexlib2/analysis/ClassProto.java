@@ -529,7 +529,10 @@ public class ClassProto implements TypeProto {
     }
 
     private void addToVtable(@Nonnull Iterable<? extends Method> localMethods, @Nonnull List<Method> vtable) {
-        for (Method virtualMethod: localMethods) {
+        List<? extends Method> methods = Lists.newArrayList(localMethods);
+        Collections.sort(methods);
+
+        for (Method virtualMethod: methods) {
             boolean found = false;
             for (int i=0; i<vtable.size(); i++) {
                 Method superMethod = vtable.get(i);
