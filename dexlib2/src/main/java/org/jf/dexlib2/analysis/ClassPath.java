@@ -62,20 +62,21 @@ public class ClassPath {
      *
      * @param classPath An array of DexFile objects. When loading a class, these dex files will be searched in order
      */
-    public ClassPath(int api, DexFile... classPath) throws IOException {
-        this(api, classPath, true);
+    public ClassPath(DexFile... classPath) throws IOException {
+        this(classPath, true, 15);
     }
 
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
      *
      * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
+     * @param api API level
      */
-    public ClassPath(int api, Iterable<DexFile> classPath) {
-        this(api, Iterables.toArray(classPath, DexFile.class), false);
+    public ClassPath(Iterable<DexFile> classPath, int api) {
+        this(Iterables.toArray(classPath, DexFile.class), false, api);
     }
 
-    private ClassPath(int api, @Nonnull DexFile[] classPath, boolean copyArray) {
+    private ClassPath(@Nonnull DexFile[] classPath, boolean copyArray, int api) {
         if (copyArray) {
             dexFiles = new DexFile[classPath.length+1];
             System.arraycopy(classPath, 0, dexFiles, 0, classPath.length);
@@ -165,7 +166,7 @@ public class ClassPath {
             dexFiles.add(loadClassPathEntry(classPathDirs, classPathEntry, api));
         }
         dexFiles.add(dexFile);
-        return new ClassPath(api, dexFiles);
+        return new ClassPath(dexFiles, api);
     }
 
     private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
