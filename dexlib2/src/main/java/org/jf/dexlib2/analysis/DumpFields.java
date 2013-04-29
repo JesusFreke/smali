@@ -144,24 +144,24 @@ public class DumpFields {
 
     private static void buildOptions() {
         Option classPathDirOption = OptionBuilder.withLongOpt("bootclasspath-dir")
-        .withDescription("the base folder to look for the bootclasspath files in. Defaults to the current " +
-                "directory")
-        .hasArg()
-        .withArgName("DIR")
-        .create("d");
+                .withDescription("the base folder to look for the bootclasspath files in. Defaults to the current " +
+                        "directory")
+                .hasArg()
+                .withArgName("DIR")
+                .create("d");
 
         Option outputFileOption = OptionBuilder.withLongOpt("out-file")
-        .withDescription("output file")
-        .hasArg()
-        .withArgName("FILE")
-        .create("o");
+                .withDescription("output file")
+                .hasArg()
+                .withArgName("FILE")
+                .create("o");
 
         Option apiLevelOption = OptionBuilder.withLongOpt("api-level")
-        .withDescription("The numeric api-level of the file being disassembled. If not " +
-                "specified, it defaults to 15 (ICS).")
-        .hasArg()
-        .withArgName("API_LEVEL")
-        .create("a");
+                .withDescription("The numeric api-level of the file being disassembled. If not " +
+                                "specified, it defaults to 15 (ICS).")
+                .hasArg()
+                .withArgName("API_LEVEL")
+                .create("a");
 
         options.addOption(classPathDirOption);
         options.addOption(outputFileOption);
