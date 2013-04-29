@@ -82,6 +82,7 @@ public class ClassProto implements TypeProto {
         return classDef;
     }
 
+    @Nonnull
     Method[] getVtable() {
         if (vtable == null) {
             vtable = loadVtable();
@@ -89,6 +90,7 @@ public class ClassProto implements TypeProto {
         return vtable;
     }
 
+    @Nonnull
     SparseArray<FieldReference> getInstanceFields() {
         if (instanceFields == null) {
             instanceFields = loadFields();
@@ -275,7 +277,7 @@ public class ClassProto implements TypeProto {
     @Override
     @Nullable
     public FieldReference getFieldByOffset(int fieldOffset) {
-        if (getInstanceFields() == null) {
+        if (getInstanceFields().size() == 0) {
             return null;
         }
         return getInstanceFields().get(fieldOffset);
@@ -284,14 +286,13 @@ public class ClassProto implements TypeProto {
     @Override
     @Nullable
     public MethodReference getMethodByVtableIndex(int vtableIndex) {
-        if (getVtable() == null
-            || vtableIndex < 0
-            || vtableIndex >= getVtable().length) {
+        if (vtableIndex < 0 || vtableIndex >= getVtable().length) {
             return null;
         }
         return getVtable()[vtableIndex];
     }
 
+    @Nonnull
     private SparseArray<FieldReference> loadFields() {
         //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
         //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
@@ -477,7 +478,7 @@ public class ClassProto implements TypeProto {
 
     private int getNextFieldOffset() {
         SparseArray<FieldReference> instanceFields = getInstanceFields();
-        if (instanceFields == null || instanceFields.size() == 0) {
+        if (instanceFields.size() == 0) {
             return 8;
         }
 
@@ -495,6 +496,7 @@ public class ClassProto implements TypeProto {
     }
 
     //TODO: check the case when we have a package private method that overrides an interface method
+    @Nonnull
     private Method[] loadVtable() {
         //TODO: it might be useful to keep track of which class's implementation is used for each virtual method. In other words, associate the implementing class type with each vtable entry
         List<Method> virtualMethodList = Lists.newLinkedList();
@@ -526,7 +528,7 @@ public class ClassProto implements TypeProto {
         return vtable;
     }
 
-    private void addToVtable(Iterable<? extends Method> localMethods, List<Method> vtable) {
+    private void addToVtable(@Nonnull Iterable<? extends Method> localMethods, @Nonnull List<Method> vtable) {
         for (Method virtualMethod: localMethods) {
             boolean found = false;
             for (int i=0; i<vtable.size(); i++) {
