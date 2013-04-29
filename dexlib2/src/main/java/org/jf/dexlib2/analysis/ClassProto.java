@@ -534,7 +534,7 @@ public class ClassProto implements TypeProto {
             for (int i=0; i<vtable.size(); i++) {
                 Method superMethod = vtable.get(i);
                 if (methodSignaturesMatch(superMethod, virtualMethod)) {
-                    if (canAccess(superMethod)) {
+                    if (classPath.getApi() < 17 || canAccess(superMethod)) {
                         found = true;
                         vtable.set(i, virtualMethod);
                         break;
