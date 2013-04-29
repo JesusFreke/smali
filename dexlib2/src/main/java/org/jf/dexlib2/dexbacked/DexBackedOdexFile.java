@@ -122,7 +122,7 @@ public class DexBackedOdexFile extends DexBackedDexFile {
         }
     }
 
-    public int getVersion() {
+    public int getOdexVersion() {
         return OdexHeaderItem.getVersion(odexBuf);
     }
 

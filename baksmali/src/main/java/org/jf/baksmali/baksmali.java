@@ -93,7 +93,7 @@ public class baksmali {
                 if (inlineTable != null) {
                     options.inlineResolver = new CustomInlineMethodResolver(options.classPath, new File(inlineTable));
                 } else if (dexFile instanceof DexBackedOdexFile) {
-                    options.inlineResolver = InlineMethodResolver.createInlineMethodResolver(((DexBackedOdexFile) dexFile).getVersion());
+                    options.inlineResolver = InlineMethodResolver.createInlineMethodResolver(((DexBackedOdexFile) dexFile).getOdexVersion());
                 }
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
