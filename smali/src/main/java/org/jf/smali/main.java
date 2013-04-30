@@ -28,6 +28,7 @@
 
 package org.jf.smali;
 
+import com.google.common.collect.Lists;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.Token;
 import org.antlr.runtime.TokenSource;
@@ -40,10 +41,11 @@ import org.jf.util.SmaliHelpFormatter;
 
 import javax.annotation.Nonnull;
 import java.io.*;
-import java.util.LinkedHashSet;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Main class for smali. It recognizes enough options to be able to dispatch
@@ -99,6 +101,7 @@ public class main {
             return;
         }
 
+        int jobs = -1;
         boolean allowOdex = false;
         boolean verboseErrors = false;
         boolean printTokens = false;
@@ -137,6 +140,9 @@ public class main {
                 case 'a':
                     apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
                     break;
+                case 'j':
+                    jobs = Integer.parseInt(commandLine.getOptionValue("j"));
+                    break;
                 case 'V':
                     verboseErrors = true;
                     break;
@@ -170,15 +176,46 @@ public class main {
                     }
             }
 
-            boolean errors = false;
-
-            DexBuilder dexBuilder = DexBuilder.makeDexBuilder();
-
-            for (File file: filesToProcess) {
-                if (!assembleSmaliFile(file, dexBuilder, verboseErrors, printTokens, allowOdex, apiLevel)) {
-                    errors = true;
+            if (jobs <= 0) {
+                jobs = Runtime.getRuntime().availableProcessors();
+                if (jobs > 6) {
+                    jobs = 6;
                 }
             }
+
+            boolean errors = false;
+
+            final DexBuilder dexBuilder = DexBuilder.makeDexBuilder();
+            ExecutorService executor = Executors.newFixedThreadPool(jobs);
+            List<Future<Boolean>> tasks = Lists.newArrayList();
+
+            final boolean finalVerboseErrors = verboseErrors;
+            final boolean finalPrintTokens = printTokens;
+            final boolean finalAllowOdex = allowOdex;
+            final int finalApiLevel = apiLevel;
+            for (final File file: filesToProcess) {
+                tasks.add(executor.submit(new Callable<Boolean>() {
+                    @Override public Boolean call() throws Exception {
+                        return assembleSmaliFile(file, dexBuilder, finalVerboseErrors, finalPrintTokens,
+                                finalAllowOdex, finalApiLevel);
+                    }
+                }));
+            }
+
+            for (Future<Boolean> task: tasks) {
+                while(true) {
+                    try {
+                        if (!task.get()) {
+                            errors = true;
+                        }
+                    } catch (InterruptedException ex) {
+                        continue;
+                    }
+                    break;
+                }
+            }
+
+            executor.shutdown();
 
             if (errors) {
                 System.exit(1);
@@ -320,6 +357,13 @@ public class main {
                 .withArgName("API_LEVEL")
                 .create("a");
 
+        Option jobsOption = OptionBuilder.withLongOpt("jobs")
+                .withDescription("The number of threads to use. Defaults to the number of cores available, up to a " +
+                        "maximum of 6")
+                .hasArg()
+                .withArgName("NUM_THREADS")
+                .create("j");
+
         Option verboseErrorsOption = OptionBuilder.withLongOpt("verbose-errors")
                 .withDescription("Generate verbose error messages")
                 .create("V");
@@ -333,6 +377,7 @@ public class main {
         basicOptions.addOption(outputOption);
         basicOptions.addOption(allowOdexOption);
         basicOptions.addOption(apiLevelOption);
+        basicOptions.addOption(jobsOption);
 
         debugOptions.addOption(verboseErrorsOption);
         debugOptions.addOption(printTokensOption);
