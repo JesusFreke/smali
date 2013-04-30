@@ -151,7 +151,6 @@ public class InstructionWriteUtil<Insn extends Instruction, StringRef extends St
         for (Instruction instruction: originalInstructions) {
             if (instruction.getOpcode().equals(Opcode.CONST_STRING)) {
                 ReferenceInstruction refInstr = (ReferenceInstruction) instruction;
-                // TODO: add the necessary generic plumbing to the Instruction interface to make this work without a warning (ugh)
                 int referenceIndex = stringIndexProvider.getItemIndex((StringRef)refInstr.getReference());
                 if (referenceIndex > 0xFFFF) {
                     if (codeOffsetShifts == null) {

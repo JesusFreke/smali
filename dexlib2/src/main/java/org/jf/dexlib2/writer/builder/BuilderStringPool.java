@@ -72,7 +72,6 @@ class BuilderStringPool implements StringSection<BuilderStringReference, Builder
     @Nonnull @Override public Collection<? extends Entry<? extends BuilderStringReference, Integer>> getItems() {
         return new BuilderMapEntryCollection<BuilderStringReference>(internedItems.values()) {
             @Override protected int getValue(@Nonnull BuilderStringReference key) {
-                // TODO: see what the performance of using key.getIndex() for everything is like
                 return key.index;
             }
 
