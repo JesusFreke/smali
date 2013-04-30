@@ -37,5 +37,5 @@ import javax.annotation.Nonnull;
 
 public interface TypeSection<StringKey, TypeKey, TypeRef extends TypeReference> extends NullableIndexSection<TypeKey> {
     @Nonnull StringKey getString(@Nonnull TypeKey key);
-    int getItemIndex(@Nonnull TypeReference key);
+    int getItemIndex(@Nonnull TypeRef key);
 }

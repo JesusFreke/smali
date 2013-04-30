@@ -38,6 +38,7 @@ import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.immutable.ImmutableMethodImplementation;
 import org.jf.dexlib2.immutable.instruction.*;
@@ -55,7 +56,7 @@ public class JumboStringConversionTest {
     private MockStringIndexProvider mockStringIndexProvider;
     ArrayList<String> mJumboStrings;
 
-    private class InsnWriteUtil extends InstructionWriteUtil<Instruction, StringReference> {
+    private class InsnWriteUtil extends InstructionWriteUtil<Instruction, StringReference, Reference> {
         public InsnWriteUtil(@Nonnull MethodImplementation implementation) {
             super(implementation.getInstructions(), mockStringIndexProvider, ImmutableInstructionFactory.INSTANCE);
         }

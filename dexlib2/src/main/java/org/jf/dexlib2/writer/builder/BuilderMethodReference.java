@@ -29,46 +29,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer.pool;
+package org.jf.dexlib2.writer.builder;
 
-import org.jf.dexlib2.iface.Field;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.writer.FieldSection;
+import org.jf.dexlib2.base.reference.BaseMethodReference;
+import org.jf.dexlib2.writer.DexWriter;
 
 import javax.annotation.Nonnull;
 
-public class FieldPool extends BaseIndexPool<FieldReference>
-        implements FieldSection<CharSequence, CharSequence, FieldReference, Field> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
+public class BuilderMethodReference extends BaseMethodReference implements BuilderReference {
+    @Nonnull final BuilderTypeReference definingClass;
+    @Nonnull final BuilderStringReference name;
+    @Nonnull final BuilderProtoReference proto;
+    int index = DexWriter.NO_INDEX;
 
-    public FieldPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
+    BuilderMethodReference(@Nonnull BuilderTypeReference definingClass,
+                           @Nonnull BuilderStringReference name,
+                           @Nonnull BuilderProtoReference proto) {
+        this.definingClass = definingClass;
+        this.name = name;
+        this.proto = proto;
     }
 
-    public void intern(@Nonnull FieldReference field) {
-        Integer prev = internedItems.put(field, 0);
-        if (prev == null) {
-            typePool.intern(field.getDefiningClass());
-            stringPool.intern(field.getName());
-            typePool.intern(field.getType());
-        }
+    @Nonnull @Override public String getDefiningClass() {
+        return definingClass.getType();
     }
 
-    @Nonnull @Override public CharSequence getDefiningClass(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getDefiningClass();
+    @Nonnull @Override public String getName() {
+        return this.name.getString();
     }
 
-    @Nonnull @Override public CharSequence getFieldType(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getType();
+    @Nonnull @Override public BuilderTypeList getParameterTypes() {
+        return proto.parameterTypes;
     }
 
-    @Nonnull @Override public CharSequence getName(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getName();
+    @Nonnull @Override public String getReturnType() {
+        return proto.returnType.getType();
     }
 
-    @Override public int getFieldIndex(@Nonnull Field field) {
-        return getItemIndex(field);
+    @Override public int getIndex() {
+        return index;
+    }
+
+    @Override public void setIndex(int index) {
+        this.index = index;
     }
 }

@@ -29,46 +29,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer.pool;
+package org.jf.dexlib2.writer.builder;
 
-import org.jf.dexlib2.iface.Field;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.writer.FieldSection;
+import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.writer.DexWriter;
 
 import javax.annotation.Nonnull;
+import java.util.AbstractList;
+import java.util.List;
 
-public class FieldPool extends BaseIndexPool<FieldReference>
-        implements FieldSection<CharSequence, CharSequence, FieldReference, Field> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
+public class BuilderTypeList extends AbstractList<BuilderTypeReference> {
+    static final BuilderTypeList EMPTY = new BuilderTypeList(ImmutableList.<BuilderTypeReference>of());
 
-    public FieldPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
+    @Nonnull final List<? extends BuilderTypeReference> types;
+    int offset = DexWriter.NO_OFFSET;
+
+    public BuilderTypeList(@Nonnull List<? extends BuilderTypeReference> types) {
+        this.types = types;
     }
 
-    public void intern(@Nonnull FieldReference field) {
-        Integer prev = internedItems.put(field, 0);
-        if (prev == null) {
-            typePool.intern(field.getDefiningClass());
-            stringPool.intern(field.getName());
-            typePool.intern(field.getType());
-        }
+    @Override public BuilderTypeReference get(int index) {
+        return types.get(index);
     }
 
-    @Nonnull @Override public CharSequence getDefiningClass(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getDefiningClass();
+    @Override public int size() {
+        return types.size();
     }
 
-    @Nonnull @Override public CharSequence getFieldType(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getType();
+    public int getOffset() {
+        return offset;
     }
 
-    @Nonnull @Override public CharSequence getName(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getName();
-    }
-
-    @Override public int getFieldIndex(@Nonnull Field field) {
-        return getItemIndex(field);
+    public void setOffset(int offset) {
+        this.offset = offset;
     }
 }

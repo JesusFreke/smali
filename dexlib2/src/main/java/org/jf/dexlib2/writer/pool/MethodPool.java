@@ -37,7 +37,7 @@ import org.jf.dexlib2.writer.MethodSection;
 import javax.annotation.Nonnull;
 
 public class MethodPool extends BaseIndexPool<MethodReference>
-        implements MethodSection<CharSequence, CharSequence, ProtoPool.Key, MethodReference> {
+        implements MethodSection<CharSequence, CharSequence, ProtoPool.Key, MethodReference, PoolMethod> {
     @Nonnull private final StringPool stringPool;
     @Nonnull private final TypePool typePool;
     @Nonnull private final ProtoPool protoPool;
@@ -66,7 +66,15 @@ public class MethodPool extends BaseIndexPool<MethodReference>
         return new ProtoPool.Key(methodReference);
     }
 
+    @Nonnull @Override public ProtoPool.Key getPrototype(@Nonnull PoolMethod poolMethod) {
+        return new ProtoPool.Key(poolMethod);
+    }
+
     @Nonnull @Override public CharSequence getName(@Nonnull MethodReference methodReference) {
         return methodReference.getName();
+    }
+
+    @Override public int getMethodIndex(@Nonnull PoolMethod poolMethod) {
+        return getItemIndex(poolMethod);
     }
 }

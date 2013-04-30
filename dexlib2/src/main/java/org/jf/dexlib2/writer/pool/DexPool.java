@@ -35,14 +35,11 @@ import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.StringReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.dexlib2.immutable.instruction.ImmutableInstructionFactory;
-import org.jf.dexlib2.writer.pool.ProtoPool.Key;
 import org.jf.dexlib2.writer.DexWriter;
+import org.jf.dexlib2.writer.pool.ProtoPool.Key;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -51,7 +48,7 @@ import java.util.Collection;
 import java.util.Set;
 
 public class DexPool extends DexWriter<CharSequence, StringReference, CharSequence, TypeReference, Key,
-        FieldReference, MethodReference, PoolClassDef,
+        FieldReference, MethodReference, Reference, PoolClassDef,
         Annotation, Set<? extends Annotation>,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
         EncodedValue, AnnotationElement, DebugItem, Instruction, ExceptionHandler> {

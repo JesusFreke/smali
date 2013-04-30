@@ -29,46 +29,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer.pool;
+package org.jf.dexlib2.writer.builder;
 
-import org.jf.dexlib2.iface.Field;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.writer.FieldSection;
+import org.jf.dexlib2.base.BaseAnnotationElement;
+import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.writer.builder.BuilderEncodedValues.BuilderEncodedValue;
 
 import javax.annotation.Nonnull;
 
-public class FieldPool extends BaseIndexPool<FieldReference>
-        implements FieldSection<CharSequence, CharSequence, FieldReference, Field> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
+public class BuilderAnnotationElement extends BaseAnnotationElement {
+    @Nonnull final BuilderStringReference name;
+    @Nonnull final BuilderEncodedValue value;
 
-    public FieldPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
+    public BuilderAnnotationElement(@Nonnull BuilderStringReference name, @Nonnull BuilderEncodedValue value) {
+        this.name = name;
+        this.value = value;
     }
 
-    public void intern(@Nonnull FieldReference field) {
-        Integer prev = internedItems.put(field, 0);
-        if (prev == null) {
-            typePool.intern(field.getDefiningClass());
-            stringPool.intern(field.getName());
-            typePool.intern(field.getType());
-        }
+    @Nonnull @Override public String getName() {
+        return name.getString();
     }
 
-    @Nonnull @Override public CharSequence getDefiningClass(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getDefiningClass();
-    }
-
-    @Nonnull @Override public CharSequence getFieldType(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getType();
-    }
-
-    @Nonnull @Override public CharSequence getName(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getName();
-    }
-
-    @Override public int getFieldIndex(@Nonnull Field field) {
-        return getItemIndex(field);
+    @Nonnull @Override public EncodedValue getValue() {
+        return value;
     }
 }

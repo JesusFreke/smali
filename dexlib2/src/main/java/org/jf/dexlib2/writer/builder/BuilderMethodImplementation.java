@@ -29,46 +29,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer.pool;
+package org.jf.dexlib2.writer.builder;
 
-import org.jf.dexlib2.iface.Field;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.writer.FieldSection;
+import org.jf.dexlib2.iface.MethodImplementation;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
-public class FieldPool extends BaseIndexPool<FieldReference>
-        implements FieldSection<CharSequence, CharSequence, FieldReference, Field> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
+public class BuilderMethodImplementation implements MethodImplementation {
+    protected final int registerCount;
+    @Nonnull protected final List<? extends BuilderInstruction> instructions;
+    @Nonnull protected final List<? extends BuilderTryBlock> tryBlocks;
+    @Nonnull protected final List<? extends BuilderDebugItem> debugItems;
 
-    public FieldPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
+    public BuilderMethodImplementation(int registerCount,
+                                       @Nonnull List<? extends BuilderInstruction> instructions,
+                                       @Nonnull List<? extends BuilderTryBlock> tryBlocks,
+                                       @Nonnull List<? extends BuilderDebugItem> debugItems) {
+        this.registerCount = registerCount;
+        this.instructions = instructions;
+        this.tryBlocks = tryBlocks;
+        this.debugItems = debugItems;
     }
 
-    public void intern(@Nonnull FieldReference field) {
-        Integer prev = internedItems.put(field, 0);
-        if (prev == null) {
-            typePool.intern(field.getDefiningClass());
-            stringPool.intern(field.getName());
-            typePool.intern(field.getType());
-        }
-    }
-
-    @Nonnull @Override public CharSequence getDefiningClass(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getDefiningClass();
-    }
-
-    @Nonnull @Override public CharSequence getFieldType(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getType();
-    }
-
-    @Nonnull @Override public CharSequence getName(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getName();
-    }
-
-    @Override public int getFieldIndex(@Nonnull Field field) {
-        return getItemIndex(field);
-    }
+    @Override public int getRegisterCount() { return registerCount; }
+    @Nonnull @Override public List<? extends BuilderInstruction> getInstructions() { return instructions; }
+    @Nonnull @Override public List<? extends BuilderTryBlock> getTryBlocks() { return tryBlocks; }
+    @Nonnull @Override public List<? extends BuilderDebugItem> getDebugItems() { return debugItems; }
 }

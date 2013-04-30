@@ -50,8 +50,8 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
     @Nonnull private final DexDataWriter writer;
     @Nonnull private final StringSection<?, StringRef> stringSection;
     @Nonnull private final TypeSection<?, ?, TypeRef> typeSection;
-    @Nonnull private final FieldSection<?, ?, FieldRefKey> fieldSection;
-    @Nonnull private final MethodSection<?, ?, ?, MethodRefKey> methodSection;
+    @Nonnull private final FieldSection<?, ?, FieldRefKey, ?> fieldSection;
+    @Nonnull private final MethodSection<?, ?, ?, MethodRefKey, ?> methodSection;
 
     @Nonnull static <StringRef extends StringReference, TypeRef extends TypeReference, FieldRefKey extends FieldReference, MethodRefKey extends MethodReference>
             InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey>
@@ -59,8 +59,8 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
                 @Nonnull DexDataWriter writer,
                 @Nonnull StringSection<?, StringRef> stringSection,
                 @Nonnull TypeSection<?, ?, TypeRef> typeSection,
-                @Nonnull FieldSection<?, ?, FieldRefKey> fieldSection,
-                @Nonnull MethodSection<?, ?, ?, MethodRefKey> methodSection) {
+                @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
+                @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection) {
         return new InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey>(
                 writer, stringSection, typeSection, fieldSection, methodSection);
     }
@@ -68,8 +68,8 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
     InstructionWriter(@Nonnull DexDataWriter writer,
                       @Nonnull StringSection<?, StringRef> stringSection,
                       @Nonnull TypeSection<?, ?, TypeRef> typeSection,
-                      @Nonnull FieldSection<?, ?, FieldRefKey> fieldSection,
-                      @Nonnull MethodSection<?, ?, ?, MethodRefKey> methodSection) {
+                      @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
+                      @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection) {
         this.writer = writer;
         this.stringSection = stringSection;
         this.typeSection = typeSection;

@@ -59,10 +59,10 @@ import org.jf.dexlib2.immutable.debug.*;
 import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.dexlib2.immutable.reference.*;
 import org.jf.dexlib2.immutable.value.*;
+import org.jf.dexlib2.writer.InstructionFactory;
+import org.jf.dexlib2.writer.builder.*;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.util.LinearSearch;
-
-
 }
 
 @members {
@@ -70,6 +70,13 @@ import org.jf.util.LinearSearch;
   private boolean verboseErrors = false;
   private int apiLevel = 15;
   private Opcodes opcodes = new Opcodes(apiLevel);
+  private DexBuilder dexBuilder;
+  private InstructionFactory<BuilderInstruction, BuilderReference> instructionFactory =
+          BuilderInstructionFactory.INSTANCE;
+
+  public void setDexBuilder(DexBuilder dexBuilder) {
+      this.dexBuilder = dexBuilder;
+  }
 
   public void setApiLevel(int apiLevel) {
       this.opcodes = new Opcodes(apiLevel);
@@ -146,7 +153,7 @@ import org.jf.util.LinearSearch;
 smali_file returns[ClassDef classDef]
   : ^(I_CLASS_DEF header methods fields annotations)
   {
-    $classDef = new ImmutableClassDef($header.classType, $header.accessFlags, $header.superType,
+    $classDef = dexBuilder.internClassDef($header.classType, $header.accessFlags, $header.superType,
             $header.implementsList, $header.sourceSpec, $annotations.annotations, $fields.fields, $methods.methods);
   };
   catch [Exception ex] {
@@ -220,7 +227,7 @@ access_list returns [int value]
       )*);
 
 
-fields returns[List<Field> fields]
+fields returns[List<BuilderField> fields]
   @init {$fields = Lists.newArrayList();}
   : ^(I_FIELDS
       (field
@@ -228,7 +235,7 @@ fields returns[List<Field> fields]
         $fields.add($field.field);
       })*);
 
-methods returns[List<Method> methods]
+methods returns[List<BuilderMethod> methods]
   @init {$methods = Lists.newArrayList();}
   : ^(I_METHODS
       (method
@@ -236,7 +243,7 @@ methods returns[List<Method> methods]
         $methods.add($method.ret);
       })*);
 
-field returns [Field field]
+field returns [BuilderField field]
   :^(I_FIELD SIMPLE_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
   {
     int accessFlags = $access_list.value;
@@ -246,7 +253,7 @@ field returns [Field field]
         throw new SemanticException(input, "Initial field values can only be specified for static fields.");
     }
 
-    $field = new ImmutableField(classType, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type, $access_list.value,
+    $field = dexBuilder.internField(classType, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type, $access_list.value,
             $field_initial_value.encodedValue, $annotations.annotations);
   };
 
@@ -337,7 +344,7 @@ sparse_switch_elements[int baseAddress] returns[List<SwitchElement> elements]
        })*
     );
 
-method returns[Method ret]
+method returns[BuilderMethod ret]
   scope
   {
     HashMap<String, Integer> labels;
@@ -388,10 +395,10 @@ method returns[Method ret]
       annotations
     )
   {
-    List<TryBlock<? extends ExceptionHandler>> tryBlocks = $catches.tryBlocks;
-    List<DebugItem> debugItems = $ordered_debug_directives.debugItems;
+    List<BuilderTryBlock> tryBlocks = $catches.tryBlocks;
+    List<BuilderDebugItem> debugItems = $ordered_debug_directives.debugItems;
 
-    MethodImplementation methodImplementation = null;
+    BuilderMethodImplementation methodImplementation = null;
 
     boolean isAbstract = false;
     boolean isNative = false;
@@ -451,14 +458,14 @@ method returns[Method ret]
                 " registers, for the method parameters");
       }
 
-      methodImplementation = new ImmutableMethodImplementation(
+      methodImplementation = dexBuilder.internMethodImplementation(
               $method::totalMethodRegisters,
               $statements.instructions,
               tryBlocks,
               debugItems);
     }
 
-    $ret = new ImmutableMethod(
+    $ret = dexBuilder.internMethod(
             classType,
             $method_name_and_prototype.name,
             $method_name_and_prototype.parameters,
@@ -568,12 +575,12 @@ sparse_switch_declaration
       }
     };
 
-catches returns[List<TryBlock<? extends ExceptionHandler>> tryBlocks]
+catches returns[List<BuilderTryBlock> tryBlocks]
   @init {tryBlocks = Lists.newArrayList();}
   : ^(I_CATCHES (catch_directive { tryBlocks.add($catch_directive.tryBlock); })*
                 (catchall_directive { tryBlocks.add($catchall_directive.tryBlock); })*);
 
-catch_directive returns[TryBlock<? extends ExceptionHandler> tryBlock]
+catch_directive returns[BuilderTryBlock tryBlock]
   : ^(I_CATCH address nonvoid_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
         using=offset_or_label_absolute[$address.address])
     {
@@ -584,11 +591,11 @@ catch_directive returns[TryBlock<? extends ExceptionHandler> tryBlock]
 
       // We always create try blocks with a single exception handler. These will be merged appropriately when written
       // to a dex file
-      $tryBlock = new ImmutableTryBlock(startAddress, endAddress-startAddress,
-              ImmutableList.of(new ImmutableExceptionHandler(type, handlerAddress)));
+      $tryBlock = new BuilderTryBlock(startAddress, endAddress-startAddress,
+              ImmutableList.of(dexBuilder.internExceptionHandler(type, handlerAddress)));
     };
 
-catchall_directive returns[TryBlock<? extends ExceptionHandler> tryBlock]
+catchall_directive returns[BuilderTryBlock tryBlock]
   : ^(I_CATCHALL address from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
         using=offset_or_label_absolute[$address.address])
     {
@@ -598,8 +605,8 @@ catchall_directive returns[TryBlock<? extends ExceptionHandler> tryBlock]
 
       // We always create try blocks with a single exception handler. These will be merged appropriately when written
       // to a dex file
-      $tryBlock = new ImmutableTryBlock(startAddress, endAddress-startAddress,
-              ImmutableList.of(new ImmutableExceptionHandler(null, handlerAddress)));
+      $tryBlock = new BuilderTryBlock(startAddress, endAddress-startAddress,
+              ImmutableList.of(dexBuilder.internExceptionHandler(null, handlerAddress)));
     };
 
 address returns[int address]
@@ -645,7 +652,7 @@ parameter[List<SmaliMethodParameter> parameters]
         }
     };
 
-ordered_debug_directives returns[List<DebugItem> debugItems]
+ordered_debug_directives returns[List<BuilderDebugItem> debugItems]
   @init {debugItems = Lists.newArrayList();}
   : ^(I_ORDERED_DEBUG_DIRECTIVES
        ( line { $debugItems.add($line.debugItem); }
@@ -658,56 +665,56 @@ ordered_debug_directives returns[List<DebugItem> debugItems]
        )*
      );
 
-line returns[DebugItem debugItem]
+line returns[BuilderDebugItem debugItem]
   : ^(I_LINE integral_literal address)
     {
-        $debugItem = new ImmutableLineNumber($address.address, $integral_literal.value);
+        $debugItem = dexBuilder.internLineNumber($address.address, $integral_literal.value);
     };
 
-local returns[DebugItem debugItem]
+local returns[BuilderDebugItem debugItem]
   : ^(I_LOCAL REGISTER ((NULL_LITERAL | name=string_literal) nonvoid_type_descriptor? signature=string_literal?)? address)
     {
       int registerNumber = parseRegister_short($REGISTER.text);
 
-      $debugItem = new ImmutableStartLocal($address.address, registerNumber, $name.value,
+      $debugItem = dexBuilder.internStartLocal($address.address, registerNumber, $name.value,
               $nonvoid_type_descriptor.type, $signature.value);
     };
 
-end_local returns[DebugItem debugItem]
+end_local returns[BuilderDebugItem debugItem]
   : ^(I_END_LOCAL REGISTER address)
     {
       int registerNumber = parseRegister_short($REGISTER.text);
 
-      $debugItem = new ImmutableEndLocal($address.address, registerNumber);
+      $debugItem = dexBuilder.internEndLocal($address.address, registerNumber);
     };
 
-restart_local returns[DebugItem debugItem]
+restart_local returns[BuilderDebugItem debugItem]
   : ^(I_RESTART_LOCAL REGISTER address)
     {
       int registerNumber = parseRegister_short($REGISTER.text);
 
-      $debugItem = new ImmutableRestartLocal($address.address, registerNumber);
+      $debugItem = dexBuilder.internRestartLocal($address.address, registerNumber);
     };
 
-prologue returns[DebugItem debugItem]
+prologue returns[BuilderDebugItem debugItem]
   : ^(I_PROLOGUE address)
     {
-      $debugItem = new ImmutablePrologueEnd($address.address);
+      $debugItem = dexBuilder.internPrologueEnd($address.address);
     };
 
-epilogue returns[DebugItem debugItem]
+epilogue returns[BuilderDebugItem debugItem]
   : ^(I_EPILOGUE address)
     {
-      $debugItem = new ImmutableEpilogueBegin($address.address);
+      $debugItem = dexBuilder.internEpilogueBegin($address.address);
     };
 
-source returns[DebugItem debugItem]
+source returns[BuilderDebugItem debugItem]
   : ^(I_SOURCE string_literal? address)
     {
-      $debugItem = new ImmutableSetSourceFile($address.address, $string_literal.value);
+      $debugItem = dexBuilder.internSetSourceFile($address.address, $string_literal.value);
     };
 
-statements returns[List<Instruction> instructions, int maxOutRegisters]
+statements returns[List<BuilderInstruction> instructions, int maxOutRegisters]
   @init
   {
     $instructions = Lists.newArrayList();
@@ -809,7 +816,7 @@ verification_error_type returns[int verificationError]
     $verificationError = VerificationError.getVerificationError($VERIFICATION_ERROR_TYPE.text);
   };
 
-instruction[List<Instruction> instructions] returns[int outRegisters]
+instruction[List<BuilderInstruction> instructions] returns[int outRegisters]
   : insn_format10t[$instructions] { $outRegisters = $insn_format10t.outRegisters; }
   | insn_format10x[$instructions] { $outRegisters = $insn_format10x.outRegisters; }
   | insn_format11n[$instructions] { $outRegisters = $insn_format11n.outRegisters; }
@@ -850,7 +857,7 @@ instruction[List<Instruction> instructions] returns[int outRegisters]
     }
 
 
-insn_format10t[List<Instruction> instructions] returns[int outRegisters]
+insn_format10t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. goto endloop:
     {$outRegisters = 0;}
     ^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
@@ -859,18 +866,18 @@ insn_format10t[List<Instruction> instructions] returns[int outRegisters]
 
       int addressOffset = $offset_or_label.offsetValue;
 
-      $instructions.add(new ImmutableInstruction10t(opcode, addressOffset));
+      $instructions.add(instructionFactory.makeInstruction10t(opcode, addressOffset));
     };
 
-insn_format10x[List<Instruction> instructions] returns[int outRegisters]
+insn_format10x[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. return
     ^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
-      $instructions.add(new ImmutableInstruction10x(opcode));
+      $instructions.add(instructionFactory.makeInstruction10x(opcode));
     };
 
-insn_format11n[List<Instruction> instructions] returns[int outRegisters]
+insn_format11n[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const/4 v0, 5
     ^(I_STATEMENT_FORMAT11n INSTRUCTION_FORMAT11n REGISTER short_integral_literal)
     {
@@ -880,20 +887,20 @@ insn_format11n[List<Instruction> instructions] returns[int outRegisters]
       short litB = $short_integral_literal.value;
       LiteralTools.checkNibble(litB);
 
-      $instructions.add(new ImmutableInstruction11n(opcode, regA, litB));
+      $instructions.add(instructionFactory.makeInstruction11n(opcode, regA, litB));
     };
 
-insn_format11x[List<Instruction> instructions] returns[int outRegisters]
+insn_format11x[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. move-result-object v1
     ^(I_STATEMENT_FORMAT11x INSTRUCTION_FORMAT11x REGISTER)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      $instructions.add(new ImmutableInstruction11x(opcode, regA));
+      $instructions.add(instructionFactory.makeInstruction11x(opcode, regA));
     };
 
-insn_format12x[List<Instruction> instructions] returns[int outRegisters]
+insn_format12x[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. move v1 v2
     ^(I_STATEMENT_FORMAT12x INSTRUCTION_FORMAT12x registerA=REGISTER registerB=REGISTER)
     {
@@ -901,10 +908,10 @@ insn_format12x[List<Instruction> instructions] returns[int outRegisters]
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
-      $instructions.add(new ImmutableInstruction12x(opcode, regA, regB));
+      $instructions.add(instructionFactory.makeInstruction12x(opcode, regA, regB));
     };
 
-insn_format20bc[List<Instruction> instructions] returns[int outRegisters]
+insn_format20bc[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. throw-verification-error generic-error, Lsome/class;
     ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc verification_error_type verification_error_reference)
     {
@@ -913,10 +920,11 @@ insn_format20bc[List<Instruction> instructions] returns[int outRegisters]
       int verificationError = $verification_error_type.verificationError;
       ImmutableReference referencedItem = $verification_error_reference.reference;
 
-      $instructions.add(new ImmutableInstruction20bc(opcode, verificationError, referencedItem));
+      $instructions.add(instructionFactory.makeInstruction20bc(opcode, verificationError,
+              dexBuilder.internReference(referencedItem)));
     };
 
-insn_format20t[List<Instruction> instructions] returns[int outRegisters]
+insn_format20t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. goto/16 endloop:
     ^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)
     {
@@ -924,10 +932,10 @@ insn_format20t[List<Instruction> instructions] returns[int outRegisters]
 
       int addressOffset = $offset_or_label.offsetValue;
 
-      $instructions.add(new ImmutableInstruction20t(opcode, addressOffset));
+      $instructions.add(instructionFactory.makeInstruction20t(opcode, addressOffset));
     };
 
-insn_format21c_field[List<Instruction> instructions] returns[int outRegisters]
+insn_format21c_field[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. sget_object v0, java/lang/System/out LJava/io/PrintStream;
     ^(I_STATEMENT_FORMAT21c_FIELD inst=(INSTRUCTION_FORMAT21c_FIELD | INSTRUCTION_FORMAT21c_FIELD_ODEX) REGISTER fully_qualified_field)
     {
@@ -936,34 +944,33 @@ insn_format21c_field[List<Instruction> instructions] returns[int outRegisters]
 
       ImmutableFieldReference fieldReference = $fully_qualified_field.fieldReference;
 
-      $instructions.add(new ImmutableInstruction21c(opcode, regA, fieldReference));
+      $instructions.add(instructionFactory.makeInstruction21c(opcode, regA,
+              dexBuilder.internFieldReference(fieldReference)));
     };
 
-insn_format21c_string[List<Instruction> instructions] returns[int outRegisters]
+insn_format21c_string[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const-string v1, "Hello World!"
     ^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      ImmutableStringReference stringReference = new ImmutableStringReference($string_literal.value);
-
-      instructions.add(new ImmutableInstruction21c(opcode, regA, stringReference));
+      instructions.add(instructionFactory.makeInstruction21c(opcode, regA,
+              dexBuilder.internStringReference($string_literal.value)));
     };
 
-insn_format21c_type[List<Instruction> instructions] returns[int outRegisters]
+insn_format21c_type[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const-class v2, org/jf/HelloWorld2/HelloWorld2
     ^(I_STATEMENT_FORMAT21c_TYPE INSTRUCTION_FORMAT21c_TYPE REGISTER reference_type_descriptor)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      ImmutableTypeReference typeReference = new ImmutableTypeReference($reference_type_descriptor.type);
-
-      $instructions.add(new ImmutableInstruction21c(opcode, regA, typeReference));
+      $instructions.add(instructionFactory.makeInstruction21c(opcode, regA,
+              dexBuilder.internTypeReference($reference_type_descriptor.type)));
     };
 
-insn_format21ih[List<Instruction> instructions] returns[int outRegisters]
+insn_format21ih[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const/high16 v1, 1234
     ^(I_STATEMENT_FORMAT21ih INSTRUCTION_FORMAT21ih REGISTER fixed_32bit_literal)
     {
@@ -972,10 +979,10 @@ insn_format21ih[List<Instruction> instructions] returns[int outRegisters]
 
       int litB = $fixed_32bit_literal.value;
 
-      instructions.add(new ImmutableInstruction21ih(opcode, regA, litB));
+      instructions.add(instructionFactory.makeInstruction21ih(opcode, regA, litB));
     };
 
-insn_format21lh[List<Instruction> instructions] returns[int outRegisters]
+insn_format21lh[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const-wide/high16 v1, 1234
     ^(I_STATEMENT_FORMAT21lh INSTRUCTION_FORMAT21lh REGISTER fixed_64bit_literal)
     {
@@ -984,10 +991,10 @@ insn_format21lh[List<Instruction> instructions] returns[int outRegisters]
 
       long litB = $fixed_64bit_literal.value;
 
-      instructions.add(new ImmutableInstruction21lh(opcode, regA, litB));
+      instructions.add(instructionFactory.makeInstruction21lh(opcode, regA, litB));
     };
 
-insn_format21s[List<Instruction> instructions] returns[int outRegisters]
+insn_format21s[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const/16 v1, 1234
     ^(I_STATEMENT_FORMAT21s INSTRUCTION_FORMAT21s REGISTER short_integral_literal)
     {
@@ -996,10 +1003,10 @@ insn_format21s[List<Instruction> instructions] returns[int outRegisters]
 
       short litB = $short_integral_literal.value;
 
-      $instructions.add(new ImmutableInstruction21s(opcode, regA, litB));
+      $instructions.add(instructionFactory.makeInstruction21s(opcode, regA, litB));
     };
 
-insn_format21t[List<Instruction> instructions] returns[int outRegisters]
+insn_format21t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. if-eqz v0, endloop:
     ^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
     {
@@ -1012,10 +1019,10 @@ insn_format21t[List<Instruction> instructions] returns[int outRegisters]
         throw new SemanticException(input, $offset_or_label.start, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
       }
 
-      $instructions.add(new ImmutableInstruction21t(opcode, regA, addressOffset));
+      $instructions.add(instructionFactory.makeInstruction21t(opcode, regA, addressOffset));
     };
 
-insn_format22b[List<Instruction> instructions] returns[int outRegisters]
+insn_format22b[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. add-int v0, v1, 123
     ^(I_STATEMENT_FORMAT22b INSTRUCTION_FORMAT22b registerA=REGISTER registerB=REGISTER short_integral_literal)
     {
@@ -1026,10 +1033,10 @@ insn_format22b[List<Instruction> instructions] returns[int outRegisters]
       short litC = $short_integral_literal.value;
       LiteralTools.checkByte(litC);
 
-      $instructions.add(new ImmutableInstruction22b(opcode, regA, regB, litC));
+      $instructions.add(instructionFactory.makeInstruction22b(opcode, regA, regB, litC));
     };
 
-insn_format22c_field[List<Instruction> instructions] returns[int outRegisters]
+insn_format22c_field[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. iput-object v1, v0, org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
     ^(I_STATEMENT_FORMAT22c_FIELD inst=(INSTRUCTION_FORMAT22c_FIELD | INSTRUCTION_FORMAT22c_FIELD_ODEX) registerA=REGISTER registerB=REGISTER fully_qualified_field)
     {
@@ -1039,10 +1046,11 @@ insn_format22c_field[List<Instruction> instructions] returns[int outRegisters]
 
       ImmutableFieldReference fieldReference = $fully_qualified_field.fieldReference;
 
-      $instructions.add(new ImmutableInstruction22c(opcode, regA, regB, fieldReference));
+      $instructions.add(instructionFactory.makeInstruction22c(opcode, regA, regB,
+              dexBuilder.internFieldReference(fieldReference)));
     };
 
-insn_format22c_type[List<Instruction> instructions] returns[int outRegisters]
+insn_format22c_type[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. instance-of v0, v1, Ljava/lang/String;
     ^(I_STATEMENT_FORMAT22c_TYPE INSTRUCTION_FORMAT22c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
     {
@@ -1050,12 +1058,11 @@ insn_format22c_type[List<Instruction> instructions] returns[int outRegisters]
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
-      ImmutableTypeReference typeReference = new ImmutableTypeReference($nonvoid_type_descriptor.type);
-
-      $instructions.add(new ImmutableInstruction22c(opcode, regA, regB, typeReference));
+      $instructions.add(instructionFactory.makeInstruction22c(opcode, regA, regB,
+              dexBuilder.internTypeReference($nonvoid_type_descriptor.type)));
     };
 
-insn_format22s[List<Instruction> instructions] returns[int outRegisters]
+insn_format22s[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. add-int/lit16 v0, v1, 12345
     ^(I_STATEMENT_FORMAT22s INSTRUCTION_FORMAT22s registerA=REGISTER registerB=REGISTER short_integral_literal)
     {
@@ -1065,10 +1072,10 @@ insn_format22s[List<Instruction> instructions] returns[int outRegisters]
 
       short litC = $short_integral_literal.value;
 
-      $instructions.add(new ImmutableInstruction22s(opcode, regA, regB, litC));
+      $instructions.add(instructionFactory.makeInstruction22s(opcode, regA, regB, litC));
     };
 
-insn_format22t[List<Instruction> instructions] returns[int outRegisters]
+insn_format22t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. if-eq v0, v1, endloop:
     ^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
     {
@@ -1082,10 +1089,10 @@ insn_format22t[List<Instruction> instructions] returns[int outRegisters]
         throw new SemanticException(input, $offset_or_label.start, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
       }
 
-      $instructions.add(new ImmutableInstruction22t(opcode, regA, regB, addressOffset));
+      $instructions.add(instructionFactory.makeInstruction22t(opcode, regA, regB, addressOffset));
     };
 
-insn_format22x[List<Instruction> instructions] returns[int outRegisters]
+insn_format22x[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. move/from16 v1, v1234
     ^(I_STATEMENT_FORMAT22x INSTRUCTION_FORMAT22x registerA=REGISTER registerB=REGISTER)
     {
@@ -1093,10 +1100,10 @@ insn_format22x[List<Instruction> instructions] returns[int outRegisters]
       short regA = parseRegister_byte($registerA.text);
       int regB = parseRegister_short($registerB.text);
 
-      $instructions.add(new ImmutableInstruction22x(opcode, regA, regB));
+      $instructions.add(instructionFactory.makeInstruction22x(opcode, regA, regB));
     };
 
-insn_format23x[List<Instruction> instructions] returns[int outRegisters]
+insn_format23x[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. add-int v1, v2, v3
     ^(I_STATEMENT_FORMAT23x INSTRUCTION_FORMAT23x registerA=REGISTER registerB=REGISTER registerC=REGISTER)
     {
@@ -1105,10 +1112,10 @@ insn_format23x[List<Instruction> instructions] returns[int outRegisters]
       short regB = parseRegister_byte($registerB.text);
       short regC = parseRegister_byte($registerC.text);
 
-      $instructions.add(new ImmutableInstruction23x(opcode, regA, regB, regC));
+      $instructions.add(instructionFactory.makeInstruction23x(opcode, regA, regB, regC));
     };
 
-insn_format30t[List<Instruction> instructions] returns[int outRegisters]
+insn_format30t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. goto/32 endloop:
     ^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
     {
@@ -1116,22 +1123,21 @@ insn_format30t[List<Instruction> instructions] returns[int outRegisters]
 
       int addressOffset = $offset_or_label.offsetValue;
 
-      $instructions.add(new ImmutableInstruction30t(opcode, addressOffset));
+      $instructions.add(instructionFactory.makeInstruction30t(opcode, addressOffset));
     };
 
-insn_format31c[List<Instruction> instructions] returns[int outRegisters]
+insn_format31c[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const-string/jumbo v1 "Hello World!"
     ^(I_STATEMENT_FORMAT31c INSTRUCTION_FORMAT31c REGISTER string_literal)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      ImmutableStringReference stringReference = new ImmutableStringReference($string_literal.value);
-
-      $instructions.add(new ImmutableInstruction31c(opcode, regA, stringReference));
+      $instructions.add(instructionFactory.makeInstruction31c(opcode, regA,
+              dexBuilder.internStringReference($string_literal.value)));
     };
 
-insn_format31i[List<Instruction> instructions] returns[int outRegisters]
+insn_format31i[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const v0, 123456
     ^(I_STATEMENT_FORMAT31i INSTRUCTION_FORMAT31i REGISTER fixed_32bit_literal)
     {
@@ -1140,10 +1146,10 @@ insn_format31i[List<Instruction> instructions] returns[int outRegisters]
 
       int litB = $fixed_32bit_literal.value;
 
-      $instructions.add(new ImmutableInstruction31i(opcode, regA, litB));
+      $instructions.add(instructionFactory.makeInstruction31i(opcode, regA, litB));
     };
 
-insn_format31t[List<Instruction> instructions] returns[int outRegisters]
+insn_format31t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. fill-array-data v0, ArrayData:
     ^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER offset_or_label)
     {
@@ -1156,10 +1162,10 @@ insn_format31t[List<Instruction> instructions] returns[int outRegisters]
         addressOffset++;
       }
 
-      $instructions.add(new ImmutableInstruction31t(opcode, regA, addressOffset));
+      $instructions.add(instructionFactory.makeInstruction31t(opcode, regA, addressOffset));
     };
 
-insn_format32x[List<Instruction> instructions] returns[int outRegisters]
+insn_format32x[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. move/16 v5678, v1234
     ^(I_STATEMENT_FORMAT32x INSTRUCTION_FORMAT32x registerA=REGISTER registerB=REGISTER)
     {
@@ -1167,10 +1173,10 @@ insn_format32x[List<Instruction> instructions] returns[int outRegisters]
       int regA = parseRegister_short($registerA.text);
       int regB = parseRegister_short($registerB.text);
 
-      $instructions.add(new ImmutableInstruction32x(opcode, regA, regB));
+      $instructions.add(instructionFactory.makeInstruction32x(opcode, regA, regB));
     };
 
-insn_format35c_method[List<Instruction> instructions] returns[int outRegisters]
+insn_format35c_method[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
     ^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
     {
@@ -1183,10 +1189,11 @@ insn_format35c_method[List<Instruction> instructions] returns[int outRegisters]
 
       ImmutableMethodReference methodReference = $fully_qualified_method.methodReference;
 
-      $instructions.add(new ImmutableInstruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], methodReference));
+      $instructions.add(instructionFactory.makeInstruction35c(opcode, registerCount, registers[0], registers[1],
+              registers[2], registers[3], registers[4], dexBuilder.internMethodReference(methodReference)));
     };
 
-insn_format35c_type[List<Instruction> instructions] returns[int outRegisters]
+insn_format35c_type[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. filled-new-array {v0,v1}, I
     ^(I_STATEMENT_FORMAT35c_TYPE INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
     {
@@ -1197,12 +1204,11 @@ insn_format35c_type[List<Instruction> instructions] returns[int outRegisters]
       byte registerCount = $register_list.registerCount;
       $outRegisters = registerCount;
 
-      ImmutableTypeReference typeReference = new ImmutableTypeReference($nonvoid_type_descriptor.type);
-
-      $instructions.add(new ImmutableInstruction35c(opcode, registerCount, registers[0], registers[1], registers[2], registers[3], registers[4], typeReference));
+      $instructions.add(instructionFactory.makeInstruction35c(opcode, registerCount, registers[0], registers[1],
+              registers[2], registers[3], registers[4], dexBuilder.internTypeReference($nonvoid_type_descriptor.type)));
     };
 
-insn_format3rc_method[List<Instruction> instructions] returns[int outRegisters]
+insn_format3rc_method[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. invoke-virtual/range {v25..v26} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     ^(I_STATEMENT_FORMAT3rc_METHOD INSTRUCTION_FORMAT3rc_METHOD register_range fully_qualified_method)
     {
@@ -1215,10 +1221,11 @@ insn_format3rc_method[List<Instruction> instructions] returns[int outRegisters]
 
       ImmutableMethodReference methodReference = $fully_qualified_method.methodReference;
 
-      $instructions.add(new ImmutableInstruction3rc(opcode, startRegister, registerCount, methodReference));
+      $instructions.add(instructionFactory.makeInstruction3rc(opcode, startRegister, registerCount,
+              dexBuilder.internMethodReference(methodReference)));
     };
 
-insn_format3rc_type[List<Instruction> instructions] returns[int outRegisters]
+insn_format3rc_type[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. filled-new-array/range {v0..v6} I
     ^(I_STATEMENT_FORMAT3rc_TYPE INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)
     {
@@ -1229,12 +1236,11 @@ insn_format3rc_type[List<Instruction> instructions] returns[int outRegisters]
       int registerCount = endRegister-startRegister+1;
       $outRegisters = registerCount;
 
-      ImmutableTypeReference typeReference = new ImmutableTypeReference($nonvoid_type_descriptor.type);
-
-      $instructions.add(new ImmutableInstruction3rc(opcode, startRegister, registerCount, typeReference));
+      $instructions.add(instructionFactory.makeInstruction3rc(opcode, startRegister, registerCount,
+              dexBuilder.internTypeReference($nonvoid_type_descriptor.type)));
     };
 
-insn_format51l_type[List<Instruction> instructions] returns[int outRegisters]
+insn_format51l_type[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. const-wide v0, 5000000000L
     ^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
     {
@@ -1243,20 +1249,20 @@ insn_format51l_type[List<Instruction> instructions] returns[int outRegisters]
 
       long litB = $fixed_64bit_literal.value;
 
-      $instructions.add(new ImmutableInstruction51l(opcode, regA, litB));
+      $instructions.add(instructionFactory.makeInstruction51l(opcode, regA, litB));
     };
 
-insn_array_data_directive[List<Instruction> instructions] returns[int outRegisters]
+insn_array_data_directive[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. .array-data 4 1000000 .end array-data
     ^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
     {
       int elementWidth = $short_integral_literal.value;
       List<Number> elements = $array_elements.elements;
 
-      $instructions.add(new ImmutableArrayPayload(elementWidth, $array_elements.elements));
+      $instructions.add(instructionFactory.makeArrayPayload(elementWidth, $array_elements.elements));
     };
 
-insn_packed_switch_directive[List<Instruction> instructions] returns[int outRegisters]
+insn_packed_switch_directive[List<BuilderInstruction> instructions] returns[int outRegisters]
   :
     ^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal)
       {
@@ -1268,10 +1274,10 @@ insn_packed_switch_directive[List<Instruction> instructions] returns[int outRegi
       }
       packed_switch_elements[baseAddress, startKey])
       {
-        $instructions.add(new ImmutablePackedSwitchPayload($packed_switch_elements.elements));
+        $instructions.add(instructionFactory.makePackedSwitchPayload($packed_switch_elements.elements));
       };
 
-insn_sparse_switch_directive[List<Instruction> instructions] returns[int outRegisters]
+insn_sparse_switch_directive[List<BuilderInstruction> instructions] returns[int outRegisters]
   :
     {
       Integer baseAddress = $method::sparseSwitchDeclarations.get($method::currentAddress);
@@ -1281,7 +1287,7 @@ insn_sparse_switch_directive[List<Instruction> instructions] returns[int outRegi
     }
     ^(I_STATEMENT_SPARSE_SWITCH sparse_switch_elements[baseAddress])
     {
-      $instructions.add(new ImmutableSparseSwitchPayload($sparse_switch_elements.elements));
+      $instructions.add(instructionFactory.makeSparseSwitchPayload($sparse_switch_elements.elements));
     };
 
 nonvoid_type_descriptor returns [String type]

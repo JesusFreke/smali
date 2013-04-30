@@ -44,16 +44,16 @@ public abstract class EncodedValueWriter<StringKey, TypeKey, FieldRefKey extends
     @Nonnull private final DexDataWriter writer;
     @Nonnull private final StringSection<StringKey, ?> stringSection;
     @Nonnull private final TypeSection<?, TypeKey, ?> typeSection;
-    @Nonnull private final FieldSection<?, ?, FieldRefKey> fieldSection;
-    @Nonnull private final MethodSection<?, ?, ?, MethodRefKey> methodSection;
+    @Nonnull private final FieldSection<?, ?, FieldRefKey, ?> fieldSection;
+    @Nonnull private final MethodSection<?, ?, ?, MethodRefKey, ?> methodSection;
     @Nonnull private final AnnotationSection<StringKey, TypeKey, ?, AnnotationElement, EncodedValue> annotationSection;
 
     public EncodedValueWriter(
             @Nonnull DexDataWriter writer,
             @Nonnull StringSection<StringKey, ?> stringSection,
             @Nonnull TypeSection<?, TypeKey, ?> typeSection,
-            @Nonnull FieldSection<?, ?, FieldRefKey> fieldSection,
-            @Nonnull MethodSection<?, ?, ?, MethodRefKey> methodSection,
+            @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
+            @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection,
             @Nonnull AnnotationSection<StringKey, TypeKey, ?, AnnotationElement, EncodedValue> annotationSection) {
         this.writer = writer;
         this.stringSection = stringSection;

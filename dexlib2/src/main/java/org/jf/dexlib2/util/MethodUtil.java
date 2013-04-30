@@ -93,5 +93,21 @@ public final class MethodUtil {
         return regCount;
     }
 
+    private static char getShortyType(CharSequence type) {
+        if (type.length() > 1) {
+            return 'L';
+        }
+        return type.charAt(0);
+    }
+
+    public static String getShorty(Collection<? extends CharSequence> params, String returnType) {
+        StringBuilder sb = new StringBuilder(params.size() + 1);
+        sb.append(getShortyType(returnType));
+        for (CharSequence typeRef: params) {
+            sb.append(getShortyType(typeRef));
+        }
+        return sb.toString();
+    }
+
     private MethodUtil() {}
 }

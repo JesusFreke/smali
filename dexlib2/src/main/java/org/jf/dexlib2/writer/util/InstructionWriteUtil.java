@@ -52,9 +52,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class InstructionWriteUtil<Insn extends Instruction, StringRef extends StringReference> {
+public class InstructionWriteUtil<Insn extends Instruction, StringRef extends StringReference,
+        BaseReference extends Reference> {
     private final StringIndexProvider<StringRef> stringIndexProvider;
-    private final InstructionFactory<? extends Insn> instructionFactory;
+    private final InstructionFactory<? extends Insn, BaseReference> instructionFactory;
     private final Iterable<? extends Insn> originalInstructions;
 
     private List<Insn> instructions;
@@ -70,7 +71,7 @@ public class InstructionWriteUtil<Insn extends Instruction, StringRef extends St
 
     public InstructionWriteUtil(@Nonnull Iterable<? extends Insn> instructions,
                                 @Nonnull StringIndexProvider<StringRef> stringIndexProvider,
-                                @Nonnull InstructionFactory<? extends Insn> instructionFactory) {
+                                @Nonnull InstructionFactory<? extends Insn, BaseReference> instructionFactory) {
         this.stringIndexProvider = stringIndexProvider;
         this.instructionFactory = instructionFactory;
         this.originalInstructions = instructions;
@@ -271,7 +272,7 @@ public class InstructionWriteUtil<Insn extends Instruction, StringRef extends St
                         int referenceIndex = stringIndexProvider.getItemIndex((StringRef)instr.getReference());
                         if (referenceIndex > 0xFFFF) {
                             modifiedInstruction = instructionFactory.makeInstruction31c(Opcode.CONST_STRING_JUMBO,
-                                    instr.getRegisterA(), instr.getReference());
+                                    instr.getRegisterA(), (BaseReference)instr.getReference());
                         }
                     }
                     break;

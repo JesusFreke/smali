@@ -33,7 +33,9 @@ package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
+import org.jf.dexlib2.iface.reference.*;
 
 public class Preconditions {
     public static void checkFormat(Opcode opcode, Format expectedFormat) {
@@ -184,5 +186,33 @@ public class Preconditions {
                             verificationError));
         }
         return verificationError;
+    }
+
+    public static <T extends Reference> T checkReference(int referenceType, T reference) {
+        switch (referenceType) {
+            case ReferenceType.STRING:
+                if (!(reference instanceof StringReference)) {
+                    throw new IllegalArgumentException("Invalid reference type, expecting a string reference");
+                }
+                break;
+            case ReferenceType.TYPE:
+                if (!(reference instanceof TypeReference)) {
+                    throw new IllegalArgumentException("Invalid reference type, expecting a type reference");
+                }
+                break;
+            case ReferenceType.FIELD:
+                if (!(reference instanceof FieldReference)) {
+                    throw new IllegalArgumentException("Invalid reference type, expecting a field reference");
+                }
+                break;
+            case ReferenceType.METHOD:
+                if (!(reference instanceof MethodReference)) {
+                    throw new IllegalArgumentException("Invalid reference type, expecting a method reference");
+                }
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Not a valid reference type: %d", referenceType));
+        }
+        return reference;
     }
 }

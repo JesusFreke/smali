@@ -29,46 +29,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer.pool;
+package org.jf.dexlib2.writer.builder;
 
+import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.iface.Field;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.writer.FieldSection;
+import org.jf.dexlib2.writer.builder.BuilderEncodedValues.BuilderEncodedValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public class FieldPool extends BaseIndexPool<FieldReference>
-        implements FieldSection<CharSequence, CharSequence, FieldReference, Field> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
+public class BuilderField extends BaseFieldReference implements Field {
+    @Nonnull final BuilderFieldReference fieldReference;
+    final int accessFlags;
+    @Nullable final BuilderEncodedValue initialValue;
+    @Nonnull final BuilderAnnotationSet annotations;
 
-    public FieldPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
+    BuilderField(@Nonnull BuilderFieldReference fieldReference,
+                 int accessFlags,
+                 @Nullable BuilderEncodedValue initialValue,
+                 @Nonnull BuilderAnnotationSet annotations) {
+        this.fieldReference = fieldReference;
+        this.accessFlags = accessFlags;
+        this.initialValue = initialValue;
+        this.annotations = annotations;
     }
 
-    public void intern(@Nonnull FieldReference field) {
-        Integer prev = internedItems.put(field, 0);
-        if (prev == null) {
-            typePool.intern(field.getDefiningClass());
-            stringPool.intern(field.getName());
-            typePool.intern(field.getType());
-        }
+    @Override public int getAccessFlags() {
+        return accessFlags;
     }
 
-    @Nonnull @Override public CharSequence getDefiningClass(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getDefiningClass();
+    @Nullable @Override public BuilderEncodedValue getInitialValue() {
+        return initialValue;
     }
 
-    @Nonnull @Override public CharSequence getFieldType(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getType();
+    @Nonnull @Override public BuilderAnnotationSet getAnnotations() {
+        return annotations;
     }
 
-    @Nonnull @Override public CharSequence getName(@Nonnull FieldReference fieldReference) {
-        return fieldReference.getName();
+    @Nonnull @Override public String getDefiningClass() {
+        return fieldReference.definingClass.getType();
     }
 
-    @Override public int getFieldIndex(@Nonnull Field field) {
-        return getItemIndex(field);
+    @Nonnull @Override public String getName() {
+        return fieldReference.name.getString();
+    }
+
+    @Nonnull @Override public String getType() {
+        return fieldReference.fieldType.getType();
     }
 }

@@ -43,10 +43,7 @@ import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.LineNumber;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.StringReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.writer.util.InstructionWriteUtil;
 import org.jf.dexlib2.writer.util.TryListBuilder;
@@ -72,10 +69,11 @@ public abstract class DexWriter<
         StringKey extends CharSequence, StringRef extends StringReference, TypeKey extends CharSequence,
         TypeRef extends TypeReference, ProtoKey extends Comparable<ProtoKey>,
         FieldRefKey extends FieldReference, MethodRefKey extends MethodReference,
+        BaseReference extends Reference,
         ClassKey extends Comparable<? super ClassKey>,
         AnnotationKey extends Annotation, AnnotationSetKey,
         TypeListKey,
-        FieldKey extends FieldRefKey, MethodKey extends MethodRefKey,
+        FieldKey, MethodKey,
         EncodedValue, AnnotationElement,
         DebugItem extends org.jf.dexlib2.iface.debug.DebugItem,
         Insn extends Instruction, ExceptionHandler extends org.jf.dexlib2.iface.ExceptionHandler> {
@@ -108,26 +106,26 @@ public abstract class DexWriter<
     protected int numCodeItemItems = 0;
     protected int numClassDataItems = 0;
 
-    protected InstructionFactory<? extends Insn> instructionFactory;
+    protected final InstructionFactory<? extends Insn, BaseReference> instructionFactory;
 
-    protected StringSection<StringKey, StringRef> stringSection;
-    protected TypeSection<StringKey, TypeKey, TypeRef> typeSection;
-    protected ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection;
-    protected FieldSection<StringKey, TypeKey, FieldRefKey> fieldSection;
-    protected MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey> methodSection;
-    protected ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
+    protected final StringSection<StringKey, StringRef> stringSection;
+    protected final TypeSection<StringKey, TypeKey, TypeRef> typeSection;
+    protected final ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection;
+    protected final FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection;
+    protected final MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey, MethodKey> methodSection;
+    protected final ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
             EncodedValue, DebugItem, Insn, ExceptionHandler> classSection;
     
-    protected TypeListSection<TypeKey, TypeListKey> typeListSection;
-    protected AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue> annotationSection;
-    protected AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection;
+    protected final TypeListSection<TypeKey, TypeListKey> typeListSection;
+    protected final AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue> annotationSection;
+    protected final AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection;
 
-    protected DexWriter(InstructionFactory<? extends Insn> instructionFactory,
+    protected DexWriter(InstructionFactory<? extends Insn, BaseReference> instructionFactory,
                         StringSection<StringKey, StringRef> stringSection,
                         TypeSection<StringKey, TypeKey, TypeRef> typeSection,
                         ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection,
-                        FieldSection<StringKey, TypeKey, FieldRefKey> fieldSection,
-                        MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey> methodSection,
+                        FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection,
+                        MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey, MethodKey> methodSection,
                         ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
                                 EncodedValue, DebugItem, Insn, ExceptionHandler> classSection,
                         TypeListSection<TypeKey, TypeListKey> typeListSection,
@@ -394,7 +392,7 @@ public abstract class DexWriter<
 
         ClassKey key = entry.getKey();
 
-        // set a bogus index, to make sure we don't recuse and double-write it
+        // set a bogus index, to make sure we don't recurse and double-write it
         entry.setValue(0);
 
         // first, try to write the superclass
@@ -459,7 +457,7 @@ public abstract class DexWriter<
             throws IOException {
         int prevIndex = 0;
         for (FieldKey key: fields) {
-            int index = fieldSection.getItemIndex(key);
+            int index = fieldSection.getFieldIndex(key);
             writer.writeUleb128(index-prevIndex);
             writer.writeUleb128(classSection.getFieldAccessFlags(key));
             prevIndex = index;
@@ -470,7 +468,7 @@ public abstract class DexWriter<
             throws IOException {
         int prevIndex = 0;
         for (MethodKey key: methods) {
-            int index = methodSection.getItemIndex(key);
+            int index = methodSection.getMethodIndex(key);
             writer.writeUleb128(index-prevIndex);
             writer.writeUleb128(classSection.getMethodAccessFlags(key));
             writer.writeUleb128(classSection.getCodeItemOffset(key));
@@ -627,14 +625,11 @@ public abstract class DexWriter<
             // first, we write the field/method/parameter items to a temporary buffer, so that we can get a count
             // of each type, and determine if we even need to write an annotation directory for this class
 
-            Collection<? extends FieldKey> staticFields = classSection.getSortedStaticFields(key);
-            Collection<? extends FieldKey> instanceFields = classSection.getSortedInstanceFields(key);
-            Collection<? extends MethodKey> directMethods = classSection.getSortedDirectMethods(key);
-            Collection<? extends MethodKey> virtualMethods = classSection.getSortedVirtualMethods(key);
+            Collection<? extends FieldKey> fields = classSection.getSortedFields(key);
+            Collection<? extends MethodKey> methods = classSection.getSortedMethods(key);
 
             // this is how much space we'll need if every field and method has annotations.
-            int maxSize = (staticFields.size() + instanceFields.size()) * 8 +
-                    (directMethods.size() + virtualMethods.size()) * 16;
+            int maxSize = fields.size() * 8 + methods.size() * 16;
             if (maxSize > tempBuffer.capacity()) {
                 tempBuffer = ByteBuffer.allocate(maxSize);
                 tempBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -646,29 +641,29 @@ public abstract class DexWriter<
             int methodAnnotations = 0;
             int parameterAnnotations = 0;
 
-            for (FieldKey field: classSection.getSortedFields(key)) {
+            for (FieldKey field: fields) {
                 AnnotationSetKey fieldAnnotationsKey = classSection.getFieldAnnotations(field);
                 if (fieldAnnotationsKey != null) {
                     fieldAnnotations++;
-                    tempBuffer.putInt(fieldSection.getItemIndex(field));
+                    tempBuffer.putInt(fieldSection.getFieldIndex(field));
                     tempBuffer.putInt(annotationSetSection.getItemOffset(fieldAnnotationsKey));
                 }
             }
 
-            for (MethodKey method: classSection.getSortedMethods(key)) {
+            for (MethodKey method: methods) {
                 AnnotationSetKey methodAnnotationsKey = classSection.getMethodAnnotations(method);
                 if (methodAnnotationsKey != null) {
                     methodAnnotations++;
-                    tempBuffer.putInt(methodSection.getItemIndex(method));
+                    tempBuffer.putInt(methodSection.getMethodIndex(method));
                     tempBuffer.putInt(annotationSetSection.getItemOffset(methodAnnotationsKey));
                 }
             }
 
-            for (MethodKey method: classSection.getSortedMethods(key)) {
+            for (MethodKey method: methods) {
                 int offset = classSection.getAnnotationSetRefListOffset(method);
                 if (offset != DexWriter.NO_OFFSET) {
                     methodAnnotations++;
-                    tempBuffer.putInt(methodSection.getItemIndex(method));
+                    tempBuffer.putInt(methodSection.getMethodIndex(method));
                     tempBuffer.putInt(offset);
                 }
             }
@@ -809,8 +804,8 @@ public abstract class DexWriter<
                 if (instructions != null) {
                     tryBlocks = TryListBuilder.massageTryBlocks(tryBlocks);
 
-                    InstructionWriteUtil<Insn, StringRef> instrWriteUtil =
-                            new InstructionWriteUtil<Insn, StringRef>(instructions, stringSection, instructionFactory);
+                    InstructionWriteUtil<Insn, StringRef, BaseReference> instrWriteUtil =
+                            new InstructionWriteUtil<Insn, StringRef, BaseReference>(instructions, stringSection, instructionFactory);
                     writer.writeUshort(instrWriteUtil.getOutParamCount());
                     writer.writeUshort(tryBlocks.size());
                     writer.writeInt(debugItemOffset);

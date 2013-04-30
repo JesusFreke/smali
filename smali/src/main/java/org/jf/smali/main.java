@@ -28,21 +28,21 @@
 
 package org.jf.smali;
 
-import com.google.common.collect.Lists;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.Token;
 import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.apache.commons.cli.*;
-import org.jf.dexlib2.DexFileFactory;
-import org.jf.dexlib2.iface.ClassDef;
-import org.jf.dexlib2.immutable.ImmutableDexFile;
+import org.jf.dexlib2.writer.builder.DexBuilder;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
 import java.io.*;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Main class for smali. It recognizes enough options to be able to dispatch
@@ -184,8 +184,6 @@ public class main {
                     }
             }
 
-            List<ClassDef> classes = Lists.newArrayList();
-
             // TODO: uncomment
             /*if (apiSet && apiLevel >= 14) {
                 dexFile.HeaderItem.setVersion(36);
@@ -193,8 +191,10 @@ public class main {
 
             boolean errors = false;
 
+            DexBuilder dexBuilder = DexBuilder.makeDexBuilder();
+
             for (File file: filesToProcess) {
-                if (!assembleSmaliFile(file, classes, verboseErrors, printTokens, allowOdex, apiLevel)) {
+                if (!assembleSmaliFile(file, dexBuilder, verboseErrors, printTokens, allowOdex, apiLevel)) {
                     errors = true;
                 }
             }
@@ -202,7 +202,6 @@ public class main {
             if (errors) {
                 System.exit(1);
             }
-
 
             // TODO: uncomment
             /*if (sort) {
@@ -214,8 +213,7 @@ public class main {
                 fixInstructions(dexFile, fixJumbo, fixGoto);
             }*/
 
-
-            DexFileFactory.writeDexFile(outputDexFile, new ImmutableDexFile(classes));
+            dexBuilder.writeTo(outputDexFile);
         } catch (RuntimeException ex) {
             System.err.println("\nUNEXPECTED TOP-LEVEL EXCEPTION:");
             ex.printStackTrace();
@@ -229,13 +227,13 @@ public class main {
 
     private static void getSmaliFilesInDir(File dir, Set<File> smaliFiles) {
         for(File file: dir.listFiles()) {
-            if (file.isDirectory()) {
-                getSmaliFilesInDir(file, smaliFiles);
-            } else if (file.getName().endsWith(".smali")) {
-                smaliFiles.add(file);
+                if (file.isDirectory()) {
+                    getSmaliFilesInDir(file, smaliFiles);
+                } else if (file.getName().endsWith(".smali")) {
+                    smaliFiles.add(file);
+                }
             }
         }
-    }
 
     // TODO: uncomment
     /*private static void fixInstructions(DexFile dexFile, boolean fixJumbo, boolean fixGoto) {
@@ -243,14 +241,13 @@ public class main {
 
         for (CodeItem codeItem: dexFile.CodeItemsSection.getItems()) {
             codeItem.fixInstructions(fixJumbo, fixGoto);
-        }
+    }
     }*/
 
-    private static boolean assembleSmaliFile(File smaliFile, List<ClassDef> classes, boolean verboseErrors,
+    private static boolean assembleSmaliFile(File smaliFile, DexBuilder dexBuilder, boolean verboseErrors,
                                              boolean printTokens, boolean allowOdex, int apiLevel)
             throws Exception {
         CommonTokenStream tokens;
-
 
         boolean lexerErrors = false;
         LexerErrorInterface lexer;
@@ -293,12 +290,8 @@ public class main {
 
         smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
         dexGen.setVerboseErrors(verboseErrors);
-        ClassDef classDef = dexGen.smali_file();
-
-        // TODO: will this ever be null? if so, what should happen?
-        if (classDef != null) {
-            classes.add(classDef);
-        }
+        dexGen.setDexBuilder(dexBuilder);
+        dexGen.smali_file();
 
         if (dexGen.getNumberOfSyntaxErrors() > 0) {
             return false;

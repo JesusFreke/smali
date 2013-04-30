@@ -33,6 +33,7 @@ package org.jf.dexlib2.writer.pool;
 
 import com.google.common.collect.Ordering;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.writer.pool.ProtoPool.Key;
 import org.jf.dexlib2.writer.ProtoSection;
 import org.jf.util.CharSequenceUtils;
@@ -80,22 +81,6 @@ public class ProtoPool extends BaseIndexPool<Key>
         return new TypeListPool.Key<List<? extends CharSequence>>(key.getParameters());
     }
 
-    private static char getShortyType(CharSequence type) {
-        if (type.length() > 1) {
-            return 'L';
-        }
-        return type.charAt(0);
-    }
-
-    private static String getShorty(Collection<? extends CharSequence> params, CharSequence returnType) {
-        StringBuilder sb = new StringBuilder(params.size() + 1);
-        sb.append(getShortyType(returnType));
-        for (CharSequence typeRef: params) {
-            sb.append(getShortyType(typeRef));
-        }
-        return sb.toString();
-    }
-
     public static class Key implements Comparable<Key> {
         @Nonnull private final MethodReference method;
 
@@ -109,7 +94,7 @@ public class ProtoPool extends BaseIndexPool<Key>
         }
 
         public String getShorty() {
-            return ProtoPool.getShorty(method.getParameterTypes(), method.getReturnType());
+            return MethodUtil.getShorty(method.getParameterTypes(), method.getReturnType());
         }
 
         public String toString() {

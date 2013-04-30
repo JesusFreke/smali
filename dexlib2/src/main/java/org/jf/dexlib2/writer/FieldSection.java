@@ -35,9 +35,10 @@ import org.jf.dexlib2.iface.reference.FieldReference;
 
 import javax.annotation.Nonnull;
 
-public interface FieldSection<StringKey, TypeKey, FieldRefKey extends FieldReference>
+public interface FieldSection<StringKey, TypeKey, FieldRefKey extends FieldReference, FieldKey>
         extends IndexSection<FieldRefKey> {
     @Nonnull TypeKey getDefiningClass(@Nonnull FieldRefKey key);
     @Nonnull TypeKey getFieldType(@Nonnull FieldRefKey key);
     @Nonnull StringKey getName(@Nonnull FieldRefKey key);
+    int getFieldIndex(@Nonnull FieldKey key);
 }
