@@ -38,6 +38,7 @@ import org.jf.dexlib2.writer.builder.DexBuilder;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
+import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -69,6 +70,7 @@ public class main {
             properties.load(templateStream);
             version = properties.getProperty("application.version");
         } catch (IOException ex) {
+            // just eat it
         }
         VERSION = version;
     }
@@ -98,16 +100,12 @@ public class main {
         }
 
         boolean allowOdex = false;
-        boolean sort = false;
-        boolean fixJumbo = true;
-        boolean fixGoto = true;
         boolean verboseErrors = false;
         boolean printTokens = false;
 
         int apiLevel = 15;
 
         String outputDexFile = "out.dex";
-        String dumpFileName = null;
 
         String[] remainingArgs = commandLine.getArgs();
 
@@ -138,18 +136,6 @@ public class main {
                     break;
                 case 'a':
                     apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
-                    break;
-                case 'D':
-                    dumpFileName = commandLine.getOptionValue("D", outputDexFile + ".dump");
-                    break;
-                case 'S':
-                    sort = true;
-                    break;
-                case 'J':
-                    fixJumbo = false;
-                    break;
-                case 'G':
-                    fixGoto = false;
                     break;
                 case 'V':
                     verboseErrors = true;
@@ -184,11 +170,6 @@ public class main {
                     }
             }
 
-            // TODO: uncomment
-            /*if (apiSet && apiLevel >= 14) {
-                dexFile.HeaderItem.setVersion(36);
-            }*/
-
             boolean errors = false;
 
             DexBuilder dexBuilder = DexBuilder.makeDexBuilder();
@@ -203,16 +184,6 @@ public class main {
                 System.exit(1);
             }
 
-            // TODO: uncomment
-            /*if (sort) {
-                dexFile.setSortAllItems(true);
-            }*/
-
-            // TODO: uncomment
-            /*if (fixJumbo || fixGoto) {
-                fixInstructions(dexFile, fixJumbo, fixGoto);
-            }*/
-
             dexBuilder.writeTo(outputDexFile);
         } catch (RuntimeException ex) {
             System.err.println("\nUNEXPECTED TOP-LEVEL EXCEPTION:");
@@ -225,31 +196,24 @@ public class main {
         }
     }
 
-    private static void getSmaliFilesInDir(File dir, Set<File> smaliFiles) {
-        for(File file: dir.listFiles()) {
-                if (file.isDirectory()) {
-                    getSmaliFilesInDir(file, smaliFiles);
-                } else if (file.getName().endsWith(".smali")) {
-                    smaliFiles.add(file);
-                }
+    private static void getSmaliFilesInDir(@Nonnull File dir, @Nonnull Set<File> smaliFiles) {
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for(File file: files) {
+            if (file.isDirectory()) {
+                getSmaliFilesInDir(file, smaliFiles);
+            } else if (file.getName().endsWith(".smali")) {
+                smaliFiles.add(file);
             }
         }
-
-    // TODO: uncomment
-    /*private static void fixInstructions(DexFile dexFile, boolean fixJumbo, boolean fixGoto) {
-        dexFile.place();
-
-        for (CodeItem codeItem: dexFile.CodeItemsSection.getItems()) {
-            codeItem.fixInstructions(fixJumbo, fixGoto);
     }
-    }*/
+        }
 
     private static boolean assembleSmaliFile(File smaliFile, DexBuilder dexBuilder, boolean verboseErrors,
                                              boolean printTokens, boolean allowOdex, int apiLevel)
             throws Exception {
         CommonTokenStream tokens;
 
-        boolean lexerErrors = false;
         LexerErrorInterface lexer;
 
         FileInputStream fis = new FileInputStream(smaliFile.getAbsolutePath());
@@ -283,7 +247,7 @@ public class main {
             return false;
         }
 
-        CommonTree t = (CommonTree) result.getTree();
+        CommonTree t = result.getTree();
 
         CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
         treeStream.setTokenStream(tokens);
@@ -293,11 +257,7 @@ public class main {
         dexGen.setDexBuilder(dexBuilder);
         dexGen.smali_file();
 
-        if (dexGen.getNumberOfSyntaxErrors() > 0) {
-            return false;
-        }
-
-        return true;
+        return dexGen.getNumberOfSyntaxErrors() == 0;
     }
 
 
@@ -360,24 +320,6 @@ public class main {
                 .withArgName("API_LEVEL")
                 .create("a");
 
-        Option dumpOption = OptionBuilder.withLongOpt("dump-to")
-                .withDescription("additionally writes a dump of written dex file to FILE (<dexfile>.dump by default)")
-                .hasOptionalArg()
-                .withArgName("FILE")
-                .create("D");
-
-        Option sortOption = OptionBuilder.withLongOpt("sort")
-                .withDescription("sort the items in the dex file into a canonical order before writing")
-                .create("S");
-
-        Option noFixJumboOption = OptionBuilder.withLongOpt("no-fix-jumbo")
-                .withDescription("Don't automatically instructions with the /jumbo variant where appropriate")
-                .create("J");
-
-        Option noFixGotoOption = OptionBuilder.withLongOpt("no-fix-goto")
-                .withDescription("Don't replace goto type instructions with a larger version where appropriate")
-                .create("G");
-
         Option verboseErrorsOption = OptionBuilder.withLongOpt("verbose-errors")
                 .withDescription("Generate verbose error messages")
                 .create("V");
@@ -392,10 +334,6 @@ public class main {
         basicOptions.addOption(allowOdexOption);
         basicOptions.addOption(apiLevelOption);
 
-        debugOptions.addOption(dumpOption);
-        debugOptions.addOption(sortOption);
-        debugOptions.addOption(noFixJumboOption);
-        debugOptions.addOption(noFixGotoOption);
         debugOptions.addOption(verboseErrorsOption);
         debugOptions.addOption(printTokensOption);
 
