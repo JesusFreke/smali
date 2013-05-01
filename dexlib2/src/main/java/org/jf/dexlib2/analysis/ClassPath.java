@@ -201,9 +201,7 @@ public class ClassPath {
                                 "warning: cannot open %s for reading. Will continue looking.", file.getPath()));
                     } else {
                         try {
-                            DexFile dexfile = DexFileFactory.loadDexFile(file, api);
-                            System.out.println(file.toString());
-                            return dexfile;
+                            return DexFileFactory.loadDexFile(file, api);
                         } catch (DexFileFactory.NoClassesDexException ex) {
                             // ignore and continue
                         } catch (Exception ex) {
