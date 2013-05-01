@@ -51,7 +51,7 @@ public class OdexHeaderItem {
     public static final int AUX_LENGTH_OFFSET = 28;
     public static final int FLAGS_OFFSET = 32;
 
-    private static int getVersion(byte[] magic) {
+    public static int getVersion(byte[] magic) {
         if (magic.length < 8) {
             return 0;
         }

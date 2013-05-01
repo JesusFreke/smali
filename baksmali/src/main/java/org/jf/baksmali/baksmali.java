@@ -34,6 +34,7 @@ import com.google.common.collect.Iterables;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
+import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
@@ -91,6 +92,8 @@ public class baksmali {
 
                 if (inlineTable != null) {
                     options.inlineResolver = new CustomInlineMethodResolver(options.classPath, new File(inlineTable));
+                } else if (dexFile instanceof DexBackedOdexFile) {
+                    options.inlineResolver = InlineMethodResolver.createInlineMethodResolver(((DexBackedOdexFile) dexFile).getOdexVersion());
                 }
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
