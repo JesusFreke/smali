@@ -141,6 +141,10 @@ public class ClassProto implements TypeProto {
             interfacesFullyResolved = false;
         }
 
+        if (!interfacesFullyResolved) {
+            throw new UnresolvedClassException("Interfaces for class %s not fully resolved", getType());
+        }
+
         return interfaces;
     }
 
