@@ -62,11 +62,16 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
 
     public static DexBuilder makeDexBuilder() {
         BuilderContext context = new BuilderContext();
-        return new DexBuilder(context);
+        return new DexBuilder(15, context);
     }
 
-    private DexBuilder(@Nonnull BuilderContext context) {
-        super(BuilderInstructionFactory.INSTANCE, context.stringPool, context.typePool, context.protoPool,
+    public static DexBuilder makeDexBuilder(int api) {
+        BuilderContext context = new BuilderContext();
+        return new DexBuilder(api, context);
+    }
+
+    private DexBuilder(int api, @Nonnull BuilderContext context) {
+        super(api, BuilderInstructionFactory.INSTANCE, context.stringPool, context.typePool, context.protoPool,
                 context.fieldPool, context.methodPool, context.classPool, context.typeListPool, context.annotationPool,
                 context.annotationSetPool);
         this.context = context;

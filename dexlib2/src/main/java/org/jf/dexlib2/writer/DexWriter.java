@@ -80,6 +80,8 @@ public abstract class DexWriter<
     public static final int NO_INDEX = -1;
     public static final int NO_OFFSET = 0;
 
+    protected final int api;
+
     protected int stringIndexSectionOffset = NO_OFFSET;
     protected int typeSectionOffset = NO_OFFSET;
     protected int protoSectionOffset = NO_OFFSET;
@@ -120,7 +122,8 @@ public abstract class DexWriter<
     protected final AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue> annotationSection;
     protected final AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection;
 
-    protected DexWriter(InstructionFactory<? extends Insn, BaseReference> instructionFactory,
+    protected DexWriter(int api,
+                        InstructionFactory<? extends Insn, BaseReference> instructionFactory,
                         StringSection<StringKey, StringRef> stringSection,
                         TypeSection<StringKey, TypeKey, TypeRef> typeSection,
                         ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection,
@@ -132,6 +135,7 @@ public abstract class DexWriter<
                         AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement,
                                 EncodedValue> annotationSection,
                         AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection) {
+        this.api = api;
         this.instructionFactory = instructionFactory;
         this.stringSection = stringSection;
         this.typeSection = typeSection;
@@ -1089,8 +1093,11 @@ public abstract class DexWriter<
     }
 
     private void writeHeader(@Nonnull DexDataWriter writer, int dataOffset, int fileSize) throws IOException {
-        // TODO: need to determine which magic value to write
-        writer.write(HeaderItem.MAGIC_VALUES[0]);
+        if (api < 14) {
+            writer.write(HeaderItem.MAGIC_VALUES[0]);
+        } else {
+            writer.write(HeaderItem.MAGIC_VALUES[1]);
+        }
 
         // checksum placeholder
         writer.writeInt(0);

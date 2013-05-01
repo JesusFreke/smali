@@ -185,7 +185,7 @@ public class main {
 
             boolean errors = false;
 
-            final DexBuilder dexBuilder = DexBuilder.makeDexBuilder();
+            final DexBuilder dexBuilder = DexBuilder.makeDexBuilder(apiLevel);
             ExecutorService executor = Executors.newFixedThreadPool(jobs);
             List<Future<Boolean>> tasks = Lists.newArrayList();
 

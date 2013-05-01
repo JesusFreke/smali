@@ -54,6 +54,10 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         EncodedValue, AnnotationElement, DebugItem, Instruction, ExceptionHandler> {
 
     public static DexPool makeDexPool() {
+        return makeDexPool(15);
+    }
+
+    public static DexPool makeDexPool(int api) {
         StringPool stringPool = new StringPool();
         TypePool typePool = new TypePool(stringPool);
         FieldPool fieldPool = new FieldPool(stringPool, typePool);
@@ -65,16 +69,15 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         ClassPool classPool = new ClassPool(stringPool, typePool, fieldPool, methodPool, annotationSetPool,
                 typeListPool);
 
-        return new DexPool(stringPool, typePool, protoPool, fieldPool, methodPool, classPool, typeListPool,
+        return new DexPool(api, stringPool, typePool, protoPool, fieldPool, methodPool, classPool, typeListPool,
                 annotationPool, annotationSetPool);
-
     }
 
-    private DexPool(StringPool stringPool, TypePool typePool, ProtoPool protoPool, FieldPool fieldPool,
+    private DexPool(int api, StringPool stringPool, TypePool typePool, ProtoPool protoPool, FieldPool fieldPool,
                     MethodPool methodPool, ClassPool classPool, TypeListPool typeListPool,
                     AnnotationPool annotationPool, AnnotationSetPool annotationSetPool) {
-        super(ImmutableInstructionFactory.INSTANCE, stringPool, typePool, protoPool, fieldPool, methodPool, classPool,
-                typeListPool, annotationPool, annotationSetPool);
+        super(api, ImmutableInstructionFactory.INSTANCE, stringPool, typePool, protoPool, fieldPool, methodPool,
+                classPool, typeListPool, annotationPool, annotationSetPool);
     }
 
     public static void writeTo(@Nonnull String path, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
