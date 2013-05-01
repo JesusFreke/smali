@@ -320,7 +320,6 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
     }
 
     public int compareTo(AnalyzedInstruction analyzedInstruction) {
-        //TODO: out of curiosity, check the disassembly of this to see if it retrieves the value of analyzedInstruction.instructionIndex for every access. It should, because the field is final. What about if we set the field to non-final?
         if (instructionIndex < analyzedInstruction.instructionIndex) {
             return -1;
         } else if (instructionIndex == analyzedInstruction.instructionIndex) {

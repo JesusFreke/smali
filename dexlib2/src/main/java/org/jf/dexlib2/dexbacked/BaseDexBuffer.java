@@ -77,7 +77,6 @@ public class BaseDexBuffer {
     }
 
     public long readLong(int offset) {
-        // TODO: use | or +?
         byte[] buf = this.buf;
         return (buf[offset] & 0xff) |
                 ((buf[offset+1] & 0xff) << 8) |

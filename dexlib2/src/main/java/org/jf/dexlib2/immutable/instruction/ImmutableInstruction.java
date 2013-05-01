@@ -128,7 +128,6 @@ public abstract class ImmutableInstruction implements Instruction {
                 return ImmutableSparseSwitchPayload.of((SparseSwitchPayload) instruction);
             case ArrayPayload:
                 return ImmutableArrayPayload.of((ArrayPayload) instruction);
-            //TODO: temporary, until we get all instructions implemented
             default:
                 throw new RuntimeException("Unexpected instruction type");
         }

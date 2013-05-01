@@ -88,8 +88,6 @@ public interface Annotation extends Comparable<Annotation> {
      * This Annotation is equal to another Annotation if all of it's "fields" are equal. That is, if the return values
      * of getVisibility(), getType(), and getElements() are all equal.
      *
-     * TODO: when an Annotation is used in a set, need to specify that the uniqueness in the set is based on annotation type
-     *
      * @param o The object to be compared for equality with this Annotation
      * @return true if the specified object is equal to this Annotation
      */

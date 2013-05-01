@@ -40,7 +40,6 @@ import java.io.Writer;
 
 public final class ReferenceUtil {
     public static String getShortMethodDescriptor(MethodReference methodReference) {
-        // TODO: try using a thread local StringBuilder
         StringBuilder sb = new StringBuilder();
         sb.append(methodReference.getName());
         sb.append('(');
@@ -53,7 +52,6 @@ public final class ReferenceUtil {
     }
 
     public static String getMethodDescriptor(MethodReference methodReference) {
-        // TODO: try using a thread local StringBuilder
         StringBuilder sb = new StringBuilder();
         sb.append(methodReference.getDefiningClass());
         sb.append("->");
@@ -80,7 +78,6 @@ public final class ReferenceUtil {
     }
 
     public static String getFieldDescriptor(FieldReference fieldReference) {
-        // TODO: try using a thread local StringBuilder
         StringBuilder sb = new StringBuilder();
         sb.append(fieldReference.getDefiningClass());
         sb.append("->");
@@ -91,7 +88,6 @@ public final class ReferenceUtil {
     }
 
     public static String getShortFieldDescriptor(FieldReference fieldReference) {
-        // TODO: try using a thread local StringBuilder
         StringBuilder sb = new StringBuilder();
         sb.append(fieldReference.getName());
         sb.append(':');

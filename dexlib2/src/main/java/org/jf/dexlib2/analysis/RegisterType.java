@@ -307,9 +307,6 @@ public class RegisterType {
         return RegisterType.getRegisterType(mergedCategory, mergedType);
     }
 
-    // TODO: consider making TypeProto extend/implement RegisterType?
-    // TODO: add a getReferenceRegisterType convenience method
-
     @Nonnull
     public static RegisterType getRegisterType(byte category, @Nullable TypeProto typeProto) {
         switch (category) {

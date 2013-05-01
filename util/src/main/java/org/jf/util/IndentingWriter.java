@@ -31,7 +31,6 @@ package org.jf.util;
 import java.io.IOException;
 import java.io.Writer;
 
-// TODO: add a write(String) method that doesn't scan for embedded newlines?
 public class IndentingWriter extends Writer {
     protected final Writer writer;
     protected final char[] buffer = new char[24];

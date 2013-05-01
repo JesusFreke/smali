@@ -145,7 +145,6 @@ public abstract class DexBackedInstruction implements Instruction {
                 return new DexBackedSparseSwitchPayload(dexFile, instructionStartOffset);
             case ArrayPayload:
                 return new DexBackedArrayPayload(dexFile, instructionStartOffset);
-                //TODO: temporary, until we get all instructions implemented
             default:
                 throw new ExceptionWithContext("Unexpected opcode format: %s", opcode.format.toString());
         }

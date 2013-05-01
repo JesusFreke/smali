@@ -164,9 +164,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 public Iterator<DexBackedField> iterator() {
                     return new VariableSizeLookaheadIterator<DexBackedField>(dexFile, fieldsStartOffset) {
                         private int count;
-                        // TODO: consider implementing and using two MutableFieldReference classes.
-                        // this would prevent creating a lot of throw-away ImmutableFieldReference objects while
-                        // iterating
                         @Nullable private FieldReference previousField;
                         private int previousIndex;
 
@@ -225,9 +222,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 public Iterator<DexBackedField> iterator() {
                     return new VariableSizeLookaheadIterator<DexBackedField>(dexFile, fieldsStartOffset) {
                         private int count;
-                        // TODO: consider implementing and using two MutableFieldReference classes.
-                        // this would prevent creating a lot of throw-away ImmutableFieldReference objects while
-                        // iterating
                         @Nullable private FieldReference previousField;
                         private int previousIndex;
 
@@ -296,9 +290,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 public Iterator<DexBackedMethod> iterator() {
                     return new VariableSizeLookaheadIterator<DexBackedMethod>(dexFile, methodsStartOffset) {
                         private int count;
-                        // TODO: consider implementing and using two MutableMethodReference classes.
-                        // this would prevent creating a lot of throw-away ImmutableMethodReference objects while
-                        // iterating
                         @Nullable private MethodReference previousMethod;
                         private int previousIndex;
 
@@ -355,9 +346,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 public Iterator<DexBackedMethod> iterator() {
                     return new VariableSizeLookaheadIterator<DexBackedMethod>(dexFile, methodsStartOffset) {
                         private int count;
-                        // TODO: consider implementing and using two MutableMethodReference classes.
-                        // this would prevent creating a lot of throw-away ImmutableMethodReference objects while
-                        // iterating
                         @Nullable private MethodReference previousMethod;
                         private int previousIndex;
 

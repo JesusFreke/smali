@@ -79,7 +79,6 @@ public class CollectionUtils {
         for (T element1: it1) {
             T element2;
             try {
-                // TODO: would checking hasNext be more efficient?
                 element2 = elements2.next();
             } catch (NoSuchElementException ex) {
                 return 1;

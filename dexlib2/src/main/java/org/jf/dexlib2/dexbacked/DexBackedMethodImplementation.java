@@ -87,7 +87,6 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull
     @Override
     public List<? extends DexBackedTryBlock> getTryBlocks() {
-        // TODO: provide utility to put try blocks into a "canonical", easy to use format, which more closely matches java's try blocks
         final int triesSize = dexFile.readUshort(codeOffset + CodeItem.TRIES_SIZE_OFFSET);
         if (triesSize > 0) {
             int instructionsSize = dexFile.readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET);
