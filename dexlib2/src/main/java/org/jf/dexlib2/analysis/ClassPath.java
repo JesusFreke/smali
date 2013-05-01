@@ -55,6 +55,7 @@ public class ClassPath {
     @Nonnull private final TypeProto unknownClass;
     @Nonnull private DexFile[] dexFiles;
     @Nonnull private HashMap<String, TypeProto> loadedClasses = Maps.newHashMap();
+    @Nonnull private HashMap<String, ClassDef> availableClasses = Maps.newHashMap();
 
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
@@ -96,6 +97,15 @@ public class ClassPath {
         loadPrimitiveType("F");
         loadPrimitiveType("D");
         loadPrimitiveType("L");
+
+        for (DexFile dexFile: dexFiles) {
+            for (ClassDef classDef: dexFile.getClasses()) {
+                ClassDef prev = availableClasses.get(classDef.getType());
+                if (prev == null) {
+                    availableClasses.put(classDef.getType(), classDef);
+                }
+            }
+        }
     }
 
     private void loadPrimitiveType(String type) {
@@ -134,15 +144,11 @@ public class ClassPath {
 
     @Nonnull
     public ClassDef getClassDef(String type) {
-        // TODO: need a <= O(log) way to look up classes
-        for (DexFile dexFile: dexFiles) {
-            for (ClassDef classDef: dexFile.getClasses()) {
-                if (classDef.getType().equals(type)) {
-                    return classDef;
-                }
-            }
+        ClassDef ret = availableClasses.get(type);
+        if (ret == null) {
+            throw new UnresolvedClassException("Could not resolve class %s", type);
         }
-        throw new UnresolvedClassException("Could not resolve class %s", type);
+        return ret;
     }
 
     @Nonnull
