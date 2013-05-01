@@ -141,10 +141,16 @@ public class ClassProto implements TypeProto {
             interfacesFullyResolved = false;
         }
 
+        return interfaces;
+    }
+
+    @Nonnull
+    protected LinkedHashMap<String, ClassDef> getInterfacesFull() {
+        LinkedHashMap<String, ClassDef> interfaces = getInterfaces();
+
         if (!interfacesFullyResolved) {
             throw new UnresolvedClassException("Interfaces for class %s not fully resolved", getType());
         }
-
         return interfaces;
     }
 
@@ -519,7 +525,7 @@ public class ClassProto implements TypeProto {
         if (!isInterface()) {
             addToVtable(getClassDef().getVirtualMethods(), virtualMethodList);
 
-            for (ClassDef interfaceDef: getInterfaces().values()) {
+            for (ClassDef interfaceDef: getInterfacesFull().values()) {
                 addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList);
             }
         }
