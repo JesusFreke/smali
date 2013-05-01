@@ -54,7 +54,6 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull public final DexBackedDexFile dexFile;
     private final int classDefOffset;
 
-    private final int classDataOffset;
     private final int staticFieldsOffset;
     private int instanceFieldsOffset = 0;
     private int directMethodsOffset = 0;
@@ -72,7 +71,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
         this.dexFile = dexFile;
         this.classDefOffset = classDefOffset;
 
-        this.classDataOffset = dexFile.readSmallUint(classDefOffset + ClassDefItem.CLASS_DATA_OFFSET);
+        int classDataOffset = dexFile.readSmallUint(classDefOffset + ClassDefItem.CLASS_DATA_OFFSET);
         if (classDataOffset == 0) {
             staticFieldsOffset = -1;
             staticFieldCount = 0;
