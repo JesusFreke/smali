@@ -135,6 +135,9 @@ public class ClassProto implements TypeProto {
                             interfaces.put(superInterface.getType(), superInterface);
                         }
                     }
+                    if (!interfaceProto.interfacesFullyResolved) {
+                        interfacesFullyResolved = false;
+                    }
                 }
             }
         } catch (UnresolvedClassException ex) {
