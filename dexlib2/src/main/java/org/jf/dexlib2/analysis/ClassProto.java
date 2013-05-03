@@ -126,13 +126,14 @@ public class ClassProto implements TypeProto {
                         interfaceDef = classPath.getClassDef(interfaceType);
                         interfaces.put(interfaceType, interfaceDef);
                     } catch (UnresolvedClassException ex) {
+                        interfaces.put(interfaceType, null);
                         interfacesFullyResolved = false;
                     }
 
                     ClassProto interfaceProto = (ClassProto) classPath.getClass(interfaceType);
-                    for (ClassDef superInterface: interfaceProto.getInterfaces().values()) {
-                        if (!interfaces.containsKey(superInterface.getType())) {
-                            interfaces.put(superInterface.getType(), superInterface);
+                    for (String superInterface: interfaceProto.getInterfaces().keySet()) {
+                        if (!interfaces.containsKey(superInterface)) {
+                            interfaces.put(superInterface, interfaceProto.getInterfaces().get(superInterface));
                         }
                     }
                     if (!interfaceProto.interfacesFullyResolved) {
@@ -141,6 +142,28 @@ public class ClassProto implements TypeProto {
                 }
             }
         } catch (UnresolvedClassException ex) {
+            interfacesFullyResolved = false;
+        }
+
+        // now add self and super class interfaces, required for common super class lookup
+        // we don't really need ClassDef's for that, so let's just use null
+
+        if (isInterface() && !interfaces.containsKey(getType())) {
+            interfaces.put(getType(), null);
+        }
+
+        try {
+            String superclass = getSuperclass();
+            if (superclass != null) {
+                ClassProto superclassProto = (ClassProto) classPath.getClass(superclass);
+                for (String superclassInterface: superclassProto.getInterfaces().keySet()) {
+                    if (!interfaces.containsKey(superclassInterface)) {
+                        interfaces.put(superclassInterface, null);
+                    }
+                }
+            }
+        } catch (UnresolvedClassException ex) {
+            // TODO: not sure if this is necessary
             interfacesFullyResolved = false;
         }
 
@@ -529,7 +552,9 @@ public class ClassProto implements TypeProto {
             addToVtable(getClassDef().getVirtualMethods(), virtualMethodList);
 
             for (ClassDef interfaceDef: getInterfacesFull().values()) {
-                addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList);
+                if (interfaceDef != null) {
+                    addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList);
+                }
             }
         }
 
