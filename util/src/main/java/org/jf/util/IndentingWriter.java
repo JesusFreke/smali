@@ -192,6 +192,26 @@ public class IndentingWriter extends Writer {
         writeLine(buffer, bufferIndex, 24-bufferIndex);
     }
 
+    public void printSignedLongAsDec(long value) throws IOException {
+        int bufferIndex = 23;
+
+        if (value < 0) {
+            value *= -1;
+            write('-');
+        }
+
+        do {
+            long digit = value % 10;
+            buffer[bufferIndex--] = (char)(digit + '0');
+
+            value = value / 10;
+        } while (value != 0);
+
+        bufferIndex++;
+
+        writeLine(buffer, bufferIndex, 24-bufferIndex);
+    }
+
     public void printSignedIntAsDec(int value) throws IOException {
         int bufferIndex = 15;
 
@@ -210,5 +230,15 @@ public class IndentingWriter extends Writer {
         bufferIndex++;
 
         writeLine(buffer, bufferIndex, 16-bufferIndex);
+    }
+
+    public void printUnsignedIntAsDec(int value) throws IOException {
+        int bufferIndex = 15;
+
+        if (value < 0) {
+            printSignedLongAsDec(value & 0xFFFFFFFFL);
+        } else {
+            printSignedIntAsDec(value);
+        }
     }
 }

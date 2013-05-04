@@ -128,6 +128,46 @@ public class BaseDexReader<T extends BaseDexBuffer> {
         return result;
     }
 
+    /**
+     * Reads a "big" uleb128 that can legitimately be > 2^31. The value is returned as a signed integer, with the
+     * expected semantics of re-interpreting an unsigned value as a signed value.
+     *
+     * @return The unsigned value, reinterpreted as a signed int
+     */
+    public int readBigUleb128() {
+        int end = offset;
+        int currentByteValue;
+        int result;
+        byte[] buf = dexBuf.buf;
+
+        result = buf[end++] & 0xff;
+        if (result > 0x7f) {
+            currentByteValue = buf[end++] & 0xff;
+            result = (result & 0x7f) | ((currentByteValue & 0x7f) << 7);
+            if (currentByteValue > 0x7f) {
+                currentByteValue = buf[end++] & 0xff;
+                result |= (currentByteValue & 0x7f) << 14;
+                if (currentByteValue > 0x7f) {
+                    currentByteValue = buf[end++] & 0xff;
+                    result |= (currentByteValue & 0x7f) << 21;
+                    if (currentByteValue > 0x7f) {
+                        currentByteValue = buf[end++];
+
+                        // MSB shouldn't be set on last byte
+                        if (currentByteValue < 0) {
+                            throw new ExceptionWithContext(
+                                    "Invalid uleb128 integer encountered at offset 0x%x", offset);
+                        }
+                        result |= currentByteValue << 28;
+                    }
+                }
+            }
+        }
+
+        offset = end;
+        return result;
+    }
+
     public void skipUleb128() {
         int end = offset;
         byte currentByteValue;

@@ -48,7 +48,7 @@ public class LineNumberMethodItem extends DebugMethodItem {
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
         writer.write(".line ");
-        writer.printSignedIntAsDec(lineNumber);
+        writer.printUnsignedIntAsDec(lineNumber);
         return true;
     }
 }

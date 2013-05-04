@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.debug;
+package org.jf.util;
 
-public interface LineNumber extends DebugItem {
-    /**
-     * The line number associated with this code address. This value should be treated as an unsigned integer, with
-     * negative values indicating a value > 2^31, using the usual two's complement semantics.
-     *
-     * @return The line number associated with this code address.
-     */
-    int getLineNumber();
+import junit.framework.Assert;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.io.StringWriter;
+
+public class IndentingWriterTest {
+    @Test
+    public void testPrintSignedLongAsDec() throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        IndentingWriter writer = new IndentingWriter(stringWriter);
+
+        writer.printUnsignedIntAsDec(-1);
+        writer.close();
+
+        Assert.assertEquals("4294967295", stringWriter.toString());
+    }
 }

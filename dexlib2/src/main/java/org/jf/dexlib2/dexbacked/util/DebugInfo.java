@@ -99,8 +99,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
         @Override
         public Iterator<DebugItem> iterator() {
             DexReader reader = dexFile.readerAt(debugInfoOffset);
-            // TODO: this unsigned value could legitimally be > MAX_INT
-            final int lineNumberStart = reader.readSmallUleb128();
+            final int lineNumberStart = reader.readBigUleb128();
             int registerCount = methodImpl.getRegisterCount();
 
             //TODO: does dalvik allow references to invalid registers?
