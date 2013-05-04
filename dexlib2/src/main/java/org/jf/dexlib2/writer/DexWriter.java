@@ -666,7 +666,7 @@ public abstract class DexWriter<
             for (MethodKey method: methods) {
                 int offset = classSection.getAnnotationSetRefListOffset(method);
                 if (offset != DexWriter.NO_OFFSET) {
-                    methodAnnotations++;
+                    parameterAnnotations++;
                     tempBuffer.putInt(methodSection.getMethodIndex(method));
                     tempBuffer.putInt(offset);
                 }
