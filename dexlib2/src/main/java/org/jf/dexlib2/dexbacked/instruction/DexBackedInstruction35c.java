@@ -48,7 +48,6 @@ public class DexBackedInstruction35c extends DexBackedInstruction implements Ins
     }
 
     @Override public int getRegisterCount() {
-        //TODO: make sure dalvik verifies that this is in the correct range
         return NibbleUtils.extractHighUnsignedNibble(dexFile.readUbyte(instructionStart + 1));
     }
 

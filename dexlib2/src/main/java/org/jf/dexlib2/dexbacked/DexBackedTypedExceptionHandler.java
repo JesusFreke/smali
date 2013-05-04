@@ -31,9 +31,6 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import org.jf.dexlib2.base.BaseExceptionHandler;
-import org.jf.dexlib2.iface.ExceptionHandler;
-
 import javax.annotation.Nonnull;
 
 public class DexBackedTypedExceptionHandler extends DexBackedExceptionHandler {
@@ -42,7 +39,6 @@ public class DexBackedTypedExceptionHandler extends DexBackedExceptionHandler {
     private final int handlerCodeAddress;
 
     public DexBackedTypedExceptionHandler(@Nonnull DexReader reader) {
-        // TODO: verify dalvik doesn't accept an exception handler that points in the middle of an instruction
         this.dexFile = reader.dexBuf;
         this.typeId = reader.readSmallUleb128();
         this.handlerCodeAddress = reader.readSmallUleb128();

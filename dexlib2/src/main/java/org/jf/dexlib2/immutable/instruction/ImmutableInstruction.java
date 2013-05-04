@@ -46,7 +46,6 @@ public abstract class ImmutableInstruction implements Instruction {
 
     protected ImmutableInstruction(@Nonnull Opcode opcode) {
         this.opcode = opcode;
-        //TODO: check performance. Move into subclasses if needed, where we can access the field directly
         Preconditions.checkFormat(opcode, getFormat());
     }
 

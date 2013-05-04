@@ -35,7 +35,6 @@ import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.MethodParameter;
-import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,10 +50,6 @@ public class ParameterIterator implements Iterator<MethodParameter> {
     public ParameterIterator(@Nonnull List<? extends CharSequence> parameterTypes,
                              @Nonnull List<? extends Set<? extends Annotation>> parameterAnnotations,
                              @Nonnull Iterator<String> parameterNames) {
-        // TODO: verify if dalvik allows this
-        if (parameterAnnotations.size() > parameterTypes.size()) {
-            throw new ExceptionWithContext("Too many parameter annotations");
-        }
         this.parameterTypes = parameterTypes.iterator();
         this.parameterAnnotations = parameterAnnotations.iterator();
         this.parameterNames = parameterNames;
