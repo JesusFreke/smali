@@ -31,8 +31,6 @@
 
 package org.jf.dexlib2;
 
-import java.util.HashMap;
-
 public enum Opcode
 {
     NOP((short)0x00, "nop", ReferenceType.NONE, Format.Format10x, Opcode.CAN_CONTINUE),
@@ -289,9 +287,6 @@ public enum Opcode
     SPARSE_SWITCH_PAYLOAD((short)0x200, "sparse-switch-payload", ReferenceType.NONE, Format.SparseSwitchPayload, 0),
     ARRAY_PAYLOAD((short)0x300, "array-payload", ReferenceType.NONE, Format.ArrayPayload, 0);
 
-    private static final Opcode[] opcodesByValue;
-    private static final HashMap<Integer, Opcode> opcodesByName;
-
     //if the instruction can throw an exception
     public static final int CAN_THROW = 0x1;
     //if the instruction is an odex only instruction
@@ -314,21 +309,6 @@ public enum Opcode
     public static final int JUMBO_OPCODE = 0x200;
     //if the instruction can initialize an uninitialized object reference
     public static final int CAN_INITIALIZE_REFERENCE = 0x400;
-
-    static {
-        opcodesByValue = new Opcode[256];
-        opcodesByName = new HashMap<Integer, Opcode>();
-
-        for (Opcode opcode: Opcode.values()) {
-            if (!opcode.format.isPayloadFormat) {
-                //INVOKE_DIRECT_EMPTY was changed to INVOKE_OBJECT_INIT_RANGE in ICS
-                if (opcode != INVOKE_DIRECT_EMPTY) {
-                    opcodesByValue[opcode.value] = opcode;
-                    opcodesByName.put(opcode.name.hashCode(), opcode);
-                }
-            }
-        }
-    }
 
     private static final int ALL_APIS = 0xFFFF0000;
 
