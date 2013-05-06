@@ -482,7 +482,8 @@ public class ClassProto implements TypeProto {
         return instanceFields;
     }
 
-    private ArrayList<Field> getInstanceFields(ClassDef classDef) {
+    @Nonnull
+    private ArrayList<Field> getInstanceFields(@Nonnull ClassDef classDef) {
         ArrayList<Field> instanceFields = Lists.newArrayList();
         for (Field field: classDef.getFields()) {
             if (!FieldUtil.isStatic(field)) {
@@ -589,13 +590,13 @@ public class ClassProto implements TypeProto {
         }
     }
 
-    private boolean methodSignaturesMatch(Method a, Method b) {
+    private boolean methodSignaturesMatch(@Nonnull Method a, @Nonnull Method b) {
         return (a.getName().equals(b.getName())
                 && a.getReturnType().equals(b.getReturnType())
                 && a.getParameters().equals(b.getParameters()));
     }
 
-    private boolean canAccess(Method virtualMethod) {
+    private boolean canAccess(@Nonnull Method virtualMethod) {
         if (!methodIsPackagePrivate(virtualMethod.getAccessFlags())) {
             return true;
         }
@@ -605,7 +606,7 @@ public class ClassProto implements TypeProto {
         return otherPackage.equals(ourPackage);
     }
 
-    private String getPackage(String classType) {
+    private String getPackage(@Nonnull String classType) {
         int lastSlash = classType.lastIndexOf('/');
         if (lastSlash < 0) {
             return "";
