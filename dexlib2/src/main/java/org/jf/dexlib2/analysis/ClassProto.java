@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -173,13 +175,12 @@ public class ClassProto implements TypeProto {
     }
 
     @Nonnull
-    protected LinkedHashMap<String, ClassDef> getInterfacesFull() {
-        LinkedHashMap<String, ClassDef> interfaces = getInterfaces();
-
+    protected Iterable<ClassDef> getDirectInterfaces() {
         if (!interfacesFullyResolved) {
             throw new UnresolvedClassException("Interfaces for class %s not fully resolved", getType());
         }
-        return interfaces;
+
+        return FluentIterable.from(getInterfaces().values()).filter(ClassDef.class);
     }
 
     /**
@@ -553,10 +554,8 @@ public class ClassProto implements TypeProto {
         if (!isInterface()) {
             addToVtable(getClassDef().getVirtualMethods(), virtualMethodList);
 
-            for (ClassDef interfaceDef: getInterfacesFull().values()) {
-                if (interfaceDef != null) {
-                    addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList);
-                }
+            for (ClassDef interfaceDef: getDirectInterfaces()) {
+                addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList);
             }
         }
 
