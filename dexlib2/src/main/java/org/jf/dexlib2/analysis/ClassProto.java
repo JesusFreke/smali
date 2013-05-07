@@ -32,6 +32,7 @@
 package org.jf.dexlib2.analysis;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -180,7 +181,7 @@ public class ClassProto implements TypeProto {
             throw new UnresolvedClassException("Interfaces for class %s not fully resolved", getType());
         }
 
-        return FluentIterable.from(getInterfaces().values()).filter(ClassDef.class);
+        return FluentIterable.from(getInterfaces().values()).filter(Predicates.notNull());
     }
 
     /**
