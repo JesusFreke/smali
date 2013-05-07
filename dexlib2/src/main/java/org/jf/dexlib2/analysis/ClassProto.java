@@ -31,12 +31,8 @@
 
 package org.jf.dexlib2.analysis;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.iface.ClassDef;
@@ -44,13 +40,15 @@ import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.util.FieldUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * A class "prototype". This contains things like the interfaces, the superclass, the vtable and the instance fields
@@ -342,20 +340,19 @@ public class ClassProto implements TypeProto {
         final byte WIDE = 1;
         final byte OTHER = 2;
 
-        ArrayList<Field> loadedFields = getInstanceFields(getClassDef());
-        Field[] fields = new Field[loadedFields.size()];
+        ArrayList<Field> fields = getSortedInstanceFields(getClassDef());
+        final int fieldCount = fields.size();
         //the "type" for each field in fields. 0=reference,1=wide,2=other
-        byte[] fieldTypes = new byte[fields.length];
-        for (int i=0;i<fields.length;i++) {
-            fields[i] = loadedFields.get(i);
-            fieldTypes[i] = getFieldType(fields[i].getType());
+        byte[] fieldTypes = new byte[fields.size()];
+        for (int i=0; i<fieldCount; i++) {
+            fieldTypes[i] = getFieldType(fields.get(i));
         }
 
         //The first operation is to move all of the reference fields to the front. To do this, find the first
         //non-reference field, then find the last reference field, swap them and repeat
-        int back = fields.length - 1;
+        int back = fields.size() - 1;
         int front;
-        for (front = 0; front<fields.length; front++) {
+        for (front = 0; front<fieldCount; front++) {
             if (fieldTypes[front] != REFERENCE) {
                 while (back > front) {
                     if (fieldTypes[back] == REFERENCE) {
@@ -392,10 +389,10 @@ public class ClassProto implements TypeProto {
         //8-byte aligned. If we're on an odd field index, we need to insert a 32-bit field. If the next field
         //is already a 32-bit field, use that. Otherwise, find the first 32-bit field from the end and swap it in.
         //If there are no 32-bit fields, do nothing for now. We'll add padding when calculating the field offsets
-        if (front < fields.length && (front % 2) != fieldIndexMod) {
+        if (front < fieldCount && (front % 2) != fieldIndexMod) {
             if (fieldTypes[front] == WIDE) {
                 //we need to swap in a 32-bit field, so the wide fields will be correctly aligned
-                back = fields.length - 1;
+                back = fieldCount - 1;
                 while (back > front) {
                     if (fieldTypes[back] == OTHER) {
                         swap(fieldTypes, fields, front++, back);
@@ -410,8 +407,8 @@ public class ClassProto implements TypeProto {
         }
 
         //do the swap thing for wide fields
-        back = fields.length - 1;
-        for (; front<fields.length; front++) {
+        back = fieldCount - 1;
+        for (; front<fieldCount; front++) {
             if (fieldTypes[front] != WIDE) {
                 while (back > front) {
                     if (fieldTypes[back] == WIDE) {
@@ -433,7 +430,7 @@ public class ClassProto implements TypeProto {
         }
 
         //now the fields are in the correct order. Add them to the SparseArray and lookup, and calculate the offsets
-        int totalFieldCount = superFieldCount + fields.length;
+        int totalFieldCount = superFieldCount + fieldCount;
         SparseArray<FieldReference> instanceFields = new SparseArray<FieldReference>(totalFieldCount);
 
         int fieldOffset;
@@ -458,8 +455,8 @@ public class ClassProto implements TypeProto {
         }
 
         boolean gotDouble = false;
-        for (int i=0; i<fields.length; i++) {
-            FieldReference field = fields[i];
+        for (int i=0; i<fieldCount; i++) {
+            FieldReference field = fields.get(i);
 
             //add padding to align the wide fields, if needed
             if (fieldTypes[i] == WIDE && !gotDouble) {
@@ -484,16 +481,14 @@ public class ClassProto implements TypeProto {
     }
 
     @Nonnull
-    private ArrayList<Field> getInstanceFields(@Nonnull ClassDef classDef) {
-        ArrayList<Field> instanceFields = Lists.newArrayList();
-        for (Field field: classDef.getInstanceFields()) {
-            instanceFields.add(field);
-        }
-        return instanceFields;
+    private static ArrayList<Field> getSortedInstanceFields(@Nonnull ClassDef classDef) {
+        ArrayList<Field> fields = Lists.newArrayList(classDef.getInstanceFields());
+        Collections.sort(fields);
+        return fields;
     }
 
-    private byte getFieldType(String fieldType) {
-        switch (fieldType.charAt(0)) {
+    private byte getFieldType(@Nonnull FieldReference field) {
+        switch (field.getType().charAt(0)) {
             case '[':
             case 'L':
                 return 0; //REFERENCE
@@ -505,14 +500,13 @@ public class ClassProto implements TypeProto {
         }
     }
 
-    private void swap(byte[] fieldTypes, FieldReference[] fields, int position1, int position2) {
+    private void swap(byte[] fieldTypes, List<Field> fields, int position1, int position2) {
         byte tempType = fieldTypes[position1];
         fieldTypes[position1] = fieldTypes[position2];
         fieldTypes[position2] = tempType;
 
-        FieldReference tempField = fields[position1];
-        fields[position1] = fields[position2];
-        fields[position2] = tempField;
+        Field tempField = fields.set(position1, fields.get(position2));
+        fields.set(position2, tempField);
     }
 
     private int getNextFieldOffset() {
