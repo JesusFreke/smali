@@ -1487,8 +1487,17 @@ public class MethodAnalyzer {
     private void analyzeInvokeObjectInitRange(@Nonnull AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
         Instruction3rc instruction = (Instruction3rc)analyzedInstruction.instruction;
 
-        Instruction3rc deodexedInstruction = new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE,
-                instruction.getStartRegister(), instruction.getRegisterCount(), instruction.getReference());
+        Instruction deodexedInstruction;
+
+        int startRegister = instruction.getStartRegister();
+        int registerCount = instruction.getRegisterCount();
+        if (registerCount == 1 && startRegister < 16) {
+            deodexedInstruction = new ImmutableInstruction35c(Opcode.INVOKE_DIRECT,
+                    registerCount, startRegister, 0, 0, 0, 0, instruction.getReference());
+        } else {
+            deodexedInstruction = new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE,
+                    startRegister, registerCount, instruction.getReference());
+        }
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
 
