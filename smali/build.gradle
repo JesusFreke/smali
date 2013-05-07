@@ -163,8 +163,8 @@ task proguard(type: JavaExec, dependsOn: jar) {
     args '-dontoptimize'
     args '-keep public class org.jf.smali.main { public static void main(java.lang.String[]); }'
     args '-keepclassmembers enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
-    args '-dontwarn com.google.common.base.**'
-    args '-dontnote com.google.common.base.**'
+    args '-dontwarn com.google.common.**'
+    args '-dontnote com.google.common.**'
 }
 
 tasks.getByPath(':release').dependsOn(proguard)
