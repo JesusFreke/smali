@@ -486,10 +486,8 @@ public class ClassProto implements TypeProto {
     @Nonnull
     private ArrayList<Field> getInstanceFields(@Nonnull ClassDef classDef) {
         ArrayList<Field> instanceFields = Lists.newArrayList();
-        for (Field field: classDef.getFields()) {
-            if (!FieldUtil.isStatic(field)) {
-                instanceFields.add(field);
-            }
+        for (Field field: classDef.getInstanceFields()) {
+            instanceFields.add(field);
         }
         return instanceFields;
     }
