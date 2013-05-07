@@ -56,6 +56,7 @@ public class ClassPath {
     @Nonnull private DexFile[] dexFiles;
     @Nonnull private HashMap<String, TypeProto> loadedClasses = Maps.newHashMap();
     @Nonnull private HashMap<String, ClassDef> availableClasses = Maps.newHashMap();
+    @Nonnull private int api;
 
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
@@ -63,19 +64,20 @@ public class ClassPath {
      * @param classPath An array of DexFile objects. When loading a class, these dex files will be searched in order
      */
     public ClassPath(DexFile... classPath) throws IOException {
-        this(classPath, true);
+        this(classPath, true, 15);
     }
 
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
      *
      * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
+     * @param api API level
      */
-    public ClassPath(Iterable<DexFile> classPath) {
-        this(Iterables.toArray(classPath, DexFile.class), false);
+    public ClassPath(Iterable<DexFile> classPath, int api) {
+        this(Iterables.toArray(classPath, DexFile.class), false, api);
     }
 
-    private ClassPath(@Nonnull DexFile[] classPath, boolean copyArray) {
+    private ClassPath(@Nonnull DexFile[] classPath, boolean copyArray, int api) {
         if (copyArray) {
             dexFiles = new DexFile[classPath.length+1];
             System.arraycopy(classPath, 0, dexFiles, 0, classPath.length);
@@ -87,6 +89,7 @@ public class ClassPath {
 
         unknownClass = new UnknownClassProto(this);
         loadedClasses.put(unknownClass.getType(), unknownClass);
+        this.api = api;
 
         loadPrimitiveType("Z");
         loadPrimitiveType("B");
@@ -156,6 +159,10 @@ public class ClassPath {
         return unknownClass;
     }
 
+    public int getApi() {
+        return api;
+    }
+
     @Nonnull
     public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile,
                                           int api) {
@@ -165,7 +172,7 @@ public class ClassPath {
             dexFiles.add(loadClassPathEntry(classPathDirs, classPathEntry, api));
         }
         dexFiles.add(dexFile);
-        return new ClassPath(dexFiles);
+        return new ClassPath(dexFiles, api);
     }
 
     private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
