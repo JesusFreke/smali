@@ -111,6 +111,20 @@ public class ClassProto implements TypeProto {
         return (classDef.getAccessFlags() & AccessFlags.INTERFACE.getValue()) != 0;
     }
 
+    /**
+     * Returns the set of interfaces that this class implements as a Map<String, ClassDef>.
+     *
+     * The ClassDef value will be present only for the interfaces that this class directly implements (including any
+     * interfaces transitively implemented), but not for any interfaces that are only implemented by a superclass of
+     * this class
+     *
+     * For any interfaces that are only implemented by a superclass (or the class itself, if the class is an interface),
+     * the value will be null.
+     *
+     * If any interface couldn't be resolved, then the interfacesFullyResolved field will be set to false upon return.
+     *
+     * @return the set of interfaces that this class implements as a Map<String, ClassDef>.
+     */
     @Nonnull
     protected LinkedHashMap<String, ClassDef> getInterfaces() {
         if (interfaces != null) {
@@ -173,6 +187,14 @@ public class ClassProto implements TypeProto {
         return interfaces;
     }
 
+    /**
+     * Gets the interfaces directly implemented by this class, or the interfaces they transitively implement.
+     *
+     * This does not include any interfaces that are only implemented by a superclass
+     *
+     * @return An iterables of ClassDefs representing the directly or transitively implemented interfaces
+     * @throws UnresolvedClassException if any interface could not be resolved
+     */
     @Nonnull
     protected Iterable<ClassDef> getDirectInterfaces() {
         if (!interfacesFullyResolved) {
