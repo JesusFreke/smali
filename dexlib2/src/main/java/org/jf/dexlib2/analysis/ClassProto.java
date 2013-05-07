@@ -607,6 +607,7 @@ public class ClassProto implements TypeProto {
         return otherPackage.equals(ourPackage);
     }
 
+    @Nonnull
     private String getPackage(@Nonnull String classType) {
         int lastSlash = classType.lastIndexOf('/');
         if (lastSlash < 0) {
