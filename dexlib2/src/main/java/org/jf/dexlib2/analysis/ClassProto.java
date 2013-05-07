@@ -569,10 +569,10 @@ public class ClassProto implements TypeProto {
         //iterate over the virtual methods in the current class, and only add them when we don't already have the
         //method (i.e. if it was implemented by the superclass)
         if (!isInterface()) {
-            addToVtable(getClassDef().getVirtualMethods(), virtualMethodList);
+            addToVtable(getClassDef().getVirtualMethods(), virtualMethodList, true);
 
             for (ClassDef interfaceDef: getDirectInterfaces()) {
-                addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList);
+                addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList, false);
             }
         }
 
@@ -584,7 +584,8 @@ public class ClassProto implements TypeProto {
         return vtable;
     }
 
-    private void addToVtable(@Nonnull Iterable<? extends Method> localMethods, @Nonnull List<Method> vtable) {
+    private void addToVtable(@Nonnull Iterable<? extends Method> localMethods, @Nonnull List<Method> vtable,
+                             boolean replaceExisting) {
         List<? extends Method> methods = Lists.newArrayList(localMethods);
         Collections.sort(methods);
 
@@ -595,7 +596,9 @@ public class ClassProto implements TypeProto {
                 if (methodSignaturesMatch(superMethod, virtualMethod)) {
                     if (classPath.getApi() < 17 || canAccess(superMethod)) {
                         found = true;
-                        vtable.set(i, virtualMethod);
+                        if (replaceExisting) {
+                            vtable.set(i, virtualMethod);
+                        }
                         break;
                     }
                 }
