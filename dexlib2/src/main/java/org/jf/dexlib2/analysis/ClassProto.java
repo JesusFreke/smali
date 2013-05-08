@@ -59,8 +59,9 @@ public class ClassProto implements TypeProto {
     @Nonnull protected final String type;
     @Nullable protected ClassDef classDef;
     @Nullable protected LinkedHashMap<String, ClassDef> interfaces;
-    @Nullable protected Method[] vtable;
+    @Nullable protected List<Method> vtable;
     @Nullable protected SparseArray<FieldReference> instanceFields;
+    protected boolean vtableFullyResolved = true;
     protected boolean interfacesFullyResolved = true;
 
     public ClassProto(@Nonnull ClassPath classPath, @Nonnull String type) {
@@ -84,9 +85,9 @@ public class ClassProto implements TypeProto {
     }
 
     @Nonnull
-    Method[] getVtable() {
+    List<Method> getVtable() {
         if (vtable == null) {
-            vtable = loadVtable();
+            loadVtable();
         }
         return vtable;
     }
@@ -346,11 +347,11 @@ public class ClassProto implements TypeProto {
     @Override
     @Nullable
     public MethodReference getMethodByVtableIndex(int vtableIndex) {
-        Method[] vtable = getVtable();
-        if (vtableIndex < 0 || vtableIndex >= vtable.length) {
+        List<Method> vtable = getVtable();
+        if (vtableIndex < 0 || vtableIndex >= vtable.size()) {
             return null;
         }
-        return vtable[vtableIndex];
+        return vtable.get(vtableIndex);
     }
 
     @Nonnull
@@ -552,66 +553,68 @@ public class ClassProto implements TypeProto {
     }
 
     //TODO: check the case when we have a package private method that overrides an interface method
-    @Nonnull
-    private Method[] loadVtable() {
-        List<Method> virtualMethodList = Lists.newLinkedList();
+    private void loadVtable() {
+        vtable = Lists.newArrayList();
 
         //copy the virtual methods from the superclass
-        String superclassType = getSuperclass();
+        String superclassType;
+        try {
+            superclassType = getSuperclass();
+        } catch (UnresolvedClassException ex) {
+            vtable.addAll(((ClassProto)classPath.getClass("Ljava/lang/Object;")).getVtable());
+            vtableFullyResolved = false;
+            return;
+        }
+
         if (superclassType != null) {
             ClassProto superclass = (ClassProto) classPath.getClass(superclassType);
-            for (int i=0; i<superclass.getVtable().length; i++) {
-                virtualMethodList.add(superclass.getVtable()[i]);
+            vtable.addAll(superclass.getVtable());
+
+            // if the superclass's vtable wasn't fully resolved, then we can't know where the new methods added by this
+            // class should start, so we just propagate what we can from the parent and hope for the best.
+            if (!superclass.interfacesFullyResolved) {
+                vtableFullyResolved = false;
+                return;
             }
         }
 
         //iterate over the virtual methods in the current class, and only add them when we don't already have the
         //method (i.e. if it was implemented by the superclass)
         if (!isInterface()) {
-            addToVtable(getClassDef().getVirtualMethods(), virtualMethodList, true);
+            addToVtable(getClassDef().getVirtualMethods(), vtable, true);
 
             for (ClassDef interfaceDef: getDirectInterfaces()) {
-                addToVtable(interfaceDef.getVirtualMethods(), virtualMethodList, false);
+                addToVtable(interfaceDef.getVirtualMethods(), vtable, false);
             }
         }
-
-        Method[] vtable = new Method[virtualMethodList.size()];
-        for (int i=0; i<virtualMethodList.size(); i++) {
-            vtable[i] = virtualMethodList.get(i);
-        }
-
-        return vtable;
     }
 
-    private void addToVtable(@Nonnull Iterable<? extends Method> localMethods, @Nonnull List<Method> vtable,
-                             boolean replaceExisting) {
+    private void addToVtable(@Nonnull Iterable<? extends Method> localMethods,
+                             @Nonnull List<Method> vtable, boolean replaceExisting) {
         List<? extends Method> methods = Lists.newArrayList(localMethods);
         Collections.sort(methods);
 
-        for (Method virtualMethod: methods) {
-            boolean found = false;
+        outer: for (Method virtualMethod: methods) {
             for (int i=0; i<vtable.size(); i++) {
                 Method superMethod = vtable.get(i);
                 if (methodSignaturesMatch(superMethod, virtualMethod)) {
                     if (classPath.getApi() < 17 || canAccess(superMethod)) {
-                        found = true;
                         if (replaceExisting) {
                             vtable.set(i, virtualMethod);
                         }
-                        break;
+                        continue outer;
                     }
                 }
             }
-            if (!found) {
-                vtable.add(virtualMethod);
-            }
+            // we didn't find an equivalent method, so add it as a new entry
+            vtable.add(virtualMethod);
         }
     }
 
-    private boolean methodSignaturesMatch(@Nonnull Method a, @Nonnull Method b) {
-        return (a.getName().equals(b.getName())
-                && a.getReturnType().equals(b.getReturnType())
-                && a.getParameters().equals(b.getParameters()));
+    private static boolean methodSignaturesMatch(@Nonnull Method a, @Nonnull Method b) {
+        return (a.getName().equals(b.getName()) &&
+                a.getReturnType().equals(b.getReturnType()) &&
+                a.getParameters().equals(b.getParameters()));
     }
 
     private boolean canAccess(@Nonnull Method virtualMethod) {
@@ -625,7 +628,7 @@ public class ClassProto implements TypeProto {
     }
 
     @Nonnull
-    private String getPackage(@Nonnull String classType) {
+    private static String getPackage(@Nonnull String classType) {
         int lastSlash = classType.lastIndexOf('/');
         if (lastSlash < 0) {
             return "";
