@@ -554,7 +554,6 @@ public class ClassProto implements TypeProto {
     //TODO: check the case when we have a package private method that overrides an interface method
     @Nonnull
     private Method[] loadVtable() {
-        //TODO: it might be useful to keep track of which class's implementation is used for each virtual method. In other words, associate the implementing class type with each vtable entry
         List<Method> virtualMethodList = Lists.newLinkedList();
 
         //copy the virtual methods from the superclass
