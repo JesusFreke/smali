@@ -31,9 +31,13 @@
 
 package org.jf.baksmali;
 
+import com.google.common.collect.Lists;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class baksmaliOptions {
     // register info values
@@ -45,6 +49,13 @@ public class baksmaliOptions {
     public static final int MERGE = 32;
     public static final int FULLMERGE = 64;
 
+    public int apiLevel = 15;
+    public String outputDirectory = "out";
+    public List<String> bootClassPathDirs = Lists.newArrayList();
+
+    public List<String> bootClassPathEntries = Lists.newArrayList();
+    public List<String> extraClassPathEntries = Lists.newArrayList();
+
     public boolean noParameterRegisters = false;
     public boolean useLocalsDirective = false;
     public boolean useSequentialLabels = false;
@@ -52,10 +63,22 @@ public class baksmaliOptions {
     public boolean addCodeOffsets = false;
     public boolean noAccessorComments = false;
     public boolean deodex = false;
+    public boolean ignoreErrors = false;
+    public boolean checkPackagePrivateAccess = false;
     public InlineMethodResolver inlineResolver = null;
     public int registerInfo = 0;
-    public String bootClassPath;
     public ClassPath classPath = null;
 
     public SyntheticAccessorResolver syntheticAccessorResolver = null;
+
+    public void setBootClassPath(String bootClassPath) {
+        bootClassPathEntries = Lists.newArrayList(bootClassPath.split(":"));
+    }
+
+    public void addExtraClassPath(String extraClassPath) {
+        if (extraClassPath.startsWith(":")) {
+            extraClassPath = extraClassPath.substring(1);
+        }
+        extraClassPathEntries.addAll(Arrays.asList(extraClassPath.split(":")));
+    }
 }

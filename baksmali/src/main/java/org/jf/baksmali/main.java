@@ -28,16 +28,19 @@
 
 package org.jf.baksmali;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.cli.*;
 import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
@@ -63,6 +66,7 @@ public class main {
             properties.load(templateStream);
             version = properties.getProperty("application.version");
         } catch (IOException ex) {
+            // ignore
         }
         VERSION = version;
     }
@@ -76,7 +80,7 @@ public class main {
     /**
      * Run!
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Locale locale = new Locale("en", "US");
         Locale.setDefault(locale);
 
@@ -90,37 +94,18 @@ public class main {
             return;
         }
 
+        baksmaliOptions options = new baksmaliOptions();
+
         boolean disassemble = true;
         boolean doDump = false;
-        boolean noParameterRegisters = false;
-        boolean useLocalsDirective = false;
-        boolean useSequentialLabels = false;
-        boolean outputDebugInfo = true;
-        boolean addCodeOffsets = false;
-        boolean noAccessorComments = false;
-        boolean deodex = false;
-        boolean ignoreErrors = false;
-        boolean checkPackagePrivateAccess = false;
-
-        int apiLevel = 15;
-
-        int registerInfo = 0;
-
-        String outputDirectory = "out";
         String dumpFileName = null;
-        String inputDexFileName = null;
-        String bootClassPath = null;
-        StringBuffer extraBootClassPathEntries = new StringBuffer();
-        List<String> bootClassPathDirs = new ArrayList<String>();
-        bootClassPathDirs.add(".");
-        String inlineTable = null;
 
         String[] remainingArgs = commandLine.getArgs();
 
-        Option[] options = commandLine.getOptions();
+        Option[] clOptions = commandLine.getOptions();
 
-        for (int i=0; i<options.length; i++) {
-            Option option = options[i];
+        for (int i=0; i<clOptions.length; i++) {
+            Option option = clOptions[i];
             String opt = option.getOpt();
 
             switch (opt.charAt(0)) {
@@ -128,8 +113,8 @@ public class main {
                     version();
                     return;
                 case '?':
-                    while (++i < options.length) {
-                        if (options[i].getOpt().charAt(0) == '?') {
+                    while (++i < clOptions.length) {
+                        if (clOptions[i].getOpt().charAt(0) == '?') {
                             usage(true);
                             return;
                         }
@@ -137,28 +122,29 @@ public class main {
                     usage(false);
                     return;
                 case 'o':
-                    outputDirectory = commandLine.getOptionValue("o");
+                    options.outputDirectory = commandLine.getOptionValue("o");
                     break;
                 case 'p':
-                    noParameterRegisters = true;
+                    options.noParameterRegisters = true;
                     break;
                 case 'l':
-                    useLocalsDirective = true;
+                    options.useLocalsDirective = true;
                     break;
                 case 's':
-                    useSequentialLabels = true;
+                    options.useSequentialLabels = true;
                     break;
                 case 'b':
-                    outputDebugInfo = false;
+                    options.outputDebugInfo = false;
                     break;
                 case 'd':
-                    bootClassPathDirs.add(option.getValue());
+                    options.bootClassPathDirs.add(option.getValue());
                     break;
                 case 'f':
-                    addCodeOffsets = true;
+                    options.addCodeOffsets = true;
                     break;
                 case 'r':
                     String[] values = commandLine.getOptionValues('r');
+                    int registerInfo = 0;
 
                     if (values == null || values.length == 0) {
                         registerInfo = baksmaliOptions.ARGS | baksmaliOptions.DEST;
@@ -188,39 +174,40 @@ public class main {
                             registerInfo &= ~baksmaliOptions.MERGE;
                         }
                     }
+                    options.registerInfo = registerInfo;
                     break;
                 case 'c':
                     String bcp = commandLine.getOptionValue("c");
                     if (bcp != null && bcp.charAt(0) == ':') {
-                        extraBootClassPathEntries.append(bcp);
+                        options.addExtraClassPath(bcp);
                     } else {
-                        bootClassPath = bcp;
+                        options.setBootClassPath(bcp);
                     }
                     break;
                 case 'x':
-                    deodex = true;
+                    options.deodex = true;
                     break;
                 case 'm':
-                    noAccessorComments = true;
+                    options.noAccessorComments = true;
                     break;
                 case 'a':
-                    apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
+                    options.apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
                     break;
                 case 'N':
                     disassemble = false;
                     break;
                 case 'D':
                     doDump = true;
-                    dumpFileName = commandLine.getOptionValue("D", inputDexFileName + ".dump");
+                    dumpFileName = commandLine.getOptionValue("D");
                     break;
                 case 'I':
-                    ignoreErrors = true;
+                    options.ignoreErrors = true;
                     break;
                 case 'T':
-                    inlineTable = commandLine.getOptionValue("T");
+                    options.inlineResolver = new CustomInlineMethodResolver(options.classPath, new File(commandLine.getOptionValue("T")));
                     break;
                 case 'K':
-                    checkPackagePrivateAccess = true;
+                    options.checkPackagePrivateAccess = true;
                     break;
                 default:
                     assert false;
@@ -232,60 +219,45 @@ public class main {
             return;
         }
 
-        inputDexFileName = remainingArgs[0];
+        String inputDexFileName = remainingArgs[0];
 
-        try {
-            File dexFileFile = new File(inputDexFileName);
-            if (!dexFileFile.exists()) {
-                System.err.println("Can't find the file " + inputDexFileName);
-                System.exit(1);
+        File dexFileFile = new File(inputDexFileName);
+        if (!dexFileFile.exists()) {
+            System.err.println("Can't find the file " + inputDexFileName);
+            System.exit(1);
+        }
+
+        //Read in and parse the dex file
+        DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile, options.apiLevel);
+
+        if (dexFile.isOdexFile()) {
+            if (!options.deodex) {
+                System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
+                System.err.println("won't be able to re-assemble the results unless you deodex it with the -x");
+                System.err.println("option");
             }
+        } else {
+            options.deodex = false;
+        }
 
-            //Read in and parse the dex file
-            DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile, apiLevel);
 
-            if (dexFile.isOdexFile()) {
-                if (!deodex) {
-                    System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
-                    System.err.println("won't be able to re-assemble the results unless you deodex it with the -x");
-                    System.err.println("option");
-                }
+        if ((options.deodex || options.registerInfo != 0) && options.bootClassPathEntries == null) {
+            if (dexFile instanceof DexBackedOdexFile) {
+                ((DexBackedOdexFile)dexFile).getDependencies();
             } else {
-                deodex = false;
-
-                if (bootClassPath == null) {
-                    bootClassPath = "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar";
-                }
+                options.bootClassPathEntries = getDefaultBootClassPathForApi(options.apiLevel);
             }
+        }
 
-            if (disassemble) {
-                String[] bootClassPathDirsArray = new String[bootClassPathDirs.size()];
-                for (int i=0; i<bootClassPathDirsArray.length; i++) {
-                    bootClassPathDirsArray[i] = bootClassPathDirs.get(i);
-                }
+        if (disassemble) {
+            baksmali.disassembleDexFile(dexFile, options);
+        }
 
-                baksmali.disassembleDexFile(dexFileFile.getPath(), dexFile, apiLevel, deodex, outputDirectory,
-                        bootClassPathDirsArray, bootClassPath, extraBootClassPathEntries.toString(),
-                        noParameterRegisters, useLocalsDirective, useSequentialLabels, outputDebugInfo, addCodeOffsets,
-                        noAccessorComments, registerInfo, ignoreErrors, inlineTable, checkPackagePrivateAccess);
+        if (doDump) {
+            if (dumpFileName == null) {
+                dumpFileName = commandLine.getOptionValue(inputDexFileName + ".dump");
             }
-
-            if (doDump) {
-                try {
-                    dump.dump(dexFile, dumpFileName, apiLevel);
-                }catch (IOException ex) {
-                    System.err.println("Error occured while writing dump file");
-                    ex.printStackTrace();
-                }
-            }
-        } catch (RuntimeException ex) {
-            System.err.println("\n\nUNEXPECTED TOP-LEVEL EXCEPTION:");
-            ex.printStackTrace();
-            System.exit(1);
-        } catch (Throwable ex) {
-            System.err.println("\n\nUNEXPECTED TOP-LEVEL ERROR:");
-            ex.printStackTrace();
-            System.exit(1);
+            dump.dump(dexFile, dumpFileName, options.apiLevel);
         }
     }
 
@@ -319,6 +291,7 @@ public class main {
         System.exit(0);
     }
 
+    @SuppressWarnings("AccessStaticViaInstance")
     private static void buildOptions() {
         Option versionOption = OptionBuilder.withLongOpt("version")
                 .withDescription("prints the version then exits")
@@ -457,6 +430,62 @@ public class main {
         }
         for (Object option: debugOptions.getOptions()) {
             options.addOption((Option)option);
+        }
+    }
+    
+    @Nonnull
+    private static List<String> getDefaultBootClassPathForApi(int apiLevel) {
+        if (apiLevel < 9) {
+            return Lists.newArrayList(
+                    "/system/framework/core.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/android.policy.jar",
+                    "/system/framework/services.jar");
+        } else if (apiLevel < 12) {
+            return Lists.newArrayList(
+                    "/system/framework/core.jar",
+                    "/system/framework/bouncycastle.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/android.policy.jar",
+                    "/system/framework/services.jar",
+                    "/system/framework/core-junit.jar");
+        } else if (apiLevel < 14) {
+            return Lists.newArrayList(
+                    "/system/framework/core.jar",
+                    "/system/framework/apache-xml.jar",
+                    "/system/framework/bouncycastle.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/android.policy.jar",
+                    "/system/framework/services.jar",
+                    "/system/framework/core-junit.jar");
+        } else if (apiLevel < 16) {
+            return Lists.newArrayList(
+                    "/system/framework/core.jar",
+                    "/system/framework/core-junit.jar",
+                    "/system/framework/bouncycastle.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/android.policy.jar",
+                    "/system/framework/services.jar",
+                    "/system/framework/apache-xml.jar",
+                    "/system/framework/filterfw.jar");
+
+        } else {
+            // this is correct as of api 17/4.2.2
+            return Lists.newArrayList(
+                    "/system/framework/core.jar",
+                    "/system/framework/core-junit.jar",
+                    "/system/framework/bouncycastle.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/telephony-common.jar",
+                    "/system/framework/mms-common.jar",
+                    "/system/framework/android.policy.jar",
+                    "/system/framework/services.jar",
+                    "/system/framework/apache-xml.jar");
         }
     }
 }

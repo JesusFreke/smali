@@ -176,9 +176,7 @@ public class MethodDefinition {
         writer.write('\n');
 
         List<MethodItem> methodItems = getMethodItems();
-        int size = methodItems.size();
-        for (int i=0; i<size; i++) {
-            MethodItem methodItem = methodItems.get(i);
+        for (MethodItem methodItem: methodItems) {
             if (methodItem.writeTo(writer)) {
                 writer.write('\n');
             }

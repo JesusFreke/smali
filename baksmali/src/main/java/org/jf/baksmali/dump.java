@@ -40,9 +40,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 public class dump {
-    public static void dump(DexBackedDexFile dexFile, String dumpFileName, int apiLevel)
-            throws IOException {
-
+    public static void dump(DexBackedDexFile dexFile, String dumpFileName, int apiLevel) throws IOException {
         if (dumpFileName != null) {
             Writer writer = null;
 
