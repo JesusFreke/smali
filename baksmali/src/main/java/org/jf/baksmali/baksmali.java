@@ -30,6 +30,7 @@ package org.jf.baksmali;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.iface.ClassDef;
@@ -40,10 +41,11 @@ import org.jf.util.IndentingWriter;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class baksmali {
 
-    public static void disassembleDexFile(DexFile dexFile, baksmaliOptions options) {
+    public static void disassembleDexFile(DexFile dexFile, final baksmaliOptions options) {
         if (options.registerInfo != 0 || options.deodex) {
             try {
                 Iterable<String> extraClassPathEntries;
@@ -87,11 +89,34 @@ public class baksmali {
             options.syntheticAccessorResolver = new SyntheticAccessorResolver(classDefs);
         }
 
-        ClassFileNameHandler fileNameHandler = new ClassFileNameHandler(outputDirectoryFile, ".smali");
+        final ClassFileNameHandler fileNameHandler = new ClassFileNameHandler(outputDirectoryFile, ".smali");
 
-        for (ClassDef classDef: classDefs) {
-            disassembleClass(classDef, fileNameHandler, options);
+        ExecutorService executor = Executors.newFixedThreadPool(options.jobs);
+        List<Future<Void>> tasks = Lists.newArrayList();
+
+        for (final ClassDef classDef: classDefs) {
+            tasks.add(executor.submit(new Callable<Void>() {
+                @Override public Void call() throws Exception {
+                    disassembleClass(classDef, fileNameHandler, options);
+                    return null;
+                }
+            }));
         }
+
+        for (Future<Void> task: tasks) {
+            while(true) {
+                try {
+                    task.get();
+                } catch (InterruptedException ex) {
+                    continue;
+                } catch (ExecutionException ex) {
+                    throw new RuntimeException(ex);
+                }
+                break;
+            }
+        }
+
+        executor.shutdown();
     }
 
     private static void disassembleClass(ClassDef classDef, ClassFileNameHandler fileNameHandler,
@@ -124,8 +149,11 @@ public class baksmali {
             File smaliParent = smaliFile.getParentFile();
             if (!smaliParent.exists()) {
                 if (!smaliParent.mkdirs()) {
-                    System.err.println("Unable to create directory " + smaliParent.toString() + " - skipping class");
-                    return;
+                    // check again, it's likely it was created in a different thread
+                    if (!smaliParent.exists()) {
+                        System.err.println("Unable to create directory " + smaliParent.toString() + " - skipping class");
+                        return;
+                    }
                 }
             }
 

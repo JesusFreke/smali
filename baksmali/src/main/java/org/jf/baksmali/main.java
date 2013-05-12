@@ -193,6 +193,9 @@ public class main {
                 case 'a':
                     options.apiLevel = Integer.parseInt(commandLine.getOptionValue("a"));
                     break;
+                case 'j':
+                    options.jobs = Integer.parseInt(commandLine.getOptionValue("j"));
+                    break;
                 case 'N':
                     disassemble = false;
                     break;
@@ -217,6 +220,13 @@ public class main {
         if (remainingArgs.length != 1) {
             usage();
             return;
+        }
+
+        if (options.jobs <= 0) {
+            options.jobs = Runtime.getRuntime().availableProcessors();
+            if (options.jobs > 6) {
+                options.jobs = 6;
+            }
         }
 
         String inputDexFileName = remainingArgs[0];
@@ -375,6 +385,13 @@ public class main {
                 .withArgName("API_LEVEL")
                 .create("a");
 
+        Option jobsOption = OptionBuilder.withLongOpt("jobs")
+                .withDescription("The number of threads to use. Defaults to the number of cores available, up to a " +
+                        "maximum of 6")
+                .hasArg()
+                .withArgName("NUM_THREADS")
+                .create("j");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
                         " (<dexfile>.dump by default), along with the normal disassembly")
@@ -418,6 +435,7 @@ public class main {
         basicOptions.addOption(codeOffsetOption);
         basicOptions.addOption(noAccessorCommentsOption);
         basicOptions.addOption(apiLevelOption);
+        basicOptions.addOption(jobsOption);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);

@@ -32,7 +32,12 @@
 package org.jf.dexlib2.analysis;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.*;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.iface.ClassDef;
@@ -57,10 +62,7 @@ import java.util.List;
 public class ClassProto implements TypeProto {
     @Nonnull protected final ClassPath classPath;
     @Nonnull protected final String type;
-    @Nullable protected ClassDef classDef;
-    @Nullable protected LinkedHashMap<String, ClassDef> interfaces;
-    @Nullable protected List<Method> vtable;
-    @Nullable protected SparseArray<FieldReference> instanceFields;
+
     protected boolean vtableFullyResolved = true;
     protected boolean interfacesFullyResolved = true;
 
@@ -78,27 +80,15 @@ public class ClassProto implements TypeProto {
 
     @Nonnull
     public ClassDef getClassDef() {
-        if (classDef == null) {
-            classDef = classPath.getClassDef(type);
-        }
-        return classDef;
+        return classDefSupplier.get();
     }
 
-    @Nonnull
-    List<Method> getVtable() {
-        if (vtable == null) {
-            loadVtable();
-        }
-        return vtable;
-    }
 
-    @Nonnull
-    SparseArray<FieldReference> getInstanceFields() {
-        if (instanceFields == null) {
-            instanceFields = loadFields();
+    @Nonnull private final Supplier<ClassDef> classDefSupplier = Suppliers.memoize(new Supplier<ClassDef>() {
+        @Override public ClassDef get() {
+            return classPath.getClassDef(type);
         }
-        return instanceFields;
-    }
+    });
 
     /**
      * Returns true if this class is an interface.
@@ -128,65 +118,69 @@ public class ClassProto implements TypeProto {
      */
     @Nonnull
     protected LinkedHashMap<String, ClassDef> getInterfaces() {
-        if (interfaces != null) {
-            return interfaces;
-        }
-
-        interfaces = Maps.newLinkedHashMap();
-
-        try {
-            for (String interfaceType: getClassDef().getInterfaces()) {
-                if (!interfaces.containsKey(interfaceType)) {
-                    ClassDef interfaceDef;
-                    try {
-                        interfaceDef = classPath.getClassDef(interfaceType);
-                        interfaces.put(interfaceType, interfaceDef);
-                    } catch (UnresolvedClassException ex) {
-                        interfaces.put(interfaceType, null);
-                        interfacesFullyResolved = false;
-                    }
-
-                    ClassProto interfaceProto = (ClassProto) classPath.getClass(interfaceType);
-                    for (String superInterface: interfaceProto.getInterfaces().keySet()) {
-                        if (!interfaces.containsKey(superInterface)) {
-                            interfaces.put(superInterface, interfaceProto.getInterfaces().get(superInterface));
-                        }
-                    }
-                    if (!interfaceProto.interfacesFullyResolved) {
-                        interfacesFullyResolved = false;
-                    }
-                }
-            }
-        } catch (UnresolvedClassException ex) {
-            interfacesFullyResolved = false;
-        }
-
-        // now add self and super class interfaces, required for common super class lookup
-        // we don't really need ClassDef's for that, so let's just use null
-
-        if (isInterface() && !interfaces.containsKey(getType())) {
-            interfaces.put(getType(), null);
-        }
-
-        try {
-            String superclass = getSuperclass();
-            if (superclass != null) {
-                ClassProto superclassProto = (ClassProto) classPath.getClass(superclass);
-                for (String superclassInterface: superclassProto.getInterfaces().keySet()) {
-                    if (!interfaces.containsKey(superclassInterface)) {
-                        interfaces.put(superclassInterface, null);
-                    }
-                }
-                if (!superclassProto.interfacesFullyResolved) {
-                    interfacesFullyResolved = false;
-                }
-            }
-        } catch (UnresolvedClassException ex) {
-            interfacesFullyResolved = false;
-        }
-
-        return interfaces;
+        return interfacesSupplier.get();
     }
+
+    @Nonnull
+    private final Supplier<LinkedHashMap<String, ClassDef>> interfacesSupplier =
+            Suppliers.memoize(new Supplier<LinkedHashMap<String, ClassDef>>() {
+                @Override public LinkedHashMap<String, ClassDef> get() {
+                    LinkedHashMap<String, ClassDef> interfaces = Maps.newLinkedHashMap();
+
+                    try {
+                        for (String interfaceType: getClassDef().getInterfaces()) {
+                            if (!interfaces.containsKey(interfaceType)) {
+                                ClassDef interfaceDef;
+                                try {
+                                    interfaceDef = classPath.getClassDef(interfaceType);
+                                    interfaces.put(interfaceType, interfaceDef);
+                                } catch (UnresolvedClassException ex) {
+                                    interfaces.put(interfaceType, null);
+                                    interfacesFullyResolved = false;
+                                }
+
+                                ClassProto interfaceProto = (ClassProto) classPath.getClass(interfaceType);
+                                for (String superInterface: interfaceProto.getInterfaces().keySet()) {
+                                    if (!interfaces.containsKey(superInterface)) {
+                                        interfaces.put(superInterface, interfaceProto.getInterfaces().get(superInterface));
+                                    }
+                                }
+                                if (!interfaceProto.interfacesFullyResolved) {
+                                    interfacesFullyResolved = false;
+                                }
+                            }
+                        }
+                    } catch (UnresolvedClassException ex) {
+                        interfacesFullyResolved = false;
+                    }
+
+                    // now add self and super class interfaces, required for common super class lookup
+                    // we don't really need ClassDef's for that, so let's just use null
+
+                    if (isInterface() && !interfaces.containsKey(getType())) {
+                        interfaces.put(getType(), null);
+                    }
+
+                    try {
+                        String superclass = getSuperclass();
+                        if (superclass != null) {
+                            ClassProto superclassProto = (ClassProto) classPath.getClass(superclass);
+                            for (String superclassInterface: superclassProto.getInterfaces().keySet()) {
+                                if (!interfaces.containsKey(superclassInterface)) {
+                                    interfaces.put(superclassInterface, null);
+                                }
+                            }
+                            if (!superclassProto.interfacesFullyResolved) {
+                                interfacesFullyResolved = false;
+                            }
+                        }
+                    } catch (UnresolvedClassException ex) {
+                        interfacesFullyResolved = false;
+                    }
+
+                    return interfaces;
+                }
+            });
 
     /**
      * Gets the interfaces directly implemented by this class, or the interfaces they transitively implement.
@@ -194,15 +188,18 @@ public class ClassProto implements TypeProto {
      * This does not include any interfaces that are only implemented by a superclass
      *
      * @return An iterables of ClassDefs representing the directly or transitively implemented interfaces
-     * @throws UnresolvedClassException if any interface could not be resolved
+     * @throws UnresolvedClassException if interfaces could not be fully resolved
      */
     @Nonnull
     protected Iterable<ClassDef> getDirectInterfaces() {
+        Iterable<ClassDef> directInterfaces =
+                FluentIterable.from(getInterfaces().values()).filter(Predicates.notNull());
+
         if (!interfacesFullyResolved) {
             throw new UnresolvedClassException("Interfaces for class %s not fully resolved", getType());
         }
 
-        return FluentIterable.from(getInterfaces().values()).filter(Predicates.notNull());
+        return directInterfaces;
     }
 
     /**
@@ -213,6 +210,8 @@ public class ClassProto implements TypeProto {
      *
      * @param iface The interface to check for
      * @return true if this class implements the given interface, otherwise false
+     * @throws UnresolvedClassException if the interfaces for this class could not be fully resolved, and the interface
+     * is not one of the interfaces that were successfully resolved
      */
     @Override
     public boolean implementsInterface(@Nonnull String iface) {
@@ -354,184 +353,193 @@ public class ClassProto implements TypeProto {
         return vtable.get(vtableIndex);
     }
 
-    @Nonnull
-    private SparseArray<FieldReference> loadFields() {
-        //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
-        //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
-        //See mydroid/dalvik/vm/oo/Class.c - computeFieldOffsets()
-
-        final byte REFERENCE = 0;
-        final byte WIDE = 1;
-        final byte OTHER = 2;
-
-        ArrayList<Field> fields = getSortedInstanceFields(getClassDef());
-        final int fieldCount = fields.size();
-        //the "type" for each field in fields. 0=reference,1=wide,2=other
-        byte[] fieldTypes = new byte[fields.size()];
-        for (int i=0; i<fieldCount; i++) {
-            fieldTypes[i] = getFieldType(fields.get(i));
-        }
-
-        //The first operation is to move all of the reference fields to the front. To do this, find the first
-        //non-reference field, then find the last reference field, swap them and repeat
-        int back = fields.size() - 1;
-        int front;
-        for (front = 0; front<fieldCount; front++) {
-            if (fieldTypes[front] != REFERENCE) {
-                while (back > front) {
-                    if (fieldTypes[back] == REFERENCE) {
-                        swap(fieldTypes, fields, front, back--);
-                        break;
-                    }
-                    back--;
-                }
-            }
-
-            if (fieldTypes[front] != REFERENCE) {
-                break;
-            }
-        }
-
-        int startFieldOffset = 8;
-        String superclassType = getSuperclass();
-        ClassProto superclass = null;
-        if (superclassType != null) {
-            superclass = (ClassProto) classPath.getClass(superclassType);
-            if (superclass != null) {
-                startFieldOffset = superclass.getNextFieldOffset();
-            }
-        }
-
-        int fieldIndexMod;
-        if ((startFieldOffset % 8) == 0) {
-            fieldIndexMod = 0;
-        } else {
-            fieldIndexMod = 1;
-        }
-
-        //next, we need to group all the wide fields after the reference fields. But the wide fields have to be
-        //8-byte aligned. If we're on an odd field index, we need to insert a 32-bit field. If the next field
-        //is already a 32-bit field, use that. Otherwise, find the first 32-bit field from the end and swap it in.
-        //If there are no 32-bit fields, do nothing for now. We'll add padding when calculating the field offsets
-        if (front < fieldCount && (front % 2) != fieldIndexMod) {
-            if (fieldTypes[front] == WIDE) {
-                //we need to swap in a 32-bit field, so the wide fields will be correctly aligned
-                back = fieldCount - 1;
-                while (back > front) {
-                    if (fieldTypes[back] == OTHER) {
-                        swap(fieldTypes, fields, front++, back);
-                        break;
-                    }
-                    back--;
-                }
-            } else {
-                //there's already a 32-bit field here that we can use
-                front++;
-            }
-        }
-
-        //do the swap thing for wide fields
-        back = fieldCount - 1;
-        for (; front<fieldCount; front++) {
-            if (fieldTypes[front] != WIDE) {
-                while (back > front) {
-                    if (fieldTypes[back] == WIDE) {
-                        swap(fieldTypes, fields, front, back--);
-                        break;
-                    }
-                    back--;
-                }
-            }
-
-            if (fieldTypes[front] != WIDE) {
-                break;
-            }
-        }
-
-        int superFieldCount = 0;
-        if (superclass != null) {
-            superFieldCount = superclass.instanceFields.size();
-        }
-
-        //now the fields are in the correct order. Add them to the SparseArray and lookup, and calculate the offsets
-        int totalFieldCount = superFieldCount + fieldCount;
-        SparseArray<FieldReference> instanceFields = new SparseArray<FieldReference>(totalFieldCount);
-
-        int fieldOffset;
-
-        if (superclass != null && superFieldCount > 0) {
-            for (int i=0; i<superFieldCount; i++) {
-                instanceFields.append(superclass.instanceFields.keyAt(i), superclass.instanceFields.valueAt(i));
-            }
-
-            fieldOffset = instanceFields.keyAt(superFieldCount-1);
-
-            FieldReference lastSuperField = superclass.instanceFields.valueAt(superFieldCount-1);
-            char fieldType = lastSuperField.getType().charAt(0);
-            if (fieldType == 'J' || fieldType == 'D') {
-                fieldOffset += 8;
-            } else {
-                fieldOffset += 4;
-            }
-        } else {
-            //the field values start at 8 bytes into the DataObject dalvik structure
-            fieldOffset = 8;
-        }
-
-        boolean gotDouble = false;
-        for (int i=0; i<fieldCount; i++) {
-            FieldReference field = fields.get(i);
-
-            //add padding to align the wide fields, if needed
-            if (fieldTypes[i] == WIDE && !gotDouble) {
-                if (!gotDouble) {
-                    if (fieldOffset % 8 != 0) {
-                        assert fieldOffset % 8 == 4;
-                        fieldOffset += 4;
-                    }
-                    gotDouble = true;
-                }
-            }
-
-            instanceFields.append(fieldOffset, field);
-            if (fieldTypes[i] == WIDE) {
-                fieldOffset += 8;
-            } else {
-                fieldOffset += 4;
-            }
-        }
-
-        return instanceFields;
+    @Nonnull SparseArray<FieldReference> getInstanceFields() {
+        return instanceFieldsSupplier.get();
     }
 
-    @Nonnull
-    private static ArrayList<Field> getSortedInstanceFields(@Nonnull ClassDef classDef) {
-        ArrayList<Field> fields = Lists.newArrayList(classDef.getInstanceFields());
-        Collections.sort(fields);
-        return fields;
-    }
+    @Nonnull private final Supplier<SparseArray<FieldReference>> instanceFieldsSupplier =
+            Suppliers.memoize(new Supplier<SparseArray<FieldReference>>() {
+                @Override public SparseArray<FieldReference> get() {
+                    //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
+                    //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
+                    //See mydroid/dalvik/vm/oo/Class.c - computeFieldOffsets()
 
-    private byte getFieldType(@Nonnull FieldReference field) {
-        switch (field.getType().charAt(0)) {
-            case '[':
-            case 'L':
-                return 0; //REFERENCE
-            case 'J':
-            case 'D':
-                return 1; //WIDE
-            default:
-                return 2; //OTHER
-        }
-    }
+                    final byte REFERENCE = 0;
+                    final byte WIDE = 1;
+                    final byte OTHER = 2;
 
-    private void swap(byte[] fieldTypes, List<Field> fields, int position1, int position2) {
-        byte tempType = fieldTypes[position1];
-        fieldTypes[position1] = fieldTypes[position2];
-        fieldTypes[position2] = tempType;
+                    ArrayList<Field> fields = getSortedInstanceFields(getClassDef());
+                    final int fieldCount = fields.size();
+                    //the "type" for each field in fields. 0=reference,1=wide,2=other
+                    byte[] fieldTypes = new byte[fields.size()];
+                    for (int i=0; i<fieldCount; i++) {
+                        fieldTypes[i] = getFieldType(fields.get(i));
+                    }
 
-        Field tempField = fields.set(position1, fields.get(position2));
-        fields.set(position2, tempField);
-    }
+                    //The first operation is to move all of the reference fields to the front. To do this, find the first
+                    //non-reference field, then find the last reference field, swap them and repeat
+                    int back = fields.size() - 1;
+                    int front;
+                    for (front = 0; front<fieldCount; front++) {
+                        if (fieldTypes[front] != REFERENCE) {
+                            while (back > front) {
+                                if (fieldTypes[back] == REFERENCE) {
+                                    swap(fieldTypes, fields, front, back--);
+                                    break;
+                                }
+                                back--;
+                            }
+                        }
+
+                        if (fieldTypes[front] != REFERENCE) {
+                            break;
+                        }
+                    }
+
+                    int startFieldOffset = 8;
+                    String superclassType = getSuperclass();
+                    ClassProto superclass = null;
+                    if (superclassType != null) {
+                        superclass = (ClassProto) classPath.getClass(superclassType);
+                        if (superclass != null) {
+                            startFieldOffset = superclass.getNextFieldOffset();
+                        }
+                    }
+
+                    int fieldIndexMod;
+                    if ((startFieldOffset % 8) == 0) {
+                        fieldIndexMod = 0;
+                    } else {
+                        fieldIndexMod = 1;
+                    }
+
+                    //next, we need to group all the wide fields after the reference fields. But the wide fields have to be
+                    //8-byte aligned. If we're on an odd field index, we need to insert a 32-bit field. If the next field
+                    //is already a 32-bit field, use that. Otherwise, find the first 32-bit field from the end and swap it in.
+                    //If there are no 32-bit fields, do nothing for now. We'll add padding when calculating the field offsets
+                    if (front < fieldCount && (front % 2) != fieldIndexMod) {
+                        if (fieldTypes[front] == WIDE) {
+                            //we need to swap in a 32-bit field, so the wide fields will be correctly aligned
+                            back = fieldCount - 1;
+                            while (back > front) {
+                                if (fieldTypes[back] == OTHER) {
+                                    swap(fieldTypes, fields, front++, back);
+                                    break;
+                                }
+                                back--;
+                            }
+                        } else {
+                            //there's already a 32-bit field here that we can use
+                            front++;
+                        }
+                    }
+
+                    //do the swap thing for wide fields
+                    back = fieldCount - 1;
+                    for (; front<fieldCount; front++) {
+                        if (fieldTypes[front] != WIDE) {
+                            while (back > front) {
+                                if (fieldTypes[back] == WIDE) {
+                                    swap(fieldTypes, fields, front, back--);
+                                    break;
+                                }
+                                back--;
+                            }
+                        }
+
+                        if (fieldTypes[front] != WIDE) {
+                            break;
+                        }
+                    }
+
+                    SparseArray<FieldReference> superFields;
+                    if (superclass != null) {
+                        superFields = superclass.getInstanceFields();
+                    } else {
+                        superFields = new SparseArray<FieldReference>();
+                    }
+                    int superFieldCount = superFields.size();
+
+                    //now the fields are in the correct order. Add them to the SparseArray and lookup, and calculate the offsets
+                    int totalFieldCount = superFieldCount + fieldCount;
+                    SparseArray<FieldReference> instanceFields = new SparseArray<FieldReference>(totalFieldCount);
+
+                    int fieldOffset;
+
+                    if (superclass != null && superFieldCount > 0) {
+                        for (int i=0; i<superFieldCount; i++) {
+                            instanceFields.append(superFields.keyAt(i), superFields.valueAt(i));
+                        }
+
+                        fieldOffset = instanceFields.keyAt(superFieldCount-1);
+
+                        FieldReference lastSuperField = superFields.valueAt(superFieldCount-1);
+                        char fieldType = lastSuperField.getType().charAt(0);
+                        if (fieldType == 'J' || fieldType == 'D') {
+                            fieldOffset += 8;
+                        } else {
+                            fieldOffset += 4;
+                        }
+                    } else {
+                        //the field values start at 8 bytes into the DataObject dalvik structure
+                        fieldOffset = 8;
+                    }
+
+                    boolean gotDouble = false;
+                    for (int i=0; i<fieldCount; i++) {
+                        FieldReference field = fields.get(i);
+
+                        //add padding to align the wide fields, if needed
+                        if (fieldTypes[i] == WIDE && !gotDouble) {
+                            if (!gotDouble) {
+                                if (fieldOffset % 8 != 0) {
+                                    assert fieldOffset % 8 == 4;
+                                    fieldOffset += 4;
+                                }
+                                gotDouble = true;
+                            }
+                        }
+
+                        instanceFields.append(fieldOffset, field);
+                        if (fieldTypes[i] == WIDE) {
+                            fieldOffset += 8;
+                        } else {
+                            fieldOffset += 4;
+                        }
+                    }
+
+                    return instanceFields;
+                }
+
+                @Nonnull
+                private ArrayList<Field> getSortedInstanceFields(@Nonnull ClassDef classDef) {
+                    ArrayList<Field> fields = Lists.newArrayList(classDef.getInstanceFields());
+                    Collections.sort(fields);
+                    return fields;
+                }
+
+                private byte getFieldType(@Nonnull FieldReference field) {
+                    switch (field.getType().charAt(0)) {
+                        case '[':
+                        case 'L':
+                            return 0; //REFERENCE
+                        case 'J':
+                        case 'D':
+                            return 1; //WIDE
+                        default:
+                            return 2; //OTHER
+                    }
+                }
+
+                private void swap(byte[] fieldTypes, List<Field> fields, int position1, int position2) {
+                    byte tempType = fieldTypes[position1];
+                    fieldTypes[position1] = fieldTypes[position2];
+                    fieldTypes[position2] = tempType;
+
+                    Field tempField = fields.set(position1, fields.get(position2));
+                    fields.set(position2, tempField);
+                }
+            });
 
     private int getNextFieldOffset() {
         SparseArray<FieldReference> instanceFields = getInstanceFields();
@@ -552,93 +560,100 @@ public class ClassProto implements TypeProto {
         }
     }
 
-    //TODO: check the case when we have a package private method that overrides an interface method
-    private void loadVtable() {
-        vtable = Lists.newArrayList();
-
-        //copy the virtual methods from the superclass
-        String superclassType;
-        try {
-            superclassType = getSuperclass();
-        } catch (UnresolvedClassException ex) {
-            vtable.addAll(((ClassProto)classPath.getClass("Ljava/lang/Object;")).getVtable());
-            vtableFullyResolved = false;
-            return;
-        }
-
-        if (superclassType != null) {
-            ClassProto superclass = (ClassProto) classPath.getClass(superclassType);
-            vtable.addAll(superclass.getVtable());
-
-            // if the superclass's vtable wasn't fully resolved, then we can't know where the new methods added by this
-            // class should start, so we just propagate what we can from the parent and hope for the best.
-            if (!superclass.interfacesFullyResolved) {
-                vtableFullyResolved = false;
-                return;
-            }
-        }
-
-        //iterate over the virtual methods in the current class, and only add them when we don't already have the
-        //method (i.e. if it was implemented by the superclass)
-        if (!isInterface()) {
-            addToVtable(getClassDef().getVirtualMethods(), vtable, true);
-
-            for (ClassDef interfaceDef: getDirectInterfaces()) {
-                addToVtable(interfaceDef.getVirtualMethods(), vtable, false);
-            }
-        }
+    @Nonnull List<Method> getVtable() {
+        return vtableSupplier.get();
     }
 
-    private void addToVtable(@Nonnull Iterable<? extends Method> localMethods,
-                             @Nonnull List<Method> vtable, boolean replaceExisting) {
-        List<? extends Method> methods = Lists.newArrayList(localMethods);
-        Collections.sort(methods);
+    //TODO: check the case when we have a package private method that overrides an interface method
+    @Nonnull private final Supplier<List<Method>> vtableSupplier = Suppliers.memoize(new Supplier<List<Method>>() {
+        @Override public List<Method> get() {
+            List<Method> vtable = Lists.newArrayList();
 
-        outer: for (Method virtualMethod: methods) {
-            for (int i=0; i<vtable.size(); i++) {
-                Method superMethod = vtable.get(i);
-                if (methodSignaturesMatch(superMethod, virtualMethod)) {
-                    if (classPath.getApi() < 17 || canAccess(superMethod)) {
-                        if (replaceExisting) {
-                            vtable.set(i, virtualMethod);
-                        }
-                        continue outer;
-                    }
+            //copy the virtual methods from the superclass
+            String superclassType;
+            try {
+                superclassType = getSuperclass();
+            } catch (UnresolvedClassException ex) {
+                vtable.addAll(((ClassProto)classPath.getClass("Ljava/lang/Object;")).getVtable());
+                vtableFullyResolved = false;
+                return vtable;
+            }
+
+            if (superclassType != null) {
+                ClassProto superclass = (ClassProto) classPath.getClass(superclassType);
+                vtable.addAll(superclass.getVtable());
+
+                // if the superclass's vtable wasn't fully resolved, then we can't know where the new methods added by this
+                // class should start, so we just propagate what we can from the parent and hope for the best.
+                if (!superclass.vtableFullyResolved) {
+                    vtableFullyResolved = false;
+                    return vtable;
                 }
             }
-            // we didn't find an equivalent method, so add it as a new entry
-            vtable.add(virtualMethod);
-        }
-    }
 
-    private static boolean methodSignaturesMatch(@Nonnull Method a, @Nonnull Method b) {
-        return (a.getName().equals(b.getName()) &&
-                a.getReturnType().equals(b.getReturnType()) &&
-                a.getParameters().equals(b.getParameters()));
-    }
+            //iterate over the virtual methods in the current class, and only add them when we don't already have the
+            //method (i.e. if it was implemented by the superclass)
+            if (!isInterface()) {
+                addToVtable(getClassDef().getVirtualMethods(), vtable, true);
 
-    private boolean canAccess(@Nonnull Method virtualMethod) {
-        if (!methodIsPackagePrivate(virtualMethod.getAccessFlags())) {
-            return true;
+                for (ClassDef interfaceDef: getDirectInterfaces()) {
+                    addToVtable(interfaceDef.getVirtualMethods(), vtable, false);
+                }
+            }
+            return vtable;
         }
 
-        String otherPackage = getPackage(virtualMethod.getDefiningClass());
-        String ourPackage = getPackage(getClassDef().getType());
-        return otherPackage.equals(ourPackage);
-    }
+        private void addToVtable(@Nonnull Iterable<? extends Method> localMethods,
+                                 @Nonnull List<Method> vtable, boolean replaceExisting) {
+            List<? extends Method> methods = Lists.newArrayList(localMethods);
+            Collections.sort(methods);
 
-    @Nonnull
-    private static String getPackage(@Nonnull String classType) {
-        int lastSlash = classType.lastIndexOf('/');
-        if (lastSlash < 0) {
-            return "";
+            outer: for (Method virtualMethod: methods) {
+                for (int i=0; i<vtable.size(); i++) {
+                    Method superMethod = vtable.get(i);
+                    if (methodSignaturesMatch(superMethod, virtualMethod)) {
+                        if (classPath.getApi() < 17 || canAccess(superMethod)) {
+                            if (replaceExisting) {
+                                vtable.set(i, virtualMethod);
+                            }
+                            continue outer;
+                        }
+                    }
+                }
+                // we didn't find an equivalent method, so add it as a new entry
+                vtable.add(virtualMethod);
+            }
         }
-        return classType.substring(1, lastSlash);
-    }
 
-    private static boolean methodIsPackagePrivate(int accessFlags) {
-        return (accessFlags & (AccessFlags.PRIVATE.getValue() |
-                AccessFlags.PROTECTED.getValue() |
-                AccessFlags.PUBLIC.getValue())) == 0;
-    }
+        private boolean methodSignaturesMatch(@Nonnull Method a, @Nonnull Method b) {
+            return (a.getName().equals(b.getName()) &&
+                    a.getReturnType().equals(b.getReturnType()) &&
+                    a.getParameters().equals(b.getParameters()));
+        }
+
+        private boolean canAccess(@Nonnull Method virtualMethod) {
+            if (!methodIsPackagePrivate(virtualMethod.getAccessFlags())) {
+                return true;
+            }
+
+            String otherPackage = getPackage(virtualMethod.getDefiningClass());
+            String ourPackage = getPackage(getClassDef().getType());
+            return otherPackage.equals(ourPackage);
+        }
+
+        @Nonnull
+        private String getPackage(@Nonnull String classType) {
+            int lastSlash = classType.lastIndexOf('/');
+            if (lastSlash < 0) {
+                return "";
+            }
+            return classType.substring(1, lastSlash);
+        }
+
+        private boolean methodIsPackagePrivate(int accessFlags) {
+            return (accessFlags & (AccessFlags.PRIVATE.getValue() |
+                    AccessFlags.PROTECTED.getValue() |
+                    AccessFlags.PUBLIC.getValue())) == 0;
+        }
+    });
 }

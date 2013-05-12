@@ -31,6 +31,9 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -53,10 +56,8 @@ import java.util.regex.Pattern;
 
 public class ClassPath {
     @Nonnull private final TypeProto unknownClass;
-    @Nonnull private DexFile[] dexFiles;
-    @Nonnull private HashMap<String, TypeProto> loadedClasses = Maps.newHashMap();
     @Nonnull private HashMap<String, ClassDef> availableClasses = Maps.newHashMap();
-    @Nonnull private int api;
+    private int api;
 
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
@@ -78,6 +79,7 @@ public class ClassPath {
     }
 
     private ClassPath(@Nonnull DexFile[] classPath, boolean copyArray, int api) {
+        DexFile[] dexFiles;
         if (copyArray) {
             dexFiles = new DexFile[classPath.length+1];
             System.arraycopy(classPath, 0, dexFiles, 0, classPath.length);
@@ -128,22 +130,20 @@ public class ClassPath {
 
     @Nonnull
     public TypeProto getClass(CharSequence type) {
-        String typeString = type.toString();
-        TypeProto typeProto = loadedClasses.get(typeString);
-        if (typeProto != null) {
-            return typeProto;
-        }
-
-        if (type.charAt(0) == '[') {
-            typeProto = new ArrayProto(this, typeString);
-        } else {
-            typeProto = new ClassProto(this, typeString);
-        }
-        // All primitive types are preloaded into loadedClasses, so we don't need to check for that here
-
-        loadedClasses.put(typeString, typeProto);
-        return typeProto;
+        return loadedClasses.getUnchecked(type.toString());
     }
+
+    private final CacheLoader<String, TypeProto> classLoader = new CacheLoader<String, TypeProto>() {
+        @Override public TypeProto load(String type) throws Exception {
+            if (type.charAt(0) == '[') {
+                return new ArrayProto(ClassPath.this, type);
+            } else {
+                return new ClassProto(ClassPath.this, type);
+            }
+        }
+    };
+
+    @Nonnull private LoadingCache<String, TypeProto> loadedClasses = CacheBuilder.newBuilder().build(classLoader);
 
     @Nonnull
     public ClassDef getClassDef(String type) {

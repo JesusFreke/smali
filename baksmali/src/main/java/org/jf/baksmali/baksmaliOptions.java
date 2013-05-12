@@ -68,6 +68,7 @@ public class baksmaliOptions {
     public InlineMethodResolver inlineResolver = null;
     public int registerInfo = 0;
     public ClassPath classPath = null;
+    public int jobs = -1;
 
     public SyntheticAccessorResolver syntheticAccessorResolver = null;
 

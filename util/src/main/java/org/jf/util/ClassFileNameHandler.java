@@ -159,7 +159,7 @@ public class ClassFileNameHandler {
         }
 
         @Override
-        public File addUniqueChild(String[] pathElements, int pathElementsIndex) {
+        public synchronized File addUniqueChild(String[] pathElements, int pathElementsIndex) {
             String elementName;
             String elementNameLower;
 
