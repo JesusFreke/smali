@@ -329,6 +329,7 @@ public class main {
         System.exit(0);
     }
 
+    @SuppressWarnings("AccessStaticViaInstance")
     private static void buildOptions() {
         Option versionOption = OptionBuilder.withLongOpt("version")
                 .withDescription("prints the version then exits")
