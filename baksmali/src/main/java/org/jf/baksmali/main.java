@@ -259,8 +259,9 @@ public class main {
             }
         }
 
+        boolean errorOccurred = false;
         if (disassemble) {
-            baksmali.disassembleDexFile(dexFile, options);
+            errorOccurred = !baksmali.disassembleDexFile(dexFile, options);
         }
 
         if (doDump) {
@@ -268,6 +269,10 @@ public class main {
                 dumpFileName = commandLine.getOptionValue(inputDexFileName + ".dump");
             }
             dump.dump(dexFile, dumpFileName, options.apiLevel);
+        }
+
+        if (errorOccurred) {
+            System.exit(1);
         }
     }
 

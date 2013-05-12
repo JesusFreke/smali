@@ -45,7 +45,7 @@ import java.util.concurrent.*;
 
 public class baksmali {
 
-    public static void disassembleDexFile(DexFile dexFile, final baksmaliOptions options) {
+    public static boolean disassembleDexFile(DexFile dexFile, final baksmaliOptions options) {
         if (options.registerInfo != 0 || options.deodex) {
             try {
                 Iterable<String> extraClassPathEntries;
@@ -92,21 +92,23 @@ public class baksmali {
         final ClassFileNameHandler fileNameHandler = new ClassFileNameHandler(outputDirectoryFile, ".smali");
 
         ExecutorService executor = Executors.newFixedThreadPool(options.jobs);
-        List<Future<Void>> tasks = Lists.newArrayList();
+        List<Future<Boolean>> tasks = Lists.newArrayList();
 
         for (final ClassDef classDef: classDefs) {
-            tasks.add(executor.submit(new Callable<Void>() {
-                @Override public Void call() throws Exception {
-                    disassembleClass(classDef, fileNameHandler, options);
-                    return null;
+            tasks.add(executor.submit(new Callable<Boolean>() {
+                @Override public Boolean call() throws Exception {
+                    return disassembleClass(classDef, fileNameHandler, options);
                 }
             }));
         }
 
-        for (Future<Void> task: tasks) {
+        boolean errorOccurred = false;
+        for (Future<Boolean> task: tasks) {
             while(true) {
                 try {
-                    task.get();
+                    if (!task.get()) {
+                        errorOccurred = true;
+                    }
                 } catch (InterruptedException ex) {
                     continue;
                 } catch (ExecutionException ex) {
@@ -117,10 +119,11 @@ public class baksmali {
         }
 
         executor.shutdown();
+        return !errorOccurred;
     }
 
-    private static void disassembleClass(ClassDef classDef, ClassFileNameHandler fileNameHandler,
-                                         baksmaliOptions options) {
+    private static boolean disassembleClass(ClassDef classDef, ClassFileNameHandler fileNameHandler,
+                                            baksmaliOptions options) {
         /**
          * The path for the disassembly file is based on the package name
          * The class descriptor will look something like:
@@ -134,7 +137,7 @@ public class baksmali {
         if (classDescriptor.charAt(0) != 'L' ||
                 classDescriptor.charAt(classDescriptor.length()-1) != ';') {
             System.err.println("Unrecognized class descriptor - " + classDescriptor + " - skipping class");
-            return;
+            return false;
         }
 
         File smaliFile = fileNameHandler.getUniqueFilenameForClass(classDescriptor);
@@ -152,7 +155,7 @@ public class baksmali {
                     // check again, it's likely it was created in a different thread
                     if (!smaliParent.exists()) {
                         System.err.println("Unable to create directory " + smaliParent.toString() + " - skipping class");
-                        return;
+                        return false;
                     }
                 }
             }
@@ -160,7 +163,7 @@ public class baksmali {
             if (!smaliFile.exists()){
                 if (!smaliFile.createNewFile()) {
                     System.err.println("Unable to create file " + smaliFile.toString() + " - skipping class");
-                    return;
+                    return false;
                 }
             }
 
@@ -174,6 +177,7 @@ public class baksmali {
             ex.printStackTrace();
             // noinspection ResultOfMethodCallIgnored
             smaliFile.delete();
+            return false;
         }
         finally
         {
@@ -186,9 +190,6 @@ public class baksmali {
                 }
             }
         }
-
-        if (!options.ignoreErrors && classDefinition.hadValidationErrors()) {
-            System.exit(1);
-        }
+        return true;
     }
 }
