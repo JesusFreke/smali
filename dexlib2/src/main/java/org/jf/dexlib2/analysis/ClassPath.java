@@ -65,7 +65,7 @@ public class ClassPath {
      * @param classPath An array of DexFile objects. When loading a class, these dex files will be searched in order
      */
     public ClassPath(DexFile... classPath) throws IOException {
-        this(classPath, true, 15);
+        this(Lists.newArrayList(classPath), 15);
     }
 
     /**
@@ -74,20 +74,9 @@ public class ClassPath {
      * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
      * @param api API level
      */
-    public ClassPath(Iterable<DexFile> classPath, int api) {
-        this(Iterables.toArray(classPath, DexFile.class), false, api);
-    }
-
-    private ClassPath(@Nonnull DexFile[] classPath, boolean copyArray, int api) {
-        DexFile[] dexFiles;
-        if (copyArray) {
-            dexFiles = new DexFile[classPath.length+1];
-            System.arraycopy(classPath, 0, dexFiles, 0, classPath.length);
-            // add fallbacks for certain special classes that must be present
-            dexFiles[dexFiles.length - 1] = getBasicClasses();
-        } else {
-            dexFiles = classPath;
-        }
+    public ClassPath(@Nonnull Iterable<DexFile> classPath, int api) {
+        // add fallbacks for certain special classes that must be present
+        Iterable<DexFile> dexFiles = Iterables.concat(classPath, Lists.newArrayList(getBasicClasses()));
 
         unknownClass = new UnknownClassProto(this);
         loadedClasses.put(unknownClass.getType(), unknownClass);
