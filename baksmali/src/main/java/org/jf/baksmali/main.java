@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.cli.*;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
+import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.util.ConsoleUtil;
@@ -99,9 +100,9 @@ public class main {
         boolean disassemble = true;
         boolean doDump = false;
         String dumpFileName = null;
+        boolean setBootClassPath = false;
 
         String[] remainingArgs = commandLine.getArgs();
-
         Option[] clOptions = commandLine.getOptions();
 
         for (int i=0; i<clOptions.length; i++) {
@@ -181,6 +182,7 @@ public class main {
                     if (bcp != null && bcp.charAt(0) == ':') {
                         options.addExtraClassPath(bcp);
                     } else {
+                        setBootClassPath = true;
                         options.setBootClassPath(bcp);
                     }
                     break;
@@ -250,13 +252,17 @@ public class main {
             options.deodex = false;
         }
 
-
-        if ((options.deodex || options.registerInfo != 0) && options.bootClassPathEntries == null) {
+        if (!setBootClassPath && (options.deodex || options.registerInfo != 0)) {
             if (dexFile instanceof DexBackedOdexFile) {
-                ((DexBackedOdexFile)dexFile).getDependencies();
+                options.bootClassPathEntries = ((DexBackedOdexFile)dexFile).getDependencies();
             } else {
                 options.bootClassPathEntries = getDefaultBootClassPathForApi(options.apiLevel);
             }
+        }
+
+        if (options.inlineResolver == null && dexFile instanceof DexBackedOdexFile) {
+            options.inlineResolver =
+                    InlineMethodResolver.createInlineMethodResolver(((DexBackedOdexFile)dexFile).getOdexVersion());
         }
 
         boolean errorOccurred = false;
