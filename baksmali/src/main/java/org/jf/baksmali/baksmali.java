@@ -31,6 +31,7 @@ package org.jf.baksmali;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.iface.ClassDef;
@@ -40,7 +41,7 @@ import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
 
 import java.io.*;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class baksmali {
@@ -77,13 +78,7 @@ public class baksmali {
         //name collisions, then we'll use the same name for each class, if the dex file goes through multiple
         //baksmali/smali cycles for some reason. If a class with a colliding name is added or removed, the filenames
         //may still change of course
-        List<ClassDef> classDefs = new ArrayList<ClassDef>(dexFile.getClasses());
-        Collections.sort(classDefs, new Comparator<ClassDef>() {
-            public int compare(ClassDef classDef1, ClassDef classDef2) {
-                return classDef1.getType().compareTo(classDef2.getType());
-            }
-        });
-        classDefs = ImmutableList.copyOf(classDefs);
+        List<? extends ClassDef> classDefs = Ordering.natural().sortedCopy(dexFile.getClasses());
 
         if (!options.noAccessorComments) {
             options.syntheticAccessorResolver = new SyntheticAccessorResolver(classDefs);
