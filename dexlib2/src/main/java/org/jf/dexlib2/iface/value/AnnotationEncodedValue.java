@@ -32,6 +32,7 @@
 package org.jf.dexlib2.iface.value;
 
 import org.jf.dexlib2.iface.AnnotationElement;
+import org.jf.dexlib2.iface.BasicAnnotation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,7 +41,7 @@ import java.util.Set;
 /**
  * This class represents an encoded annotation value.
  */
-public interface AnnotationEncodedValue extends EncodedValue {
+public interface AnnotationEncodedValue extends EncodedValue, BasicAnnotation {
     /**
      * Gets the type of this annotation.
      *

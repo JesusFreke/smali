@@ -38,7 +38,7 @@ import java.util.Set;
 /**
  * This class represents a specific instance of an annotation applied to a class/field/method/parameter
  */
-public interface Annotation extends Comparable<Annotation> {
+public interface Annotation extends BasicAnnotation, Comparable<Annotation> {
     /**
      * Gets the visibility of this annotation.
      *
