@@ -524,7 +524,11 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
 
     @Nonnull @Override public Collection<? extends Map.Entry<PoolClassDef, Integer>> getItems() {
         class MapEntry implements Map.Entry<PoolClassDef, Integer> {
-            PoolClassDef classDef = null;
+            @Nonnull private final PoolClassDef classDef;
+
+            public MapEntry(@Nonnull PoolClassDef classDef) {
+                this.classDef = classDef;
+            }
 
             @Override public PoolClassDef getKey() {
                 return classDef;
@@ -540,7 +544,6 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
                 return prev;
             }
         }
-        final MapEntry entry = new MapEntry();
 
         return new AbstractCollection<Entry<PoolClassDef, Integer>>() {
             @Nonnull @Override public Iterator<Entry<PoolClassDef, Integer>> iterator() {
@@ -552,8 +555,7 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
                     }
 
                     @Override public Entry<PoolClassDef, Integer> next() {
-                        entry.classDef = iter.next();
-                        return entry;
+                        return new MapEntry(iter.next());
                     }
 
                     @Override public void remove() {
