@@ -49,7 +49,7 @@ class PoolClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull final ImmutableSortedSet<PoolMethod> directMethods;
     @Nonnull final ImmutableSortedSet<PoolMethod> virtualMethods;
 
-    int classDefOffset = DexPool.NO_OFFSET;
+    int classDefIndex = DexPool.NO_INDEX;
     int encodedArrayOffset = DexPool.NO_OFFSET;
     int annotationDirectoryOffset = DexPool.NO_OFFSET;
 

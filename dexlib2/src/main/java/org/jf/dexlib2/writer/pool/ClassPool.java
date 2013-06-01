@@ -229,11 +229,11 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
             }
 
             @Override public Integer getValue() {
-                return classDef.classDefOffset;
+                return classDef.classDefIndex;
             }
 
             @Override public Integer setValue(Integer value) {
-                return classDef.classDefOffset = value;
+                return classDef.classDefIndex = value;
             }
         };
     }
@@ -519,7 +519,7 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
     }
 
     @Override public int getItemIndex(@Nonnull PoolClassDef classDef) {
-        return classDef.classDefOffset;
+        return classDef.classDefIndex;
     }
 
     @Nonnull @Override public Collection<? extends Map.Entry<PoolClassDef, Integer>> getItems() {
@@ -531,12 +531,12 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
             }
 
             @Override public Integer getValue() {
-                return classDef.classDefOffset;
+                return classDef.classDefIndex;
             }
 
             @Override public Integer setValue(Integer value) {
-                int prev = classDef.classDefOffset;
-                classDef.classDefOffset = value;
+                int prev = classDef.classDefIndex;
+                classDef.classDefIndex = value;
                 return prev;
             }
         }
