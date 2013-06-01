@@ -609,7 +609,11 @@ public abstract class DexWriter<
 
                         writer.writeInt(parameterAnnotations.size());
                         for (AnnotationSetKey annotationSetKey: parameterAnnotations) {
-                            writer.writeInt(annotationSetSection.getItemOffset(annotationSetKey));
+                            if (annotationSetSection.getAnnotations(annotationSetKey).size() > 0) {
+                                writer.writeInt(annotationSetSection.getItemOffset(annotationSetKey));
+                            } else {
+                                writer.writeInt(NO_OFFSET);
+                            }
                         }
                     }
                 }
