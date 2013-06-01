@@ -61,15 +61,19 @@ public class main {
         buildOptions();
 
         InputStream templateStream = baksmali.class.getClassLoader().getResourceAsStream("baksmali.properties");
-        Properties properties = new Properties();
-        String version = "(unknown)";
-        try {
-            properties.load(templateStream);
-            version = properties.getProperty("application.version");
-        } catch (IOException ex) {
-            // ignore
+        if (templateStream != null) {
+            Properties properties = new Properties();
+            String version = "(unknown)";
+            try {
+                properties.load(templateStream);
+                version = properties.getProperty("application.version");
+            } catch (IOException ex) {
+                // ignore
+            }
+            VERSION = version;
+        } else {
+            VERSION = "[unknown version]";
         }
-        VERSION = version;
     }
 
     /**

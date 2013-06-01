@@ -66,15 +66,19 @@ public class main {
         buildOptions();
 
         InputStream templateStream = main.class.getClassLoader().getResourceAsStream("smali.properties");
-        Properties properties = new Properties();
-        String version = "(unknown)";
-        try {
-            properties.load(templateStream);
-            version = properties.getProperty("application.version");
-        } catch (IOException ex) {
-            // just eat it
+        if (templateStream != null) {
+            Properties properties = new Properties();
+            String version = "(unknown)";
+            try {
+                properties.load(templateStream);
+                version = properties.getProperty("application.version");
+            } catch (IOException ex) {
+                // just eat it
+            }
+            VERSION = version;
+        } else {
+            VERSION = "[unknown version]";
         }
-        VERSION = version;
     }
 
 
