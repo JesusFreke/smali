@@ -317,7 +317,7 @@ public enum Opcode
     }
 
     private static int maxApi(int api) {
-        return 0xFFFF | (api << 16);
+        return api << 16;
     }
 
     public final short value;
