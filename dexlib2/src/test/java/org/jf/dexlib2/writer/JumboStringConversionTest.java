@@ -272,6 +272,7 @@ public class JumboStringConversionTest {
         for (Instruction instr: writeUtil.getInstructions()) {
             if (codeOffset == 21) {
                 Assert.assertEquals("array payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+                break;
             }
             codeOffset += instr.getCodeUnits();
         }
@@ -289,6 +290,7 @@ public class JumboStringConversionTest {
         for (Instruction instr: writeUtil.getInstructions()) {
             if (codeOffset == 7) {
                 Assert.assertEquals("packed switch payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+                break;
             }
             codeOffset += instr.getCodeUnits();
         }
@@ -307,6 +309,7 @@ public class JumboStringConversionTest {
         for (Instruction instr: writeUtil.getInstructions()) {
             if (codeOffset == 15) {
                 Assert.assertEquals("packed switch payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+                break;
             }
             codeOffset += instr.getCodeUnits();
         }
