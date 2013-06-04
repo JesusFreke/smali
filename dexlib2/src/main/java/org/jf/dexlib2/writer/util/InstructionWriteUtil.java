@@ -32,6 +32,7 @@
 package org.jf.dexlib2.writer.util;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
@@ -148,26 +149,19 @@ public class InstructionWriteUtil<Insn extends Instruction, StringRef extends St
     private void findCodeOffsetShifts() {
         // first, process const-string to const-string/jumbo conversions
         int currentCodeOffset = 0;
+        codeOffsetShifts = Lists.newArrayList();
+        offsetToNewInstructionMap = Maps.newHashMap();
+
         for (Instruction instruction: originalInstructions) {
             if (instruction.getOpcode().equals(Opcode.CONST_STRING)) {
                 ReferenceInstruction refInstr = (ReferenceInstruction) instruction;
                 int referenceIndex = stringIndexProvider.getItemIndex((StringRef)refInstr.getReference());
                 if (referenceIndex > 0xFFFF) {
-                    if (codeOffsetShifts == null) {
-                        codeOffsetShifts = new ArrayList<Integer>();
-                    }
-                    if (offsetToNewInstructionMap == null) {
-                        offsetToNewInstructionMap = new HashMap<Integer,Format>();
-                    }
                     codeOffsetShifts.add(currentCodeOffset+instruction.getCodeUnits());
                     offsetToNewInstructionMap.put(currentCodeOffset, Opcode.CONST_STRING_JUMBO.format);
                 }
             }
             currentCodeOffset += instruction.getCodeUnits();
-        }
-
-        if (codeOffsetShifts == null) {
-            return;
         }
 
         // next, let's check if this caused any conversions in goto instructions due to changes in offset values
