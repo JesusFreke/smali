@@ -75,8 +75,8 @@ public class PayloadAlignmentTest {
 
         int codeOffset = 0;
         for (Instruction instr: writeUtil.getInstructions()) {
-            if (codeOffset == 1) {
-                Assert.assertEquals("array payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+            if (instr.getOpcode().equals(Opcode.ARRAY_PAYLOAD)) {
+                Assert.assertEquals("array payload was not aligned properly", codeOffset%2, 0);
                 break;
             }
             codeOffset += instr.getCodeUnits();
@@ -97,8 +97,8 @@ public class PayloadAlignmentTest {
 
         int codeOffset = 0;
         for (Instruction instr: writeUtil.getInstructions()) {
-            if (codeOffset == 1) {
-                Assert.assertEquals("packed switch payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+            if (instr.getOpcode().equals(Opcode.PACKED_SWITCH_PAYLOAD)) {
+                Assert.assertEquals("packed switch payload was not aligned properly", codeOffset%2, 0);
                 break;
             }
             codeOffset += instr.getCodeUnits();
@@ -121,8 +121,8 @@ public class PayloadAlignmentTest {
 
         int codeOffset = 0;
         for (Instruction instr: writeUtil.getInstructions()) {
-            if (codeOffset == 1) {
-                Assert.assertEquals("packed switch payload was not aligned properly", instr.getOpcode(), Opcode.NOP);
+            if (instr.getOpcode().equals(Opcode.SPARSE_SWITCH_PAYLOAD)) {
+                Assert.assertEquals("packed switch payload was not aligned properly", codeOffset%2, 0);
                 break;
             }
             codeOffset += instr.getCodeUnits();
