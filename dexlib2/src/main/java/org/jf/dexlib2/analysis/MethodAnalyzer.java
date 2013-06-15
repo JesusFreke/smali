@@ -397,7 +397,7 @@ public class MethodAnalyzer {
         //next, populate the exceptionHandlers array. The array item for each instruction that can throw an exception
         //and is covered by a try block should be set to a list of the first instructions of each exception handler
         //for the try block covering the instruction
-        List<? extends TryBlock> tries = methodImpl.getTryBlocks();
+        List<? extends TryBlock<? extends ExceptionHandler>> tries = methodImpl.getTryBlocks();
         int triesIndex = 0;
         TryBlock currentTry = null;
         AnalyzedInstruction[] currentExceptionHandlers = null;
@@ -419,7 +419,7 @@ public class MethodAnalyzer {
 
                 //check if the next try is applicable yet
                 if (currentTry == null && triesIndex < tries.size()) {
-                    TryBlock tryBlock = tries.get(triesIndex);
+                    TryBlock<? extends ExceptionHandler> tryBlock = tries.get(triesIndex);
                     if (tryBlock.getStartCodeAddress() <= currentCodeAddress) {
                         assert(tryBlock.getStartCodeAddress() + tryBlock.getCodeUnitCount() > currentCodeAddress);
 
@@ -529,7 +529,7 @@ public class MethodAnalyzer {
     }
 
     @Nonnull
-    private AnalyzedInstruction[] buildExceptionHandlerArray(@Nonnull TryBlock tryBlock) {
+    private AnalyzedInstruction[] buildExceptionHandlerArray(@Nonnull TryBlock<? extends ExceptionHandler> tryBlock) {
         List<? extends ExceptionHandler> exceptionHandlers = tryBlock.getExceptionHandlers();
 
         AnalyzedInstruction[] handlerInstructions = new AnalyzedInstruction[exceptionHandlers.size()];
@@ -1564,6 +1564,8 @@ public class MethodAnalyzer {
         if (objectRegisterType.category == RegisterType.NULL) {
             return false;
         }
+
+        assert objectRegisterTypeProto != null;
 
         MethodReference resolvedMethod;
         if (isSuper) {
