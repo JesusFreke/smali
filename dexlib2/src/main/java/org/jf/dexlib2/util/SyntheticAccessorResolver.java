@@ -33,17 +33,20 @@ package org.jf.dexlib2.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
-import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.Reference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public class SyntheticAccessorResolver {
     public static final int METHOD = 0;
@@ -66,7 +69,7 @@ public class SyntheticAccessorResolver {
     public static final int USHR_ASSIGNMENT = 17;
 
     private final Map<String, ClassDef> classDefMap;
-    private final HashMap<String, AccessedMember> resolvedAccessors = new HashMap<String, AccessedMember>();
+    private final Map<String, AccessedMember> resolvedAccessors = Maps.newConcurrentMap();
 
     public SyntheticAccessorResolver(Iterable<? extends ClassDef> classDefs) {
         ImmutableMap.Builder<String, ClassDef> builder = ImmutableMap.builder();
