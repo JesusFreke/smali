@@ -45,6 +45,7 @@ import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.immutable.ImmutableMethod;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
 
@@ -350,6 +351,7 @@ public class ClassProto implements TypeProto {
         if (vtableIndex < 0 || vtableIndex >= vtable.size()) {
             return null;
         }
+
         return vtable.get(vtableIndex);
     }
 
@@ -596,8 +598,22 @@ public class ClassProto implements TypeProto {
             if (!isInterface()) {
                 addToVtable(getClassDef().getVirtualMethods(), vtable, true);
 
+                // assume that interface method is implemented in the current class, when adding it to vtable
+                // otherwise it looks like that method is invoked on an interface, which fails Dalvik's optimization checks
                 for (ClassDef interfaceDef: getDirectInterfaces()) {
-                    addToVtable(interfaceDef.getVirtualMethods(), vtable, false);
+                    List<Method> interfaceMethods = Lists.newArrayList();
+                    for (Method interfaceMethod: interfaceDef.getVirtualMethods()) {
+                        ImmutableMethod method = new ImmutableMethod(
+                                type,
+                                interfaceMethod.getName(),
+                                interfaceMethod.getParameters(),
+                                interfaceMethod.getReturnType(),
+                                interfaceMethod.getAccessFlags(),
+                                interfaceMethod.getAnnotations(),
+                                interfaceMethod.getImplementation());
+                        interfaceMethods.add(method);
+                    }
+                    addToVtable(interfaceMethods, vtable, false);
                 }
             }
             return vtable;
