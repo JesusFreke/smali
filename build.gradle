@@ -31,7 +31,7 @@
 
 apply plugin: 'idea'
 
-version = '2.0b4'
+version = '2.0b5'
 
 def jarVersion = version
 
