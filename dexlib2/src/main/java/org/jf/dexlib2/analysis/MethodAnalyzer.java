@@ -268,7 +268,7 @@ public class MethodAnalyzer {
                         break;
                     case Format35mi:
                     case Format35ms:
-                        objectRegisterNumber = ((FiveRegisterInstruction)instruction).getRegisterD();
+                        objectRegisterNumber = ((FiveRegisterInstruction)instruction).getRegisterC();
                         break;
                     case Format3rmi:
                     case Format3rms:
