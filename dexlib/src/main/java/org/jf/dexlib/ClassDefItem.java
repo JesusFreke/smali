@@ -287,7 +287,8 @@ public class ClassDefItem extends Item<ClassDefItem> {
                 ClassDefItem superClassDefItem = unplacedClassDefsByType.get(superType);
 
                 if (superClassDefItem != null) {
-                    placeClass(superClassDefItem);
+                    if (!superClassDefItem.equals(classDefItem))
+                        placeClass(superClassDefItem);
                 }
 
                 TypeListItem interfaces = classDefItem.implementedInterfaces;
