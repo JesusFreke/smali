@@ -377,8 +377,6 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     "vtable@0x" {HexDigit}+ { return newToken(VTABLE_INDEX); }
     "field@0x" {HexDigit}+ { return newToken(FIELD_OFFSET); }
 
-    "+" {Integer} { return newToken(OFFSET); }
-
     # [^\r\n]* { return newToken(LINE_COMMENT, true); }
 }
 

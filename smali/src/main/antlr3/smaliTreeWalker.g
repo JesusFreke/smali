@@ -325,10 +325,10 @@ packed_switch_elements[int baseAddress, int firstKey] returns[List<SwitchElement
   :
     ^(I_PACKED_SWITCH_ELEMENTS
 
-      (offset_or_label
+      (relative_label
       {
         $elements.add(new ImmutableSwitchElement(firstKey++,
-                ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress));
+                ($method::currentAddress + $relative_label.offsetValue) - $baseAddress));
       })*
     );
 
@@ -336,10 +336,10 @@ sparse_switch_elements[int baseAddress] returns[List<SwitchElement> elements]
   @init {$elements = Lists.newArrayList();}
   :
     ^(I_SPARSE_SWITCH_ELEMENTS
-       (fixed_32bit_literal offset_or_label
+       (fixed_32bit_literal relative_label
        {
          $elements.add(new ImmutableSwitchElement($fixed_32bit_literal.value,
-                       ($method::currentAddress + $offset_or_label.offsetValue) - $baseAddress));
+                       ($method::currentAddress + $relative_label.offsetValue) - $baseAddress));
 
        })*
     );
@@ -550,9 +550,9 @@ label_def
 packed_switch_declarations
   : ^(I_PACKED_SWITCH_DECLARATIONS packed_switch_declaration*);
 packed_switch_declaration
-  : ^(I_PACKED_SWITCH_DECLARATION address offset_or_label_absolute[$address.address])
+  : ^(I_PACKED_SWITCH_DECLARATION address absolute_label[$address.address])
     {
-      int switchDataAddress = $offset_or_label_absolute.address;
+      int switchDataAddress = $absolute_label.address;
       if ((switchDataAddress \% 2) != 0) {
         switchDataAddress++;
       }
@@ -564,9 +564,9 @@ packed_switch_declaration
 sparse_switch_declarations
   : ^(I_SPARSE_SWITCH_DECLARATIONS sparse_switch_declaration*);
 sparse_switch_declaration
-  : ^(I_SPARSE_SWITCH_DECLARATION address offset_or_label_absolute[$address.address])
+  : ^(I_SPARSE_SWITCH_DECLARATION address absolute_label[$address.address])
     {
-      int switchDataAddress = $offset_or_label_absolute.address;
+      int switchDataAddress = $absolute_label.address;
       if ((switchDataAddress \% 2) != 0) {
         switchDataAddress++;
       }
@@ -581,8 +581,8 @@ catches returns[List<BuilderTryBlock> tryBlocks]
                 (catchall_directive { tryBlocks.add($catchall_directive.tryBlock); })*);
 
 catch_directive returns[BuilderTryBlock tryBlock]
-  : ^(I_CATCH address nonvoid_type_descriptor from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
-        using=offset_or_label_absolute[$address.address])
+  : ^(I_CATCH address nonvoid_type_descriptor from=absolute_label[$address.address] to=absolute_label[$address.address]
+        using=absolute_label[$address.address])
     {
       String type = $nonvoid_type_descriptor.type;
       int startAddress = $from.address;
@@ -596,8 +596,8 @@ catch_directive returns[BuilderTryBlock tryBlock]
     };
 
 catchall_directive returns[BuilderTryBlock tryBlock]
-  : ^(I_CATCHALL address from=offset_or_label_absolute[$address.address] to=offset_or_label_absolute[$address.address]
-        using=offset_or_label_absolute[$address.address])
+  : ^(I_CATCHALL address from=absolute_label[$address.address] to=absolute_label[$address.address]
+        using=absolute_label[$address.address])
     {
       int startAddress = $from.address;
       int endAddress = $to.address;
@@ -740,24 +740,11 @@ label_ref returns[int labelAddress]
       $labelAddress = labelAdd;
     };
 
-offset returns[int offsetValue]
-  : OFFSET
-    {
-      String offsetText = $OFFSET.text;
-      if (offsetText.charAt(0) == '+') {
-        offsetText = offsetText.substring(1);
-      }
-      $offsetValue = LiteralTools.parseInt(offsetText);
-    };
+absolute_label[int baseAddress] returns[int address]
+  : label_ref {$address = $label_ref.labelAddress;};
 
-offset_or_label_absolute[int baseAddress] returns[int address]
-  : offset {$address = $offset.offsetValue + $baseAddress;}
-  | label_ref {$address = $label_ref.labelAddress;};
-
-offset_or_label returns[int offsetValue]
-  : offset {$offsetValue = $offset.offsetValue;}
-  | label_ref {$offsetValue = $label_ref.labelAddress-$method::currentAddress;};
-
+relative_label returns[int offsetValue]
+  : label_ref {$offsetValue = $label_ref.labelAddress-$method::currentAddress;};
 
 register_list returns[byte[\] registers, byte registerCount]
   @init
@@ -860,11 +847,11 @@ instruction[List<BuilderInstruction> instructions] returns[int outRegisters]
 insn_format10t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. goto endloop:
     {$outRegisters = 0;}
-    ^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t offset_or_label)
+    ^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t relative_label)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT10t.text);
 
-      int addressOffset = $offset_or_label.offsetValue;
+      int addressOffset = $relative_label.offsetValue;
 
       $instructions.add(instructionFactory.makeInstruction10t(opcode, addressOffset));
     };
@@ -926,11 +913,11 @@ insn_format20bc[List<BuilderInstruction> instructions] returns[int outRegisters]
 
 insn_format20t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. goto/16 endloop:
-    ^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t offset_or_label)
+    ^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t relative_label)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT20t.text);
 
-      int addressOffset = $offset_or_label.offsetValue;
+      int addressOffset = $relative_label.offsetValue;
 
       $instructions.add(instructionFactory.makeInstruction20t(opcode, addressOffset));
     };
@@ -1008,15 +995,15 @@ insn_format21s[List<BuilderInstruction> instructions] returns[int outRegisters]
 
 insn_format21t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. if-eqz v0, endloop:
-    ^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER offset_or_label)
+    ^(I_STATEMENT_FORMAT21t INSTRUCTION_FORMAT21t REGISTER relative_label)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21t.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      int addressOffset = $offset_or_label.offsetValue;
+      int addressOffset = $relative_label.offsetValue;
 
       if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
-        throw new SemanticException(input, $offset_or_label.start, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+        throw new SemanticException(input, $relative_label.start, "The label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
       }
 
       $instructions.add(instructionFactory.makeInstruction21t(opcode, regA, addressOffset));
@@ -1077,16 +1064,16 @@ insn_format22s[List<BuilderInstruction> instructions] returns[int outRegisters]
 
 insn_format22t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. if-eq v0, v1, endloop:
-    ^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER offset_or_label)
+    ^(I_STATEMENT_FORMAT22t INSTRUCTION_FORMAT22t registerA=REGISTER registerB=REGISTER relative_label)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT22t.text);
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
-      int addressOffset = $offset_or_label.offsetValue;
+      int addressOffset = $relative_label.offsetValue;
 
       if (addressOffset < Short.MIN_VALUE || addressOffset > Short.MAX_VALUE) {
-        throw new SemanticException(input, $offset_or_label.start, "The offset/label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
+        throw new SemanticException(input, $relative_label.start, "The label is out of range. The offset is " + Integer.toString(addressOffset) + " and the range for this opcode is [-32768, 32767].");
       }
 
       $instructions.add(instructionFactory.makeInstruction22t(opcode, regA, regB, addressOffset));
@@ -1117,11 +1104,11 @@ insn_format23x[List<BuilderInstruction> instructions] returns[int outRegisters]
 
 insn_format30t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. goto/32 endloop:
-    ^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t offset_or_label)
+    ^(I_STATEMENT_FORMAT30t INSTRUCTION_FORMAT30t relative_label)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT30t.text);
 
-      int addressOffset = $offset_or_label.offsetValue;
+      int addressOffset = $relative_label.offsetValue;
 
       $instructions.add(instructionFactory.makeInstruction30t(opcode, addressOffset));
     };
@@ -1151,13 +1138,13 @@ insn_format31i[List<BuilderInstruction> instructions] returns[int outRegisters]
 
 insn_format31t[List<BuilderInstruction> instructions] returns[int outRegisters]
   : //e.g. fill-array-data v0, ArrayData:
-    ^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER offset_or_label)
+    ^(I_STATEMENT_FORMAT31t INSTRUCTION_FORMAT31t REGISTER relative_label)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT31t.text);
 
       short regA = parseRegister_byte($REGISTER.text);
 
-      int addressOffset = $offset_or_label.offsetValue;
+      int addressOffset = $relative_label.offsetValue;
       if (($method::currentAddress + addressOffset) \% 2 != 0) {
         addressOffset++;
       }

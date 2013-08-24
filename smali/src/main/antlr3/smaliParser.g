@@ -143,7 +143,6 @@ tokens {
   METHOD_NAME;
   NEGATIVE_INTEGER_LITERAL;
   NULL_LITERAL;
-  OFFSET;
   OPEN_BRACE;
   OPEN_PAREN;
   PACKED_SWITCH_DIRECTIVE;
@@ -733,10 +732,8 @@ fully_qualified_field
 label
   : COLON simple_name -> ^(I_LABEL[$COLON, "I_LABEL"] simple_name I_ADDRESS[$start, Integer.toString($method::currentAddress)]);
 
-label_ref_or_offset
-  : COLON simple_name -> simple_name
-  | OFFSET
-  | NEGATIVE_INTEGER_LITERAL -> OFFSET[$NEGATIVE_INTEGER_LITERAL];
+label_ref
+  : COLON simple_name -> simple_name;
 
 register_list
   : REGISTER (COMMA REGISTER)* -> ^(I_REGISTER_LIST[$start, "I_REGISTER_LIST"] REGISTER*)
@@ -749,11 +746,11 @@ verification_error_reference
   : CLASS_DESCRIPTOR | fully_qualified_field | fully_qualified_method;
 
 catch_directive
-  : CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE from=label_ref_or_offset DOTDOT to=label_ref_or_offset CLOSE_BRACE using=label_ref_or_offset
+  : CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE from=label_ref DOTDOT to=label_ref CLOSE_BRACE using=label_ref
     -> ^(I_CATCH[$start, "I_CATCH"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] nonvoid_type_descriptor $from $to $using);
 
 catchall_directive
-  : CATCHALL_DIRECTIVE OPEN_BRACE from=label_ref_or_offset DOTDOT to=label_ref_or_offset CLOSE_BRACE using=label_ref_or_offset
+  : CATCHALL_DIRECTIVE OPEN_BRACE from=label_ref DOTDOT to=label_ref CLOSE_BRACE using=label_ref
     -> ^(I_CATCHALL[$start, "I_CATCHALL"] I_ADDRESS[$start, Integer.toString($method::currentAddress)] $from $to $using);
 
 /*When there are annotations immediately after a parameter definition, we don't know whether they are parameter annotations
@@ -873,8 +870,8 @@ instruction returns [int size]
 insn_format10t returns [int size]
   : //e.g. goto endloop:
     //e.g. goto +3
-    INSTRUCTION_FORMAT10t label_ref_or_offset {$size = Format.Format10t.size;}
-    -> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t label_ref_or_offset);
+    INSTRUCTION_FORMAT10t label_ref {$size = Format.Format10t.size;}
+    -> ^(I_STATEMENT_FORMAT10t[$start, "I_STATEMENT_FORMAT10t"] INSTRUCTION_FORMAT10t label_ref);
 
 insn_format10x returns [int size]
   : //e.g. return-void
@@ -915,8 +912,8 @@ insn_format20bc returns [int size]
 
 insn_format20t returns [int size]
   : //e.g. goto/16 endloop:
-    INSTRUCTION_FORMAT20t label_ref_or_offset {$size = Format.Format20t.size;}
-    -> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref_or_offset);
+    INSTRUCTION_FORMAT20t label_ref {$size = Format.Format20t.size;}
+    -> ^(I_STATEMENT_FORMAT20t[$start, "I_STATEMENT_FORMAT20t"] INSTRUCTION_FORMAT20t label_ref);
 
 insn_format21c_field returns [int size]
   : //e.g. sget-object v0, java/lang/System/out LJava/io/PrintStream;
@@ -960,8 +957,8 @@ insn_format21s returns [int size]
 
 insn_format21t returns [int size]
   : //e.g. if-eqz v0, endloop:
-    INSTRUCTION_FORMAT21t REGISTER COMMA (label_ref_or_offset) {$size = Format.Format21t.size;}
-    -> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER label_ref_or_offset);
+    INSTRUCTION_FORMAT21t REGISTER COMMA (label_ref) {$size = Format.Format21t.size;}
+    -> ^(I_STATEMENT_FORMAT21t[$start, "I_STATEMENT_FORMAT21t"] INSTRUCTION_FORMAT21t REGISTER label_ref);
 
 insn_format22b returns [int size]
   : //e.g. add-int v0, v1, 123
@@ -1002,8 +999,8 @@ insn_format22s returns [int size]
 
 insn_format22t returns [int size]
   : //e.g. if-eq v0, v1, endloop:
-    INSTRUCTION_FORMAT22t REGISTER COMMA REGISTER COMMA label_ref_or_offset {$size = Format.Format22t.size;}
-    -> ^(I_STATEMENT_FORMAT22t[$start, "I_STATEMENT_FFORMAT22t"] INSTRUCTION_FORMAT22t REGISTER REGISTER label_ref_or_offset);
+    INSTRUCTION_FORMAT22t REGISTER COMMA REGISTER COMMA label_ref {$size = Format.Format22t.size;}
+    -> ^(I_STATEMENT_FORMAT22t[$start, "I_STATEMENT_FFORMAT22t"] INSTRUCTION_FORMAT22t REGISTER REGISTER label_ref);
 
 insn_format22x returns [int size]
   : //e.g. move/from16 v1, v1234
@@ -1017,8 +1014,8 @@ insn_format23x returns [int size]
 
 insn_format30t returns [int size]
   : //e.g. goto/32 endloop:
-    INSTRUCTION_FORMAT30t label_ref_or_offset {$size = Format.Format30t.size;}
-    -> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t label_ref_or_offset);
+    INSTRUCTION_FORMAT30t label_ref {$size = Format.Format30t.size;}
+    -> ^(I_STATEMENT_FORMAT30t[$start, "I_STATEMENT_FORMAT30t"] INSTRUCTION_FORMAT30t label_ref);
 
 insn_format31c returns [int size]
   : //e.g. const-string/jumbo v1 "Hello World!"
@@ -1032,23 +1029,23 @@ insn_format31i returns [int size]
 
 insn_format31t returns [int size]
   : //e.g. fill-array-data v0, ArrayData:
-    INSTRUCTION_FORMAT31t REGISTER COMMA label_ref_or_offset {$size = Format.Format31t.size;}
+    INSTRUCTION_FORMAT31t REGISTER COMMA label_ref {$size = Format.Format31t.size;}
     {
       if ($INSTRUCTION_FORMAT31t.text.equals("packed-switch")) {
         CommonTree root = new CommonTree(new CommonToken(I_PACKED_SWITCH_DECLARATION, "I_PACKED_SWITCH_DECLARATION"));
         CommonTree address = new CommonTree(new CommonToken(I_ADDRESS, Integer.toString($method::currentAddress)));
         root.addChild(address);
-        root.addChild($label_ref_or_offset.tree.dupNode());
+        root.addChild($label_ref.tree.dupNode());
         $statements_and_directives::packedSwitchDeclarations.add(root);
       } else if ($INSTRUCTION_FORMAT31t.text.equals("sparse-switch")) {
         CommonTree root = new CommonTree(new CommonToken(I_SPARSE_SWITCH_DECLARATION, "I_SPARSE_SWITCH_DECLARATION"));
         CommonTree address = new CommonTree(new CommonToken(I_ADDRESS, Integer.toString($method::currentAddress)));
         root.addChild(address);
-        root.addChild($label_ref_or_offset.tree.dupNode());
+        root.addChild($label_ref.tree.dupNode());
         $statements_and_directives::sparseSwitchDeclarations.add(root);
       }
     }
-    -> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER label_ref_or_offset);
+    -> ^(I_STATEMENT_FORMAT31t[$start, "I_STATEMENT_FORMAT31t"] INSTRUCTION_FORMAT31t REGISTER label_ref);
 
 insn_format32x returns [int size]
   : //e.g. move/16 v4567, v1234
@@ -1142,7 +1139,7 @@ insn_packed_switch_directive returns [int size]
     :   PACKED_SWITCH_DIRECTIVE
     fixed_32bit_literal
 
-    (switch_target += label_ref_or_offset {$size+=4;})*
+    (switch_target += label_ref {$size+=4;})*
 
     END_PACKED_SWITCH_DIRECTIVE {$size = $size + 8;}
 
@@ -1154,7 +1151,7 @@ insn_packed_switch_directive returns [int size]
 
 insn_sparse_switch_directive returns [int size]
   :   SPARSE_SWITCH_DIRECTIVE
-    (fixed_32bit_literal ARROW switch_target += label_ref_or_offset {$size += 8;})*
+    (fixed_32bit_literal ARROW switch_target += label_ref {$size += 8;})*
 
     END_SPARSE_SWITCH_DIRECTIVE {$size = $size + 4;}
 
