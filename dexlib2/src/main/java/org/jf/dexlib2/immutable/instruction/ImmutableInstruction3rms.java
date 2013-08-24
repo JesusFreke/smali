@@ -43,7 +43,6 @@ public class ImmutableInstruction3rms extends ImmutableInstruction implements In
 
     protected final int startRegister;
     protected final int registerCount;
-
     protected final int vtableIndex;
 
     public ImmutableInstruction3rms(@Nonnull Opcode opcode,

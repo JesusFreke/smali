@@ -47,7 +47,7 @@ public class ImmutableInstruction35mi extends ImmutableInstruction implements In
     protected final int registerE;
     protected final int registerF;
     protected final int registerG;
-    @Nonnull protected final int inlineIndex;
+    protected final int inlineIndex;
 
     public ImmutableInstruction35mi(@Nonnull Opcode opcode,
                                     int registerCount,

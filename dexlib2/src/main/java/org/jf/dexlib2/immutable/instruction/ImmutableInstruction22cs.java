@@ -43,7 +43,7 @@ public class ImmutableInstruction22cs extends ImmutableInstruction implements In
 
     protected final int registerA;
     protected final int registerB;
-    @Nonnull protected final int fieldOffset;
+    protected final int fieldOffset;
 
     public ImmutableInstruction22cs(@Nonnull Opcode opcode,
                                    int registerA,
