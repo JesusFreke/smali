@@ -164,8 +164,22 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
         return context.stringPool.internString(string);
     }
 
+    @Nullable public BuilderStringReference internNullableStringReference(@Nullable String string) {
+        if (string != null) {
+            return internStringReference(string);
+        }
+        return null;
+    }
+
     @Nonnull public BuilderTypeReference internTypeReference(@Nonnull String type) {
         return context.typePool.internType(type);
+    }
+
+    @Nullable public BuilderTypeReference internNullableTypeReference(@Nullable String type) {
+        if (type != null) {
+            return internTypeReference(type);
+        }
+        return null;
     }
 
     @Nonnull public BuilderFieldReference internFieldReference(@Nonnull FieldReference field) {
