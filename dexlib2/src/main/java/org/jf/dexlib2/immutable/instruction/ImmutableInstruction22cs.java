@@ -50,7 +50,6 @@ public class ImmutableInstruction22cs extends ImmutableInstruction implements In
                                    int registerB,
                                    int fieldOffset) {
         super(opcode);
-        Preconditions.checkFormat(opcode, FORMAT);
         this.registerA = Preconditions.checkNibbleRegister(registerA);
         this.registerB = Preconditions.checkNibbleRegister(registerB);
         this.fieldOffset = Preconditions.checkFieldOffset(fieldOffset);

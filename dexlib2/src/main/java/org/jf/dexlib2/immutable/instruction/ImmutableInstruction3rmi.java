@@ -51,7 +51,6 @@ public class ImmutableInstruction3rmi extends ImmutableInstruction implements In
                                     int registerCount,
                                     int inlineIndex) {
         super(opcode);
-        Preconditions.checkFormat(opcode, FORMAT);
         this.startRegister = Preconditions.checkShortRegister(startRegister);
         this.registerCount = Preconditions.checkRegisterRangeCount(registerCount);
         this.inlineIndex = Preconditions.checkInlineIndex(inlineIndex);

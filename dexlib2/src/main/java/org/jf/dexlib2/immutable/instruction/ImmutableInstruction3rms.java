@@ -51,7 +51,6 @@ public class ImmutableInstruction3rms extends ImmutableInstruction implements In
                                     int registerCount,
                                     int vtableIndex) {
         super(opcode);
-        Preconditions.checkFormat(opcode, FORMAT);
         this.startRegister = Preconditions.checkShortRegister(startRegister);
         this.registerCount = Preconditions.checkRegisterRangeCount(registerCount);
         this.vtableIndex = Preconditions.checkVtableIndex(vtableIndex);

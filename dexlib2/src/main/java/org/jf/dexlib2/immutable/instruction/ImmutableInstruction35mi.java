@@ -58,7 +58,6 @@ public class ImmutableInstruction35mi extends ImmutableInstruction implements In
                                     int registerG,
                                     int inlineIndex) {
         super(opcode);
-        Preconditions.checkFormat(opcode, FORMAT);
         this.registerCount = Preconditions.check35cRegisterCount(registerCount);
         this.registerC = (registerCount>0) ? Preconditions.checkNibbleRegister(registerC) : 0;
         this.registerD = (registerCount>1) ? Preconditions.checkNibbleRegister(registerD) : 0;
