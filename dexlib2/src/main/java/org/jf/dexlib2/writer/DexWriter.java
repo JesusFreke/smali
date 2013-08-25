@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.base.BaseAnnotation;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.iface.Annotation;
@@ -44,10 +45,11 @@ import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.debug.LineNumber;
 import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.util.InstructionUtil;
 import org.jf.dexlib2.util.MethodUtil;
-import org.jf.dexlib2.writer.util.InstructionWriteUtil;
 import org.jf.dexlib2.writer.util.TryListBuilder;
 import org.jf.util.CollectionUtils;
 import org.jf.util.ExceptionWithContext;
@@ -462,7 +464,7 @@ public abstract class DexWriter<
         int prevIndex = 0;
         for (FieldKey key: fields) {
             int index = fieldSection.getFieldIndex(key);
-            writer.writeUleb128(index-prevIndex);
+            writer.writeUleb128(index - prevIndex);
             writer.writeUleb128(classSection.getFieldAccessFlags(key));
             prevIndex = index;
         }
@@ -812,10 +814,21 @@ public abstract class DexWriter<
                 if (instructions != null) {
                     tryBlocks = TryListBuilder.massageTryBlocks(tryBlocks);
 
-                    InstructionWriteUtil<StringRef, BaseReference> instrWriteUtil =
-                            new InstructionWriteUtil<StringRef, BaseReference>(
-                                    instructions, stringSection, instructionFactory);
-                    writer.writeUshort(instrWriteUtil.getOutParamCount());
+                    int outParamCount = 0;
+                    int codeUnitCount = 0;
+                    for (Instruction instruction: instructions) {
+                        codeUnitCount += instruction.getCodeUnits();
+                        if (instruction.getOpcode().referenceType == ReferenceType.METHOD) {
+                            ReferenceInstruction refInsn = (ReferenceInstruction)instruction;
+                            MethodReference methodRef = (MethodReference)refInsn.getReference();
+                            int paramCount = MethodUtil.getParameterRegisterCount(methodRef, InstructionUtil.isInvokeStatic(instruction.getOpcode()));
+                            if (paramCount > outParamCount) {
+                                outParamCount = paramCount;
+                            }
+                        }
+                    }
+
+                    writer.writeUshort(outParamCount);
                     writer.writeUshort(tryBlocks.size());
                     writer.writeInt(debugItemOffset);
 
@@ -823,8 +836,8 @@ public abstract class DexWriter<
                             InstructionWriter.makeInstructionWriter(writer, stringSection, typeSection, fieldSection,
                                     methodSection);
 
-                    writer.writeInt(instrWriteUtil.getCodeUnitCount());
-                    for (Instruction instruction: instrWriteUtil.getInstructions()) {
+                    writer.writeInt(codeUnitCount);
+                    for (Instruction instruction: instructions) {
                         switch (instruction.getOpcode().format) {
                             case Format10t:
                                 instructionWriter.write((Instruction10t)instruction);
@@ -935,8 +948,6 @@ public abstract class DexWriter<
                             int startAddress = tryBlock.getStartCodeAddress();
                             int endAddress = startAddress + tryBlock.getCodeUnitCount();
 
-                            startAddress += instrWriteUtil.codeOffsetShift(startAddress);
-                            endAddress += instrWriteUtil.codeOffsetShift(endAddress);
                             int tbCodeUnitCount = endAddress - startAddress;
 
                             writer.writeInt(startAddress);
@@ -969,7 +980,6 @@ public abstract class DexWriter<
                                     TypeKey exceptionTypeKey = classSection.getExceptionType(eh);
 
                                     int codeAddress = eh.getHandlerCodeAddress();
-                                    codeAddress += instrWriteUtil.codeOffsetShift(codeAddress);
 
                                     if (exceptionTypeKey != null) {
                                         //regular exception handling
