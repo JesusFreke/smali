@@ -37,8 +37,8 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
-import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.dexlib2.writer.DexWriter;
@@ -95,7 +95,7 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
                                                @Nonnull String returnType,
                                                int accessFlags,
                                                @Nonnull Set<? extends Annotation> annotations,
-                                               @Nullable BuilderMethodImplementation methodImplementation) {
+                                               @Nullable MethodImplementation methodImplementation) {
         if (parameters == null) {
             parameters = ImmutableList.of();
         }
@@ -104,26 +104,6 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
                 accessFlags,
                 context.annotationSetPool.internAnnotationSet(annotations),
                 methodImplementation);
-    }
-
-    @Nonnull public BuilderMethodImplementation internMethodImplementation(
-            int registerCount,
-            @Nullable List<? extends BuilderInstruction> instructions,
-            @Nullable List<? extends BuilderTryBlock> tryBlocks,
-            @Nullable List<? extends DebugItem> debugItems) {
-        if (instructions == null) {
-            instructions = ImmutableList.of();
-        }
-
-        if (tryBlocks == null) {
-            tryBlocks = ImmutableList.of();
-        }
-
-        if (debugItems == null) {
-            debugItems = ImmutableList.of();
-        }
-
-        return new BuilderMethodImplementation(registerCount, instructions, tryBlocks, debugItems);
     }
 
     @Nonnull public BuilderClassDef internClassDef(@Nonnull String type,
@@ -205,7 +185,7 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
         }
         throw new IllegalArgumentException("Could not determine type of reference");
     }
-    
+
     @Nonnull private List<BuilderMethodParameter> internMethodParameters(
             @Nullable List<? extends MethodParameter> methodParameters) {
         if (methodParameters == null) {
@@ -224,12 +204,6 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
                 context.typePool.internType(methodParameter.getType()),
                 context.stringPool.internNullableString(methodParameter.getName()),
                 context.annotationSetPool.internAnnotationSet(methodParameter.getAnnotations()));
-    }
-
-    @Nonnull public BuilderExceptionHandler internExceptionHandler(@Nullable String exceptionType,
-                                                                   int handlerCodeAddress) {
-        return new BuilderExceptionHandler(context.typePool.internNullableType(exceptionType),
-                handlerCodeAddress);
     }
 
     @Override protected void writeEncodedValue(@Nonnull InternalEncodedValueWriter writer,

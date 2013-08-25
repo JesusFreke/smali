@@ -37,8 +37,10 @@ import com.google.common.collect.*;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.Field;
+import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.*;
+import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
@@ -265,7 +267,7 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
 
     @Nullable @Override
     public Iterable<? extends DebugItem> getDebugItems(@Nonnull BuilderMethod builderMethod) {
-        BuilderMethodImplementation impl = builderMethod.getImplementation();
+        MethodImplementation impl = builderMethod.getImplementation();
         if (impl == null) {
             return null;
         }
@@ -282,16 +284,16 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
     }
 
     @Override public int getRegisterCount(@Nonnull BuilderMethod builderMethod) {
-        BuilderMethodImplementation impl = builderMethod.getImplementation();
+        MethodImplementation impl = builderMethod.getImplementation();
         if (impl == null) {
             return 0;
         }
-        return impl.registerCount;
+        return impl.getRegisterCount();
     }
 
     @Nullable @Override
-    public Iterable<? extends BuilderInstruction> getInstructions(@Nonnull BuilderMethod builderMethod) {
-        BuilderMethodImplementation impl = builderMethod.getImplementation();
+    public Iterable<? extends Instruction> getInstructions(@Nonnull BuilderMethod builderMethod) {
+        MethodImplementation impl = builderMethod.getImplementation();
         if (impl == null) {
             return null;
         }
@@ -299,8 +301,8 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
     }
 
     @Nonnull @Override
-    public List<? extends TryBlock<? extends BuilderExceptionHandler>> getTryBlocks(@Nonnull BuilderMethod builderMethod) {
-        BuilderMethodImplementation impl = builderMethod.getImplementation();
+    public List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks(@Nonnull BuilderMethod builderMethod) {
+        MethodImplementation impl = builderMethod.getImplementation();
         if (impl == null) {
             return ImmutableList.of();
         }

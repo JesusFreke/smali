@@ -455,8 +455,7 @@ method returns[BuilderMethod ret]
             $method_name_and_prototype.returnType,
             accessFlags,
             $annotations.annotations,
-            // TODO: refactor to accept MethodImplementation (not BuilderMethodImplementation)
-            null);
+            methodImplementation);
   };
 
 method_prototype returns[List<String> parameters, String returnType]

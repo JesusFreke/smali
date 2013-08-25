@@ -53,8 +53,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class InstructionWriteUtil<StringRef extends StringReference,
-        BaseReference extends Reference> {
+public class InstructionWriteUtil<StringRef extends StringReference, BaseReference extends Reference> {
     private final StringIndexProvider<StringRef> stringIndexProvider;
     private final InstructionFactory<BaseReference> instructionFactory;
     private final Iterable<? extends Instruction> originalInstructions;

@@ -59,8 +59,7 @@ import java.util.Map.Entry;
 
 public class ClassPool implements ClassSection<CharSequence, CharSequence,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, PoolClassDef, Field, PoolMethod,
-        Set<? extends Annotation>,
-        EncodedValue> {
+        Set<? extends Annotation>, EncodedValue> {
     @Nonnull private HashMap<String, PoolClassDef> internedItems = Maps.newHashMap();
 
     @Nonnull private final StringPool stringPool;
