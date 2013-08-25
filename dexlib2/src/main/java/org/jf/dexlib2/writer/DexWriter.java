@@ -76,8 +76,7 @@ public abstract class DexWriter<
         AnnotationKey extends Annotation, AnnotationSetKey,
         TypeListKey,
         FieldKey, MethodKey,
-        EncodedValue, AnnotationElement,
-        Insn extends Instruction> {
+        EncodedValue, AnnotationElement> {
     public static final int NO_INDEX = -1;
     public static final int NO_OFFSET = 0;
 

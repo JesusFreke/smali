@@ -56,7 +56,7 @@ import java.util.Set;
 public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringReference, BuilderTypeReference,
         BuilderTypeReference, BuilderProtoReference, BuilderFieldReference, BuilderMethodReference, BuilderReference,
         BuilderClassDef, BuilderAnnotation, BuilderAnnotationSet, BuilderTypeList, BuilderField, BuilderMethod,
-        BuilderEncodedValue, BuilderAnnotationElement, BuilderInstruction> {
+        BuilderEncodedValue, BuilderAnnotationElement> {
 
     private final BuilderContext context;
 
