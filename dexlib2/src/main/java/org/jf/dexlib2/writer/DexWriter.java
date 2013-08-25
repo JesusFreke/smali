@@ -117,7 +117,7 @@ public abstract class DexWriter<
     protected final FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection;
     protected final MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey, MethodKey> methodSection;
     protected final ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
-            EncodedValue, Insn> classSection;
+            EncodedValue> classSection;
     
     protected final TypeListSection<TypeKey, TypeListKey> typeListSection;
     protected final AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue> annotationSection;
@@ -131,7 +131,7 @@ public abstract class DexWriter<
                         FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection,
                         MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey, MethodKey> methodSection,
                         ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
-                                EncodedValue, Insn> classSection,
+                                EncodedValue> classSection,
                         TypeListSection<TypeKey, TypeListKey> typeListSection,
                         AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement,
                                 EncodedValue> annotationSection,
@@ -789,7 +789,7 @@ public abstract class DexWriter<
             Iterable<MethodKey> methods = Iterables.concat(directMethods, virtualMethods);
 
             for (MethodKey methodKey: methods) {
-                Iterable<? extends Insn> instructions = classSection.getInstructions(methodKey);
+                Iterable<? extends Instruction> instructions = classSection.getInstructions(methodKey);
                 int debugItemOffset = classSection.getDebugItemOffset(methodKey);
 
                 if (instructions == null && debugItemOffset == NO_OFFSET) {
@@ -813,8 +813,8 @@ public abstract class DexWriter<
                 if (instructions != null) {
                     tryBlocks = TryListBuilder.massageTryBlocks(tryBlocks);
 
-                    InstructionWriteUtil<Insn, StringRef, BaseReference> instrWriteUtil =
-                            new InstructionWriteUtil<Insn, StringRef, BaseReference>(instructions, stringSection, instructionFactory);
+                    InstructionWriteUtil<StringRef, BaseReference> instrWriteUtil =
+                            new InstructionWriteUtil<StringRef, BaseReference>(instructions, stringSection, instructionFactory);
                     writer.writeUshort(instrWriteUtil.getOutParamCount());
                     writer.writeUshort(tryBlocks.size());
                     writer.writeInt(debugItemOffset);
@@ -824,7 +824,7 @@ public abstract class DexWriter<
                                     methodSection);
 
                     writer.writeInt(instrWriteUtil.getCodeUnitCount());
-                    for (Insn instruction: instrWriteUtil.getInstructions()) {
+                    for (Instruction instruction: instrWriteUtil.getInstructions()) {
                         switch (instruction.getOpcode().format) {
                             case Format10t:
                                 instructionWriter.write((Instruction10t)instruction);

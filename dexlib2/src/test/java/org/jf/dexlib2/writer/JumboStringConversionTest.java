@@ -56,7 +56,7 @@ public class JumboStringConversionTest {
     private MockStringIndexProvider mockStringIndexProvider;
     ArrayList<String> mJumboStrings;
 
-    private class InsnWriteUtil extends InstructionWriteUtil<Instruction, StringReference, Reference> {
+    private class InsnWriteUtil extends InstructionWriteUtil<StringReference, Reference> {
         public InsnWriteUtil(@Nonnull MethodImplementation implementation) {
             super(implementation.getInstructions(), mockStringIndexProvider, ImmutableInstructionFactory.INSTANCE);
         }

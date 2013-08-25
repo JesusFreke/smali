@@ -58,7 +58,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
 public class BuilderClassPool implements ClassSection<BuilderStringReference, BuilderTypeReference, BuilderTypeList,
-        BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet, BuilderEncodedValue, BuilderInstruction> {
+        BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet, BuilderEncodedValue> {
     @Nonnull private final ConcurrentMap<String, BuilderClassDef> internedItems =
             Maps.newConcurrentMap();
 

@@ -34,6 +34,7 @@ package org.jf.dexlib2.writer;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
+import org.jf.dexlib2.iface.instruction.Instruction;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ClassSection<StringKey extends CharSequence, TypeKey extends CharSequence, TypeListKey, ClassKey,
-        FieldKey, MethodKey, AnnotationSetKey, EncodedValue, Insn> extends IndexSection<ClassKey> {
+        FieldKey, MethodKey, AnnotationSetKey, EncodedValue> extends IndexSection<ClassKey> {
     @Nonnull Collection<? extends ClassKey> getSortedClasses();
 
     @Nullable Map.Entry<? extends ClassKey, Integer> getClassEntryByType(@Nullable TypeKey key);
@@ -74,7 +75,7 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
     @Nullable Iterable<? extends StringKey> getParameterNames(@Nonnull MethodKey key);
 
     int getRegisterCount(@Nonnull MethodKey key);
-    @Nullable Iterable<? extends Insn> getInstructions(@Nonnull MethodKey key);
+    @Nullable Iterable<? extends Instruction> getInstructions(@Nonnull MethodKey key);
     @Nonnull List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks(@Nonnull MethodKey key);
     @Nullable TypeKey getExceptionType(@Nonnull ExceptionHandler handler);
 

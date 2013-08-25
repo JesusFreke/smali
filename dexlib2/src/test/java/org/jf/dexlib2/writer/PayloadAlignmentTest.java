@@ -51,7 +51,7 @@ import java.util.ArrayList;
 public class PayloadAlignmentTest {
     private MockStringIndexProvider mockStringIndexProvider;
 
-    private class InsnWriteUtil extends InstructionWriteUtil<Instruction, StringReference, Reference> {
+    private class InsnWriteUtil extends InstructionWriteUtil<StringReference, Reference> {
         public InsnWriteUtil(@Nonnull MethodImplementation implementation) {
             super(implementation.getInstructions(), mockStringIndexProvider, ImmutableInstructionFactory.INSTANCE);
         }

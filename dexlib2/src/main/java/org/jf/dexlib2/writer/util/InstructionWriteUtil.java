@@ -53,13 +53,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class InstructionWriteUtil<Insn extends Instruction, StringRef extends StringReference,
+public class InstructionWriteUtil<StringRef extends StringReference,
         BaseReference extends Reference> {
     private final StringIndexProvider<StringRef> stringIndexProvider;
-    private final InstructionFactory<? extends Insn, BaseReference> instructionFactory;
-    private final Iterable<? extends Insn> originalInstructions;
+    private final InstructionFactory<? extends Instruction, BaseReference> instructionFactory;
+    private final Iterable<? extends Instruction> originalInstructions;
 
-    private List<Insn> instructions;
+    private List<Instruction> instructions;
     private ArrayList<Integer> codeOffsetShifts;
     private HashMap<Integer,Format> offsetToNewInstructionMap;
 
@@ -70,9 +70,9 @@ public class InstructionWriteUtil<Insn extends Instruction, StringRef extends St
         int getItemIndex(@Nonnull StringRef reference);
     }
 
-    public InstructionWriteUtil(@Nonnull Iterable<? extends Insn> instructions,
+    public InstructionWriteUtil(@Nonnull Iterable<? extends Instruction> instructions,
                                 @Nonnull StringIndexProvider<StringRef> stringIndexProvider,
-                                @Nonnull InstructionFactory<? extends Insn, BaseReference> instructionFactory) {
+                                @Nonnull InstructionFactory<? extends Instruction, BaseReference> instructionFactory) {
         this.stringIndexProvider = stringIndexProvider;
         this.instructionFactory = instructionFactory;
         this.originalInstructions = instructions;
@@ -82,7 +82,7 @@ public class InstructionWriteUtil<Insn extends Instruction, StringRef extends St
     }
 
     private void calculateMaxOutParamCount() {
-        for (Insn instruction: originalInstructions) {
+        for (Instruction instruction: originalInstructions) {
             codeUnitCount += instruction.getCodeUnits();
             if (instruction.getOpcode().referenceType == ReferenceType.METHOD) {
                 ReferenceInstruction refInsn = (ReferenceInstruction)instruction;
@@ -94,7 +94,7 @@ public class InstructionWriteUtil<Insn extends Instruction, StringRef extends St
             }
         }
     }
-    public Iterable<? extends Insn> getInstructions() {
+    public Iterable<? extends Instruction> getInstructions() {
         if (instructions != null) {
             return instructions;
         } else {
@@ -228,8 +228,8 @@ public class InstructionWriteUtil<Insn extends Instruction, StringRef extends St
 
         instructions = Lists.newArrayList();
         int currentCodeOffset = 0;
-        for (Insn instruction: originalInstructions) {
-            Insn modifiedInstruction = null;
+        for (Instruction instruction: originalInstructions) {
+            Instruction modifiedInstruction = null;
             switch (instruction.getOpcode().format) {
                 case Format10t: {
                     Instruction10t instr = (Instruction10t)instruction;
