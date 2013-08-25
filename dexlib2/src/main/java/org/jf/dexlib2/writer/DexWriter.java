@@ -109,7 +109,7 @@ public abstract class DexWriter<
     protected int numCodeItemItems = 0;
     protected int numClassDataItems = 0;
 
-    protected final InstructionFactory<? extends Insn, BaseReference> instructionFactory;
+    protected final InstructionFactory<BaseReference> instructionFactory;
 
     protected final StringSection<StringKey, StringRef> stringSection;
     protected final TypeSection<StringKey, TypeKey, TypeRef> typeSection;
@@ -124,7 +124,7 @@ public abstract class DexWriter<
     protected final AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection;
 
     protected DexWriter(int api,
-                        InstructionFactory<? extends Insn, BaseReference> instructionFactory,
+                        InstructionFactory<BaseReference> instructionFactory,
                         StringSection<StringKey, StringRef> stringSection,
                         TypeSection<StringKey, TypeKey, TypeRef> typeSection,
                         ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection,
@@ -814,7 +814,8 @@ public abstract class DexWriter<
                     tryBlocks = TryListBuilder.massageTryBlocks(tryBlocks);
 
                     InstructionWriteUtil<StringRef, BaseReference> instrWriteUtil =
-                            new InstructionWriteUtil<StringRef, BaseReference>(instructions, stringSection, instructionFactory);
+                            new InstructionWriteUtil<StringRef, BaseReference>(
+                                    instructions, stringSection, instructionFactory);
                     writer.writeUshort(instrWriteUtil.getOutParamCount());
                     writer.writeUshort(tryBlocks.size());
                     writer.writeInt(debugItemOffset);

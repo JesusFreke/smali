@@ -56,7 +56,7 @@ import java.util.List;
 public class InstructionWriteUtil<StringRef extends StringReference,
         BaseReference extends Reference> {
     private final StringIndexProvider<StringRef> stringIndexProvider;
-    private final InstructionFactory<? extends Instruction, BaseReference> instructionFactory;
+    private final InstructionFactory<BaseReference> instructionFactory;
     private final Iterable<? extends Instruction> originalInstructions;
 
     private List<Instruction> instructions;
@@ -72,7 +72,7 @@ public class InstructionWriteUtil<StringRef extends StringReference,
 
     public InstructionWriteUtil(@Nonnull Iterable<? extends Instruction> instructions,
                                 @Nonnull StringIndexProvider<StringRef> stringIndexProvider,
-                                @Nonnull InstructionFactory<? extends Instruction, BaseReference> instructionFactory) {
+                                @Nonnull InstructionFactory<BaseReference> instructionFactory) {
         this.stringIndexProvider = stringIndexProvider;
         this.instructionFactory = instructionFactory;
         this.originalInstructions = instructions;
