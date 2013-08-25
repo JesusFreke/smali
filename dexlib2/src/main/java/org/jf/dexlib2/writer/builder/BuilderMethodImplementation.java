@@ -32,6 +32,7 @@
 package org.jf.dexlib2.writer.builder;
 
 import org.jf.dexlib2.iface.MethodImplementation;
+import org.jf.dexlib2.iface.debug.DebugItem;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -40,12 +41,12 @@ public class BuilderMethodImplementation implements MethodImplementation {
     protected final int registerCount;
     @Nonnull protected final List<? extends BuilderInstruction> instructions;
     @Nonnull protected final List<? extends BuilderTryBlock> tryBlocks;
-    @Nonnull protected final List<? extends BuilderDebugItem> debugItems;
+    @Nonnull protected final List<? extends DebugItem> debugItems;
 
     public BuilderMethodImplementation(int registerCount,
                                        @Nonnull List<? extends BuilderInstruction> instructions,
                                        @Nonnull List<? extends BuilderTryBlock> tryBlocks,
-                                       @Nonnull List<? extends BuilderDebugItem> debugItems) {
+                                       @Nonnull List<? extends DebugItem> debugItems) {
         this.registerCount = registerCount;
         this.instructions = instructions;
         this.tryBlocks = tryBlocks;
@@ -55,5 +56,5 @@ public class BuilderMethodImplementation implements MethodImplementation {
     @Override public int getRegisterCount() { return registerCount; }
     @Nonnull @Override public List<? extends BuilderInstruction> getInstructions() { return instructions; }
     @Nonnull @Override public List<? extends BuilderTryBlock> getTryBlocks() { return tryBlocks; }
-    @Nonnull @Override public List<? extends BuilderDebugItem> getDebugItems() { return debugItems; }
+    @Nonnull @Override public List<? extends DebugItem> getDebugItems() { return debugItems; }
 }

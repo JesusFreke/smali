@@ -37,15 +37,13 @@ import com.google.common.collect.*;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.TryBlock;
-import org.jf.dexlib2.iface.debug.EndLocal;
-import org.jf.dexlib2.iface.debug.LineNumber;
-import org.jf.dexlib2.iface.debug.RestartLocal;
+import org.jf.dexlib2.iface.debug.*;
+import org.jf.dexlib2.iface.reference.StringReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.util.EncodedValueUtils;
 import org.jf.dexlib2.writer.ClassSection;
 import org.jf.dexlib2.writer.DebugWriter;
-import org.jf.dexlib2.writer.builder.BuilderDebugItem.BuilderSetSourceFile;
-import org.jf.dexlib2.writer.builder.BuilderDebugItem.BuilderStartLocal;
 import org.jf.dexlib2.writer.builder.BuilderEncodedValues.BuilderEncodedValue;
 import org.jf.util.AbstractForwardSequentialList;
 import org.jf.util.CollectionUtils;
@@ -59,8 +57,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
 public class BuilderClassPool implements ClassSection<BuilderStringReference, BuilderTypeReference, BuilderTypeList,
-        BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet, BuilderEncodedValue, BuilderDebugItem,
-        BuilderInstruction, BuilderExceptionHandler> {
+        BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet, BuilderEncodedValue, BuilderInstruction,
+        BuilderExceptionHandler> {
     @Nonnull private final ConcurrentMap<String, BuilderClassDef> internedItems =
             Maps.newConcurrentMap();
 
@@ -266,7 +264,7 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
     }
 
     @Nullable @Override
-    public Iterable<? extends BuilderDebugItem> getDebugItems(@Nonnull BuilderMethod builderMethod) {
+    public Iterable<? extends DebugItem> getDebugItems(@Nonnull BuilderMethod builderMethod) {
         BuilderMethodImplementation impl = builderMethod.getImplementation();
         if (impl == null) {
             return null;
@@ -353,17 +351,41 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
         return builderMethod.debugInfoOffset;
     }
 
+    @Nullable private BuilderStringReference checkStringReference(@Nullable StringReference stringReference) {
+        if (stringReference == null) {
+            return null;
+        }
+        try {
+            return (BuilderStringReference)stringReference;
+        } catch (ClassCastException ex) {
+            throw new IllegalStateException("Only StringReference instances returned by " +
+                    "DexBuilder.internStringReference or DexBuilder.internNullableStringReference may be used.");
+        }
+    }
+
+    @Nullable private BuilderTypeReference checkTypeReference(@Nullable TypeReference typeReference) {
+        if (typeReference == null) {
+            return null;
+        }
+        try {
+            return (BuilderTypeReference)typeReference;
+        } catch (ClassCastException ex) {
+            throw new IllegalStateException("Only TypeReference instances returned by " +
+                    "DexBuilder.internTypeReference or DexBuilder.internNullableTypeReference may be used.");
+        }
+    }
+
     @Override
     public void writeDebugItem(@Nonnull DebugWriter<BuilderStringReference, BuilderTypeReference> writer,
-                               BuilderDebugItem debugItem) throws IOException {
+                               DebugItem debugItem) throws IOException {
         switch (debugItem.getDebugItemType()) {
             case DebugItemType.START_LOCAL: {
-                BuilderStartLocal startLocal = (BuilderStartLocal)debugItem;
+                StartLocal startLocal = (StartLocal)debugItem;
                 writer.writeStartLocal(startLocal.getCodeAddress(),
-                        startLocal.register,
-                        startLocal.name,
-                        startLocal.type,
-                        startLocal.signature);
+                        startLocal.getRegister(),
+                        checkStringReference(startLocal.getNameReference()),
+                        checkTypeReference(startLocal.getTypeReference()),
+                        checkStringReference(startLocal.getSignatureReference()));
                 break;
             }
             case DebugItemType.END_LOCAL: {
@@ -390,8 +412,9 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
                 break;
             }
             case DebugItemType.SET_SOURCE_FILE: {
-                BuilderSetSourceFile setSourceFile = (BuilderSetSourceFile)debugItem;
-                writer.writeSetSourceFile(setSourceFile.getCodeAddress(), setSourceFile.sourceFile);
+                SetSourceFile setSourceFile = (SetSourceFile)debugItem;
+                writer.writeSetSourceFile(setSourceFile.getCodeAddress(),
+                        checkStringReference(setSourceFile.getSourceFileReference()));
             }
             default:
                 throw new ExceptionWithContext("Unexpected debug item type: %d", debugItem.getDebugItemType());

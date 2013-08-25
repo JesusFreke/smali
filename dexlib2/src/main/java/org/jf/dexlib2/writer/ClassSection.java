@@ -32,6 +32,7 @@
 package org.jf.dexlib2.writer;
 
 import org.jf.dexlib2.iface.TryBlock;
+import org.jf.dexlib2.iface.debug.DebugItem;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ClassSection<StringKey extends CharSequence, TypeKey extends CharSequence, TypeListKey, ClassKey,
-        FieldKey, MethodKey, AnnotationSetKey, EncodedValue, DebugItem, Insn,
+        FieldKey, MethodKey, AnnotationSetKey, EncodedValue, Insn,
         ExceptionHandler extends org.jf.dexlib2.iface.ExceptionHandler> extends IndexSection<ClassKey> {
     @Nonnull Collection<? extends ClassKey> getSortedClasses();
 

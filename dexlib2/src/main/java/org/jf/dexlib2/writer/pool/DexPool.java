@@ -33,7 +33,6 @@ package org.jf.dexlib2.writer.pool;
 
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.*;
-import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.iface.value.*;
@@ -51,7 +50,7 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         FieldReference, MethodReference, Reference, PoolClassDef,
         Annotation, Set<? extends Annotation>,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
-        EncodedValue, AnnotationElement, DebugItem, Instruction, ExceptionHandler> {
+        EncodedValue, AnnotationElement, Instruction, ExceptionHandler> {
 
     public static DexPool makeDexPool() {
         return makeDexPool(15);
