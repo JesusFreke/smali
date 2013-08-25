@@ -50,7 +50,7 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         FieldReference, MethodReference, Reference, PoolClassDef,
         Annotation, Set<? extends Annotation>,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
-        EncodedValue, AnnotationElement, Instruction, ExceptionHandler> {
+        EncodedValue, AnnotationElement, Instruction> {
 
     public static DexPool makeDexPool() {
         return makeDexPool(15);

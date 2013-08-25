@@ -35,6 +35,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.*;
@@ -57,8 +58,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
 public class BuilderClassPool implements ClassSection<BuilderStringReference, BuilderTypeReference, BuilderTypeList,
-        BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet, BuilderEncodedValue, BuilderInstruction,
-        BuilderExceptionHandler> {
+        BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet, BuilderEncodedValue, BuilderInstruction> {
     @Nonnull private final ConcurrentMap<String, BuilderClassDef> internedItems =
             Maps.newConcurrentMap();
 
@@ -307,8 +307,8 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
         return impl.getTryBlocks();
     }
 
-    @Nullable @Override public BuilderTypeReference getExceptionType(@Nonnull BuilderExceptionHandler handler) {
-        return handler.exceptionType;
+    @Nullable @Override public BuilderTypeReference getExceptionType(@Nonnull ExceptionHandler handler) {
+        return checkTypeReference(handler.getExceptionTypeReference());
     }
 
     @Override public void setEncodedArrayOffset(@Nonnull BuilderClassDef builderClassDef, int offset) {

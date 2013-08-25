@@ -39,6 +39,7 @@ import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.base.BaseAnnotation;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.debug.LineNumber;
@@ -76,7 +77,7 @@ public abstract class DexWriter<
         TypeListKey,
         FieldKey, MethodKey,
         EncodedValue, AnnotationElement,
-        Insn extends Instruction, ExceptionHandler extends org.jf.dexlib2.iface.ExceptionHandler> {
+        Insn extends Instruction> {
     public static final int NO_INDEX = -1;
     public static final int NO_OFFSET = 0;
 
@@ -116,7 +117,7 @@ public abstract class DexWriter<
     protected final FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection;
     protected final MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey, MethodKey> methodSection;
     protected final ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
-            EncodedValue, Insn, ExceptionHandler> classSection;
+            EncodedValue, Insn> classSection;
     
     protected final TypeListSection<TypeKey, TypeListKey> typeListSection;
     protected final AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue> annotationSection;
@@ -130,7 +131,7 @@ public abstract class DexWriter<
                         FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection,
                         MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey, MethodKey> methodSection,
                         ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
-                                EncodedValue, Insn, ExceptionHandler> classSection,
+                                EncodedValue, Insn> classSection,
                         TypeListSection<TypeKey, TypeListKey> typeListSection,
                         AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement,
                                 EncodedValue> annotationSection,

@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.writer;
 
+import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
 
@@ -42,8 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ClassSection<StringKey extends CharSequence, TypeKey extends CharSequence, TypeListKey, ClassKey,
-        FieldKey, MethodKey, AnnotationSetKey, EncodedValue, Insn,
-        ExceptionHandler extends org.jf.dexlib2.iface.ExceptionHandler> extends IndexSection<ClassKey> {
+        FieldKey, MethodKey, AnnotationSetKey, EncodedValue, Insn> extends IndexSection<ClassKey> {
     @Nonnull Collection<? extends ClassKey> getSortedClasses();
 
     @Nullable Map.Entry<? extends ClassKey, Integer> getClassEntryByType(@Nullable TypeKey key);
