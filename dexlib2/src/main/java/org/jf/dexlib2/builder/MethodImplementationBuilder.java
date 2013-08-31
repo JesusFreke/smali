@@ -18,11 +18,11 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     @Nonnull
     private final MutableMethodImplementation<ReferenceType> impl;
 
-    // the current instruction index
-    private int currentIndex;
+    private MethodLocation currentLocation;
 
-    public MethodImplementationBuilder(@Nonnull MutableMethodImplementation<ReferenceType> impl) {
-        this.impl = impl;
+    public MethodImplementationBuilder() {
+        this.impl = new MutableMethodImplementation<ReferenceType>();
+        this.currentLocation = impl.instructionList.get(0);
     }
 
     /**
@@ -35,18 +35,16 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
      */
     @Nonnull
     public LabelMethodItem addLabel(@Nonnull String name) {
-        MethodLocation location = impl.instructionList.get(currentIndex);
-
         LabelMethodItem label = labels.get(name);
 
         if (label != null) {
             if (label.isPlaced()) {
                 throw new IllegalArgumentException("There is already a label with that name.");
             } else {
-                location.addLabel(label);
+                currentLocation.addLabel(label);
             }
         } else {
-            label = location.addNewLabel();
+            label = currentLocation.addNewLabel();
             labels.put(name, label);
         }
 
@@ -75,13 +73,16 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
 
     public void addCatch(@Nullable TypeReference type, @Nonnull LabelMethodItem from,
                          @Nonnull LabelMethodItem to, @Nonnull LabelMethodItem handler) {
+        impl.addCatch(type, from, to, handler);
     }
 
     public void addCatch(@Nullable String type, @Nonnull LabelMethodItem from, @Nonnull LabelMethodItem to,
                          @Nonnull LabelMethodItem handler) {
+        impl.addCatch(type, from, to, handler);
     }
 
     public void addCatch(@Nonnull LabelMethodItem from, @Nonnull LabelMethodItem to, @Nonnull LabelMethodItem handler) {
+        impl.addCatch(from, to, handler);
     }
 
     public void addLineNumber(int lineNumber) {

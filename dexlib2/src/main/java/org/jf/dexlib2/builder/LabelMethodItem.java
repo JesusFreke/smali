@@ -7,4 +7,8 @@ public class LabelMethodItem extends MethodItem {
     LabelMethodItem(MethodLocation location) {
         this.location = location;
     }
+
+    public int getCodeAddress() {
+        return getLocation().getCodeAddress();
+    }
 }
