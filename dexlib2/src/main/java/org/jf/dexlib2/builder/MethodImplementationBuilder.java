@@ -1,7 +1,6 @@
 package org.jf.dexlib2.builder;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
@@ -9,27 +8,80 @@ import org.jf.dexlib2.writer.builder.BuilderStringReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.List;
 
 public class MethodImplementationBuilder<ReferenceType extends Reference> {
-    public MethodImplementationBuilder() {
-    }
-
-    public MethodImplementation buildMethodImplementation() {
-        return null;
-    }
+    // Contains all named labels - both placed and unplaced
+    private final HashMap<String, LabelMethodItem> labels = new HashMap<String, LabelMethodItem>();
 
     @Nonnull
-    public LabelRef addLabel(@Nonnull String name) {
-        return null;
+    private final MutableMethodImplementation<ReferenceType> impl;
+
+    // the current instruction index
+    private int currentIndex;
+
+    public MethodImplementationBuilder(@Nonnull MutableMethodImplementation<ReferenceType> impl) {
+        this.impl = impl;
     }
 
+    /**
+     * Adds a new named label at the current location.
+     *
+     * Any previous unplaced references to a label of this name will now refer to this label/location
+     *
+     * @param name The name of the label to add
+     * @return A LabelRef representing the label
+     */
     @Nonnull
-    public LabelRef getLabel(@Nonnull String name) {
-        return null;
+    public LabelMethodItem addLabel(@Nonnull String name) {
+        MethodLocation location = impl.instructionList.get(currentIndex);
+
+        LabelMethodItem label = labels.get(name);
+
+        if (label != null) {
+            if (label.isPlaced()) {
+                throw new IllegalArgumentException("There is already a label with that name.");
+            } else {
+                location.addLabel(label);
+            }
+        } else {
+            label = location.addNewLabel();
+            labels.put(name, label);
+        }
+
+        return label;
     }
 
-    public void addCatch(String type, LabelRef from, LabelRef to, LabelRef using) {
+    /**
+     * Get a reference to a label with the given name.
+     *
+     * If a label with that name has not been added yet, a new one is created, but is left
+     * in an unplaced state. It is assumed that addLabel(name) will be called at a later
+     * point to define the location of the label.
+     *
+     * @param name The name of the label to get
+     * @return A LabelRef representing the label
+     */
+    @Nonnull
+    public LabelMethodItem getLabel(@Nonnull String name) {
+        LabelMethodItem label = labels.get(name);
+        if (label == null) {
+            label = new LabelMethodItem();
+            labels.put(name, label);
+        }
+        return label;
+    }
+
+    public void addCatch(@Nullable TypeReference type, @Nonnull LabelMethodItem from,
+                         @Nonnull LabelMethodItem to, @Nonnull LabelMethodItem handler) {
+    }
+
+    public void addCatch(@Nullable String type, @Nonnull LabelMethodItem from, @Nonnull LabelMethodItem to,
+                         @Nonnull LabelMethodItem handler) {
+    }
+
+    public void addCatch(@Nonnull LabelMethodItem from, @Nonnull LabelMethodItem to, @Nonnull LabelMethodItem handler) {
     }
 
     public void addLineNumber(int lineNumber) {
@@ -55,7 +107,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     }
 
     public void addInstruction10t(@Nonnull Opcode opcode,
-                                  @Nonnull LabelRef label) {
+                                  @Nonnull LabelMethodItem label) {
     }
 
     public void addInstruction10x(@Nonnull Opcode opcode) {
@@ -81,7 +133,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     }
 
     public void addInstruction20t(@Nonnull Opcode opcode,
-                                  @Nonnull LabelRef label) {
+                                  @Nonnull LabelMethodItem label) {
     }
 
     public void addInstruction21c(@Nonnull Opcode opcode,
@@ -106,7 +158,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
 
     public void addInstruction21t(@Nonnull Opcode opcode,
                                   int registerA,
-                                  @Nonnull LabelRef label) {
+                                  @Nonnull LabelMethodItem label) {
     }
 
     public void addInstruction22b(@Nonnull Opcode opcode,
@@ -130,7 +182,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     public void addInstruction22t(@Nonnull Opcode opcode,
                                   int registerA,
                                   int registerB,
-                                  @Nonnull LabelRef labelRef) {
+                                  @Nonnull LabelMethodItem labelMethodItem) {
     }
 
     public void addInstruction22x(@Nonnull Opcode opcode,
@@ -145,7 +197,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     }
 
     public void addInstruction30t(@Nonnull Opcode opcode,
-                                  @Nonnull LabelRef label) {
+                                  @Nonnull LabelMethodItem label) {
     }
 
     public void addInstruction31c(@Nonnull Opcode opcode,
@@ -160,7 +212,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
 
     public void addInstruction31t(@Nonnull Opcode opcode,
                                   int registerA,
-                                  @Nonnull LabelRef label) {
+                                  @Nonnull LabelMethodItem label) {
     }
 
     public void addInstruction32x(@Nonnull Opcode opcode,
@@ -189,7 +241,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
                                   long literal) {
     }
 
-    public void addPackedSwitchPayload(int startKey, @Nullable List<? extends LabelRef> switchElements) {
+    public void addPackedSwitchPayload(int startKey, @Nullable List<? extends LabelMethodItem> switchElements) {
     }
 
     public void addSparseSwitchPayload(@Nullable List<? extends SwitchLabelElement> switchElements) {
