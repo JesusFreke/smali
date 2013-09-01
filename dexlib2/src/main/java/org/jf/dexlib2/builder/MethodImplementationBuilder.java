@@ -13,7 +13,7 @@ import java.util.List;
 
 public class MethodImplementationBuilder<ReferenceType extends Reference> {
     // Contains all named labels - both placed and unplaced
-    private final HashMap<String, LabelMethodItem> labels = new HashMap<String, LabelMethodItem>();
+    private final HashMap<String, Label> labels = new HashMap<String, Label>();
 
     @Nonnull
     private final MutableMethodImplementation<ReferenceType> impl;
@@ -34,8 +34,8 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
      * @return A LabelRef representing the label
      */
     @Nonnull
-    public LabelMethodItem addLabel(@Nonnull String name) {
-        LabelMethodItem label = labels.get(name);
+    public Label addLabel(@Nonnull String name) {
+        Label label = labels.get(name);
 
         if (label != null) {
             if (label.isPlaced()) {
@@ -62,26 +62,26 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
      * @return A LabelRef representing the label
      */
     @Nonnull
-    public LabelMethodItem getLabel(@Nonnull String name) {
-        LabelMethodItem label = labels.get(name);
+    public Label getLabel(@Nonnull String name) {
+        Label label = labels.get(name);
         if (label == null) {
-            label = new LabelMethodItem();
+            label = new Label();
             labels.put(name, label);
         }
         return label;
     }
 
-    public void addCatch(@Nullable TypeReference type, @Nonnull LabelMethodItem from,
-                         @Nonnull LabelMethodItem to, @Nonnull LabelMethodItem handler) {
+    public void addCatch(@Nullable TypeReference type, @Nonnull Label from,
+                         @Nonnull Label to, @Nonnull Label handler) {
         impl.addCatch(type, from, to, handler);
     }
 
-    public void addCatch(@Nullable String type, @Nonnull LabelMethodItem from, @Nonnull LabelMethodItem to,
-                         @Nonnull LabelMethodItem handler) {
+    public void addCatch(@Nullable String type, @Nonnull Label from, @Nonnull Label to,
+                         @Nonnull Label handler) {
         impl.addCatch(type, from, to, handler);
     }
 
-    public void addCatch(@Nonnull LabelMethodItem from, @Nonnull LabelMethodItem to, @Nonnull LabelMethodItem handler) {
+    public void addCatch(@Nonnull Label from, @Nonnull Label to, @Nonnull Label handler) {
         impl.addCatch(from, to, handler);
     }
 
@@ -108,7 +108,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     }
 
     public void addInstruction10t(@Nonnull Opcode opcode,
-                                  @Nonnull LabelMethodItem label) {
+                                  @Nonnull Label label) {
     }
 
     public void addInstruction10x(@Nonnull Opcode opcode) {
@@ -134,7 +134,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     }
 
     public void addInstruction20t(@Nonnull Opcode opcode,
-                                  @Nonnull LabelMethodItem label) {
+                                  @Nonnull Label label) {
     }
 
     public void addInstruction21c(@Nonnull Opcode opcode,
@@ -159,7 +159,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
 
     public void addInstruction21t(@Nonnull Opcode opcode,
                                   int registerA,
-                                  @Nonnull LabelMethodItem label) {
+                                  @Nonnull Label label) {
     }
 
     public void addInstruction22b(@Nonnull Opcode opcode,
@@ -183,7 +183,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     public void addInstruction22t(@Nonnull Opcode opcode,
                                   int registerA,
                                   int registerB,
-                                  @Nonnull LabelMethodItem labelMethodItem) {
+                                  @Nonnull Label labelMethodItem) {
     }
 
     public void addInstruction22x(@Nonnull Opcode opcode,
@@ -198,7 +198,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     }
 
     public void addInstruction30t(@Nonnull Opcode opcode,
-                                  @Nonnull LabelMethodItem label) {
+                                  @Nonnull Label label) {
     }
 
     public void addInstruction31c(@Nonnull Opcode opcode,
@@ -213,7 +213,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
 
     public void addInstruction31t(@Nonnull Opcode opcode,
                                   int registerA,
-                                  @Nonnull LabelMethodItem label) {
+                                  @Nonnull Label label) {
     }
 
     public void addInstruction32x(@Nonnull Opcode opcode,
@@ -242,7 +242,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
                                   long literal) {
     }
 
-    public void addPackedSwitchPayload(int startKey, @Nullable List<? extends LabelMethodItem> switchElements) {
+    public void addPackedSwitchPayload(int startKey, @Nullable List<? extends Label> switchElements) {
     }
 
     public void addSparseSwitchPayload(@Nullable List<? extends SwitchLabelElement> switchElements) {

@@ -14,7 +14,7 @@ public class MethodLocation {
     int codeAddress;
     int index;
 
-    private List<LabelMethodItem> labels = Lists.newArrayList();
+    private List<Label> labels = Lists.newArrayList();
 
     MethodLocation(@Nullable Instruction instruction,
     int codeAddress, int index) {
@@ -37,11 +37,11 @@ public class MethodLocation {
     }
 
     @Nonnull
-    public Collection<LabelMethodItem> getLabels() {
+    public Collection<Label> getLabels() {
         return Collections.unmodifiableCollection(labels);
     }
 
-    public void addLabel(@Nonnull LabelMethodItem label) {
+    public void addLabel(@Nonnull Label label) {
         if (label.isPlaced()) {
             label.getLocation().removeLabel(label);
         }
@@ -50,13 +50,13 @@ public class MethodLocation {
     }
 
     @Nonnull
-    public LabelMethodItem addNewLabel() {
-        LabelMethodItem label = new LabelMethodItem(this);
+    public Label addNewLabel() {
+        Label label = new Label(this);
         labels.add(label);
         return label;
     }
 
-    public void removeLabel(@Nonnull LabelMethodItem label) {
+    public void removeLabel(@Nonnull Label label) {
         for (int i=0; i<labels.size(); i++) {
             labels.remove(label);
         }

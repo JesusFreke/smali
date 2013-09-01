@@ -26,17 +26,17 @@ public class MutableMethodImplementation<ReferenceType extends Reference> {
         return Collections.unmodifiableList(instructionList);
     }
 
-    public void addCatch(@Nullable TypeReference type, @Nonnull LabelMethodItem from,
-                         @Nonnull LabelMethodItem to, @Nonnull LabelMethodItem handler) {
+    public void addCatch(@Nullable TypeReference type, @Nonnull Label from,
+                         @Nonnull Label to, @Nonnull Label handler) {
         tryBlocks.add(new BuilderTryBlock(from, to, type, handler));
     }
 
-    public void addCatch(@Nullable String type, @Nonnull LabelMethodItem from, @Nonnull LabelMethodItem to,
-                         @Nonnull LabelMethodItem handler) {
+    public void addCatch(@Nullable String type, @Nonnull Label from, @Nonnull Label to,
+                         @Nonnull Label handler) {
         tryBlocks.add(new BuilderTryBlock(from, to, type, handler));
     }
 
-    public void addCatch(@Nonnull LabelMethodItem from, @Nonnull LabelMethodItem to, @Nonnull LabelMethodItem handler) {
+    public void addCatch(@Nonnull Label from, @Nonnull Label to, @Nonnull Label handler) {
         tryBlocks.add(new BuilderTryBlock(from, to, handler));
     }
 }

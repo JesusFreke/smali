@@ -12,27 +12,26 @@ import java.util.List;
 class BuilderTryBlock extends BaseTryBlock<ExceptionHandler> {
     // We only ever have one exception handler per try block. They are later merged as needed in TryListBuilder
     @Nonnull public final ExceptionHandler exceptionHandler;
-    @Nonnull public final LabelMethodItem start;
+    @Nonnull public final Label start;
     // The end location is exclusive, it should point to the codeAddress of the instruction immediately after the last
     // covered instruction.
-    @Nonnull public final LabelMethodItem end;
+    @Nonnull public final Label end;
 
-    public BuilderTryBlock(@Nonnull LabelMethodItem start, @Nonnull LabelMethodItem end,
-                           @Nullable String exceptionType, @Nonnull LabelMethodItem handler) {
+    public BuilderTryBlock(@Nonnull Label start, @Nonnull Label end, @Nullable String exceptionType,
+                           @Nonnull Label handler) {
         this.start = start;
         this.end = end;
         this.exceptionHandler = BuilderExceptionHandler.newExceptionHandler(exceptionType, handler);
     }
 
-    public BuilderTryBlock(@Nonnull LabelMethodItem start, @Nonnull LabelMethodItem end,
-                           @Nullable TypeReference exceptionType, @Nonnull LabelMethodItem handler) {
+    public BuilderTryBlock(@Nonnull Label start, @Nonnull Label end, @Nullable TypeReference exceptionType,
+                           @Nonnull Label handler) {
         this.start = start;
         this.end = end;
         this.exceptionHandler = BuilderExceptionHandler.newExceptionHandler(exceptionType, handler);
     }
 
-    public BuilderTryBlock(@Nonnull LabelMethodItem start, @Nonnull LabelMethodItem end,
-                           @Nonnull LabelMethodItem handler) {
+    public BuilderTryBlock(@Nonnull Label start, @Nonnull Label end, @Nonnull Label handler) {
         this.start = start;
         this.end = end;
         this.exceptionHandler = BuilderExceptionHandler.newExceptionHandler(handler);
