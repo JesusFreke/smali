@@ -41,7 +41,7 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
             if (label.isPlaced()) {
                 throw new IllegalArgumentException("There is already a label with that name.");
             } else {
-                currentLocation.addLabel(label);
+                currentLocation.getLabels().add(label);
             }
         } else {
             label = currentLocation.addNewLabel();
@@ -86,25 +86,32 @@ public class MethodImplementationBuilder<ReferenceType extends Reference> {
     }
 
     public void addLineNumber(int lineNumber) {
+        currentLocation.addLineNumber(lineNumber);
     }
 
     public void addStartLocal(int registerNumber, @Nullable StringReference name, @Nullable TypeReference type,
                               @Nullable StringReference signature) {
+        currentLocation.addStartLocal(registerNumber, name, type, signature);
     }
 
     public void addEndLocal(int registerNumber) {
+        currentLocation.addEndLocal(registerNumber);
     }
 
     public void addRestartLocal(int registerNumber) {
+        currentLocation.addRestartLocal(registerNumber);
     }
 
     public void addPrologue() {
+        currentLocation.addPrologue();
     }
 
     public void addEpilogue() {
+        currentLocation.addEpilogue();
     }
 
     public void addSetSourceFile(@Nullable BuilderStringReference sourceFile) {
+        currentLocation.addSetSourceFile(sourceFile);
     }
 
     public void addInstruction10t(@Nonnull Opcode opcode,
