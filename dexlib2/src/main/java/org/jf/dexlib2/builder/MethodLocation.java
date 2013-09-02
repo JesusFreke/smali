@@ -9,17 +9,20 @@ import org.jf.dexlib2.writer.builder.BuilderStringReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 public class MethodLocation {
-    @Nullable Instruction instruction;
+    @Nullable BuilderInstruction instruction;
     int codeAddress;
     int index;
 
     private List<Label> labels = Lists.newArrayList();
     List<BuilderDebugItem> debugItems = Lists.newArrayList();
 
-    MethodLocation(@Nullable Instruction instruction,
+    MethodLocation(@Nullable BuilderInstruction instruction,
     int codeAddress, int index) {
         this.instruction = instruction;
         this.codeAddress = codeAddress;
@@ -37,6 +40,31 @@ public class MethodLocation {
 
     public int getIndex() {
         return index;
+    }
+
+    void mergeInto(@Nonnull MethodLocation other) {
+        for (Label label: labels) {
+            label.location = other;
+            other.labels.add(label);
+        }
+
+        // We need to keep the debug items in the same order. We add the other debug items to this list, then reassign
+        // the list.
+        for (BuilderDebugItem debugItem: debugItems) {
+            debugItem.location = other;
+        }
+        debugItems.addAll(other.debugItems);
+        other.debugItems = debugItems;
+
+        for (int i=debugItems.size()-1; i>=0; i--) {
+            BuilderDebugItem debugItem = debugItems.get(i);
+            debugItem.location = other;
+            other.debugItems.add(0, debugItem);
+        }
+        for (BuilderDebugItem debugItem: debugItems) {
+            debugItem.location = other;
+            other.debugItems.add(0, debugItem);
+        }
     }
 
     @Nonnull

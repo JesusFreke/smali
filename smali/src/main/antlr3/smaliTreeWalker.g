@@ -46,9 +46,10 @@ import org.antlr.runtime.tree.TreeNodeStream;
 import org.antlr.runtime.tree.TreeParser;
 import org.antlr.runtime.tree.TreeRuleReturnScope;
 import org.jf.dexlib2.*;
-import org.jf.dexlib2.builder.LabelRef;
+import org.jf.dexlib2.builder.Label;
 import org.jf.dexlib2.builder.MethodImplementationBuilder;
 import org.jf.dexlib2.builder.SwitchLabelElement;
+import org.jf.dexlib2.builder.instruction.*;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.ClassDef;
@@ -326,7 +327,7 @@ array_elements returns[List<Number> elements]
         $elements.add($fixed_64bit_literal_number.value);
       })*);
 
-packed_switch_elements returns[List<LabelRef> elements]
+packed_switch_elements returns[List<Label> elements]
   @init {$elements = Lists.newArrayList();}
   :
     ^(I_PACKED_SWITCH_ELEMENTS
@@ -536,7 +537,7 @@ catch_directive
 catchall_directive
   : ^(I_CATCHALL from=label_ref to=label_ref using=label_ref)
   {
-    $method::methodBuilder.addCatch(null, $from.label, $to.label, $using.label);
+    $method::methodBuilder.addCatch($from.label, $to.label, $using.label);
   };
 
 parameters[List<SmaliMethodParameter> parameters]
@@ -636,7 +637,7 @@ source
 ordered_method_items
   : ^(I_ORDERED_METHOD_ITEMS (label_def | instruction | debug_directive)*);
 
-label_ref returns[LabelRef label]
+label_ref returns[Label label]
   : SIMPLE_NAME { $label = $method::methodBuilder.getLabel($SIMPLE_NAME.text); };
 
 register_list returns[byte[\] registers, byte registerCount]
@@ -741,7 +742,7 @@ insn_format10t
     ^(I_STATEMENT_FORMAT10t INSTRUCTION_FORMAT10t label_ref)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT10t.text);
-      $method::methodBuilder.addInstruction10t(opcode, $label_ref.label);
+      $method::methodBuilder.addInstruction(new BuilderInstruction10t(opcode, $label_ref.label));
     };
 
 insn_format10x
@@ -749,7 +750,7 @@ insn_format10x
     ^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT10x.text);
-      $method::methodBuilder.addInstruction10x(opcode);
+      $method::methodBuilder.addInstruction(new BuilderInstruction10x(opcode));
     };
 
 insn_format11n
@@ -762,7 +763,7 @@ insn_format11n
       short litB = $short_integral_literal.value;
       LiteralTools.checkNibble(litB);
 
-      $method::methodBuilder.addInstruction11n(opcode, regA, litB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction11n(opcode, regA, litB));
     };
 
 insn_format11x
@@ -772,7 +773,7 @@ insn_format11x
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT11x.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      $method::methodBuilder.addInstruction11x(opcode, regA);
+      $method::methodBuilder.addInstruction(new BuilderInstruction11x(opcode, regA));
     };
 
 insn_format12x
@@ -783,7 +784,7 @@ insn_format12x
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
-      $method::methodBuilder.addInstruction12x(opcode, regA, regB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction12x(opcode, regA, regB));
     };
 
 insn_format20bc
@@ -795,8 +796,8 @@ insn_format20bc
       int verificationError = $verification_error_type.verificationError;
       ImmutableReference referencedItem = $verification_error_reference.reference;
 
-      $method::methodBuilder.addInstruction20bc(opcode, verificationError,
-              dexBuilder.internReference(referencedItem));
+      $method::methodBuilder.addInstruction(new BuilderInstruction20bc(opcode, verificationError,
+              dexBuilder.internReference(referencedItem)));
     };
 
 insn_format20t
@@ -804,7 +805,7 @@ insn_format20t
     ^(I_STATEMENT_FORMAT20t INSTRUCTION_FORMAT20t label_ref)
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT20t.text);
-      $method::methodBuilder.addInstruction20t(opcode, $label_ref.label);
+      $method::methodBuilder.addInstruction(new BuilderInstruction20t(opcode, $label_ref.label));
     };
 
 insn_format21c_field
@@ -816,8 +817,8 @@ insn_format21c_field
 
       ImmutableFieldReference fieldReference = $fully_qualified_field.fieldReference;
 
-      $method::methodBuilder.addInstruction21c(opcode, regA,
-              dexBuilder.internFieldReference(fieldReference));
+      $method::methodBuilder.addInstruction(new BuilderInstruction21c(opcode, regA,
+              dexBuilder.internFieldReference(fieldReference)));
     };
 
 insn_format21c_string
@@ -827,8 +828,8 @@ insn_format21c_string
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21c_STRING.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      $method::methodBuilder.addInstruction21c(opcode, regA,
-              dexBuilder.internStringReference($string_literal.value));
+      $method::methodBuilder.addInstruction(new BuilderInstruction21c(opcode, regA,
+              dexBuilder.internStringReference($string_literal.value)));
     };
 
 insn_format21c_type
@@ -838,8 +839,8 @@ insn_format21c_type
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21c_TYPE.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      $method::methodBuilder.addInstruction21c(opcode, regA,
-              dexBuilder.internTypeReference($reference_type_descriptor.type));
+      $method::methodBuilder.addInstruction(new BuilderInstruction21c(opcode, regA,
+              dexBuilder.internTypeReference($reference_type_descriptor.type)));
     };
 
 insn_format21ih
@@ -851,7 +852,7 @@ insn_format21ih
 
       int litB = $fixed_32bit_literal.value;
 
-      $method::methodBuilder.addInstruction21ih(opcode, regA, litB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction21ih(opcode, regA, litB));
     };
 
 insn_format21lh
@@ -863,7 +864,7 @@ insn_format21lh
 
       long litB = $fixed_64bit_literal.value;
 
-      $method::methodBuilder.addInstruction21lh(opcode, regA, litB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction21lh(opcode, regA, litB));
     };
 
 insn_format21s
@@ -875,7 +876,7 @@ insn_format21s
 
       short litB = $short_integral_literal.value;
 
-      $method::methodBuilder.addInstruction21s(opcode, regA, litB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction21s(opcode, regA, litB));
     };
 
 insn_format21t
@@ -885,7 +886,7 @@ insn_format21t
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT21t.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      $method::methodBuilder.addInstruction21t(opcode, regA, $label_ref.label);
+      $method::methodBuilder.addInstruction(new BuilderInstruction21t(opcode, regA, $label_ref.label));
     };
 
 insn_format22b
@@ -899,7 +900,7 @@ insn_format22b
       short litC = $short_integral_literal.value;
       LiteralTools.checkByte(litC);
 
-      $method::methodBuilder.addInstruction22b(opcode, regA, regB, litC);
+      $method::methodBuilder.addInstruction(new BuilderInstruction22b(opcode, regA, regB, litC));
     };
 
 insn_format22c_field
@@ -912,8 +913,8 @@ insn_format22c_field
 
       ImmutableFieldReference fieldReference = $fully_qualified_field.fieldReference;
 
-      $method::methodBuilder.addInstruction22c(opcode, regA, regB,
-              dexBuilder.internFieldReference(fieldReference));
+      $method::methodBuilder.addInstruction(new BuilderInstruction22c(opcode, regA, regB,
+              dexBuilder.internFieldReference(fieldReference)));
     };
 
 insn_format22c_type
@@ -924,8 +925,8 @@ insn_format22c_type
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
-      $method::methodBuilder.addInstruction22c(opcode, regA, regB,
-              dexBuilder.internTypeReference($nonvoid_type_descriptor.type));
+      $method::methodBuilder.addInstruction(new BuilderInstruction22c(opcode, regA, regB,
+              dexBuilder.internTypeReference($nonvoid_type_descriptor.type)));
     };
 
 insn_format22s
@@ -938,7 +939,7 @@ insn_format22s
 
       short litC = $short_integral_literal.value;
 
-      $method::methodBuilder.addInstruction22s(opcode, regA, regB, litC);
+      $method::methodBuilder.addInstruction(new BuilderInstruction22s(opcode, regA, regB, litC));
     };
 
 insn_format22t
@@ -949,7 +950,7 @@ insn_format22t
       byte regA = parseRegister_nibble($registerA.text);
       byte regB = parseRegister_nibble($registerB.text);
 
-      $method::methodBuilder.addInstruction22t(opcode, regA, regB, $label_ref.label);
+      $method::methodBuilder.addInstruction(new BuilderInstruction22t(opcode, regA, regB, $label_ref.label));
     };
 
 insn_format22x
@@ -960,7 +961,7 @@ insn_format22x
       short regA = parseRegister_byte($registerA.text);
       int regB = parseRegister_short($registerB.text);
 
-      $method::methodBuilder.addInstruction22x(opcode, regA, regB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction22x(opcode, regA, regB));
     };
 
 insn_format23x
@@ -972,7 +973,7 @@ insn_format23x
       short regB = parseRegister_byte($registerB.text);
       short regC = parseRegister_byte($registerC.text);
 
-      $method::methodBuilder.addInstruction23x(opcode, regA, regB, regC);
+      $method::methodBuilder.addInstruction(new BuilderInstruction23x(opcode, regA, regB, regC));
     };
 
 insn_format30t
@@ -981,7 +982,7 @@ insn_format30t
     {
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT30t.text);
 
-      $method::methodBuilder.addInstruction30t(opcode, $label_ref.label);
+      $method::methodBuilder.addInstruction(new BuilderInstruction30t(opcode, $label_ref.label));
     };
 
 insn_format31c
@@ -991,8 +992,8 @@ insn_format31c
       Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT31c.text);
       short regA = parseRegister_byte($REGISTER.text);
 
-      $method::methodBuilder.addInstruction31c(opcode, regA,
-              dexBuilder.internStringReference($string_literal.value));
+      $method::methodBuilder.addInstruction(new BuilderInstruction31c(opcode, regA,
+              dexBuilder.internStringReference($string_literal.value)));
     };
 
 insn_format31i
@@ -1004,7 +1005,7 @@ insn_format31i
 
       int litB = $fixed_32bit_literal.value;
 
-      $method::methodBuilder.addInstruction31i(opcode, regA, litB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction31i(opcode, regA, litB));
     };
 
 insn_format31t
@@ -1015,7 +1016,7 @@ insn_format31t
 
       short regA = parseRegister_byte($REGISTER.text);
 
-      $method::methodBuilder.addInstruction31t(opcode, regA, $label_ref.label);
+      $method::methodBuilder.addInstruction(new BuilderInstruction31t(opcode, regA, $label_ref.label));
     };
 
 insn_format32x
@@ -1026,7 +1027,7 @@ insn_format32x
       int regA = parseRegister_short($registerA.text);
       int regB = parseRegister_short($registerB.text);
 
-      $method::methodBuilder.addInstruction32x(opcode, regA, regB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction32x(opcode, regA, regB));
     };
 
 insn_format35c_method
@@ -1041,8 +1042,8 @@ insn_format35c_method
 
       ImmutableMethodReference methodReference = $fully_qualified_method.methodReference;
 
-      $method::methodBuilder.addInstruction35c(opcode, registerCount, registers[0], registers[1],
-              registers[2], registers[3], registers[4], dexBuilder.internMethodReference(methodReference));
+      $method::methodBuilder.addInstruction(new BuilderInstruction35c(opcode, registerCount, registers[0], registers[1],
+              registers[2], registers[3], registers[4], dexBuilder.internMethodReference(methodReference)));
     };
 
 insn_format35c_type
@@ -1055,8 +1056,8 @@ insn_format35c_type
       byte[] registers = $register_list.registers;
       byte registerCount = $register_list.registerCount;
 
-      $method::methodBuilder.addInstruction35c(opcode, registerCount, registers[0], registers[1],
-              registers[2], registers[3], registers[4], dexBuilder.internTypeReference($nonvoid_type_descriptor.type));
+      $method::methodBuilder.addInstruction(new BuilderInstruction35c(opcode, registerCount, registers[0], registers[1],
+              registers[2], registers[3], registers[4], dexBuilder.internTypeReference($nonvoid_type_descriptor.type)));
     };
 
 insn_format3rc_method
@@ -1071,8 +1072,8 @@ insn_format3rc_method
 
       ImmutableMethodReference methodReference = $fully_qualified_method.methodReference;
 
-      $method::methodBuilder.addInstruction3rc(opcode, startRegister, registerCount,
-              dexBuilder.internMethodReference(methodReference));
+      $method::methodBuilder.addInstruction(new BuilderInstruction3rc(opcode, startRegister, registerCount,
+              dexBuilder.internMethodReference(methodReference)));
     };
 
 insn_format3rc_type
@@ -1085,8 +1086,8 @@ insn_format3rc_type
 
       int registerCount = endRegister-startRegister+1;
 
-      $method::methodBuilder.addInstruction3rc(opcode, startRegister, registerCount,
-              dexBuilder.internTypeReference($nonvoid_type_descriptor.type));
+      $method::methodBuilder.addInstruction(new BuilderInstruction3rc(opcode, startRegister, registerCount,
+              dexBuilder.internTypeReference($nonvoid_type_descriptor.type)));
     };
 
 insn_format51l_type
@@ -1098,7 +1099,7 @@ insn_format51l_type
 
       long litB = $fixed_64bit_literal.value;
 
-      $method::methodBuilder.addInstruction51l(opcode, regA, litB);
+      $method::methodBuilder.addInstruction(new BuilderInstruction51l(opcode, regA, litB));
     };
 
 insn_array_data_directive
@@ -1108,7 +1109,7 @@ insn_array_data_directive
       int elementWidth = $short_integral_literal.value;
       List<Number> elements = $array_elements.elements;
 
-      $method::methodBuilder.addArrayPayload(elementWidth, $array_elements.elements);
+      $method::methodBuilder.addInstruction(new BuilderArrayPayload(elementWidth, $array_elements.elements));
     };
 
 insn_packed_switch_directive
@@ -1116,14 +1117,15 @@ insn_packed_switch_directive
     ^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal) packed_switch_elements)
       {
         int startKey = $fixed_32bit_literal.value;
-        $method::methodBuilder.addPackedSwitchPayload(startKey, $packed_switch_elements.elements);
+        $method::methodBuilder.addInstruction(new BuilderPackedSwitchPayload(startKey,
+            $packed_switch_elements.elements));
       };
 
 insn_sparse_switch_directive
   :
     ^(I_STATEMENT_SPARSE_SWITCH sparse_switch_elements)
     {
-      $method::methodBuilder.addSparseSwitchPayload($sparse_switch_elements.elements);
+      $method::methodBuilder.addInstruction(new BuilderSparseSwitchPayload($sparse_switch_elements.elements));
     };
 
 nonvoid_type_descriptor returns [String type]
