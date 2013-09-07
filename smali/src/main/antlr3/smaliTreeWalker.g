@@ -37,6 +37,7 @@ options {
 package org.jf.smali;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.antlr.runtime.BitSet;
@@ -358,7 +359,6 @@ method returns[BuilderMethod ret]
     $method::methodParameterRegisters = 0;
     int accessFlags = 0;
     $method::isStatic = false;
-    $method::methodBuilder = new MethodImplementationBuilder();
   }
   :
     ^(I_METHOD
@@ -370,15 +370,24 @@ method returns[BuilderMethod ret]
         $method::methodParameterRegisters =
                 MethodUtil.getParameterRegisterCount($method_name_and_prototype.parameters, $method::isStatic);
       }
-      (registers_directive
-       {
-         if ($registers_directive.isLocalsDirective) {
-           $method::totalMethodRegisters = $registers_directive.registers + $method::methodParameterRegisters;
-         } else {
-           $method::totalMethodRegisters = $registers_directive.registers;
-         }
-       }
-      )?
+      (
+        (registers_directive
+        {
+          if ($registers_directive.isLocalsDirective) {
+            $method::totalMethodRegisters = $registers_directive.registers + $method::methodParameterRegisters;
+          } else {
+            $method::totalMethodRegisters = $registers_directive.registers;
+          }
+
+          $method::methodBuilder = new MethodImplementationBuilder($method::totalMethodRegisters);
+
+        })
+        |
+        /* epsilon */
+        {
+          $method::methodBuilder = new MethodImplementationBuilder(0);
+        }
+      )
       ordered_method_items
       catches
       parameters[$method_name_and_prototype.parameters]
@@ -397,7 +406,9 @@ method returns[BuilderMethod ret]
       isNative = true;
     }
 
-    /*if ($statements.instructions.size() == 0) {
+    methodImplementation = $method::methodBuilder.getMethodImplementation();
+
+    if (Iterables.isEmpty(methodImplementation.getInstructions())) {
       if (!isAbstract && !isNative) {
         throw new SemanticException(input, $I_METHOD, "A non-abstract/non-native method must have at least 1 instruction");
       }
@@ -417,19 +428,17 @@ method returns[BuilderMethod ret]
         }
       }
 
-      if (labels.size() > 0) {
-        throw new SemanticException(input, $I_METHOD, "Labels cannot be present in \%s method", methodType);
-      }
-
-      if ((tryBlocks != null && tryBlocks.size() > 0)) {
+      if (methodImplementation.getTryBlocks().size() > 0) {
         throw new SemanticException(input, $I_METHOD, "try/catch blocks cannot be present in \%s method", methodType);
       }
 
-      if (debugItems != null && debugItems.size() > 0) {
+      if (!Iterables.isEmpty(methodImplementation.getDebugItems())) {
         throw new SemanticException(input, $I_METHOD, "debug directives cannot be present in \%s method", methodType);
       }
-    } else */{
-      /*if (isAbstract) {
+
+      methodImplementation = null;
+    } else {
+      if (isAbstract) {
         throw new SemanticException(input, $I_METHOD, "An abstract method cannot have any instructions");
       }
       if (isNative) {
@@ -444,9 +453,7 @@ method returns[BuilderMethod ret]
         throw new SemanticException(input, $registers_directive.start, "This method requires at least " +
                 Integer.toString($method::methodParameterRegisters) +
                 " registers, for the method parameters");
-      }*/
-
-      methodImplementation = $method::methodBuilder.buildMethodImplementation();
+      }
     }
 
     $ret = dexBuilder.internMethod(

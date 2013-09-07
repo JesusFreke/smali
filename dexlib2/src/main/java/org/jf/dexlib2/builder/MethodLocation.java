@@ -22,8 +22,7 @@ public class MethodLocation {
     private List<Label> labels = Lists.newArrayList();
     List<BuilderDebugItem> debugItems = Lists.newArrayList();
 
-    MethodLocation(@Nullable BuilderInstruction instruction,
-    int codeAddress, int index) {
+    MethodLocation(@Nullable BuilderInstruction instruction, int codeAddress, int index) {
         this.instruction = instruction;
         this.codeAddress = codeAddress;
         this.index = index;

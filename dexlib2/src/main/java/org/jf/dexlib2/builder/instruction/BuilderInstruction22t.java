@@ -33,6 +33,7 @@ package org.jf.dexlib2.builder.instruction;
 
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.builder.BuilderOffsetInstruction;
 import org.jf.dexlib2.builder.Label;
 import org.jf.dexlib2.iface.instruction.formats.Instruction22t;
 import org.jf.dexlib2.util.Preconditions;

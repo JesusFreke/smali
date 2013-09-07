@@ -18,13 +18,13 @@ public class MethodImplementationBuilder {
 
     private MethodLocation currentLocation;
 
-    public MethodImplementationBuilder() {
-        this.impl = new MutableMethodImplementation();
+    public MethodImplementationBuilder(int registerCount) {
+        this.impl = new MutableMethodImplementation(registerCount);
         this.currentLocation = impl.instructionList.get(0);
     }
 
-    public MethodImplementation buildMethodImplementation() {
-        return impl.buildMethodImplementation();
+    public MethodImplementation getMethodImplementation() {
+        return impl;
     }
 
     /**
