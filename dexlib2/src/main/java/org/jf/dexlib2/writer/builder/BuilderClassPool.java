@@ -345,14 +345,6 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
         return builderMethod.codeItemOffset;
     }
 
-    @Override public void setDebugItemOffset(@Nonnull BuilderMethod builderMethod, int offset) {
-        builderMethod.debugInfoOffset = offset;
-    }
-
-    @Override public int getDebugItemOffset(@Nonnull BuilderMethod builderMethod) {
-        return builderMethod.debugInfoOffset;
-    }
-
     @Nullable private BuilderStringReference checkStringReference(@Nullable StringReference stringReference) {
         if (stringReference == null) {
             return null;

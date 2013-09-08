@@ -40,10 +40,12 @@ import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.dexlib2.immutable.instruction.ImmutableInstructionFactory;
 import org.jf.dexlib2.writer.DexWriter;
+import org.jf.dexlib2.writer.io.FileDataStore;
 import org.jf.dexlib2.writer.pool.ProtoPool.Key;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
@@ -86,7 +88,7 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         for (ClassDef classDef: input.getClasses()) {
             ((ClassPool)dexPool.classSection).intern(classDef);
         }
-        dexPool.writeTo(path);
+        dexPool.writeTo(new FileDataStore(new File(path)));
     }
 
     @Override protected void writeEncodedValue(@Nonnull InternalEncodedValueWriter writer,

@@ -465,14 +465,6 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return method.codeItemOffset;
     }
 
-    @Override public void setDebugItemOffset(@Nonnull PoolMethod method, int offset) {
-        method.debugInfoOffset = offset;
-    }
-
-    @Override public int getDebugItemOffset(@Nonnull PoolMethod method) {
-        return method.debugInfoOffset;
-    }
-
     @Override public void writeDebugItem(@Nonnull DebugWriter<CharSequence, CharSequence> writer,
                                          DebugItem debugItem) throws IOException {
         switch (debugItem.getDebugItemType()) {

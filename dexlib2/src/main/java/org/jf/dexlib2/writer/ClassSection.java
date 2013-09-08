@@ -91,8 +91,5 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
     void setCodeItemOffset(@Nonnull MethodKey key, int offset);
     int getCodeItemOffset(@Nonnull MethodKey key);
 
-    void setDebugItemOffset(@Nonnull MethodKey key, int offset);
-    int getDebugItemOffset(@Nonnull MethodKey key);
-
     void writeDebugItem(@Nonnull DebugWriter<StringKey, TypeKey> writer, DebugItem debugItem) throws IOException;
 }

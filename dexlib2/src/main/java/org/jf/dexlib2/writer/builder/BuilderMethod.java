@@ -49,7 +49,6 @@ public class BuilderMethod extends BaseMethodReference implements Method {
 
     int annotationSetRefListOffset = DexWriter.NO_OFFSET;
     int codeItemOffset = DexWriter.NO_OFFSET;
-    int debugInfoOffset = DexWriter.NO_OFFSET;
 
     BuilderMethod(@Nonnull BuilderMethodReference methodReference,
                   @Nonnull List<? extends BuilderMethodParameter> parameters,
