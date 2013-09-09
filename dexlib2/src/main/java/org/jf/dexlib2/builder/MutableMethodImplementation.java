@@ -25,6 +25,10 @@ public class MutableMethodImplementation implements MethodImplementation {
     private final ArrayList<BuilderTryBlock> tryBlocks = Lists.newArrayList();
     private boolean fixInstructions = true;
 
+    public MutableMethodImplementation(@Nonnull MethodImplementation methodImplementation) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
     public MutableMethodImplementation(int registerCount) {
         this.registerCount = registerCount;
     }
@@ -44,10 +48,16 @@ public class MutableMethodImplementation implements MethodImplementation {
                 if (i >= size()) {
                     throw new IndexOutOfBoundsException();
                 }
+                if (fixInstructions) {
+                    fixInstructions();
+                }
                 return instructionList.get(i).instruction;
             }
 
             @Override public int size() {
+                if (fixInstructions) {
+                    fixInstructions();
+                }
                 // don't include the last MethodLocation, which always has a null instruction
                 return instructionList.size() - 1;
             }
@@ -55,14 +65,24 @@ public class MutableMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull @Override public List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks() {
+        if (fixInstructions) {
+            fixInstructions();
+        }
         return Collections.unmodifiableList(tryBlocks);
     }
 
     @Nonnull @Override public Iterable<? extends DebugItem> getDebugItems() {
+        if (fixInstructions) {
+            fixInstructions();
+        }
         return Iterables.concat(
                 Iterables.transform(instructionList, new Function<MethodLocation, Iterable<? extends DebugItem>>() {
                     @Nullable @Override public Iterable<? extends DebugItem> apply(@Nullable MethodLocation input) {
                         assert input != null;
+                        if (fixInstructions) {
+                            throw new IllegalStateException("This iterator was invalidated by a change to" +
+                                    " this MutableMethodImplementation.");
+                        }
                         return input.getDebugItems();
                     }
                 }));
@@ -107,7 +127,7 @@ public class MutableMethodImplementation implements MethodImplementation {
                 codeAddress += location.instruction.getCodeUnits();
             } else {
                 // only the last MethodLocation should have a null instruction
-                assert index == instructionList.size()-1;
+                assert i == instructionList.size()-1;
             }
         }
 
@@ -117,6 +137,7 @@ public class MutableMethodImplementation implements MethodImplementation {
     public void addInstruction(@Nonnull BuilderInstruction instruction) {
         MethodLocation last = instructionList.get(instructionList.size()-1);
         last.instruction = instruction;
+        instruction.location = last;
 
         int nextCodeAddress = last.codeAddress + instruction.getCodeUnits();
         instructionList.add(new MethodLocation(null, nextCodeAddress, instructionList.size()));
@@ -149,6 +170,8 @@ public class MutableMethodImplementation implements MethodImplementation {
                 assert i == instructionList.size() - 1;
             }
         }
+
+        this.fixInstructions = true;
     }
 
     public void removeInstruction(int index) {
@@ -164,7 +187,7 @@ public class MutableMethodImplementation implements MethodImplementation {
         instructionList.remove(index);
         int codeAddress = toRemove.codeAddress;
         for (int i=index; i<instructionList.size(); i++) {
-            MethodLocation location = instructionList.get(index);
+            MethodLocation location = instructionList.get(i);
             location.index = i;
             location.codeAddress = codeAddress;
 

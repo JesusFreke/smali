@@ -31,85 +31,224 @@
 
 package org.jf.dexlib2.writer;
 
-// TODO: uncomment/reimplement
-/*public class PayloadAlignmentTest {
-    private MockStringIndexProvider mockStringIndexProvider;
+import com.google.common.collect.Lists;
+import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.builder.Label;
+import org.jf.dexlib2.builder.MethodImplementationBuilder;
+import org.jf.dexlib2.builder.SwitchLabelElement;
+import org.jf.dexlib2.builder.instruction.*;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.OffsetInstruction;
+import org.jf.dexlib2.iface.instruction.formats.Instruction31t;
+import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
+import org.jf.dexlib2.iface.instruction.formats.SparseSwitchPayload;
+import org.junit.Assert;
+import org.junit.Test;
 
-    private class InsnWriteUtil extends InstructionWriteUtil<StringReference, Reference> {
-        public InsnWriteUtil(@Nonnull MethodImplementation implementation) {
-            super(implementation.getInstructions(), mockStringIndexProvider, ImmutableInstructionFactory.INSTANCE);
-        }
-    }
+import java.util.List;
 
-    @Before
-    public void setup() {
-        mockStringIndexProvider = new MockStringIndexProvider();
+public class PayloadAlignmentTest {
+
+    @Test
+    public void testPayloadAlignmentRemoveNop() {
+        MethodImplementationBuilder implBuilder = new MethodImplementationBuilder(10);
+
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+        implBuilder.addInstruction(new BuilderArrayPayload(4, null));
+
+        List<? extends Instruction> instructions =
+                Lists.newArrayList(implBuilder.getMethodImplementation().getInstructions());
+
+        Assert.assertEquals(instructions.size(), 1);
+
+        Instruction instruction = instructions.get(0);
+
+        Assert.assertEquals(instruction.getOpcode(), Opcode.ARRAY_PAYLOAD);
     }
 
     @Test
-    public void testArrayPayloadAlignment() {
-        ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
+    public void testPayloadAlignmentAddNop() {
+        MethodImplementationBuilder implBuilder = new MethodImplementationBuilder(10);
 
-        // add misaligned array payload
-        instructions.add(new ImmutableInstruction10x(Opcode.NOP));
-        instructions.add(new ImmutableArrayPayload(4, null));
+        implBuilder.addInstruction(new BuilderInstruction12x(Opcode.MOVE, 0, 0));
+        implBuilder.addInstruction(new BuilderArrayPayload(4, null));
 
-        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
+        List<? extends Instruction> instructions =
+                Lists.newArrayList(implBuilder.getMethodImplementation().getInstructions());
 
-        int codeOffset = 0;
-        for (Instruction instr: writeUtil.getInstructions()) {
-            if (instr.getOpcode().equals(Opcode.ARRAY_PAYLOAD)) {
-                Assert.assertEquals("array payload was not aligned properly", codeOffset%2, 0);
-                break;
-            }
-            codeOffset += instr.getCodeUnits();
+        Assert.assertEquals(instructions.size(), 3);
+
+        Instruction instruction = instructions.get(0);
+        Assert.assertEquals(instruction.getOpcode(), Opcode.MOVE);
+
+        instruction = instructions.get(1);
+        Assert.assertEquals(instruction.getOpcode(), Opcode.NOP);
+
+        instruction = instructions.get(2);
+        Assert.assertEquals(instruction.getOpcode(), Opcode.ARRAY_PAYLOAD);
+    }
+
+    @Test
+    public void testPayloadAlignmentRemoveNopWithReferent() {
+        MethodImplementationBuilder implBuilder = new MethodImplementationBuilder(10);
+
+        Label label = implBuilder.getLabel("array_payload");
+        implBuilder.addInstruction(new BuilderInstruction31t(Opcode.FILL_ARRAY_DATA, 0, label));
+        implBuilder.addInstruction(new BuilderInstruction12x(Opcode.MOVE, 0, 0));
+        implBuilder.addInstruction(new BuilderInstruction12x(Opcode.MOVE, 0, 0));
+        implBuilder.addInstruction(new BuilderInstruction12x(Opcode.MOVE, 0, 0));
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+        implBuilder.addLabel("array_payload");
+        implBuilder.addInstruction(new BuilderArrayPayload(4, null));
+
+        List<Instruction> instructions = Lists.newArrayList(implBuilder.getMethodImplementation().getInstructions());
+
+        checkInstructions(instructions,
+                new Opcode[]{Opcode.FILL_ARRAY_DATA,
+                        Opcode.MOVE,
+                        Opcode.MOVE,
+                        Opcode.MOVE,
+                        Opcode.ARRAY_PAYLOAD});
+
+        Instruction31t referent = (Instruction31t)instructions.get(0);
+        Assert.assertEquals(6, referent.getCodeOffset());
+    }
+
+    @Test
+    public void testPayloadAlignmentAddNopWithReferent() {
+        MethodImplementationBuilder implBuilder = new MethodImplementationBuilder(10);
+
+        Label label = implBuilder.getLabel("array_payload");
+        implBuilder.addInstruction(new BuilderInstruction31t(Opcode.FILL_ARRAY_DATA, 0, label));
+        implBuilder.addInstruction(new BuilderInstruction12x(Opcode.MOVE, 0, 0));
+        implBuilder.addInstruction(new BuilderInstruction12x(Opcode.MOVE, 0, 0));
+        implBuilder.addInstruction(new BuilderInstruction12x(Opcode.MOVE, 0, 0));
+        implBuilder.addInstruction(new BuilderInstruction12x(Opcode.MOVE, 0, 0));
+        implBuilder.addLabel("array_payload");
+        implBuilder.addInstruction(new BuilderArrayPayload(4, null));
+
+        List<Instruction> instructions = Lists.newArrayList(implBuilder.getMethodImplementation().getInstructions());
+
+        checkInstructions(instructions,
+                new Opcode[]{Opcode.FILL_ARRAY_DATA,
+                    Opcode.MOVE,
+                    Opcode.MOVE,
+                    Opcode.MOVE,
+                    Opcode.MOVE,
+                    Opcode.NOP,
+                    Opcode.ARRAY_PAYLOAD});
+
+        Instruction31t referent = (Instruction31t)instructions.get(0);
+        Assert.assertEquals(8, referent.getCodeOffset());
+    }
+
+    private static void checkInstructions(List<Instruction> instructions, Opcode[] expectedOpcodes) {
+        Assert.assertEquals(expectedOpcodes.length, instructions.size());
+
+        for (int i=0; i<expectedOpcodes.length; i++) {
+            Assert.assertEquals(instructions.get(i).getOpcode(), expectedOpcodes[i]);
         }
     }
 
     @Test
     public void testPackedSwitchAlignment() {
-        ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
-        // add misaligned packed switch payload
-        ArrayList<SwitchElement> switchElements = Lists.newArrayList();
-        switchElements.add(new ImmutableSwitchElement(0, 5));
-        instructions.add(new ImmutableInstruction10x(Opcode.NOP));
-        instructions.add(new ImmutablePackedSwitchPayload(switchElements));
+        MethodImplementationBuilder implBuilder = new MethodImplementationBuilder(10);
 
-        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
+        implBuilder.addLabel("switch_target_1");
+        implBuilder.addInstruction(new BuilderInstruction10t(Opcode.GOTO, implBuilder.getLabel("goto_target")));
 
-        int codeOffset = 0;
-        for (Instruction instr: writeUtil.getInstructions()) {
-            if (instr.getOpcode().equals(Opcode.PACKED_SWITCH_PAYLOAD)) {
-                Assert.assertEquals("packed switch payload was not aligned properly", codeOffset%2, 0);
-                break;
-            }
-            codeOffset += instr.getCodeUnits();
-        }
+        implBuilder.addLabel("switch_payload");
+        implBuilder.addInstruction(new BuilderPackedSwitchPayload(0, Lists.newArrayList(
+                implBuilder.getLabel("switch_target_1"),
+                implBuilder.getLabel("switch_target_2"),
+                implBuilder.getLabel("switch_target_3"))));
+
+        implBuilder.addLabel("goto_target");
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+
+        implBuilder.addLabel("switch_target_2");
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+
+        implBuilder.addLabel("switch_target_3");
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+
+        implBuilder.addInstruction(new BuilderInstruction31t(Opcode.PACKED_SWITCH, 0,
+                implBuilder.getLabel("switch_payload")));
+
+        List<Instruction> instructions = Lists.newArrayList(implBuilder.getMethodImplementation().getInstructions());
+
+        checkInstructions(instructions,
+                new Opcode[]{Opcode.GOTO,
+                        Opcode.NOP,
+                        Opcode.PACKED_SWITCH_PAYLOAD,
+                        Opcode.NOP,
+                        Opcode.NOP,
+                        Opcode.NOP,
+                        Opcode.NOP,
+                        Opcode.PACKED_SWITCH});
+
+        OffsetInstruction gotoInstruction = (OffsetInstruction)instructions.get(0);
+        Assert.assertEquals(12, gotoInstruction.getCodeOffset());
+
+        PackedSwitchPayload payload = (PackedSwitchPayload)instructions.get(2);
+        Assert.assertEquals(3, payload.getSwitchElements().size());
+        Assert.assertEquals(-16, payload.getSwitchElements().get(0).getOffset());
+        Assert.assertEquals(-2, payload.getSwitchElements().get(1).getOffset());
+        Assert.assertEquals(-1, payload.getSwitchElements().get(2).getOffset());
+
+        OffsetInstruction referent = (OffsetInstruction)instructions.get(7);
+        Assert.assertEquals(-14, referent.getCodeOffset());
     }
 
     @Test
     public void testSparseSwitchAlignment() {
-        ArrayList<ImmutableInstruction> instructions = Lists.newArrayList();
+        MethodImplementationBuilder implBuilder = new MethodImplementationBuilder(10);
 
-        // add misaligned sparse switch payload
-        ArrayList<SwitchElement> switchElements = Lists.newArrayList();
-        switchElements.add(new ImmutableSwitchElement(0, 5));
+        implBuilder.addLabel("switch_target_1");
+        implBuilder.addInstruction(new BuilderInstruction10t(Opcode.GOTO, implBuilder.getLabel("goto_target")));
 
-        instructions.add(new ImmutableInstruction10x(Opcode.NOP));
-        instructions.add(new ImmutableSparseSwitchPayload(switchElements));
+        implBuilder.addLabel("switch_payload");
+        implBuilder.addInstruction(new BuilderSparseSwitchPayload(Lists.newArrayList(
+                new SwitchLabelElement(0, implBuilder.getLabel("switch_target_1")),
+                new SwitchLabelElement(5, implBuilder.getLabel("switch_target_2")),
+                new SwitchLabelElement(10, implBuilder.getLabel("switch_target_3")))));
 
-        ImmutableMethodImplementation methodImplementation = new ImmutableMethodImplementation(1, instructions, null, null);
-        InsnWriteUtil writeUtil = new InsnWriteUtil(methodImplementation);
+        implBuilder.addLabel("goto_target");
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
 
-        int codeOffset = 0;
-        for (Instruction instr: writeUtil.getInstructions()) {
-            if (instr.getOpcode().equals(Opcode.SPARSE_SWITCH_PAYLOAD)) {
-                Assert.assertEquals("packed switch payload was not aligned properly", codeOffset%2, 0);
-                break;
-            }
-            codeOffset += instr.getCodeUnits();
-        }
+        implBuilder.addLabel("switch_target_2");
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+
+        implBuilder.addLabel("switch_target_3");
+        implBuilder.addInstruction(new BuilderInstruction10x(Opcode.NOP));
+
+        implBuilder.addInstruction(new BuilderInstruction31t(Opcode.SPARSE_SWITCH, 0,
+                implBuilder.getLabel("switch_payload")));
+
+        List<Instruction> instructions = Lists.newArrayList(implBuilder.getMethodImplementation().getInstructions());
+
+        checkInstructions(instructions,
+                new Opcode[]{Opcode.GOTO,
+                        Opcode.NOP,
+                        Opcode.SPARSE_SWITCH_PAYLOAD,
+                        Opcode.NOP,
+                        Opcode.NOP,
+                        Opcode.NOP,
+                        Opcode.NOP,
+                        Opcode.SPARSE_SWITCH});
+
+        OffsetInstruction gotoInstruction = (OffsetInstruction)instructions.get(0);
+        Assert.assertEquals(16, gotoInstruction.getCodeOffset());
+
+        SparseSwitchPayload payload = (SparseSwitchPayload)instructions.get(2);
+        Assert.assertEquals(3, payload.getSwitchElements().size());
+        Assert.assertEquals(-20, payload.getSwitchElements().get(0).getOffset());
+        Assert.assertEquals(-2, payload.getSwitchElements().get(1).getOffset());
+        Assert.assertEquals(-1, payload.getSwitchElements().get(2).getOffset());
+
+        OffsetInstruction referent = (OffsetInstruction)instructions.get(7);
+        Assert.assertEquals(-18, referent.getCodeOffset());
     }
-}*/
+}

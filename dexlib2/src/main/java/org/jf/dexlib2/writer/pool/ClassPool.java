@@ -36,6 +36,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.builder.MutableMethodImplementation;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -431,6 +432,11 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
 
     @Nullable @Override public CharSequence getExceptionType(@Nonnull ExceptionHandler handler) {
         return handler.getExceptionType();
+    }
+
+    @Nonnull @Override
+    public MutableMethodImplementation makeMutableMethodImplementation(@Nonnull PoolMethod poolMethod) {
+        return new MutableMethodImplementation(poolMethod.getImplementation());
     }
 
     @Override public void setEncodedArrayOffset(@Nonnull PoolClassDef classDef, int offset) {

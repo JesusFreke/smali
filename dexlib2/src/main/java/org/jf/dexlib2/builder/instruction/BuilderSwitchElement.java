@@ -24,6 +24,6 @@ public class BuilderSwitchElement implements SwitchElement {
     }
 
     @Override public int getOffset() {
-        return parent.getReferrer().getCodeAddress() - target.getCodeAddress();
+        return target.getCodeAddress() - parent.getReferrer().getCodeAddress();
     }
 }

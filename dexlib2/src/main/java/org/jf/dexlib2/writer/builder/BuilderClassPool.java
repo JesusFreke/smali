@@ -35,6 +35,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.builder.MutableMethodImplementation;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.MethodImplementation;
@@ -311,6 +312,15 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
 
     @Nullable @Override public BuilderTypeReference getExceptionType(@Nonnull ExceptionHandler handler) {
         return checkTypeReference(handler.getExceptionTypeReference());
+    }
+
+    @Nonnull @Override
+    public MutableMethodImplementation makeMutableMethodImplementation(@Nonnull BuilderMethod builderMethod) {
+        MethodImplementation impl = builderMethod.getImplementation();
+        if (impl instanceof MutableMethodImplementation) {
+            return (MutableMethodImplementation)impl;
+        }
+        return new MutableMethodImplementation(impl);
     }
 
     @Override public void setEncodedArrayOffset(@Nonnull BuilderClassDef builderClassDef, int offset) {

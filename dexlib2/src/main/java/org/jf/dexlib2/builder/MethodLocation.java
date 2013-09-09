@@ -54,16 +54,6 @@ public class MethodLocation {
         }
         debugItems.addAll(other.debugItems);
         other.debugItems = debugItems;
-
-        for (int i=debugItems.size()-1; i>=0; i--) {
-            BuilderDebugItem debugItem = debugItems.get(i);
-            debugItem.location = other;
-            other.debugItems.add(0, debugItem);
-        }
-        for (BuilderDebugItem debugItem: debugItems) {
-            debugItem.location = other;
-            other.debugItems.add(0, debugItem);
-        }
     }
 
     @Nonnull

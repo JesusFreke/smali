@@ -53,7 +53,7 @@ public class MemoryDeferredOutputStream extends DeferredOutputStream {
         int remaining = remaining();
         int written = 0;
         while (length - written > 0) {
-            int toWrite = Math.min(remaining, length);
+            int toWrite = Math.min(remaining, (length - written));
             System.arraycopy(bytes, offset + written, currentBuffer, currentPosition, toWrite);
             written += toWrite;
             currentPosition += toWrite;

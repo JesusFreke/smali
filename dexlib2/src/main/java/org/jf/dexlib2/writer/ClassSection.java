@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.writer;
 
+import org.jf.dexlib2.builder.MutableMethodImplementation;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
@@ -78,6 +79,7 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
     @Nullable Iterable<? extends Instruction> getInstructions(@Nonnull MethodKey key);
     @Nonnull List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks(@Nonnull MethodKey key);
     @Nullable TypeKey getExceptionType(@Nonnull ExceptionHandler handler);
+    @Nonnull MutableMethodImplementation makeMutableMethodImplementation(@Nonnull MethodKey key);
 
     void setEncodedArrayOffset(@Nonnull ClassKey key, int offset);
     int getEncodedArrayOffset(@Nonnull ClassKey key);

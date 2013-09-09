@@ -538,7 +538,8 @@ catches returns[List<BuilderTryBlock> tryBlocks]
 catch_directive
   : ^(I_CATCH nonvoid_type_descriptor from=label_ref to=label_ref using=label_ref)
   {
-    $method::methodBuilder.addCatch($nonvoid_type_descriptor.type, $from.label, $to.label, $using.label);
+    $method::methodBuilder.addCatch(dexBuilder.internTypeReference($nonvoid_type_descriptor.type),
+        $from.label, $to.label, $using.label);
   };
 
 catchall_directive

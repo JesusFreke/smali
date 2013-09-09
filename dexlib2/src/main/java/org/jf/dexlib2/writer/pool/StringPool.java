@@ -56,4 +56,8 @@ public class StringPool extends StringTypeBasePool implements StringSection<Char
         }
         return index;
     }
+
+    @Override public boolean hasJumboIndexes() {
+        return internedItems.size() > 65536;
+    }
 }

@@ -31,10 +31,16 @@
 
 package org.jf.dexlib2.writer;
 
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.base.BaseAnnotation;
+import org.jf.dexlib2.builder.MutableMethodImplementation;
+import org.jf.dexlib2.builder.instruction.BuilderInstruction31c;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.ExceptionHandler;
@@ -42,6 +48,7 @@ import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.debug.LineNumber;
 import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.*;
@@ -727,10 +734,39 @@ public abstract class DexWriter<
             Iterable<MethodKey> methods = Iterables.concat(directMethods, virtualMethods);
 
             for (MethodKey methodKey: methods) {
-                int debugItemOffset = writeDebugItem(offsetWriter, debugWriter, methodKey);
-                int codeItemOffset = writeCodeItem(codeWriter, ehBuf, methodKey, debugItemOffset);
+                List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks =
+                        classSection.getTryBlocks(methodKey);
+                Iterable<? extends Instruction> instructions = classSection.getInstructions(methodKey);
+                Iterable<? extends DebugItem> debugItems = classSection.getDebugItems(methodKey);
 
-                if (codeItemOffset != NO_OFFSET) {
+                if (instructions != null && stringSection.hasJumboIndexes()) {
+                    boolean needsFix = false;
+                    for (Instruction instruction: instructions) {
+                        if (instruction.getOpcode() == Opcode.CONST_STRING) {
+                            if (stringSection.getItemIndex(
+                                    (StringRef)((ReferenceInstruction)instruction).getReference()) >= 65536) {
+                                needsFix = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (needsFix) {
+                        MutableMethodImplementation mutableMethodImplementation =
+                                classSection.makeMutableMethodImplementation(methodKey);
+                        fixInstructions(mutableMethodImplementation);
+
+                        instructions = mutableMethodImplementation.getInstructions();
+                        tryBlocks = mutableMethodImplementation.getTryBlocks();
+                        debugItems = mutableMethodImplementation.getDebugItems();
+                    }
+                }
+
+                int debugItemOffset = writeDebugItem(offsetWriter, debugWriter,
+                        classSection.getParameterNames(methodKey), debugItems);
+                int codeItemOffset = writeCodeItem(codeWriter, ehBuf, methodKey, tryBlocks, instructions, debugItemOffset);
+
+                if (codeItemOffset != -1) {
                     codeOffsets.add(new CodeItemOffset<MethodKey>(methodKey, codeItemOffset));
                 }
             }
@@ -739,6 +775,7 @@ public abstract class DexWriter<
         offsetWriter.align();
         codeSectionOffset = offsetWriter.getPosition();
 
+        codeWriter.close();
         temp.writeTo(offsetWriter);
         temp.close();
 
@@ -747,12 +784,27 @@ public abstract class DexWriter<
         }
     }
 
-    private int writeDebugItem(@Nonnull DexDataWriter writer,
-                                @Nonnull DebugWriter<StringKey, TypeKey> debugWriter,
-                                @Nonnull MethodKey methodKey) throws IOException {
-        Iterable<? extends DebugItem> debugItems = classSection.getDebugItems(methodKey);
-        Iterable<? extends StringKey> parameterNames = classSection.getParameterNames(methodKey);
+    private void fixInstructions(@Nonnull MutableMethodImplementation methodImplementation) {
+        List<Instruction> instructions = methodImplementation.getInstructions();
 
+        for (int i=0; i<instructions.size(); i++) {
+            Instruction instruction = instructions.get(i);
+
+            if (instruction.getOpcode() == Opcode.CONST_STRING) {
+                if (stringSection.getItemIndex(
+                        (StringRef)((ReferenceInstruction)instruction).getReference()) > 65536) {
+                    methodImplementation.replaceInstruction(i, new BuilderInstruction31c(Opcode.CONST_STRING_JUMBO,
+                            ((OneRegisterInstruction)instruction).getRegisterA(),
+                            ((ReferenceInstruction)instruction).getReference()));
+                }
+            }
+        }
+    }
+
+    private int writeDebugItem(@Nonnull DexDataWriter writer,
+                               @Nonnull DebugWriter<StringKey, TypeKey> debugWriter,
+                               @Nullable Iterable<? extends StringKey> parameterNames,
+                               @Nullable Iterable<? extends DebugItem> debugItems) throws IOException {
         int parameterCount = 0;
         if (parameterNames != null) {
             int index = 0;
@@ -809,13 +861,13 @@ public abstract class DexWriter<
     }
 
     private int writeCodeItem(@Nonnull DexDataWriter writer,
-                               @Nonnull ByteArrayOutputStream ehBuf,
-                               @Nonnull MethodKey methodKey,
-                               int debugItemOffset) throws IOException {
-        Iterable<? extends Instruction> instructions = classSection.getInstructions(methodKey);
-
+                              @Nonnull ByteArrayOutputStream ehBuf,
+                              @Nonnull MethodKey methodKey,
+                              @Nonnull List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks,
+                              @Nullable Iterable<? extends Instruction> instructions,
+                              int debugItemOffset) throws IOException {
         if (instructions == null && debugItemOffset == NO_OFFSET) {
-            return NO_OFFSET;
+            return -1;
         }
 
         numCodeItemItems++;
@@ -823,7 +875,6 @@ public abstract class DexWriter<
         writer.align();
 
         int codeItemOffset = writer.getPosition();
-        classSection.setCodeItemOffset(methodKey, writer.getPosition());
 
         writer.writeUshort(classSection.getRegisterCount(methodKey));
 
@@ -831,7 +882,6 @@ public abstract class DexWriter<
         Collection<? extends TypeKey> parameters = typeListSection.getTypes(
                 protoSection.getParameters(methodSection.getPrototype(methodKey)));
 
-        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = classSection.getTryBlocks(methodKey);
         writer.writeUshort(MethodUtil.getParameterRegisterCount(parameters, isStatic));
 
         if (instructions != null) {

@@ -36,7 +36,6 @@ import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.builder.BuilderInstruction;
 import org.jf.dexlib2.iface.instruction.formats.Instruction3rc;
 import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.immutable.reference.ImmutableReferenceFactory;
 import org.jf.dexlib2.util.Preconditions;
 
 import javax.annotation.Nonnull;
@@ -56,7 +55,7 @@ public class BuilderInstruction3rc extends BuilderInstruction implements Instruc
         super(opcode);
         this.startRegister = Preconditions.checkShortRegister(startRegister);
         this.registerCount = Preconditions.checkRegisterRangeCount(registerCount);
-        this.reference = ImmutableReferenceFactory.of(opcode.referenceType, reference);
+        this.reference = reference;
     }
 
     @Override public int getStartRegister() { return startRegister; }
