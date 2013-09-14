@@ -140,7 +140,7 @@ tokens {
   LOCALS_DIRECTIVE;
   LONG_LITERAL;
   METHOD_DIRECTIVE;
-  METHOD_NAME;
+  MEMBER_NAME;
   NEGATIVE_INTEGER_LITERAL;
   NULL_LITERAL;
   OPEN_BRACE;
@@ -492,19 +492,19 @@ the annotations. If it turns out that they are field annotations, we include the
 add them to the $smali_file::classAnnotations list*/
 field
   @init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
-  : FIELD_DIRECTIVE access_list simple_name COLON nonvoid_type_descriptor (EQUAL literal)?
+  : FIELD_DIRECTIVE access_list member_name COLON nonvoid_type_descriptor (EQUAL literal)?
     ( ({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation {annotations.add($annotation.tree);})*
       ( END_FIELD_DIRECTIVE
-        -> ^(I_FIELD[$start, "I_FIELD"] simple_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*))
+        -> ^(I_FIELD[$start, "I_FIELD"] member_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*))
       | /*epsilon*/ {$smali_file::classAnnotations.addAll(annotations);}
-        -> ^(I_FIELD[$start, "I_FIELD"] simple_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS))
+        -> ^(I_FIELD[$start, "I_FIELD"] member_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS))
       )
     );
 
 method
-  : METHOD_DIRECTIVE access_list method_name method_prototype statements_and_directives
+  : METHOD_DIRECTIVE access_list member_name method_prototype statements_and_directives
     END_METHOD_DIRECTIVE
-    -> ^(I_METHOD[$start, "I_METHOD"] method_name method_prototype access_list statements_and_directives);
+    -> ^(I_METHOD[$start, "I_METHOD"] member_name method_prototype access_list statements_and_directives);
 
 statements_and_directives
   scope
@@ -590,9 +590,9 @@ simple_name
   | INSTRUCTION_FORMAT35ms_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35ms_METHOD]
   | INSTRUCTION_FORMAT51l -> SIMPLE_NAME[$INSTRUCTION_FORMAT51l];
 
-method_name
+member_name
   : simple_name
-  | METHOD_NAME -> SIMPLE_NAME[$METHOD_NAME];
+  | MEMBER_NAME -> SIMPLE_NAME[$MEMBER_NAME];
 
 method_prototype
   : OPEN_PAREN param_list CLOSE_PAREN type_descriptor
@@ -699,8 +699,8 @@ enum_literal
 type_field_method_literal
   : reference_type_descriptor
     ( ARROW
-      ( simple_name COLON nonvoid_type_descriptor -> ^(I_ENCODED_FIELD reference_type_descriptor simple_name nonvoid_type_descriptor)
-      | method_name method_prototype -> ^(I_ENCODED_METHOD reference_type_descriptor method_name method_prototype)
+      ( member_name COLON nonvoid_type_descriptor -> ^(I_ENCODED_FIELD reference_type_descriptor member_name nonvoid_type_descriptor)
+      | member_name method_prototype -> ^(I_ENCODED_METHOD reference_type_descriptor member_name method_prototype)
       )
     | -> reference_type_descriptor
     )
@@ -708,12 +708,12 @@ type_field_method_literal
   | VOID_TYPE;
 
 fully_qualified_method
-  : reference_type_descriptor ARROW method_name method_prototype
-  -> reference_type_descriptor method_name method_prototype;
+  : reference_type_descriptor ARROW member_name method_prototype
+  -> reference_type_descriptor member_name method_prototype;
 
 fully_qualified_field
-  : reference_type_descriptor ARROW simple_name COLON nonvoid_type_descriptor
-  -> reference_type_descriptor simple_name nonvoid_type_descriptor;
+  : reference_type_descriptor ARROW member_name COLON nonvoid_type_descriptor
+  -> reference_type_descriptor member_name nonvoid_type_descriptor;
 
 label
   : COLON simple_name -> ^(I_LABEL[$COLON, "I_LABEL"] simple_name);
