@@ -29,13 +29,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.builder;
 
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.builder.Label;
-import org.jf.dexlib2.builder.MethodImplementationBuilder;
-import org.jf.dexlib2.builder.SwitchLabelElement;
 import org.jf.dexlib2.builder.instruction.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;

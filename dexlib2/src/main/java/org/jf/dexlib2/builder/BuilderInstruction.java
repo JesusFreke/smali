@@ -59,6 +59,7 @@ public abstract class BuilderInstruction implements Instruction {
         return getFormat().size / 2;
     }
 
+    @Nonnull
     public MethodLocation getLocation() {
         if (location == null) {
             throw new IllegalStateException("Cannot get the location of an instruction that hasn't been added to a " +

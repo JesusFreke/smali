@@ -792,7 +792,7 @@ public abstract class DexWriter<
 
             if (instruction.getOpcode() == Opcode.CONST_STRING) {
                 if (stringSection.getItemIndex(
-                        (StringRef)((ReferenceInstruction)instruction).getReference()) > 65536) {
+                        (StringRef)((ReferenceInstruction)instruction).getReference()) >= 65536) {
                     methodImplementation.replaceInstruction(i, new BuilderInstruction31c(Opcode.CONST_STRING_JUMBO,
                             ((OneRegisterInstruction)instruction).getRegisterA(),
                             ((ReferenceInstruction)instruction).getReference()));
