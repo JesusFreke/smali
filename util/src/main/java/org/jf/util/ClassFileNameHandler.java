@@ -127,22 +127,26 @@ public class ClassFileNameHandler {
     }
 
     private static boolean testForWindowsReservedFileNames(File path) {
-        File f = new File(path, "aux.smali");
-        if (f.exists()) {
-            return false;
-        }
+        String[] reservedNames = new String[]{"aux", "con", "com1", "com9", "lpt1", "com9"};
 
-        try {
-            FileWriter writer = new FileWriter(f);
-            writer.write("test");
-            writer.flush();
-            writer.close();
-            f.delete(); //doesn't throw IOException
-            return false;
-        } catch (IOException ex) {
-            //if an exception occured, it's likely that we're on a windows system.
-            return true;
+        for (String reservedName: reservedNames) {
+            File f = new File(path, reservedName + ".smali");
+            if (f.exists()) {
+                continue;
+            }
+
+            try {
+                FileWriter writer = new FileWriter(f);
+                writer.write("test");
+                writer.flush();
+                writer.close();
+                f.delete(); //doesn't throw IOException
+            } catch (IOException ex) {
+                //if an exception occured, it's likely that we're on a windows system.
+                return true;
+            }
         }
+        return false;
     }
 
     private static Pattern reservedFileNameRegex = Pattern.compile("^CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]$",
