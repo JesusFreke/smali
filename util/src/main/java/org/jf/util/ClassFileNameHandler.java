@@ -31,6 +31,7 @@ package org.jf.util;
 import ds.tree.RadixTree;
 import ds.tree.RadixTreeImpl;
 
+import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.CharBuffer;
 import java.util.regex.Pattern;
@@ -41,6 +42,9 @@ import java.util.regex.Pattern;
  * class name to distinguish it from another class with a name that differes only by case. i.e. a.smali and a_2.smali
  */
 public class ClassFileNameHandler {
+    // we leave an extra 10 characters to allow for a numeric suffix to be added, if it's needed
+    private static final int MAX_FILENAME_LENGTH = 245;
+
     private PackageNameEntry top;
     private String fileExtension;
     private boolean modifyWindowsReservedFilenames;
@@ -83,6 +87,10 @@ public class ClassFileNameHandler {
                     packageElement += "#";
                 }
 
+                if (packageElement.length() > MAX_FILENAME_LENGTH) {
+                    packageElement = shortenPathComponent(packageElement, MAX_FILENAME_LENGTH);
+                }
+
                 packageElements[elementIndex++] = packageElement;
                 elementStart = ++i;
             }
@@ -101,9 +109,21 @@ public class ClassFileNameHandler {
             packageElement += "#";
         }
 
+        if ((packageElement.length() + fileExtension.length()) > MAX_FILENAME_LENGTH) {
+            packageElement = shortenPathComponent(packageElement, MAX_FILENAME_LENGTH - fileExtension.length());
+        }
+
         packageElements[elementIndex] = packageElement;
 
         return top.addUniqueChild(packageElements, 0);
+    }
+
+    @Nonnull
+    static String shortenPathComponent(@Nonnull String pathComponent, int maxLength) {
+        int toRemove = pathComponent.length() - maxLength + 1;
+
+        int firstIndex = (pathComponent.length()/2) - (toRemove/2);
+        return pathComponent.substring(0, firstIndex) + "#" + pathComponent.substring(firstIndex+toRemove);
     }
 
     private static boolean testForWindowsReservedFileNames(File path) {
@@ -241,7 +261,6 @@ public class ClassFileNameHandler {
                     return existingEntry.addUniqueChild(pathElements, pathElementsIndex+1);
                 }
             }
-
 
             if (pathElementsIndex == pathElements.length - 1) {
                 String fileName;
