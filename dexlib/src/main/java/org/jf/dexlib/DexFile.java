@@ -278,51 +278,72 @@ public class DexFile
      * @see #getPreserveSignedRegisters
      * @throws IOException if an IOException occurs
      */
-    public DexFile(File file, boolean preserveSignedRegisters, boolean skipInstructions)
+    public DexFile(File file, boolean preserveSignedRegisters, boolean skipInstructions) throws IOException {
+        this(preserveSignedRegisters, skipInstructions);
+        InputStream dexFileInputStream = null;
+        ZipFile zipFile = null;
+        byte[] magic = FileUtils.readFile(file, 0, 8);
+        long fileLength;
+        //do we have a zip file?
+        if (magic[0] == 0x50 && magic[1] == 0x4B) {
+            zipFile = new ZipFile(file);
+            ZipEntry zipEntry = zipFile.getEntry("classes.dex");
+            if (zipEntry == null) {
+                throw new NoClassesDexException("zip file " + file.getName() + " does not contain a classes.dex " +
+                        "file");
+            }
+            fileLength = zipEntry.getSize();
+            if (fileLength < 40) {
+                throw new RuntimeException("The classes.dex file in " + file.getName() + " is too small to be a" +
+                        " valid dex file");
+            } else if (fileLength > Integer.MAX_VALUE) {
+                throw new RuntimeException("The classes.dex file in " + file.getName() + " is too large to read in");
+            }
+            dexFileInputStream = new BufferedInputStream(zipFile.getInputStream(zipEntry));
+
+        } else {
+            fileLength = file.length();
+            if (fileLength < 40) {
+                throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
+            }
+            if (fileLength < 40) {
+                throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
+            } else if (fileLength > Integer.MAX_VALUE) {
+                throw new RuntimeException(file.getName() + " is too large to read in");
+            }
+            dexFileInputStream = new FileInputStream(file);
+        }
+        intializeHelper(dexFileInputStream,fileLength,preserveSignedRegisters,skipInstructions);
+    }
+
+    /**
+     * Construct a new DexFile instance from a given input stream,
+     * and optionally keep track of any registers in the debug information that are signed,
+     * so they will be written in the same format.
+     * @param dexFileInputStream The dex file to read in
+     * @param dexFileLength length of the dex file to be read
+     * @param preserveSignedRegisters If true, keep track of any registers in the debug information
+     * that are signed, so they will be written in the same format.
+     * @param skipInstructions If true, skip the instructions in any code item.
+     * @see #getPreserveSignedRegisters
+     * @throws IOException if an IOException occurs
+     */
+    public DexFile(InputStream dexFileInputStream, long dexFileLength, boolean preserveSignedRegisters, boolean skipInstructions)
             throws IOException {
         this(preserveSignedRegisters, skipInstructions);
+        intializeHelper(dexFileInputStream, dexFileLength, preserveSignedRegisters,skipInstructions);
+    }
 
-        long fileLength;
-        byte[] magic = FileUtils.readFile(file, 0, 8);
-
-        InputStream inputStream = null;
+    private void intializeHelper(InputStream inputStream, long dexFileLength, boolean preserveSignedRegisters, boolean skipInstructions)
+        throws IOException {
         Input in = null;
-        ZipFile zipFile = null;
 
         try {
-            //do we have a zip file?
-            if (magic[0] == 0x50 && magic[1] == 0x4B) {
-                zipFile = new ZipFile(file);
-                ZipEntry zipEntry = zipFile.getEntry("classes.dex");
-                if (zipEntry == null) {
-                    throw new NoClassesDexException("zip file " + file.getName() + " does not contain a classes.dex " +
-                            "file");
-                }
-                fileLength = zipEntry.getSize();
-                if (fileLength < 40) {
-                    throw new RuntimeException("The classes.dex file in " + file.getName() + " is too small to be a" +
-                            " valid dex file");
-                } else if (fileLength > Integer.MAX_VALUE) {
-                    throw new RuntimeException("The classes.dex file in " + file.getName() + " is too large to read in");
-                }
-                inputStream = new BufferedInputStream(zipFile.getInputStream(zipEntry));
+            byte[] magic = new byte[8];
+            int magicRead = inputStream.read(magic);
 
-                inputStream.mark(8);
-                for (int i=0; i<8; i++) {
-                    magic[i] = (byte)inputStream.read();
-                }
-                inputStream.reset();
-            } else {
-                fileLength = file.length();
-                if (fileLength < 40) {
-                    throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
-                }
-                if (fileLength < 40) {
-                    throw new RuntimeException(file.getName() + " is too small to be a valid dex file");
-                } else if (fileLength > Integer.MAX_VALUE) {
-                    throw new RuntimeException(file.getName() + " is too large to read in");
-                }
-                inputStream = new FileInputStream(file);
+            if(magicRead < 8){
+                throw new RuntimeException("Error reading Magic bytes");
             }
 
             byte[] dexMagic, odexMagic;
@@ -367,7 +388,7 @@ public class DexFile
                 odexDependencies = new OdexDependencies(
                         new ByteArrayInput(FileUtils.readStream(inputStream, odexHeader.depsLength)));
             } else if (isDex) {
-                in = new ByteArrayInput(FileUtils.readStream(inputStream, (int)fileLength));
+                in = new ByteArrayInput(FileUtils.readStream(inputStream, (int)dexFileLength));
             } else {
                 StringBuffer sb = new StringBuffer("bad magic value:");
                 for (int i=0; i<8; i++) {
@@ -379,9 +400,6 @@ public class DexFile
         } finally {
             if (inputStream != null) {
                 inputStream.close();
-            }
-            if (zipFile != null) {
-                zipFile.close();
             }
         }
 
