@@ -43,8 +43,10 @@ public class HeaderItem extends Item<HeaderItem> {
             new byte[] {0x64, 0x65, 0x78, 0x0A, 0x30, 0x33, 0x36, 0x00}}; //"dex\n036" + '\0';
 
 
+    public static final int DEFAULT_HEADER_SIZE = 0x70;
+    
     /** size of this section, in bytes */
-    private static final int HEADER_SIZE = 0x70;
+    private final int headerSize = DEFAULT_HEADER_SIZE;
 
     /** the endianness constants */
     private static final int LITTLE_ENDIAN = 0x12345678;
@@ -56,6 +58,8 @@ public class HeaderItem extends Item<HeaderItem> {
     private boolean checksumSignatureSet = false;
     private int checksum;
     private byte[] signature;
+
+    private byte[] extraStuff = null;
 
     /**
      * Create a new uninitialized <code>HeaderItem</code>
@@ -95,7 +99,8 @@ public class HeaderItem extends Item<HeaderItem> {
         checksumSignatureSet = true;
 
         in.readInt(); //filesize
-        in.readInt(); //header size
+        
+        int hSize = in.readInt(); //headersize
 
         int endianTag = in.readInt();
         if (endianTag == BIG_ENDIAN) {
@@ -148,6 +153,12 @@ public class HeaderItem extends Item<HeaderItem> {
 
         in.readInt(); //data_size
         in.readInt(); //data_off
+
+        int extraHeaderDataSize = hSize - DEFAULT_HEADER_SIZE;
+        if(extraHeaderDataSize > 0){
+            extraStuff = new byte[extraHeaderDataSize];
+            in.read(extraStuff);
+        }
     }
 
     /**
@@ -170,9 +181,21 @@ public class HeaderItem extends Item<HeaderItem> {
         throw new RuntimeException("Invalid dex version number passed to setVersion");
     }
 
+    public void setAdditionalHeaderData(byte[] extraData) {
+       extraStuff = extraData;
+    }
+
+    public byte[] getAdditionalHeaderData() {
+        return extraStuff;
+    }
+
+    public int getHeaderSize() {
+        return DEFAULT_HEADER_SIZE + extraStuff.length;
+    }
+
     /** {@inheritDoc} */
     protected int placeItem(int offset) {
-        return HEADER_SIZE;
+        return headerSize;
     }
 
     /** {@inheritDoc} */
@@ -195,8 +218,8 @@ public class HeaderItem extends Item<HeaderItem> {
                 " bytes)");
         out.writeInt(dexFile.getFileSize());
 
-        out.annotate("header_size: 0x" + Integer.toHexString(HEADER_SIZE));
-        out.writeInt(HEADER_SIZE);
+        out.annotate("header_size: 0x" + Integer.toHexString(getHeaderSize()));
+        out.writeInt(getHeaderSize());
 
         out.annotate("endian_tag: 0x" + Integer.toHexString(LITTLE_ENDIAN));
         out.writeInt(LITTLE_ENDIAN);
@@ -252,6 +275,11 @@ public class HeaderItem extends Item<HeaderItem> {
 
         out.annotate("data_off: 0x" + Integer.toHexString(dexFile.getDataOffset()));
         out.writeInt(dexFile.getDataOffset());
+
+        out.annotate("extra_header stuff: 0x" + Integer.toHexString(extraStuff.length));
+        if(extraStuff != null) {
+             out.write(extraStuff);
+        }
     }
 
     /** {@inheritDoc} */
