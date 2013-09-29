@@ -31,10 +31,7 @@
 
 package org.jf.dexlib2.writer;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.*;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
@@ -811,7 +808,8 @@ public abstract class DexWriter<
             }
         }
 
-        if (debugItems == null && parameterCount == 0) {
+
+        if (parameterCount == 0 && (debugItems == null || Iterables.isEmpty(debugItems))) {
             return NO_OFFSET;
         }
 
