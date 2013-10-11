@@ -99,3 +99,7 @@ buildscript {
         classpath 'org.eclipse.jgit:org.eclipse.jgit:2.0.0.201206130900-r'
     }
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.8'
+}
