@@ -1172,11 +1172,8 @@ public abstract class DexWriter<
     }
 
     private void writeHeader(@Nonnull DexDataWriter writer, int dataOffset, int fileSize) throws IOException {
-        if (api < 14) {
-            writer.write(HeaderItem.MAGIC_VALUES[0]);
-        } else {
-            writer.write(HeaderItem.MAGIC_VALUES[1]);
-        }
+        // always write the 035 version, there's no reason to use the 036 version for now
+        writer.write(HeaderItem.MAGIC_VALUES[0]);
 
         // checksum placeholder
         writer.writeInt(0);
