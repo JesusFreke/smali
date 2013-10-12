@@ -662,7 +662,7 @@ public class MutableMethodImplementation implements MethodImplementation {
         return new BuilderInstruction21ih(
                 instruction.getOpcode(),
                 instruction.getRegisterA(),
-                instruction.getHatLiteral());
+                instruction.getNarrowLiteral());
     }
 
     @Nonnull
@@ -670,7 +670,7 @@ public class MutableMethodImplementation implements MethodImplementation {
         return new BuilderInstruction21lh(
                 instruction.getOpcode(),
                 instruction.getRegisterA(),
-                instruction.getHatLiteral());
+                instruction.getWideLiteral());
     }
 
     @Nonnull
