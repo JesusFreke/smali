@@ -483,9 +483,11 @@ public class MutableMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull
-    public Label newSwitchPayloadReferenceLabel(@Nonnull int[] codeAddressToIndex, int codeAddress) {
+    public Label newSwitchPayloadReferenceLabel(@Nonnull MethodLocation switchLocation,
+                                                @Nonnull int[] codeAddressToIndex, int codeAddress) {
         MethodLocation referent = instructionList.get(mapCodeAddressToIndex(codeAddressToIndex, codeAddress));
-        Label label = new SwitchPayloadReferenceLabel();
+        SwitchPayloadReferenceLabel label = new SwitchPayloadReferenceLabel();
+        label.switchLocation = switchLocation;
         referent.getLabels().add(label);
         return label;
     }
@@ -567,7 +569,7 @@ public class MutableMethodImplementation implements MethodImplementation {
                 setInstruction(location, newBuilderInstruction31i((Instruction31i)instruction));
                 return;
             case Format31t:
-                setInstruction(location, newBuilderInstruction31t(location.codeAddress, codeAddressToIndex,
+                setInstruction(location, newBuilderInstruction31t(location, codeAddressToIndex,
                         (Instruction31t)instruction));
                 return;
             case Format32x:
@@ -771,12 +773,13 @@ public class MutableMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull
-    private BuilderInstruction31t newBuilderInstruction31t(int codeAddress, int[] codeAddressToIndex,
+    private BuilderInstruction31t newBuilderInstruction31t(@Nonnull MethodLocation location , int[] codeAddressToIndex,
                                                            @Nonnull Instruction31t instruction) {
+        int codeAddress = location.getCodeAddress();
         Label newLabel;
         if (instruction.getOpcode() != Opcode.FILL_ARRAY_DATA) {
             // if it's a sparse switch or packed switch
-            newLabel = newSwitchPayloadReferenceLabel(codeAddressToIndex, codeAddress + instruction.getCodeOffset());
+            newLabel = newSwitchPayloadReferenceLabel(location, codeAddressToIndex, codeAddress + instruction.getCodeOffset());
         } else {
             newLabel = newLabel(codeAddressToIndex, codeAddress + instruction.getCodeOffset());
         }
@@ -873,7 +876,7 @@ public class MutableMethodImplementation implements MethodImplementation {
 
         List<Label> labels = Lists.newArrayList();
         for (SwitchElement element: switchElements) {
-            labels.add(newLabel(codeAddressToIndex, element.getOffset() - baseAddress));
+            labels.add(newLabel(codeAddressToIndex, element.getOffset() + baseAddress));
         }
 
         return new BuilderPackedSwitchPayload(switchElements.get(0).getKey(), labels);
@@ -899,7 +902,7 @@ public class MutableMethodImplementation implements MethodImplementation {
         List<SwitchLabelElement> labelElements = Lists.newArrayList();
         for (SwitchElement element: switchElements) {
             labelElements.add(new SwitchLabelElement(element.getKey(),
-                    newLabel(codeAddressToIndex, element.getOffset() - baseAddress)));
+                    newLabel(codeAddressToIndex, element.getOffset() + baseAddress)));
         }
 
         return new BuilderSparseSwitchPayload(labelElements);
