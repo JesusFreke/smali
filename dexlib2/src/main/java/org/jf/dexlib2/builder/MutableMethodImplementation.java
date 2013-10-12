@@ -528,7 +528,7 @@ public class MutableMethodImplementation implements MethodImplementation {
                 setInstruction(location, newBuilderInstruction21ih((Instruction21ih)instruction));
                 return;
             case Format21lh:
-                setInstruction(location, newBuilderInstruction10x((Instruction10x)instruction));
+                setInstruction(location, newBuilderInstruction21lh((Instruction21lh)instruction));
                 return;
             case Format21s:
                 setInstruction(location, newBuilderInstruction21s((Instruction21s)instruction));
