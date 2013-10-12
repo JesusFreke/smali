@@ -589,8 +589,10 @@ public class MutableMethodImplementation implements MethodImplementation {
             case SparseSwitchPayload:
                 setInstruction(location,
                         newBuilderSparseSwitchPayload(location, codeAddressToIndex, (SparseSwitchPayload)instruction));
+                return;
             case ArrayPayload:
                 setInstruction(location, newBuilderArrayPayload((ArrayPayload)instruction));
+                return;
             default:
                 throw new ExceptionWithContext("Instruction format %s not supported", instruction.getOpcode().format);
         }
