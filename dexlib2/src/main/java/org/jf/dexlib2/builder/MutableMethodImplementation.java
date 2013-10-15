@@ -136,13 +136,13 @@ public class MutableMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull
-    public List<Instruction> getInstructions() {
+    public List<BuilderInstruction> getInstructions() {
         if (fixInstructions) {
             fixInstructions();
         }
 
-        return new AbstractList<Instruction>() {
-            @Override public Instruction get(int i) {
+        return new AbstractList<BuilderInstruction>() {
+            @Override public BuilderInstruction get(int i) {
                 if (i >= size()) {
                     throw new IndexOutOfBoundsException();
                 }
@@ -162,7 +162,7 @@ public class MutableMethodImplementation implements MethodImplementation {
         };
     }
 
-    @Nonnull @Override public List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks() {
+    @Nonnull @Override public List<BuilderTryBlock> getTryBlocks() {
         if (fixInstructions) {
             fixInstructions();
         }

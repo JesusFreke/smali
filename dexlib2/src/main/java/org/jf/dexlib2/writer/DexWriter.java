@@ -777,7 +777,7 @@ public abstract class DexWriter<
     }
 
     private void fixInstructions(@Nonnull MutableMethodImplementation methodImplementation) {
-        List<Instruction> instructions = methodImplementation.getInstructions();
+        List<? extends Instruction> instructions = methodImplementation.getInstructions();
 
         for (int i=0; i<instructions.size(); i++) {
             Instruction instruction = instructions.get(i);
