@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.builder.instruction;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.Format;
@@ -55,13 +54,11 @@ public class BuilderPackedSwitchPayload extends BuilderSwitchPayload implements 
         if (switchElements == null) {
             this.switchElements = ImmutableList.of();
         } else {
-            this.switchElements = Lists.transform(switchElements, new Function<Label, BuilderSwitchElement>() {
-                int key = startKey;
-                @Nullable @Override public BuilderSwitchElement apply(@Nullable Label target) {
-                    assert target != null;
-                    return new BuilderSwitchElement(BuilderPackedSwitchPayload.this, key++, target);
-                }
-            });
+            this.switchElements = Lists.newArrayList();
+            int key = startKey;
+            for (Label target: switchElements) {
+                this.switchElements.add(new BuilderSwitchElement(this, key++, target));
+            }
         }
     }
 
