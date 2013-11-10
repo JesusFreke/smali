@@ -218,6 +218,10 @@ public class main {
                 case 'K':
                     options.checkPackagePrivateAccess = true;
                     break;
+                case 'R':
+                    String rif = commandLine.getOptionValue("R");
+                    options.setResourceIdFiles(rif);
+                    break;
                 default:
                     assert false;
             }
@@ -436,6 +440,14 @@ public class main {
                         "that will be removed once this new functionality can be tied to a specific api level.")
                 .create("K");
 
+        Option resourceIdFilesOption = OptionBuilder.withLongOpt("resource-id-files")
+                .withDescription("the resource ID files to use, for analysis. A colon-separated list of file=prefix " +
+                        "pairs.  For example res/values/public.xml=R:" +
+                        "$ANDROID_HOME/platforms/android-19/data/res/values/public.xml=android.R")
+                .hasArg()
+                .withArgName("FILES")
+                .create("R");
+
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputDirOption);
@@ -451,6 +463,7 @@ public class main {
         basicOptions.addOption(noAccessorCommentsOption);
         basicOptions.addOption(apiLevelOption);
         basicOptions.addOption(jobsOption);
+        basicOptions.addOption(resourceIdFilesOption);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);

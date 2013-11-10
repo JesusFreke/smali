@@ -39,10 +39,18 @@ import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.*;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.*;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class baksmali {
 
@@ -63,6 +71,47 @@ public class baksmali {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
                 ex.printStackTrace(System.err);
                 System.exit(1);
+            }
+        }
+
+        if (options.resourceIdFileEntries != null) {
+            class PublicHandler extends DefaultHandler {
+                String prefix = null;
+                public PublicHandler(String prefix) {
+                    super();
+                    this.prefix = prefix;
+                }
+
+                public void startElement(String uri, String localName,
+                        String qName, Attributes attr) throws SAXException {
+                    if (qName.equals("public")) {
+                        String type = attr.getValue("type");
+                        String name = attr.getValue("name").replace('.', '_');
+                        Long public_key = Long.decode(attr.getValue("id"));
+                        String public_val = new StringBuffer()
+                            .append(prefix)
+                            .append(".")
+                            .append(type)
+                            .append(".")
+                            .append(name)
+                            .toString();
+                        options.resourceIds.put(public_key, public_val);
+                    }
+                }
+            };
+
+            for (Entry<String,String> entry: options.resourceIdFileEntries.entrySet()) {
+                try {
+                    SAXParser saxp = SAXParserFactory.newInstance().newSAXParser();
+                    String prefix = entry.getValue();
+                    saxp.parse(entry.getKey(), new PublicHandler(prefix));
+                } catch (ParserConfigurationException e) {
+                    continue;
+                } catch (SAXException e) {
+                    continue;
+                } catch (IOException e) {
+                    continue;
+                }
             }
         }
 
