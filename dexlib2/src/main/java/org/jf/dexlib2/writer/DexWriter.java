@@ -236,7 +236,7 @@ public abstract class DexWriter<
         }
 
         byte[] buffer = new byte[4 * 1024];
-        InputStream input = dataStore.readAt(HeaderItem.HEADER_SIZE_OFFSET);
+        InputStream input = dataStore.readAt(HeaderItem.SIGNATURE_DATA_START_OFFSET);
         int bytesRead = input.read(buffer);
         while (bytesRead >= 0) {
             md.update(buffer, 0, bytesRead);
@@ -258,7 +258,7 @@ public abstract class DexWriter<
         Adler32 a32 = new Adler32();
 
         byte[] buffer = new byte[4 * 1024];
-        InputStream input = dataStore.readAt(HeaderItem.SIGNATURE_OFFSET);
+        InputStream input = dataStore.readAt(HeaderItem.CHECKSUM_DATA_START_OFFSET);
         int bytesRead = input.read(buffer);
         while (bytesRead >= 0) {
             a32.update(buffer, 0, bytesRead);
