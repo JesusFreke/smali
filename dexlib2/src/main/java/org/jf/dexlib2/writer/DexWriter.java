@@ -798,18 +798,20 @@ public abstract class DexWriter<
                                @Nullable Iterable<? extends StringKey> parameterNames,
                                @Nullable Iterable<? extends DebugItem> debugItems) throws IOException {
         int parameterCount = 0;
+        int lastNamedParameterIndex = -1;
         if (parameterNames != null) {
+            parameterCount = Iterables.size(parameterNames);
             int index = 0;
             for (StringKey parameterName: parameterNames) {
-                index++;
                 if (parameterName != null) {
-                    parameterCount = index;
+                    lastNamedParameterIndex = index;
                 }
+                index++;
             }
         }
 
 
-        if (parameterCount == 0 && (debugItems == null || Iterables.isEmpty(debugItems))) {
+        if (lastNamedParameterIndex == -1 && (debugItems == null || Iterables.isEmpty(debugItems))) {
             return NO_OFFSET;
         }
 
