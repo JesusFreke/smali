@@ -43,6 +43,7 @@ import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Map;
 
 public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     @Nonnull protected final MethodDefinition methodDef;
@@ -140,6 +141,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeFirstRegister(writer);
                 writer.write(", ");
                 writeLiteral(writer);
+                writeResourceId(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
                 return true;
             case Format21t:
             case Format31t:
@@ -337,6 +339,13 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         LongRenderer.writeSignedIntOrLongTo(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
     }
 
+    protected void writeResourceId(IndentingWriter writer, long val) throws IOException {
+        Map<Long,String> resourceIds = methodDef.classDef.options.resourceIds;
+        if (resourceIds.containsKey(Long.valueOf(val))) {
+            writer.write("    # ");
+            writer.write(resourceIds.get(Long.valueOf(val)));
+        }
+    }
 
     protected void writeFieldOffset(IndentingWriter writer) throws IOException {
         writer.write("field@0x");

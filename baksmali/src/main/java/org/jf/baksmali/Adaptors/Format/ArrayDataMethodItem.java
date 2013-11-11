@@ -65,6 +65,7 @@ public class ArrayDataMethodItem extends InstructionMethodItem<ArrayPayload> {
         for (Number number: elements) {
             LongRenderer.writeSignedIntOrLongTo(writer, number.longValue());
             writer.write(suffix);
+            writeResourceId(writer, number.longValue());
             writer.write("\n");
         }
         writer.deindent(4);
