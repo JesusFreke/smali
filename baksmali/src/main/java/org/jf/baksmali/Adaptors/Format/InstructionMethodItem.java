@@ -141,7 +141,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeFirstRegister(writer);
                 writer.write(", ");
                 writeLiteral(writer);
-                writeResourceId(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
+                if (instruction.getOpcode().setsWideRegister() == false)
+                    writeResourceId(writer);
                 return true;
             case Format21t:
             case Format31t:
@@ -339,11 +340,15 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         LongRenderer.writeSignedIntOrLongTo(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
     }
 
-    protected void writeResourceId(IndentingWriter writer, long val) throws IOException {
-        Map<Long,String> resourceIds = methodDef.classDef.options.resourceIds;
-        if (resourceIds.containsKey(Long.valueOf(val))) {
+    protected void writeResourceId(IndentingWriter writer) throws IOException {
+        writeResourceId(writer, ((NarrowLiteralInstruction)instruction).getNarrowLiteral());
+    }
+
+    protected void writeResourceId(IndentingWriter writer, int val) throws IOException {
+        Map<Integer,String> resourceIds = methodDef.classDef.options.resourceIds;
+        if (resourceIds.containsKey(Integer.valueOf(val))) {
             writer.write("    # ");
-            writer.write(resourceIds.get(Long.valueOf(val)));
+            writer.write(resourceIds.get(Integer.valueOf(val)));
         }
     }
 

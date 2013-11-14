@@ -87,7 +87,7 @@ public class baksmali {
                     if (qName.equals("public")) {
                         String type = attr.getValue("type");
                         String name = attr.getValue("name").replace('.', '_');
-                        Long public_key = Long.decode(attr.getValue("id"));
+                        Integer public_key = Integer.decode(attr.getValue("id"));
                         String public_val = new StringBuffer()
                             .append(prefix)
                             .append(".")
