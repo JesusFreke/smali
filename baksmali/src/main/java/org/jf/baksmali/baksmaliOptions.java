@@ -91,7 +91,7 @@ public class baksmaliOptions {
     public void setResourceIdFiles(String resourceIdFiles) {
         for (String resourceIdFile: resourceIdFiles.split(":")) {
             String[] entry = resourceIdFile.split("=");
-            resourceIdFileEntries.put(entry[0], entry[1]);
+            resourceIdFileEntries.put(entry[1], entry[0]);
         }
     }
 }

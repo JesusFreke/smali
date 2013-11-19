@@ -441,9 +441,9 @@ public class main {
                 .create("K");
 
         Option resourceIdFilesOption = OptionBuilder.withLongOpt("resource-id-files")
-                .withDescription("the resource ID files to use, for analysis. A colon-separated list of file=prefix " +
-                        "pairs.  For example res/values/public.xml=R:" +
-                        "$ANDROID_HOME/platforms/android-19/data/res/values/public.xml=android.R")
+                .withDescription("the resource ID files to use, for analysis. A colon-separated list of prefix=file " +
+                        "pairs.  For example R=res/values/public.xml:" +
+                        "android.R=$ANDROID_HOME/platforms/android-19/data/res/values/public.xml")
                 .hasArg()
                 .withArgName("FILES")
                 .create("R");
