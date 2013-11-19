@@ -411,6 +411,14 @@ public class main {
                 .withArgName("NUM_THREADS")
                 .create("j");
 
+        Option resourceIdFilesOption = OptionBuilder.withLongOpt("resource-id-files")
+                .withDescription("the resource ID files to use, for analysis. A colon-separated list of prefix=file " +
+                        "pairs.  For example R=res/values/public.xml:" +
+                        "android.R=$ANDROID_HOME/platforms/android-19/data/res/values/public.xml")
+                .hasArg()
+                .withArgName("FILES")
+                .create("i");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
                         " (<dexfile>.dump by default), along with the normal disassembly")
@@ -439,14 +447,6 @@ public class main {
                         "prevents overriding an inaccessible package private method. This is a temporary option " +
                         "that will be removed once this new functionality can be tied to a specific api level.")
                 .create("K");
-
-        Option resourceIdFilesOption = OptionBuilder.withLongOpt("resource-id-files")
-                .withDescription("the resource ID files to use, for analysis. A colon-separated list of prefix=file " +
-                        "pairs.  For example R=res/values/public.xml:" +
-                        "android.R=$ANDROID_HOME/platforms/android-19/data/res/values/public.xml")
-                .hasArg()
-                .withArgName("FILES")
-                .create("R");
 
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
