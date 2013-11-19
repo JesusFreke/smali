@@ -346,9 +346,10 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
     protected void writeResourceId(IndentingWriter writer, int val) throws IOException {
         Map<Integer,String> resourceIds = methodDef.classDef.options.resourceIds;
-        if (resourceIds.containsKey(Integer.valueOf(val))) {
+        String resource = resourceIds.get(Integer.valueOf(val));
+        if (resource != null) {
             writer.write("    # ");
-            writer.write(resourceIds.get(Integer.valueOf(val)));
+            writer.write(resource);
         }
     }
 
