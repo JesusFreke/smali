@@ -215,9 +215,6 @@ public class main {
                 case 'T':
                     options.inlineResolver = new CustomInlineMethodResolver(options.classPath, new File(commandLine.getOptionValue("T")));
                     break;
-                case 'K':
-                    options.checkPackagePrivateAccess = true;
-                    break;
                 case 'R':
                     String rif = commandLine.getOptionValue("R");
                     options.setResourceIdFiles(rif);
@@ -237,6 +234,10 @@ public class main {
             if (options.jobs > 6) {
                 options.jobs = 6;
             }
+        }
+
+        if (options.apiLevel >= 17) {
+            options.checkPackagePrivateAccess = true;
         }
 
         String inputDexFileName = remainingArgs[0];
@@ -443,12 +444,6 @@ public class main {
                 .withArgName("FILE")
                 .create("T");
 
-        Option checkPackagePrivateAccess = OptionBuilder.withLongOpt("check-package-private-access")
-                .withDescription("When deodexing, use the new virtual table generation logic that " +
-                        "prevents overriding an inaccessible package private method. This is a temporary option " +
-                        "that will be removed once this new functionality can be tied to a specific api level.")
-                .create("K");
-
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
         basicOptions.addOption(outputDirOption);
@@ -470,7 +465,6 @@ public class main {
         debugOptions.addOption(ignoreErrorsOption);
         debugOptions.addOption(noDisassemblyOption);
         debugOptions.addOption(inlineTableOption);
-        debugOptions.addOption(checkPackagePrivateAccess);
 
         for (Object option: basicOptions.getOptions()) {
             options.addOption((Option)option);
