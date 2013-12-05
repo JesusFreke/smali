@@ -255,6 +255,7 @@ public class main {
                 System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
                 System.err.println("won't be able to re-assemble the results unless you deodex it with the -x");
                 System.err.println("option");
+                options.allowOdex = true;
             }
         } else {
             options.deodex = false;
