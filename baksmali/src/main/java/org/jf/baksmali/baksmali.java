@@ -70,7 +70,7 @@ public class baksmali {
             } catch (Exception ex) {
                 System.err.println("\n\nError occured while loading boot class path files. Aborting.");
                 ex.printStackTrace(System.err);
-                System.exit(1);
+                return false;
             }
         }
 
@@ -119,7 +119,7 @@ public class baksmali {
         if (!outputDirectoryFile.exists()) {
             if (!outputDirectoryFile.mkdirs()) {
                 System.err.println("Can't create the output directory " + options.outputDirectory);
-                System.exit(1);
+                return false;
             }
         }
 
