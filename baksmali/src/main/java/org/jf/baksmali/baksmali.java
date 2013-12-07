@@ -68,7 +68,7 @@ public class baksmali {
                         Iterables.concat(options.bootClassPathEntries, extraClassPathEntries), dexFile,
                         options.apiLevel);
             } catch (Exception ex) {
-                System.err.println("\n\nError occured while loading boot class path files. Aborting.");
+                System.err.println("\n\nError occurred while loading boot class path files. Aborting.");
                 ex.printStackTrace(System.err);
                 return false;
             }
@@ -217,7 +217,7 @@ public class baksmali {
             writer = new IndentingWriter(bufWriter);
             classDefinition.writeTo((IndentingWriter)writer);
         } catch (Exception ex) {
-            System.err.println("\n\nError occured while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
+            System.err.println("\n\nError occurred while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
             ex.printStackTrace();
             // noinspection ResultOfMethodCallIgnored
             smaliFile.delete();
@@ -229,7 +229,7 @@ public class baksmali {
                 try {
                     writer.close();
                 } catch (Throwable ex) {
-                    System.err.println("\n\nError occured while closing file " + smaliFile.toString());
+                    System.err.println("\n\nError occurred while closing file " + smaliFile.toString());
                     ex.printStackTrace();
                 }
             }

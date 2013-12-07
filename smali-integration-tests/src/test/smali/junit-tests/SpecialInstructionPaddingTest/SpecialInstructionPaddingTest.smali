@@ -12,7 +12,7 @@
     .registers 2
     .annotation runtime Lorg/junit/Test;
     .end annotation
-    
+
     const v0, 0
     invoke-static {}, LSpecialInstructionPaddingTest;->paddingTest()I
     move-result v0
@@ -120,7 +120,7 @@
         :Label13
     .end packed-switch
 
-    #this tests out an issue that occured where the prior packed switch data starts at a byte offset
+    #this tests out an issue that occurred where the prior packed switch data starts at a byte offset
     #that is 4 byte aligned but isn't 8 byte aligned, which caused the code to report the size of the
     #instruction to be 2 bytes more than it should be.
     #
