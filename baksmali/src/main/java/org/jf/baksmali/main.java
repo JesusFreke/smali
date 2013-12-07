@@ -202,6 +202,10 @@ public class main {
                 case 'j':
                     options.jobs = Integer.parseInt(commandLine.getOptionValue("j"));
                     break;
+                case 'i':
+                    String rif = commandLine.getOptionValue("i");
+                    options.setResourceIdFiles(rif);
+                    break;
                 case 'N':
                     disassemble = false;
                     break;
@@ -214,10 +218,6 @@ public class main {
                     break;
                 case 'T':
                     options.inlineResolver = new CustomInlineMethodResolver(options.classPath, new File(commandLine.getOptionValue("T")));
-                    break;
-                case 'R':
-                    String rif = commandLine.getOptionValue("R");
-                    options.setResourceIdFiles(rif);
                     break;
                 default:
                     assert false;
