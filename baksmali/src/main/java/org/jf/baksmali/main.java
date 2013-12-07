@@ -218,6 +218,10 @@ public class main {
                 case 'K':
                     options.checkPackagePrivateAccess = true;
                     break;
+                case 'R':
+                    String rif = commandLine.getOptionValue("R");
+                    options.setResourceIdFiles(rif);
+                    break;
                 default:
                     assert false;
             }
@@ -407,6 +411,14 @@ public class main {
                 .withArgName("NUM_THREADS")
                 .create("j");
 
+        Option resourceIdFilesOption = OptionBuilder.withLongOpt("resource-id-files")
+                .withDescription("the resource ID files to use, for analysis. A colon-separated list of prefix=file " +
+                        "pairs.  For example R=res/values/public.xml:" +
+                        "android.R=$ANDROID_HOME/platforms/android-19/data/res/values/public.xml")
+                .hasArg()
+                .withArgName("FILES")
+                .create("i");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
                         " (<dexfile>.dump by default), along with the normal disassembly")
@@ -451,6 +463,7 @@ public class main {
         basicOptions.addOption(noAccessorCommentsOption);
         basicOptions.addOption(apiLevelOption);
         basicOptions.addOption(jobsOption);
+        basicOptions.addOption(resourceIdFilesOption);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);
