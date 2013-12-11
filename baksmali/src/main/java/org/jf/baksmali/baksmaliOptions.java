@@ -67,6 +67,7 @@ public class baksmaliOptions {
     public boolean outputDebugInfo = true;
     public boolean addCodeOffsets = false;
     public boolean noAccessorComments = false;
+    public boolean allowOdex = false;
     public boolean deodex = false;
     public boolean ignoreErrors = false;
     public boolean checkPackagePrivateAccess = false;

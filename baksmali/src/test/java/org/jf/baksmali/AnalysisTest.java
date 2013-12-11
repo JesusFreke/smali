@@ -104,7 +104,9 @@ public class AnalysisTest {
                     className.substring(1, className.length() - 1));
             String smaliContents = readResource(smaliPath);
 
-            Assert.assertEquals(smaliContents.replace("\r\n", "\n"), stringWriter.toString().replace("\r\n", "\n"));
+            String newline = System.getProperty("line.separator");
+            Assert.assertEquals(smaliContents.replace("\r", "").replace("\n", newline),
+                    stringWriter.toString().replace("\r", "").replace("\n", newline));
         }
     }
 
