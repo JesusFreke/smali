@@ -124,7 +124,12 @@ public class AnnotatedBytes {
             throw new ExceptionWithContext("Annotating outside the parent bounds");
         }
 
-        String formattedMsg = String.format(msg, formatArgs);
+        String formattedMsg;
+        if (formatArgs != null && formatArgs.length > 0) {
+            formattedMsg = String.format(msg, formatArgs);
+        } else {
+            formattedMsg = msg;
+        }
         int exclusiveEndOffset = cursor + length;
 
         AnnotationEndpoint endPoint = null;
