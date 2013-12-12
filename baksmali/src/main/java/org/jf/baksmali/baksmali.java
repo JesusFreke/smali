@@ -147,22 +147,24 @@ public class baksmali {
         }
 
         boolean errorOccurred = false;
-        for (Future<Boolean> task: tasks) {
-            while(true) {
-                try {
-                    if (!task.get()) {
-                        errorOccurred = true;
+        try {
+            for (Future<Boolean> task: tasks) {
+                while(true) {
+                    try {
+                        if (!task.get()) {
+                            errorOccurred = true;
+                        }
+                    } catch (InterruptedException ex) {
+                        continue;
+                    } catch (ExecutionException ex) {
+                        throw new RuntimeException(ex);
                     }
-                } catch (InterruptedException ex) {
-                    continue;
-                } catch (ExecutionException ex) {
-                    throw new RuntimeException(ex);
+                    break;
                 }
-                break;
             }
+        } finally {
+            executor.shutdown();
         }
-
-        executor.shutdown();
         return !errorOccurred;
     }
 
