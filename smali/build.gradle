@@ -128,6 +128,7 @@ task generateJflexSource(type: JavaExec) {
     args '-q'
     args '-d', relativePath("${jflexOutput}/org/jf/smali")
     args grammars.files.join(' ')
+    environment LC_ALL: "en_US"
 }
 
 compileJava.dependsOn generateParserAntlrSource, generateTreeWalkerAntlrSource, generateJflexSource
