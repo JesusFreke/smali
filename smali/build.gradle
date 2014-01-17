@@ -28,7 +28,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 configurations {
     antlr3
     jflex
@@ -134,8 +134,17 @@ task generateJflexSource(type: JavaExec) {
 compileJava.dependsOn generateParserAntlrSource, generateTreeWalkerAntlrSource, generateJflexSource
 compileTestJava.dependsOn generateTestAntlrSource
 
-// build a jar containing all dependencies
+processResources.inputs.property('version', version)
+processResources.expand('version': version)
+
+// This is the jar that gets uploaded to maven
 jar {
+    baseName = 'maven'
+}
+
+// Build a separate jar that contains all dependencies
+task fatJar(type: Jar, dependsOn: jar) {
+    from sourceSets.main.output
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
@@ -148,18 +157,36 @@ jar {
         }
     }
 }
+tasks.getByPath('build').dependsOn(fatJar)
 
-processResources.inputs.property('version', version)
-processResources.expand('version': version)
+uploadArchives {
+    repositories.mavenDeployer {
+        pom.project {
+            description 'smali is an assembler for dalvik bytecode'
+            scm {
+                url 'https://github.com/JesusFreke/smali/tree/master/smali'
+            }
+        }
+    }
+}
 
-task proguard(type: JavaExec, dependsOn: jar) {
-    def outFile = jar.destinationDir.getPath() + '/' + jar.baseName + '-' + jar.version + '-small' + '.' + jar.extension
-    inputs.file jar.archivePath
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+task proguard(type: JavaExec, dependsOn: fatJar) {
+    def outFile = fatJar.destinationDir.getPath() + '/' + fatJar.baseName + '-' + fatJar.version + '-small' + '.' + fatJar.extension
+    inputs.file fatJar.archivePath
     outputs.file outFile
 
     classpath = configurations.proguard
     main = 'proguard.ProGuard'
-    args "-injars ${jar.archivePath}(!**/TestStringTemplate*.class)"
+    args "-injars ${fatJar.archivePath}(!**/TestStringTemplate*.class)"
     args "-outjars ${outFile}"
     args "-libraryjars ${System.properties['java.home']}/lib/rt.jar"
     args '-dontobfuscate'

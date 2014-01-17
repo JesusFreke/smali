@@ -37,3 +37,7 @@ dependencies {
 
     testCompile 'junit:junit:4.6'
 }
+
+// this is a test-only project that we don't need to upload to maven
+signArchives.enabled = false
+uploadArchives.enabled = false

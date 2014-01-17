@@ -28,7 +28,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 configurations {
     proguard
 }
@@ -47,8 +47,14 @@ dependencies {
 processResources.inputs.property('version', version)
 processResources.expand('version': version)
 
-// build a jar containing all dependencies
+// This is the jar that gets uploaded to maven
 jar {
+    baseName = 'maven'
+}
+
+// Build a separate jar that contains all dependencies
+task fatJar(type: Jar) {
+    from sourceSets.main.output
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
@@ -61,15 +67,36 @@ jar {
         }
     }
 }
+tasks.getByPath('build').dependsOn(fatJar)
 
-task proguard(type: JavaExec, dependsOn: jar) {
-    def outFile = jar.destinationDir.getPath() + '/' + jar.baseName + '-' + jar.version + '-small' + '.' + jar.extension
-    inputs.file jar.archivePath
+uploadArchives {
+    repositories.mavenDeployer {
+        pom.project {
+            description 'baksmali is a disassembler for dalvik bytecode'
+            scm {
+                url 'https://github.com/JesusFreke/smali/tree/master/baksmali'
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+task proguard(type: JavaExec, dependsOn: fatJar) {
+    def outFile = fatJar.destinationDir.getPath() + '/' + fatJar.baseName + '-' + fatJar.version + '-small' + '.' + fatJar.extension
+    inputs.file fatJar.archivePath
     outputs.file outFile
 
     classpath = configurations.proguard
     main = 'proguard.ProGuard'
-    args '-injars ' + jar.archivePath
+    args '-injars ' + fatJar.archivePath
     args '-outjars ' + outFile
     args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
     args '-dontobfuscate'
