@@ -36,15 +36,6 @@ dependencies {
     testCompile depends.junit
 }
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allJava
-}
-
-artifacts {
-    archives sourcesJar
-}
-
 uploadArchives {
     repositories.mavenDeployer {
         pom.project {

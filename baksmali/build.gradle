@@ -80,15 +80,6 @@ uploadArchives {
     }
 }
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allJava
-}
-
-artifacts {
-    archives sourcesJar
-}
-
 task proguard(type: JavaExec, dependsOn: fatJar) {
     def outFile = fatJar.destinationDir.getPath() + '/' + fatJar.baseName + '-' + fatJar.version + '-small' + '.' + fatJar.extension
     inputs.file fatJar.archivePath

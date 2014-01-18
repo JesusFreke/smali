@@ -118,15 +118,6 @@ task accessorTest(type: Test, dependsOn: generateAccessorTestDex) {
     classpath = project.sourceSets.accessorTest.runtimeClasspath
 }
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allJava
-}
-
-artifacts {
-    archives sourcesJar
-}
-
 uploadArchives {
     repositories.mavenDeployer {
         pom.project {
