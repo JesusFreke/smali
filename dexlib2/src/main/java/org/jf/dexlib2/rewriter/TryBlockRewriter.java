@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    testCompile depends.junit
-}
+package org.jf.dexlib2.rewriter;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
+import org.jf.dexlib2.base.BaseTryBlock;
+import org.jf.dexlib2.iface.ExceptionHandler;
+import org.jf.dexlib2.iface.TryBlock;
+
+import javax.annotation.Nonnull;
+import java.util.List;
+
+public class TryBlockRewriter implements Rewriter<TryBlock<? extends ExceptionHandler>> {
+    @Nonnull protected final Rewriters rewriters;
+
+    public TryBlockRewriter(@Nonnull Rewriters rewriters) {
+        this.rewriters = rewriters;
+    }
+
+    @Nonnull @Override public TryBlock<? extends ExceptionHandler> rewrite(
+            @Nonnull TryBlock<? extends ExceptionHandler> tryBlock) {
+        return new RewrittenTryBlock(tryBlock);
+    }
+
+    protected class RewrittenTryBlock extends BaseTryBlock<ExceptionHandler> {
+        @Nonnull protected TryBlock<? extends ExceptionHandler> tryBlock;
+
+        public RewrittenTryBlock(@Nonnull TryBlock<? extends ExceptionHandler> tryBlock) {
+            this.tryBlock = tryBlock;
+        }
+
+        @Override public int getStartCodeAddress() {
+            return tryBlock.getStartCodeAddress();
+        }
+
+        @Override public int getCodeUnitCount() {
+            return tryBlock.getCodeUnitCount();
+        }
+
+        @Override @Nonnull public List<? extends ExceptionHandler> getExceptionHandlers() {
+            return RewriterUtils.rewriteList(rewriters.getExceptionHandlerRewriter(), tryBlock.getExceptionHandlers());
         }
     }
 }

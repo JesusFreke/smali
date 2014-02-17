@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    testCompile depends.junit
-}
+package org.jf.dexlib2.rewriter;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
-        }
-    }
+import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.debug.DebugItem;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.value.EncodedValue;
+
+import javax.annotation.Nonnull;
+
+public interface Rewriters {
+    @Nonnull Rewriter<ClassDef> getClassDefRewriter();
+    @Nonnull Rewriter<Field> getFieldRewriter();
+
+    @Nonnull Rewriter<Method> getMethodRewriter();
+    @Nonnull Rewriter<MethodParameter> getMethodParameterRewriter();
+    @Nonnull Rewriter<MethodImplementation> getMethodImplementationRewriter();
+    @Nonnull Rewriter<Instruction> getInstructionRewriter();
+    @Nonnull Rewriter<TryBlock<? extends ExceptionHandler>> getTryBlockRewriter();
+    @Nonnull Rewriter<ExceptionHandler> getExceptionHandlerRewriter();
+    @Nonnull Rewriter<DebugItem> getDebugItemRewriter();
+
+    @Nonnull Rewriter<String> getTypeRewriter();
+    @Nonnull Rewriter<FieldReference> getFieldReferenceRewriter();
+    @Nonnull Rewriter<MethodReference> getMethodReferenceRewriter();
+
+    @Nonnull Rewriter<Annotation> getAnnotationRewriter();
+    @Nonnull Rewriter<AnnotationElement> getAnnotationElementRewriter();
+
+    @Nonnull Rewriter<EncodedValue> getEncodedValueRewriter();
 }

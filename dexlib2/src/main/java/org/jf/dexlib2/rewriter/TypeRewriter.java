@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    testCompile depends.junit
-}
+package org.jf.dexlib2.rewriter;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
-        }
+import javax.annotation.Nonnull;
+
+public class TypeRewriter implements Rewriter<String> {
+    @Nonnull @Override public String rewrite(@Nonnull String value) {
+        return value;
     }
 }

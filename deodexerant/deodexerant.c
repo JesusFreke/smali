@@ -55,12 +55,20 @@ void main(int argc, char **argv) {
 	dvmGetInlineOpsTablePtr dvmGetInlineOpsTable = dlsym(libdvm, "dvmGetInlineOpsTable");
 
 	if (dvmGetInlineOpsTable == NULL) {
+		dvmGetInlineOpsTable = dlsym(libdvm, "_Z20dvmGetInlineOpsTablev");
+	}
+
+	if (dvmGetInlineOpsTable == NULL) {
 		printf("Failed to load dvmGetInlineOpsTable\n");
 		dlclose(libdvm);
 		return;
 	}
 
 	dvmGetInlineOpsTableLengthPtr dvmGetInlineOpsTableLength = dlsym(libdvm, "dvmGetInlineOpsTableLength");
+
+	if (dvmGetInlineOpsTableLength == NULL) {
+		dvmGetInlineOpsTableLength = dlsym(libdvm, "_Z26dvmGetInlineOpsTableLengthv");
+	}
 
 	if (dvmGetInlineOpsTableLength == NULL) {
 		printf("Failed to load dvmGetInlineOpsTableLength\n");

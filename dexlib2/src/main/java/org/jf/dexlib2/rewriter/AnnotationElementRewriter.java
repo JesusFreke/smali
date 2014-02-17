@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    testCompile depends.junit
-}
+package org.jf.dexlib2.rewriter;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
+import org.jf.dexlib2.base.BaseAnnotationElement;
+import org.jf.dexlib2.iface.AnnotationElement;
+import org.jf.dexlib2.iface.value.EncodedValue;
+
+import javax.annotation.Nonnull;
+
+public class AnnotationElementRewriter implements Rewriter<AnnotationElement> {
+    @Nonnull protected final Rewriters rewriters;
+
+    public AnnotationElementRewriter(@Nonnull Rewriters rewriters) {
+        this.rewriters = rewriters;
+    }
+
+    @Nonnull @Override public AnnotationElement rewrite(@Nonnull AnnotationElement annotationElement) {
+        return new RewrittenAnnotationElement(annotationElement);
+    }
+
+    protected class RewrittenAnnotationElement extends BaseAnnotationElement {
+        @Nonnull protected AnnotationElement annotationElement;
+
+        public RewrittenAnnotationElement(@Nonnull AnnotationElement annotationElement) {
+            this.annotationElement = annotationElement;
+        }
+
+        @Nonnull @Override public String getName() {
+            return annotationElement.getName();
+        }
+
+        @Nonnull @Override public EncodedValue getValue() {
+            return rewriters.getEncodedValueRewriter().rewrite(annotationElement.getValue());
         }
     }
 }

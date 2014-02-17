@@ -117,3 +117,14 @@ task accessorTest(type: Test, dependsOn: generateAccessorTestDex) {
     testClassesDir = project.sourceSets.accessorTest.output.classesDir
     classpath = project.sourceSets.accessorTest.runtimeClasspath
 }
+
+uploadArchives {
+    repositories.mavenDeployer {
+        pom.project {
+            description 'dexlib2 is a library for reading/modifying/writing Android dex files'
+            scm {
+                url 'https://github.com/JesusFreke/smali/tree/master/dexlib2'
+            }
+        }
+    }
+}

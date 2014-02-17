@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    testCompile depends.junit
-}
+package org.jf.dexlib2.rewriter;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
+import org.jf.dexlib2.base.BaseExceptionHandler;
+import org.jf.dexlib2.iface.ExceptionHandler;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public class ExceptionHandlerRewriter implements Rewriter<ExceptionHandler> {
+    @Nonnull protected final Rewriters rewriters;
+
+    public ExceptionHandlerRewriter(@Nonnull Rewriters rewriters) {
+        this.rewriters = rewriters;
+    }
+
+    @Nonnull @Override public ExceptionHandler rewrite(@Nonnull ExceptionHandler value) {
+        return new RewrittenExceptionHandler(value);
+    }
+
+    protected class RewrittenExceptionHandler extends BaseExceptionHandler {
+        @Nonnull protected ExceptionHandler exceptionHandler;
+
+        public RewrittenExceptionHandler(@Nonnull ExceptionHandler exceptionHandler) {
+            this.exceptionHandler = exceptionHandler;
+        }
+
+        @Override @Nullable public String getExceptionType() {
+            return RewriterUtils.rewriteNullable(rewriters.getTypeRewriter(), exceptionHandler.getExceptionType());
+        }
+
+        @Override public int getHandlerCodeAddress() {
+            return exceptionHandler.getHandlerCodeAddress();
         }
     }
 }

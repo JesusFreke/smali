@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    testCompile depends.junit
-}
+package org.jf.dexlib2.rewriter;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
+import org.jf.dexlib2.base.reference.BaseFieldReference;
+import org.jf.dexlib2.iface.reference.FieldReference;
+
+import javax.annotation.Nonnull;
+
+public class FieldReferenceRewriter implements Rewriter<FieldReference> {
+    @Nonnull protected final Rewriters rewriters;
+
+    public FieldReferenceRewriter(@Nonnull Rewriters rewriters) {
+        this.rewriters = rewriters;
+    }
+
+    @Nonnull @Override public FieldReference rewrite(@Nonnull FieldReference fieldReference) {
+        return new RewrittenFieldReference(fieldReference);
+    }
+
+    protected class RewrittenFieldReference extends BaseFieldReference {
+        @Nonnull protected FieldReference fieldReference;
+
+        public RewrittenFieldReference(@Nonnull FieldReference fieldReference) {
+            this.fieldReference = fieldReference;
+        }
+
+        @Override @Nonnull public String getDefiningClass() {
+            return rewriters.getTypeRewriter().rewrite(fieldReference.getDefiningClass());
+        }
+
+        @Override @Nonnull public String getName() {
+            return fieldReference.getName();
+        }
+
+        @Override @Nonnull public String getType() {
+            return rewriters.getTypeRewriter().rewrite(fieldReference.getType());
         }
     }
 }

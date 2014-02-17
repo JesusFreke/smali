@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    testCompile depends.junit
-}
+package org.jf.dexlib2.rewriter;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
+import org.jf.dexlib2.base.BaseAnnotation;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.AnnotationElement;
+
+import javax.annotation.Nonnull;
+import java.util.Set;
+
+public class AnnotationRewriter implements Rewriter<Annotation> {
+    @Nonnull protected final Rewriters rewriters;
+
+    public AnnotationRewriter(@Nonnull Rewriters rewriters) {
+        this.rewriters = rewriters;
+    }
+
+    @Nonnull @Override public Annotation rewrite(@Nonnull Annotation value) {
+        return new RewrittenAnnotation(value);
+    }
+
+    protected class RewrittenAnnotation extends BaseAnnotation {
+        @Nonnull protected Annotation annotation;
+
+        public RewrittenAnnotation(@Nonnull Annotation annotation) {
+            this.annotation = annotation;
+        }
+
+        @Override public int getVisibility() {
+            return annotation.getVisibility();
+        }
+
+        @Override @Nonnull public String getType() {
+            return rewriters.getTypeRewriter().rewrite(annotation.getType());
+        }
+
+        @Override @Nonnull public Set<? extends AnnotationElement> getElements() {
+            return RewriterUtils.rewriteSet(rewriters.getAnnotationElementRewriter(), annotation.getElements());
         }
     }
 }

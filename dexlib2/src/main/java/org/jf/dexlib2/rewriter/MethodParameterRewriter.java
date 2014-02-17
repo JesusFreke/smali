@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2014, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    testCompile depends.junit
-}
+package org.jf.dexlib2.rewriter;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
+import org.jf.dexlib2.base.BaseMethodParameter;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.MethodParameter;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Set;
+
+public class MethodParameterRewriter implements Rewriter<MethodParameter> {
+    @Nonnull protected final Rewriters rewriters;
+
+    public MethodParameterRewriter(@Nonnull Rewriters rewriters) {
+        this.rewriters = rewriters;
+    }
+
+    @Nonnull @Override public MethodParameter rewrite(@Nonnull MethodParameter methodParameter) {
+        return new RewrittenMethodParameter(methodParameter);
+    }
+
+    protected class RewrittenMethodParameter extends BaseMethodParameter {
+        @Nonnull protected MethodParameter methodParameter;
+
+        public RewrittenMethodParameter(@Nonnull MethodParameter methodParameter) {
+            this.methodParameter = methodParameter;
+        }
+
+        @Override @Nonnull public String getType() {
+            return rewriters.getTypeRewriter().rewrite(methodParameter.getType());
+        }
+
+        @Override @Nonnull public Set<? extends Annotation> getAnnotations() {
+            return RewriterUtils.rewriteSet(rewriters.getAnnotationRewriter(), methodParameter.getAnnotations());
+        }
+
+        @Override @Nullable public String getName() {
+            return methodParameter.getName();
+        }
+
+        @Override @Nullable public String getSignature() {
+            return methodParameter.getSignature();
         }
     }
 }
