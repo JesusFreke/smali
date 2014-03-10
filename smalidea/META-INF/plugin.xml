@@ -15,6 +15,7 @@
   <idea-version since-build="131"/>
 
   <extensions defaultExtensionNs="com.intellij">
+      <fileTypeFactory implementation="org.jf.smalidea.SmaliFileTypeFactory"/>
   </extensions>
 
   <application-components>
