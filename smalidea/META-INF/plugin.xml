@@ -1,0 +1,29 @@
+<idea-plugin version="2">
+  <id>org.jf.smalidea</id>
+  <name>Smalidea</name>
+  <version>0.01</version>
+  <vendor email="jesusfreke@jesusfreke.com" url="http://smali.org">JesusFreke</vendor>
+
+  <description><![CDATA[
+      A smali language plugin for IDEA
+    ]]></description>
+
+  <change-notes><![CDATA[
+    ]]>
+  </change-notes>
+
+  <idea-version since-build="131"/>
+
+  <extensions defaultExtensionNs="com.intellij">
+  </extensions>
+
+  <application-components>
+  </application-components>
+
+  <project-components>
+  </project-components>
+
+  <actions>
+  </actions>
+
+</idea-plugin>
