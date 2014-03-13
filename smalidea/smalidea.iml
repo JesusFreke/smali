@@ -10,6 +10,7 @@
     </content>
     <orderEntry type="jdk" jdkName="IDEA Plugin jdk" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="smali-smali" />
   </component>
 </module>
 

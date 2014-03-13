@@ -172,6 +172,20 @@ import static org.jf.smali.smaliParser.*;
     public String getErrorHeader(InvalidToken token) {
         return getSourceName()+"["+ token.getLine()+","+token.getCharPositionInLine()+"]";
     }
+
+    public void reset(CharSequence charSequence, int start, int end, int initialState) {
+        zzReader = BlankReader.INSTANCE;
+        zzBuffer = new char[charSequence.length()];
+        for (int i=0; i<charSequence.length(); i++) {
+            zzBuffer[i] = charSequence.charAt(i);
+        }
+
+        yychar = zzCurrentPos = zzMarkedPos = zzStartRead = start;
+        zzEndRead = end;
+        zzAtBOL = true;
+        zzAtEOF = false;
+        yybegin(initialState);
+    }
 %}
 
 HexPrefix = 0 [xX]
