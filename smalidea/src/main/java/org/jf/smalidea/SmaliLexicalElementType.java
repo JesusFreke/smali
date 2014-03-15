@@ -31,22 +31,16 @@
 
 package org.jf.smalidea;
 
-import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
-import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NotNull;
 
+public class SmaliLexicalElementType extends IElementType {
+    public final int tokenId;
+    public final TextAttributesKey[] textAttributesKeys;
 
-public class SmaliHighlighter extends SyntaxHighlighterBase {
-    @NotNull @Override public Lexer getHighlightingLexer() {
-        return new SmaliLexer();
-    }
-
-    @NotNull @Override public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
-        if (tokenType instanceof SmaliLexicalElementType) {
-            return ((SmaliLexicalElementType) tokenType).textAttributesKeys;
-        }
-        return new TextAttributesKey[] {};
+    protected SmaliLexicalElementType(int tokenId, String tokenName, TextAttributesKey textAttributesKey) {
+        super(tokenName, SmaliLanguage.INSTANCE);
+        this.tokenId = tokenId;
+        this.textAttributesKeys = new TextAttributesKey[] {textAttributesKey};
     }
 }
