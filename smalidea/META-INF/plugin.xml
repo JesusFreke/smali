@@ -17,6 +17,7 @@
   <extensions defaultExtensionNs="com.intellij">
       <fileTypeFactory implementation="org.jf.smalidea.SmaliFileTypeFactory"/>
       <syntaxHighlighter key="smali" implementationClass="org.jf.smalidea.SmaliHighlighter"/>
+      <colorSettingsPage implementation="org.jf.smalidea.SmaliColorsPage"/>
   </extensions>
 
   <application-components>

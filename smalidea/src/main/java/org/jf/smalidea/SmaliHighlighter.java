@@ -49,4 +49,6 @@ public class SmaliHighlighter extends SyntaxHighlighterBase {
         }
         return new TextAttributesKey[] {};
     }
+
+    // TODO: implement context sensitive highlighting. i.e. instance fields vs static fields, labels, etc. See: HighlightVisitorImpl
 }

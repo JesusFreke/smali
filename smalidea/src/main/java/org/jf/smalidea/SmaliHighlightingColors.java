@@ -31,46 +31,62 @@
 
 package org.jf.smalidea;
 
+import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 
+import java.util.Collections;
+import java.util.List;
+
 public class SmaliHighlightingColors {
-    public static final TextAttributesKey ACCESS = TextAttributesKey.createTextAttributesKey(
+    private static final List<TextAttributesKey> allKeys = Lists.newArrayList();
+
+    public static final TextAttributesKey ACCESS = createTextAttributesKey(
             "ACCESS", DefaultLanguageHighlighterColors.KEYWORD);
-    public static final TextAttributesKey ARROW = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey ARROW = createTextAttributesKey(
             "ARROW", DefaultLanguageHighlighterColors.PREDEFINED_SYMBOL);
-    public static final TextAttributesKey BRACES = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey BRACES = createTextAttributesKey(
             "BRACES", DefaultLanguageHighlighterColors.BRACES);
-    public static final TextAttributesKey COLON = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey COLON = createTextAttributesKey(
             "COLON", DefaultLanguageHighlighterColors.PREDEFINED_SYMBOL);
-    public static final TextAttributesKey COMMA = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey COMMA = createTextAttributesKey(
             "COMMA", DefaultLanguageHighlighterColors.COMMA);
-    public static final TextAttributesKey COMMENT = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey COMMENT = createTextAttributesKey(
             "COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
-    public static final TextAttributesKey DIRECTIVE = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey DIRECTIVE = createTextAttributesKey(
             "DIRECTIVE", DefaultLanguageHighlighterColors.KEYWORD);
-    public static final TextAttributesKey DOTDOT = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey DOTDOT = createTextAttributesKey(
             "DOTDOT", DefaultLanguageHighlighterColors.PREDEFINED_SYMBOL);
-    public static final TextAttributesKey EQUAL = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey EQUAL = createTextAttributesKey(
             "EQUAL", DefaultLanguageHighlighterColors.PREDEFINED_SYMBOL);
-    public static final TextAttributesKey IDENTIFIER = TextAttributesKey.createTextAttributesKey(
-            "IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER);
-    public static final TextAttributesKey INSTRUCTION = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey IDENTIFIER = createTextAttributesKey(
+            "IDENTIFIER", DefaultLanguageHighlighterColors.INSTANCE_METHOD);
+    public static final TextAttributesKey INSTRUCTION = createTextAttributesKey(
             "INSTRUCTION", DefaultLanguageHighlighterColors.KEYWORD);
-    public static final TextAttributesKey LITERAL = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey LITERAL = createTextAttributesKey(
             "LITERAL", DefaultLanguageHighlighterColors.NUMBER);
-    public static final TextAttributesKey NUMBER = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey NUMBER = createTextAttributesKey(
             "NUMBER", DefaultLanguageHighlighterColors.NUMBER);
-    public static final TextAttributesKey ODEX_REFERENCE = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey ODEX_REFERENCE = createTextAttributesKey(
             "ODEX_REFERENCE", DefaultLanguageHighlighterColors.INSTANCE_METHOD);
-    public static final TextAttributesKey PARENS = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey PARENS = createTextAttributesKey(
             "PARENS", DefaultLanguageHighlighterColors.PARENTHESES);
-    public static final TextAttributesKey REGISTER = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey REGISTER = createTextAttributesKey(
             "REGISTER", DefaultLanguageHighlighterColors.LOCAL_VARIABLE);
-    public static final TextAttributesKey STRING = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey STRING = createTextAttributesKey(
             "STRING", DefaultLanguageHighlighterColors.STRING);
-    public static final TextAttributesKey TYPE = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey TYPE = createTextAttributesKey(
             "TYPE", DefaultLanguageHighlighterColors.CLASS_REFERENCE);
-    public static final TextAttributesKey VERIFICATION_ERROR_TYPE = TextAttributesKey.createTextAttributesKey(
+    public static final TextAttributesKey VERIFICATION_ERROR_TYPE = createTextAttributesKey(
             "VERIFICATION_ERROR_TYPE", DefaultLanguageHighlighterColors.KEYWORD);
+
+    private static TextAttributesKey createTextAttributesKey(String name, TextAttributesKey defaultColor) {
+        TextAttributesKey key = TextAttributesKey.createTextAttributesKey(name, defaultColor);
+        allKeys.add(key);
+        return key;
+    }
+
+    public static List<TextAttributesKey> getAllKeys() {
+        return Collections.unmodifiableList(allKeys);
+    }
 }
