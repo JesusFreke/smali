@@ -37,6 +37,7 @@ package org.jf.smalidea;
 
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
+import org.jf.smalidea.psi.SmaliElementTypes;
 }
 
 
@@ -190,6 +191,7 @@ the annotations. If it turns out that they are field annotations, we include the
 add them to the $smali_file::classAnnotations list*/
 field
   @init {
+    Marker marker = mark();
     boolean classAnnotations = true;
   }
   : FIELD_DIRECTIVE
@@ -201,10 +203,15 @@ field
                                )
     | /*epsilon*/
     );
+  finally {
+    marker.done(SmaliElementTypes.FIELD);
+  }
 
 method
+  @init { Marker marker = mark(); }
   : METHOD_DIRECTIVE access_list member_name method_prototype statements_and_directives
     END_METHOD_DIRECTIVE;
+  finally { marker.done(SmaliElementTypes.METHOD); }
 
 statements_and_directives
   : (
