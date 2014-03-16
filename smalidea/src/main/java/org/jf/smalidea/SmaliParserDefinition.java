@@ -31,7 +31,6 @@
 
 package org.jf.smalidea;
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.LanguageUtil;
 import com.intellij.lang.ParserDefinition;
@@ -42,11 +41,13 @@ import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.TokenType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliFile;
+import org.jf.smalidea.psi.stub.SmaliStubElementType;
 
 public class SmaliParserDefinition implements ParserDefinition {
     @NotNull @Override public Lexer createLexer(Project project) {
@@ -77,7 +78,11 @@ public class SmaliParserDefinition implements ParserDefinition {
     }
 
     @NotNull @Override public PsiElement createElement(ASTNode node) {
-        return new ASTWrapperPsiElement(node);
+        IElementType elementType = node.getElementType();
+        if (elementType instanceof SmaliStubElementType) {
+            return ((SmaliStubElementType)elementType).createPsi(node);
+        }
+        throw new RuntimeException("Unexpected element type");
     }
 
     @Override public PsiFile createFile(FileViewProvider viewProvider) {

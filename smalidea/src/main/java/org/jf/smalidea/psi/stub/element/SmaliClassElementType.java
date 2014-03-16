@@ -29,36 +29,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea;
-
+package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.PsiBuilder;
-import com.intellij.lang.PsiParser;
-import com.intellij.psi.tree.IElementType;
-import org.antlr.runtime.RecognitionException;
+import com.intellij.psi.stubs.IndexSink;
+import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.stubs.StubInputStream;
+import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.impl.SmaliClass;
+import org.jf.smalidea.psi.stub.SmaliClassStub;
+import org.jf.smalidea.psi.stub.SmaliStubElementType;
 
-public class SmaliParser implements PsiParser {
-    @NotNull @Override public ASTNode parse(IElementType root, PsiBuilder builder) {
-        builder.setDebugMode(true);
+import java.io.IOException;
 
-        PsiBuilder.Marker rootMarker = builder.mark();
-        PsiBuilder.Marker classMarker = builder.mark();
+public class SmaliClassElementType extends SmaliStubElementType<SmaliClassStub, SmaliClass> {
+    public static final SmaliClassElementType INSTANCE = new SmaliClassElementType();
 
-        PsiBuilderTokenStream tokenStream = new PsiBuilderTokenStream(builder);
-        smalideaParser parser = new smalideaParser(tokenStream);
-        parser.setPsiBuilder(builder);
-        try {
-            parser.smali_file();
-        } catch (RecognitionException ex) {
-            // TODO: how to handle this?
-            ex.printStackTrace();
-        }
+    private SmaliClassElementType() {
+        super("CLASS");
+    }
 
-        classMarker.done(SmaliElementTypes.CLASS);
-        rootMarker.done(root);
-        return builder.getTreeBuilt();
+    @NotNull @Override public String getExternalId() {
+        return "smali.class";
+    }
+
+    @Override public SmaliClass createPsi(@NotNull SmaliClassStub stub) {
+        return new SmaliClass(stub);
+    }
+
+    @Override public SmaliClass createPsi(@NotNull ASTNode node) {
+        return new SmaliClass(node);
+    }
+
+    @Override public SmaliClassStub createStub(@NotNull SmaliClass psi, StubElement parentStub) {
+        return new SmaliClassStub(parentStub);
+    }
+
+    @Override
+    public void serialize(@NotNull SmaliClassStub stub, @NotNull StubOutputStream dataStream) throws IOException {
+    }
+
+    @NotNull @Override
+    public SmaliClassStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
+        return new SmaliClassStub(parentStub);
+    }
+
+    @Override public void indexStub(@NotNull SmaliClassStub stub, @NotNull IndexSink sink) {
     }
 }

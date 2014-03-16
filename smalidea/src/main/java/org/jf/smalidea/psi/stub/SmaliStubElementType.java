@@ -29,12 +29,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi;
+package org.jf.smalidea.psi.stub;
 
-import org.jf.smalidea.psi.stub.element.SmaliClassElementType;
-import org.jf.smalidea.psi.stub.element.SmaliFileElementType;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.stubs.StubElement;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jf.smalidea.SmaliLanguage;
 
-public class SmaliElementTypes {
-    public static final SmaliFileElementType FILE = SmaliFileElementType.INSTANCE;
-    public static final SmaliClassElementType CLASS = SmaliClassElementType.INSTANCE;
+public abstract class SmaliStubElementType<StubT extends StubElement, PsiT extends PsiElement>
+        extends IStubElementType<StubT, PsiT> {
+    protected SmaliStubElementType(@NotNull @NonNls String debugName) {
+        super(debugName, SmaliLanguage.INSTANCE);
+    }
+
+    public abstract PsiT createPsi(@NotNull ASTNode node);
 }
