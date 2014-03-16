@@ -18,6 +18,7 @@
       <fileTypeFactory implementation="org.jf.smalidea.SmaliFileTypeFactory"/>
       <syntaxHighlighter key="smali" implementationClass="org.jf.smalidea.SmaliHighlighter"/>
       <colorSettingsPage implementation="org.jf.smalidea.SmaliColorsPage"/>
+      <lang.parserDefinition language="smali" implementationClass="org.jf.smalidea.SmaliParserDefinition"/>
   </extensions>
 
   <application-components>

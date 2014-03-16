@@ -29,20 +29,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea;
+package org.jf.smalidea.psi;
 
-import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import org.junit.Assert;
+import org.jf.smalidea.psi.stub.element.SmaliFileElementType;
 
-/**
- * Tests that .smali files are properly detected
- */
-public class SmaliFileTypeTest extends LightCodeInsightFixtureTestCase {
-    public void testImportSmaliClass() {
-        PsiFile file = myFixture.addFileToProject("my/pkg/blah.smali", ".class public Lmy/pkg/blah; .super Ljava/lang/Object;");
-        Assert.assertEquals(SmaliFileType.INSTANCE, file.getVirtualFile().getFileType());
-        Assert.assertEquals(SmaliFileType.INSTANCE, file.getFileType());
-        Assert.assertEquals(SmaliLanguage.INSTANCE, file.getLanguage());
-    }
+public class SmaliElementTypes {
+    public static final SmaliFileElementType FILE = SmaliFileElementType.INSTANCE;
 }

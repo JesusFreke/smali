@@ -31,18 +31,30 @@
 
 package org.jf.smalidea;
 
-import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import org.junit.Assert;
 
-/**
- * Tests that .smali files are properly detected
- */
-public class SmaliFileTypeTest extends LightCodeInsightFixtureTestCase {
-    public void testImportSmaliClass() {
-        PsiFile file = myFixture.addFileToProject("my/pkg/blah.smali", ".class public Lmy/pkg/blah; .super Ljava/lang/Object;");
-        Assert.assertEquals(SmaliFileType.INSTANCE, file.getVirtualFile().getFileType());
-        Assert.assertEquals(SmaliFileType.INSTANCE, file.getFileType());
-        Assert.assertEquals(SmaliLanguage.INSTANCE, file.getLanguage());
+import com.intellij.lang.ASTNode;
+import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.PsiParser;
+import com.intellij.psi.tree.IElementType;
+import org.antlr.runtime.RecognitionException;
+import org.jetbrains.annotations.NotNull;
+
+public class SmaliParser implements PsiParser {
+    @NotNull @Override public ASTNode parse(IElementType root, PsiBuilder builder) {
+        builder.setDebugMode(true);
+
+        PsiBuilder.Marker rootMarker = builder.mark();
+
+        PsiBuilderTokenStream tokenStream = new PsiBuilderTokenStream(builder);
+        smalideaParser parser = new smalideaParser(tokenStream);
+        try {
+            parser.smali_file();
+        } catch (RecognitionException ex) {
+            // TODO: how to handle this?
+            ex.printStackTrace();
+        }
+
+        rootMarker.done(root);
+        return builder.getTreeBuilt();
     }
 }

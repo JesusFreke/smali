@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Google Inc.
+ * Copyright 2013, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,57 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea;
+configurations {
+    antlr3
+}
 
-import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import org.junit.Assert;
+ext.antlrSource = 'src/main/antlr3'
+ext.antlrOutput = file("${buildDir}/generated-sources/antlr3")
 
-/**
- * Tests that .smali files are properly detected
- */
-public class SmaliFileTypeTest extends LightCodeInsightFixtureTestCase {
-    public void testImportSmaliClass() {
-        PsiFile file = myFixture.addFileToProject("my/pkg/blah.smali", ".class public Lmy/pkg/blah; .super Ljava/lang/Object;");
-        Assert.assertEquals(SmaliFileType.INSTANCE, file.getVirtualFile().getFileType());
-        Assert.assertEquals(SmaliFileType.INSTANCE, file.getFileType());
-        Assert.assertEquals(SmaliLanguage.INSTANCE, file.getLanguage());
+sourceSets.main.java.srcDir antlrOutput
+
+dependencies {
+    compile project(':smali')
+    compile depends.antlr_runtime
+
+    antlr3 depends.antlr
+}
+
+idea {
+    module {
+        jdkName = 'IDEA Plugin jdk'
+        excludeDirs -= buildDir
+        if (buildDir.exists()) {
+            excludeDirs.addAll(buildDir.listFiles())
+        }
+
+        for (sourceDir in (sourceDirs + testSourceDirs)) {
+            excludeDirs.remove(sourceDir);
+            while ((sourceDir = sourceDir.getParentFile()) != null) {
+                excludeDirs.remove(sourceDir);
+            }
+        }
     }
+}
+
+// We can't actually compile the plugin with gradle, so we just disable everything
+// except the tasks related to generating the IDEA module and ANTLR parser
+tasks.all {
+    if (name != 'idea' && name != 'ideaModule' && name != 'generateParserAntlrSource') {
+        enabled = false
+    }
+}
+
+task generateParserAntlrSource(type: JavaExec) {
+    inputs.dir file(antlrSource)
+    outputs.dir file(antlrOutput)
+
+    mkdir(antlrOutput)
+    def grammars = fileTree(antlrSource).include('**/smalideaParser.g')
+
+    classpath = configurations.antlr3
+    main = 'org.antlr.Tool'
+    args '-fo', relativePath("${antlrOutput}/org/jf/smalidea")
+    args '-lib', relativePath(project.parent.childProjects.get('smali').antlrOutput) + "/org/jf/smali"
+    args grammars.files
 }

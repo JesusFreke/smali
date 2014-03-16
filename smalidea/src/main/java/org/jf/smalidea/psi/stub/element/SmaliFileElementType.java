@@ -29,20 +29,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea;
+package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import org.junit.Assert;
+import com.intellij.psi.StubBuilder;
+import com.intellij.psi.stubs.DefaultStubBuilder;
+import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IStubFileElementType;
+import org.jetbrains.annotations.NotNull;
+import org.jf.smalidea.SmaliLanguage;
+import org.jf.smalidea.psi.impl.SmaliFile;
+import org.jf.smalidea.psi.stub.SmaliFileStub;
 
-/**
- * Tests that .smali files are properly detected
- */
-public class SmaliFileTypeTest extends LightCodeInsightFixtureTestCase {
-    public void testImportSmaliClass() {
-        PsiFile file = myFixture.addFileToProject("my/pkg/blah.smali", ".class public Lmy/pkg/blah; .super Ljava/lang/Object;");
-        Assert.assertEquals(SmaliFileType.INSTANCE, file.getVirtualFile().getFileType());
-        Assert.assertEquals(SmaliFileType.INSTANCE, file.getFileType());
-        Assert.assertEquals(SmaliLanguage.INSTANCE, file.getLanguage());
+public class SmaliFileElementType extends IStubFileElementType<SmaliFileStub> {
+    public static final SmaliFileElementType INSTANCE = new SmaliFileElementType();
+
+    private SmaliFileElementType() {
+        super("smali.FILE", SmaliLanguage.INSTANCE);
+    }
+
+    @Override public StubBuilder getBuilder() {
+        return new DefaultStubBuilder() {
+            @Override
+            protected StubElement createStubForFile(@NotNull PsiFile file) {
+                if (file instanceof SmaliFile) {
+                    return new SmaliFileStub((SmaliFile)file);
+                }
+                throw new RuntimeException("Unexpected file type");
+            }
+        };
     }
 }
