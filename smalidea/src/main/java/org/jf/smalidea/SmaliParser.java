@@ -47,6 +47,7 @@ public class SmaliParser implements PsiParser {
 
         PsiBuilderTokenStream tokenStream = new PsiBuilderTokenStream(builder);
         smalideaParser parser = new smalideaParser(tokenStream);
+        parser.setPsiBuilder(builder);
         try {
             parser.smali_file();
         } catch (RecognitionException ex) {

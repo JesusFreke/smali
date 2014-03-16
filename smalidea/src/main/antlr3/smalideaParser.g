@@ -34,17 +34,137 @@ options {
 
 @header {
 package org.jf.smalidea;
+
+import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.PsiBuilder.Marker;
 }
+
+
+@members {
+    private PsiBuilder psiBuilder;
+
+    public void setPsiBuilder(PsiBuilder psiBuilder) {
+        this.psiBuilder = psiBuilder;
+    }
+
+    public Marker mark() {
+        return psiBuilder.mark();
+    }
+
+    protected void syncToFollows(boolean acceptEof) {
+        BitSet follow = computeErrorRecoverySet();
+        int mark = input.mark();
+        Marker marker = null;
+        try {
+            int token = input.LA(1);
+            while (!follow.member(token)) {
+                if (token == Token.EOF) {
+                    if (acceptEof) {
+                        break;
+                    }
+                    input.rewind(mark);
+                    mark = -1;
+                    marker = null;
+                    return;
+                }
+                if (marker == null) {
+                    marker = mark();
+                }
+                input.consume();
+                token = input.LA(1);
+            }
+        } finally {
+            if  (mark != -1) {
+                input.release(mark);
+            }
+            if (marker != null) {
+                marker.error("Unexpected tokens");
+            }
+        }
+    }
+
+    @Override
+    protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow)
+            throws RecognitionException
+    {
+        RecognitionException e = null;
+        // if next token is what we are looking for then "delete" this token
+        if ( mismatchIsUnwantedToken(input, ttype) ) {
+            e = new UnwantedTokenException(ttype, input);
+            /*
+               System.err.println("recoverFromMismatchedToken deleting "+
+                                  ((TokenStream)input).LT(1)+
+                                  " since "+((TokenStream)input).LT(2)+" is what we want");
+                */
+            beginResync();
+            Marker mark = mark();
+            input.consume(); // simply delete extra token
+            mark.error(getErrorMessage(e, tokenNames));
+            endResync();
+            reportError(e, true);  // report after consuming so AW sees the token in the exception
+            // we want to return the token we're actually matching
+            Object matchedSymbol = getCurrentInputSymbol(input);
+            input.consume(); // move past ttype token as if all were ok
+            return matchedSymbol;
+        }
+        // can't recover with single token deletion, try insertion
+        if ( mismatchIsMissingToken(input, follow) ) {
+            Object inserted = getMissingSymbol(input, e, ttype, follow);
+            Marker mark = mark();
+            e = new MissingTokenException(ttype, input, inserted);
+            mark.error(getErrorMessage(e, tokenNames));
+            reportError(e, true);  // report after inserting so AW sees the token in the exception
+            return inserted;
+        }
+
+        // even that didn't work; must throw the exception
+        e = new MismatchedTokenException(ttype, input);
+        throw e;
+    }
+
+    @Override
+    public void reportError(RecognitionException e) {
+        reportError(e, false);
+    }
+
+    public void reportError(RecognitionException e, boolean alreadyReported) {
+        // if we've already reported an error and have not matched a token
+        // yet successfully, don't report any errors.
+        if ( state.errorRecovery ) {
+            //System.err.print("[SPURIOUS] ");
+            return;
+        }
+        state.syntaxErrors++; // don't count spurious
+        state.errorRecovery = true;
+
+        if (!alreadyReported) {
+            displayRecognitionError(this.getTokenNames(), e);
+        }
+    }
+
+    @Override
+    public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
+        Marker mark = psiBuilder.mark();
+        mark.error(getErrorMessage(e, tokenNames));
+    }
+}
+
+sync[boolean toEof]
+  @init { syncToFollows($toEof); }
+  : /*epsilon*/;
 
 smali_file
   :
-  ( class_spec
-  | super_spec
-  | implements_spec
-  | source_spec
-  | method
-  | field
-  | annotation
+  (
+    ( class_spec
+    | super_spec
+    | implements_spec
+    | source_spec
+    | method
+    | field
+    | annotation
+    )
+    sync[true]
   )+
   EOF;
 
@@ -87,12 +207,15 @@ method
     END_METHOD_DIRECTIVE;
 
 statements_and_directives
-  : ( ordered_method_item
-    | registers_directive
-    | catch_directive
-    | catchall_directive
-    | parameter_directive
-    | annotation
+  : (
+      ( ordered_method_item
+      | registers_directive
+      | catch_directive
+      | catchall_directive
+      | parameter_directive
+      | annotation
+      )
+      sync[false]
     )*;
 
 /* Method items whose order/location is important */
