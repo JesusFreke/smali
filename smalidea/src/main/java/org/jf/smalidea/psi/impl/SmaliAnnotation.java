@@ -29,14 +29,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi;
+package org.jf.smalidea.psi.impl;
 
-import org.jf.smalidea.psi.stub.element.*;
+import com.intellij.lang.ASTNode;
+import org.jetbrains.annotations.NotNull;
+import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.stub.SmaliAnnotationStub;
 
-public class SmaliElementTypes {
-    public static final SmaliFileElementType FILE = SmaliFileElementType.INSTANCE;
-    public static final SmaliClassElementType CLASS = SmaliClassElementType.INSTANCE;
-    public static final SmaliFieldElementType FIELD = SmaliFieldElementType.INSTANCE;
-    public static final SmaliMethodElementType METHOD = SmaliMethodElementType.INSTANCE;
-    public static final SmaliAnnotationElementType ANNOTATION = SmaliAnnotationElementType.INSTANCE;
+public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStub> {
+    public SmaliAnnotation(@NotNull SmaliAnnotationStub stub) {
+        super(stub, SmaliElementTypes.ANNOTATION);
+    }
+
+    public SmaliAnnotation(@NotNull ASTNode node) {
+        super(node);
+    }
 }

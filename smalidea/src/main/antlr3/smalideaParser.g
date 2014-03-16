@@ -192,19 +192,31 @@ add them to the $smali_file::classAnnotations list*/
 field
   @init {
     Marker marker = mark();
+    Marker annotationsMarker = null;
     boolean classAnnotations = true;
   }
   : FIELD_DIRECTIVE
     access_list
     member_name COLON nonvoid_type_descriptor (EQUAL literal)?
     ( END_FIELD_DIRECTIVE
-    | (ANNOTATION_DIRECTIVE)=> ( ((ANNOTATION_DIRECTIVE)=> annotation)+
+    | (ANNOTATION_DIRECTIVE)=> ( {annotationsMarker = mark();}
+                                 ((ANNOTATION_DIRECTIVE)=> annotation)+
                                  (END_FIELD_DIRECTIVE {classAnnotations = false;})?
                                )
     | /*epsilon*/
     );
   finally {
-    marker.done(SmaliElementTypes.FIELD);
+    if (annotationsMarker != null) {
+      if (classAnnotations) {
+        marker.doneBefore(SmaliElementTypes.FIELD, annotationsMarker);
+        annotationsMarker.drop();
+      } else {
+        annotationsMarker.drop();
+        marker.done(SmaliElementTypes.FIELD);
+      }
+    } else {
+      marker.done(SmaliElementTypes.FIELD);
+    }
   }
 
 method
@@ -371,8 +383,10 @@ annotation_element
   : simple_name EQUAL literal;
 
 annotation
+  @init { Marker marker = mark(); }
   : ANNOTATION_DIRECTIVE ANNOTATION_VISIBILITY CLASS_DESCRIPTOR
     annotation_element* END_ANNOTATION_DIRECTIVE;
+  finally { marker.done(SmaliElementTypes.ANNOTATION); }
 
 subannotation
   : SUBANNOTATION_DIRECTIVE CLASS_DESCRIPTOR annotation_element* END_SUBANNOTATION_DIRECTIVE;
