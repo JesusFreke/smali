@@ -530,10 +530,14 @@ verification_error_reference
   : class_descriptor | fully_qualified_field | fully_qualified_method;
 
 catch_directive
+  @init { Marker marker = mark(); }
   : CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref;
+  finally { marker.done(SmaliElementTypes.CATCH_STATEMENT); }
 
 catchall_directive
+  @init { Marker marker = mark(); }
   : CATCHALL_DIRECTIVE OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref;
+  finally { marker.done(SmaliElementTypes.CATCH_ALL_STATEMENT); }
 
 /*When there are annotations immediately after a parameter definition, we don't know whether they are parameter annotations
 or method annotations until we determine if there is an .end parameter directive. In either case, we still "consume" and parse

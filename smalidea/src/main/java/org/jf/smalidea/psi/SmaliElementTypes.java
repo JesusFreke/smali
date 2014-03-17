@@ -97,4 +97,8 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("ARRAY_TYPE", SmaliArrayTypeElement.FACTORY);
     public static final SmaliCompositeElementType VOID_TYPE =
             new SmaliCompositeElementType("VOID_TYPE", SmaliVoidTypeElement.FACTORY);
+    public static final SmaliCompositeElementType CATCH_STATEMENT =
+            new SmaliCompositeElementType("CATCH_STATEMENT", SmaliCatchStatement.FACTORY);
+    public static final SmaliCompositeElementType CATCH_ALL_STATEMENT =
+            new SmaliCompositeElementType("CATCH_ALL_STATEMENT", SmaliCatchAllStatement.FACTORY);
 }
