@@ -29,18 +29,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi;
+package org.jf.smalidea.psi.impl;
 
-import org.jf.smalidea.psi.impl.SmaliLiteral;
-import org.jf.smalidea.psi.stub.element.*;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
+import com.intellij.psi.tree.IElementType;
 
-public class SmaliElementTypes {
-    public static final SmaliFileElementType FILE = SmaliFileElementType.INSTANCE;
-    public static final SmaliClassElementType CLASS = SmaliClassElementType.INSTANCE;
-    public static final SmaliFieldElementType FIELD = SmaliFieldElementType.INSTANCE;
-    public static final SmaliMethodElementType METHOD = SmaliMethodElementType.INSTANCE;
-    public static final SmaliAnnotationElementType ANNOTATION = SmaliAnnotationElementType.INSTANCE;
-
-    public static final SmaliCompositeElementType LITERAL =
-            new SmaliCompositeElementType("LITERAL", SmaliLiteral.FACTORY);
+public abstract class SmaliCompositeElement extends CompositePsiElement {
+    public SmaliCompositeElement(IElementType type) {
+        super(type);
+    }
 }

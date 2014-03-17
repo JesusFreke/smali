@@ -31,16 +31,23 @@
 
 package org.jf.smalidea.psi;
 
-import org.jf.smalidea.psi.impl.SmaliLiteral;
-import org.jf.smalidea.psi.stub.element.*;
+import com.intellij.psi.tree.ICompositeElementType;
+import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jf.smalidea.SmaliLanguage;
+import org.jf.smalidea.psi.impl.SmaliCompositeElement;
 
-public class SmaliElementTypes {
-    public static final SmaliFileElementType FILE = SmaliFileElementType.INSTANCE;
-    public static final SmaliClassElementType CLASS = SmaliClassElementType.INSTANCE;
-    public static final SmaliFieldElementType FIELD = SmaliFieldElementType.INSTANCE;
-    public static final SmaliMethodElementType METHOD = SmaliMethodElementType.INSTANCE;
-    public static final SmaliAnnotationElementType ANNOTATION = SmaliAnnotationElementType.INSTANCE;
+public class SmaliCompositeElementType extends IElementType implements ICompositeElementType {
+    @NotNull private final SmaliCompositeElementFactory factory;
 
-    public static final SmaliCompositeElementType LITERAL =
-            new SmaliCompositeElementType("LITERAL", SmaliLiteral.FACTORY);
+    public SmaliCompositeElementType(@NotNull @NonNls String debugName,
+                                     @NotNull SmaliCompositeElementFactory factory) {
+        super(debugName, SmaliLanguage.INSTANCE);
+        this.factory = factory;
+    }
+
+    @NotNull @Override public SmaliCompositeElement createCompositeNode() {
+        return factory.createElement();
+    }
 }

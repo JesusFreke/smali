@@ -31,16 +31,8 @@
 
 package org.jf.smalidea.psi;
 
-import org.jf.smalidea.psi.impl.SmaliLiteral;
-import org.jf.smalidea.psi.stub.element.*;
+import org.jf.smalidea.psi.impl.SmaliCompositeElement;
 
-public class SmaliElementTypes {
-    public static final SmaliFileElementType FILE = SmaliFileElementType.INSTANCE;
-    public static final SmaliClassElementType CLASS = SmaliClassElementType.INSTANCE;
-    public static final SmaliFieldElementType FIELD = SmaliFieldElementType.INSTANCE;
-    public static final SmaliMethodElementType METHOD = SmaliMethodElementType.INSTANCE;
-    public static final SmaliAnnotationElementType ANNOTATION = SmaliAnnotationElementType.INSTANCE;
-
-    public static final SmaliCompositeElementType LITERAL =
-            new SmaliCompositeElementType("LITERAL", SmaliLiteral.FACTORY);
+public interface SmaliCompositeElementFactory {
+    SmaliCompositeElement createElement();
 }

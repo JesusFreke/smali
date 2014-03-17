@@ -179,7 +179,7 @@ implements_spec
   : IMPLEMENTS_DIRECTIVE CLASS_DESCRIPTOR;
 
 source_spec
-  : SOURCE_DIRECTIVE STRING_LITERAL;
+  : SOURCE_DIRECTIVE string_literal;
 
 access_list
   : ACCESS_SPEC*;
@@ -322,79 +322,71 @@ reference_type_descriptor
   : CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR;
 
+null_literal
+  @init { Marker marker = mark(); }
+  : NULL_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
+
+bool_literal
+  @init { Marker marker = mark(); }
+  : BOOL_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
+
+byte_literal
+  @init { Marker marker = mark(); }
+  : BYTE_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
+
+char_literal
+  @init { Marker marker = mark(); }
+  : CHAR_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
+
+short_literal
+  @init { Marker marker = mark(); }
+  : SHORT_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
+
 integer_literal
+  @init { Marker marker = mark(); }
   : POSITIVE_INTEGER_LITERAL
   | NEGATIVE_INTEGER_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
+
+long_literal
+  @init { Marker marker = mark(); }
+  : LONG_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
 
 float_literal
+  @init { Marker marker = mark(); }
   : FLOAT_LITERAL_OR_ID
   | FLOAT_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
 
 double_literal
+  @init { Marker marker = mark(); }
   : DOUBLE_LITERAL_OR_ID
   | DOUBLE_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
 
-literal
-  : LONG_LITERAL
-  | integer_literal
-  | SHORT_LITERAL
-  | BYTE_LITERAL
-  | float_literal
-  | double_literal
-  | CHAR_LITERAL
-  | STRING_LITERAL
-  | BOOL_LITERAL
-  | NULL_LITERAL
-  | array_literal
-  | subannotation
-  | type_field_method_literal
-  | enum_literal;
-
-integral_literal
-  : LONG_LITERAL
-  | integer_literal
-  | SHORT_LITERAL
-  | CHAR_LITERAL
-  | BYTE_LITERAL;
-
-fixed_32bit_literal
-  : LONG_LITERAL
-  | integer_literal
-  | SHORT_LITERAL
-  | BYTE_LITERAL
-  | float_literal
-  | CHAR_LITERAL
-  | BOOL_LITERAL;
-
-fixed_literal
-  : integer_literal
-  | LONG_LITERAL
-  | SHORT_LITERAL
-  | BYTE_LITERAL
-  | float_literal
-  | double_literal
-  | CHAR_LITERAL
-  | BOOL_LITERAL;
+string_literal
+  @init { Marker marker = mark(); }
+  : STRING_LITERAL;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
 
 array_literal
-  : OPEN_BRACE (literal (COMMA literal)* | ) CLOSE_BRACE;
-
-annotation_element
-  : simple_name EQUAL literal;
-
-annotation
   @init { Marker marker = mark(); }
-  : ANNOTATION_DIRECTIVE ANNOTATION_VISIBILITY CLASS_DESCRIPTOR
-    annotation_element* END_ANNOTATION_DIRECTIVE;
-  finally { marker.done(SmaliElementTypes.ANNOTATION); }
-
-subannotation
-  : SUBANNOTATION_DIRECTIVE CLASS_DESCRIPTOR annotation_element* END_SUBANNOTATION_DIRECTIVE;
+  : OPEN_BRACE (literal (COMMA literal)* | ) CLOSE_BRACE;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
 
 enum_literal
+  @init { Marker marker = mark(); }
   : ENUM_DIRECTIVE reference_type_descriptor ARROW simple_name COLON reference_type_descriptor;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
 
 type_field_method_literal
+  @init { Marker marker = mark(); }
   : reference_type_descriptor
     ( ARROW
       ( member_name COLON nonvoid_type_descriptor
@@ -404,6 +396,63 @@ type_field_method_literal
     )
   | PRIMITIVE_TYPE
   | VOID_TYPE;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
+
+subannotation
+  @init { Marker marker = mark(); }
+  : SUBANNOTATION_DIRECTIVE CLASS_DESCRIPTOR annotation_element* END_SUBANNOTATION_DIRECTIVE;
+  finally { marker.done(SmaliElementTypes.LITERAL); }
+
+literal
+  : long_literal
+  | integer_literal
+  | short_literal
+  | byte_literal
+  | float_literal
+  | double_literal
+  | char_literal
+  | string_literal
+  | bool_literal
+  | null_literal
+  | array_literal
+  | subannotation
+  | type_field_method_literal
+  | enum_literal;
+
+integral_literal
+  : long_literal
+  | integer_literal
+  | short_literal
+  | char_literal
+  | byte_literal;
+
+fixed_32bit_literal
+  : long_literal
+  | integer_literal
+  | short_literal
+  | byte_literal
+  | float_literal
+  | char_literal
+  | bool_literal;
+
+fixed_literal
+  : integer_literal
+  | long_literal
+  | short_literal
+  | byte_literal
+  | float_literal
+  | double_literal
+  | char_literal
+  | bool_literal;
+
+annotation_element
+  : simple_name EQUAL literal;
+
+annotation
+  @init { Marker marker = mark(); }
+  : ANNOTATION_DIRECTIVE ANNOTATION_VISIBILITY CLASS_DESCRIPTOR
+    annotation_element* END_ANNOTATION_DIRECTIVE;
+  finally { marker.done(SmaliElementTypes.ANNOTATION); }
 
 fully_qualified_method
   : reference_type_descriptor ARROW member_name method_prototype;
@@ -438,7 +487,7 @@ or method annotations until we determine if there is an .end parameter directive
 the annotations. If it turns out that they are parameter annotations, we include them in the I_PARAMETER AST. Otherwise, we
 add them to the $statements_and_directives::methodAnnotations list*/
 parameter_directive
-  : PARAMETER_DIRECTIVE REGISTER (COMMA STRING_LITERAL)?
+  : PARAMETER_DIRECTIVE REGISTER (COMMA string_literal)?
     ({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation)*
     ( END_PARAMETER_DIRECTIVE
     | /*epsilon*/
@@ -457,8 +506,8 @@ line_directive
   : LINE_DIRECTIVE integral_literal;
 
 local_directive
-  : LOCAL_DIRECTIVE REGISTER (COMMA (NULL_LITERAL | STRING_LITERAL) COLON (VOID_TYPE | nonvoid_type_descriptor)
-                              (COMMA STRING_LITERAL)? )?;
+  : LOCAL_DIRECTIVE REGISTER (COMMA (null_literal | string_literal) COLON (VOID_TYPE | nonvoid_type_descriptor)
+                              (COMMA string_literal)? )?;
 
 end_local_directive
   : END_LOCAL_DIRECTIVE REGISTER;
@@ -473,7 +522,7 @@ epilogue_directive
   : EPILOGUE_DIRECTIVE;
 
 source_directive
-  : SOURCE_DIRECTIVE STRING_LITERAL?;
+  : SOURCE_DIRECTIVE string_literal?;
 
 instruction_format12x
   : INSTRUCTION_FORMAT12x
@@ -576,7 +625,7 @@ insn_format21c_field_odex
 
 insn_format21c_string
   : //e.g. const-string v1, "Hello World!"
-    INSTRUCTION_FORMAT21c_STRING REGISTER COMMA STRING_LITERAL;
+    INSTRUCTION_FORMAT21c_STRING REGISTER COMMA string_literal;
 
 insn_format21c_type
   : //e.g. const-class v2, Lorg/jf/HelloWorld2/HelloWorld2;
@@ -640,7 +689,7 @@ insn_format30t
 
 insn_format31c
   : //e.g. const-string/jumbo v1 "Hello World!"
-    INSTRUCTION_FORMAT31c REGISTER COMMA STRING_LITERAL;
+    INSTRUCTION_FORMAT31c REGISTER COMMA string_literal;
 
 insn_format31i
   : //e.g. const v0, 123456
