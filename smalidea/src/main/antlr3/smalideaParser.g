@@ -170,16 +170,24 @@ smali_file
   EOF;
 
 class_spec
+  @init { Marker marker = mark(); }
   : CLASS_DIRECTIVE access_list CLASS_DESCRIPTOR;
+  finally { marker.done(SmaliElementTypes.CLASS_STATEMENT); }
 
 super_spec
+  @init { Marker marker = mark(); }
   : SUPER_DIRECTIVE CLASS_DESCRIPTOR;
+  finally { marker.done(SmaliElementTypes.SUPER_STATEMENT); }
 
 implements_spec
+  @init { Marker marker = mark(); }
   : IMPLEMENTS_DIRECTIVE CLASS_DESCRIPTOR;
+  finally { marker.done(SmaliElementTypes.IMPLEMENTS_STATEMENT); }
 
 source_spec
+  @init { Marker marker = mark(); }
   : SOURCE_DIRECTIVE string_literal;
+  finally { marker.done(SmaliElementTypes.SOURCE_STATEMENT); }
 
 access_list
   : ACCESS_SPEC*;

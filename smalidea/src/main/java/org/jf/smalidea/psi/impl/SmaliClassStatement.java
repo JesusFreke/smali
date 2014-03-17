@@ -29,26 +29,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi;
+package org.jf.smalidea.psi.impl;
 
-import org.jf.smalidea.psi.impl.*;
-import org.jf.smalidea.psi.stub.element.*;
+import org.jf.smalidea.psi.SmaliCompositeElementFactory;
+import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliElementTypes {
-    public static final SmaliFileElementType FILE = SmaliFileElementType.INSTANCE;
-    public static final SmaliClassElementType CLASS = SmaliClassElementType.INSTANCE;
-    public static final SmaliFieldElementType FIELD = SmaliFieldElementType.INSTANCE;
-    public static final SmaliMethodElementType METHOD = SmaliMethodElementType.INSTANCE;
-    public static final SmaliAnnotationElementType ANNOTATION = SmaliAnnotationElementType.INSTANCE;
+public class SmaliClassStatement extends SmaliCompositeElement {
+    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
+        @Override public SmaliCompositeElement createElement() {
+            return new SmaliClassStatement();
+        }
+    };
 
-    public static final SmaliCompositeElementType LITERAL =
-            new SmaliCompositeElementType("LITERAL", SmaliLiteral.FACTORY);
-    public static final SmaliCompositeElementType CLASS_STATEMENT =
-            new SmaliCompositeElementType("CLASS_STATEMENT", SmaliClassStatement.FACTORY);
-    public static final SmaliCompositeElementType SUPER_STATEMENT =
-            new SmaliCompositeElementType("SUPER_STATEMENT", SmaliSuperStatement.FACTORY);
-    public static final SmaliCompositeElementType IMPLEMENTS_STATEMENT =
-            new SmaliCompositeElementType("IMPLEMENTS_STATEMENT", SmaliImplementsStatement.FACTORY);
-    public static final SmaliCompositeElementType SOURCE_STATEMENT =
-            new SmaliCompositeElementType("SOURCE_STATEMENT", SmaliSourceStatement.FACTORY);
+    public SmaliClassStatement() {
+        super(SmaliElementTypes.CLASS_STATEMENT);
+    }
 }
