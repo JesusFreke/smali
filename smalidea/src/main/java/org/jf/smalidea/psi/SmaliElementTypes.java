@@ -93,4 +93,6 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("PRIMITIVE_TYPE", SmaliPrimitiveTypeElement.FACTORY);
     public static final SmaliCompositeElementType CLASS_TYPE =
             new SmaliCompositeElementType("CLASS_TYPE", SmaliClassTypeElement.FACTORY);
+    public static final SmaliCompositeElementType ARRAY_TYPE =
+            new SmaliCompositeElementType("ARRAY_TYPE", SmaliArrayTypeElement.FACTORY);
 }

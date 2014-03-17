@@ -340,20 +340,25 @@ class_descriptor
   : CLASS_DESCRIPTOR;
   finally { marker.done(SmaliElementTypes.CLASS_TYPE); }
 
+array_descriptor
+  @init { Marker marker = mark(); }
+  : ARRAY_DESCRIPTOR;
+  finally { marker.done(SmaliElementTypes.ARRAY_TYPE); }
+
 type_descriptor
   : VOID_TYPE
   | primitive_type
   | class_descriptor
-  | ARRAY_DESCRIPTOR;
+  | array_descriptor;
 
 nonvoid_type_descriptor
   : primitive_type
   | class_descriptor
-  | ARRAY_DESCRIPTOR;
+  | array_descriptor;
 
 reference_type_descriptor
   : class_descriptor
-  | ARRAY_DESCRIPTOR;
+  | array_descriptor;
 
 null_literal
   @init { Marker marker = mark(); }
