@@ -51,6 +51,44 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("IMPLEMENTS_STATEMENT", SmaliImplementsStatement.FACTORY);
     public static final SmaliCompositeElementType SOURCE_STATEMENT =
             new SmaliCompositeElementType("SOURCE_STATEMENT", SmaliSourceStatement.FACTORY);
+    public static final SmaliCompositeElementType REGISTERS_STATEMENT =
+            new SmaliCompositeElementType("REGISTERS_STATEMENT", SmaliRegistersStatement.FACTORY);
+    public static final SmaliCompositeElementType ACCESS_LIST =
+            new SmaliCompositeElementType("ACCESS_LIST", SmaliAccessList.FACTORY);
+    public static final SmaliCompositeElementType MEMBER_NAME =
+            new SmaliCompositeElementType("MEMBER_NAME", SmaliMemberName.FACTORY);
+    public static final SmaliCompositeElementType METHOD_PROTOTYPE =
+            new SmaliCompositeElementType("METHOD_PROTOTYPE", SmaliMethodPrototype.FACTORY);
+    public static final SmaliCompositeElementType METHOD_PARAM_LIST =
+            new SmaliCompositeElementType("METHOD_PARAM_LIST", SmaliMethodParamList.FACTORY);
+    public static final SmaliCompositeElementType FIELD_INITIALIZER =
+            new SmaliCompositeElementType("FIELD_INITIALIZER", SmaliFieldInitializer.FACTORY);
+    public static final SmaliCompositeElementType INSTRUCTION =
+            new SmaliCompositeElementType("INSTRUCTION", SmaliInstruction.FACTORY);
+    public static final SmaliCompositeElementType ANNOTATION_ELEMENT =
+            new SmaliCompositeElementType("ANNOTATION_ELEMENT", SmaliAnnotationElement.FACTORY);
+    public static final SmaliCompositeElementType FIELD_REFERENCE =
+            new SmaliCompositeElementType("FIELD_REFERENCE", SmaliFieldReference.FACTORY);
+    public static final SmaliCompositeElementType METHOD_REFERENCE =
+            new SmaliCompositeElementType("METHOD_REFERENCE", SmaliMethodReference.FACTORY);
+    public static final SmaliCompositeElementType LABEL =
+            new SmaliCompositeElementType("LABEL", SmaliLabel.FACTORY);
+    public static final SmaliCompositeElementType LABEL_REFERENCE =
+            new SmaliCompositeElementType("LABEL_REFERENCE", SmaliLabelReference.FACTORY);
+    public static final SmaliCompositeElementType LINE_DEBUG_STATEMENT =
+            new SmaliCompositeElementType("LINE_DEBUG_STATEMENT", SmaliLineDebugStatement.FACTORY);
+    public static final SmaliCompositeElementType LOCAL_DEBUG_STATEMENT =
+            new SmaliCompositeElementType("LOCAL_DEBUG_STATEMENT", SmaliLocalDebugStatement.FACTORY);
+    public static final SmaliCompositeElementType END_LOCAL_DEBUG_STATEMENT =
+            new SmaliCompositeElementType("END_LOCAL_DEBUG_STATEMENT", SmaliEndLocalDebugStatement.FACTORY);
+    public static final SmaliCompositeElementType RESTART_LOCAL_DEBUG_STATEMENT =
+            new SmaliCompositeElementType("RESTART_LOCAL_DEBUG_STATEMENT", SmaliRestartLocalDebugStatement.FACTORY);
+    public static final SmaliCompositeElementType PROLOGUE_DEBUG_STATEMENT =
+            new SmaliCompositeElementType("PROLOGUE_DEBUG_STATEMENT", SmaliPrologueDebugStatement.FACTORY);
+    public static final SmaliCompositeElementType EPILOGUE_DEBUG_STATEMENT =
+            new SmaliCompositeElementType("EPILOGUE_DEBUG_STATEMENT", SmaliEpilogueDebugStatement.FACTORY);
+    public static final SmaliCompositeElementType SOURCE_DEBUG_STATEMENT =
+            new SmaliCompositeElementType("SOURCE_DEBUG_STATEMENT", SmaliSourceDebugStatement.FACTORY);
     public static final SmaliCompositeElementType PRIMITIVE_TYPE =
             new SmaliCompositeElementType("PRIMITIVE_TYPE", SmaliPrimitiveTypeElement.FACTORY);
 }

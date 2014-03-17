@@ -190,7 +190,9 @@ source_spec
   finally { marker.done(SmaliElementTypes.SOURCE_STATEMENT); }
 
 access_list
+  @init { Marker marker = mark(); }
   : ACCESS_SPEC*;
+  finally { marker.done(SmaliElementTypes.ACCESS_LIST); }
 
 
 /*When there are annotations immediately after a field definition, we don't know whether they are field annotations
@@ -201,11 +203,16 @@ field
   @init {
     Marker marker = mark();
     Marker annotationsMarker = null;
+    Marker fieldInitializerMarker = null;
     boolean classAnnotations = true;
   }
   : FIELD_DIRECTIVE
     access_list
-    member_name COLON nonvoid_type_descriptor (EQUAL literal)?
+    member_name COLON nonvoid_type_descriptor
+    ( {fieldInitializerMarker = mark();}
+      EQUAL literal
+      {fieldInitializerMarker.done(SmaliElementTypes.FIELD_INITIALIZER);}
+    )?
     ( END_FIELD_DIRECTIVE
     | (ANNOTATION_DIRECTIVE)=> ( {annotationsMarker = mark();}
                                  ((ANNOTATION_DIRECTIVE)=> annotation)+
@@ -252,10 +259,12 @@ ordered_method_item
   | debug_directive;
 
 registers_directive
+  @init { Marker marker = mark(); }
   : (
       REGISTERS_DIRECTIVE integral_literal
     | LOCALS_DIRECTIVE integral_literal
     );
+  finally { marker.done(SmaliElementTypes.REGISTERS_STATEMENT); }
 
 param_list_or_id
   : PARAM_LIST_OR_ID_START primitive_type+ PARAM_LIST_OR_ID_END;
@@ -304,16 +313,22 @@ simple_name
   | INSTRUCTION_FORMAT51l;
 
 member_name
+  @init { Marker marker = mark(); }
   : simple_name
   | MEMBER_NAME;
+  finally { marker.done(SmaliElementTypes.MEMBER_NAME); }
 
 method_prototype
+  @init { Marker marker = mark(); }
   : OPEN_PAREN param_list CLOSE_PAREN type_descriptor;
+  finally { marker.done(SmaliElementTypes.METHOD_PROTOTYPE); }
 
 param_list
+  @init { Marker marker = mark(); }
   : PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END
   | PARAM_LIST_OR_ID_START primitive_type* PARAM_LIST_OR_ID_END
   | nonvoid_type_descriptor*;
+  finally { marker.done(SmaliElementTypes.METHOD_PARAM_LIST); }
 
 primitive_type
   @init { Marker marker = mark(); }
@@ -459,7 +474,9 @@ fixed_literal
   | bool_literal;
 
 annotation_element
+  @init { Marker marker = mark(); }
   : simple_name EQUAL literal;
+  finally { marker.done(SmaliElementTypes.ANNOTATION_ELEMENT); }
 
 annotation
   @init { Marker marker = mark(); }
@@ -468,16 +485,24 @@ annotation
   finally { marker.done(SmaliElementTypes.ANNOTATION); }
 
 fully_qualified_method
+  @init { Marker marker = mark(); }
   : reference_type_descriptor ARROW member_name method_prototype;
+  finally { marker.done(SmaliElementTypes.METHOD_REFERENCE); }
 
 fully_qualified_field
+  @init { Marker marker = mark(); }
   : reference_type_descriptor ARROW member_name COLON nonvoid_type_descriptor;
+  finally { marker.done(SmaliElementTypes.FIELD_REFERENCE); }
 
 label
+  @init { Marker marker = mark(); }
   : COLON simple_name;
+  finally { marker.done(SmaliElementTypes.LABEL); }
 
 label_ref
+  @init { Marker marker = mark(); }
   : COLON simple_name;
+  finally { marker.done(SmaliElementTypes.LABEL_REFERENCE); }
 
 register_list
   : REGISTER (COMMA REGISTER)*
@@ -516,26 +541,40 @@ debug_directive
   | source_directive;
 
 line_directive
+  @init { Marker marker = mark(); }
   : LINE_DIRECTIVE integral_literal;
+  finally { marker.done(SmaliElementTypes.LINE_DEBUG_STATEMENT); }
 
 local_directive
+  @init { Marker marker = mark(); }
   : LOCAL_DIRECTIVE REGISTER (COMMA (null_literal | string_literal) COLON (VOID_TYPE | nonvoid_type_descriptor)
                               (COMMA string_literal)? )?;
+  finally { marker.done(SmaliElementTypes.LOCAL_DEBUG_STATEMENT); }
 
 end_local_directive
+  @init { Marker marker = mark(); }
   : END_LOCAL_DIRECTIVE REGISTER;
+  finally { marker.done(SmaliElementTypes.END_LOCAL_DEBUG_STATEMENT); }
 
 restart_local_directive
+  @init { Marker marker = mark(); }
   : RESTART_LOCAL_DIRECTIVE REGISTER;
+  finally { marker.done(SmaliElementTypes.RESTART_LOCAL_DEBUG_STATEMENT); }
 
 prologue_directive
+  @init { Marker marker = mark(); }
   : PROLOGUE_DIRECTIVE;
+  finally { marker.done(SmaliElementTypes.PROLOGUE_DEBUG_STATEMENT); }
 
 epilogue_directive
+  @init { Marker marker = mark(); }
   : EPILOGUE_DIRECTIVE;
+  finally { marker.done(SmaliElementTypes.EPILOGUE_DEBUG_STATEMENT); }
 
 source_directive
+  @init { Marker marker = mark(); }
   : SOURCE_DIRECTIVE string_literal?;
+  finally { marker.done(SmaliElementTypes.SOURCE_DEBUG_STATEMENT); }
 
 instruction_format12x
   : INSTRUCTION_FORMAT12x
@@ -550,6 +589,7 @@ instruction_format31i
   | INSTRUCTION_FORMAT31i_OR_ID;
 
 instruction
+  @init { Marker marker = mark(); }
   : insn_format10t
   | insn_format10x
   | insn_format10x_odex
@@ -594,6 +634,7 @@ instruction
   | insn_array_data_directive
   | insn_packed_switch_directive
   | insn_sparse_switch_directive;
+  finally { marker.done(SmaliElementTypes.INSTRUCTION); }
 
 insn_format10t
   : //e.g. goto endloop:
