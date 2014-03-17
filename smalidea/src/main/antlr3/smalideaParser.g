@@ -171,17 +171,17 @@ smali_file
 
 class_spec
   @init { Marker marker = mark(); }
-  : CLASS_DIRECTIVE access_list CLASS_DESCRIPTOR;
+  : CLASS_DIRECTIVE access_list class_descriptor;
   finally { marker.done(SmaliElementTypes.CLASS_STATEMENT); }
 
 super_spec
   @init { Marker marker = mark(); }
-  : SUPER_DIRECTIVE CLASS_DESCRIPTOR;
+  : SUPER_DIRECTIVE class_descriptor;
   finally { marker.done(SmaliElementTypes.SUPER_STATEMENT); }
 
 implements_spec
   @init { Marker marker = mark(); }
-  : IMPLEMENTS_DIRECTIVE CLASS_DESCRIPTOR;
+  : IMPLEMENTS_DIRECTIVE class_descriptor;
   finally { marker.done(SmaliElementTypes.IMPLEMENTS_STATEMENT); }
 
 source_spec
@@ -335,19 +335,24 @@ primitive_type
   : PRIMITIVE_TYPE;
   finally { marker.done(SmaliElementTypes.PRIMITIVE_TYPE); }
 
+class_descriptor
+  @init { Marker marker = mark(); }
+  : CLASS_DESCRIPTOR;
+  finally { marker.done(SmaliElementTypes.CLASS_TYPE); }
+
 type_descriptor
   : VOID_TYPE
   | primitive_type
-  | CLASS_DESCRIPTOR
+  | class_descriptor
   | ARRAY_DESCRIPTOR;
 
 nonvoid_type_descriptor
   : primitive_type
-  | CLASS_DESCRIPTOR
+  | class_descriptor
   | ARRAY_DESCRIPTOR;
 
 reference_type_descriptor
-  : CLASS_DESCRIPTOR
+  : class_descriptor
   | ARRAY_DESCRIPTOR;
 
 null_literal
@@ -428,7 +433,7 @@ type_field_method_literal
 
 subannotation
   @init { Marker marker = mark(); }
-  : SUBANNOTATION_DIRECTIVE CLASS_DESCRIPTOR annotation_element* END_SUBANNOTATION_DIRECTIVE;
+  : SUBANNOTATION_DIRECTIVE class_descriptor annotation_element* END_SUBANNOTATION_DIRECTIVE;
   finally { marker.done(SmaliElementTypes.LITERAL); }
 
 literal
@@ -480,7 +485,7 @@ annotation_element
 
 annotation
   @init { Marker marker = mark(); }
-  : ANNOTATION_DIRECTIVE ANNOTATION_VISIBILITY CLASS_DESCRIPTOR
+  : ANNOTATION_DIRECTIVE ANNOTATION_VISIBILITY class_descriptor
     annotation_element* END_ANNOTATION_DIRECTIVE;
   finally { marker.done(SmaliElementTypes.ANNOTATION); }
 
@@ -512,7 +517,7 @@ register_range
   : (REGISTER (DOTDOT REGISTER)?)?;
 
 verification_error_reference
-  : CLASS_DESCRIPTOR | fully_qualified_field | fully_qualified_method;
+  : class_descriptor | fully_qualified_field | fully_qualified_method;
 
 catch_directive
   : CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref;

@@ -91,4 +91,6 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("SOURCE_DEBUG_STATEMENT", SmaliSourceDebugStatement.FACTORY);
     public static final SmaliCompositeElementType PRIMITIVE_TYPE =
             new SmaliCompositeElementType("PRIMITIVE_TYPE", SmaliPrimitiveTypeElement.FACTORY);
+    public static final SmaliCompositeElementType CLASS_TYPE =
+            new SmaliCompositeElementType("CLASS_TYPE", SmaliClassTypeElement.FACTORY);
 }
