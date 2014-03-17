@@ -258,7 +258,7 @@ registers_directive
     );
 
 param_list_or_id
-  : PARAM_LIST_OR_ID_START PRIMITIVE_TYPE+ PARAM_LIST_OR_ID_END;
+  : PARAM_LIST_OR_ID_START primitive_type+ PARAM_LIST_OR_ID_END;
 
 /*identifiers are much more general than most languages. Any of the below can either be
 the indicated type OR an identifier, depending on the context*/
@@ -312,17 +312,22 @@ method_prototype
 
 param_list
   : PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END
-  | PARAM_LIST_OR_ID_START PRIMITIVE_TYPE* PARAM_LIST_OR_ID_END
+  | PARAM_LIST_OR_ID_START primitive_type* PARAM_LIST_OR_ID_END
   | nonvoid_type_descriptor*;
+
+primitive_type
+  @init { Marker marker = mark(); }
+  : PRIMITIVE_TYPE;
+  finally { marker.done(SmaliElementTypes.PRIMITIVE_TYPE); }
 
 type_descriptor
   : VOID_TYPE
-  | PRIMITIVE_TYPE
+  | primitive_type
   | CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR;
 
 nonvoid_type_descriptor
-  : PRIMITIVE_TYPE
+  : primitive_type
   | CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR;
 
@@ -402,7 +407,7 @@ type_field_method_literal
       )
     | /* epsilon */
     )
-  | PRIMITIVE_TYPE
+  | primitive_type
   | VOID_TYPE;
   finally { marker.done(SmaliElementTypes.LITERAL); }
 
