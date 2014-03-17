@@ -345,8 +345,13 @@ array_descriptor
   : ARRAY_DESCRIPTOR;
   finally { marker.done(SmaliElementTypes.ARRAY_TYPE); }
 
+void_type
+  @init { Marker marker = mark(); }
+  : VOID_TYPE;
+  finally { marker.done(SmaliElementTypes.VOID_TYPE); }
+
 type_descriptor
-  : VOID_TYPE
+  : void_type
   | primitive_type
   | class_descriptor
   | array_descriptor;
@@ -433,7 +438,7 @@ type_field_method_literal
     | /* epsilon */
     )
   | primitive_type
-  | VOID_TYPE;
+  | void_type;
   finally { marker.done(SmaliElementTypes.LITERAL); }
 
 subannotation
@@ -557,7 +562,7 @@ line_directive
 
 local_directive
   @init { Marker marker = mark(); }
-  : LOCAL_DIRECTIVE REGISTER (COMMA (null_literal | string_literal) COLON (VOID_TYPE | nonvoid_type_descriptor)
+  : LOCAL_DIRECTIVE REGISTER (COMMA (null_literal | string_literal) COLON (void_type | nonvoid_type_descriptor)
                               (COMMA string_literal)? )?;
   finally { marker.done(SmaliElementTypes.LOCAL_DEBUG_STATEMENT); }
 

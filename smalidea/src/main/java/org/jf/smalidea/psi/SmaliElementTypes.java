@@ -95,4 +95,6 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("CLASS_TYPE", SmaliClassTypeElement.FACTORY);
     public static final SmaliCompositeElementType ARRAY_TYPE =
             new SmaliCompositeElementType("ARRAY_TYPE", SmaliArrayTypeElement.FACTORY);
+    public static final SmaliCompositeElementType VOID_TYPE =
+            new SmaliCompositeElementType("VOID_TYPE", SmaliVoidTypeElement.FACTORY);
 }
