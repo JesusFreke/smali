@@ -31,6 +31,7 @@
 
 package org.jf.smalidea.psi.impl;
 
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
@@ -43,5 +44,17 @@ public class SmaliClassStatement extends SmaliCompositeElement {
 
     public SmaliClassStatement() {
         super(SmaliElementTypes.CLASS_STATEMENT);
+    }
+
+    /**
+     * @return the fully qualified java-style name of the class in this .class statement
+     */
+    @Nullable
+    public String getJavaType() {
+        SmaliClassTypeElement classType = findChildByClass(SmaliClassTypeElement.class);
+        if (classType == null) {
+            return null;
+        }
+        return classType.getJavaType();
     }
 }

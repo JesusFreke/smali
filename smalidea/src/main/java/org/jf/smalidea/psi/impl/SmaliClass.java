@@ -53,11 +53,16 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @Override public boolean hasTypeParameters() {
+        // TODO: implement generics
         return false;
     }
 
     @Nullable @Override public String getQualifiedName() {
-        return null;
+        SmaliClassStatement classStatement = findChildByClass(SmaliClassStatement.class);
+        if (classStatement == null) {
+            return null;
+        }
+        return classStatement.getJavaType();
     }
 
     @Override public boolean isInterface() {

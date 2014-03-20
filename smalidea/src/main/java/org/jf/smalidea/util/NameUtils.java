@@ -29,40 +29,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.util;
 
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.source.tree.CompositePsiElement;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.util.ReflectionCache;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
-
-public abstract class SmaliCompositeElement extends CompositePsiElement {
-    public SmaliCompositeElement(IElementType type) {
-        super(type);
+public class NameUtils {
+    @Nonnull
+    public static String javaToSmaliType(@Nonnull String javaType) {
+        return 'L' + javaType.replace('.', '/') + ';';
     }
 
-    @NotNull
-    @SuppressWarnings("unchecked")
-    protected <T> T[] findChildrenByClass(Class<T> aClass) {
-        List<T> result = new ArrayList<T>();
-        for (PsiElement cur = getFirstChild(); cur != null; cur = cur.getNextSibling()) {
-            if (ReflectionCache.isInstance(cur, aClass)) result.add((T)cur);
-        }
-        return result.toArray((T[]) Array.newInstance(aClass, result.size()));
-    }
-
-    @Nullable
-    @SuppressWarnings("unchecked")
-    protected <T> T findChildByClass(Class<T> aClass) {
-        for (PsiElement cur = getFirstChild(); cur != null; cur = cur.getNextSibling()) {
-            if (ReflectionCache.isInstance(cur, aClass)) return (T)cur;
-        }
-        return null;
+    @Nonnull
+    public static String smaliToJavaType(@Nonnull String smaliType) {
+        return smaliType.replace('/', '.').substring(1, smaliType.length()-1);
     }
 }

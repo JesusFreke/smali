@@ -31,8 +31,10 @@
 
 package org.jf.smalidea.psi.impl;
 
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.util.NameUtils;
 
 public class SmaliClassTypeElement extends SmaliCompositeElement {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
@@ -43,5 +45,13 @@ public class SmaliClassTypeElement extends SmaliCompositeElement {
 
     public SmaliClassTypeElement() {
         super(SmaliElementTypes.CLASS_TYPE);
+    }
+
+    /**
+     * @return the fully qualified java-style name of the class in this .class statement
+     */
+    @NotNull
+    public String getJavaType() {
+        return NameUtils.smaliToJavaType(getText());
     }
 }
