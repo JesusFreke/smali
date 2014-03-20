@@ -32,16 +32,196 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.util.Pair;
+import com.intellij.psi.*;
+import com.intellij.psi.PsiModifier.ModifierConstant;
+import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.stub.SmaliClassStub;
 
-public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> {
+public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> implements PsiClass {
     public SmaliClass(@NotNull SmaliClassStub stub) {
         super(stub, SmaliElementTypes.CLASS);
     }
 
     public SmaliClass(@NotNull ASTNode node) {
         super(node);
+    }
+
+    @Override public boolean hasTypeParameters() {
+        return false;
+    }
+
+    @Nullable @Override public String getQualifiedName() {
+        return null;
+    }
+
+    @Override public boolean isInterface() {
+        return false;
+    }
+
+    @Override public boolean isAnnotationType() {
+        return false;
+    }
+
+    @Override public boolean isEnum() {
+        return false;
+    }
+
+    @Nullable @Override public PsiReferenceList getExtendsList() {
+        return null;
+    }
+
+    @Nullable @Override public PsiReferenceList getImplementsList() {
+        return null;
+    }
+
+    @NotNull @Override public PsiClassType[] getExtendsListTypes() {
+        return new PsiClassType[0];
+    }
+
+    @NotNull @Override public PsiClassType[] getImplementsListTypes() {
+        return new PsiClassType[0];
+    }
+
+    @Nullable @Override public PsiClass getSuperClass() {
+        return null;
+    }
+
+    @Override public PsiClass[] getInterfaces() {
+        return new PsiClass[0];
+    }
+
+    @NotNull @Override public PsiClass[] getSupers() {
+        return new PsiClass[0];
+    }
+
+    @NotNull @Override public PsiClassType[] getSuperTypes() {
+        return new PsiClassType[0];
+    }
+
+    @NotNull @Override public PsiField[] getFields() {
+        return new PsiField[0];
+    }
+
+    @NotNull @Override public PsiMethod[] getMethods() {
+        return new PsiMethod[0];
+    }
+
+    @NotNull @Override public PsiMethod[] getConstructors() {
+        return new PsiMethod[0];
+    }
+
+    @NotNull @Override public PsiClass[] getInnerClasses() {
+        return new PsiClass[0];
+    }
+
+    @NotNull @Override public PsiClassInitializer[] getInitializers() {
+        return new PsiClassInitializer[0];
+    }
+
+    @NotNull @Override public PsiField[] getAllFields() {
+        return new PsiField[0];
+    }
+
+    @NotNull @Override public PsiMethod[] getAllMethods() {
+        return new PsiMethod[0];
+    }
+
+    @NotNull @Override public PsiClass[] getAllInnerClasses() {
+        return new PsiClass[0];
+    }
+
+    @Nullable @Override public PsiField findFieldByName(@NonNls String name, boolean checkBases) {
+        return null;
+    }
+
+    @Nullable @Override public PsiMethod findMethodBySignature(PsiMethod patternMethod, boolean checkBases) {
+        return null;
+    }
+
+    @NotNull @Override public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
+        return new PsiMethod[0];
+    }
+
+    @NotNull @Override public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
+        return new PsiMethod[0];
+    }
+
+    @NotNull @Override
+    public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(@NonNls String name, boolean checkBases) {
+        return null;
+    }
+
+    @NotNull @Override public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
+        return null;
+    }
+
+    @Nullable @Override public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
+        return null;
+    }
+
+    @Nullable @Override public PsiElement getLBrace() {
+        return null;
+    }
+
+    @Nullable @Override public PsiElement getRBrace() {
+        return null;
+    }
+
+    @Nullable @Override public PsiIdentifier getNameIdentifier() {
+        return null;
+    }
+
+    @Override public PsiElement getScope() {
+        return null;
+    }
+
+    @Override public boolean isInheritor(@NotNull PsiClass baseClass, boolean checkDeep) {
+        return false;
+    }
+
+    @Override public boolean isInheritorDeep(PsiClass baseClass, @Nullable PsiClass classToByPass) {
+        return false;
+    }
+
+    @Nullable @Override public PsiClass getContainingClass() {
+        return null;
+    }
+
+    @NotNull @Override public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
+        return null;
+    }
+
+    @Override public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
+        return null;
+    }
+
+    @Nullable @Override public PsiDocComment getDocComment() {
+        return null;
+    }
+
+    @Override public boolean isDeprecated() {
+        return false;
+    }
+
+    @Nullable @Override public PsiTypeParameterList getTypeParameterList() {
+        return null;
+    }
+
+    @NotNull @Override public PsiTypeParameter[] getTypeParameters() {
+        return new PsiTypeParameter[0];
+    }
+
+    @Nullable @Override public PsiModifierList getModifierList() {
+        return null;
+    }
+
+    @Override public boolean hasModifierProperty(@ModifierConstant @NonNls @NotNull String name) {
+        return false;
     }
 }
