@@ -50,7 +50,6 @@ public class SmaliFile extends PsiFileBase implements PsiClassOwner {
     @NotNull @Override public SmaliFileType getFileType() {
         return SmaliFileType.INSTANCE;
     }
-
     @NotNull
     public SmaliClass getPsiClass() {
         StubElement<? extends PsiElement> stub = (StubElement<? extends PsiElement>)getStub();

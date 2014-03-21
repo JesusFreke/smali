@@ -43,6 +43,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.stub.SmaliClassStub;
 
+import java.util.Collection;
+import java.util.List;
+
 public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> implements PsiClass {
     public SmaliClass(@NotNull SmaliClassStub stub) {
         super(stub, SmaliElementTypes.CLASS);
@@ -63,6 +66,18 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
             return null;
         }
         return classStatement.getJavaType();
+    }
+
+    @NotNull public String getPackageName() {
+        String name = getQualifiedName();
+        if (name == null) {
+            return "";
+        }
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot < 0) {
+            return "";
+        }
+        return name.substring(0, lastDot);
     }
 
     @Override public boolean isInterface() {
