@@ -29,37 +29,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.psi.stub;
 
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import com.intellij.psi.stubs.StubBase;
+import com.intellij.psi.stubs.StubElement;
+import org.jf.smalidea.psi.impl.SmaliMethod;
+import org.jf.smalidea.psi.stub.element.SmaliModifierListElementType;
 
-public class SmaliClassStatement extends SmaliCompositeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliClassStatement();
-        }
-    };
+public class SmaliModifierListStub extends StubBase<SmaliMethod> {
+    private final int accessFlags;
 
-    public SmaliClassStatement() {
-        super(SmaliElementTypes.CLASS_STATEMENT);
+    public SmaliModifierListStub(StubElement parent, int accessFlags) {
+        super(parent, SmaliModifierListElementType.INSTANCE);
+        this.accessFlags = accessFlags;
     }
 
-    /**
-     * @return the fully qualified java-style name of the class in this .class statement
-     */
-    @Nullable
-    public String getJavaType() {
-        SmaliClassTypeElement classType = findChildByClass(SmaliClassTypeElement.class);
-        if (classType == null) {
-            return null;
-        }
-        return classType.getJavaType();
-    }
-
-    @Nullable
-    public SmaliAccessList getAccessFlagsNode() {
-        return findChildByClass(SmaliAccessList.class);
+    public int getAccessFlags() {
+        return accessFlags;
     }
 }

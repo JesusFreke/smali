@@ -31,6 +31,10 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.lang.ASTNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jf.smalidea.SmaliTokens;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
@@ -43,5 +47,15 @@ public class SmaliAccessList extends SmaliCompositeElement {
 
     public SmaliAccessList() {
         super(SmaliElementTypes.ACCESS_LIST);
+    }
+
+    @Nullable
+    public ASTNode getAccessFlagNode(@NotNull String accessFlag) {
+        for (ASTNode node: findChildrenByType(SmaliTokens.ACCESS_SPEC)) {
+            if (node.getText().equals(accessFlag)) {
+                return node;
+            }
+        }
+        return null;
     }
 }

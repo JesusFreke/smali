@@ -41,12 +41,13 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliClassStub;
 
 import java.util.Collection;
 import java.util.List;
 
-public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> implements PsiClass {
+public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> implements PsiClass, SmaliModifierListOwner {
     public SmaliClass(@NotNull SmaliClassStub stub) {
         super(stub, SmaliElementTypes.CLASS);
     }
@@ -55,6 +56,13 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         super(node);
     }
 
+    @Nullable @Override public SmaliAccessList getAccessFlagsNode() {
+        SmaliClassStatement classStatement = findChildByClass(SmaliClassStatement.class);
+        if (classStatement == null) {
+            return null;
+        }
+        return classStatement.getAccessFlagsNode();
+    }
     @Override public boolean hasTypeParameters() {
         // TODO: implement generics
         return false;
@@ -81,15 +89,15 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @Override public boolean isInterface() {
-        return false;
+        return getModifierList().hasModifierProperty("interface");
     }
 
     @Override public boolean isAnnotationType() {
-        return false;
+        return getModifierList().hasModifierProperty("annotation");
     }
 
     @Override public boolean isEnum() {
-        return false;
+        return getModifierList().hasModifierProperty("enum");
     }
 
     @Nullable @Override public PsiReferenceList getExtendsList() {
@@ -237,11 +245,35 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         return new PsiTypeParameter[0];
     }
 
-    @Nullable @Override public PsiModifierList getModifierList() {
-        return null;
+    @NotNull @Override public SmaliModifierList getModifierList() {
+        SmaliModifierList modifierList = getStubOrPsiChild(SmaliElementTypes.MODIFIER_LIST);
+        assert modifierList != null;
+        return modifierList;
     }
 
     @Override public boolean hasModifierProperty(@ModifierConstant @NonNls @NotNull String name) {
-        return false;
+        return getModifierList().hasModifierProperty(name);
+    }
+
+    @NotNull @Override public SmaliAnnotation[] getAnnotations() {
+        return getStubOrPsiChildren(SmaliElementTypes.ANNOTATION, new SmaliAnnotation[0]);
+    }
+
+    @NotNull @Override public SmaliAnnotation[] getApplicableAnnotations() {
+        return getAnnotations();
+    }
+
+    @Nullable @Override public SmaliAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
+        for (SmaliAnnotation annotation: getAnnotations()) {
+            if (qualifiedName.equals(annotation.getQualifiedName())) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    @NotNull @Override public SmaliAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
+        // TODO: implement this
+        return null;
     }
 }

@@ -31,6 +31,8 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.google.common.collect.ImmutableList;
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.intellij.psi.tree.IElementType;
@@ -45,6 +47,23 @@ import java.util.List;
 public abstract class SmaliCompositeElement extends CompositePsiElement {
     public SmaliCompositeElement(IElementType type) {
         super(type);
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    protected List<ASTNode> findChildrenByType(IElementType elementType) {
+        List<ASTNode> result = ImmutableList.of();
+        ASTNode child = getNode().getFirstChildNode();
+        while (child != null) {
+            if (elementType == child.getElementType()) {
+                if (result.size() == 0) {
+                    result = new ArrayList<ASTNode>();
+                }
+                result.add((ASTNode)child.getPsi());
+            }
+            child = child.getTreeNext();
+        }
+        return result;
     }
 
     @NotNull

@@ -155,6 +155,9 @@ sync[boolean toEof]
   : /*epsilon*/;
 
 smali_file
+  @init {
+    mark().done(SmaliElementTypes.MODIFIER_LIST);
+  }
   :
   (
     ( class_spec
