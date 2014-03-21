@@ -32,16 +32,54 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.*;
+import com.intellij.psi.meta.PsiMetaData;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.stub.SmaliAnnotationStub;
 
-public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStub> {
+public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStub> implements PsiAnnotation {
     public SmaliAnnotation(@NotNull SmaliAnnotationStub stub) {
         super(stub, SmaliElementTypes.ANNOTATION);
     }
 
     public SmaliAnnotation(@NotNull ASTNode node) {
         super(node);
+    }
+
+    @Nullable @Override public PsiMetaData getMetaData() {
+        return null;
+    }
+
+    @NotNull @Override public PsiAnnotationParameterList getParameterList() {
+        return null;
+    }
+
+    @Nullable @Override public String getQualifiedName() {
+        return null;
+    }
+
+    @Nullable @Override public PsiJavaCodeReferenceElement getNameReferenceElement() {
+        return null;
+    }
+
+    @Nullable @Override public PsiAnnotationMemberValue findAttributeValue(@Nullable @NonNls String attributeName) {
+        return null;
+    }
+
+    @Nullable @Override
+    public PsiAnnotationMemberValue findDeclaredAttributeValue(@Nullable @NonNls String attributeName) {
+        return null;
+    }
+
+    @Override
+    public <T extends PsiAnnotationMemberValue> T setDeclaredAttributeValue(@Nullable @NonNls String attributeName, @Nullable T value) {
+        return null;
+    }
+
+    @Nullable @Override public PsiAnnotationOwner getOwner() {
+        return null;
     }
 }

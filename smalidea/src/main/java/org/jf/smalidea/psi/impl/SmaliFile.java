@@ -32,18 +32,48 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.extapi.psi.PsiFileBase;
-import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
+import com.intellij.psi.PsiClassOwner;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.stubs.StubElement;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.SmaliFileType;
 import org.jf.smalidea.SmaliLanguage;
+import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliFile extends PsiFileBase {
+public class SmaliFile extends PsiFileBase implements PsiClassOwner {
     public SmaliFile(FileViewProvider viewProvider) {
         super(viewProvider, SmaliLanguage.INSTANCE);
     }
 
-    @NotNull @Override public FileType getFileType() {
+    @NotNull @Override public SmaliFileType getFileType() {
         return SmaliFileType.INSTANCE;
+    }
+
+    @NotNull
+    public SmaliClass getPsiClass() {
+        StubElement<? extends PsiElement> stub = (StubElement<? extends PsiElement>)getStub();
+        if (stub != null) {
+            StubElement<SmaliClass> classElement = stub.findChildStubByType(SmaliElementTypes.CLASS);
+            assert classElement != null;
+            return classElement.getPsi();
+        } else {
+            SmaliClass smaliClass = findChildByClass(SmaliClass.class);
+            assert smaliClass != null;
+            return smaliClass;
+        }
+    }
+
+    @NotNull @Override public SmaliClass[] getClasses() {
+        return new SmaliClass[] {getPsiClass()};
+    }
+
+    @Override public String getPackageName() {
+        return getPsiClass().getPackageName();
+    }
+
+    @Override public void setPackageName(String packageName) throws IncorrectOperationException {
+        // TODO: implement this
     }
 }
