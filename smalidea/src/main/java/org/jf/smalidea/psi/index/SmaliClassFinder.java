@@ -29,24 +29,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.stub;
+package org.jf.smalidea.psi.index;
 
-import com.intellij.psi.stubs.StubBase;
-import com.intellij.psi.stubs.StubElement;
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementFinder;
+import com.intellij.psi.search.GlobalSearchScope;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliClass;
 
-public class SmaliClassStub extends StubBase<SmaliClass> {
-    @Nullable private String qualifiedName;
+import java.util.Collection;
 
-    public SmaliClassStub(StubElement parent, @Nullable String qualifiedName) {
-        super(parent, SmaliElementTypes.CLASS);
-        this.qualifiedName = qualifiedName;
+public class SmaliClassFinder extends PsiElementFinder {
+    @Override
+    public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+        Collection<SmaliClass> classes = SmaliClassNameIndex.INSTANCE.get(qualifiedName, scope.getProject(), scope);
+        if (classes != null && classes.size() == 1) {
+            return classes.iterator().next();
+        }
+        return null;
     }
 
-    @Nullable
-    public String getQualifiedName() {
-        return qualifiedName;
+    @NotNull
+    @Override
+    public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+        PsiClass cls = findClass(qualifiedName, scope);
+        if (cls != null) {
+            return new PsiClass[] {cls};
+        }
+        return PsiClass.EMPTY_ARRAY;
     }
 }

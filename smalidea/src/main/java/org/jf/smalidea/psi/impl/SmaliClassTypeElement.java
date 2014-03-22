@@ -31,17 +31,24 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.*;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.util.NameUtils;
 
-public class SmaliClassTypeElement extends SmaliCompositeElement {
+public class SmaliClassTypeElement extends SmaliCompositeElement implements PsiTypeElement, PsiReference {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliClassTypeElement();
         }
     };
+
+    @Nullable private SmaliClassType classType = null;
 
     public SmaliClassTypeElement() {
         super(SmaliElementTypes.CLASS_TYPE);
@@ -53,5 +60,86 @@ public class SmaliClassTypeElement extends SmaliCompositeElement {
     @NotNull
     public String getJavaType() {
         return NameUtils.smaliToJavaType(getText());
+    }
+
+    @NotNull @Override public SmaliClassType getType() {
+        if (classType == null) {
+            classType = new SmaliClassType(this);
+        }
+        return classType;
+    }
+
+    @Override public String getName() {
+        return NameUtils.shortNameFromQualifiedName(getCanonicalText());
+    }
+
+    @Nullable @Override public PsiJavaCodeReferenceElement getInnermostComponentReferenceElement() {
+        // Not applicable for smali
+        return null;
+    }
+
+    @Override public PsiElement getElement() {
+        return this;
+    }
+
+    @Override public PsiReference getReference() {
+        return this;
+    }
+
+    @Override public TextRange getRangeInElement() {
+        return new TextRange(0, getTextLength());
+    }
+
+    @Nullable @Override public PsiElement resolve() {
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
+        return facade.findClass(getCanonicalText(), getResolveScope());
+    }
+
+    @NotNull @Override public String getCanonicalText() {
+        return NameUtils.smaliToJavaType(getText());
+    }
+
+    @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+        //TODO: implement this
+        throw new IncorrectOperationException();
+    }
+
+    @Override public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+        //TODO: implement this
+        throw new IncorrectOperationException();
+    }
+
+    @Override public boolean isReferenceTo(PsiElement element) {
+        if (!(element instanceof PsiClassType)) {
+            return false;
+        }
+        return element.getManager().areElementsEquivalent(element, resolve());
+    }
+
+    @NotNull @Override public Object[] getVariants() {
+        // TODO: implement this?
+        return new Object[0];
+    }
+
+    @Override public boolean isSoft() {
+        return false;
+    }
+
+    // Annotations on types are for JSR 308. Not applicable to smali.
+
+    @NotNull @Override public PsiAnnotation[] getAnnotations() {
+        return new PsiAnnotation[0];
+    }
+
+    @NotNull @Override public PsiAnnotation[] getApplicableAnnotations() {
+        return new PsiAnnotation[0];
+    }
+
+    @Nullable @Override public PsiAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
+        return null;
+    }
+
+    @NotNull @Override public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
+        throw new UnsupportedOperationException();
     }
 }

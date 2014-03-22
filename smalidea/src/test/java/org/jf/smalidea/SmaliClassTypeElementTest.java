@@ -29,24 +29,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.stub;
+package org.jf.smalidea;
 
-import com.intellij.psi.stubs.StubBase;
-import com.intellij.psi.stubs.StubElement;
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
+import org.jf.smalidea.psi.impl.SmaliClassType;
+import org.jf.smalidea.psi.impl.SmaliClassTypeElement;
+import org.jf.smalidea.psi.impl.SmaliFile;
 
-public class SmaliClassStub extends StubBase<SmaliClass> {
-    @Nullable private String qualifiedName;
+public class SmaliClassTypeElementTest extends LightCodeInsightFixtureTestCase {
+    public void testGetType() {
+        myFixture.addFileToProject("my/blarg.smali",
+                ".class public Lmy/blarg; " +
+                ".super Ljava/lang/Object;");
 
-    public SmaliClassStub(StubElement parent, @Nullable String qualifiedName) {
-        super(parent, SmaliElementTypes.CLASS);
-        this.qualifiedName = qualifiedName;
-    }
+        String text = ".class public Lmy/pkg/blah; " +
+                      ".super Lmy/bl<ref>arg;";
 
-    @Nullable
-    public String getQualifiedName() {
-        return qualifiedName;
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali",
+                text.replace("<ref>", ""));
+
+        SmaliClassTypeElement typeElement =
+                (SmaliClassTypeElement)file.findReferenceAt(text.indexOf("<ref>"));
+        Assert.assertNotNull(typeElement);
+        SmaliClassType type = typeElement.getType();
+
+        Assert.assertEquals("blarg", typeElement.getName());
+        Assert.assertEquals("my.blarg", typeElement.getCanonicalText());
+        Assert.assertEquals("blarg", type.getClassName());
+        Assert.assertEquals("my.blarg", type.getCanonicalText());
+
+        SmaliClass resolvedClass = (SmaliClass)typeElement.resolve();
+        Assert.assertNotNull(resolvedClass);
+        Assert.assertEquals("my.blarg", resolvedClass.getQualifiedName());
+
+        resolvedClass = (SmaliClass)type.resolve();
+        Assert.assertNotNull(resolvedClass);
+        Assert.assertEquals("my.blarg", resolvedClass.getQualifiedName());
     }
 }

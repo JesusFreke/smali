@@ -29,24 +29,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.stub;
+package org.jf.smalidea.psi.index;
 
-import com.intellij.psi.stubs.StubBase;
-import com.intellij.psi.stubs.StubElement;
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import com.intellij.psi.stubs.StringStubIndexExtension;
+import com.intellij.psi.stubs.StubIndexKey;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliClass;
 
-public class SmaliClassStub extends StubBase<SmaliClass> {
-    @Nullable private String qualifiedName;
+public class SmaliClassNameIndex extends StringStubIndexExtension<SmaliClass> {
+    public static final StubIndexKey<String, SmaliClass> KEY =
+            StubIndexKey.createIndexKey("smali.class.name");
 
-    public SmaliClassStub(StubElement parent, @Nullable String qualifiedName) {
-        super(parent, SmaliElementTypes.CLASS);
-        this.qualifiedName = qualifiedName;
+    public static final SmaliClassNameIndex INSTANCE = new SmaliClassNameIndex();
+
+    private SmaliClassNameIndex() {
     }
 
-    @Nullable
-    public String getQualifiedName() {
-        return qualifiedName;
+    @NotNull @Override public StubIndexKey<String, SmaliClass> getKey() {
+        return KEY;
     }
 }

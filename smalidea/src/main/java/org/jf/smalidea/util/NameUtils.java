@@ -33,6 +33,7 @@ package org.jf.smalidea.util;
 
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -165,5 +166,18 @@ public class NameUtils {
             default:
                 throw new RuntimeException("Invalid smali type: " + smaliType);
         }
+    }
+
+    @Nullable
+    public static String shortNameFromQualifiedName(@Nullable String qualifiedName) {
+        if (qualifiedName == null) {
+            return null;
+        }
+
+        int index = qualifiedName.lastIndexOf('.');
+        if (index == -1) {
+            return qualifiedName;
+        }
+        return qualifiedName.substring(index+1);
     }
 }

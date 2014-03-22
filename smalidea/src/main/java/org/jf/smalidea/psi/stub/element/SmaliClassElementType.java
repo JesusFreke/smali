@@ -38,6 +38,7 @@ import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliClass;
+import org.jf.smalidea.psi.index.SmaliClassNameIndex;
 import org.jf.smalidea.psi.stub.SmaliClassStub;
 import org.jf.smalidea.psi.stub.SmaliStubElementType;
 
@@ -63,18 +64,23 @@ public class SmaliClassElementType extends SmaliStubElementType<SmaliClassStub, 
     }
 
     @Override public SmaliClassStub createStub(@NotNull SmaliClass psi, StubElement parentStub) {
-        return new SmaliClassStub(parentStub);
+        return new SmaliClassStub(parentStub, psi.getQualifiedName());
     }
 
     @Override
     public void serialize(@NotNull SmaliClassStub stub, @NotNull StubOutputStream dataStream) throws IOException {
+        dataStream.writeName(stub.getQualifiedName());
     }
 
     @NotNull @Override
     public SmaliClassStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliClassStub(parentStub);
+        return new SmaliClassStub(parentStub, dataStream.readName().getString());
     }
 
     @Override public void indexStub(@NotNull SmaliClassStub stub, @NotNull IndexSink sink) {
+        String qualifiedName = stub.getQualifiedName();
+        if (qualifiedName != null) {
+            sink.occurrence(SmaliClassNameIndex.KEY, qualifiedName);
+        }
     }
 }

@@ -29,24 +29,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.stub;
+package org.jf.smalidea;
 
-import com.intellij.psi.stubs.StubBase;
-import com.intellij.psi.stubs.StubElement;
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import com.intellij.psi.PsiClass;
+import com.intellij.testFramework.ResolveTestCase;
+import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
+import org.jf.smalidea.psi.impl.SmaliClassTypeElement;
 
-public class SmaliClassStub extends StubBase<SmaliClass> {
-    @Nullable private String qualifiedName;
+public class ClassReferenceTest extends ResolveTestCase {
+    /**
+     * Test a reference to a java class from a smali class
+     */
+    public void testJavaReferenceFromSmali() throws Exception {
+        SmaliClassTypeElement typeElement = (SmaliClassTypeElement)configureByFileText(
+                ".class public Lblah; .super L<ref>java/lang/Object;", "blah.smali");
 
-    public SmaliClassStub(StubElement parent, @Nullable String qualifiedName) {
-        super(parent, SmaliElementTypes.CLASS);
-        this.qualifiedName = qualifiedName;
+        Assert.assertNotNull(typeElement);
+        Assert.assertEquals("Object", typeElement.getName());
+
+        PsiClass psiClass = (PsiClass)typeElement.resolve();
+        Assert.assertNotNull(psiClass);
+        Assert.assertEquals("java.lang.Object", psiClass.getQualifiedName());
     }
 
-    @Nullable
-    public String getQualifiedName() {
-        return qualifiedName;
+    /**
+     * Test a reference to a smali class from a smali class
+     */
+    public void testSmaliReferenceFromSmali() throws Exception {
+        createFile("blarg.smali", ".class public Lblarg; .super Ljava/lang/Object;");
+
+        SmaliClassTypeElement typeElement = (SmaliClassTypeElement)configureByFileText(
+                ".class public Lblah; .super L<ref>blarg;", "blah.smali");
+
+        Assert.assertEquals("blarg", typeElement.getName());
+
+        SmaliClass smaliClass = (SmaliClass)typeElement.resolve();
+        Assert.assertNotNull(smaliClass);
+        Assert.assertEquals("blarg", smaliClass.getQualifiedName());
     }
+
+    // TODO: Test a reference to a smali class from a java class
 }
