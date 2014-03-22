@@ -148,8 +148,7 @@ public class SmaliClassModifierListTest extends LightCodeInsightFixtureTestCase 
         SmaliAnnotation[] annotations = modifierList.getAnnotations();
         Assert.assertEquals(1, annotations.length);
 
-        // TODO: use PsiAnnotation.getQualifiedName() instead, once it has been implemented
-        Assert.assertEquals(".annotation Lmy/pkg/anno; .end annotation", annotations[0].getText());
+        Assert.assertEquals("my.pkg.anno", annotations[0].getQualifiedName());
 
         SmaliAnnotation[] applicableAnnotations = modifierList.getApplicableAnnotations();
         Assert.assertEquals(1, applicableAnnotations.length);
@@ -168,6 +167,22 @@ public class SmaliClassModifierListTest extends LightCodeInsightFixtureTestCase 
         Assert.assertEquals(0, modifierList.getApplicableAnnotations().length);
     }
 
-    // TODO: test modifierList.findAnnotation once PsiAnnotation.getQualifiedName has been implemented
+    public void testFindAnnotation() {
+        final SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali",
+                ".class public final Lmy/pkg/blah;\n" +
+                ".annotation Lanno; .end annotation\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".annotation Lmy/pkg/anno; .end annotation\n" +
+                ".annotation Lmy/pkg/anno2; .end annotation\n" +
+                ".annotation Lmy/pkg/anno3; .end annotation\n");
+
+        SmaliClass smaliClass = file.getPsiClass();
+        SmaliModifierList modifierList = smaliClass.getModifierList();
+
+        SmaliAnnotation smaliAnnotation = modifierList.findAnnotation("my.pkg.anno2");
+        Assert.assertNotNull(smaliAnnotation);
+        Assert.assertEquals("my.pkg.anno2", smaliAnnotation.getQualifiedName());
+    }
+
     // TODO: test modifierList.addAnnotation once implemented
 }

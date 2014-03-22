@@ -58,7 +58,11 @@ public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStu
     }
 
     @Nullable @Override public String getQualifiedName() {
-        return null;
+        SmaliClassTypeElement classType = findChildByClass(SmaliClassTypeElement.class);
+        if (classType == null) {
+            return null;
+        }
+        return classType.getJavaType();
     }
 
     @Nullable @Override public PsiJavaCodeReferenceElement getNameReferenceElement() {
