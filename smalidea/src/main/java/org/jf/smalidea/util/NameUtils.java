@@ -31,16 +31,139 @@
 
 package org.jf.smalidea.util;
 
+import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.Nonnull;
+import java.util.Map;
 
 public class NameUtils {
-    @Nonnull
-    public static String javaToSmaliType(@Nonnull String javaType) {
-        return 'L' + javaType.replace('.', '/') + ';';
-    }
+    private static final Map<String, String> javaToSmaliPrimitiveTypes = ImmutableMap.<String, String>builder()
+            .put("boolean", "Z")
+            .put("byte", "B")
+            .put("char", "C")
+            .put("short", "S")
+            .put("int", "I")
+            .put("long", "J")
+            .put("float", "F")
+            .put("double", "D")
+            .build();
 
     @Nonnull
+    public static String javaToSmaliType(@Nonnull String javaType) {
+        if (javaType.charAt(javaType.length()-1) == ']') {
+            int dimensions = 0;
+            int firstArrayChar = -1;
+            for (int i=0; i<javaType.length(); i++) {
+                if (javaType.charAt(i) == '[') {
+                    if (firstArrayChar == -1) {
+                        firstArrayChar = i;
+                    }
+                    dimensions++;
+                }
+            }
+            if (dimensions > 0) {
+                StringBuilder sb = new StringBuilder(firstArrayChar + 2 + dimensions);
+                for (int i=0; i<dimensions; i++) {
+                    sb.append('[');
+                }
+                convertSimpleJavaToSmaliType(javaType.substring(0, firstArrayChar), sb);
+                return sb.toString();
+            }
+        }
+
+        return simpleJavaToSmaliType(javaType);
+    }
+
+
+    private static void convertSimpleJavaToSmaliType(@NotNull String javaType, @NotNull StringBuilder dest) {
+        String smaliType = javaToSmaliPrimitiveTypes.get(javaType);
+        if (smaliType != null) {
+            dest.append(smaliType);
+        } else {
+            dest.append('L');
+            for (int i=0; i<javaType.length(); i++) {
+                char c = javaType.charAt(i);
+                if (c == '.') {
+                    dest.append('/');
+                } else {
+                    dest.append(c);
+                }
+            }
+            dest.append(';');
+        }
+    }
+
+    private static String simpleJavaToSmaliType(@Nonnull String simpleJavaType) {
+        StringBuilder sb = new StringBuilder(simpleJavaType.length() + 2);
+        convertSimpleJavaToSmaliType(simpleJavaType, sb);
+        sb.trimToSize();
+        return sb.toString();
+    }
+
+    @NotNull
     public static String smaliToJavaType(@Nonnull String smaliType) {
-        return smaliType.replace('/', '.').substring(1, smaliType.length()-1);
+        if (smaliType.charAt(0) == '[') {
+            return convertSmaliArrayToJava(smaliType);
+        } else {
+            StringBuilder sb = new StringBuilder(smaliType.length());
+            convertAndAppendNonArraySmaliTypeToJava(smaliType, sb);
+            return sb.toString();
+        }
+    }
+
+    @NotNull
+    private static String convertSmaliArrayToJava(@NotNull String smaliType) {
+        int dimensions=0;
+        while (smaliType.charAt(dimensions) == '[') {
+            dimensions++;
+        }
+
+        StringBuilder sb = new StringBuilder(smaliType.length() + dimensions);
+        convertAndAppendNonArraySmaliTypeToJava(smaliType.substring(dimensions), sb);
+        for (int i=0; i<dimensions; i++) {
+            sb.append("[]");
+        }
+        return sb.toString();
+    }
+
+    private static void convertAndAppendNonArraySmaliTypeToJava(@NotNull String smaliType, @NotNull StringBuilder dest) {
+        switch (smaliType.charAt(0)) {
+            case 'Z':
+                dest.append("boolean");
+                return;
+            case 'B':
+                dest.append("byte");
+                return;
+            case 'C':
+                dest.append("char");
+                return;
+            case 'S':
+                dest.append("short");
+                return;
+            case 'I':
+                dest.append("int");
+                return;
+            case 'J':
+                dest.append("long");
+                return;
+            case 'F':
+                dest.append("float");
+                return;
+            case 'D':
+                dest.append("double");
+            case 'L':
+                for (int i=1; i<smaliType.length()-1; i++) {
+                    char c = smaliType.charAt(i);
+                    if (c == '/') {
+                        dest.append('.');
+                    } else {
+                        dest.append(c);
+                    }
+                }
+                return;
+            default:
+                throw new RuntimeException("Invalid smali type: " + smaliType);
+        }
     }
 }
