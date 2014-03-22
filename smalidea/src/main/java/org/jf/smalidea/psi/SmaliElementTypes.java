@@ -41,6 +41,8 @@ public class SmaliElementTypes {
     public static final SmaliMethodElementType METHOD = SmaliMethodElementType.INSTANCE;
     public static final SmaliAnnotationElementType ANNOTATION = SmaliAnnotationElementType.INSTANCE;
     public static final SmaliModifierListElementType MODIFIER_LIST = SmaliModifierListElementType.INSTANCE;
+    public static final SmaliExtendsListElementType EXTENDS_LIST = SmaliExtendsListElementType.INSTANCE;
+    public static final SmaliImplementsListElementType IMPLEMENTS_LIST = SmaliImplementsListElementType.INSTANCE;
 
     public static final SmaliCompositeElementType LITERAL =
             new SmaliCompositeElementType("LITERAL", SmaliLiteral.FACTORY);

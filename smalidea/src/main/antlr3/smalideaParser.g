@@ -157,6 +157,8 @@ sync[boolean toEof]
 smali_file
   @init {
     mark().done(SmaliElementTypes.MODIFIER_LIST);
+    mark().done(SmaliElementTypes.EXTENDS_LIST);
+    mark().done(SmaliElementTypes.IMPLEMENTS_LIST);
   }
   :
   (
