@@ -45,6 +45,7 @@ import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliClassStub;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
@@ -55,6 +56,20 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
 
     public SmaliClass(@NotNull ASTNode node) {
         super(node);
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        String name = getQualifiedName();
+        if (name == null) {
+            return "";
+        }
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot < 0) {
+            return name;
+        }
+        return name.substring(lastDot+1);
     }
 
     @Nullable @Override public SmaliAccessList getAccessFlagsNode() {

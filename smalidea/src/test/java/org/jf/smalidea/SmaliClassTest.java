@@ -38,13 +38,14 @@ import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
 
 public class SmaliClassTest extends LightCodeInsightFixtureTestCase {
-    public void testGetQualifiedName() {
+    public void testName() {
         SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali",
                 ".class public Lmy/pkg/blah; .super Ljava/lang/Object;");
 
         SmaliClass smaliClass = file.getPsiClass();
         Assert.assertEquals("my.pkg.blah", smaliClass.getQualifiedName());
         Assert.assertEquals("my.pkg", smaliClass.getPackageName());
+        Assert.assertEquals("blah", smaliClass.getName());
     }
 
     public void testEmptyPackageName() {

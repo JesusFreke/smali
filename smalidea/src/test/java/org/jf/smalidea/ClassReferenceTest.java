@@ -32,6 +32,7 @@
 package org.jf.smalidea;
 
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.ResolveTestCase;
 import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
@@ -69,5 +70,17 @@ public class ClassReferenceTest extends ResolveTestCase {
         Assert.assertEquals("blarg", smaliClass.getQualifiedName());
     }
 
-    // TODO: Test a reference to a smali class from a java class
+    /**
+     * Test a reference to a smali class from a java class
+     */
+    public void testSmaliReferenceFromJava() throws Exception {
+        createFile("blarg.smali", ".class public Lblarg; .super Ljava/lang/Object;");
+
+        PsiReference reference = configureByFileText(
+                "public class blah extends bla<ref>rg { }", "blah.java");
+
+        SmaliClass smaliClass = (SmaliClass)reference.resolve();
+        Assert.assertNotNull(smaliClass);
+        Assert.assertEquals("blarg", smaliClass.getQualifiedName());
+    }
 }
