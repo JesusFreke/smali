@@ -32,20 +32,13 @@
 package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliImplementsList;
 import org.jf.smalidea.psi.stub.SmaliImplementsListStub;
-import org.jf.smalidea.psi.stub.SmaliStubElementType;
 
-import java.io.IOException;
-
-public class SmaliImplementsListElementType extends
-        SmaliStubElementType<SmaliImplementsListStub, SmaliImplementsList> {
+public class SmaliImplementsListElementType
+        extends SmaliBaseReferenceListElementType<SmaliImplementsListStub, SmaliImplementsList> {
     public static final SmaliImplementsListElementType INSTANCE = new SmaliImplementsListElementType();
 
     private SmaliImplementsListElementType() {
@@ -56,29 +49,19 @@ public class SmaliImplementsListElementType extends
         return "smali.implements_list";
     }
 
-    @Override public SmaliImplementsList createPsi(@NotNull ASTNode node) {
-        return new SmaliImplementsList(node);
-    }
-
     @Override public SmaliImplementsList createPsi(@NotNull SmaliImplementsListStub stub) {
         return new SmaliImplementsList(stub);
     }
 
+    @Override public SmaliImplementsList createPsi(@NotNull ASTNode node) {
+        return new SmaliImplementsList(node);
+    }
+
+    @Override protected SmaliImplementsListStub createStub(StubElement parentStub, String[] types) {
+        return new SmaliImplementsListStub(parentStub, types);
+    }
+
     @Override public SmaliImplementsListStub createStub(@NotNull SmaliImplementsList psi, StubElement parentStub) {
-        return new SmaliImplementsListStub(parentStub, SmaliElementTypes.IMPLEMENTS_LIST);
-    }
-
-    @Override
-    public void serialize(@NotNull SmaliImplementsListStub stub, @NotNull StubOutputStream dataStream)
-            throws IOException {
-    }
-
-    @NotNull @Override
-    public SmaliImplementsListStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub)
-            throws IOException {
-        return new SmaliImplementsListStub(parentStub, SmaliElementTypes.IMPLEMENTS_LIST);
-    }
-
-    @Override public void indexStub(@NotNull SmaliImplementsListStub stub, @NotNull IndexSink sink) {
+        return new SmaliImplementsListStub(parentStub, psi.getReferenceNames());
     }
 }

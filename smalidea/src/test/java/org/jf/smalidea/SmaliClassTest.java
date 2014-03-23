@@ -31,6 +31,7 @@
 
 package org.jf.smalidea;
 
+import com.intellij.psi.PsiClass;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
@@ -53,5 +54,57 @@ public class SmaliClassTest extends LightCodeInsightFixtureTestCase {
         SmaliClass smaliClass = file.getPsiClass();
         Assert.assertEquals("blah", smaliClass.getQualifiedName());
         Assert.assertEquals("", smaliClass.getPackageName());
+    }
+
+    public void testGetSuperclass() {
+        myFixture.addFileToProject("base.smali",
+                ".class public interface Lbase; .super Ljava/lang/Object;");
+
+        myFixture.addFileToProject("iface.smali",
+                ".class public interface Liface; .super Ljava/lang/Object;");
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("blah.smali",
+                ".class public Lblah; .super Lbase; .implements Liface;");
+
+        SmaliClass smaliClass = file.getPsiClass();
+        Assert.assertEquals("blah", smaliClass.getQualifiedName());
+        PsiClass superClass = smaliClass.getSuperClass();
+        Assert.assertNotNull(superClass);
+        Assert.assertEquals("base", smaliClass.getSuperClass().getQualifiedName());
+
+        Assert.assertEquals(2, smaliClass.getSupers().length);
+        Assert.assertEquals("base", smaliClass.getSupers()[0].getQualifiedName());
+        Assert.assertEquals("iface", smaliClass.getSupers()[1].getQualifiedName());
+
+        Assert.assertEquals(2, smaliClass.getSuperTypes().length);
+        Assert.assertEquals("base", smaliClass.getSuperTypes()[0].getCanonicalText());
+        Assert.assertEquals("iface", smaliClass.getSuperTypes()[1].getCanonicalText());
+
+        Assert.assertEquals(1, smaliClass.getInterfaces().length);
+        Assert.assertEquals("iface", smaliClass.getInterfaces()[0].getQualifiedName());
+    }
+
+    public void testGetSuperclassForInterface() {
+        myFixture.addFileToProject("iface.smali",
+                ".class public interface Liface; .super Ljava/lang/Object;");
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("blah.smali",
+                ".class public interface Lblah; .super Ljava/lang/Object; .implements Liface;");
+
+        SmaliClass smaliClass = file.getPsiClass();
+        Assert.assertEquals("blah", smaliClass.getQualifiedName());
+        PsiClass superClass = smaliClass.getSuperClass();
+        Assert.assertNotNull(superClass);
+        Assert.assertEquals("java.lang.Object", smaliClass.getSuperClass().getQualifiedName());
+
+        Assert.assertEquals(2, smaliClass.getSupers().length);
+        Assert.assertEquals("java.lang.Object", smaliClass.getSupers()[0].getQualifiedName());
+        Assert.assertEquals("iface", smaliClass.getSupers()[1].getQualifiedName());
+
+        Assert.assertEquals(1, smaliClass.getSuperTypes().length);
+        Assert.assertEquals("iface", smaliClass.getSuperTypes()[0].getCanonicalText());
+
+        Assert.assertEquals(1, smaliClass.getInterfaces().length);
+        Assert.assertEquals("iface", smaliClass.getInterfaces()[0].getQualifiedName());
     }
 }

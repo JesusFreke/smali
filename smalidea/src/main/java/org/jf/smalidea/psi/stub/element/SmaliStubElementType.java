@@ -32,51 +32,18 @@
 package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.stubs.IndexSink;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.impl.SmaliModifierList;
-import org.jf.smalidea.psi.stub.SmaliModifierListStub;
+import org.jf.smalidea.SmaliLanguage;
 
-import java.io.IOException;
-
-public class SmaliModifierListElementType extends SmaliStubElementType<SmaliModifierListStub, SmaliModifierList> {
-    public static final SmaliModifierListElementType INSTANCE = new SmaliModifierListElementType();
-
-    private SmaliModifierListElementType() {
-        super("MODIFIER_LIST");
+public abstract class SmaliStubElementType<StubT extends StubElement, PsiT extends PsiElement>
+        extends IStubElementType<StubT, PsiT> {
+    protected SmaliStubElementType(@NotNull @NonNls String debugName) {
+        super(debugName, SmaliLanguage.INSTANCE);
     }
 
-    @NotNull @Override public String getExternalId() {
-        return "smali.modifier_list";
-    }
-
-    @Override public SmaliModifierList createPsi(@NotNull SmaliModifierListStub stub) {
-        return new SmaliModifierList(stub);
-    }
-
-    @Override public SmaliModifierList createPsi(@NotNull ASTNode node) {
-        return new SmaliModifierList(node);
-    }
-
-    @Override public SmaliModifierListStub createStub(@NotNull SmaliModifierList psi, StubElement parentStub) {
-        return new SmaliModifierListStub(parentStub, psi.getAccessFlags());
-    }
-
-    @Override
-    public void serialize(@NotNull SmaliModifierListStub stub, @NotNull StubOutputStream dataStream)
-            throws IOException {
-        dataStream.writeVarInt(stub.getAccessFlags());
-    }
-
-    @NotNull @Override
-    public SmaliModifierListStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub)
-            throws IOException {
-        return new SmaliModifierListStub(parentStub, dataStream.readVarInt());
-    }
-
-    @Override public void indexStub(@NotNull SmaliModifierListStub stub, @NotNull IndexSink sink) {
-    }
+    public abstract PsiT createPsi(@NotNull ASTNode node);
 }

@@ -29,51 +29,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.stub.element;
+package org.jf.smalidea.psi.stub;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.stubs.IndexSink;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.impl.SmaliField;
-import org.jf.smalidea.psi.stub.SmaliFieldStub;
+import org.jetbrains.annotations.Nullable;
+import org.jf.smalidea.psi.impl.LightSmaliClassTypeElement;
+import org.jf.smalidea.psi.impl.SmaliBaseReferenceList;
+import org.jf.smalidea.psi.impl.SmaliClassType;
 
-import java.io.IOException;
+public abstract class SmaliBaseReferenceListStub<T extends SmaliBaseReferenceList> extends StubBase<T> {
+    @NotNull private final String[] types;
+    @Nullable private SmaliClassType[] classTypes = null;
 
-public class SmaliFieldElementType extends SmaliStubElementType<SmaliFieldStub, SmaliField> {
-    public static final SmaliFieldElementType INSTANCE = new SmaliFieldElementType();
-
-    private SmaliFieldElementType() {
-        super("FIELD");
+    protected SmaliBaseReferenceListStub(
+            @NotNull StubElement parent, @NotNull IStubElementType elementType, @NotNull String[] types) {
+        super(parent, elementType);
+        this.types = types;
     }
 
-    @NotNull @Override public String getExternalId() {
-        return "smali.field";
+    @NotNull public String[] getTypes() {
+        return types;
     }
 
-    @Override public SmaliField createPsi(@NotNull SmaliFieldStub stub) {
-        return new SmaliField(stub);
-    }
-
-    @Override public SmaliField createPsi(@NotNull ASTNode node) {
-        return new SmaliField(node);
-    }
-
-    @Override public SmaliFieldStub createStub(@NotNull SmaliField psi, StubElement parentStub) {
-        return new SmaliFieldStub(parentStub);
-    }
-
-    @Override
-    public void serialize(@NotNull SmaliFieldStub stub, @NotNull StubOutputStream dataStream) throws IOException {
-    }
-
-    @NotNull @Override
-    public SmaliFieldStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliFieldStub(parentStub);
-    }
-
-    @Override public void indexStub(@NotNull SmaliFieldStub stub, @NotNull IndexSink sink) {
+    @NotNull
+    public SmaliClassType[] getReferencedTypes() {
+        if (classTypes == null) {
+            classTypes = new SmaliClassType[types.length];
+            for (int i=0; i<types.length; i++) {
+                classTypes[i] = new SmaliClassType(
+                        new LightSmaliClassTypeElement(PsiManager.getInstance(getProject()), types[i]));
+            }
+        }
+        return classTypes;
     }
 }

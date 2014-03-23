@@ -40,13 +40,13 @@ import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.util.NameUtils;
 
 public class SmaliClassType extends PsiClassType {
-    private final SmaliClassTypeElement element;
+    private final PsiTypeElement element;
 
-    public SmaliClassType(SmaliClassTypeElement element) {
+    public SmaliClassType(PsiTypeElement element) {
         this(element, LanguageLevel.JDK_1_5);
     }
 
-    public SmaliClassType(SmaliClassTypeElement element, LanguageLevel languageLevel) {
+    public SmaliClassType(PsiTypeElement element, LanguageLevel languageLevel) {
         super(languageLevel);
         this.element = element;
     }
@@ -54,7 +54,11 @@ public class SmaliClassType extends PsiClassType {
     @Nullable
     @Override
     public PsiClass resolve() {
-        PsiElement resolved = element.resolve();
+        PsiReference reference = element.getReference();
+        if (reference == null) {
+            return null;
+        }
+        PsiElement resolved = reference.resolve();
         if (resolved instanceof PsiClass) {
             return (PsiClass)resolved;
         }
@@ -67,7 +71,7 @@ public class SmaliClassType extends PsiClassType {
         if (resolved != null) {
             return NameUtils.shortNameFromQualifiedName(resolved.getQualifiedName());
         }
-        return NameUtils.shortNameFromQualifiedName(element.getCanonicalText());
+        return NameUtils.shortNameFromQualifiedName(element.getText());
     }
 
     @NotNull
@@ -133,7 +137,7 @@ public class SmaliClassType extends PsiClassType {
 
     @Override
     public String getCanonicalText() {
-        return element.getCanonicalText();
+        return NameUtils.smaliToJavaType(element.getText());
     }
 
     @Override

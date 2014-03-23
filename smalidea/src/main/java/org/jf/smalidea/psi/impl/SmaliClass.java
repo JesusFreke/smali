@@ -35,6 +35,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
 import com.intellij.psi.PsiModifier.ModifierConstant;
+import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -100,36 +101,44 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         return getModifierList().hasModifierProperty("enum");
     }
 
-    @Nullable @Override public PsiReferenceList getExtendsList() {
-        return null;
+    @Nullable public SmaliSuperStatement getSuperStatement() {
+        return findChildByClass(SmaliSuperStatement.class);
     }
 
-    @Nullable @Override public PsiReferenceList getImplementsList() {
-        return null;
+    @NotNull @Override public SmaliExtendsList getExtendsList() {
+        return getRequiredStubOrPsiChild(SmaliElementTypes.EXTENDS_LIST);
     }
 
-    @NotNull @Override public PsiClassType[] getExtendsListTypes() {
-        return new PsiClassType[0];
+    @NotNull public SmaliImplementsStatement[] getImplementsStatements() {
+        return findChildrenByClass(SmaliImplementsStatement.class);
     }
 
-    @NotNull @Override public PsiClassType[] getImplementsListTypes() {
-        return new PsiClassType[0];
+    @NotNull @Override public SmaliImplementsList getImplementsList() {
+        return getRequiredStubOrPsiChild(SmaliElementTypes.IMPLEMENTS_LIST);
+    }
+
+    @NotNull @Override public SmaliClassType[] getExtendsListTypes() {
+        return getExtendsList().getReferencedTypes();
+    }
+
+    @NotNull @Override public SmaliClassType[] getImplementsListTypes() {
+        return getImplementsList().getReferencedTypes();
     }
 
     @Nullable @Override public PsiClass getSuperClass() {
-        return null;
+        return PsiClassImplUtil.getSuperClass(this);
     }
 
     @Override public PsiClass[] getInterfaces() {
-        return new PsiClass[0];
+        return PsiClassImplUtil.getInterfaces(this);
     }
 
     @NotNull @Override public PsiClass[] getSupers() {
-        return new PsiClass[0];
+        return PsiClassImplUtil.getSupers(this);
     }
 
     @NotNull @Override public PsiClassType[] getSuperTypes() {
-        return new PsiClassType[0];
+        return PsiClassImplUtil.getSuperTypes(this);
     }
 
     @NotNull @Override public PsiField[] getFields() {

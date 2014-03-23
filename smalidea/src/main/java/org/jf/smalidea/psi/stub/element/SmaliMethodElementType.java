@@ -39,7 +39,6 @@ import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 import org.jf.smalidea.psi.stub.SmaliMethodStub;
-import org.jf.smalidea.psi.stub.SmaliStubElementType;
 
 import java.io.IOException;
 

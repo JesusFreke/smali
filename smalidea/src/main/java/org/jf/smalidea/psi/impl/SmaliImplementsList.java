@@ -36,12 +36,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.stub.SmaliImplementsListStub;
 
-public class SmaliImplementsList extends SmaliStubBasedPsiElement<SmaliImplementsListStub> {
+public class SmaliImplementsList extends SmaliBaseReferenceList<SmaliImplementsListStub> {
     public SmaliImplementsList(@NotNull SmaliImplementsListStub stub) {
         super(stub, SmaliElementTypes.IMPLEMENTS_LIST);
     }
 
     public SmaliImplementsList(@NotNull ASTNode node) {
         super(node);
+    }
+
+    @NotNull @Override public SmaliClassTypeElement[] getSmaliReferenceElements() {
+        if (!((SmaliClass)getParent()).isInterface()) {
+            return getImplementsElements();
+        }
+        return new SmaliClassTypeElement[0];
+    }
+
+    @Override public Role getRole() {
+        return Role.IMPLEMENTS_LIST;
     }
 }

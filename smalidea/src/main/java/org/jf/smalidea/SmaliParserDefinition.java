@@ -47,7 +47,7 @@ import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliFile;
-import org.jf.smalidea.psi.stub.SmaliStubElementType;
+import org.jf.smalidea.psi.stub.element.SmaliStubElementType;
 
 public class SmaliParserDefinition implements ParserDefinition {
     @NotNull @Override public Lexer createLexer(Project project) {

@@ -40,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.index.SmaliClassNameIndex;
 import org.jf.smalidea.psi.stub.SmaliClassStub;
-import org.jf.smalidea.psi.stub.SmaliStubElementType;
 
 import java.io.IOException;
 

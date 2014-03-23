@@ -31,13 +31,13 @@
 
 package org.jf.smalidea.psi.stub;
 
-import com.intellij.psi.stubs.IStubElementType;
-import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import org.jetbrains.annotations.NotNull;
+import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliImplementsList;
 
-public class SmaliImplementsListStub extends StubBase<SmaliImplementsList> {
-    public SmaliImplementsListStub(StubElement parent, IStubElementType elementType) {
-        super(parent, elementType);
+public class SmaliImplementsListStub extends SmaliBaseReferenceListStub<SmaliImplementsList> {
+    public SmaliImplementsListStub(@NotNull StubElement parent, @NotNull String[] types) {
+        super(parent, SmaliElementTypes.IMPLEMENTS_LIST, types);
     }
 }

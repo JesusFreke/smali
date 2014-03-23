@@ -32,19 +32,12 @@
 package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliExtendsList;
 import org.jf.smalidea.psi.stub.SmaliExtendsListStub;
-import org.jf.smalidea.psi.stub.SmaliStubElementType;
 
-import java.io.IOException;
-
-public class SmaliExtendsListElementType extends SmaliStubElementType<SmaliExtendsListStub, SmaliExtendsList> {
+public class SmaliExtendsListElementType extends SmaliBaseReferenceListElementType<SmaliExtendsListStub, SmaliExtendsList> {
     public static final SmaliExtendsListElementType  INSTANCE = new SmaliExtendsListElementType ();
 
     private SmaliExtendsListElementType() {
@@ -55,29 +48,19 @@ public class SmaliExtendsListElementType extends SmaliStubElementType<SmaliExten
         return "smali.extends_list";
     }
 
-    @Override public SmaliExtendsList createPsi(@NotNull ASTNode node) {
-        return new SmaliExtendsList(node);
-    }
-
     @Override public SmaliExtendsList createPsi(@NotNull SmaliExtendsListStub stub) {
         return new SmaliExtendsList(stub);
     }
 
+    @Override public SmaliExtendsList createPsi(@NotNull ASTNode node) {
+        return new SmaliExtendsList(node);
+    }
+
+    @Override protected SmaliExtendsListStub createStub(StubElement parentStub, String[] types) {
+        return new SmaliExtendsListStub(parentStub, types);
+    }
+
     @Override public SmaliExtendsListStub createStub(@NotNull SmaliExtendsList psi, StubElement parentStub) {
-        return new SmaliExtendsListStub(parentStub, SmaliElementTypes.EXTENDS_LIST);
-    }
-
-    @Override
-    public void serialize(@NotNull SmaliExtendsListStub stub, @NotNull StubOutputStream dataStream)
-            throws IOException {
-    }
-
-    @NotNull @Override
-    public SmaliExtendsListStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub)
-            throws IOException {
-        return new SmaliExtendsListStub(parentStub, SmaliElementTypes.EXTENDS_LIST);
-    }
-
-    @Override public void indexStub(@NotNull SmaliExtendsListStub stub, @NotNull IndexSink sink) {
+        return new SmaliExtendsListStub(parentStub, psi.getReferenceNames());
     }
 }

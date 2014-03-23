@@ -29,21 +29,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.stub;
+package org.jf.smalidea.psi.stub.element;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.stubs.StubInputStream;
+import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.SmaliLanguage;
+import org.jf.smalidea.psi.impl.SmaliBaseReferenceList;
+import org.jf.smalidea.psi.stub.SmaliBaseReferenceListStub;
 
-public abstract class SmaliStubElementType<StubT extends StubElement, PsiT extends PsiElement>
-        extends IStubElementType<StubT, PsiT> {
-    protected SmaliStubElementType(@NotNull @NonNls String debugName) {
-        super(debugName, SmaliLanguage.INSTANCE);
+import java.io.IOException;
+
+public abstract class SmaliBaseReferenceListElementType<StubT extends SmaliBaseReferenceListStub,
+        PsiT extends SmaliBaseReferenceList> extends SmaliStubElementType<StubT, PsiT> {
+
+    protected SmaliBaseReferenceListElementType(@NotNull @NonNls String debugName) {
+        super(debugName);
     }
 
-    public abstract PsiT createPsi(@NotNull ASTNode node);
+    @Override
+    public void serialize(@NotNull StubT stub, @NotNull StubOutputStream dataStream)
+            throws IOException {
+        String[] references = stub.getTypes();
+        dataStream.writeVarInt(references.length);
+        for (String reference: references) {
+            dataStream.writeName(reference);
+        }
+    }
+
+    @NotNull @Override
+    public StubT deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
+        String[] references = new String[dataStream.readVarInt()];
+        for (int i=0; i<references.length; i++) {
+            references[i] = dataStream.readName().getString();
+        }
+
+        return createStub(parentStub, references);
+    }
+
+    protected abstract StubT createStub(StubElement parentStub, String[] types);
+
+    @Override public void indexStub(@NotNull StubT stub, @NotNull IndexSink sink) {
+    }
 }

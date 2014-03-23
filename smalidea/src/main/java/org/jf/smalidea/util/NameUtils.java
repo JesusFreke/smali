@@ -95,7 +95,7 @@ public class NameUtils {
         }
     }
 
-    private static String simpleJavaToSmaliType(@Nonnull String simpleJavaType) {
+    private static String simpleJavaToSmaliType(@NotNull String simpleJavaType) {
         StringBuilder sb = new StringBuilder(simpleJavaType.length() + 2);
         convertSimpleJavaToSmaliType(simpleJavaType, sb);
         sb.trimToSize();
@@ -103,7 +103,7 @@ public class NameUtils {
     }
 
     @NotNull
-    public static String smaliToJavaType(@Nonnull String smaliType) {
+    public static String smaliToJavaType(@NotNull String smaliType) {
         if (smaliType.charAt(0) == '[') {
             return convertSmaliArrayToJava(smaliType);
         } else {
