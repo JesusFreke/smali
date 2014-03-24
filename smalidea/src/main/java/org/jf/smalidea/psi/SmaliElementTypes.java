@@ -68,8 +68,12 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("FIELD_INITIALIZER", SmaliFieldInitializer.FACTORY);
     public static final SmaliCompositeElementType INSTRUCTION =
             new SmaliCompositeElementType("INSTRUCTION", SmaliInstruction.FACTORY);
+    public static final SmaliCompositeElementType ANNOTATION_PARAMETER_LIST =
+            new SmaliCompositeElementType("ANNOTATION_PARAMETER_LIST", SmaliAnnotationParameterList.FACTORY);
     public static final SmaliCompositeElementType ANNOTATION_ELEMENT =
             new SmaliCompositeElementType("ANNOTATION_ELEMENT", SmaliAnnotationElement.FACTORY);
+    public static final SmaliCompositeElementType ANNOTATION_ELEMENT_NAME =
+            new SmaliCompositeElementType("ANNOTATION_ELEMENT_NAME", SmaliAnnotationElementName.FACTORY);
     public static final SmaliCompositeElementType FIELD_REFERENCE =
             new SmaliCompositeElementType("FIELD_REFERENCE", SmaliFieldReference.FACTORY);
     public static final SmaliCompositeElementType METHOD_REFERENCE =

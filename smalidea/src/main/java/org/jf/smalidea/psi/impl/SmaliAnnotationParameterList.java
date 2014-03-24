@@ -29,25 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.stub;
+package org.jf.smalidea.psi.impl;
 
-import com.intellij.psi.stubs.StubBase;
-import com.intellij.psi.stubs.StubElement;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.psi.PsiAnnotationParameterList;
+import org.jetbrains.annotations.NotNull;
+import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
-import org.jf.smalidea.psi.impl.SmaliAnnotation;
 
-public class SmaliAnnotationStub extends StubBase<SmaliAnnotation> {
-    @Nullable
-    private final String annotationType;
+public class SmaliAnnotationParameterList extends SmaliCompositeElement implements PsiAnnotationParameterList {
+    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
+        @Override public SmaliCompositeElement createElement() {
+            return new SmaliAnnotationParameterList();
+        }
+    };
 
-    public SmaliAnnotationStub(StubElement parent, @Nullable String annotationType) {
-        super(parent, SmaliElementTypes.ANNOTATION);
-        this.annotationType = annotationType;
+    public SmaliAnnotationParameterList() {
+        super(SmaliElementTypes.ANNOTATION_PARAMETER_LIST);
     }
 
-    @Nullable
-    public String getAnnotationType() {
-        return annotationType;
+    @NotNull @Override public SmaliAnnotationElement[] getAttributes() {
+        return findChildrenByClass(SmaliAnnotationElement.class);
     }
 }

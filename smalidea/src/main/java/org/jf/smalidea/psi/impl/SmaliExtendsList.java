@@ -45,7 +45,7 @@ public class SmaliExtendsList extends SmaliBaseReferenceList<SmaliExtendsListStu
         super(node);
     }
 
-    @NotNull @Override public SmaliClassTypeElement[] getSmaliReferenceElements() {
+    @NotNull @Override public SmaliClassTypeElement[] getReferenceElements() {
         if (((SmaliClass)getParent()).isInterface()) {
             return getImplementsElements();
         } else {

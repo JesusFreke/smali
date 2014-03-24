@@ -494,14 +494,24 @@ fixed_literal
   | bool_literal;
 
 annotation_element
-  @init { Marker marker = mark(); }
-  : simple_name EQUAL literal;
+  @init {
+    Marker marker = mark();
+    Marker nameMarker = null;
+  }
+  : { nameMarker = mark(); } simple_name { nameMarker.done(SmaliElementTypes.ANNOTATION_ELEMENT_NAME); }
+    EQUAL literal;
   finally { marker.done(SmaliElementTypes.ANNOTATION_ELEMENT); }
 
 annotation
-  @init { Marker marker = mark(); }
+  @init {
+    Marker marker = mark();
+    Marker paramListMarker = null;
+  }
   : ANNOTATION_DIRECTIVE ANNOTATION_VISIBILITY class_descriptor
-    annotation_element* END_ANNOTATION_DIRECTIVE;
+    { paramListMarker = mark(); }
+    annotation_element*
+    { paramListMarker.done(SmaliElementTypes.ANNOTATION_PARAMETER_LIST); }
+    END_ANNOTATION_DIRECTIVE;
   finally { marker.done(SmaliElementTypes.ANNOTATION); }
 
 fully_qualified_method

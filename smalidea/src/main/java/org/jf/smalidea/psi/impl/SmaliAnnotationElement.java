@@ -31,10 +31,16 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiNameValuePair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliAnnotationElement extends SmaliCompositeElement {
+public class SmaliAnnotationElement extends SmaliCompositeElement implements PsiNameValuePair {
+    // TODO: consider making this a stub
+
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliAnnotationElement();
@@ -43,5 +49,32 @@ public class SmaliAnnotationElement extends SmaliCompositeElement {
 
     public SmaliAnnotationElement() {
         super(SmaliElementTypes.ANNOTATION_ELEMENT);
+    }
+
+    @Override public String getName() {
+        SmaliAnnotationElementName identifier = getNameIdentifier();
+        if (identifier != null) {
+            return identifier.getName();
+        }
+        return null;
+    }
+
+    @Nullable @Override public SmaliAnnotationElementName getNameIdentifier() {
+        return findChildByClass(SmaliAnnotationElementName.class);
+    }
+
+    @Nullable @Override public SmaliLiteral getValue() {
+        // TODO: implement the various psi expression classes that would be expected in the java stuff. Is SmaliLiteral implementing PsiLiteral and PsiExpression enough? What about method/field/enum literals?
+        return findChildByClass(SmaliLiteral.class);
+    }
+
+    @NotNull @Override public PsiAnnotationMemberValue setValue(@NotNull PsiAnnotationMemberValue newValue) {
+        // TODO: implement this
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable @Override public String getLiteralValue() {
+        // Not applicable for smali
+        return null;
     }
 }

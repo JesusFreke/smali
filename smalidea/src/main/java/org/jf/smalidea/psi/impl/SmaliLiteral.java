@@ -31,10 +31,11 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.psi.PsiAnnotationMemberValue;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliLiteral extends SmaliCompositeElement {
+public class SmaliLiteral extends SmaliCompositeElement implements PsiAnnotationMemberValue {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliLiteral();

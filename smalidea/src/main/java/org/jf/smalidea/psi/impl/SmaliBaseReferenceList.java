@@ -34,7 +34,6 @@ package org.jf.smalidea.psi.impl;
 import com.google.common.collect.Lists;
 import com.intellij.extapi.psi.StubBasedPsiElementBase;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.StubBasedPsiElement;
 import com.intellij.psi.stubs.IStubElementType;
@@ -59,7 +58,7 @@ public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceLis
             return stub.getReferencedTypes();
         }
 
-        SmaliClassTypeElement[] references = getSmaliReferenceElements();
+        SmaliClassTypeElement[] references = getReferenceElements();
 
         SmaliClassType[] referenceTypes = new SmaliClassType[references.length];
 
@@ -76,7 +75,7 @@ public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceLis
             return stub.getTypes();
         }
 
-        SmaliClassTypeElement[] references = getSmaliReferenceElements();
+        SmaliClassTypeElement[] references = getReferenceElements();
 
         String[] referenceNames = new String[references.length];
 
@@ -90,12 +89,7 @@ public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceLis
         return false;
     }
 
-    @NotNull @Override public PsiJavaCodeReferenceElement[] getReferenceElements() {
-        // Not applicable for smali
-        return PsiJavaCodeReferenceElement.EMPTY_ARRAY;
-    }
-
-    @NotNull public abstract SmaliClassTypeElement[] getSmaliReferenceElements();
+    @NotNull @Override public abstract SmaliClassTypeElement[] getReferenceElements();
 
     protected SmaliClassTypeElement[] getImplementsElements() {
         SmaliImplementsStatement[] implementsStatements = ((SmaliClass)getParent()).getImplementsStatements();

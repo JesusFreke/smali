@@ -34,6 +34,7 @@ package org.jf.smalidea.psi.impl;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightElement;
+import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.SmaliLanguage;
 import org.jf.smalidea.util.NameUtils;
 
-public class LightSmaliClassTypeElement extends LightElement implements PsiTypeElement, PsiReference {
+public class LightSmaliClassTypeElement extends LightElement
+        implements PsiTypeElement, PsiReference, PsiJavaCodeReferenceElement {
     @NotNull
     private final String qualifiedName;
 
@@ -58,9 +60,8 @@ public class LightSmaliClassTypeElement extends LightElement implements PsiTypeE
         return new SmaliClassType(this);
     }
 
-    @Nullable @Override public PsiJavaCodeReferenceElement getInnermostComponentReferenceElement() {
-        // Not applicable for smali
-        return null;
+    @Nullable @Override public LightSmaliClassTypeElement getInnermostComponentReferenceElement() {
+        return this;
     }
 
     @Override public String getText() {
@@ -83,8 +84,6 @@ public class LightSmaliClassTypeElement extends LightElement implements PsiTypeE
         JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
         return facade.findClass(getCanonicalText(), getResolveScope());
     }
-
-
 
     @NotNull @Override public String getCanonicalText() {
         return qualifiedName;
@@ -127,5 +126,56 @@ public class LightSmaliClassTypeElement extends LightElement implements PsiTypeE
 
     @NotNull @Override public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
         throw new UnsupportedOperationException();
+    }
+
+    // ***************************************************************************
+    // Below are the PsiJavaCodeReferenceElement-specific methods
+
+    @Override public void processVariants(@NotNull PsiScopeProcessor processor) {
+        // TODO: maybe just do nothing?
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable @Override public PsiElement getReferenceNameElement() {
+        // TODO: implement if needed
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable @Override public PsiReferenceParameterList getParameterList() {
+        // TODO: (generics) implement this
+        return null;
+    }
+
+    @NotNull @Override public PsiType[] getTypeParameters() {
+        // TODO: (generics) implement this
+        return new PsiType[0];
+    }
+
+    @Override public boolean isQualified() {
+        // TODO: should this return false for classes in the top level package?
+        return true;
+    }
+
+    @Override public String getQualifiedName() {
+        return getCanonicalText();
+    }
+
+    @NotNull @Override public JavaResolveResult advancedResolve(boolean incompleteCode) {
+        // TODO: implement this if needed
+        throw new UnsupportedOperationException();
+    }
+
+    @NotNull @Override public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+        // TODO: implement this if needed
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable @Override public PsiElement getQualifier() {
+        // TODO: implement this if needed
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable @Override public String getReferenceName() {
+        return getName();
     }
 }

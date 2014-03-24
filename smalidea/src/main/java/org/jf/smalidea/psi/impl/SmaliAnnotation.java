@@ -33,6 +33,7 @@ package org.jf.smalidea.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.meta.PsiMetaData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -49,15 +50,19 @@ public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStu
         super(node);
     }
 
-    @Nullable @Override public PsiMetaData getMetaData() {
-        return null;
-    }
-
-    @NotNull @Override public PsiAnnotationParameterList getParameterList() {
-        return null;
+    @NotNull @Override public SmaliAnnotationParameterList getParameterList() {
+        SmaliAnnotationParameterList paramList = findChildByClass(SmaliAnnotationParameterList.class);
+        // TODO: test that this is true even if there are syntax errors
+        assert paramList != null;
+        return paramList;
     }
 
     @Nullable @Override public String getQualifiedName() {
+        SmaliAnnotationStub stub = getStub();
+        if (stub != null) {
+            return stub.getAnnotationType();
+        }
+
         SmaliClassTypeElement classType = findChildByClass(SmaliClassTypeElement.class);
         if (classType == null) {
             return null;
@@ -66,24 +71,41 @@ public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStu
     }
 
     @Nullable @Override public PsiJavaCodeReferenceElement getNameReferenceElement() {
-        return null;
+        // TODO: have SmaliClassTypeElement implement PsiJavaCodeReferenceElement?
+        // TODO: we need to have a PsiAnnotationMethod implementation for methods in an annotation class (see PsiUtil.isAnnotationMethod and PsiImplUtil.findAttributeValue)
+        // TODO: alternately, we should implement findAttributeValue and findAttributeValue ourselves, instead of relying on PsiImplUtil (don't forget about finding default values..)
+        SmaliAnnotationStub stub = getStub();
+        if (stub != null) {
+            String qualifiedName = stub.getAnnotationType();
+            if (qualifiedName != null) {
+                return new LightSmaliClassTypeElement(getManager(), qualifiedName);
+            }
+        }
+        return findChildByClass(SmaliClassTypeElement.class);
     }
 
     @Nullable @Override public PsiAnnotationMemberValue findAttributeValue(@Nullable @NonNls String attributeName) {
-        return null;
+        return PsiImplUtil.findAttributeValue(this, attributeName);
     }
 
     @Nullable @Override
     public PsiAnnotationMemberValue findDeclaredAttributeValue(@Nullable @NonNls String attributeName) {
-        return null;
+        return PsiImplUtil.findDeclaredAttributeValue(this, attributeName);
     }
 
     @Override
-    public <T extends PsiAnnotationMemberValue> T setDeclaredAttributeValue(@Nullable @NonNls String attributeName, @Nullable T value) {
-        return null;
+    public <T extends PsiAnnotationMemberValue> T setDeclaredAttributeValue(
+            @Nullable @NonNls String attributeName, @Nullable T value) {
+        // TODO: implement this
+        throw new UnsupportedOperationException();
     }
 
     @Nullable @Override public PsiAnnotationOwner getOwner() {
+        return (PsiAnnotationOwner)getParent();
+    }
+
+    @Nullable @Override public PsiMetaData getMetaData() {
+        // I have no idea what this is
         return null;
     }
 }

@@ -62,16 +62,17 @@ public class SmaliAnnotationElementType extends SmaliStubElementType<SmaliAnnota
     }
 
     @Override public SmaliAnnotationStub createStub(@NotNull SmaliAnnotation psi, StubElement parentStub) {
-        return new SmaliAnnotationStub(parentStub);
+        return new SmaliAnnotationStub(parentStub, psi.getQualifiedName());
     }
 
     @Override
     public void serialize(@NotNull SmaliAnnotationStub stub, @NotNull StubOutputStream dataStream) throws IOException {
+        dataStream.writeName(stub.getAnnotationType());
     }
 
     @NotNull @Override
     public SmaliAnnotationStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliAnnotationStub(parentStub);
+        return new SmaliAnnotationStub(parentStub, dataStream.readName().getString());
     }
 
     @Override public void indexStub(@NotNull SmaliAnnotationStub stub, @NotNull IndexSink sink) {
