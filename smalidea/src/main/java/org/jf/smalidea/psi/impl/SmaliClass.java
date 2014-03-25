@@ -72,19 +72,12 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         return name.substring(lastDot+1);
     }
 
-    @Nullable @Override public SmaliAccessList getAccessFlagsNode() {
-        SmaliClassStatement classStatement = findChildByClass(SmaliClassStatement.class);
-        if (classStatement == null) {
-            return null;
-        }
-        return classStatement.getAccessFlagsNode();
-    }
-    @Override public boolean hasTypeParameters() {
-        // TODO: implement generics
-        return false;
-    }
-
     @Nullable @Override public String getQualifiedName() {
+        SmaliClassStub stub = getStub();
+        if (stub != null) {
+            return stub.getQualifiedName();
+        }
+
         SmaliClassStatement classStatement = findChildByClass(SmaliClassStatement.class);
         if (classStatement == null) {
             return null;
@@ -102,6 +95,18 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
             return "";
         }
         return name.substring(0, lastDot);
+    }
+
+    @Nullable @Override public SmaliAccessList getAccessFlagsNode() {
+        SmaliClassStatement classStatement = findChildByClass(SmaliClassStatement.class);
+        if (classStatement == null) {
+            return null;
+        }
+        return classStatement.getAccessFlagsNode();
+    }
+    @Override public boolean hasTypeParameters() {
+        // TODO: implement generics
+        return false;
     }
 
     @Override public boolean isInterface() {
