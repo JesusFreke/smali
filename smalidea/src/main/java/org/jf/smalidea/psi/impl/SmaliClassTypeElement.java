@@ -35,15 +35,13 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.util.NameUtils;
 
-public class SmaliClassTypeElement extends SmaliCompositeElement
-        implements PsiTypeElement, PsiJavaCodeReferenceElement {
+public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCodeReferenceElement {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliClassTypeElement();
@@ -124,24 +122,6 @@ public class SmaliClassTypeElement extends SmaliCompositeElement
 
     @Override public boolean isSoft() {
         return false;
-    }
-
-    // Annotations on types are for JSR 308. Not applicable to smali.
-
-    @NotNull @Override public PsiAnnotation[] getAnnotations() {
-        return new PsiAnnotation[0];
-    }
-
-    @NotNull @Override public PsiAnnotation[] getApplicableAnnotations() {
-        return new PsiAnnotation[0];
-    }
-
-    @Nullable @Override public PsiAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
-        return null;
-    }
-
-    @NotNull @Override public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
-        throw new UnsupportedOperationException();
     }
 
     // ***************************************************************************

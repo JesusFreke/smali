@@ -31,43 +31,38 @@
 
 package org.jf.smalidea.psi.impl;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiArrayType;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiTypeElement;
+import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.SmaliTokens;
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
-import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliArrayTypeElement extends SmaliTypeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliArrayTypeElement();
-        }
-    };
-
-    public SmaliArrayTypeElement() {
-        super(SmaliElementTypes.ARRAY_TYPE);
+public abstract class SmaliTypeElement extends SmaliCompositeElement implements PsiTypeElement {
+    protected SmaliTypeElement(IElementType type) {
+        super(type);
     }
 
-    @NotNull @Override public PsiType getType() {
-        ASTNode token = findChildByType(SmaliTokens.ARRAY_TYPE_PREFIX);
-        assert token != null;
-        PsiTypeElement baseType = findChildByClass(PsiTypeElement.class);
-        assert baseType != null;
-
-        PsiArrayType arrayType = new PsiArrayType(baseType.getType());
-        int dimensions = token.getTextLength() - 1;
-        while (dimensions > 0) {
-            arrayType = new PsiArrayType(arrayType);
-            dimensions--;
-        }
-        return arrayType;
+    @Nullable @Override public PsiJavaCodeReferenceElement getInnermostComponentReferenceElement() {
+        return null;
     }
 
-    @Nullable @Override public SmaliClassTypeElement getInnermostComponentReferenceElement() {
-        return findChildByClass(SmaliClassTypeElement.class);
+    // Annotations on types are for JSR 308. Not applicable to smali.
+
+    @NotNull @Override public PsiAnnotation[] getAnnotations() {
+        return new PsiAnnotation[0];
+    }
+
+    @NotNull @Override public PsiAnnotation[] getApplicableAnnotations() {
+        return new PsiAnnotation[0];
+    }
+
+    @Nullable @Override public PsiAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
+        return null;
+    }
+
+    @NotNull @Override public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
+        throw new UnsupportedOperationException();
     }
 }

@@ -31,10 +31,12 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.psi.PsiType;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliVoidTypeElement extends SmaliCompositeElement {
+public class SmaliVoidTypeElement extends SmaliTypeElement {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliVoidTypeElement();
@@ -43,5 +45,9 @@ public class SmaliVoidTypeElement extends SmaliCompositeElement {
 
     public SmaliVoidTypeElement() {
         super(SmaliElementTypes.VOID_TYPE);
+    }
+
+    @NotNull @Override public PsiType getType() {
+        return PsiType.VOID;
     }
 }
