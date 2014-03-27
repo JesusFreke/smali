@@ -39,7 +39,7 @@ tokens {
   ANNOTATION_DIRECTIVE;
   ANNOTATION_VISIBILITY;
   ARRAY_DATA_DIRECTIVE;
-  ARRAY_DESCRIPTOR;
+  ARRAY_TYPE_PREFIX;
   ARROW;
   BOOL_LITERAL;
   BYTE_LITERAL;
@@ -369,16 +369,12 @@ import org.jf.dexlib2.Opcodes;
       case '[':
       {
         int i = typeStartIndex;
-            while (str.charAt(++i) == '[');
+        while (str.charAt(++i) == '[');
 
-            if (str.charAt(i++) == 'L') {
-                while (str.charAt(i++) != ';');
-        }
-
-            token.setType(ARRAY_DESCRIPTOR);
-            token.setText(str.substring(typeStartIndex, i));
-            token.setStopIndex(baseToken.getStartIndex() + i - 1);
-            break;
+        token.setType(ARRAY_TYPE_PREFIX);
+        token.setText(str.substring(typeStartIndex, i));
+        token.setStopIndex(baseToken.getStartIndex() + i - 1);
+        break;
       }
       default:
         throw new RuntimeException(String.format("Invalid character '\%c' in param list \"\%s\" at position \%d", str.charAt(typeStartIndex), str, typeStartIndex));
@@ -591,20 +587,23 @@ param_list
   | PARAM_LIST_OR_ID_START PRIMITIVE_TYPE* PARAM_LIST_OR_ID_END -> PRIMITIVE_TYPE*
   | nonvoid_type_descriptor*;
 
+array_descriptor
+  : ARRAY_TYPE_PREFIX (PRIMITIVE_TYPE | CLASS_DESCRIPTOR);
+
 type_descriptor
   : VOID_TYPE
   | PRIMITIVE_TYPE
   | CLASS_DESCRIPTOR
-  | ARRAY_DESCRIPTOR;
+  | array_descriptor;
 
 nonvoid_type_descriptor
   : PRIMITIVE_TYPE
   | CLASS_DESCRIPTOR
-  | ARRAY_DESCRIPTOR;
+  | array_descriptor;
 
 reference_type_descriptor
   : CLASS_DESCRIPTOR
-  | ARRAY_DESCRIPTOR;
+  | array_descriptor;
 
 integer_literal
   : POSITIVE_INTEGER_LITERAL -> INTEGER_LITERAL[$POSITIVE_INTEGER_LITERAL]

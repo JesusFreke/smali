@@ -72,7 +72,8 @@ public class SmaliLexerTest extends LexerTestCase {
                 "WHITE_SPACE (' ')\n" +
                 "SIMPLE_NAME ('main')\n" +
                 "OPEN_PAREN ('(')\n" +
-                "ARRAY_DESCRIPTOR ('[Ljava/lang/String;')\n" +
+                "ARRAY_TYPE_PREFIX ('[')\n" +
+                "CLASS_DESCRIPTOR ('Ljava/lang/String;')\n" +
                 "CLOSE_PAREN (')')\n" +
                 "VOID_TYPE ('V')\n" +
                 "WHITE_SPACE ('\\n    ')\n" +

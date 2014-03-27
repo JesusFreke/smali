@@ -50,7 +50,7 @@ public class SmaliTokens {
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType ANNOTATION_DIRECTIVE;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType ANNOTATION_VISIBILITY;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType ARRAY_DATA_DIRECTIVE;
-    @SuppressWarnings({"UnusedDeclaration"}) public static IElementType ARRAY_DESCRIPTOR;
+    @SuppressWarnings({"UnusedDeclaration"}) public static IElementType ARRAY_TYPE_PREFIX;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType ARROW;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType BOOL_LITERAL;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType BYTE_LITERAL;
@@ -169,7 +169,7 @@ public class SmaliTokens {
         tokenColors.put("ANNOTATION_DIRECTIVE", SmaliHighlightingColors.DIRECTIVE);
         tokenColors.put("ANNOTATION_VISIBILITY", SmaliHighlightingColors.ACCESS);
         tokenColors.put("ARRAY_DATA_DIRECTIVE", SmaliHighlightingColors.DIRECTIVE);
-        tokenColors.put("ARRAY_DESCRIPTOR", SmaliHighlightingColors.TYPE);
+        tokenColors.put("ARRAY_TYPE_PREFIX", SmaliHighlightingColors.TYPE);
         tokenColors.put("ARROW", SmaliHighlightingColors.ARROW);
         tokenColors.put("BOOL_LITERAL", SmaliHighlightingColors.LITERAL);
         tokenColors.put("BYTE_LITERAL", SmaliHighlightingColors.NUMBER);

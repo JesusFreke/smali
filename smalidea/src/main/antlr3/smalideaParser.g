@@ -347,7 +347,7 @@ class_descriptor
 
 array_descriptor
   @init { Marker marker = mark(); }
-  : ARRAY_DESCRIPTOR;
+  : ARRAY_TYPE_PREFIX (primitive_type | class_descriptor);
   finally { marker.done(SmaliElementTypes.ARRAY_TYPE); }
 
 void_type

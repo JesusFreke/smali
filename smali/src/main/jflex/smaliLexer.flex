@@ -231,13 +231,14 @@ PrimitiveType = [ZBSCIJFD]
 
 ClassDescriptor = L ({SimpleName} "/")* {SimpleName} ;
 
-ArrayDescriptor = "[" + ({PrimitiveType} | {ClassDescriptor})
+ArrayPrefix = "["+
 
-Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
+Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | {PrimitiveType})
 
 
 %state PARAM_LIST_OR_ID
 %state PARAM_LIST
+%state ARRAY_DESCRIPTOR
 %state STRING
 %state CHAR
 
@@ -314,7 +315,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
 <PARAM_LIST> {
     {PrimitiveType} { return newToken(PRIMITIVE_TYPE); }
     {ClassDescriptor} { return newToken(CLASS_DESCRIPTOR); }
-    {ArrayDescriptor} { return newToken(ARRAY_DESCRIPTOR); }
+    {ArrayPrefix} { return newToken(ARRAY_TYPE_PREFIX); }
     [^] { yypushback(1); yybegin(YYINITIAL); return newToken(PARAM_LIST_END); }
     <<EOF>> { yybegin(YYINITIAL); return newToken(PARAM_LIST_END); }
 }
@@ -611,12 +612,24 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayDescriptor}
     }
 }
 
+<ARRAY_DESCRIPTOR> {
+   {PrimitiveType} { yybegin(YYINITIAL); return newToken(PRIMITIVE_TYPE); }
+   {ClassDescriptor} { yybegin(YYINITIAL); return newToken(CLASS_DESCRIPTOR); }
+   [^] { yypushback(1); yybegin(YYINITIAL); }
+}
+
 /*Types*/
 <YYINITIAL> {
     {PrimitiveType} { return newToken(PRIMITIVE_TYPE); }
     V { return newToken(VOID_TYPE); }
     {ClassDescriptor} { return newToken(CLASS_DESCRIPTOR); }
-    {ArrayDescriptor} { return newToken(ARRAY_DESCRIPTOR); }
+
+    // we have to drop into a separate state so that we don't parse something like
+    // "[I->" as "[" followed by "I-" as a SIMPLE_NAME
+    {ArrayPrefix} {
+      yybegin(ARRAY_DESCRIPTOR);
+      return newToken(ARRAY_TYPE_PREFIX);
+    }
 
     {PrimitiveType} {PrimitiveType}+ {
         yypushback(yylength());

@@ -23,6 +23,8 @@ LI/I/I;
 [D
 [Ljava/lang/String;
 [LI/I/I;
+[[LI/I/I;
+[[I
 
 IIIII
 ZBSCIJFD
@@ -50,3 +52,5 @@ L[Ljava/lang/String;
 <linit>
 
 III
+
+[I->clone()Ljava/lang/Object;
