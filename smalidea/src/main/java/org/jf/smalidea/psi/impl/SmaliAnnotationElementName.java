@@ -48,7 +48,7 @@ public class SmaliAnnotationElementName extends SmaliCompositeElement implements
     }
 
     @Override public IElementType getTokenType() {
-        return getNode().getElementType();
+        return getElementType();
     }
 
     @Override public String getName() {

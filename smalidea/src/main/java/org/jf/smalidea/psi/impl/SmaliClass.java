@@ -161,8 +161,8 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         return PsiClassImplUtil.getSuperTypes(this);
     }
 
-    @NotNull @Override public PsiField[] getFields() {
-        return new PsiField[0];
+    @NotNull @Override public SmaliField[] getFields() {
+        return getStubOrPsiChildren(SmaliElementTypes.FIELD, new SmaliField[0]);
     }
 
     @NotNull @Override public PsiMethod[] getMethods() {
@@ -182,7 +182,7 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @NotNull @Override public PsiField[] getAllFields() {
-        return new PsiField[0];
+        return PsiClassImplUtil.getAllFields(this);
     }
 
     @NotNull @Override public PsiMethod[] getAllMethods() {
@@ -194,7 +194,7 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @Nullable @Override public PsiField findFieldByName(@NonNls String name, boolean checkBases) {
-        return null;
+        return PsiClassImplUtil.findFieldByName(this, name, checkBases);
     }
 
     @Nullable @Override public PsiMethod findMethodBySignature(PsiMethod patternMethod, boolean checkBases) {

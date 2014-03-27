@@ -31,10 +31,16 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.*;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jf.smalidea.SmaliTokens;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliArrayTypeElement extends SmaliCompositeElement {
+public class SmaliArrayTypeElement extends SmaliCompositeElement implements PsiTypeElement {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliArrayTypeElement();
@@ -43,5 +49,42 @@ public class SmaliArrayTypeElement extends SmaliCompositeElement {
 
     public SmaliArrayTypeElement() {
         super(SmaliElementTypes.ARRAY_TYPE);
+    }
+
+    @NotNull @Override public PsiType getType() {
+        ASTNode token = findChildByType(SmaliTokens.ARRAY_TYPE_PREFIX);
+        assert token != null;
+        PsiTypeElement baseType = findChildByClass(PsiTypeElement.class);
+        assert baseType != null;
+
+        PsiArrayType arrayType = new PsiArrayType(baseType.getType());
+        int dimensions = token.getTextLength() - 1;
+        while (dimensions > 0) {
+            arrayType = new PsiArrayType(arrayType);
+            dimensions--;
+        }
+        return arrayType;
+    }
+
+    @Nullable @Override public SmaliClassTypeElement getInnermostComponentReferenceElement() {
+        return findChildByClass(SmaliClassTypeElement.class);
+    }
+
+    // Annotations on types are for JSR 308. Not applicable to smali.
+
+    @NotNull @Override public PsiAnnotation[] getAnnotations() {
+        return new PsiAnnotation[0];
+    }
+
+    @NotNull @Override public PsiAnnotation[] getApplicableAnnotations() {
+        return new PsiAnnotation[0];
+    }
+
+    @Nullable @Override public PsiAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
+        return null;
+    }
+
+    @NotNull @Override public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
+        return null;
     }
 }

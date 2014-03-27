@@ -31,10 +31,12 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.tree.IElementType;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliMemberName extends SmaliCompositeElement {
+public class SmaliMemberName extends SmaliCompositeElement implements PsiIdentifier {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliMemberName();
@@ -43,5 +45,9 @@ public class SmaliMemberName extends SmaliCompositeElement {
 
     public SmaliMemberName() {
         super(SmaliElementTypes.MEMBER_NAME);
+    }
+
+    @Override public IElementType getTokenType() {
+        return getElementType();
     }
 }

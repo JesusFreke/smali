@@ -33,11 +33,25 @@ package org.jf.smalidea.psi.stub;
 
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliField;
 
 public class SmaliFieldStub extends StubBase<SmaliField> {
-    public SmaliFieldStub(StubElement parent) {
-        super(parent, SmaliElementTypes.FIELD);
+    @NotNull private final String name;
+    @NotNull private final String type;
+
+    public SmaliFieldStub(StubElement parent, @NotNull String name, @NotNull String type) {
+        super(parent,  SmaliElementTypes.FIELD);
+        this.name = name;
+        this.type = type;
+    }
+
+    @NotNull public String getName() {
+        return name;
+    }
+
+    @NotNull public String getType() {
+        return type;
     }
 }

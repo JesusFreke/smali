@@ -31,16 +31,13 @@
 
 package org.jf.smalidea;
 
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.*;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import junit.framework.Assert;
-import org.jf.smalidea.psi.impl.SmaliAnnotation;
-import org.jf.smalidea.psi.impl.SmaliAnnotationParameterList;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
 
-public class SmaliClassAnnotationTest extends LightCodeInsightFixtureTestCase {
+public class SmaliAnnotationTest extends LightCodeInsightFixtureTestCase {
     // TODO: test default values
 
     public void testClassAnnotation() {
@@ -81,35 +78,82 @@ public class SmaliClassAnnotationTest extends LightCodeInsightFixtureTestCase {
         SmaliClass smaliClass = file.getPsiClass();
         Assert.assertEquals("my.pkg.blah", smaliClass.getQualifiedName());
 
-        Assert.assertEquals(2, smaliClass.getAnnotations().length);
+        doTest(smaliClass);
+    }
 
-        Assert.assertEquals("my.TestAnnotation", smaliClass.getAnnotations()[0].getQualifiedName());
-        PsiJavaCodeReferenceElement annotationNameRef = smaliClass.getAnnotations()[0].getNameReferenceElement();
+    public void testFieldAnnotation() {
+        myFixture.addFileToProject("my/TestAnnotation.smali",
+                ".class public interface abstract annotation Lmy/TestAnnotation;\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".implements Ljava/lang/annotation/Annotation;\n" +
+                "\n" +
+                ".method public abstract testBooleanValue()Z\n" +
+                ".end method\n" +
+                "\n" +
+                ".method public abstract testStringArrayValue()[Ljava/lang/String;\n" +
+                ".end method\n" +
+                "\n" +
+                ".method public abstract testStringValue()Ljava/lang/String;\n" +
+                ".end method");
+
+        myFixture.addFileToProject("my/TestAnnotation2.smali",
+                ".class public interface abstract annotation Lmy/TestAnnotation2;\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".implements Ljava/lang/annotation/Annotation;\n");
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali",
+                ".class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
+                "\n" +
+                ".field public myField:I\n" +
+                "    .annotation runtime Lmy/TestAnnotation;\n" +
+                "        testBooleanValue = true\n" +
+                "        testStringValue = \"blah\"\n" +
+                "        testStringArrayValue = {\n" +
+                "            \"blah1\",\n" +
+                "            \"blah2\"\n" +
+                "        }\n" +
+                "    .end annotation\n" +
+                "    .annotation runtime Lmy/TestAnnotation2;\n" +
+                "    .end annotation\n" +
+                ".end field");
+
+        SmaliClass smaliClass = file.getPsiClass();
+        Assert.assertEquals("my.pkg.blah", smaliClass.getQualifiedName());
+
+        PsiField field = smaliClass.findFieldByName("myField", false);
+        doTest((PsiAnnotationOwner)field);
+    }
+
+    public void doTest(PsiAnnotationOwner annotationOwner) {
+        Assert.assertEquals(2, annotationOwner.getAnnotations().length);
+
+        Assert.assertEquals("my.TestAnnotation", annotationOwner.getAnnotations()[0].getQualifiedName());
+        PsiJavaCodeReferenceElement annotationNameRef = annotationOwner.getAnnotations()[0].getNameReferenceElement();
         Assert.assertNotNull(annotationNameRef);
         SmaliClass smaliAnnotationClass = (SmaliClass)annotationNameRef.resolve();
         Assert.assertNotNull(smaliAnnotationClass);
         Assert.assertEquals("my.TestAnnotation", smaliAnnotationClass.getQualifiedName());
 
-        Assert.assertEquals("my.TestAnnotation2", smaliClass.getAnnotations()[1].getQualifiedName());
-        annotationNameRef = smaliClass.getAnnotations()[1].getNameReferenceElement();
+        Assert.assertEquals("my.TestAnnotation2", annotationOwner.getAnnotations()[1].getQualifiedName());
+        annotationNameRef = annotationOwner.getAnnotations()[1].getNameReferenceElement();
         Assert.assertNotNull(annotationNameRef);
         smaliAnnotationClass = (SmaliClass)annotationNameRef.resolve();
         Assert.assertNotNull(smaliAnnotationClass);
         Assert.assertEquals("my.TestAnnotation2", smaliAnnotationClass.getQualifiedName());
 
-        SmaliAnnotation smaliAnnotation = smaliClass.findAnnotation("my.TestAnnotation");
+        PsiAnnotation smaliAnnotation = annotationOwner.findAnnotation("my.TestAnnotation");
         Assert.assertNotNull(smaliAnnotation);
         Assert.assertEquals("my.TestAnnotation", smaliAnnotation.getQualifiedName());
-        SmaliClass owner = (SmaliClass)smaliAnnotation.getOwner();
+        PsiAnnotationOwner owner = smaliAnnotation.getOwner();
         Assert.assertNotNull(owner);
-        Assert.assertEquals("my.pkg.blah", owner.getQualifiedName());
+        Assert.assertSame(annotationOwner, owner);
         annotationNameRef = smaliAnnotation.getNameReferenceElement();
         Assert.assertNotNull(annotationNameRef);
         smaliAnnotationClass = (SmaliClass)annotationNameRef.resolve();
         Assert.assertNotNull(smaliAnnotationClass);
         Assert.assertEquals("my.TestAnnotation", smaliAnnotationClass.getQualifiedName());
 
-        SmaliAnnotationParameterList parameterList = smaliAnnotation.getParameterList();
+        PsiAnnotationParameterList parameterList = smaliAnnotation.getParameterList();
         Assert.assertNotNull(parameterList);
         Assert.assertEquals(3, parameterList.getAttributes().length);
         Assert.assertEquals("testBooleanValue", parameterList.getAttributes()[0].getName());
@@ -139,12 +183,12 @@ public class SmaliClassAnnotationTest extends LightCodeInsightFixtureTestCase {
 
         // TODO: test findAttributeValue vs findDeclaredAttributeValue for default values
 
-        smaliAnnotation = smaliClass.findAnnotation("my.TestAnnotation2");
+        smaliAnnotation = annotationOwner.findAnnotation("my.TestAnnotation2");
         Assert.assertNotNull(smaliAnnotation);
         Assert.assertEquals("my.TestAnnotation2", smaliAnnotation.getQualifiedName());
-        owner = (SmaliClass)smaliAnnotation.getOwner();
+        owner = smaliAnnotation.getOwner();
         Assert.assertNotNull(owner);
-        Assert.assertEquals("my.pkg.blah", owner.getQualifiedName());
+        Assert.assertSame(annotationOwner, owner);
         annotationNameRef = smaliAnnotation.getNameReferenceElement();
         Assert.assertNotNull(annotationNameRef);
         smaliAnnotationClass = (SmaliClass)annotationNameRef.resolve();

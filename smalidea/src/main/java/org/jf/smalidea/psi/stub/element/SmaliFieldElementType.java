@@ -62,16 +62,18 @@ public class SmaliFieldElementType extends SmaliStubElementType<SmaliFieldStub, 
     }
 
     @Override public SmaliFieldStub createStub(@NotNull SmaliField psi, StubElement parentStub) {
-        return new SmaliFieldStub(parentStub);
+        return new SmaliFieldStub(parentStub, psi.getName(), psi.getType().getCanonicalText());
     }
 
     @Override
     public void serialize(@NotNull SmaliFieldStub stub, @NotNull StubOutputStream dataStream) throws IOException {
+        dataStream.writeName(stub.getName());
+        dataStream.writeName(stub.getType());
     }
 
     @NotNull @Override
     public SmaliFieldStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliFieldStub(parentStub);
+        return new SmaliFieldStub(parentStub, dataStream.readName().getString(), dataStream.readName().getString());
     }
 
     @Override public void indexStub(@NotNull SmaliFieldStub stub, @NotNull IndexSink sink) {

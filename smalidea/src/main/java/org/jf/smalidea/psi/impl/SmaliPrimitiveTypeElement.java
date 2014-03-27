@@ -31,10 +31,17 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypeElement;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliPrimitiveTypeElement extends SmaliCompositeElement {
+public class SmaliPrimitiveTypeElement extends SmaliCompositeElement implements PsiTypeElement {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliPrimitiveTypeElement();
@@ -43,5 +50,50 @@ public class SmaliPrimitiveTypeElement extends SmaliCompositeElement {
 
     public SmaliPrimitiveTypeElement() {
         super(SmaliElementTypes.PRIMITIVE_TYPE);
+    }
+
+    @NotNull @Override public PsiType getType() {
+        switch (getText().charAt(0)) {
+            case 'Z':
+                return PsiType.BOOLEAN;
+            case 'B':
+                return PsiType.BYTE;
+            case 'S':
+                return PsiType.SHORT;
+            case 'C':
+                return PsiType.CHAR;
+            case 'I':
+                return PsiType.INT;
+            case 'J':
+                return PsiType.LONG;
+            case 'F':
+                return PsiType.FLOAT;
+            case 'D':
+                return PsiType.DOUBLE;
+            default:
+                throw new RuntimeException("Unexpected primitive type");
+        }
+    }
+
+    @Nullable @Override public PsiJavaCodeReferenceElement getInnermostComponentReferenceElement() {
+        return null;
+    }
+
+    // Annotations on types are for JSR 308. Not applicable to smali.
+
+    @NotNull @Override public PsiAnnotation[] getAnnotations() {
+        return new PsiAnnotation[0];
+    }
+
+    @NotNull @Override public PsiAnnotation[] getApplicableAnnotations() {
+        return new PsiAnnotation[0];
+    }
+
+    @Nullable @Override public PsiAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
+        return null;
+    }
+
+    @NotNull @Override public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
+        return null;
     }
 }

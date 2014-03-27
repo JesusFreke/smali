@@ -32,16 +32,135 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.*;
+import com.intellij.psi.PsiModifier.ModifierConstant;
+import com.intellij.psi.impl.PsiImplUtil;
+import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliFieldStub;
 
-public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> {
+import javax.annotation.Nonnull;
+
+public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> implements PsiField, SmaliModifierListOwner {
     public SmaliField(@NotNull SmaliFieldStub stub) {
         super(stub, SmaliElementTypes.FIELD);
     }
 
     public SmaliField(@NotNull ASTNode node) {
         super(node);
+    }
+
+    @Nonnull @Override public String getName() {
+        SmaliFieldStub stub = getStub();
+        if (stub != null) {
+            return stub.getName();
+        }
+
+        SmaliMemberName smaliMemberName = findChildByClass(SmaliMemberName.class);
+        assert smaliMemberName != null;
+        return smaliMemberName.getText();
+    }
+
+    @Nullable @Override public SmaliAccessList getAccessFlagsNode() {
+        return findChildByClass(SmaliAccessList.class);
+    }
+
+    @NotNull @Override public SmaliModifierList getModifierList() {
+        SmaliModifierList modifierList = getStubOrPsiChild(SmaliElementTypes.MODIFIER_LIST);
+        assert modifierList != null;
+        return modifierList;
+    }
+
+    @NotNull @Override public PsiIdentifier getNameIdentifier() {
+        SmaliMemberName memberName = findChildByClass(SmaliMemberName.class);
+        assert memberName != null;
+        return memberName;
+    }
+
+    @Nullable @Override public PsiDocComment getDocComment() {
+        return null;
+    }
+
+    @Override public boolean isDeprecated() {
+        return PsiImplUtil.isDeprecatedByAnnotation(this);
+    }
+
+    @Nullable @Override public PsiClass getContainingClass() {
+        return (PsiClass)getParent();
+    }
+
+    @NotNull @Override public PsiType getType() {
+        SmaliFieldStub stub = getStub();
+        if (stub != null) {
+            String type = stub.getType();
+            PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
+            return factory.createTypeFromText(type, this);
+        }
+        PsiTypeElement typeElement = getTypeElement();
+        assert typeElement != null;
+        return getTypeElement().getType();
+    }
+
+    @Nullable @Override public PsiTypeElement getTypeElement() {
+        return findChildByClass(PsiTypeElement.class);
+    }
+
+    @Nullable @Override public PsiExpression getInitializer() {
+        // TODO: implement this
+        return null;
+    }
+
+    @Override public boolean hasInitializer() {
+        // TODO: implement this
+        return false;
+    }
+
+    @Override public void normalizeDeclaration() throws IncorrectOperationException {
+        // not applicable
+    }
+
+    @Nullable @Override public Object computeConstantValue() {
+        // TODO: implement this
+        return null;
+    }
+
+    @Override public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
+        // TODO: implement this
+        return null;
+    }
+
+    @Override public boolean hasModifierProperty(@ModifierConstant @NonNls @NotNull String name) {
+        return getModifierList().hasModifierProperty(name);
+    }
+
+    @NotNull @Override public SmaliAnnotation[] getAnnotations() {
+        return getStubOrPsiChildren(SmaliElementTypes.ANNOTATION, new SmaliAnnotation[0]);
+    }
+
+    @NotNull @Override public SmaliAnnotation[] getApplicableAnnotations() {
+        return getAnnotations();
+    }
+
+    @Nullable @Override public SmaliAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
+        for (SmaliAnnotation annotation: getAnnotations()) {
+            if (qualifiedName.equals(annotation.getQualifiedName())) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    @NotNull @Override public SmaliAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
+        // TODO: implement this
+        return null;
+    }
+
+    @Override public void setInitializer(@Nullable PsiExpression initializer) throws IncorrectOperationException {
+        // TODO: implement this
     }
 }
