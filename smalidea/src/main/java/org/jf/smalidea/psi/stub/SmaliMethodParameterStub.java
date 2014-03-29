@@ -29,52 +29,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.psi.stub;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.stubs.StubBase;
+import com.intellij.psi.stubs.StubElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
-import org.jf.smalidea.psi.stub.SmaliMethodParamListStub;
+import org.jf.smalidea.psi.impl.SmaliMethodParameter;
 
-import java.util.Arrays;
+public class SmaliMethodParameterStub extends StubBase<SmaliMethodParameter> {
+    @NotNull private final String type;
+    @Nullable private final String name;
 
-public class SmaliMethodParamList extends SmaliStubBasedPsiElement<SmaliMethodParamListStub>
-        implements PsiParameterList {
-    public SmaliMethodParamList(@NotNull SmaliMethodParamListStub stub) {
-        super(stub, SmaliElementTypes.METHOD_PARAM_LIST);
+    public SmaliMethodParameterStub(@NotNull StubElement parent, @NotNull String type, @Nullable String name) {
+        super(parent, SmaliElementTypes.METHOD_PARAMETER);
+        this.type = type;
+        this.name = name;
     }
 
-    public SmaliMethodParamList(@NotNull ASTNode node) {
-        super(node);
+    @NotNull public String getType() {
+        return type;
     }
 
-    @NotNull @Override public SmaliMethodParameter[] getParameters() {
-        return getStubOrPsiChildren(SmaliElementTypes.METHOD_PARAMETER, new SmaliMethodParameter[0]);
-    }
-
-    @Override public int getParameterIndex(PsiParameter parameter) {
-        if (!(parameter instanceof SmaliMethodParameter)) {
-            return -1;
-        }
-        return Arrays.asList(getParameters()).indexOf(parameter);
-    }
-
-    @Override public int getParametersCount() {
-        return getParameters().length;
-    }
-
-    /**
-     * Returns the number of registers needed for the parameters in this parameter list
-     *
-     * Note: this does *not* include the implicit "this" parameter, if applicable
-     */
-    public int getParameterRegisterCount() {
-        int count = 0;
-        for (SmaliMethodParameter param: getParameters()) {
-            count += param.getRegisterCount();
-        }
-        return count;
+    @Nullable public String getName() {
+        return name;
     }
 }

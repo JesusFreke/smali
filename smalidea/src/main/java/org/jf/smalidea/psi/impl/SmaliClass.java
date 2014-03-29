@@ -36,6 +36,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
 import com.intellij.psi.PsiModifier.ModifierConstant;
 import com.intellij.psi.impl.PsiClassImplUtil;
+import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -165,12 +166,12 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         return getStubOrPsiChildren(SmaliElementTypes.FIELD, new SmaliField[0]);
     }
 
-    @NotNull @Override public PsiMethod[] getMethods() {
-        return new PsiMethod[0];
+    @NotNull @Override public SmaliMethod[] getMethods() {
+        return getStubOrPsiChildren(SmaliElementTypes.METHOD, new SmaliMethod[0]);
     }
 
     @NotNull @Override public PsiMethod[] getConstructors() {
-        return new PsiMethod[0];
+        return PsiImplUtil.getConstructors(this);
     }
 
     @NotNull @Override public PsiClass[] getInnerClasses() {
@@ -178,6 +179,7 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @NotNull @Override public PsiClassInitializer[] getInitializers() {
+        // TODO: do we need to return the <clinit> method here?
         return new PsiClassInitializer[0];
     }
 
@@ -186,7 +188,7 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @NotNull @Override public PsiMethod[] getAllMethods() {
-        return new PsiMethod[0];
+        return PsiClassImplUtil.getAllMethods(this);
     }
 
     @NotNull @Override public PsiClass[] getAllInnerClasses() {
@@ -198,24 +200,24 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @Nullable @Override public PsiMethod findMethodBySignature(PsiMethod patternMethod, boolean checkBases) {
-        return null;
+        return PsiClassImplUtil.findMethodBySignature(this, patternMethod, checkBases);
     }
 
     @NotNull @Override public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
-        return new PsiMethod[0];
+        return PsiClassImplUtil.findMethodsBySignature(this, patternMethod, checkBases);
     }
 
     @NotNull @Override public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
-        return new PsiMethod[0];
+        return PsiClassImplUtil.findMethodsByName(this, name, checkBases);
     }
 
     @NotNull @Override
     public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(@NonNls String name, boolean checkBases) {
-        return null;
+        return PsiClassImplUtil.findMethodsAndTheirSubstitutorsByName(this, name, checkBases);
     }
 
     @NotNull @Override public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
-        return null;
+        return PsiClassImplUtil.getAllWithSubstitutorsByMap(this, PsiClassImplUtil.MemberType.METHOD);
     }
 
     @Nullable @Override public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {

@@ -29,50 +29,54 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.psi.stub.element;
 
-import com.intellij.extapi.psi.StubBasedPsiElementBase;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.StubBasedPsiElement;
-import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.stubs.StubInputStream;
+import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jf.smalidea.psi.impl.SmaliMethodPrototype;
+import org.jf.smalidea.psi.stub.SmaliMethodPrototypeStub;
 
-public abstract class SmaliStubBasedPsiElement<T extends StubElement> extends StubBasedPsiElementBase<T>
-        implements StubBasedPsiElement<T> {
-    protected SmaliStubBasedPsiElement(@NotNull T stub, @NotNull IStubElementType nodeType) {
-        super(stub, nodeType);
+import java.io.IOException;
+
+public class SmaliMethodPrototypeElementType
+        extends SmaliStubElementType<SmaliMethodPrototypeStub, SmaliMethodPrototype> {
+    public static final SmaliMethodPrototypeElementType INSTANCE = new SmaliMethodPrototypeElementType();
+
+    private SmaliMethodPrototypeElementType() {
+        super("METHOD_PROTOTYPE");
     }
 
-    protected SmaliStubBasedPsiElement(@NotNull ASTNode node) {
-        super(node);
+    @NotNull @Override public String getExternalId() {
+        return "smali.method_prototype";
     }
 
-    @SuppressWarnings("unchecked")
-    @Nullable
-    protected <E extends PsiElement> E findStubOrPsiAncestorOfType(@NotNull Class<E> aClass) {
-        T stub = getStub();
-        if (stub != null)  {
-            StubElement parent = stub.getParentStub();
-            while (parent != null) {
-                PsiElement parentPsi = parent.getPsi();
-                if (aClass.isInstance(parentPsi)) {
-                    return (E)parentPsi;
-                }
-                parent = parent.getParentStub();
-            }
-            return null;
-        }
+    @Override public SmaliMethodPrototype createPsi(@NotNull ASTNode node) {
+        return new SmaliMethodPrototype(node);
+    }
 
-        PsiElement parent = getParent();
-        while (parent != null) {
-            if (aClass.isInstance(parent)) {
-                return (E)parent;
-            }
-            parent = parent.getParent();
-        }
-        return null;
+    @Override public SmaliMethodPrototype createPsi(@NotNull SmaliMethodPrototypeStub stub) {
+        return new SmaliMethodPrototype(stub);
+    }
+
+    @Override public SmaliMethodPrototypeStub createStub(@NotNull SmaliMethodPrototype psi, StubElement parentStub) {
+        return new SmaliMethodPrototypeStub(parentStub);
+    }
+
+    @Override
+    public void serialize(@NotNull SmaliMethodPrototypeStub stub, @NotNull StubOutputStream dataStream)
+            throws IOException {
+    }
+
+    @NotNull @Override
+    public SmaliMethodPrototypeStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub)
+            throws IOException {
+        return new SmaliMethodPrototypeStub(parentStub);
+    }
+
+    @Override public void indexStub(@NotNull SmaliMethodPrototypeStub stub, @NotNull IndexSink sink) {
     }
 }

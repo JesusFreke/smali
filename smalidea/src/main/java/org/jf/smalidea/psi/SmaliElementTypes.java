@@ -31,6 +31,7 @@
 
 package org.jf.smalidea.psi;
 
+import org.jf.smalidea.psi.impl.SmaliInstruction;
 import org.jf.smalidea.psi.impl.*;
 import org.jf.smalidea.psi.stub.element.*;
 
@@ -39,6 +40,9 @@ public class SmaliElementTypes {
     public static final SmaliClassElementType CLASS = SmaliClassElementType.INSTANCE;
     public static final SmaliFieldElementType FIELD = SmaliFieldElementType.INSTANCE;
     public static final SmaliMethodElementType METHOD = SmaliMethodElementType.INSTANCE;
+    public static final SmaliMethodPrototypeElementType METHOD_PROTOTYPE = SmaliMethodPrototypeElementType.INSTANCE;
+    public static final SmaliMethodParamListElementType METHOD_PARAM_LIST = SmaliMethodParamListElementType.INSTANCE;
+    public static final SmaliMethodParameterElementType METHOD_PARAMETER = SmaliMethodParameterElementType.INSTANCE;
     public static final SmaliAnnotationElementType ANNOTATION = SmaliAnnotationElementType.INSTANCE;
     public static final SmaliModifierListElementType MODIFIER_LIST = SmaliModifierListElementType.INSTANCE;
     public static final SmaliExtendsListElementType EXTENDS_LIST = SmaliExtendsListElementType.INSTANCE;
@@ -62,10 +66,10 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("ACCESS_LIST", SmaliAccessList.FACTORY);
     public static final SmaliCompositeElementType MEMBER_NAME =
             new SmaliCompositeElementType("MEMBER_NAME", SmaliMemberName.FACTORY);
-    public static final SmaliCompositeElementType METHOD_PROTOTYPE =
-            new SmaliCompositeElementType("METHOD_PROTOTYPE", SmaliMethodPrototype.FACTORY);
-    public static final SmaliCompositeElementType METHOD_PARAM_LIST =
-            new SmaliCompositeElementType("METHOD_PARAM_LIST", SmaliMethodParamList.FACTORY);
+    public static final SmaliCompositeElementType LOCAL_NAME =
+            new SmaliCompositeElementType("LOCAL_NAME", SmaliLocalName.FACTORY);
+    public static final SmaliCompositeElementType PARAMETER_STATEMENT =
+            new SmaliCompositeElementType("PARAMETER_STATEMENT", SmaliParameterStatement.FACTORY);
     public static final SmaliCompositeElementType FIELD_INITIALIZER =
             new SmaliCompositeElementType("FIELD_INITIALIZER", SmaliFieldInitializer.FACTORY);
     public static final SmaliCompositeElementType INSTRUCTION =
@@ -80,6 +84,8 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("FIELD_REFERENCE", SmaliFieldReference.FACTORY);
     public static final SmaliCompositeElementType METHOD_REFERENCE =
             new SmaliCompositeElementType("METHOD_REFERENCE", SmaliMethodReference.FACTORY);
+    public static final SmaliCompositeElementType METHOD_REFERENCE_PARAM_LIST =
+            new SmaliCompositeElementType("METHOD_REFERENCE_PARAM_LIST", SmaliMethodReferenceParamList.FACTORY);
     public static final SmaliCompositeElementType LABEL =
             new SmaliCompositeElementType("LABEL", SmaliLabel.FACTORY);
     public static final SmaliCompositeElementType LABEL_REFERENCE =

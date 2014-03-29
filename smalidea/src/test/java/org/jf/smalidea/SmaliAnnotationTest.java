@@ -36,6 +36,7 @@ import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
+import org.jf.smalidea.psi.impl.SmaliMethod;
 
 public class SmaliAnnotationTest extends LightCodeInsightFixtureTestCase {
     // TODO: test default values
@@ -122,6 +123,49 @@ public class SmaliAnnotationTest extends LightCodeInsightFixtureTestCase {
 
         PsiField field = smaliClass.findFieldByName("myField", false);
         doTest((PsiAnnotationOwner)field);
+    }
+
+    public void testMethodAnnotation() {
+        myFixture.addFileToProject("my/TestAnnotation.smali",
+                ".class public interface abstract annotation Lmy/TestAnnotation;\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".implements Ljava/lang/annotation/Annotation;\n" +
+                "\n" +
+                ".method public abstract testBooleanValue()Z\n" +
+                ".end method\n" +
+                "\n" +
+                ".method public abstract testStringArrayValue()[Ljava/lang/String;\n" +
+                ".end method\n" +
+                "\n" +
+                ".method public abstract testStringValue()Ljava/lang/String;\n" +
+                ".end method");
+
+        myFixture.addFileToProject("my/TestAnnotation2.smali",
+                ".class public interface abstract annotation Lmy/TestAnnotation2;\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".implements Ljava/lang/annotation/Annotation;\n");
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali",
+                ".class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
+                "\n" +
+                ".method public myMethod()V\n" +
+                "    .annotation runtime Lmy/TestAnnotation;\n" +
+                "        testBooleanValue = true\n" +
+                "        testStringValue = \"blah\"\n" +
+                "        testStringArrayValue = {\n" +
+                "            \"blah1\",\n" +
+                "            \"blah2\"\n" +
+                "        }\n" +
+                "    .end annotation\n" +
+                "    .annotation runtime Lmy/TestAnnotation2;\n" +
+                "    .end annotation\n" +
+                ".end method");
+
+        SmaliClass smaliClass = file.getPsiClass();
+        Assert.assertEquals("my.pkg.blah", smaliClass.getQualifiedName());
+
+        SmaliMethod method = smaliClass.getMethods()[0];
+        doTest(method);
     }
 
     public void doTest(PsiAnnotationOwner annotationOwner) {

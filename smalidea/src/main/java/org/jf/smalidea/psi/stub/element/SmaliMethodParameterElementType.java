@@ -36,46 +36,54 @@ import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
+import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.impl.SmaliMethod;
-import org.jf.smalidea.psi.stub.SmaliMethodStub;
+import org.jf.smalidea.psi.impl.SmaliMethodParameter;
+import org.jf.smalidea.psi.stub.SmaliMethodParameterStub;
 
 import java.io.IOException;
 
-public class SmaliMethodElementType extends SmaliStubElementType<SmaliMethodStub, SmaliMethod> {
-    public static final SmaliMethodElementType INSTANCE = new SmaliMethodElementType();
+public class SmaliMethodParameterElementType
+        extends SmaliStubElementType<SmaliMethodParameterStub, SmaliMethodParameter> {
+    public static final SmaliMethodParameterElementType INSTANCE = new SmaliMethodParameterElementType();
 
-    private SmaliMethodElementType() {
-        super("METHOD");
+    private SmaliMethodParameterElementType() {
+        super("METHOD_PARAMETER");
     }
 
     @NotNull @Override public String getExternalId() {
-        return "smali.method";
+        return "smali.method_parameter";
     }
 
-    @Override public SmaliMethod createPsi(@NotNull SmaliMethodStub stub) {
-        return new SmaliMethod(stub);
+    @Override public SmaliMethodParameter createPsi(@NotNull ASTNode node) {
+        return new SmaliMethodParameter(node);
     }
 
-    @Override public SmaliMethod createPsi(@NotNull ASTNode node) {
-        return new SmaliMethod(node);
+    @Override public SmaliMethodParameter createPsi(@NotNull SmaliMethodParameterStub stub) {
+        return new SmaliMethodParameter(stub);
     }
 
-    @Override public SmaliMethodStub createStub(@NotNull SmaliMethod psi, StubElement parentStub) {
-        return new SmaliMethodStub(parentStub, psi.getName(), psi.getReturnType().getCanonicalText());
+    @Override public SmaliMethodParameterStub createStub(@NotNull SmaliMethodParameter psi, StubElement parentStub) {
+        return new SmaliMethodParameterStub(parentStub, psi.getType().getCanonicalText(), psi.getName());
     }
 
     @Override
-    public void serialize(@NotNull SmaliMethodStub stub, @NotNull StubOutputStream dataStream) throws IOException {
+    public void serialize(@NotNull SmaliMethodParameterStub stub, @NotNull StubOutputStream dataStream)
+                          throws IOException {
+        dataStream.writeName(stub.getType());
         dataStream.writeName(stub.getName());
-        dataStream.writeName(stub.getReturnType());
     }
 
     @NotNull @Override
-    public SmaliMethodStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliMethodStub(parentStub, dataStream.readName().getString(), dataStream.readName().getString());
+    public SmaliMethodParameterStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub)
+            throws IOException {
+        String type = dataStream.readName().getString();
+        StringRef nameRef = dataStream.readName();
+        String name = nameRef==null ? null : nameRef.getString();
+
+        return new SmaliMethodParameterStub(parentStub, type, name);
     }
 
-    @Override public void indexStub(@NotNull SmaliMethodStub stub, @NotNull IndexSink sink) {
+    @Override public void indexStub(@NotNull SmaliMethodParameterStub stub, @NotNull IndexSink sink) {
     }
 }

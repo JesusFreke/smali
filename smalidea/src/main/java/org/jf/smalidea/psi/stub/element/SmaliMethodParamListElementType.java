@@ -29,52 +29,54 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.stubs.IndexSink;
+import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.stubs.StubInputStream;
+import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.impl.SmaliMethodParamList;
 import org.jf.smalidea.psi.stub.SmaliMethodParamListStub;
 
-import java.util.Arrays;
+import java.io.IOException;
 
-public class SmaliMethodParamList extends SmaliStubBasedPsiElement<SmaliMethodParamListStub>
-        implements PsiParameterList {
-    public SmaliMethodParamList(@NotNull SmaliMethodParamListStub stub) {
-        super(stub, SmaliElementTypes.METHOD_PARAM_LIST);
+public class SmaliMethodParamListElementType
+        extends SmaliStubElementType<SmaliMethodParamListStub, SmaliMethodParamList> {
+    public static final SmaliMethodParamListElementType INSTANCE = new SmaliMethodParamListElementType();
+
+    private SmaliMethodParamListElementType() {
+        super("METHOD_PARAM_LIST");
     }
 
-    public SmaliMethodParamList(@NotNull ASTNode node) {
-        super(node);
+    @NotNull @Override public String getExternalId() {
+        return "smali.method_param_list";
     }
 
-    @NotNull @Override public SmaliMethodParameter[] getParameters() {
-        return getStubOrPsiChildren(SmaliElementTypes.METHOD_PARAMETER, new SmaliMethodParameter[0]);
+    @Override public SmaliMethodParamList createPsi(@NotNull ASTNode node) {
+        return new SmaliMethodParamList(node);
     }
 
-    @Override public int getParameterIndex(PsiParameter parameter) {
-        if (!(parameter instanceof SmaliMethodParameter)) {
-            return -1;
-        }
-        return Arrays.asList(getParameters()).indexOf(parameter);
+    @Override public SmaliMethodParamList createPsi(@NotNull SmaliMethodParamListStub stub) {
+        return new SmaliMethodParamList(stub);
     }
 
-    @Override public int getParametersCount() {
-        return getParameters().length;
+    @Override public SmaliMethodParamListStub createStub(@NotNull SmaliMethodParamList psi, StubElement parentStub) {
+        return new SmaliMethodParamListStub(parentStub);
     }
 
-    /**
-     * Returns the number of registers needed for the parameters in this parameter list
-     *
-     * Note: this does *not* include the implicit "this" parameter, if applicable
-     */
-    public int getParameterRegisterCount() {
-        int count = 0;
-        for (SmaliMethodParameter param: getParameters()) {
-            count += param.getRegisterCount();
-        }
-        return count;
+    @Override
+    public void serialize(@NotNull SmaliMethodParamListStub stub, @NotNull StubOutputStream dataStream)
+                          throws IOException {
+    }
+
+    @NotNull @Override
+    public SmaliMethodParamListStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub)
+            throws IOException {
+        return new SmaliMethodParamListStub(parentStub);
+    }
+
+    @Override public void indexStub(@NotNull SmaliMethodParamListStub stub, @NotNull IndexSink sink) {
     }
 }

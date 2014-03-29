@@ -241,7 +241,10 @@ field
   }
 
 method
-  @init { Marker marker = mark(); }
+  @init {
+    Marker marker = mark();
+    mark().done(SmaliElementTypes.MODIFIER_LIST);
+  }
   : METHOD_DIRECTIVE access_list member_name method_prototype statements_and_directives
     END_METHOD_DIRECTIVE;
   finally { marker.done(SmaliElementTypes.METHOD); }
@@ -331,10 +334,30 @@ method_prototype
 
 param_list
   @init { Marker marker = mark(); }
-  : PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END
-  | PARAM_LIST_OR_ID_START primitive_type* PARAM_LIST_OR_ID_END
-  | nonvoid_type_descriptor*;
+  : (PARAM_LIST_START param* PARAM_LIST_END)
+  | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
+  | (param*);
   finally { marker.done(SmaliElementTypes.METHOD_PARAM_LIST); }
+
+param
+  @init {
+    Marker marker = mark();
+    mark().done(SmaliElementTypes.MODIFIER_LIST);
+  }
+  : nonvoid_type_descriptor;
+  finally { marker.done(SmaliElementTypes.METHOD_PARAMETER); }
+
+method_prototype_reference
+  : OPEN_PAREN param_list_reference CLOSE_PAREN type_descriptor;
+
+param_list_reference
+  @init {
+    Marker marker = mark();
+  }
+  : (PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END)
+  | (PARAM_LIST_OR_ID_START nonvoid_type_descriptor* PARAM_LIST_OR_ID_END)
+  | (nonvoid_type_descriptor*);
+  finally { marker.done(SmaliElementTypes.METHOD_REFERENCE_PARAM_LIST); }
 
 primitive_type
   @init { Marker marker = mark(); }
@@ -439,7 +462,7 @@ type_field_method_literal
   : reference_type_descriptor
     ( ARROW
       ( member_name COLON nonvoid_type_descriptor
-      | member_name method_prototype
+      | member_name method_prototype_reference
       )
     | /* epsilon */
     )
@@ -517,7 +540,7 @@ annotation
 
 fully_qualified_method
   @init { Marker marker = mark(); }
-  : reference_type_descriptor ARROW member_name method_prototype;
+  : reference_type_descriptor ARROW member_name method_prototype_reference;
   finally { marker.done(SmaliElementTypes.METHOD_REFERENCE); }
 
 fully_qualified_field
@@ -560,10 +583,23 @@ or method annotations until we determine if there is an .end parameter directive
 the annotations. If it turns out that they are parameter annotations, we include them in the I_PARAMETER AST. Otherwise, we
 add them to the $statements_and_directives::methodAnnotations list*/
 parameter_directive
-  : PARAMETER_DIRECTIVE register (COMMA string_literal)?
+  @init {
+    Marker marker = mark();
+    Marker preAnnotationMarker = null;
+    Marker nameMarker = null;
+  }
+  : PARAMETER_DIRECTIVE register
+    (COMMA { nameMarker = mark(); } string_literal { nameMarker.done(SmaliElementTypes.LOCAL_NAME); })?
+    { preAnnotationMarker = mark(); }
     ({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation)*
-    ( END_PARAMETER_DIRECTIVE
-    | /*epsilon*/
+    ( END_PARAMETER_DIRECTIVE {
+        preAnnotationMarker.drop();
+        marker.done(SmaliElementTypes.PARAMETER_STATEMENT);
+      }
+    | /*epsilon*/ {
+        marker.doneBefore(SmaliElementTypes.PARAMETER_STATEMENT, preAnnotationMarker);
+        preAnnotationMarker.drop();
+      }
     );
 
 register

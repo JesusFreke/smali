@@ -31,17 +31,33 @@
 
 package org.jf.smalidea.psi.impl;
 
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiTypeElement;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.stub.SmaliMethodPrototypeStub;
 
-public class SmaliMethodPrototype extends SmaliCompositeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliMethodPrototype();
-        }
-    };
+public class SmaliMethodPrototype extends SmaliStubBasedPsiElement<SmaliMethodPrototypeStub> {
+    public SmaliMethodPrototype(@NotNull SmaliMethodPrototypeStub stub) {
+        super(stub, SmaliElementTypes.METHOD_PROTOTYPE);
+    }
 
-    public SmaliMethodPrototype() {
-        super(SmaliElementTypes.METHOD_PROTOTYPE);
+    public SmaliMethodPrototype(@NotNull ASTNode node) {
+        super(node);
+    }
+
+    @NotNull
+    public PsiTypeElement getReturnType() {
+        PsiTypeElement element = findChildByClass(PsiTypeElement.class);
+        assert element != null;
+        return element;
+    }
+
+
+    @NotNull
+    public SmaliMethodParamList getParameterList() {
+        SmaliMethodParamList paramList = findChildByClass(SmaliMethodParamList.class);
+        assert paramList != null;
+        return paramList;
     }
 }

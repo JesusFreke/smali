@@ -33,11 +33,25 @@ package org.jf.smalidea.psi.stub;
 
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 
 public class SmaliMethodStub extends StubBase<SmaliMethod> {
-    public SmaliMethodStub(StubElement parent) {
+    @NotNull private final String name;
+    @NotNull private final String returnType;
+
+    public SmaliMethodStub(@NotNull StubElement parent, @NotNull String name, @NotNull String returnType) {
         super(parent, SmaliElementTypes.METHOD);
+        this.name = name;
+        this.returnType = returnType;
+    }
+
+    @NotNull public String getName() {
+        return name;
+    }
+
+    @NotNull public String getReturnType() {
+        return returnType;
     }
 }
