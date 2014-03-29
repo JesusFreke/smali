@@ -84,4 +84,16 @@ public abstract class SmaliCompositeElement extends CompositePsiElement {
         }
         return null;
     }
+
+    @SuppressWarnings("unchecked")
+    protected <T> T findAncestorByClass(Class<T> aClass) {
+        PsiElement parent = getParent();
+        while (parent != null) {
+            if (ReflectionCache.isInstance(parent, aClass)) {
+                return (T)parent;
+            }
+            parent = parent.getParent();
+        }
+        return null;
+    }
 }

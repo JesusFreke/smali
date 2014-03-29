@@ -29,32 +29,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea;
 
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.SmaliElementTypes;
-import org.jf.smalidea.psi.stub.SmaliMethodStub;
+import com.intellij.psi.PsiElement;
+import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import junit.framework.Assert;
+import org.jf.smalidea.psi.impl.SmaliFile;
+import org.jf.smalidea.psi.impl.SmaliLiteral;
 
-public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub> {
-    public SmaliMethod(@NotNull SmaliMethodStub stub) {
-        super(stub, SmaliElementTypes.METHOD);
+public class SmaliLiteralTest extends LightCodeInsightFixtureTestCase {
+    private void doTest(long expectedValue, String literalValue) {
+        String text =
+                ".class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
+                ".method blah()V\n" +
+                "    .registers <ref>" + literalValue + "\n" +
+                "    return-void\n" +
+                ".end method";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali",
+                text.replace("<ref>", ""));
+
+        PsiElement leafElement = file.findElementAt(text.indexOf("<ref>"));
+        Assert.assertNotNull(leafElement);
+        SmaliLiteral literalElement = (SmaliLiteral)leafElement.getParent();
+        Assert.assertNotNull(literalElement);
+
+        Assert.assertEquals(expectedValue, literalElement.getIntegralValue());
     }
 
-    public SmaliMethod(@NotNull ASTNode node) {
-        super(node);
+    public void testIntegerValue() {
+        doTest(123, "123");
     }
 
-    public int getRegisterCount() {
-        SmaliRegistersStatement registersStatement = findChildByClass(SmaliRegistersStatement.class);
-        if (registersStatement == null) {
-            return 0;
-        }
-        return registersStatement.getRegisterCount();
+    public void testLongValue() {
+        doTest(100, "100L");
     }
 
-    public int getParameterRegisterCount() {
-        // TODO: implement this
-        return 0;
+    public void testShortValue() {
+        doTest(99, "99s");
     }
+
+    public void testByteValue() {
+        doTest(127, "127t");
+    }
+
+    // TODO: test char
+    // TODO: test bool
 }

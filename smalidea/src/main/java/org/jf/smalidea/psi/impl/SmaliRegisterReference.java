@@ -31,45 +31,40 @@
 
 package org.jf.smalidea.psi.impl;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.tree.IElementType;
-import org.jf.smali.LiteralTools;
-import org.jf.smalidea.SmaliTokens;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliLiteral extends SmaliCompositeElement implements PsiAnnotationMemberValue {
+public class SmaliRegisterReference extends SmaliCompositeElement {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
-            return new SmaliLiteral();
+            return new SmaliRegisterReference();
         }
     };
 
-    public SmaliLiteral() {
-        super(SmaliElementTypes.LITERAL);
+    public SmaliRegisterReference() {
+        super(SmaliElementTypes.REGISTER_REFERENCE);
     }
 
-    public long getIntegralValue() {
-        ASTNode literalNode = getNode().getFirstChildNode();
-        IElementType literalType = literalNode.getElementType();
+    @NotNull
+    public SmaliMethod getParentMethod() {
+        SmaliMethod parentMethod = findAncestorByClass(SmaliMethod.class);
+        assert parentMethod != null;
+        return parentMethod;
+    }
 
-        if (literalType == SmaliTokens.LONG_LITERAL) {
-            return LiteralTools.parseLong(literalNode.getText());
-        } else if (literalType == SmaliTokens.NEGATIVE_INTEGER_LITERAL ||
-                literalType == SmaliTokens.POSITIVE_INTEGER_LITERAL) {
-            return LiteralTools.parseInt(literalNode.getText());
-        } else if (literalType == SmaliTokens.SHORT_LITERAL) {
-            return LiteralTools.parseShort(literalNode.getText());
-        } else if (literalType == SmaliTokens.CHAR_LITERAL) {
-            // TODO: implement this
-            return -1;
-        } else if (literalType == SmaliTokens.BYTE_LITERAL) {
-            return LiteralTools.parseByte(literalNode.getText());
-        } else if (literalType == SmaliTokens.BOOL_LITERAL) {
-            return Boolean.parseBoolean(literalNode.getText())?1:0;
-        } else {
-            throw new RuntimeException("Not an integral literal");
+    public int getRegisterNumber() {
+        int registerNumber = Integer.parseInt(getText().substring(1));
+
+        if (isParameterRegister()) {
+            SmaliMethod method = getParentMethod();
+            registerNumber += method.getRegisterCount() - method.getParameterRegisterCount();
         }
+
+        return registerNumber;
+    }
+
+    public boolean isParameterRegister() {
+        return getText().charAt(0) == 'p';
     }
 }

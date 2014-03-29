@@ -56,6 +56,8 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("SOURCE_STATEMENT", SmaliSourceStatement.FACTORY);
     public static final SmaliCompositeElementType REGISTERS_STATEMENT =
             new SmaliCompositeElementType("REGISTERS_STATEMENT", SmaliRegistersStatement.FACTORY);
+    public static final SmaliCompositeElementType REGISTER_REFERENCE =
+            new SmaliCompositeElementType("REGISTER_REFERENCE", SmaliRegisterReference.FACTORY);
     public static final SmaliCompositeElementType ACCESS_LIST =
             new SmaliCompositeElementType("ACCESS_LIST", SmaliAccessList.FACTORY);
     public static final SmaliCompositeElementType MEMBER_NAME =

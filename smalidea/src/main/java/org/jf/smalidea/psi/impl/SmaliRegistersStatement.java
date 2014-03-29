@@ -31,6 +31,8 @@
 
 package org.jf.smalidea.psi.impl;
 
+import org.jetbrains.annotations.NotNull;
+import org.jf.smalidea.SmaliTokens;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
@@ -44,4 +46,30 @@ public class SmaliRegistersStatement extends SmaliCompositeElement {
     public SmaliRegistersStatement() {
         super(SmaliElementTypes.REGISTERS_STATEMENT);
     }
+
+    @NotNull
+    private SmaliMethod getParentMethod() {
+        return findAncestorByClass(SmaliMethod.class);
+    }
+
+    /**
+     * Get the total number of registers for the method
+     */
+    public int getRegisterCount() {
+        SmaliLiteral literal = findChildByClass(SmaliLiteral.class);
+        assert literal != null;
+
+        long registerCount = literal.getIntegralValue();
+        // TODO: check for register count that's too large
+        if (isLocals()) {
+            SmaliMethod parentMethod = getParentMethod();
+            return (int)registerCount + parentMethod.getParameterRegisterCount();
+        }
+        return (int)registerCount;
+    }
+
+    private boolean isLocals() {
+        return findChildByType(SmaliTokens.LOCALS_DIRECTIVE) != null;
+    }
+
 }

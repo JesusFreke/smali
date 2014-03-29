@@ -29,32 +29,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea;
 
-import com.intellij.lang.ASTNode;
-import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.SmaliElementTypes;
-import org.jf.smalidea.psi.stub.SmaliMethodStub;
+import com.intellij.psi.PsiElement;
+import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import junit.framework.Assert;
+import org.jf.smalidea.psi.impl.SmaliFile;
+import org.jf.smalidea.psi.impl.SmaliRegisterReference;
 
-public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub> {
-    public SmaliMethod(@NotNull SmaliMethodStub stub) {
-        super(stub, SmaliElementTypes.METHOD);
-    }
+public class SmaliRegisterTest extends LightCodeInsightFixtureTestCase {
+    public void testRegisterReference() {
+        String text =
+                ".class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
+                        ".method blah()V\n" +
+                        "    .registers 123\n" +
+                        "    const <ref>v10, 123\n" +
+                        "    return-void\n" +
+                        ".end method";
 
-    public SmaliMethod(@NotNull ASTNode node) {
-        super(node);
-    }
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali",
+                text.replace("<ref>", ""));
 
-    public int getRegisterCount() {
-        SmaliRegistersStatement registersStatement = findChildByClass(SmaliRegistersStatement.class);
-        if (registersStatement == null) {
-            return 0;
-        }
-        return registersStatement.getRegisterCount();
-    }
+        PsiElement leafElement = file.findElementAt(text.indexOf("<ref>"));
+        Assert.assertNotNull(leafElement);
+        SmaliRegisterReference registerReference = (SmaliRegisterReference)leafElement.getParent();
+        Assert.assertNotNull(registerReference);
 
-    public int getParameterRegisterCount() {
-        // TODO: implement this
-        return 0;
+        Assert.assertEquals(10, registerReference.getRegisterNumber());
+        // TODO: test parameter register
     }
 }
