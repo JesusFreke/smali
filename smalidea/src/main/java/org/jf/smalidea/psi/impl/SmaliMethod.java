@@ -31,6 +31,7 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.debugger.SourcePosition;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.*;
 import com.intellij.psi.PsiModifier.ModifierConstant;
@@ -102,6 +103,19 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
 
     @Nullable @Override public PsiCodeBlock getBody() {
         // not applicable
+        return null;
+    }
+
+    @NotNull public List<SmaliInstruction> getInstructions() {
+        return findChildrenByType(SmaliElementTypes.INSTRUCTION);
+    }
+
+    @Nullable public SourcePosition getSourcePositionForCodeOffset(int offset) {
+        for (SmaliInstruction instruction: getInstructions()) {
+            if (instruction.getOffset() >= offset) {
+                return SourcePosition.createFromElement(instruction);
+            }
+        }
         return null;
     }
 

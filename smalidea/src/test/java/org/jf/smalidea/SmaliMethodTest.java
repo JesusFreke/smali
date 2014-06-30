@@ -31,10 +31,14 @@
 
 package org.jf.smalidea;
 
+import com.intellij.debugger.SourcePosition;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import junit.framework.Assert;
+import org.jf.dexlib2.Opcode;
 import org.jf.smalidea.psi.impl.*;
+
+import java.util.List;
 
 public class SmaliMethodTest extends LightCodeInsightFixtureTestCase {
     public void testMethodRegisters() {
@@ -182,5 +186,92 @@ public class SmaliMethodTest extends LightCodeInsightFixtureTestCase {
         Assert.assertFalse(smaliMethod.getParameterList().getParameters()[0].isVarArgs());
         Assert.assertFalse(smaliMethod.getParameterList().getParameters()[1].isVarArgs());
         Assert.assertFalse(smaliMethod.getParameterList().getParameters()[2].isVarArgs());
+    }
+
+    private static final String instructionsTestClass =
+            ".class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
+                    ".method public getRandomParentType(I)I\n" +
+                    "    .registers 4\n" +
+                    "    .param p1, \"edge\"    # I\n" +
+                    "\n" +
+                    "    .prologue\n" +
+                    "    const/4 v1, 0x2\n" +
+                    "\n" +
+                    "    .line 179\n" +
+                    "    if-nez p1, :cond_5\n" +
+                    "\n" +
+                    "    move v0, v1\n" +
+                    "\n" +
+                    "    .line 185\n" +
+                    "    :goto_4\n" +
+                    "    return v0\n" +
+                    "\n" +
+                    "    .line 182\n" +
+                    "    :cond_5\n" +
+                    "    if-ne p1, v1, :cond_f\n" +
+                    "\n" +
+                    "    .line 183\n" +
+                    "    sget-object v0, Lorg/jf/Penroser/PenroserApp;->random:Ljava/util/Random;\n" +
+                    "\n" +
+                    "    const/4 v1, 0x3\n" +
+                    "\n" +
+                    "    invoke-virtual {v0, v1}, Ljava/util/Random;->nextInt(I)I\n" +
+                    "\n" +
+                    "    move-result v0\n" +
+                    "\n" +
+                    "    goto :goto_4\n" +
+                    "\n" +
+                    "    .line 185\n" +
+                    "    :cond_f\n" +
+                    "    sget-object v0, Lorg/jf/Penroser/PenroserApp;->random:Ljava/util/Random;\n" +
+                    "\n" +
+                    "    invoke-virtual {v0, v1}, Ljava/util/Random;->nextInt(I)I\n" +
+                    "\n" +
+                    "    move-result v0\n" +
+                    "\n" +
+                    "    goto :goto_4\n" +
+                    ".end method";
+
+    public void testGetInstructions() {
+        String text = instructionsTestClass;
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
+        SmaliClass smaliClass = file.getPsiClass();
+        SmaliMethod smaliMethod = smaliClass.getMethods()[0];
+
+        List<SmaliInstruction> instructions = smaliMethod.getInstructions();
+        Assert.assertEquals(14, instructions.size());
+    }
+
+    private void checkSourcePosition(SmaliMethod smaliMethod, int codeOffset, Opcode opcode) {
+        SourcePosition sourcePosition = smaliMethod.getSourcePositionForCodeOffset(codeOffset);
+        Assert.assertNotNull(sourcePosition);
+
+        SmaliInstruction instruction = (SmaliInstruction)sourcePosition.getElementAt();
+        Assert.assertEquals(opcode, instruction.getOpcode());
+        Assert.assertEquals(codeOffset, instruction.getOffset());
+    }
+
+    public void testGetSourcePositionForCodeOffset() {
+        String text = instructionsTestClass;
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
+        SmaliClass smaliClass = file.getPsiClass();
+        SmaliMethod smaliMethod = smaliClass.getMethods()[0];
+
+        checkSourcePosition(smaliMethod, 0, Opcode.CONST_4);
+        checkSourcePosition(smaliMethod, 2, Opcode.IF_NEZ);
+        checkSourcePosition(smaliMethod, 6, Opcode.MOVE);
+        checkSourcePosition(smaliMethod, 8, Opcode.RETURN);
+        checkSourcePosition(smaliMethod, 10, Opcode.IF_NE);
+        checkSourcePosition(smaliMethod, 14, Opcode.SGET_OBJECT);
+        checkSourcePosition(smaliMethod, 18, Opcode.CONST_4);
+        checkSourcePosition(smaliMethod, 20, Opcode.INVOKE_VIRTUAL);
+        checkSourcePosition(smaliMethod, 26, Opcode.MOVE_RESULT);
+        checkSourcePosition(smaliMethod, 28, Opcode.GOTO);
+        checkSourcePosition(smaliMethod, 30, Opcode.SGET_OBJECT);
+        checkSourcePosition(smaliMethod, 34, Opcode.INVOKE_VIRTUAL);
+        checkSourcePosition(smaliMethod, 40, Opcode.MOVE_RESULT);
+        checkSourcePosition(smaliMethod, 42, Opcode.GOTO);
     }
 }

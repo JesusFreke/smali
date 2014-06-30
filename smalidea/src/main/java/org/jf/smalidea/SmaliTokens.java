@@ -34,6 +34,7 @@ package org.jf.smalidea;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
 import org.jf.smali.smaliParser;
 
 import java.lang.reflect.Field;
@@ -161,6 +162,8 @@ public class SmaliTokens {
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType VERIFICATION_ERROR_TYPE;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType VOID_TYPE;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType VTABLE_INDEX;
+
+    public static final TokenSet INSTRUCTION_TOKENS;
 
     static {
         Map<String, TextAttributesKey> tokenColors = Maps.newHashMap();
@@ -309,5 +312,55 @@ public class SmaliTokens {
                 throw new RuntimeException(ex);
             }
         }
+
+        INSTRUCTION_TOKENS = TokenSet.create(
+                INSTRUCTION_FORMAT10t,
+                INSTRUCTION_FORMAT10x,
+                INSTRUCTION_FORMAT10x_ODEX,
+                INSTRUCTION_FORMAT11n,
+                INSTRUCTION_FORMAT11x,
+                INSTRUCTION_FORMAT12x_OR_ID,
+                INSTRUCTION_FORMAT12x,
+                INSTRUCTION_FORMAT20bc,
+                INSTRUCTION_FORMAT20t,
+                INSTRUCTION_FORMAT21c_FIELD,
+                INSTRUCTION_FORMAT21c_FIELD_ODEX,
+                INSTRUCTION_FORMAT21c_STRING,
+                INSTRUCTION_FORMAT21c_TYPE,
+                INSTRUCTION_FORMAT21ih,
+                INSTRUCTION_FORMAT21lh,
+                INSTRUCTION_FORMAT21s,
+                INSTRUCTION_FORMAT21t,
+                INSTRUCTION_FORMAT22b,
+                INSTRUCTION_FORMAT22c_FIELD,
+                INSTRUCTION_FORMAT22c_FIELD_ODEX,
+                INSTRUCTION_FORMAT22c_TYPE,
+                INSTRUCTION_FORMAT22cs_FIELD,
+                INSTRUCTION_FORMAT22s_OR_ID,
+                INSTRUCTION_FORMAT22s,
+                INSTRUCTION_FORMAT22t,
+                INSTRUCTION_FORMAT22x,
+                INSTRUCTION_FORMAT23x,
+                INSTRUCTION_FORMAT30t,
+                INSTRUCTION_FORMAT31c,
+                INSTRUCTION_FORMAT31i_OR_ID,
+                INSTRUCTION_FORMAT31i,
+                INSTRUCTION_FORMAT31t,
+                INSTRUCTION_FORMAT32x,
+                INSTRUCTION_FORMAT35c_METHOD,
+                INSTRUCTION_FORMAT35c_METHOD_ODEX,
+                INSTRUCTION_FORMAT35c_TYPE,
+                INSTRUCTION_FORMAT35mi_METHOD,
+                INSTRUCTION_FORMAT35ms_METHOD,
+                INSTRUCTION_FORMAT3rc_METHOD,
+                INSTRUCTION_FORMAT3rc_METHOD_ODEX,
+                INSTRUCTION_FORMAT3rc_TYPE,
+                INSTRUCTION_FORMAT3rmi_METHOD,
+                INSTRUCTION_FORMAT3rms_METHOD,
+                INSTRUCTION_FORMAT51l,
+                ARRAY_DATA_DIRECTIVE,
+                PACKED_SWITCH_DIRECTIVE,
+                SPARSE_SWITCH_DIRECTIVE
+        );
     }
 }

@@ -31,10 +31,21 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.lang.ASTNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.Opcodes;
+import org.jf.smalidea.SmaliTokens;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
 public class SmaliInstruction extends SmaliCompositeElement {
+    private static final int NO_OFFSET = -1;
+
+    @Nullable private Opcode opcode;
+    private int offset = NO_OFFSET;
+
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliInstruction();
@@ -43,5 +54,31 @@ public class SmaliInstruction extends SmaliCompositeElement {
 
     public SmaliInstruction() {
         super(SmaliElementTypes.INSTRUCTION);
+    }
+
+    @NotNull public Opcode getOpcode() {
+        if (opcode == null) {
+            ASTNode instructionNode = findChildByType(SmaliTokens.INSTRUCTION_TOKENS);
+            // this should be impossible, based on the parser definition
+            assert instructionNode != null;
+
+            // TODO: put a project level Opcodes instance with the appropriate api level somewhere
+            opcode = new Opcodes(15).getOpcodeByName(instructionNode.getText());
+            assert opcode != null;
+        }
+        return opcode;
+    }
+
+    public int getOffset() {
+        if (offset == NO_OFFSET) {
+            SmaliInstruction previousInstruction = findPrevSiblingByClass(SmaliInstruction.class);
+            if (previousInstruction == null) {
+                offset = 0;
+            } else {
+                // TODO: handle variable size instructions
+                offset = previousInstruction.getOffset() + previousInstruction.getOpcode().format.size;
+            }
+        }
+        return offset;
     }
 }
