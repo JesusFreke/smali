@@ -33,6 +33,7 @@ package org.jf.smalidea.psi.impl;
 
 import com.intellij.debugger.SourcePosition;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.editor.Document;
 import com.intellij.psi.*;
 import com.intellij.psi.PsiModifier.ModifierConstant;
 import com.intellij.psi.impl.PsiImplUtil;
@@ -117,6 +118,22 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
             }
         }
         return null;
+    }
+
+    public int getOffsetForLine(int line) {
+        PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+        final Document document = documentManager.getDocument(getContainingFile());
+        if (document == null) {
+            return -1;
+        }
+
+        for (final SmaliInstruction instruction: getInstructions()) {
+            int curLine = document.getLineNumber(instruction.getTextOffset());
+            if (curLine >= line) {
+                return instruction.getOffset();
+            }
+        }
+        return -1;
     }
 
     public int getRegisterCount() {

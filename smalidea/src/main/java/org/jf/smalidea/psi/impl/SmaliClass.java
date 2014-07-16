@@ -31,6 +31,7 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.debugger.SourcePosition;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
@@ -39,6 +40,9 @@ import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.util.IncorrectOperationException;
+import com.sun.jdi.Location;
+import com.sun.jdi.Method;
+import com.sun.jdi.ReferenceType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -305,6 +309,25 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
 
     @NotNull @Override public SmaliAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
         // TODO: implement this
+        return null;
+    }
+
+    @Nullable public Location getLocationForSourcePosition(@Nonnull ReferenceType type,
+                                                           @Nonnull SourcePosition position) {
+
+        SmaliMethod[] smaliMethods = findChildrenByType(SmaliElementTypes.METHOD, SmaliMethod.class);
+
+        for (SmaliMethod smaliMethod: smaliMethods) {
+            //TODO: check the start line+end line of the method
+            int offset = smaliMethod.getOffsetForLine(position.getLine());
+            if (offset != -1) {
+                List<Method> methods = type.methodsByName(smaliMethod.getName(),
+                        smaliMethod.getMethodPrototype().getText());
+                if (methods.size() > 0) {
+                    return methods.get(0).locationOfCodeIndex(offset/2);
+                }
+            }
+        }
         return null;
     }
 }

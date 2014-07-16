@@ -21,6 +21,9 @@
       <lang.parserDefinition language="smali" implementationClass="org.jf.smalidea.SmaliParserDefinition"/>
       <java.elementFinder implementation="org.jf.smalidea.psi.index.SmaliClassFinder"/>
       <stubIndex implementation="org.jf.smalidea.psi.index.SmaliClassNameIndex"/>
+      <debugger.positionManagerFactory implementation="org.jf.smalidea.debugging.SmaliPositionManagerFactory"/>
+      <xdebugger.debuggerSupport id="SmaliDebuggerSupport" order="first,before XDebuggerSupport"
+                                 implementation="org.jf.smalidea.debugging.SmaliDebuggerSupport"/>
   </extensions>
 
   <application-components>
