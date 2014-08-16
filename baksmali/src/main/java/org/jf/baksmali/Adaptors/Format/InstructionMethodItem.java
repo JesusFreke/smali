@@ -47,6 +47,7 @@ import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.IndentingWriter;
+import org.jf.util.NumberUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -230,8 +231,12 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeFirstRegister(writer);
                 writer.write(", ");
                 writeLiteral(writer);
-                if (instruction.getOpcode().setsWideRegister() == false)
-                    writeResourceId(writer);
+                if (instruction.getOpcode().setsWideRegister()) {
+                    writeCommentIfLikelyDouble(writer);
+                } else {
+                    boolean isResourceId = writeCommentIfResourceId(writer);
+                    if (!isResourceId) writeCommentIfLikelyFloat(writer);
+                }
                 break;
             case Format21t:
             case Format31t:
@@ -436,17 +441,71 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         LongRenderer.writeSignedIntOrLongTo(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
     }
 
-    protected void writeResourceId(IndentingWriter writer) throws IOException {
-        writeResourceId(writer, ((NarrowLiteralInstruction)instruction).getNarrowLiteral());
+    protected void writeCommentIfLikelyFloat(IndentingWriter writer) throws IOException {
+        writeCommentIfLikelyFloat(writer, ((NarrowLiteralInstruction)instruction).getNarrowLiteral());
     }
 
-    protected void writeResourceId(IndentingWriter writer, int val) throws IOException {
+    protected void writeCommentIfLikelyFloat(IndentingWriter writer, int val) throws IOException {
+        if (NumberUtils.isLikelyFloat(val)) {
+            writer.write("    # ");
+            float fval = Float.intBitsToFloat(val);
+            if (fval == Float.POSITIVE_INFINITY)
+                writer.write("Float.POSITIVE_INFINITY");
+            else if (fval == Float.NEGATIVE_INFINITY)
+                writer.write("Float.NEGATIVE_INFINITY");
+            else if (fval == Float.NaN)
+                writer.write("Float.NaN");
+            else if (fval == Float.MAX_VALUE)
+                writer.write("Float.MAX_VALUE");
+            else if (fval == (float)Math.PI)
+                writer.write("(float)Math.PI");
+            else if (fval == (float)Math.E)
+                writer.write("(float)Math.E");
+            else {
+                writer.write(Float.toString(fval));
+                writer.write('f');
+            }
+        }
+    }
+
+    protected void writeCommentIfLikelyDouble(IndentingWriter writer) throws IOException {
+        writeCommentIfLikelyDouble(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
+    }
+
+    protected void writeCommentIfLikelyDouble(IndentingWriter writer, long val) throws IOException {
+        if (NumberUtils.isLikelyDouble(val)) {
+            writer.write("    # ");
+            double dval = Double.longBitsToDouble(val);
+            if (dval == Double.POSITIVE_INFINITY)
+                writer.write("Double.POSITIVE_INFINITY");
+            else if (dval == Double.NEGATIVE_INFINITY)
+                writer.write("Double.NEGATIVE_INFINITY");
+            else if (dval == Double.NaN)
+                writer.write("Double.NaN");
+            else if (dval == Double.MAX_VALUE)
+                writer.write("Double.MAX_VALUE");
+            else if (dval == Math.PI)
+                writer.write("Math.PI");
+            else if (dval == Math.E)
+                writer.write("Math.E");
+            else
+                writer.write(Double.toString(dval));
+        }
+    }
+
+    protected boolean writeCommentIfResourceId(IndentingWriter writer) throws IOException {
+        return writeCommentIfResourceId(writer, ((NarrowLiteralInstruction)instruction).getNarrowLiteral());
+    }
+
+    protected boolean writeCommentIfResourceId(IndentingWriter writer, int val) throws IOException {
         Map<Integer,String> resourceIds = methodDef.classDef.options.resourceIds;
         String resource = resourceIds.get(Integer.valueOf(val));
         if (resource != null) {
             writer.write("    # ");
             writer.write(resource);
+            return true;
         }
+        return false;
     }
 
     protected void writeFieldOffset(IndentingWriter writer) throws IOException {
