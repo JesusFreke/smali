@@ -54,6 +54,7 @@ public class baksmaliOptions {
 
     public int apiLevel = 15;
     public String outputDirectory = "out";
+    public String dexEntry = "classes.dex";
     public List<String> bootClassPathDirs = Lists.newArrayList();
 
     public List<String> bootClassPathEntries = Lists.newArrayList();
