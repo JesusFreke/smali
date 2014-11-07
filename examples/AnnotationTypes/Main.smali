@@ -104,10 +104,10 @@
 .method public static testParameterAnnotation(Ljava/lang/String;)V
     .registers 6
 
-    .parameter
+    .param p0    # Ljava/lang/String;
         .annotation runtime LParameterAnnotation;
         .end annotation
-    .end parameter
+    .end param
 
 
     sget-object v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
