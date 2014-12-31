@@ -36,7 +36,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.util.ReflectionCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +70,7 @@ public abstract class SmaliCompositeElement extends CompositePsiElement {
     protected <T> T[] findChildrenByClass(Class<T> aClass) {
         List<T> result = new ArrayList<T>();
         for (PsiElement cur = getFirstChild(); cur != null; cur = cur.getNextSibling()) {
-            if (ReflectionCache.isInstance(cur, aClass)) result.add((T)cur);
+            if (aClass.isInstance(cur)) result.add((T)cur);
         }
         return result.toArray((T[]) Array.newInstance(aClass, result.size()));
     }
@@ -80,16 +79,17 @@ public abstract class SmaliCompositeElement extends CompositePsiElement {
     @SuppressWarnings("unchecked")
     protected <T> T findChildByClass(Class<T> aClass) {
         for (PsiElement cur = getFirstChild(); cur != null; cur = cur.getNextSibling()) {
-            if (ReflectionCache.isInstance(cur, aClass)) return (T)cur;
+            if (aClass.isInstance(cur)) return (T)cur;
         }
         return null;
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     protected <T> T findAncestorByClass(Class<T> aClass) {
         PsiElement parent = getParent();
         while (parent != null) {
-            if (ReflectionCache.isInstance(parent, aClass)) {
+            if (aClass.isInstance(parent)) {
                 return (T)parent;
             }
             parent = parent.getParent();
