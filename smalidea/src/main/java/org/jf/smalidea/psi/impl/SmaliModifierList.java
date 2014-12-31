@@ -32,6 +32,7 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiModifier.ModifierConstant;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiModifierListOwner;
@@ -120,21 +121,30 @@ public class SmaliModifierList extends SmaliStubBasedPsiElement<SmaliModifierLis
     public void setModifierProperty(@ModifierConstant @NotNull @NonNls String name, boolean addModifier)
             throws IncorrectOperationException {
         if (addModifier) {
-            SmaliAccessList accessListNode = findAccessListNode();
+            final SmaliAccessList accessListNode = findAccessListNode();
             if (accessListNode == null) {
                 throw new IncorrectOperationException("Cannot add modifier: no .class statement");
             }
-            TreeElement leaf = Factory.createSingleLeafElement(SmaliTokens.ACCESS_SPEC, name, null, getManager());
-            accessListNode.addInternal(leaf, leaf, null, null);
+            final TreeElement leaf = Factory.createSingleLeafElement(SmaliTokens.ACCESS_SPEC, name, null, getManager());
+
+            new WriteCommandAction.Simple(getProject(), getContainingFile()) {
+                @Override protected void run() throws Throwable {
+                    accessListNode.addInternal(leaf, leaf, null, null);
+                }
+            }.execute();
         } else {
             SmaliAccessList accessListNode = findAccessListNode();
             if (accessListNode == null) {
                 return;
             }
 
-            ASTNode accessSpec = accessListNode.getAccessFlagNode(name);
+            final ASTNode accessSpec = accessListNode.getAccessFlagNode(name);
             if (accessSpec != null) {
-                accessSpec.getPsi().delete();
+                new WriteCommandAction.Simple(getProject(), getContainingFile()) {
+                    @Override protected void run() throws Throwable {
+                        accessSpec.getPsi().delete();
+                    }
+                }.execute();
             }
         }
     }
