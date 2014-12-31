@@ -31,6 +31,9 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.Maps;
 import com.intellij.debugger.SourcePosition;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Document;
@@ -50,6 +53,7 @@ import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliMethodStub;
 
 import java.util.List;
+import java.util.Map;
 
 public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         implements PsiMethod, SmaliModifierListOwner {
@@ -264,5 +268,22 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
     @NotNull @Override public SmaliAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
         // TODO: implement this
         return null;
+    }
+
+    private final Supplier<Map<String, SmaliLabel>> labelMap = Suppliers.memoize(
+            new Supplier<Map<String, SmaliLabel>>() {
+                @Override public Map<String, SmaliLabel> get() {
+                    Map<String, SmaliLabel> labelMap = Maps.newHashMap();
+                    for (SmaliLabel label: findChildrenByClass(SmaliLabel.class)) {
+                        if (!labelMap.containsKey(label.getText())) {
+                            labelMap.put(label.getText(), label);
+                        }
+                    }
+                    return labelMap;
+                }
+            });
+
+    @Nullable public SmaliLabel getLabel(String name) {
+        return labelMap.get().get(name);
     }
 }

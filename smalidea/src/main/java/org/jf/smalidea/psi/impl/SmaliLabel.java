@@ -44,4 +44,8 @@ public class SmaliLabel extends SmaliCompositeElement {
     public SmaliLabel() {
         super(SmaliElementTypes.LABEL);
     }
+
+    @Override public String getName() {
+        return getText().substring(1);
+    }
 }

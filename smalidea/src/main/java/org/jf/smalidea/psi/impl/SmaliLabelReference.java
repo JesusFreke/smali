@@ -31,10 +31,17 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliLabelReference extends SmaliCompositeElement {
+public class SmaliLabelReference extends SmaliCompositeElement implements PsiReference {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliLabelReference();
@@ -43,5 +50,55 @@ public class SmaliLabelReference extends SmaliCompositeElement {
 
     public SmaliLabelReference() {
         super(SmaliElementTypes.LABEL_REFERENCE);
+    }
+
+    @Override public String getName() {
+        return getText().substring(1);
+    }
+
+    @Override public PsiReference getReference() {
+        return this;
+    }
+
+    @Override public PsiElement getElement() {
+        return this;
+    }
+
+    @Override public TextRange getRangeInElement() {
+        return new TextRange(0, getTextLength());
+    }
+
+    @Nullable @Override public SmaliLabel resolve() {
+        SmaliMethod method = findAncestorByClass(SmaliMethod.class);
+        if (method == null) {
+            return null;
+        }
+        return method.getLabel(getText());
+    }
+
+    @NotNull @Override public String getCanonicalText() {
+        return getText();
+    }
+
+    @Override public boolean isReferenceTo(PsiElement element) {
+        return resolve() == element;
+    }
+
+    @NotNull @Override public Object[] getVariants() {
+        return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    }
+
+    @Override public boolean isSoft() {
+        return false;
+    }
+
+    @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+        //TODO: implement this
+        throw new IncorrectOperationException();
+    }
+
+    @Override public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+        //TODO: implement this
+        throw new IncorrectOperationException();
     }
 }
