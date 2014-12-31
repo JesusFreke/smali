@@ -96,4 +96,32 @@ public abstract class SmaliCompositeElement extends CompositePsiElement {
         }
         return null;
     }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T> T findNextSiblingByClass(@NotNull Class<T> cls) {
+        PsiElement prev = getNextSibling();
+        while (true) {
+            if (prev == null) {
+                return null;
+            } else if (cls.isInstance(prev)) {
+                return (T)prev;
+            }
+            prev = prev.getNextSibling();
+        }
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T> T findPrevSiblingByClass(@NotNull Class<T> cls) {
+        PsiElement prev = getPrevSibling();
+        while (true) {
+            if (prev == null) {
+                return null;
+            } else if (cls.isInstance(prev)) {
+                return (T)prev;
+            }
+            prev = prev.getPrevSibling();
+        }
+    }
 }
