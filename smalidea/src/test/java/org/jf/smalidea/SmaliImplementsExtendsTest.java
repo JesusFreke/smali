@@ -33,11 +33,11 @@ package org.jf.smalidea;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliExtendsList;
 import org.jf.smalidea.psi.impl.SmaliFile;
 import org.jf.smalidea.psi.impl.SmaliImplementsList;
+import org.junit.Assert;
 
 public class SmaliImplementsExtendsTest extends LightCodeInsightFixtureTestCase {
     public void testNormalClass() {

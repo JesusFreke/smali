@@ -35,12 +35,12 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiTypeElement;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import junit.framework.Assert;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliField;
 import org.jf.smalidea.psi.impl.SmaliFile;
 import org.jf.smalidea.psi.impl.SmaliModifierList;
+import org.junit.Assert;
 
 public class SmaliFieldTest extends LightCodeInsightFixtureTestCase {
     public void testBasicField() {

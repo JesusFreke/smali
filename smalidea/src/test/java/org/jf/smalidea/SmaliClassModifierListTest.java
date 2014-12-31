@@ -33,12 +33,12 @@ package org.jf.smalidea;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import junit.framework.Assert;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.smalidea.psi.impl.SmaliAnnotation;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
 import org.jf.smalidea.psi.impl.SmaliModifierList;
+import org.junit.Assert;
 
 public class SmaliClassModifierListTest extends LightCodeInsightFixtureTestCase {
     public void testAllClassAccessFlags() {
@@ -50,12 +50,12 @@ public class SmaliClassModifierListTest extends LightCodeInsightFixtureTestCase 
         SmaliModifierList modifierList = smaliClass.getModifierList();
 
         Assert.assertEquals(AccessFlags.PUBLIC.getValue() |
-                AccessFlags.FINAL.getValue() |
-                AccessFlags.INTERFACE.getValue() |
-                AccessFlags.ABSTRACT.getValue() |
-                AccessFlags.SYNTHETIC.getValue() |
-                AccessFlags.ENUM.getValue() |
-                AccessFlags.ANNOTATION.getValue(),
+                        AccessFlags.FINAL.getValue() |
+                        AccessFlags.INTERFACE.getValue() |
+                        AccessFlags.ABSTRACT.getValue() |
+                        AccessFlags.SYNTHETIC.getValue() |
+                        AccessFlags.ENUM.getValue() |
+                        AccessFlags.ANNOTATION.getValue(),
                 modifierList.getAccessFlags());
 
         Assert.assertTrue(modifierList.hasModifierProperty("public"));

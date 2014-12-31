@@ -34,9 +34,9 @@ package org.jf.smalidea;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.ResolveTestCase;
-import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliClassTypeElement;
+import org.junit.Assert;
 
 public class ClassReferenceTest extends ResolveTestCase {
     /**

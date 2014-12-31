@@ -32,9 +32,9 @@
 package org.jf.smalidea;
 
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
+import org.junit.Assert;
 
 public class SmaliFileTest extends LightCodeInsightFixtureTestCase {
     public void testFile() {

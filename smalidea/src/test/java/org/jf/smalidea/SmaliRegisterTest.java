@@ -33,9 +33,9 @@ package org.jf.smalidea;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliFile;
 import org.jf.smalidea.psi.impl.SmaliRegisterReference;
+import org.junit.Assert;
 
 public class SmaliRegisterTest extends LightCodeInsightFixtureTestCase {
     public void testRegisterReference() {

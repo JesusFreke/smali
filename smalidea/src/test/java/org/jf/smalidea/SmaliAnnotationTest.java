@@ -33,10 +33,10 @@ package org.jf.smalidea;
 
 import com.intellij.psi.*;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import junit.framework.Assert;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
 import org.jf.smalidea.psi.impl.SmaliMethod;
+import org.junit.Assert;
 
 public class SmaliAnnotationTest extends LightCodeInsightFixtureTestCase {
     // TODO: test default values
