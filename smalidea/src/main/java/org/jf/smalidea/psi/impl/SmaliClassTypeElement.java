@@ -89,7 +89,7 @@ public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCo
         return new TextRange(0, getTextLength());
     }
 
-    @Nullable @Override public PsiElement resolve() {
+    @Nullable @Override public PsiClass resolve() {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
         return facade.findClass(getCanonicalText(), getResolveScope());
     }

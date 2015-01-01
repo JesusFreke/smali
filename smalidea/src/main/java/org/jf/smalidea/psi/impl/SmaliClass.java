@@ -39,6 +39,8 @@ import com.intellij.psi.PsiModifier.ModifierConstant;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.scope.PsiScopeProcessor;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.sun.jdi.Location;
 import com.sun.jdi.Method;
@@ -329,5 +331,12 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
             }
         }
         return null;
+    }
+
+    @Override
+    public boolean processDeclarations(@NotNull PsiScopeProcessor processor, @NotNull ResolveState state,
+                                       PsiElement lastParent, @NotNull PsiElement place) {
+        return PsiClassImplUtil.processDeclarationsInClass(this, processor, state, null, lastParent, place,
+                PsiUtil.getLanguageLevel(place), false);
     }
 }
