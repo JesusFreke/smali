@@ -31,10 +31,19 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiReference;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliFieldReference extends SmaliCompositeElement {
+public class SmaliFieldReference extends SmaliCompositeElement implements PsiReference {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliFieldReference();
@@ -43,5 +52,91 @@ public class SmaliFieldReference extends SmaliCompositeElement {
 
     public SmaliFieldReference() {
         super(SmaliElementTypes.FIELD_REFERENCE);
+    }
+
+    @Nullable
+    public PsiClass getContainingClass() {
+        SmaliClassTypeElement containingClassReference = findChildByClass(SmaliClassTypeElement.class);
+        if (containingClassReference == null) {
+            return null;
+        }
+        PsiClass containingClass = containingClassReference.resolve();
+        if (containingClass == null) {
+            return null;
+        }
+
+        return containingClass;
+    }
+
+    @Nullable
+    public SmaliMemberName getMemberName() {
+        return findChildByClass(SmaliMemberName.class);
+    }
+
+    @Nullable
+    public SmaliTypeElement getFieldType() {
+        SmaliTypeElement[] types = findChildrenByClass(SmaliTypeElement.class);
+        assert types.length == 2;
+        return types[1];
+    }
+
+    @Override public PsiReference getReference() {
+        return this;
+    }
+
+    @Override public String getName() {
+        SmaliMemberName memberName = getMemberName();
+        if (memberName == null) {
+            return null;
+        }
+        return memberName.getText();
+    }
+
+    @Override public PsiElement getElement() {
+        return this;
+    }
+
+    @Override public TextRange getRangeInElement() {
+        return new TextRange(0, getTextLength());
+    }
+
+    @NotNull @Override public String getCanonicalText() {
+        return getText();
+    }
+
+    @Nullable @Override public PsiField resolve() {
+        PsiClass containingClass = getContainingClass();
+        if (containingClass == null) {
+            return null;
+        }
+
+        SmaliMemberName memberName = getMemberName();
+        if (memberName == null) {
+            return null;
+        }
+
+        return containingClass.findFieldByName(memberName.getText(), true);
+    }
+
+    @Override public boolean isReferenceTo(PsiElement element) {
+        return resolve() == element;
+    }
+
+    @NotNull @Override public Object[] getVariants() {
+        return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    }
+
+    @Override public boolean isSoft() {
+        return false;
+    }
+
+    @Override public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+        //TODO: implement this
+        throw new IncorrectOperationException();
+    }
+
+    @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+        //TODO: implement this
+        throw new IncorrectOperationException();
     }
 }
