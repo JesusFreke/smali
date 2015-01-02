@@ -29,47 +29,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.dexlib.instruction;
 
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.dexlib2.iface.instruction.formats.Instruction3rc;
+import org.jf.smalidea.psi.impl.SmaliInstruction;
 
-public class SmaliLabel extends SmaliCompositeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliLabel();
-        }
-    };
+import javax.annotation.Nonnull;
 
-    public SmaliLabel() {
-        super(SmaliElementTypes.LABEL);
+public class SmalideaInstruction3rc extends SmalideaInstruction implements Instruction3rc {
+    public SmalideaInstruction3rc(@Nonnull SmaliInstruction instruction) {
+        super(instruction);
     }
 
-    @Override public String getName() {
-        return getText().substring(1);
+    @Override public int getStartRegister() {
+        return psiInstruction.getRegister(0);
     }
 
-    @Nullable
-    public SmaliInstruction getInstruction() {
-        return findNextSiblingByClass(SmaliInstruction.class);
-    }
-
-    @Nullable
-    private SmaliInstruction getPreviousInstruction() {
-        return findPrevSiblingByClass(SmaliInstruction.class);
-    }
-
-    public int getOffset() {
-        SmaliInstruction instruction = getInstruction();
-        if (instruction == null) {
-            instruction = getPreviousInstruction();
-            if (instruction == null) {
-                return 0;
-            }
-            // TODO: handle variable size instructions
-            return instruction.getOffset() + instruction.getOpcode().format.size;
-        }
-        return instruction.getOffset();
+    @Override public int getRegisterCount() {
+        return psiInstruction.getRegister(1) - getStartRegister() + 1;
     }
 }

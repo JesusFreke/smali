@@ -29,47 +29,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.dexlib.instruction;
 
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.iface.instruction.SwitchElement;
+import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
+import org.jf.smalidea.psi.impl.SmaliInstruction;
 
-public class SmaliLabel extends SmaliCompositeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliLabel();
-        }
-    };
+import javax.annotation.Nonnull;
+import java.util.List;
 
-    public SmaliLabel() {
-        super(SmaliElementTypes.LABEL);
+public class SmalideaPackedSwitchPayload extends SmalideaInstruction implements PackedSwitchPayload {
+    public SmalideaPackedSwitchPayload(@Nonnull SmaliInstruction instruction) {
+        super(instruction);
     }
 
-    @Override public String getName() {
-        return getText().substring(1);
-    }
-
-    @Nullable
-    public SmaliInstruction getInstruction() {
-        return findNextSiblingByClass(SmaliInstruction.class);
-    }
-
-    @Nullable
-    private SmaliInstruction getPreviousInstruction() {
-        return findPrevSiblingByClass(SmaliInstruction.class);
-    }
-
-    public int getOffset() {
-        SmaliInstruction instruction = getInstruction();
-        if (instruction == null) {
-            instruction = getPreviousInstruction();
-            if (instruction == null) {
-                return 0;
-            }
-            // TODO: handle variable size instructions
-            return instruction.getOffset() + instruction.getOpcode().format.size;
-        }
-        return instruction.getOffset();
+    @Nonnull @Override public List<? extends SwitchElement> getSwitchElements() {
+        // TODO: implement this
+        return ImmutableList.of();
     }
 }

@@ -31,14 +31,19 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.google.common.base.Preconditions;
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.analysis.AnalyzedInstruction;
+import org.jf.dexlib2.analysis.MethodAnalyzer;
 import org.jf.smalidea.SmaliTokens;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
+
+import java.util.List;
 
 public class SmaliInstruction extends SmaliCompositeElement {
     private static final int NO_OFFSET = -1;
@@ -56,6 +61,12 @@ public class SmaliInstruction extends SmaliCompositeElement {
         super(SmaliElementTypes.INSTRUCTION);
     }
 
+    @NotNull public SmaliMethod getParentMethod() {
+        SmaliMethod smaliMethod = findAncestorByClass(SmaliMethod.class);
+        assert smaliMethod != null;
+        return smaliMethod;
+    }
+
     @NotNull public Opcode getOpcode() {
         if (opcode == null) {
             ASTNode instructionNode = findChildByType(SmaliTokens.INSTRUCTION_TOKENS);
@@ -70,6 +81,7 @@ public class SmaliInstruction extends SmaliCompositeElement {
     }
 
     public int getOffset() {
+        // TODO: don't calculate this recursively. ugh!
         if (offset == NO_OFFSET) {
             SmaliInstruction previousInstruction = findPrevSiblingByClass(SmaliInstruction.class);
             if (previousInstruction == null) {
@@ -80,5 +92,76 @@ public class SmaliInstruction extends SmaliCompositeElement {
             }
         }
         return offset;
+    }
+
+    public int getRegister(int registerIndex) {
+        Preconditions.checkArgument(registerIndex >= 0);
+
+        List<ASTNode> registers = findChildrenByType(SmaliElementTypes.REGISTER_REFERENCE);
+        if (registerIndex >= registers.size()) {
+            return -1;
+        }
+
+        SmaliRegisterReference registerReference = (SmaliRegisterReference)registers.get(registerIndex);
+        return registerReference.getRegisterNumber();
+    }
+
+    public int getRegisterCount() {
+        return findChildrenByType(SmaliElementTypes.REGISTER_REFERENCE).size();
+    }
+
+    @Nullable
+    public SmaliLiteral getLiteral() {
+        return findChildByClass(SmaliLiteral.class);
+    }
+
+    @Nullable
+    public SmaliTypeElement getTypeReference() {
+        return findChildByClass(SmaliTypeElement.class);
+    }
+
+    @Nullable
+    public SmaliFieldReference getFieldReference() {
+        return findChildByClass(SmaliFieldReference.class);
+    }
+
+    @Nullable
+    public SmaliMethodReference getMethodReference() {
+        return findChildByClass(SmaliMethodReference.class);
+    }
+
+    private AnalyzedInstruction analyzedInstruction = null;
+
+    @NotNull
+    private AnalyzedInstruction getAnalyzedInstructionFromMethod() {
+        SmaliMethod method = getParentMethod();
+
+        MethodAnalyzer analyzer = method.getMethodAnalyzer();
+        int thisOffset = this.getOffset() / 2;
+        int codeOffset = 0;
+
+        for (AnalyzedInstruction instruction: analyzer.getAnalyzedInstructions()) {
+            if (codeOffset == thisOffset) {
+                return instruction;
+            }
+            assert codeOffset < thisOffset;
+
+            codeOffset += instruction.getOriginalInstruction().getCodeUnits();
+        }
+        assert false;
+        return null;
+    }
+
+    @NotNull
+    public AnalyzedInstruction getAnalyzedInstruction() {
+        if (analyzedInstruction == null) {
+            analyzedInstruction = getAnalyzedInstructionFromMethod();
+        }
+        return analyzedInstruction;
+    }
+
+    @Override public void clearCaches() {
+        super.clearCaches();
+        analyzedInstruction = null;
     }
 }

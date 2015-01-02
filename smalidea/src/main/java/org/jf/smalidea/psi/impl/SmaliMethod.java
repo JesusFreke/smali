@@ -48,10 +48,14 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jf.dexlib2.analysis.ClassPath;
+import org.jf.dexlib2.analysis.MethodAnalyzer;
+import org.jf.smalidea.dexlib.SmalideaMethod;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliMethodStub;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -285,5 +289,27 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
 
     @Nullable public SmaliLabel getLabel(String name) {
         return labelMap.get().get(name);
+    }
+
+    private MethodAnalyzer methodAnalyzer = null;
+
+    @NotNull
+    public MethodAnalyzer getMethodAnalyzer() {
+        if (methodAnalyzer == null) {
+            ClassPath classPath;
+            try {
+                classPath = new ClassPath();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            methodAnalyzer = new MethodAnalyzer(classPath, new SmalideaMethod(SmaliMethod.this), null);
+        }
+        return methodAnalyzer;
+    }
+
+    @Override public void subtreeChanged() {
+        super.subtreeChanged();
+        methodAnalyzer = null;
     }
 }

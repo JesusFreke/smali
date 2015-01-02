@@ -29,47 +29,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.dexlib;
 
+import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.dexlib2.base.BaseMethodParameter;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.smalidea.psi.impl.SmaliMethodParameter;
 
-public class SmaliLabel extends SmaliCompositeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliLabel();
-        }
-    };
+import javax.annotation.Nonnull;
+import java.util.Set;
 
-    public SmaliLabel() {
-        super(SmaliElementTypes.LABEL);
+public class SmalideaMethodParameter extends BaseMethodParameter {
+    private final SmaliMethodParameter psiParameter;
+
+    public SmalideaMethodParameter(SmaliMethodParameter psiParameter) {
+        this.psiParameter = psiParameter;
     }
 
-    @Override public String getName() {
-        return getText().substring(1);
+    @Nonnull @Override public Set<? extends Annotation> getAnnotations() {
+        // TODO: implement this
+        return ImmutableSet.of();
     }
 
-    @Nullable
-    public SmaliInstruction getInstruction() {
-        return findNextSiblingByClass(SmaliInstruction.class);
+    @Nullable @Override public String getName() {
+        return psiParameter.getName();
     }
 
-    @Nullable
-    private SmaliInstruction getPreviousInstruction() {
-        return findPrevSiblingByClass(SmaliInstruction.class);
-    }
-
-    public int getOffset() {
-        SmaliInstruction instruction = getInstruction();
-        if (instruction == null) {
-            instruction = getPreviousInstruction();
-            if (instruction == null) {
-                return 0;
-            }
-            // TODO: handle variable size instructions
-            return instruction.getOffset() + instruction.getOpcode().format.size;
-        }
-        return instruction.getOffset();
+    @Nonnull @Override public String getType() {
+        return psiParameter.getTypeElement().getText();
     }
 }
