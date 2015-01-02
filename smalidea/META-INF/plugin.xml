@@ -24,6 +24,7 @@
       <debugger.positionManagerFactory implementation="org.jf.smalidea.debugging.SmaliPositionManagerFactory"/>
       <xdebugger.debuggerSupport id="SmaliDebuggerSupport" order="first,before XDebuggerSupport"
                                  implementation="org.jf.smalidea.debugging.SmaliDebuggerSupport"/>
+      <debugger.codeFragmentFactory implementation="org.jf.smalidea.debugging.SmaliCodeFragmentFactory"/>
   </extensions>
 
   <application-components>
