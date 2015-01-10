@@ -34,6 +34,7 @@ package org.jf.smalidea.psi.impl;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightElement;
+import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -80,7 +81,7 @@ public class LightSmaliClassTypeElement extends LightElement
         return new TextRange(0, getTextLength());
     }
 
-    @Nullable @Override public PsiElement resolve() {
+    @Nullable @Override public PsiClass resolve() {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
         return facade.findClass(getCanonicalText(), getResolveScope());
     }
@@ -161,13 +162,19 @@ public class LightSmaliClassTypeElement extends LightElement
     }
 
     @NotNull @Override public JavaResolveResult advancedResolve(boolean incompleteCode) {
-        // TODO: implement this if needed
-        throw new UnsupportedOperationException();
+        PsiClass element = resolve();
+        if (element == null) {
+            return JavaResolveResult.EMPTY;
+        }
+        return new CandidateInfo(element, PsiSubstitutor.EMPTY);
     }
 
     @NotNull @Override public JavaResolveResult[] multiResolve(boolean incompleteCode) {
-        // TODO: implement this if needed
-        throw new UnsupportedOperationException();
+        PsiClass element = resolve();
+        if (element == null) {
+            return JavaResolveResult.EMPTY_ARRAY;
+        }
+        return new CandidateInfo[] { new CandidateInfo(element, PsiSubstitutor.EMPTY) };
     }
 
     @Nullable @Override public PsiElement getQualifier() {

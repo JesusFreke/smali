@@ -31,6 +31,7 @@
 
 package org.jf.smalidea;
 
+import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.ResolveTestCase;
@@ -49,9 +50,18 @@ public class ClassReferenceTest extends ResolveTestCase {
         Assert.assertNotNull(typeElement);
         Assert.assertEquals("Object", typeElement.getName());
 
-        PsiClass psiClass = (PsiClass)typeElement.resolve();
+        PsiClass psiClass = typeElement.resolve();
         Assert.assertNotNull(psiClass);
         Assert.assertEquals("java.lang.Object", psiClass.getQualifiedName());
+
+        JavaResolveResult resolveResult = typeElement.advancedResolve(false);
+        Assert.assertNotNull(resolveResult.getElement());
+        Assert.assertEquals("java.lang.Object", ((PsiClass)resolveResult.getElement()).getQualifiedName());
+
+        JavaResolveResult[] resolveResults = typeElement.multiResolve(false);
+        Assert.assertEquals(1, resolveResults.length);
+        Assert.assertNotNull(resolveResults[0].getElement());
+        Assert.assertEquals("java.lang.Object", ((PsiClass)resolveResults[0].getElement()).getQualifiedName());
     }
 
     /**
@@ -68,6 +78,15 @@ public class ClassReferenceTest extends ResolveTestCase {
         SmaliClass smaliClass = (SmaliClass)typeElement.resolve();
         Assert.assertNotNull(smaliClass);
         Assert.assertEquals("blarg", smaliClass.getQualifiedName());
+
+        JavaResolveResult resolveResult = typeElement.advancedResolve(false);
+        Assert.assertNotNull(resolveResult.getElement());
+        Assert.assertEquals("blarg", ((PsiClass)resolveResult.getElement()).getQualifiedName());
+
+        JavaResolveResult[] resolveResults = typeElement.multiResolve(false);
+        Assert.assertEquals(1, resolveResults.length);
+        Assert.assertNotNull(resolveResults[0].getElement());
+        Assert.assertEquals("blarg", ((PsiClass)resolveResults[0].getElement()).getQualifiedName());
     }
 
     /**
