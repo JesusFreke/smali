@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,53 +29,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.dexlib;
 
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.dexlib2.base.BaseTryBlock;
+import org.jf.smalidea.psi.impl.SmaliCatchStatement;
 
-public class SmaliCatchStatement extends SmaliCompositeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliCatchStatement();
-        }
-    };
+import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.List;
 
-    public SmaliCatchStatement() {
-        super(SmaliElementTypes.CATCH_STATEMENT);
+public class SmalideaTryBlock extends BaseTryBlock<SmalideaExceptionHandler> {
+    @Nonnull private final SmaliCatchStatement catchStatement;
+
+    public SmalideaTryBlock(@Nonnull SmaliCatchStatement catchStatement) {
+        this.catchStatement = catchStatement;
     }
 
-    protected SmaliCatchStatement(IElementType elementType) {
-        super(elementType);
+    @Override public int getCodeUnitCount() {
+        int endOffset = catchStatement.getEndLabel().resolve().getOffset() / 2;
+        return endOffset - getStartCodeAddress();
     }
 
-    @Nullable
-    public SmaliClassTypeElement getExceptionType() {
-        return findChildByClass(SmaliClassTypeElement.class);
+    @Override public int getStartCodeAddress() {
+        // TODO: how to handle references to non-existent labels?
+        return catchStatement.getStartLabel().resolve().getOffset() / 2;
     }
 
-    @Nullable
-    public SmaliLabelReference getStartLabel() {
-        return findChildByClass(SmaliLabelReference.class);
-    }
-
-    @Nullable
-    public SmaliLabelReference getEndLabel() {
-        SmaliLabelReference startLabel = getStartLabel();
-        if (startLabel == null) {
-            return null;
-        }
-        return startLabel.findNextSiblingByClass(SmaliLabelReference.class);
-    }
-
-    @Nullable
-    public SmaliLabelReference getHandlerLabel() {
-        SmaliLabelReference endLabel = getEndLabel();
-        if (endLabel == null) {
-            return null;
-        }
-        return endLabel.findNextSiblingByClass(SmaliLabelReference.class);
+    @Nonnull @Override public List<? extends SmalideaExceptionHandler> getExceptionHandlers() {
+        return Arrays.asList(new SmalideaExceptionHandler(catchStatement));
     }
 }

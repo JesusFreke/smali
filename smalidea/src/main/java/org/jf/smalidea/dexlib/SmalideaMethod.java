@@ -44,6 +44,7 @@ import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.smalidea.dexlib.instruction.SmalideaInstruction;
+import org.jf.smalidea.psi.impl.SmaliCatchStatement;
 import org.jf.smalidea.psi.impl.SmaliInstruction;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 import org.jf.smalidea.psi.impl.SmaliMethodParameter;
@@ -107,19 +108,23 @@ public class SmalideaMethod extends BaseMethodReference implements Method {
             @Nonnull @Override public Iterable<? extends Instruction> getInstructions() {
                 return Lists.transform(psiMethod.getInstructions(),
                         new Function<SmaliInstruction, Instruction>() {
-                            @javax.annotation.Nullable @Override
-                            public Instruction apply(@javax.annotation.Nullable SmaliInstruction smaliInstruction) {
-                                if (smaliInstruction == null) {
-                                    return null;
-                                }
+                            @Override
+                            public Instruction apply(SmaliInstruction smaliInstruction) {
                                 return SmalideaInstruction.of(smaliInstruction);
                             }
                         });
             }
 
             @Nonnull @Override public List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks() {
-                // TODO: implement this
-                return ImmutableList.of();
+                return Lists.transform(psiMethod.getCatchStatements(),
+                        new Function<SmaliCatchStatement, TryBlock<? extends ExceptionHandler>>() {
+                            @Override
+                            public TryBlock<? extends ExceptionHandler> apply(
+                                    SmaliCatchStatement smaliCatchStatement) {
+                                assert smaliCatchStatement != null;
+                                return new SmalideaTryBlock(smaliCatchStatement);
+                            }
+                        });
             }
 
             @Nonnull @Override public Iterable<? extends DebugItem> getDebugItems() {

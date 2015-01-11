@@ -35,8 +35,10 @@ import com.google.common.collect.Lists;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
+import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
@@ -287,5 +289,81 @@ public class SmalideaMethodTest extends LightCodeInsightFixtureTestCase {
             Assert.assertEquals(0, instruction.getRegisterA());
             Assert.assertEquals(0x1234567890L, instruction.getWideLiteral());
         }
+    }
+
+    public void testCatchBlocks() {
+        String text = ".class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
+                ".method public onCreateEngine()Landroid/service/wallpaper/WallpaperService$Engine;\n" +
+                "    .registers 5\n" +
+                "\n" +
+                "    .prologue\n" +
+                "    .line 88\n" +
+                "    new-instance v0, Lorg/jf/Penroser/PenroserLiveWallpaper$PenroserGLEngine;\n" +
+                "\n" +
+                "    invoke-direct {v0, p0}, Lorg/jf/Penroser/PenroserLiveWallpaper$PenroserGLEngine;-><init>(Lorg/jf/Penroser/PenroserLiveWallpaper;)V\n" +
+                "\n" +
+                "    .line 89\n" +
+                "    .local v0, \"engine\":Lorg/jf/Penroser/PenroserLiveWallpaper$PenroserGLEngine;\n" +
+                "    sget-object v1, Lorg/jf/Penroser/PenroserLiveWallpaper;->engines:Ljava/util/LinkedList;\n" +
+                "\n" +
+                "    monitor-enter v1\n" +
+                "\n" +
+                "    .line 90\n" +
+                "    :try_start_8\n" +
+                "    sget-object v2, Lorg/jf/Penroser/PenroserLiveWallpaper;->engines:Ljava/util/LinkedList;\n" +
+                "\n" +
+                "    new-instance v3, Ljava/lang/ref/WeakReference;\n" +
+                "\n" +
+                "    invoke-direct {v3, v0}, Ljava/lang/ref/WeakReference;-><init>(Ljava/lang/Object;)V\n" +
+                "\n" +
+                "    invoke-virtual {v2, v3}, Ljava/util/LinkedList;->addLast(Ljava/lang/Object;)V\n" +
+                "\n" +
+                "    .line 91\n" +
+                "    monitor-exit v1\n" +
+                "\n" +
+                "    .line 92\n" +
+                "    return-object v0\n" +
+                "\n" +
+                "    .line 91\n" +
+                "    :catchall_14\n" +
+                "    move-exception v2\n" +
+                "\n" +
+                "    monitor-exit v1\n" +
+                "    :try_end_16\n" +
+                "    .catch Ljava/lang/RuntimeException; {:try_start_8 .. :try_end_16} :newcatch\n" +
+                "    .catchall {:try_start_8 .. :try_end_16} :catchall_14\n" +
+                "\n" +
+                "    throw v2\n" +
+                "\n" +
+                "    :newcatch\n" +
+                "    move-exception v2\n" +
+                "    throw v2\n" +
+                ".end method";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
+        SmaliClass smaliClass = file.getPsiClass();
+        SmaliMethod smaliMethod = smaliClass.getMethods()[0];
+
+        SmalideaMethod method = new SmalideaMethod(smaliMethod);
+
+        MethodImplementation impl = method.getImplementation();
+        Assert.assertNotNull(impl);
+
+        List<? extends TryBlock<? extends ExceptionHandler>> tryBlocks = impl.getTryBlocks();
+        Assert.assertEquals(2, tryBlocks.size());
+
+        TryBlock<? extends ExceptionHandler> tryBlock = tryBlocks.get(0);
+        Assert.assertEquals(8, tryBlock.getStartCodeAddress());
+        Assert.assertEquals(14, tryBlock.getCodeUnitCount());
+        Assert.assertEquals(1, tryBlock.getExceptionHandlers().size());
+        Assert.assertEquals("Ljava/lang/RuntimeException;", tryBlock.getExceptionHandlers().get(0).getExceptionType());
+        Assert.assertEquals(23, tryBlock.getExceptionHandlers().get(0).getHandlerCodeAddress());
+
+        tryBlock = tryBlocks.get(1);
+        Assert.assertEquals(8, tryBlock.getStartCodeAddress());
+        Assert.assertEquals(14, tryBlock.getCodeUnitCount());
+        Assert.assertEquals(1, tryBlock.getExceptionHandlers().size());
+        Assert.assertEquals(null, tryBlock.getExceptionHandlers().get(0).getExceptionType());
+        Assert.assertEquals(20, tryBlock.getExceptionHandlers().get(0).getHandlerCodeAddress());
     }
 }

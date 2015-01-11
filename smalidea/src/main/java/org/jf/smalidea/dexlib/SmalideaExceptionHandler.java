@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,53 +29,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.psi.impl;
+package org.jf.smalidea.dexlib;
 
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
-import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.dexlib2.base.BaseExceptionHandler;
+import org.jf.smalidea.psi.impl.SmaliCatchStatement;
+import org.jf.smalidea.psi.impl.SmaliClassTypeElement;
+import org.jf.smalidea.psi.impl.SmaliLabel;
+import org.jf.smalidea.psi.impl.SmaliLabelReference;
 
-public class SmaliCatchStatement extends SmaliCompositeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliCatchStatement();
-        }
-    };
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-    public SmaliCatchStatement() {
-        super(SmaliElementTypes.CATCH_STATEMENT);
+public class SmalideaExceptionHandler extends BaseExceptionHandler {
+    @Nonnull private final SmaliCatchStatement catchStatement;
+
+    public SmalideaExceptionHandler(@Nonnull SmaliCatchStatement catchStatement) {
+        this.catchStatement = catchStatement;
     }
 
-    protected SmaliCatchStatement(IElementType elementType) {
-        super(elementType);
-    }
-
-    @Nullable
-    public SmaliClassTypeElement getExceptionType() {
-        return findChildByClass(SmaliClassTypeElement.class);
-    }
-
-    @Nullable
-    public SmaliLabelReference getStartLabel() {
-        return findChildByClass(SmaliLabelReference.class);
-    }
-
-    @Nullable
-    public SmaliLabelReference getEndLabel() {
-        SmaliLabelReference startLabel = getStartLabel();
-        if (startLabel == null) {
+    @Nullable @Override public String getExceptionType() {
+        SmaliClassTypeElement exceptionType = catchStatement.getExceptionType();
+        if (exceptionType == null) {
             return null;
         }
-        return startLabel.findNextSiblingByClass(SmaliLabelReference.class);
+        return exceptionType.getText();
     }
 
-    @Nullable
-    public SmaliLabelReference getHandlerLabel() {
-        SmaliLabelReference endLabel = getEndLabel();
-        if (endLabel == null) {
-            return null;
-        }
-        return endLabel.findNextSiblingByClass(SmaliLabelReference.class);
+    @Override public int getHandlerCodeAddress() {
+        SmaliLabelReference handlerLabel = catchStatement.getHandlerLabel();
+        // TODO: how to handle a reference to a non-existent label..
+        SmaliLabel smaliLabel = handlerLabel.resolve();
+        return smaliLabel.getOffset() / 2;
     }
 }

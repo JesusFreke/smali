@@ -31,10 +31,11 @@
 
 package org.jf.smalidea.psi.impl;
 
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliCatchAllStatement extends SmaliCompositeElement {
+public class SmaliCatchAllStatement extends SmaliCatchStatement {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliCatchAllStatement();
@@ -43,5 +44,9 @@ public class SmaliCatchAllStatement extends SmaliCompositeElement {
 
     public SmaliCatchAllStatement() {
         super(SmaliElementTypes.CATCH_ALL_STATEMENT);
+    }
+
+    @Nullable @Override public SmaliClassTypeElement getExceptionType() {
+        return null;
     }
 }

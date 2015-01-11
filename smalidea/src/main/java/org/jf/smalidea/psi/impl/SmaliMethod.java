@@ -56,6 +56,7 @@ import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliMethodStub;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -119,6 +120,10 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         return findChildrenByType(SmaliElementTypes.INSTRUCTION);
     }
 
+    @NotNull public List<SmaliCatchStatement> getCatchStatements() {
+        return Arrays.asList(findChildrenByClass(SmaliCatchStatement.class));
+    }
+
     @Nullable public SourcePosition getSourcePositionForCodeOffset(int offset) {
         for (SmaliInstruction instruction: getInstructions()) {
             if (instruction.getOffset() >= offset) {
@@ -161,7 +166,7 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         return parameterRegisterCount;
     }
 
-    public SmaliParameterStatement[] getParameterStatements() {
+    @NotNull public SmaliParameterStatement[] getParameterStatements() {
         return findChildrenByClass(SmaliParameterStatement.class);
     }
 
