@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,35 +29,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.dexlib;
+package org.jf.smalidea.util;
 
-import com.google.common.collect.ImmutableSet;
+import org.antlr.runtime.CommonToken;
 import org.jetbrains.annotations.Nullable;
-import org.jf.dexlib2.base.BaseMethodParameter;
-import org.jf.dexlib2.iface.Annotation;
-import org.jf.smalidea.psi.impl.SmaliMethodParameter;
-import org.jf.smalidea.util.StringUtils;
+import org.jf.smali.smaliFlexLexer;
+import org.jf.smali.smaliParser;
 
-import javax.annotation.Nonnull;
-import java.util.Set;
+import java.io.StringReader;
 
-public class SmalideaMethodParameter extends BaseMethodParameter {
-    private final SmaliMethodParameter psiParameter;
+public class StringUtils {
 
-    public SmalideaMethodParameter(SmaliMethodParameter psiParameter) {
-        this.psiParameter = psiParameter;
-    }
+    @Nullable
+    public static String parseQuotedString(String str) {
+        if (str.charAt(0) != '"') {
+            return null;
+        }
 
-    @Nonnull @Override public Set<? extends Annotation> getAnnotations() {
-        // TODO: implement this
-        return ImmutableSet.of();
-    }
+        smaliFlexLexer lexer = new smaliFlexLexer(new StringReader(str));
+        lexer.setSuppressErrors(true);
 
-    @Nullable @Override public String getName() {
-        return StringUtils.parseQuotedString(psiParameter.getName());
-    }
+        CommonToken token = (CommonToken)lexer.nextToken();
+        if (token.getType() != smaliParser.STRING_LITERAL) {
+            return null;
+        }
 
-    @Nonnull @Override public String getType() {
-        return psiParameter.getTypeElement().getText();
+        if (token.getStopIndex() != str.length()-1) {
+            return null;
+        }
+
+        String text = token.getText();
+        return text.substring(1, text.length()-1);
     }
 }

@@ -46,6 +46,7 @@ import org.jf.dexlib2.immutable.reference.ImmutableTypeReference;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.*;
 import org.jf.smalidea.util.NameUtils;
+import org.jf.smalidea.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -180,8 +181,8 @@ public abstract class SmalideaInstruction implements Instruction {
     @Nonnull public Reference getReference() {
         switch (getReferenceType()) {
             case ReferenceType.STRING:
-                // TODO: get the actual string value
-                return new ImmutableStringReference("");
+                return new ImmutableStringReference(StringUtils.parseQuotedString(
+                        psiInstruction.getLiteral().getText()));
             case ReferenceType.TYPE:
                 SmaliTypeElement typeReference = psiInstruction.getTypeReference();
                 assert typeReference != null;
@@ -207,7 +208,7 @@ public abstract class SmalideaInstruction implements Instruction {
             case ReferenceType.FIELD:
                 SmaliFieldReference fieldReference = psiInstruction.getFieldReference();
                 assert fieldReference != null;
-                containingClass = NameUtils.javaToSmaliType(fieldReference.getContainingClass().getQualifiedName());
+                containingClass = fieldReference.getContainingType().getText();
                 return new ImmutableFieldReference(containingClass,
                         fieldReference.getName(),
                         fieldReference.getFieldType().getText());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,35 +29,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.dexlib;
+package org.jf.smalidea.util;
 
-import com.google.common.collect.ImmutableSet;
-import org.jetbrains.annotations.Nullable;
-import org.jf.dexlib2.base.BaseMethodParameter;
-import org.jf.dexlib2.iface.Annotation;
-import org.jf.smalidea.psi.impl.SmaliMethodParameter;
-import org.jf.smalidea.util.StringUtils;
+import org.junit.Assert;
+import org.junit.Test;
 
-import javax.annotation.Nonnull;
-import java.util.Set;
-
-public class SmalideaMethodParameter extends BaseMethodParameter {
-    private final SmaliMethodParameter psiParameter;
-
-    public SmalideaMethodParameter(SmaliMethodParameter psiParameter) {
-        this.psiParameter = psiParameter;
+public class StringUtilsTest {
+    @Test
+    public void testStringUtilsBasic() throws Exception {
+        String parsedString = StringUtils.parseQuotedString("\"abcd\"");
+        Assert.assertEquals("abcd", parsedString);
     }
 
-    @Nonnull @Override public Set<? extends Annotation> getAnnotations() {
-        // TODO: implement this
-        return ImmutableSet.of();
-    }
-
-    @Nullable @Override public String getName() {
-        return StringUtils.parseQuotedString(psiParameter.getName());
-    }
-
-    @Nonnull @Override public String getType() {
-        return psiParameter.getTypeElement().getText();
+    @Test
+    public void testStringUtilsQuotedChars() throws Exception {
+        String parsedString = StringUtils.parseQuotedString("\"a\\\\b\\nc\\uabcdd\"");
+        Assert.assertEquals("a\\b\nc\uabcdd", parsedString);
     }
 }
