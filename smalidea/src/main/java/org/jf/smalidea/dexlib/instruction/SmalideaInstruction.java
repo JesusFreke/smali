@@ -190,7 +190,7 @@ public abstract class SmalideaInstruction implements Instruction {
             case ReferenceType.METHOD:
                 SmaliMethodReference methodReference = psiInstruction.getMethodReference();
                 assert methodReference != null;
-                String containingClass = NameUtils.javaToSmaliType(methodReference.getContainingClass().getQualifiedName());
+                String containingClass = methodReference.getContainingType().getText();
                 List<String> paramTypes =
                         Lists.transform(methodReference.getParameterTypes(), new Function<PsiType, String>() {
                             @Nullable @Override public String apply(@Nullable PsiType psiType) {

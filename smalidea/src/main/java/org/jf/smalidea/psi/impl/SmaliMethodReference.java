@@ -82,7 +82,7 @@ public class SmaliMethodReference extends SmaliCompositeElement implements PsiRe
 
     @Nullable
     public PsiClass getContainingClass() {
-        SmaliClassTypeElement containingClassReference = findChildByClass(SmaliClassTypeElement.class);
+        SmaliClassTypeElement containingClassReference = getContainingType();
         if (containingClassReference == null) {
             return null;
         }
@@ -92,6 +92,11 @@ public class SmaliMethodReference extends SmaliCompositeElement implements PsiRe
         }
 
         return containingClass;
+    }
+
+    @Nullable
+    public SmaliClassTypeElement getContainingType() {
+        return findChildByClass(SmaliClassTypeElement.class);
     }
 
     @Nullable

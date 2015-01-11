@@ -32,10 +32,7 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +53,7 @@ public class SmaliFieldReference extends SmaliCompositeElement implements PsiRef
 
     @Nullable
     public PsiClass getContainingClass() {
-        SmaliClassTypeElement containingClassReference = findChildByClass(SmaliClassTypeElement.class);
+        SmaliClassTypeElement containingClassReference = getContainingType();
         if (containingClassReference == null) {
             return null;
         }
@@ -66,6 +63,11 @@ public class SmaliFieldReference extends SmaliCompositeElement implements PsiRef
         }
 
         return containingClass;
+    }
+
+    @Nullable
+    public SmaliClassTypeElement getContainingType() {
+        return findChildByClass(SmaliClassTypeElement.class);
     }
 
     @Nullable
