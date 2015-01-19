@@ -40,6 +40,7 @@ import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.StringReference;
@@ -365,5 +366,138 @@ public class SmalideaMethodTest extends LightCodeInsightFixtureTestCase {
         Assert.assertEquals(1, tryBlock.getExceptionHandlers().size());
         Assert.assertEquals(null, tryBlock.getExceptionHandlers().get(0).getExceptionType());
         Assert.assertEquals(20, tryBlock.getExceptionHandlers().get(0).getHandlerCodeAddress());
+    }
+
+    private static void checkSwitchElement(SwitchElement element, int key, int offset) {
+        Assert.assertEquals(key, element.getKey());
+        Assert.assertEquals(offset, element.getOffset());
+    }
+
+    public void testPackedSwitch() {
+        String text =
+                ".class public LFormat31t;\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".source \"Format31t.smali\"" +
+                "\n" +
+                ".method public test_packed-switch()V\n" +
+                "    .registers 1\n" +
+                "    .annotation runtime Lorg/junit/Test;\n" +
+                "    .end annotation\n" +
+                "\n" +
+                "    const v0, 12\n" +
+                "\n" +
+                ":switch\n" +
+                "    packed-switch v0, :PackedSwitch\n" +
+                "\n" +
+                ":Label10\n" +
+                "    invoke-static {}, Lorg/junit/Assert;->fail()V\n" +
+                "    return-void\n" +
+                "\n" +
+                ":Label11\n" +
+                "    invoke-static {}, Lorg/junit/Assert;->fail()V\n" +
+                "    return-void\n" +
+                "\n" +
+                ":Label12\n" +
+                "    return-void\n" +
+                "\n" +
+                ":Label13\n" +
+                "    invoke-static {}, Lorg/junit/Assert;->fail()V\n" +
+                "    return-void\n" +
+                "\n" +
+                ":PackedSwitch\n" +
+                "    .packed-switch 10\n" +
+                "        :Label10\n" +
+                "        :Label11\n" +
+                "        :Label12\n" +
+                "        :Label13\n" +
+                "    .end packed-switch\n" +
+                ".end method";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
+        SmaliClass smaliClass = file.getPsiClass();
+        SmaliMethod smaliMethod = smaliClass.getMethods()[0];
+
+        SmalideaMethod method = new SmalideaMethod(smaliMethod);
+
+        MethodImplementation impl = method.getImplementation();
+        Assert.assertNotNull(impl);
+
+        List<Instruction> instructions = Lists.newArrayList(impl.getInstructions());
+
+        PackedSwitchPayload packedSwitchPayload = (PackedSwitchPayload)instructions.get(9);
+        List<? extends SwitchElement> switchElements = packedSwitchPayload.getSwitchElements();
+        Assert.assertEquals(4, switchElements.size());
+
+        checkSwitchElement(switchElements.get(0), 10, 6);
+        checkSwitchElement(switchElements.get(1), 11, 14);
+        checkSwitchElement(switchElements.get(2), 12, 22);
+        checkSwitchElement(switchElements.get(3), 13, 24);
+    }
+
+    public void testSparseSwitch() {
+        String text =
+                ".class public LFormat31t;\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".source \"Format31t.smali\"" +
+                "\n" +
+                ".method public test_sparse-switch()V\n" +
+                "    .registers 1\n" +
+                "    .annotation runtime Lorg/junit/Test;\n" +
+                "    .end annotation\n" +
+                "\n" +
+                "    const v0, 13\n" +
+                "\n" +
+                ":switch\n" +
+                "    sparse-switch v0, :SparseSwitch\n" +
+                "\n" +
+                ":Label10\n" +
+                "    invoke-static {}, Lorg/junit/Assert;->fail()V\n" +
+                "    return-void\n" +
+                "\n" +
+                ":Label20\n" +
+                "    invoke-static {}, Lorg/junit/Assert;->fail()V\n" +
+                "    return-void\n" +
+                "\n" +
+                ":Label15\n" +
+                "    invoke-static {}, Lorg/junit/Assert;->fail()V\n" +
+                "    return-void\n" +
+                "\n" +
+                ":Label13\n" +
+                "    return-void\n" +
+                "\n" +
+                ":Label99\n" +
+                "    invoke-static {}, Lorg/junit/Assert;->fail()V\n" +
+                "    return-void\n" +
+                "\n" +
+                ":SparseSwitch\n" +
+                "    .sparse-switch\n" +
+                "        10 -> :Label10\n" +
+                "        13 -> :Label13\n" +
+                "        15 -> :Label15\n" +
+                "        20 -> :Label20\n" +
+                "        99 -> :Label99\n" +
+                "    .end sparse-switch\n" +
+                ".end method";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
+        SmaliClass smaliClass = file.getPsiClass();
+        SmaliMethod smaliMethod = smaliClass.getMethods()[0];
+
+        SmalideaMethod method = new SmalideaMethod(smaliMethod);
+
+        MethodImplementation impl = method.getImplementation();
+        Assert.assertNotNull(impl);
+
+        List<Instruction> instructions = Lists.newArrayList(impl.getInstructions());
+
+        SparseSwitchPayload sparseSwitchPayload = (SparseSwitchPayload)instructions.get(11);
+        List<? extends SwitchElement> switchElements = sparseSwitchPayload.getSwitchElements();
+        Assert.assertEquals(5, switchElements.size());
+
+        checkSwitchElement(switchElements.get(0), 10, 6);
+        checkSwitchElement(switchElements.get(1), 13, 30);
+        checkSwitchElement(switchElements.get(2), 15, 22);
+        checkSwitchElement(switchElements.get(3), 20, 14);
+        checkSwitchElement(switchElements.get(4), 99, 32);
     }
 }

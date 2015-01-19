@@ -43,6 +43,7 @@ import org.jf.smalidea.SmaliTokens;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class SmaliInstruction extends SmaliCompositeElement {
@@ -75,7 +76,18 @@ public class SmaliInstruction extends SmaliCompositeElement {
 
             // TODO: put a project level Opcodes instance with the appropriate api level somewhere
             opcode = new Opcodes(15).getOpcodeByName(instructionNode.getText());
-            assert opcode != null;
+            if (opcode == null) {
+                if (instructionNode.getText().equals(".packed-switch")) {
+                    return Opcode.PACKED_SWITCH_PAYLOAD;
+                }
+                if (instructionNode.getText().equals(".sparse-switch")) {
+                    return Opcode.SPARSE_SWITCH_PAYLOAD;
+                }
+                if (instructionNode.getText().equals(".array-data")) {
+                    return Opcode.ARRAY_PAYLOAD;
+                }
+                assert false;
+            }
         }
         return opcode;
     }
@@ -106,6 +118,11 @@ public class SmaliInstruction extends SmaliCompositeElement {
         return registerReference.getRegisterNumber();
     }
 
+    @Nullable
+    public SmaliLabelReference getTarget() {
+        return findChildByClass(SmaliLabelReference.class);
+    }
+
     public int getRegisterCount() {
         return findChildrenByType(SmaliElementTypes.REGISTER_REFERENCE).size();
     }
@@ -128,6 +145,21 @@ public class SmaliInstruction extends SmaliCompositeElement {
     @Nullable
     public SmaliMethodReference getMethodReference() {
         return findChildByClass(SmaliMethodReference.class);
+    }
+
+    @Nullable
+    public SmaliLiteral getPackedSwitchStartKey() {
+        return findChildByClass(SmaliLiteral.class);
+    }
+
+    @NotNull
+    public List<SmaliPackedSwitchElement> getPackedSwitchElements() {
+        return Arrays.asList(findChildrenByClass(SmaliPackedSwitchElement.class));
+    }
+
+    @NotNull
+    public List<SmaliSparseSwitchElement> getSparseSwitchElements() {
+        return Arrays.asList(findChildrenByClass(SmaliSparseSwitchElement.class));
     }
 
     private AnalyzedInstruction analyzedInstruction = null;

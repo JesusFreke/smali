@@ -33,7 +33,6 @@ package org.jf.smalidea.dexlib.instruction;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiType;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
@@ -43,7 +42,6 @@ import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
 import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
 import org.jf.dexlib2.immutable.reference.ImmutableStringReference;
 import org.jf.dexlib2.immutable.reference.ImmutableTypeReference;
-import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.*;
 import org.jf.smalidea.util.NameUtils;
 import org.jf.smalidea.util.StringUtils;
@@ -132,12 +130,10 @@ public abstract class SmalideaInstruction implements Instruction {
     }
 
     public int getCodeOffset() {
-        ASTNode labelNode = psiInstruction.getNode().findChildByType(SmaliElementTypes.LABEL_REFERENCE);
-        if (labelNode == null) {
+        SmaliLabelReference labelReference = psiInstruction.getTarget();
+        if (labelReference == null) {
             return -1;
         }
-
-        SmaliLabelReference labelReference = (SmaliLabelReference)labelNode.getPsi();
 
         SmaliLabel label = labelReference.resolve();
         if (label == null) {

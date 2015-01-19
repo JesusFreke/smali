@@ -31,10 +31,12 @@
 
 package org.jf.smalidea.dexlib.instruction;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
-import org.jf.smalidea.psi.impl.SmaliInstruction;
+import org.jf.smalidea.psi.impl.*;
+import org.jf.smalidea.util.InstructionUtils;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -45,7 +47,54 @@ public class SmalideaPackedSwitchPayload extends SmalideaInstruction implements 
     }
 
     @Nonnull @Override public List<? extends SwitchElement> getSwitchElements() {
-        // TODO: implement this
-        return ImmutableList.of();
+        final SmaliLiteral startKey = psiInstruction.getPackedSwitchStartKey();
+        assert startKey != null;
+        List<SmaliPackedSwitchElement> elements = psiInstruction.getPackedSwitchElements();
+
+        SmaliMethod smaliMethod = psiInstruction.getParentMethod();
+        SmaliInstruction packedSwitchInstruction = InstructionUtils.findFirstInstructionWithTarget(
+                smaliMethod, Opcode.PACKED_SWITCH, psiInstruction.getOffset());
+        final int baseOffset;
+
+        if (packedSwitchInstruction == null) {
+            baseOffset = 0;
+        } else {
+            baseOffset = packedSwitchInstruction.getOffset();
+        }
+
+        List<SwitchElement> newElements = Lists.newArrayList();
+        // TODO: check for integer wraparound (how does art/dalvik handle that?)
+        int initialKey = (int)startKey.getIntegralValue();
+        for (int i=0; i<elements.size(); i++) {
+            final SmaliPackedSwitchElement element = elements.get(i);
+
+            final int key = initialKey + i;
+
+            newElements.add(new SwitchElement() {
+                @Override public int getKey() {
+                    return key;
+                }
+
+                @Override public int getOffset() {
+                    SmaliLabelReference labelReference = element.getTarget();
+                    if (labelReference == null) {
+                        return 0;
+                    }
+
+                    SmaliLabel label = labelReference.resolve();
+                    if (label == null) {
+                        return 0;
+                    }
+
+                    return label.getOffset() - baseOffset;
+                }
+            });
+        }
+
+        return newElements;
+    }
+
+    @Override public int getCodeUnits() {
+        return 4 + psiInstruction.getPackedSwitchElements().size() * 2;
     }
 }

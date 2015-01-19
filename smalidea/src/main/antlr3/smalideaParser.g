@@ -885,10 +885,20 @@ insn_array_data_directive
 insn_packed_switch_directive
   : PACKED_SWITCH_DIRECTIVE
     fixed_32bit_literal
-    label_ref*
+    packed_switch_element*
     END_PACKED_SWITCH_DIRECTIVE;
+
+packed_switch_element
+  @init { Marker marker = mark(); }
+  : label_ref;
+  finally { marker.done(SmaliElementTypes.PACKED_SWITCH_ELEMENT); }
 
 insn_sparse_switch_directive
   : SPARSE_SWITCH_DIRECTIVE
-    (fixed_32bit_literal ARROW label_ref)*
+    sparse_switch_element*
     END_SPARSE_SWITCH_DIRECTIVE;
+
+sparse_switch_element
+  @init { Marker marker = mark(); }
+  : fixed_32bit_literal ARROW label_ref;
+  finally { marker.done(SmaliElementTypes.SPARSE_SWITCH_ELEMENT); }

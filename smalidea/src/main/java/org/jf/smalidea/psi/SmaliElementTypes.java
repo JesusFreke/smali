@@ -116,4 +116,8 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("CATCH_STATEMENT", SmaliCatchStatement.FACTORY);
     public static final SmaliCompositeElementType CATCH_ALL_STATEMENT =
             new SmaliCompositeElementType("CATCH_ALL_STATEMENT", SmaliCatchAllStatement.FACTORY);
+    public static final SmaliCompositeElementType PACKED_SWITCH_ELEMENT =
+            new SmaliCompositeElementType("PACKED_SWITCH_ELEMENT", SmaliPackedSwitchElement.FACTORY);
+    public static final SmaliCompositeElementType SPARSE_SWITCH_ELEMENT =
+            new SmaliCompositeElementType("SPARSE_SWITCH_ELEMENT", SmaliSparseSwitchElement.FACTORY);
 }

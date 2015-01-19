@@ -31,10 +31,13 @@
 
 package org.jf.smalidea.dexlib.instruction;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.SparseSwitchPayload;
-import org.jf.smalidea.psi.impl.SmaliInstruction;
+import org.jf.smalidea.psi.impl.*;
+import org.jf.smalidea.util.InstructionUtils;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -45,7 +48,45 @@ public class SmalideaSparseSwitchPayload extends SmalideaInstruction implements 
     }
 
     @Nonnull @Override public List<? extends SwitchElement> getSwitchElements() {
-        // TODO: implement this
-        return ImmutableList.of();
+        List<SmaliSparseSwitchElement> elements = psiInstruction.getSparseSwitchElements();
+
+        SmaliMethod smaliMethod = psiInstruction.getParentMethod();
+        SmaliInstruction sparseSwitchInstruction = InstructionUtils.findFirstInstructionWithTarget(
+                smaliMethod, Opcode.SPARSE_SWITCH, psiInstruction.getOffset());
+        final int baseOffset;
+
+        if (sparseSwitchInstruction == null) {
+            baseOffset = 0;
+        } else {
+            baseOffset = sparseSwitchInstruction.getOffset();
+        }
+
+        return Lists.transform(elements, new Function<SmaliSparseSwitchElement, SwitchElement>() {
+            @Override public SwitchElement apply(final SmaliSparseSwitchElement element) {
+                return new SwitchElement() {
+                    @Override public int getKey() {
+                        return (int)element.getKey().getIntegralValue();
+                    }
+
+                    @Override public int getOffset() {
+                        SmaliLabelReference labelReference = element.getTarget();
+                        if (labelReference == null) {
+                            return 0;
+                        }
+
+                        SmaliLabel label = labelReference.resolve();
+                        if (label == null) {
+                            return 0;
+                        }
+
+                        return label.getOffset() - baseOffset;
+                    }
+                };
+            }
+        });
+    }
+
+    @Override public int getCodeUnits() {
+        return 2 + psiInstruction.getSparseSwitchElements().size() * 4;
     }
 }
