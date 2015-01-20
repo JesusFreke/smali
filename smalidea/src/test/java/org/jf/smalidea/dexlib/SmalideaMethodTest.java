@@ -500,4 +500,80 @@ public class SmalideaMethodTest extends LightCodeInsightFixtureTestCase {
         checkSwitchElement(switchElements.get(3), 20, 14);
         checkSwitchElement(switchElements.get(4), 99, 32);
     }
+
+    public void testArrayData() {
+        String text =
+                ".class public LFormat31t;\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".source \"Format31t.smali\"" +
+                "\n" +
+                ".method public test_fill-array-data()V\n" +
+                "    .registers 3\n" +
+                "    .annotation runtime Lorg/junit/Test;\n" +
+                "    .end annotation\n" +
+                "\n" +
+                "    const v0, 6\n" +
+                "    new-array v0, v0, [I\n" +
+                "    fill-array-data v0, :ArrayData\n" +
+                "\n" +
+                "    const v1, 0\n" +
+                "    aget v2, v0, v1\n" +
+                "    const v1, 1\n" +
+                "    invoke-static {v1, v2}, LAssert;->assertEquals(II)V\n" +
+                "\n" +
+                "    const v1, 1\n" +
+                "    aget v2, v0, v1\n" +
+                "    const v1, 2\n" +
+                "    invoke-static {v1, v2}, LAssert;->assertEquals(II)V\n" +
+                "\n" +
+                "    const v1, 2\n" +
+                "    aget v2, v0, v1\n" +
+                "    const v1, 3\n" +
+                "    invoke-static {v1, v2}, LAssert;->assertEquals(II)V\n" +
+                "\n" +
+                "    const v1, 3\n" +
+                "    aget v2, v0, v1\n" +
+                "    const v1, 4\n" +
+                "    invoke-static {v1, v2}, LAssert;->assertEquals(II)V\n" +
+                "\n" +
+                "    const v1, 4\n" +
+                "    aget v2, v0, v1\n" +
+                "    const v1, 5\n" +
+                "    invoke-static {v1, v2}, LAssert;->assertEquals(II)V\n" +
+                "\n" +
+                "    const v1, 5\n" +
+                "    aget v2, v0, v1\n" +
+                "    const v1, 6\n" +
+                "    invoke-static {v1, v2}, LAssert;->assertEquals(II)V\n" +
+                "\n" +
+                "    return-void\n" +
+                "\n" +
+                ":ArrayData\n" +
+                "    .array-data 4\n" +
+                "        1 2 128 -256 65536 0x7fffffff\n" +
+                "    .end array-data";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
+        SmaliClass smaliClass = file.getPsiClass();
+        SmaliMethod smaliMethod = smaliClass.getMethods()[0];
+
+        SmalideaMethod method = new SmalideaMethod(smaliMethod);
+
+        MethodImplementation impl = method.getImplementation();
+        Assert.assertNotNull(impl);
+
+        List<Instruction> instructions = Lists.newArrayList(impl.getInstructions());
+
+        ArrayPayload arrayPayload = (ArrayPayload)instructions.get(28);
+        Assert.assertEquals(4, arrayPayload.getElementWidth());
+        List<Number> elements = arrayPayload.getArrayElements();
+        Assert.assertEquals(6, elements.size());
+
+        Assert.assertEquals(1L, elements.get(0).longValue());
+        Assert.assertEquals(2L, elements.get(1).longValue());
+        Assert.assertEquals(128L, elements.get(2));
+        Assert.assertEquals(-256L, elements.get(3));
+        Assert.assertEquals(65536L, elements.get(4));
+        Assert.assertEquals(0x7fffffffL, elements.get(5));
+    }
 }

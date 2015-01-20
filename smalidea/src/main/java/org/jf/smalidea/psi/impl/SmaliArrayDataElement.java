@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smalidea.dexlib.instruction;
+package org.jf.smalidea.psi.impl;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
-import org.jf.smalidea.psi.impl.SmaliArrayDataElement;
-import org.jf.smalidea.psi.impl.SmaliInstruction;
+import org.jetbrains.annotations.Nullable;
+import org.jf.smalidea.psi.SmaliCompositeElementFactory;
+import org.jf.smalidea.psi.SmaliElementTypes;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.List;
+public class SmaliArrayDataElement extends SmaliCompositeElement {
+    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
+        @Override public SmaliCompositeElement createElement() {
+            return new SmaliArrayDataElement();
+        }
+    };
 
-public class SmalideaArrayPayload extends SmalideaInstruction implements ArrayPayload {
-    public SmalideaArrayPayload(@Nonnull SmaliInstruction instruction) {
-        super(instruction);
+    public SmaliArrayDataElement() {
+        super(SmaliElementTypes.ARRAY_DATA_ELEMENT);
     }
 
-    @Override public int getElementWidth() {
-        return (int)psiInstruction.getArrayDataWidth().getIntegralValue();
-    }
-
-    @Nonnull @Override public List<Number> getArrayElements() {
-        return Lists.transform(psiInstruction.getArrayDataElements(), new Function<SmaliArrayDataElement, Number>() {
-            @Nullable @Override public Number apply(SmaliArrayDataElement smaliArrayDataElement) {
-                return smaliArrayDataElement.getValue().getIntegralValue();
-            }
-        });
+    @Nullable
+    public SmaliLiteral getValue() {
+        return findChildByClass(SmaliLiteral.class);
     }
 }

@@ -162,6 +162,16 @@ public class SmaliInstruction extends SmaliCompositeElement {
         return Arrays.asList(findChildrenByClass(SmaliSparseSwitchElement.class));
     }
 
+    @Nullable
+    public SmaliLiteral getArrayDataWidth() {
+        return findChildByClass(SmaliLiteral.class);
+    }
+
+    @NotNull
+    public List<SmaliArrayDataElement> getArrayDataElements() {
+        return Arrays.asList(findChildrenByClass(SmaliArrayDataElement.class));
+    }
+
     private AnalyzedInstruction analyzedInstruction = null;
 
     @NotNull

@@ -120,4 +120,6 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("PACKED_SWITCH_ELEMENT", SmaliPackedSwitchElement.FACTORY);
     public static final SmaliCompositeElementType SPARSE_SWITCH_ELEMENT =
             new SmaliCompositeElementType("SPARSE_SWITCH_ELEMENT", SmaliSparseSwitchElement.FACTORY);
+    public static final SmaliCompositeElementType ARRAY_DATA_ELEMENT =
+            new SmaliCompositeElementType("ARRAY_DATA_ELEMENT", SmaliArrayDataElement.FACTORY);
 }

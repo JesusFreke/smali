@@ -880,7 +880,12 @@ insn_format51l
 insn_array_data_directive
   : ARRAY_DATA_DIRECTIVE
     integer_literal
-    fixed_literal* END_ARRAY_DATA_DIRECTIVE;
+    array_data_element* END_ARRAY_DATA_DIRECTIVE;
+
+array_data_element
+  @init { Marker marker = mark(); }
+  : fixed_literal;
+  finally { marker.done(SmaliElementTypes.ARRAY_DATA_ELEMENT); }
 
 insn_packed_switch_directive
   : PACKED_SWITCH_DIRECTIVE
