@@ -95,6 +95,6 @@ public class SmalideaPackedSwitchPayload extends SmalideaInstruction implements 
     }
 
     @Override public int getCodeUnits() {
-        return 4 + psiInstruction.getPackedSwitchElements().size() * 2;
+        return psiInstruction.getInstructionSize()/2;
     }
 }

@@ -35,6 +35,7 @@ import com.google.common.base.Preconditions;
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
@@ -99,8 +100,7 @@ public class SmaliInstruction extends SmaliCompositeElement {
             if (previousInstruction == null) {
                 offset = 0;
             } else {
-                // TODO: handle variable size instructions
-                offset = previousInstruction.getOffset() + previousInstruction.getOpcode().format.size;
+                offset = previousInstruction.getOffset() + previousInstruction.getInstructionSize();
             }
         }
         return offset;
@@ -170,6 +170,24 @@ public class SmaliInstruction extends SmaliCompositeElement {
     @NotNull
     public List<SmaliArrayDataElement> getArrayDataElements() {
         return Arrays.asList(findChildrenByClass(SmaliArrayDataElement.class));
+    }
+
+    public int getInstructionSize() {
+        Opcode opcode = getOpcode();
+        if (!opcode.format.isPayloadFormat) {
+            return opcode.format.size;
+        } else if (opcode.format == Format.ArrayPayload) {
+            int elementWidth = (int)getArrayDataWidth().getIntegralValue();
+            int elementCount = getArrayDataElements().size();
+
+            return 8 + (elementWidth * elementCount + 1);
+        } else if (opcode.format == Format.PackedSwitchPayload) {
+            return 8 + getPackedSwitchElements().size() * 4;
+        } else if (opcode.format == Format.SparseSwitchPayload) {
+            return 2 + getSparseSwitchElements().size() * 4;
+        }
+        assert false;
+        throw new RuntimeException();
     }
 
     private AnalyzedInstruction analyzedInstruction = null;

@@ -57,4 +57,8 @@ public class SmalideaArrayPayload extends SmalideaInstruction implements ArrayPa
             }
         });
     }
+
+    @Override public int getCodeUnits() {
+        return psiInstruction.getInstructionSize()/2;
+    }
 }
