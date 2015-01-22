@@ -83,9 +83,14 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
         final SmaliMethod containingMethod = currentInstruction.getParentMethod();
         AnalyzedInstruction analyzedInstruction = currentInstruction.getAnalyzedInstruction();
 
+        final int firstParameterRegister = containingMethod.getRegisterCount() -
+                containingMethod.getParameterRegisterCount();
+
         final Map<String, String> registerMap = Maps.newHashMap();
         StringBuilder variablesText = new StringBuilder();
         for (int i=0; i<containingMethod.getRegisterCount(); i++) {
+            int parameterRegisterNumber = i - firstParameterRegister;
+
             RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(i);
             switch (registerType.category) {
                 case RegisterType.UNKNOWN:
@@ -99,42 +104,78 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
                 case RegisterType.INTEGER:
                     variablesText.append("int v").append(i).append(";\n");
                     registerMap.put("v" + i, "I");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("int p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "I");
+                    }
                     break;
                 case RegisterType.BOOLEAN:
                     variablesText.append("boolean v").append(i).append(";\n");
                     registerMap.put("v" + i, "Z");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("boolean p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "Z");
+                    }
                     break;
                 case RegisterType.BYTE:
                 case RegisterType.POS_BYTE:
                     variablesText.append("byte v").append(i).append(";\n");
                     registerMap.put("v" + i, "B");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("byte p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "B");
+                    }
                     break;
                 case RegisterType.SHORT:
                 case RegisterType.POS_SHORT:
                     variablesText.append("short v").append(i).append(";\n");
                     registerMap.put("v" + i, "S");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("short p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "S");
+                    }
                     break;
                 case RegisterType.CHAR:
                     variablesText.append("char v").append(i).append(";\n");
                     registerMap.put("v" + i, "C");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("char p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "C");
+                    }
                     break;
                 case RegisterType.FLOAT:
                     variablesText.append("float v").append(i).append(";\n");
                     registerMap.put("v" + i, "F");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("float p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "F");
+                    }
                     break;
                 case RegisterType.LONG_LO:
                     variablesText.append("long v").append(i).append(";\n");
                     registerMap.put("v" + i, "J");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("long p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "J");
+                    }
                     break;
                 case RegisterType.DOUBLE_LO:
                     variablesText.append("double v").append(i).append(";\n");
                     registerMap.put("v" + i, "D");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("double p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "D");
+                    }
                     break;
                 case RegisterType.UNINIT_REF:
                 case RegisterType.UNINIT_THIS:
                 case RegisterType.REFERENCE:
                     variablesText.append("Object v").append(i).append(";\n");
                     registerMap.put("v" + i, "Ljava/lang/Object;");
+                    if (parameterRegisterNumber >= 0) {
+                        variablesText.append("Object p").append(parameterRegisterNumber).append(";\n");
+                        registerMap.put("p" + parameterRegisterNumber, "Ljava/lang/Object;");
+                    }
                     break;
             }
         }
@@ -149,9 +190,14 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
                 if (registerMap.containsKey(name)) {
                     debuggerContext.getDebugProcess().getManagerThread().invoke(new DebuggerCommandImpl() {
                         @Override protected void action() throws Exception {
+                            int registerNumber = Integer.parseInt(name.substring(1));
+                            if (name.charAt(0) == 'p') {
+                                registerNumber += containingMethod.getRegisterCount() -
+                                        containingMethod.getParameterRegisterCount();
+                            }
                             Value value = evaluateRegister(debuggerContext.createEvaluationContext(),
                                     containingMethod,
-                                    Integer.parseInt(name.substring(1)),
+                                    registerNumber,
                                     registerMap.get(name));
                             variable.putUserData(CodeFragmentFactoryContextWrapper.LABEL_VARIABLE_VALUE_KEY, value);
                         }
