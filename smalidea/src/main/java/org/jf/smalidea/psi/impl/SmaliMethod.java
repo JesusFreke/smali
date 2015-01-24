@@ -72,10 +72,19 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
 
     @NotNull @Override public String getName() {
         SmaliMethodStub stub = getStub();
+        String name = null;
         if (stub != null) {
-            return stub.getName();
+            name = stub.getName();
+        } else {
+            SmaliMemberName nameIdentifier = getNameIdentifier();
+            if (nameIdentifier != null) {
+                name = nameIdentifier.getText();
+            }
         }
-        return getNameIdentifier().getText();
+        if (name == null || name.isEmpty()) {
+            name = "<unnamed>";
+        }
+        return name;
     }
 
     @Override public boolean hasTypeParameters() {
@@ -88,17 +97,24 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         return getRequiredStubOrPsiChild(SmaliElementTypes.METHOD_PROTOTYPE);
     }
 
-    @NotNull @Override public PsiType getReturnType() {
+    @Nullable @Override public PsiType getReturnType() {
         SmaliMethodStub stub = getStub();
         if (stub != null) {
             String returnType = stub.getReturnType();
+            if (returnType == null) {
+                return null;
+            }
             PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
             return factory.createTypeByFQClassName(returnType, getResolveScope());
         }
-        return getReturnTypeElement().getType();
+        PsiTypeElement returnTypeElement = getReturnTypeElement();
+        if (returnTypeElement == null) {
+            return null;
+        }
+        return returnTypeElement.getType();
     }
 
-    @NotNull @Override public PsiTypeElement getReturnTypeElement() {
+    @Nullable @Override public PsiTypeElement getReturnTypeElement() {
         return getMethodPrototype().getReturnType();
     }
 
@@ -182,10 +198,8 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         return MethodSignatureBackedByPsiMethod.create(this, substitutor);
     }
 
-    @NotNull @Override public SmaliMemberName getNameIdentifier() {
-        SmaliMemberName memberName = findChildByClass(SmaliMemberName.class);
-        assert memberName != null;
-        return memberName;
+    @Nullable @Override public SmaliMemberName getNameIdentifier() {
+        return findChildByClass(SmaliMemberName.class);
     }
 
     @NotNull @Override public PsiMethod[] findSuperMethods() {

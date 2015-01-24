@@ -34,6 +34,7 @@ package org.jf.smalidea.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiTypeElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.stub.SmaliMethodPrototypeStub;
 
@@ -46,18 +47,13 @@ public class SmaliMethodPrototype extends SmaliStubBasedPsiElement<SmaliMethodPr
         super(node);
     }
 
-    @NotNull
+    @Nullable
     public PsiTypeElement getReturnType() {
-        PsiTypeElement element = findChildByClass(PsiTypeElement.class);
-        assert element != null;
-        return element;
+        return findChildByClass(PsiTypeElement.class);
     }
 
-
-    @NotNull
+    @Nullable
     public SmaliMethodParamList getParameterList() {
-        SmaliMethodParamList paramList = findChildByClass(SmaliMethodParamList.class);
-        assert paramList != null;
-        return paramList;
+        return findChildByClass(SmaliMethodParamList.class);
     }
 }

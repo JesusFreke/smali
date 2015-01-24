@@ -32,10 +32,12 @@
 package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
+import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 import org.jf.smalidea.psi.stub.SmaliMethodStub;
@@ -62,7 +64,12 @@ public class SmaliMethodElementType extends SmaliStubElementType<SmaliMethodStub
     }
 
     @Override public SmaliMethodStub createStub(@NotNull SmaliMethod psi, StubElement parentStub) {
-        return new SmaliMethodStub(parentStub, psi.getName(), psi.getReturnType().getCanonicalText());
+        String returnTypeText = null;
+        PsiType returnType = psi.getReturnType();
+        if (returnType != null) {
+            returnTypeText = returnType.getCanonicalText();
+        }
+        return new SmaliMethodStub(parentStub, psi.getName(), returnTypeText);
     }
 
     @Override
@@ -73,7 +80,13 @@ public class SmaliMethodElementType extends SmaliStubElementType<SmaliMethodStub
 
     @NotNull @Override
     public SmaliMethodStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliMethodStub(parentStub, dataStream.readName().getString(), dataStream.readName().getString());
+        StringRef methodNameRef = dataStream.readName();
+        StringRef returnTypeRef = dataStream.readName();
+        String returnType = null;
+        if (returnTypeRef != null) {
+            returnType = returnTypeRef.getString();
+        }
+        return new SmaliMethodStub(parentStub, methodNameRef.getString(), returnType);
     }
 
     @Override public void indexStub(@NotNull SmaliMethodStub stub, @NotNull IndexSink sink) {

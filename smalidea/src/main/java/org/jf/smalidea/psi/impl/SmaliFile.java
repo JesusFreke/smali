@@ -38,6 +38,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.SmaliFileType;
 import org.jf.smalidea.SmaliLanguage;
 import org.jf.smalidea.psi.SmaliElementTypes;
@@ -50,26 +51,37 @@ public class SmaliFile extends PsiFileBase implements PsiClassOwner {
     @NotNull @Override public SmaliFileType getFileType() {
         return SmaliFileType.INSTANCE;
     }
-    @NotNull
+
+    @Nullable
     public SmaliClass getPsiClass() {
         StubElement<? extends PsiElement> stub = (StubElement<? extends PsiElement>)getStub();
         if (stub != null) {
             StubElement<SmaliClass> classElement = stub.findChildStubByType(SmaliElementTypes.CLASS);
-            assert classElement != null;
-            return classElement.getPsi();
+            if (classElement != null) {
+                return classElement.getPsi();
+            } else {
+                return null;
+            }
         } else {
-            SmaliClass smaliClass = findChildByClass(SmaliClass.class);
-            assert smaliClass != null;
-            return smaliClass;
+            return findChildByClass(SmaliClass.class);
         }
     }
 
     @NotNull @Override public SmaliClass[] getClasses() {
-        return new SmaliClass[] {getPsiClass()};
+        SmaliClass smaliClass = getPsiClass();
+        if (smaliClass == null) {
+            return new SmaliClass[] {};
+        } else {
+            return new SmaliClass[] { smaliClass };
+        }
     }
 
-    @Override public String getPackageName() {
-        return getPsiClass().getPackageName();
+    @NotNull @Override public String getPackageName() {
+        SmaliClass smaliClass = getPsiClass();
+        if (smaliClass == null) {
+            return "";
+        }
+        return smaliClass.getPackageName();
     }
 
     @Override public void setPackageName(String packageName) throws IncorrectOperationException {
