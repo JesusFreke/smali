@@ -75,4 +75,8 @@ public abstract class SmaliStubBasedPsiElement<T extends StubElement> extends St
         }
         return null;
     }
+
+    public String toString() {
+        return this.getClass().getSimpleName() + "(" + this.getElementType().toString() + ")";
+    }
 }

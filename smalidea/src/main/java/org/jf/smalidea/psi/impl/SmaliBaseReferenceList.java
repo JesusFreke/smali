@@ -32,7 +32,6 @@
 package org.jf.smalidea.psi.impl;
 
 import com.google.common.collect.Lists;
-import com.intellij.extapi.psi.StubBasedPsiElementBase;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.StubBasedPsiElement;
@@ -43,7 +42,7 @@ import org.jf.smalidea.psi.stub.SmaliBaseReferenceListStub;
 import java.util.List;
 
 public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceListStub>
-        extends StubBasedPsiElementBase<StubT> implements StubBasedPsiElement<StubT>, PsiReferenceList {
+        extends SmaliStubBasedPsiElement<StubT> implements StubBasedPsiElement<StubT>, PsiReferenceList {
     protected SmaliBaseReferenceList(@NotNull StubT stub, @NotNull IStubElementType nodeType) {
         super(stub, nodeType);
     }

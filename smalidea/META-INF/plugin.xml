@@ -25,6 +25,7 @@
       <xdebugger.debuggerSupport id="SmaliDebuggerSupport" order="first,before XDebuggerSupport"
                                  implementation="org.jf.smalidea.debugging.SmaliDebuggerSupport"/>
       <debugger.codeFragmentFactory implementation="org.jf.smalidea.debugging.SmaliCodeFragmentFactory"/>
+      <stubElementTypeHolder class="org.jf.smalidea.psi.SmaliElementTypes" />
   </extensions>
 
   <application-components>
