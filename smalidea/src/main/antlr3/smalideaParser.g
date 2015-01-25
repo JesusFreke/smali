@@ -37,7 +37,11 @@ package org.jf.smalidea;
 
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
+import com.intellij.psi.tree.IElementType;
 import org.jf.smalidea.psi.SmaliElementTypes;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 }
 
 
@@ -92,17 +96,12 @@ import org.jf.smalidea.psi.SmaliElementTypes;
         // if next token is what we are looking for then "delete" this token
         if ( mismatchIsUnwantedToken(input, ttype) ) {
             e = new UnwantedTokenException(ttype, input);
-            /*
-               System.err.println("recoverFromMismatchedToken deleting "+
-                                  ((TokenStream)input).LT(1)+
-                                  " since "+((TokenStream)input).LT(2)+" is what we want");
-                */
             beginResync();
             Marker mark = mark();
             input.consume(); // simply delete extra token
             mark.error(getErrorMessage(e, tokenNames));
             endResync();
-            reportError(e, true);  // report after consuming so AW sees the token in the exception
+            reportError(null, e, true);  // report after consuming so AW sees the token in the exception
             // we want to return the token we're actually matching
             Object matchedSymbol = getCurrentInputSymbol(input);
             input.consume(); // move past ttype token as if all were ok
@@ -114,7 +113,7 @@ import org.jf.smalidea.psi.SmaliElementTypes;
             Marker mark = mark();
             e = new MissingTokenException(ttype, input, inserted);
             mark.error(getErrorMessage(e, tokenNames));
-            reportError(e, true);  // report after inserting so AW sees the token in the exception
+            reportError(null, e, true);  // report after inserting so AW sees the token in the exception
             return inserted;
         }
 
@@ -125,28 +124,37 @@ import org.jf.smalidea.psi.SmaliElementTypes;
 
     @Override
     public void reportError(RecognitionException e) {
-        reportError(e, false);
+        reportError(mark(), e, false);
     }
 
-    public void reportError(RecognitionException e, boolean alreadyReported) {
+    public void reportError(@Nullable Marker marker, RecognitionException e, boolean alreadyReported) {
         // if we've already reported an error and have not matched a token
         // yet successfully, don't report any errors.
         if ( state.errorRecovery ) {
-            //System.err.print("[SPURIOUS] ");
+            if (marker != null) {
+                marker.drop();
+            }
             return;
         }
         state.syntaxErrors++; // don't count spurious
         state.errorRecovery = true;
 
-        if (!alreadyReported) {
-            displayRecognitionError(this.getTokenNames(), e);
+        if (marker != null) {
+            if (!alreadyReported) {
+                displayRecognitionError(marker, this.getTokenNames(), e);
+            } else {
+                marker.drop();
+            }
         }
     }
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-        Marker mark = psiBuilder.mark();
-        mark.error(getErrorMessage(e, tokenNames));
+        displayRecognitionError(mark(), tokenNames, e);
+    }
+
+    public void displayRecognitionError(@Nonnull Marker marker, String[] tokenNames, RecognitionException e) {
+        marker.error(getErrorMessage(e, tokenNames));
     }
 }
 
@@ -366,8 +374,12 @@ primitive_type
 
 class_descriptor
   @init { Marker marker = mark(); }
-  : CLASS_DESCRIPTOR;
-  finally { marker.done(SmaliElementTypes.CLASS_TYPE); }
+  : CLASS_DESCRIPTOR
+  { marker.done(SmaliElementTypes.CLASS_TYPE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 array_descriptor
   @init { Marker marker = mark(); }

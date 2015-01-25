@@ -1,0 +1,14 @@
+smali.FILE
+  SmaliClass(CLASS)
+    SmaliModifierList(MODIFIER_LIST)
+      <empty list>
+    SmaliExtendsList(EXTENDS_LIST)
+      <empty list>
+    SmaliImplementsList(IMPLEMENTS_LIST)
+      <empty list>
+    PsiElement(CLASS_STATEMENT)
+      PsiElement(CLASS_DIRECTIVE)('.class')
+      PsiElement(ACCESS_LIST)
+        <empty list>
+      PsiErrorElement:mismatched input '<EOF>' expecting CLASS_DESCRIPTOR
+        <empty list>
