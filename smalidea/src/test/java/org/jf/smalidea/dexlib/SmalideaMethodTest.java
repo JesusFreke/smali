@@ -551,7 +551,8 @@ public class SmalideaMethodTest extends LightCodeInsightFixtureTestCase {
                 ":ArrayData\n" +
                 "    .array-data 4\n" +
                 "        1 2 128 -256 65536 0x7fffffff\n" +
-                "    .end array-data";
+                "    .end array-data\n" +
+                ".end method";
 
         SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
         SmaliClass smaliClass = file.getPsiClass();
