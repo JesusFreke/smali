@@ -184,29 +184,48 @@ smali_file
 
 class_spec
   @init { Marker marker = mark(); }
-  : CLASS_DIRECTIVE access_list class_descriptor;
-  finally { marker.done(SmaliElementTypes.CLASS_STATEMENT); }
+  : CLASS_DIRECTIVE access_list class_descriptor
+  { marker.done(SmaliElementTypes.CLASS_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 super_spec
   @init { Marker marker = mark(); }
-  : SUPER_DIRECTIVE class_descriptor;
-  finally { marker.done(SmaliElementTypes.SUPER_STATEMENT); }
+  : SUPER_DIRECTIVE class_descriptor
+  { marker.done(SmaliElementTypes.SUPER_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 implements_spec
   @init { Marker marker = mark(); }
-  : IMPLEMENTS_DIRECTIVE class_descriptor;
-  finally { marker.done(SmaliElementTypes.IMPLEMENTS_STATEMENT); }
+  : IMPLEMENTS_DIRECTIVE class_descriptor
+  { marker.done(SmaliElementTypes.IMPLEMENTS_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 source_spec
   @init { Marker marker = mark(); }
-  : SOURCE_DIRECTIVE string_literal;
-  finally { marker.done(SmaliElementTypes.SOURCE_STATEMENT); }
+  : SOURCE_DIRECTIVE string_literal
+  { marker.done(SmaliElementTypes.SOURCE_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 access_list
   @init { Marker marker = mark(); }
-  : ACCESS_SPEC*;
-  finally { marker.done(SmaliElementTypes.ACCESS_LIST); }
-
+  : ACCESS_SPEC*
+  { marker.done(SmaliElementTypes.ACCESS_LIST); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 /*When there are annotations immediately after a field definition, we don't know whether they are field annotations
 or class annotations until we determine if there is an .end field directive. In either case, we still "consume" and parse
@@ -217,24 +236,20 @@ field
     Marker marker = mark();
     mark().done(SmaliElementTypes.MODIFIER_LIST);
     Marker annotationsMarker = null;
-    Marker fieldInitializerMarker = null;
     boolean classAnnotations = true;
   }
   : FIELD_DIRECTIVE
     access_list
     member_name COLON nonvoid_type_descriptor
-    ( {fieldInitializerMarker = mark();}
-      EQUAL literal
-      {fieldInitializerMarker.done(SmaliElementTypes.FIELD_INITIALIZER);}
-    )?
+    field_initializer?
     ( END_FIELD_DIRECTIVE
     | (ANNOTATION_DIRECTIVE)=> ( {annotationsMarker = mark();}
                                  ((ANNOTATION_DIRECTIVE)=> annotation)+
                                  (END_FIELD_DIRECTIVE {classAnnotations = false;})?
                                )
     | /*epsilon*/
-    );
-  finally {
+    )
+  {
     if (annotationsMarker != null) {
       if (classAnnotations) {
         marker.doneBefore(SmaliElementTypes.FIELD, annotationsMarker);
@@ -246,6 +261,20 @@ field
     } else {
       marker.done(SmaliElementTypes.FIELD);
     }
+  };
+  catch [RecognitionException re] {
+    annotationsMarker.drop();
+    recover(input, re);
+    reportError(marker, re, false);
+  }
+
+field_initializer
+  @init { Marker marker = mark(); }
+  : EQUAL literal
+  { marker.done(SmaliElementTypes.FIELD_INITIALIZER); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
   }
 
 method
@@ -254,8 +283,12 @@ method
     mark().done(SmaliElementTypes.MODIFIER_LIST);
   }
   : METHOD_DIRECTIVE access_list member_name method_prototype statements_and_directives
-    END_METHOD_DIRECTIVE;
-  finally { marker.done(SmaliElementTypes.METHOD); }
+    END_METHOD_DIRECTIVE
+  { marker.done(SmaliElementTypes.METHOD); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 statements_and_directives
   : (
@@ -280,8 +313,12 @@ registers_directive
   : (
       REGISTERS_DIRECTIVE integral_literal
     | LOCALS_DIRECTIVE integral_literal
-    );
-  finally { marker.done(SmaliElementTypes.REGISTERS_STATEMENT); }
+    )
+  { marker.done(SmaliElementTypes.REGISTERS_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 param_list_or_id
   : PARAM_LIST_OR_ID_START primitive_type+ PARAM_LIST_OR_ID_END;
@@ -331,29 +368,45 @@ simple_name
 
 member_name
   @init { Marker marker = mark(); }
-  : simple_name
-  | MEMBER_NAME;
-  finally { marker.done(SmaliElementTypes.MEMBER_NAME); }
+  : (simple_name
+    | MEMBER_NAME)
+  { marker.done(SmaliElementTypes.MEMBER_NAME); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 method_prototype
   @init { Marker marker = mark(); }
-  : OPEN_PAREN param_list CLOSE_PAREN type_descriptor;
-  finally { marker.done(SmaliElementTypes.METHOD_PROTOTYPE); }
+  : OPEN_PAREN param_list CLOSE_PAREN type_descriptor
+  { marker.done(SmaliElementTypes.METHOD_PROTOTYPE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 param_list
   @init { Marker marker = mark(); }
-  : (PARAM_LIST_START param* PARAM_LIST_END)
-  | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
-  | (param*);
-  finally { marker.done(SmaliElementTypes.METHOD_PARAM_LIST); }
+  : ((PARAM_LIST_START param* PARAM_LIST_END)
+    | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
+    | (param*))
+  { marker.done(SmaliElementTypes.METHOD_PARAM_LIST); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 param
   @init {
     Marker marker = mark();
     mark().done(SmaliElementTypes.MODIFIER_LIST);
   }
-  : nonvoid_type_descriptor;
-  finally { marker.done(SmaliElementTypes.METHOD_PARAMETER); }
+  : nonvoid_type_descriptor
+  { marker.done(SmaliElementTypes.METHOD_PARAMETER); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 method_prototype_reference
   : OPEN_PAREN param_list_reference CLOSE_PAREN type_descriptor;
@@ -362,15 +415,23 @@ param_list_reference
   @init {
     Marker marker = mark();
   }
-  : (PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END)
-  | (PARAM_LIST_OR_ID_START nonvoid_type_descriptor* PARAM_LIST_OR_ID_END)
-  | (nonvoid_type_descriptor*);
-  finally { marker.done(SmaliElementTypes.METHOD_REFERENCE_PARAM_LIST); }
+  : ((PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END)
+    | (PARAM_LIST_OR_ID_START nonvoid_type_descriptor* PARAM_LIST_OR_ID_END)
+    | (nonvoid_type_descriptor*))
+  { marker.done(SmaliElementTypes.METHOD_REFERENCE_PARAM_LIST); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 primitive_type
   @init { Marker marker = mark(); }
-  : PRIMITIVE_TYPE;
-  finally { marker.done(SmaliElementTypes.PRIMITIVE_TYPE); }
+  : PRIMITIVE_TYPE
+  { marker.done(SmaliElementTypes.PRIMITIVE_TYPE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 class_descriptor
   @init { Marker marker = mark(); }
@@ -383,13 +444,21 @@ class_descriptor
 
 array_descriptor
   @init { Marker marker = mark(); }
-  : ARRAY_TYPE_PREFIX (primitive_type | class_descriptor);
-  finally { marker.done(SmaliElementTypes.ARRAY_TYPE); }
+  : ARRAY_TYPE_PREFIX (primitive_type | class_descriptor)
+  { marker.done(SmaliElementTypes.ARRAY_TYPE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 void_type
   @init { Marker marker = mark(); }
-  : VOID_TYPE;
-  finally { marker.done(SmaliElementTypes.VOID_TYPE); }
+  : VOID_TYPE
+  { marker.done(SmaliElementTypes.VOID_TYPE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 type_descriptor
   : void_type
@@ -408,84 +477,140 @@ reference_type_descriptor
 
 null_literal
   @init { Marker marker = mark(); }
-  : NULL_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : NULL_LITERAL
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 bool_literal
   @init { Marker marker = mark(); }
-  : BOOL_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : BOOL_LITERAL
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 byte_literal
   @init { Marker marker = mark(); }
-  : BYTE_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : BYTE_LITERAL
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 char_literal
   @init { Marker marker = mark(); }
-  : CHAR_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : CHAR_LITERAL
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 short_literal
   @init { Marker marker = mark(); }
-  : SHORT_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : SHORT_LITERAL
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 integer_literal
   @init { Marker marker = mark(); }
-  : POSITIVE_INTEGER_LITERAL
-  | NEGATIVE_INTEGER_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : ( POSITIVE_INTEGER_LITERAL
+    | NEGATIVE_INTEGER_LITERAL)
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 long_literal
   @init { Marker marker = mark(); }
-  : LONG_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : LONG_LITERAL
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 float_literal
   @init { Marker marker = mark(); }
-  : FLOAT_LITERAL_OR_ID
-  | FLOAT_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : ( FLOAT_LITERAL_OR_ID
+    | FLOAT_LITERAL )
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 double_literal
   @init { Marker marker = mark(); }
-  : DOUBLE_LITERAL_OR_ID
-  | DOUBLE_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : ( DOUBLE_LITERAL_OR_ID
+    | DOUBLE_LITERAL)
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 string_literal
   @init { Marker marker = mark(); }
-  : STRING_LITERAL;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : STRING_LITERAL
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 array_literal
   @init { Marker marker = mark(); }
-  : OPEN_BRACE (literal (COMMA literal)* | ) CLOSE_BRACE;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : OPEN_BRACE (literal (COMMA literal)* | ) CLOSE_BRACE
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 enum_literal
   @init { Marker marker = mark(); }
-  : ENUM_DIRECTIVE reference_type_descriptor ARROW simple_name COLON reference_type_descriptor;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : ENUM_DIRECTIVE reference_type_descriptor ARROW simple_name COLON reference_type_descriptor
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 type_field_method_literal
   @init { Marker marker = mark(); }
-  : reference_type_descriptor
-    ( ARROW
-      ( member_name COLON nonvoid_type_descriptor
-      | member_name method_prototype_reference
+  : ( reference_type_descriptor
+      ( ARROW
+        ( member_name COLON nonvoid_type_descriptor
+        | member_name method_prototype_reference
+        )
+      | /* epsilon */
       )
-    | /* epsilon */
-    )
-  | primitive_type
-  | void_type;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+    | primitive_type
+    | void_type)
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 subannotation
   @init { Marker marker = mark(); }
-  : SUBANNOTATION_DIRECTIVE class_descriptor annotation_element* END_SUBANNOTATION_DIRECTIVE;
-  finally { marker.done(SmaliElementTypes.LITERAL); }
+  : SUBANNOTATION_DIRECTIVE class_descriptor annotation_element* END_SUBANNOTATION_DIRECTIVE
+  { marker.done(SmaliElementTypes.LITERAL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 literal
   : long_literal
@@ -535,8 +660,12 @@ annotation_element
     Marker nameMarker = null;
   }
   : { nameMarker = mark(); } simple_name { nameMarker.done(SmaliElementTypes.ANNOTATION_ELEMENT_NAME); }
-    EQUAL literal;
-  finally { marker.done(SmaliElementTypes.ANNOTATION_ELEMENT); }
+    EQUAL literal
+  { marker.done(SmaliElementTypes.ANNOTATION_ELEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 annotation
   @init {
@@ -547,28 +676,48 @@ annotation
     { paramListMarker = mark(); }
     annotation_element*
     { paramListMarker.done(SmaliElementTypes.ANNOTATION_PARAMETER_LIST); }
-    END_ANNOTATION_DIRECTIVE;
-  finally { marker.done(SmaliElementTypes.ANNOTATION); }
+    END_ANNOTATION_DIRECTIVE
+  { marker.done(SmaliElementTypes.ANNOTATION); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 fully_qualified_method
   @init { Marker marker = mark(); }
-  : reference_type_descriptor ARROW member_name method_prototype_reference;
-  finally { marker.done(SmaliElementTypes.METHOD_REFERENCE); }
+  : reference_type_descriptor ARROW member_name method_prototype_reference
+  { marker.done(SmaliElementTypes.METHOD_REFERENCE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 fully_qualified_field
   @init { Marker marker = mark(); }
-  : reference_type_descriptor ARROW member_name COLON nonvoid_type_descriptor;
-  finally { marker.done(SmaliElementTypes.FIELD_REFERENCE); }
+  : reference_type_descriptor ARROW member_name COLON nonvoid_type_descriptor
+  { marker.done(SmaliElementTypes.FIELD_REFERENCE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 label
   @init { Marker marker = mark(); }
-  : COLON simple_name;
-  finally { marker.done(SmaliElementTypes.LABEL); }
+  : COLON simple_name
+  { marker.done(SmaliElementTypes.LABEL); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 label_ref
   @init { Marker marker = mark(); }
-  : COLON simple_name;
-  finally { marker.done(SmaliElementTypes.LABEL_REFERENCE); }
+  : COLON simple_name
+  { marker.done(SmaliElementTypes.LABEL_REFERENCE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 register_list
   : register (COMMA register)*
@@ -582,13 +731,21 @@ verification_error_reference
 
 catch_directive
   @init { Marker marker = mark(); }
-  : CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref;
-  finally { marker.done(SmaliElementTypes.CATCH_STATEMENT); }
+  : CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref
+  { marker.done(SmaliElementTypes.CATCH_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 catchall_directive
   @init { Marker marker = mark(); }
-  : CATCHALL_DIRECTIVE OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref;
-  finally { marker.done(SmaliElementTypes.CATCH_ALL_STATEMENT); }
+  : CATCHALL_DIRECTIVE OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref
+  { marker.done(SmaliElementTypes.CATCH_ALL_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 /*When there are annotations immediately after a parameter definition, we don't know whether they are parameter annotations
 or method annotations until we determine if there is an .end parameter directive. In either case, we still "consume" and parse
@@ -616,8 +773,12 @@ parameter_directive
 
 register
   @init { Marker marker = mark(); }
-  : REGISTER;
-  finally { marker.done(SmaliElementTypes.REGISTER_REFERENCE); }
+  : REGISTER
+  { marker.done(SmaliElementTypes.REGISTER_REFERENCE); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 debug_directive
   : line_directive
@@ -630,39 +791,67 @@ debug_directive
 
 line_directive
   @init { Marker marker = mark(); }
-  : LINE_DIRECTIVE integral_literal;
-  finally { marker.done(SmaliElementTypes.LINE_DEBUG_STATEMENT); }
+  : LINE_DIRECTIVE integral_literal
+  { marker.done(SmaliElementTypes.LINE_DEBUG_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 local_directive
   @init { Marker marker = mark(); }
   : LOCAL_DIRECTIVE register (COMMA (null_literal | string_literal) COLON (void_type | nonvoid_type_descriptor)
-                              (COMMA string_literal)? )?;
-  finally { marker.done(SmaliElementTypes.LOCAL_DEBUG_STATEMENT); }
+                              (COMMA string_literal)? )?
+  { marker.done(SmaliElementTypes.LOCAL_DEBUG_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 end_local_directive
   @init { Marker marker = mark(); }
-  : END_LOCAL_DIRECTIVE register;
-  finally { marker.done(SmaliElementTypes.END_LOCAL_DEBUG_STATEMENT); }
+  : END_LOCAL_DIRECTIVE register
+  { marker.done(SmaliElementTypes.END_LOCAL_DEBUG_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 restart_local_directive
   @init { Marker marker = mark(); }
-  : RESTART_LOCAL_DIRECTIVE register;
-  finally { marker.done(SmaliElementTypes.RESTART_LOCAL_DEBUG_STATEMENT); }
+  : RESTART_LOCAL_DIRECTIVE register
+  { marker.done(SmaliElementTypes.RESTART_LOCAL_DEBUG_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 prologue_directive
   @init { Marker marker = mark(); }
-  : PROLOGUE_DIRECTIVE;
-  finally { marker.done(SmaliElementTypes.PROLOGUE_DEBUG_STATEMENT); }
+  : PROLOGUE_DIRECTIVE
+  { marker.done(SmaliElementTypes.PROLOGUE_DEBUG_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 epilogue_directive
   @init { Marker marker = mark(); }
-  : EPILOGUE_DIRECTIVE;
-  finally { marker.done(SmaliElementTypes.EPILOGUE_DEBUG_STATEMENT); }
+  : EPILOGUE_DIRECTIVE
+  { marker.done(SmaliElementTypes.EPILOGUE_DEBUG_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 source_directive
   @init { Marker marker = mark(); }
-  : SOURCE_DIRECTIVE string_literal?;
-  finally { marker.done(SmaliElementTypes.SOURCE_DEBUG_STATEMENT); }
+  : SOURCE_DIRECTIVE string_literal?
+  { marker.done(SmaliElementTypes.SOURCE_DEBUG_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 instruction_format12x
   : INSTRUCTION_FORMAT12x
@@ -678,51 +867,55 @@ instruction_format31i
 
 instruction
   @init { Marker marker = mark(); }
-  : insn_format10t
-  | insn_format10x
-  | insn_format10x_odex
-  | insn_format11n
-  | insn_format11x
-  | insn_format12x
-  | insn_format20bc
-  | insn_format20t
-  | insn_format21c_field
-  | insn_format21c_field_odex
-  | insn_format21c_string
-  | insn_format21c_type
-  | insn_format21ih
-  | insn_format21lh
-  | insn_format21s
-  | insn_format21t
-  | insn_format22b
-  | insn_format22c_field
-  | insn_format22c_field_odex
-  | insn_format22c_type
-  | insn_format22cs_field
-  | insn_format22s
-  | insn_format22t
-  | insn_format22x
-  | insn_format23x
-  | insn_format30t
-  | insn_format31c
-  | insn_format31i
-  | insn_format31t
-  | insn_format32x
-  | insn_format35c_method
-  | insn_format35c_type
-  | insn_format35c_method_odex
-  | insn_format35mi_method
-  | insn_format35ms_method
-  | insn_format3rc_method
-  | insn_format3rc_method_odex
-  | insn_format3rc_type
-  | insn_format3rmi_method
-  | insn_format3rms_method
-  | insn_format51l
-  | insn_array_data_directive
-  | insn_packed_switch_directive
-  | insn_sparse_switch_directive;
-  finally { marker.done(SmaliElementTypes.INSTRUCTION); }
+  : ( insn_format10t
+    | insn_format10x
+    | insn_format10x_odex
+    | insn_format11n
+    | insn_format11x
+    | insn_format12x
+    | insn_format20bc
+    | insn_format20t
+    | insn_format21c_field
+    | insn_format21c_field_odex
+    | insn_format21c_string
+      | insn_format21c_type
+      | insn_format21ih
+      | insn_format21lh
+      | insn_format21s
+      | insn_format21t
+      | insn_format22b
+      | insn_format22c_field
+      | insn_format22c_field_odex
+      | insn_format22c_type
+      | insn_format22cs_field
+      | insn_format22s
+      | insn_format22t
+      | insn_format22x
+      | insn_format23x
+      | insn_format30t
+      | insn_format31c
+      | insn_format31i
+      | insn_format31t
+      | insn_format32x
+      | insn_format35c_method
+      | insn_format35c_type
+      | insn_format35c_method_odex
+      | insn_format35mi_method
+      | insn_format35ms_method
+      | insn_format3rc_method
+      | insn_format3rc_method_odex
+      | insn_format3rc_type
+      | insn_format3rmi_method
+      | insn_format3rms_method
+      | insn_format51l
+      | insn_array_data_directive
+      | insn_packed_switch_directive
+      | insn_sparse_switch_directive )
+  { marker.done(SmaliElementTypes.INSTRUCTION); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 insn_format10t
   : //e.g. goto endloop:
@@ -896,8 +1089,12 @@ insn_array_data_directive
 
 array_data_element
   @init { Marker marker = mark(); }
-  : fixed_literal;
-  finally { marker.done(SmaliElementTypes.ARRAY_DATA_ELEMENT); }
+  : fixed_literal
+  { marker.done(SmaliElementTypes.ARRAY_DATA_ELEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 insn_packed_switch_directive
   : PACKED_SWITCH_DIRECTIVE
@@ -907,8 +1104,12 @@ insn_packed_switch_directive
 
 packed_switch_element
   @init { Marker marker = mark(); }
-  : label_ref;
-  finally { marker.done(SmaliElementTypes.PACKED_SWITCH_ELEMENT); }
+  : label_ref
+  { marker.done(SmaliElementTypes.PACKED_SWITCH_ELEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 insn_sparse_switch_directive
   : SPARSE_SWITCH_DIRECTIVE
@@ -917,5 +1118,9 @@ insn_sparse_switch_directive
 
 sparse_switch_element
   @init { Marker marker = mark(); }
-  : fixed_32bit_literal ARROW label_ref;
-  finally { marker.done(SmaliElementTypes.SPARSE_SWITCH_ELEMENT); }
+  : fixed_32bit_literal ARROW label_ref
+  { marker.done(SmaliElementTypes.SPARSE_SWITCH_ELEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
