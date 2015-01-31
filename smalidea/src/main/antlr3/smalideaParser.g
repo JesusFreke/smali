@@ -88,6 +88,23 @@ import javax.annotation.Nullable;
         }
     }
 
+    public Marker recoverWithMarker(IntStream input, RecognitionException re) {
+        if ( state.lastErrorIndex==input.index() ) {
+            // uh oh, another error at same token index; must be a case
+            // where LT(1) is in the recovery token set so nothing is
+            // consumed; consume a single token so at least to prevent
+            // an infinite loop; this is a failsafe.
+            input.consume();
+        }
+        state.lastErrorIndex = input.index();
+        BitSet followSet = computeErrorRecoverySet();
+        beginResync();
+        Marker marker = mark();
+        consumeUntil(input, followSet);
+        endResync();
+        return marker;
+    }
+
     @Override
     protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow)
             throws RecognitionException
@@ -386,22 +403,26 @@ member_name
 
 method_prototype
   @init { Marker marker = mark(); }
-  : OPEN_PAREN param_list CLOSE_PAREN type_descriptor
-  { marker.done(SmaliElementTypes.METHOD_PROTOTYPE); };
+  : OPEN_PAREN param_list CLOSE_PAREN type_descriptor;
   catch [RecognitionException re] {
     recover(input, re);
-    reportError(marker, re, false);
+    reportError(re);
+  }
+  finally {
+    marker.done(SmaliElementTypes.METHOD_PROTOTYPE);
   }
 
 param_list
   @init { Marker marker = mark(); }
   : ((PARAM_LIST_START param* PARAM_LIST_END)
     | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
-    | (param*))
-  { marker.done(SmaliElementTypes.METHOD_PARAM_LIST); };
+    | (param*));
   catch [RecognitionException re] {
-    recover(input, re);
-    reportError(marker, re, false);
+    Marker errorMarker = recoverWithMarker(input, re);
+    reportError(errorMarker, re, false);
+  }
+  finally {
+    marker.done(SmaliElementTypes.METHOD_PARAM_LIST);
   }
 
 param

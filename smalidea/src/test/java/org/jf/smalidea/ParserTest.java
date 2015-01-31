@@ -98,6 +98,7 @@ public class ParserTest extends ParsingTestCase {
     public void testEmpty() throws Exception { doTest(true); }
     public void testInvalidClassDirective() throws Exception { doTest(true); }
     public void testInvalidClassDirective2() throws Exception { doTest(true); }
+    public void testParamListInvalidParameter() throws Exception { doTest(true); }
     public void testSuperClassInvalidSyntax() throws Exception { doTest(true); }
     public void testSuperClassInvalidSyntax2() throws Exception { doTest(true); }
 }

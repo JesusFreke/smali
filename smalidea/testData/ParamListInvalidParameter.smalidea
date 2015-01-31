@@ -1,0 +1,5 @@
+.class Lblah;
+.super Ljava/lang/Object;
+
+.method blah(f)
+.end method
