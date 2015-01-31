@@ -1,0 +1,17 @@
+smali.FILE
+  SmaliClass(CLASS)
+    SmaliModifierList(MODIFIER_LIST)
+      <empty list>
+    SmaliExtendsList(EXTENDS_LIST)
+      <empty list>
+    SmaliImplementsList(IMPLEMENTS_LIST)
+      <empty list>
+    PsiElement(CLASS_STATEMENT)
+      PsiElement(CLASS_DIRECTIVE)('.class')
+      PsiWhiteSpace('\n')
+      PsiElement(ACCESS_LIST)
+        <empty list>
+      PsiErrorElement:extraneous input '.super' expecting CLASS_DESCRIPTOR
+        PsiElement(SUPER_DIRECTIVE)('.super')
+      PsiWhiteSpace(' ')
+      PsiElement(CLASS_DESCRIPTOR)('Ljava/lang/Object;')

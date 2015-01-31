@@ -1,0 +1,5 @@
+.class Lblah;
+.super
+
+.method blah()V
+.end method

@@ -148,6 +148,14 @@ import javax.annotation.Nullable;
         }
     }
 
+    public void finishToken(Marker marker, IElementType elementType) {
+        if (state.errorRecovery) {
+            marker.drop();
+        } else {
+            marker.done(elementType);
+        }
+    }
+
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
         displayRecognitionError(mark(), tokenNames, e);
@@ -370,7 +378,7 @@ member_name
   @init { Marker marker = mark(); }
   : (simple_name
     | MEMBER_NAME)
-  { marker.done(SmaliElementTypes.MEMBER_NAME); };
+  { finishToken(marker, SmaliElementTypes.MEMBER_NAME); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -427,7 +435,7 @@ param_list_reference
 primitive_type
   @init { Marker marker = mark(); }
   : PRIMITIVE_TYPE
-  { marker.done(SmaliElementTypes.PRIMITIVE_TYPE); };
+  { finishToken(marker, SmaliElementTypes.PRIMITIVE_TYPE); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -436,7 +444,7 @@ primitive_type
 class_descriptor
   @init { Marker marker = mark(); }
   : CLASS_DESCRIPTOR
-  { marker.done(SmaliElementTypes.CLASS_TYPE); };
+  { finishToken(marker, SmaliElementTypes.CLASS_TYPE); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -445,7 +453,7 @@ class_descriptor
 array_descriptor
   @init { Marker marker = mark(); }
   : ARRAY_TYPE_PREFIX (primitive_type | class_descriptor)
-  { marker.done(SmaliElementTypes.ARRAY_TYPE); };
+  { finishToken(marker, SmaliElementTypes.ARRAY_TYPE); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -454,7 +462,7 @@ array_descriptor
 void_type
   @init { Marker marker = mark(); }
   : VOID_TYPE
-  { marker.done(SmaliElementTypes.VOID_TYPE); };
+  { finishToken(marker, SmaliElementTypes.VOID_TYPE); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -478,7 +486,7 @@ reference_type_descriptor
 null_literal
   @init { Marker marker = mark(); }
   : NULL_LITERAL
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -487,7 +495,7 @@ null_literal
 bool_literal
   @init { Marker marker = mark(); }
   : BOOL_LITERAL
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -496,7 +504,7 @@ bool_literal
 byte_literal
   @init { Marker marker = mark(); }
   : BYTE_LITERAL
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -505,7 +513,7 @@ byte_literal
 char_literal
   @init { Marker marker = mark(); }
   : CHAR_LITERAL
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -514,7 +522,7 @@ char_literal
 short_literal
   @init { Marker marker = mark(); }
   : SHORT_LITERAL
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -524,7 +532,7 @@ integer_literal
   @init { Marker marker = mark(); }
   : ( POSITIVE_INTEGER_LITERAL
     | NEGATIVE_INTEGER_LITERAL)
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -533,7 +541,7 @@ integer_literal
 long_literal
   @init { Marker marker = mark(); }
   : LONG_LITERAL
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -543,7 +551,7 @@ float_literal
   @init { Marker marker = mark(); }
   : ( FLOAT_LITERAL_OR_ID
     | FLOAT_LITERAL )
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -553,7 +561,7 @@ double_literal
   @init { Marker marker = mark(); }
   : ( DOUBLE_LITERAL_OR_ID
     | DOUBLE_LITERAL)
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -562,7 +570,7 @@ double_literal
 string_literal
   @init { Marker marker = mark(); }
   : STRING_LITERAL
-  { marker.done(SmaliElementTypes.LITERAL); };
+  { finishToken(marker, SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -586,6 +594,7 @@ enum_literal
     reportError(marker, re, false);
   }
 
+// TODO: check missing initial token
 type_field_method_literal
   @init { Marker marker = mark(); }
   : ( reference_type_descriptor
@@ -603,6 +612,7 @@ type_field_method_literal
     reportError(marker, re, false);
   }
 
+// TODO: check missing initial token
 subannotation
   @init { Marker marker = mark(); }
   : SUBANNOTATION_DIRECTIVE class_descriptor annotation_element* END_SUBANNOTATION_DIRECTIVE
@@ -683,6 +693,7 @@ annotation
     reportError(marker, re, false);
   }
 
+// TODO: check missing initial token
 fully_qualified_method
   @init { Marker marker = mark(); }
   : reference_type_descriptor ARROW member_name method_prototype_reference
@@ -692,6 +703,7 @@ fully_qualified_method
     reportError(marker, re, false);
   }
 
+// TODO: check missing initial token
 fully_qualified_field
   @init { Marker marker = mark(); }
   : reference_type_descriptor ARROW member_name COLON nonvoid_type_descriptor
@@ -701,6 +713,7 @@ fully_qualified_field
     reportError(marker, re, false);
   }
 
+// TODO: check missing initial token
 label
   @init { Marker marker = mark(); }
   : COLON simple_name
@@ -710,6 +723,7 @@ label
     reportError(marker, re, false);
   }
 
+// TODO: check missing initial token
 label_ref
   @init { Marker marker = mark(); }
   : COLON simple_name
@@ -774,7 +788,7 @@ parameter_directive
 register
   @init { Marker marker = mark(); }
   : REGISTER
-  { marker.done(SmaliElementTypes.REGISTER_REFERENCE); };
+  { finishToken(marker, SmaliElementTypes.REGISTER_REFERENCE); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
