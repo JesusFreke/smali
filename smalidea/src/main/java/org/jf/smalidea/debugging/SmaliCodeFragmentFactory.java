@@ -192,8 +192,12 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
                         @Override protected void action() throws Exception {
                             int registerNumber = Integer.parseInt(name.substring(1));
                             if (name.charAt(0) == 'p') {
-                                registerNumber += containingMethod.getRegisterCount() -
-                                        containingMethod.getParameterRegisterCount();
+                                registerNumber += ApplicationManager.getApplication().runReadAction(new Computable<Integer>() {
+                                    @Override public Integer compute() {
+                                        return containingMethod.getRegisterCount() -
+                                                containingMethod.getParameterRegisterCount();
+                                    }
+                                });
                             }
                             Value value = evaluateRegister(debuggerContext.createEvaluationContext(),
                                     containingMethod,
@@ -265,15 +269,24 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
         return ret[0];
     }
 
-    private static int mapRegisterForArt(SmaliMethod smaliMethod, int register) {
-        int totalRegisters = smaliMethod.getRegisterCount();
-        int parameterRegisters = smaliMethod.getParameterRegisterCount();
+    private static int mapRegisterForArt(final SmaliMethod smaliMethod, final int register) {
+        return ApplicationManager.getApplication().runReadAction(new Computable<Integer>() {
+            @Override public Integer compute() {
 
-        // For ART, the parameter registers are rotated to the front
-        if (register >= (totalRegisters - parameterRegisters)) {
-            return register - (totalRegisters - parameterRegisters);
-        }
-        return register + parameterRegisters;
+                int totalRegisters = smaliMethod.getRegisterCount();
+                int parameterRegisters = smaliMethod.getParameterRegisterCount();
+
+                if (smaliMethod.getModifierList().hasModifierProperty("static")) {
+                    return register;
+                }
+
+                // For ART, the parameter registers are rotated to the front
+                if (register >= (totalRegisters - parameterRegisters)) {
+                    return register - (totalRegisters - parameterRegisters);
+                }
+                return register + parameterRegisters;
+            }
+        });
     }
 }
 
