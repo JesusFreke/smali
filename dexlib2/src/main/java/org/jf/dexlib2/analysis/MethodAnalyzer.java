@@ -49,6 +49,7 @@ import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.util.TypeUtils;
+import org.jf.dexlib2.writer.util.TryListBuilder;
 import org.jf.util.BitSetUtils;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
@@ -401,6 +402,7 @@ public class MethodAnalyzer {
         //and is covered by a try block should be set to a list of the first instructions of each exception handler
         //for the try block covering the instruction
         List<? extends TryBlock<? extends ExceptionHandler>> tries = methodImpl.getTryBlocks();
+        tries = TryListBuilder.massageTryBlocks(tries);
         int triesIndex = 0;
         TryBlock currentTry = null;
         AnalyzedInstruction[] currentExceptionHandlers = null;
