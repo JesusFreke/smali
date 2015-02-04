@@ -189,6 +189,9 @@ public class main {
                         options.setBootClassPath(bcp);
                     }
                     break;
+                case 'C':
+                    options.onlyClassPrefix = commandLine.getOptionValue("C");
+                    break;
                 case 'x':
                     options.deodex = true;
                     break;
@@ -395,6 +398,12 @@ public class main {
                 .withArgName("DIR")
                 .create("d");
 
+        Option classPrefixOption = OptionBuilder.withLongOpt("onlyclassprefix")
+                .withDescription("only dump the classes with the specified prefix\ne.g. Lcom.example")
+                .hasOptionalArg()
+                .withArgName("ONLYCLASSPREFIX")
+                .create("C");
+
         Option codeOffsetOption = OptionBuilder.withLongOpt("code-offsets")
                 .withDescription("add comments to the disassembly containing the code offset for each address")
                 .create("f");
@@ -475,6 +484,7 @@ public class main {
         basicOptions.addOption(registerInfoOption);
         basicOptions.addOption(classPathOption);
         basicOptions.addOption(classPathDirOption);
+        basicOptions.addOption(classPrefixOption);
         basicOptions.addOption(codeOffsetOption);
         basicOptions.addOption(noAccessorCommentsOption);
         basicOptions.addOption(apiLevelOption);
