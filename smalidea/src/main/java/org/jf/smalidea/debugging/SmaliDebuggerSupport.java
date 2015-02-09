@@ -40,16 +40,15 @@ import com.intellij.xdebugger.impl.actions.DebuggerActionHandler;
 import com.sun.jdi.request.StepRequest;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Method;
-
 public class SmaliDebuggerSupport extends JavaDebuggerSupport {
     private static boolean useModifiedMethod;
 
-    {
+    static {
         try {
-            Method method = DebuggerSession.class.getMethod("stepOver", boolean.class, int.class);
+            DebuggerSession.class.getMethod("stepOver", boolean.class, int.class);
             useModifiedMethod = true;
         } catch (NoSuchMethodException ex) {
+            useModifiedMethod = false;
         }
     }
 

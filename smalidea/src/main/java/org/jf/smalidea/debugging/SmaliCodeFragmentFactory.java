@@ -39,8 +39,10 @@ import com.intellij.debugger.engine.evaluation.*;
 import com.intellij.debugger.engine.events.DebuggerCommandImpl;
 import com.intellij.debugger.impl.DebuggerContextImpl;
 import com.intellij.debugger.jdi.StackFrameProxyImpl;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaCodeFragment;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiElement;
@@ -55,6 +57,7 @@ import org.jf.smalidea.psi.impl.SmaliInstruction;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
@@ -185,10 +188,16 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
         final JavaCodeFragment codeFragment = super.createCodeFragment(textWithImports, originalContext, project);
 
         codeFragment.accept(new JavaRecursiveElementVisitor() {
+            @Override
             public void visitLocalVariable(final PsiLocalVariable variable) {
                 final String name = variable.getName();
                 if (registerMap.containsKey(name)) {
-                    debuggerContext.getDebugProcess().getManagerThread().invoke(new DebuggerCommandImpl() {
+                    DebugProcessImpl process = debuggerContext.getDebugProcess();
+                    if (process == null) {
+                        return;
+                    }
+
+                    process.getManagerThread().invoke(new DebuggerCommandImpl() {
                         @Override protected void action() throws Exception {
                             int registerNumber = Integer.parseInt(name.substring(1));
                             if (name.charAt(0) == 'p') {
@@ -206,13 +215,9 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
                             variable.putUserData(CodeFragmentFactoryContextWrapper.LABEL_VARIABLE_VALUE_KEY, value);
                         }
                     });
-
-
                 }
             }
         });
-
-
 
         int offset = variablesText.length() - 1;
 
@@ -224,49 +229,61 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
     }
 
     public Value evaluateRegister(EvaluationContextImpl context, final SmaliMethod smaliMethod, final int registerNum,
-                                  final String type) {
+                                  final String type) throws EvaluateException {
         final StackFrameProxyImpl frameProxy = context.getFrameProxy();
         if (frameProxy == null) {
             return null;
         }
 
-        // the jdi apis don't provide any way to get the value of an arbitrary register, so we use reflection
+        // the jdi APIs don't provide any way to get the value of an arbitrary register, so we use reflection
         // to create a LocalVariable instance for the register
-        final Value[] ret = new Value[1];
 
-        DebugProcessImpl debugProcess = context.getDebugProcess();
-        debugProcess.getManagerThread().invoke(
-                new DebuggerCommandImpl() {
+        VirtualMachine vm = frameProxy.getVirtualMachine().getVirtualMachine();
+        Location currentLocation = frameProxy.location();
+        if (currentLocation == null) {
+            return null;
+        }
 
-                    @Override protected void action() throws Exception {
-                        VirtualMachine vm = frameProxy.getVirtualMachine().getVirtualMachine();
-                        Method method = frameProxy.location().method();
+        Method method = currentLocation.method();
 
-                        final Constructor<LocalVariableImpl> localVariableConstructor = LocalVariableImpl.class.getDeclaredConstructor(
-                                VirtualMachine.class, Method.class, Integer.TYPE, Location.class, Location.class, String.class,
-                                String.class, String.class);
-                        localVariableConstructor.setAccessible(true);
+        try {
+            final Constructor<LocalVariableImpl> localVariableConstructor = LocalVariableImpl.class.getDeclaredConstructor(
+                    VirtualMachine.class, Method.class, Integer.TYPE, Location.class, Location.class, String.class,
+                    String.class, String.class);
+            localVariableConstructor.setAccessible(true);
 
-                        Constructor<LocationImpl> locationConstructor = LocationImpl.class.getDeclaredConstructor(
-                                VirtualMachine.class, Method.class, Long.TYPE);
-                        locationConstructor.setAccessible(true);
+            Constructor<LocationImpl> locationConstructor = LocationImpl.class.getDeclaredConstructor(
+                    VirtualMachine.class, Method.class, Long.TYPE);
+            locationConstructor.setAccessible(true);
 
-                        // TODO: use frameProxy.location().method().locationOfCodeIndex() here
-                        Location endLocation = locationConstructor.newInstance(vm, method, Integer.MAX_VALUE);
+            // TODO: use frameProxy.location().method().locationOfCodeIndex() here
+            Location endLocation = locationConstructor.newInstance(vm, method, Integer.MAX_VALUE);
 
-                        LocalVariable localVariable = localVariableConstructor.newInstance(vm,
-                                method,
-                                mapRegisterForArt(smaliMethod, registerNum),
-                                frameProxy.location().method().locationOfCodeIndex(0),
-                                endLocation,
-                                String.format("v%d", registerNum), type, null);
+            LocalVariable localVariable = localVariableConstructor.newInstance(vm,
+                    method,
+                    mapRegister(frameProxy.getStackFrame().virtualMachine(), smaliMethod, registerNum),
+                    method.locationOfCodeIndex(0),
+                    endLocation,
+                    String.format("v%d", registerNum), type, null);
 
-                        ret[0] = frameProxy.getStackFrame().getValue(localVariable);
-                    }
-                }
-        );
+            return frameProxy.getStackFrame().getValue(localVariable);
+        } catch (NoSuchMethodException e) {
+            return null;
+        } catch (InstantiationException e) {
+            return null;
+        } catch (IllegalAccessException e) {
+            return null;
+        } catch (InvocationTargetException e) {
+            return null;
+        }
+    }
 
-        return ret[0];
+    private static int mapRegister(final VirtualMachine vm, final SmaliMethod smaliMethod, final int register) {
+        if (vm.version().equals("1.5.0")) {
+            return mapRegisterForDalvik(smaliMethod, register);
+        } else {
+            return mapRegisterForArt(smaliMethod, register);
+        }
     }
 
     private static int mapRegisterForArt(final SmaliMethod smaliMethod, final int register) {
@@ -285,6 +302,28 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
                     return register - (totalRegisters - parameterRegisters);
                 }
                 return register + parameterRegisters;
+            }
+        });
+    }
+
+    private static int mapRegisterForDalvik(final SmaliMethod smaliMethod, final int register) {
+        return ApplicationManager.getApplication().runReadAction(new Computable<Integer>() {
+            @Override public Integer compute() {
+                if (smaliMethod.getModifierList().hasModifierProperty("static")) {
+                    return register;
+                }
+
+                int totalRegisters = smaliMethod.getRegisterCount();
+                int parameterRegisters = smaliMethod.getParameterRegisterCount();
+
+                // For dalvik, p0 is mapped to register 1, and register 0 is mapped to register 1000
+                if (register == (totalRegisters - parameterRegisters)) {
+                    return 0;
+                }
+                if (register == 0) {
+                    return 1000;
+                }
+                return register;
             }
         });
     }
