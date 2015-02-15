@@ -31,10 +31,13 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.google.common.collect.Lists;
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.stub.SmaliImplementsListStub;
+
+import java.util.List;
 
 public class SmaliImplementsList extends SmaliBaseReferenceList<SmaliImplementsListStub> {
     public SmaliImplementsList(@NotNull SmaliImplementsListStub stub) {
@@ -48,6 +51,23 @@ public class SmaliImplementsList extends SmaliBaseReferenceList<SmaliImplementsL
     @NotNull @Override public SmaliClassTypeElement[] getReferenceElements() {
         if (!((SmaliClass)getParent()).isInterface()) {
             return getImplementsElements();
+        }
+        return new SmaliClassTypeElement[0];
+    }
+
+    @NotNull private SmaliClassTypeElement[] getImplementsElements() {
+        SmaliImplementsStatement[] implementsStatements = ((SmaliClass)getParent()).getImplementsStatements();
+        if (implementsStatements.length > 0) {
+            // all implemented interfaces go in the extends list for an interface
+            List<SmaliClassTypeElement> types = Lists.newArrayList();
+
+            for (SmaliImplementsStatement implementsStatement: implementsStatements) {
+                SmaliClassTypeElement classReference = implementsStatement.getClassReference();
+                if (classReference != null) {
+                    types.add(classReference);
+                }
+            }
+            return types.toArray(new SmaliClassTypeElement[types.size()]);
         }
         return new SmaliClassTypeElement[0];
     }

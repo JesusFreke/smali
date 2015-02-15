@@ -31,10 +31,13 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.google.common.collect.Lists;
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.stub.SmaliExtendsListStub;
+
+import java.util.List;
 
 public class SmaliExtendsList extends SmaliBaseReferenceList<SmaliExtendsListStub> {
     public SmaliExtendsList(@NotNull SmaliExtendsListStub stub) {
@@ -51,6 +54,34 @@ public class SmaliExtendsList extends SmaliBaseReferenceList<SmaliExtendsListStu
         } else {
             return getExtendsElement();
         }
+    }
+
+    @NotNull private SmaliClassTypeElement[] getImplementsElements() {
+        SmaliImplementsStatement[] implementsStatements = ((SmaliClass)getParent()).getImplementsStatements();
+        if (implementsStatements.length > 0) {
+            // all implemented interfaces go in the extends list for an interface
+            List<SmaliClassTypeElement> types = Lists.newArrayList();
+
+            for (SmaliImplementsStatement implementsStatement: implementsStatements) {
+                SmaliClassTypeElement classReference = implementsStatement.getClassReference();
+                if (classReference != null) {
+                    types.add(classReference);
+                }
+            }
+            return types.toArray(new SmaliClassTypeElement[types.size()]);
+        }
+        return new SmaliClassTypeElement[0];
+    }
+
+    @NotNull private SmaliClassTypeElement[] getExtendsElement() {
+        SmaliSuperStatement superStatement = ((SmaliClass)getParent()).getSuperStatement();
+        if (superStatement != null) {
+            SmaliClassTypeElement classReference = superStatement.getClassReference();
+            if (classReference != null) {
+                return new SmaliClassTypeElement[] { classReference };
+            }
+        }
+        return new SmaliClassTypeElement[0];
     }
 
     @Override public Role getRole() {

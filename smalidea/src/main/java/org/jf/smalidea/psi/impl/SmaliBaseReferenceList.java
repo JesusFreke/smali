@@ -31,15 +31,12 @@
 
 package org.jf.smalidea.psi.impl;
 
-import com.google.common.collect.Lists;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.StubBasedPsiElement;
 import com.intellij.psi.stubs.IStubElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.stub.SmaliBaseReferenceListStub;
-
-import java.util.List;
 
 public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceListStub>
         extends SmaliStubBasedPsiElement<StubT> implements StubBasedPsiElement<StubT>, PsiReferenceList {
@@ -89,32 +86,4 @@ public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceLis
     }
 
     @NotNull @Override public abstract SmaliClassTypeElement[] getReferenceElements();
-
-    protected SmaliClassTypeElement[] getImplementsElements() {
-        SmaliImplementsStatement[] implementsStatements = ((SmaliClass)getParent()).getImplementsStatements();
-        if (implementsStatements.length > 0) {
-            // all implemented interfaces go in the extends list for an interface
-            List<SmaliClassTypeElement> types = Lists.newArrayList();
-
-            for (SmaliImplementsStatement implementsStatement: implementsStatements) {
-                SmaliClassTypeElement classReference = implementsStatement.getClassReference();
-                if (classReference != null) {
-                    types.add(classReference);
-                }
-            }
-            return types.toArray(new SmaliClassTypeElement[types.size()]);
-        }
-        return new SmaliClassTypeElement[0];
-    }
-
-    protected SmaliClassTypeElement[] getExtendsElement() {
-        SmaliSuperStatement superStatement = ((SmaliClass)getParent()).getSuperStatement();
-        if (superStatement != null) {
-            SmaliClassTypeElement classReference = superStatement.getClassReference();
-            if (classReference != null) {
-                return new SmaliClassTypeElement[] { classReference };
-            }
-        }
-        return new SmaliClassTypeElement[0];
-    }
 }
