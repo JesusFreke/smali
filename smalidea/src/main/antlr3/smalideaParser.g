@@ -88,15 +88,15 @@ import javax.annotation.Nullable;
         }
     }
 
+    @Override
+    public void recover(IntStream input, RecognitionException re) {
+        BitSet followSet = computeErrorRecoverySet();
+        beginResync();
+        consumeUntil(input, followSet);
+        endResync();
+    }
+
     public Marker recoverWithMarker(IntStream input, RecognitionException re) {
-        if ( state.lastErrorIndex==input.index() ) {
-            // uh oh, another error at same token index; must be a case
-            // where LT(1) is in the recovery token set so nothing is
-            // consumed; consume a single token so at least to prevent
-            // an infinite loop; this is a failsafe.
-            input.consume();
-        }
-        state.lastErrorIndex = input.index();
         BitSet followSet = computeErrorRecoverySet();
         beginResync();
         Marker marker = mark();
@@ -407,17 +407,20 @@ member_name
 
 method_prototype
   @init { Marker marker = mark(); }
-  : OPEN_PAREN param_list CLOSE_PAREN type_descriptor;
+  : open_paren param_list close_paren type_descriptor
+    { marker.done(SmaliElementTypes.METHOD_PROTOTYPE); };
   catch [RecognitionException re] {
     recover(input, re);
-    reportError(re);
-  }
-  finally {
-    marker.done(SmaliElementTypes.METHOD_PROTOTYPE);
+    reportError(marker, re, false);
   }
 
-param_list
-  @init { Marker marker = mark(); }
+open_paren
+  : OPEN_PAREN;
+
+close_paren
+  : CLOSE_PAREN;
+
+param_list_inner
   : ((PARAM_LIST_START param* PARAM_LIST_END)
     | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
     | (param*));
@@ -425,9 +428,11 @@ param_list
     Marker errorMarker = recoverWithMarker(input, re);
     reportError(errorMarker, re, false);
   }
-  finally {
-    marker.done(SmaliElementTypes.METHOD_PARAM_LIST);
-  }
+
+param_list
+  @init { Marker marker = mark(); }
+  : param_list_inner
+    { marker.done(SmaliElementTypes.METHOD_PARAM_LIST); };
 
 param
   @init {

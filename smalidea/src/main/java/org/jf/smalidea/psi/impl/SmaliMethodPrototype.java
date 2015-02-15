@@ -52,8 +52,8 @@ public class SmaliMethodPrototype extends SmaliStubBasedPsiElement<SmaliMethodPr
         return findChildByClass(PsiTypeElement.class);
     }
 
-    @Nullable
+    @NotNull
     public SmaliMethodParamList getParameterList() {
-        return findChildByClass(SmaliMethodParamList.class);
+        return getRequiredStubOrPsiChild(SmaliElementTypes.METHOD_PARAM_LIST);
     }
 }
