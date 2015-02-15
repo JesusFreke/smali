@@ -274,4 +274,17 @@ public class SmaliMethodTest extends LightCodeInsightFixtureTestCase {
         checkSourcePosition(smaliMethod, 40, Opcode.MOVE_RESULT);
         checkSourcePosition(smaliMethod, 42, Opcode.GOTO);
     }
+
+    public void testThrowsList() {
+        String text = instructionsTestClass;
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
+        SmaliClass smaliClass = file.getPsiClass();
+        SmaliMethod smaliMethod = smaliClass.getMethods()[0];
+
+        SmaliThrowsList throwsList = smaliMethod.getThrowsList();
+        Assert.assertNotNull(throwsList);
+        Assert.assertEquals(0, throwsList.getReferencedTypes().length);
+        Assert.assertEquals(0, throwsList.getReferenceElements().length);
+    }
 }

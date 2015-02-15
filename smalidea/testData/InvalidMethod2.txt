@@ -23,6 +23,8 @@ smali.FILE
     SmaliMethod(METHOD)
       SmaliModifierList(MODIFIER_LIST)
         <empty list>
+      SmaliThrowsList(THROWS_LIST)
+        <empty list>
       PsiElement(METHOD_DIRECTIVE)('.method')
       PsiWhiteSpace(' ')
       PsiElement(ACCESS_LIST)
@@ -39,6 +41,8 @@ smali.FILE
         <empty list>
     SmaliMethod(METHOD)
       SmaliModifierList(MODIFIER_LIST)
+        <empty list>
+      SmaliThrowsList(THROWS_LIST)
         <empty list>
       PsiElement(METHOD_DIRECTIVE)('.method')
       PsiElement(ACCESS_LIST)

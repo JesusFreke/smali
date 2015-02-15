@@ -122,9 +122,8 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         return getMethodPrototype().getParameterList();
     }
 
-    @NotNull @Override public PsiReferenceList getThrowsList() {
-        // TODO: add a fake reference list for throws
-        return null;
+    @NotNull @Override public SmaliThrowsList getThrowsList() {
+        return getRequiredStubOrPsiChild(SmaliElementTypes.THROWS_LIST);
     }
 
     @Nullable @Override public PsiCodeBlock getBody() {

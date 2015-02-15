@@ -31,7 +31,6 @@
 
 package org.jf.smalidea.psi;
 
-import org.jf.smalidea.psi.impl.SmaliInstruction;
 import org.jf.smalidea.psi.impl.*;
 import org.jf.smalidea.psi.stub.element.*;
 
@@ -47,6 +46,7 @@ public class SmaliElementTypes {
     public static final SmaliModifierListElementType MODIFIER_LIST = SmaliModifierListElementType.INSTANCE;
     public static final SmaliExtendsListElementType EXTENDS_LIST = SmaliExtendsListElementType.INSTANCE;
     public static final SmaliImplementsListElementType IMPLEMENTS_LIST = SmaliImplementsListElementType.INSTANCE;
+    public static final SmaliThrowsListElementType THROWS_LIST = SmaliThrowsListElementType.INSTANCE;
 
     public static final SmaliCompositeElementType LITERAL =
             new SmaliCompositeElementType("LITERAL", SmaliLiteral.FACTORY);

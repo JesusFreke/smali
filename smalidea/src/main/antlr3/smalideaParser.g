@@ -306,6 +306,7 @@ method
   @init {
     Marker marker = mark();
     mark().done(SmaliElementTypes.MODIFIER_LIST);
+    mark().done(SmaliElementTypes.THROWS_LIST);
   }
   : METHOD_DIRECTIVE access_list member_name method_prototype statements_and_directives
     end_method_directive
@@ -317,7 +318,6 @@ method
 
 end_method_directive
   : END_METHOD_DIRECTIVE;
-
 
 statements_and_directives
   : (

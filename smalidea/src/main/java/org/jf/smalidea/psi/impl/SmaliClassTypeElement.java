@@ -43,6 +43,8 @@ import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.util.NameUtils;
 
 public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCodeReferenceElement {
+    public static final SmaliClassTypeElement[] EMPTY_ARRAY = new SmaliClassTypeElement[0];
+
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliClassTypeElement();
