@@ -98,24 +98,13 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
     }
 
     @Nullable @Override public PsiType getReturnType() {
-        SmaliMethodStub stub = getStub();
-        if (stub != null) {
-            String returnType = stub.getReturnType();
-            if (returnType == null) {
-                return null;
-            }
-            PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
-            return factory.createTypeByFQClassName(returnType, getResolveScope());
-        }
-        PsiTypeElement returnTypeElement = getReturnTypeElement();
-        if (returnTypeElement == null) {
-            return null;
-        }
-        return returnTypeElement.getType();
+        if (isConstructor()) return null;
+        return getMethodPrototype().getReturnType();
     }
 
     @Nullable @Override public PsiTypeElement getReturnTypeElement() {
-        return getMethodPrototype().getReturnType();
+        if (isConstructor()) return null;
+        return getMethodPrototype().getReturnTypeElement();
     }
 
     @NotNull @Override public SmaliMethodParamList getParameterList() {

@@ -41,19 +41,13 @@ import javax.annotation.Nullable;
 
 public class SmaliMethodStub extends StubBase<SmaliMethod> {
     @Nullable private final String name;
-    @Nullable private final String returnType;
 
-    public SmaliMethodStub(@NotNull StubElement parent, @Nullable String name, @Nullable String returnType) {
+    public SmaliMethodStub(@NotNull StubElement parent, @Nullable String name) {
         super(parent, SmaliElementTypes.METHOD);
         this.name = name;
-        this.returnType = returnType;
     }
 
     @Nullable public String getName() {
         return name;
-    }
-
-    @Nullable public String getReturnType() {
-        return returnType;
     }
 }

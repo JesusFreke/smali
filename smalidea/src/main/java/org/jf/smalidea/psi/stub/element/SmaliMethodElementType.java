@@ -32,7 +32,6 @@
 package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiType;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
@@ -64,29 +63,18 @@ public class SmaliMethodElementType extends SmaliStubElementType<SmaliMethodStub
     }
 
     @Override public SmaliMethodStub createStub(@NotNull SmaliMethod psi, StubElement parentStub) {
-        String returnTypeText = null;
-        PsiType returnType = psi.getReturnType();
-        if (returnType != null) {
-            returnTypeText = returnType.getCanonicalText();
-        }
-        return new SmaliMethodStub(parentStub, psi.getName(), returnTypeText);
+        return new SmaliMethodStub(parentStub, psi.getName());
     }
 
     @Override
     public void serialize(@NotNull SmaliMethodStub stub, @NotNull StubOutputStream dataStream) throws IOException {
         dataStream.writeName(stub.getName());
-        dataStream.writeName(stub.getReturnType());
     }
 
     @NotNull @Override
     public SmaliMethodStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
         StringRef methodNameRef = dataStream.readName();
-        StringRef returnTypeRef = dataStream.readName();
-        String returnType = null;
-        if (returnTypeRef != null) {
-            returnType = returnTypeRef.getString();
-        }
-        return new SmaliMethodStub(parentStub, methodNameRef.getString(), returnType);
+        return new SmaliMethodStub(parentStub, methodNameRef.getString());
     }
 
     @Override public void indexStub(@NotNull SmaliMethodStub stub, @NotNull IndexSink sink) {

@@ -34,11 +34,19 @@ package org.jf.smalidea.psi.stub;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliMethodPrototype;
 
 public class SmaliMethodPrototypeStub extends StubBase<SmaliMethodPrototype> {
-    public SmaliMethodPrototypeStub(@NotNull StubElement parent) {
+    @Nullable private final String returnType;
+
+    public SmaliMethodPrototypeStub(@NotNull StubElement parent, @Nullable String returnType) {
         super(parent, SmaliElementTypes.METHOD_PROTOTYPE);
+        this.returnType = returnType;
+    }
+
+    @Nullable public String getReturnType() {
+        return returnType;
     }
 }

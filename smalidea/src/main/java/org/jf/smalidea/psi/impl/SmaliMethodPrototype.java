@@ -32,6 +32,9 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +51,25 @@ public class SmaliMethodPrototype extends SmaliStubBasedPsiElement<SmaliMethodPr
     }
 
     @Nullable
-    public PsiTypeElement getReturnType() {
+    public PsiType getReturnType() {
+        SmaliMethodPrototypeStub stub = getStub();
+        if (stub != null) {
+            String returnType = stub.getReturnType();
+            if (returnType == null) {
+                return null;
+            }
+            PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
+            return factory.createTypeByFQClassName(returnType, getResolveScope());
+        }
+
+        PsiTypeElement returnTypeElement = getReturnTypeElement();
+        if (returnTypeElement == null) {
+            return null;
+        }
+        return returnTypeElement.getType();
+    }
+
+    @Nullable public PsiTypeElement getReturnTypeElement() {
         return findChildByClass(PsiTypeElement.class);
     }
 
