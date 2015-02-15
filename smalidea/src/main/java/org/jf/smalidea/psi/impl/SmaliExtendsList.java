@@ -57,7 +57,10 @@ public class SmaliExtendsList extends SmaliBaseReferenceList<SmaliExtendsListStu
     }
 
     @NotNull private SmaliClassTypeElement[] getImplementsElements() {
-        SmaliImplementsStatement[] implementsStatements = ((SmaliClass)getParent()).getImplementsStatements();
+        SmaliClass smaliClass = getStubOrPsiParentOfType(SmaliClass.class);
+        assert smaliClass != null;
+
+        SmaliImplementsStatement[] implementsStatements = smaliClass.getImplementsStatements();
         if (implementsStatements.length > 0) {
             // all implemented interfaces go in the extends list for an interface
             List<SmaliClassTypeElement> types = Lists.newArrayList();
@@ -74,7 +77,10 @@ public class SmaliExtendsList extends SmaliBaseReferenceList<SmaliExtendsListStu
     }
 
     @NotNull private SmaliClassTypeElement[] getExtendsElement() {
-        SmaliSuperStatement superStatement = ((SmaliClass)getParent()).getSuperStatement();
+        SmaliClass smaliClass = getStubOrPsiParentOfType(SmaliClass.class);
+        assert smaliClass != null;
+
+        SmaliSuperStatement superStatement = smaliClass.getSuperStatement();
         if (superStatement != null) {
             SmaliClassTypeElement classReference = superStatement.getClassReference();
             if (classReference != null) {

@@ -64,7 +64,11 @@ public class SmaliModifierList extends SmaliStubBasedPsiElement<SmaliModifierLis
 
     @Nullable
     private SmaliAccessList findAccessListNode() {
-        return ((SmaliModifierListOwner)getParent()).getAccessFlagsNode();
+        SmaliModifierListOwner modifierListOwner = (SmaliModifierListOwner)getStubOrPsiParent();
+        if (modifierListOwner == null) {
+            return null;
+        }
+        return modifierListOwner.getAccessFlagsNode();
     }
 
     public int getAccessFlags() {
