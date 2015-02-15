@@ -174,9 +174,8 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
     }
 
     public int getParameterRegisterCount() {
-        SmaliModifierList modifierList = getModifierList();
         int parameterRegisterCount = getMethodPrototype().getParameterList().getParameterRegisterCount();
-        if (!modifierList.hasModifierProperty("static")) {
+        if (!isStatic()) {
             parameterRegisterCount++;
         }
         return parameterRegisterCount;
@@ -188,6 +187,10 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
 
     @Override public boolean isConstructor() {
         return hasModifierProperty("constructor") && !hasModifierProperty("static");
+    }
+
+    public boolean isStatic() {
+        return hasModifierProperty("static");
     }
 
     @Override public boolean isVarArgs() {

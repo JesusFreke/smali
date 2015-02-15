@@ -169,7 +169,7 @@ public class SmaliMethodParameter extends SmaliStubBasedPsiElement<SmaliMethodPa
         // TODO: it might be a good idea to cache this, or at least do it non-recursively
         PsiElement prevSibling = getPrevSibling();
         if (prevSibling == null) {
-            return getParentMethod().hasModifierProperty("static") ? 0 : 1;
+            return getParentMethod().isStatic() ? 0 : 1;
         }
         assert prevSibling instanceof SmaliMethodParameter;
         SmaliMethodParameter prevParam = (SmaliMethodParameter)prevSibling;
