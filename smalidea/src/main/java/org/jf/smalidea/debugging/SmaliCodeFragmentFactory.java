@@ -85,6 +85,9 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
 
         final SmaliMethod containingMethod = currentInstruction.getParentMethod();
         AnalyzedInstruction analyzedInstruction = currentInstruction.getAnalyzedInstruction();
+        if (analyzedInstruction == null) {
+            return originalContext;
+        }
 
         final int firstParameterRegister = containingMethod.getRegisterCount() -
                 containingMethod.getParameterRegisterCount();

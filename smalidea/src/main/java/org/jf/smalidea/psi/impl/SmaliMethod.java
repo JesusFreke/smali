@@ -44,6 +44,7 @@ import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -174,6 +175,7 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
     }
 
     @Override public boolean isConstructor() {
+        // TODO: should this return true for the class initializer?
         return hasModifierProperty("constructor") && !hasModifierProperty("static");
     }
 
@@ -303,17 +305,19 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
 
     private MethodAnalyzer methodAnalyzer = null;
 
-    @NotNull
+    @Nullable
     public MethodAnalyzer getMethodAnalyzer() {
         if (methodAnalyzer == null) {
-            ClassPath classPath;
-            try {
-                classPath = new ClassPath();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+            if (!PsiTreeUtil.hasErrorElements(this)) {
+                ClassPath classPath;
+                try {
+                    classPath = new ClassPath();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
 
-            methodAnalyzer = new MethodAnalyzer(classPath, new SmalideaMethod(SmaliMethod.this), null);
+                methodAnalyzer = new MethodAnalyzer(classPath, new SmalideaMethod(SmaliMethod.this), null);
+            }
         }
         return methodAnalyzer;
     }

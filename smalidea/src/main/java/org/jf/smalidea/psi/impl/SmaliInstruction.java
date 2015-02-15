@@ -192,11 +192,15 @@ public class SmaliInstruction extends SmaliCompositeElement {
 
     private AnalyzedInstruction analyzedInstruction = null;
 
-    @NotNull
+    @Nullable
     private AnalyzedInstruction getAnalyzedInstructionFromMethod() {
         SmaliMethod method = getParentMethod();
 
         MethodAnalyzer analyzer = method.getMethodAnalyzer();
+        if (analyzer == null) {
+            return null;
+        }
+
         int thisOffset = this.getOffset() / 2;
         int codeOffset = 0;
 
@@ -212,7 +216,7 @@ public class SmaliInstruction extends SmaliCompositeElement {
         return null;
     }
 
-    @NotNull
+    @Nullable
     public AnalyzedInstruction getAnalyzedInstruction() {
         if (analyzedInstruction == null) {
             analyzedInstruction = getAnalyzedInstructionFromMethod();
