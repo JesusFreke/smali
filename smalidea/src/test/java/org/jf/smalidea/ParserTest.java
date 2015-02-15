@@ -101,4 +101,5 @@ public class ParserTest extends ParsingTestCase {
     public void testParamListInvalidParameter() throws Exception { doTest(true); }
     public void testSuperClassInvalidSyntax() throws Exception { doTest(true); }
     public void testSuperClassInvalidSyntax2() throws Exception { doTest(true); }
+    public void testInvalidMethod() throws Exception { doTest(true); }
 }

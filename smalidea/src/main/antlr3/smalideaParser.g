@@ -308,12 +308,16 @@ method
     mark().done(SmaliElementTypes.MODIFIER_LIST);
   }
   : METHOD_DIRECTIVE access_list member_name method_prototype statements_and_directives
-    END_METHOD_DIRECTIVE
+    end_method_directive
   { marker.done(SmaliElementTypes.METHOD); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
   }
+
+end_method_directive
+  : END_METHOD_DIRECTIVE;
+
 
 statements_and_directives
   : (

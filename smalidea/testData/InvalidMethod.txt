@@ -1,0 +1,33 @@
+smali.FILE
+  SmaliClass(CLASS)
+    SmaliModifierList(MODIFIER_LIST)
+      <empty list>
+    SmaliExtendsList(EXTENDS_LIST)
+      <empty list>
+    SmaliImplementsList(IMPLEMENTS_LIST)
+      <empty list>
+    PsiElement(CLASS_STATEMENT)
+      PsiElement(CLASS_DIRECTIVE)('.class')
+      PsiWhiteSpace(' ')
+      PsiElement(ACCESS_LIST)
+        <empty list>
+      PsiElement(CLASS_TYPE)
+        PsiElement(CLASS_DESCRIPTOR)('Ltest;')
+    PsiWhiteSpace('\n')
+    PsiElement(SUPER_STATEMENT)
+      PsiElement(SUPER_DIRECTIVE)('.super')
+      PsiWhiteSpace(' ')
+      PsiElement(CLASS_TYPE)
+        PsiElement(CLASS_DESCRIPTOR)('Ljava/lang/Object;')
+    PsiWhiteSpace('\n\n')
+    SmaliMethod(METHOD)
+      SmaliModifierList(MODIFIER_LIST)
+        <empty list>
+      PsiElement(METHOD_DIRECTIVE)('.method')
+      PsiWhiteSpace(' ')
+      PsiElement(ACCESS_LIST)
+        <empty list>
+      PsiErrorElement:no viable alternative at input '.blah'
+        PsiElement(BAD_CHARACTER)('.blah')
+      SmaliMethodPrototype(METHOD_PROTOTYPE)
+        <empty list>
