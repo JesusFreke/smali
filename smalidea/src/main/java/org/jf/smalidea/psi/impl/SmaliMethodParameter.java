@@ -89,8 +89,7 @@ public class SmaliMethodParameter extends SmaliStubBasedPsiElement<SmaliMethodPa
         SmaliMethodParameterStub stub = getStub();
         if (stub != null) {
             String type = stub.getType();
-            PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
-            return factory.createTypeByFQClassName(type, getResolveScope());
+            return JavaPsiFacade.getInstance(getProject()).getParserFacade().createTypeFromText(type, null);
         }
         return getTypeElement().getType();
     }
