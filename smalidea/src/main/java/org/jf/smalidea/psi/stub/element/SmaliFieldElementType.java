@@ -36,6 +36,7 @@ import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
+import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliField;
 import org.jf.smalidea.psi.stub.SmaliFieldStub;
@@ -73,7 +74,13 @@ public class SmaliFieldElementType extends SmaliStubElementType<SmaliFieldStub, 
 
     @NotNull @Override
     public SmaliFieldStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliFieldStub(parentStub, dataStream.readName().getString(), dataStream.readName().getString());
+        StringRef nameRef = dataStream.readName();
+        String name = null;
+        if (nameRef != null) {
+            name = nameRef.getString();
+        }
+
+        return new SmaliFieldStub(parentStub, name, dataStream.readName().getString());
     }
 
     @Override public void indexStub(@NotNull SmaliFieldStub stub, @NotNull IndexSink sink) {

@@ -44,8 +44,6 @@ import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliFieldStub;
 
-import javax.annotation.Nonnull;
-
 public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> implements PsiField, SmaliModifierListOwner {
     public SmaliField(@NotNull SmaliFieldStub stub) {
         super(stub, SmaliElementTypes.FIELD);
@@ -55,14 +53,16 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
         super(node);
     }
 
-    @Nonnull @Override public String getName() {
+    @Nullable @Override public String getName() {
         SmaliFieldStub stub = getStub();
         if (stub != null) {
             return stub.getName();
         }
 
         SmaliMemberName smaliMemberName = findChildByClass(SmaliMemberName.class);
-        assert smaliMemberName != null;
+        if (smaliMemberName == null) {
+            return null;
+        }
         return smaliMemberName.getText();
     }
 
@@ -102,7 +102,11 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
             return factory.createTypeFromText(type, this);
         }
         PsiTypeElement typeElement = getTypeElement();
-        assert typeElement != null;
+        if (typeElement == null) {
+            // If we don't have a type (i.e. syntax error), use Object as a safe-ish fallback
+            PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
+            return factory.createTypeByFQClassName("java.lang.Object", getResolveScope());
+        }
         return getTypeElement().getType();
     }
 

@@ -277,12 +277,12 @@ field
   }
   : FIELD_DIRECTIVE
     access_list
-    member_name COLON nonvoid_type_descriptor
+    member_name colon nonvoid_type_descriptor
     field_initializer?
-    ( END_FIELD_DIRECTIVE
+    ( end_field_directive
     | (ANNOTATION_DIRECTIVE)=> ( {annotationsMarker = mark();}
                                  ((ANNOTATION_DIRECTIVE)=> annotation)+
-                                 (END_FIELD_DIRECTIVE {classAnnotations = false;})?
+                                 (end_field_directive {classAnnotations = false;})?
                                )
     | /*epsilon*/
     )
@@ -300,10 +300,18 @@ field
     }
   };
   catch [RecognitionException re] {
-    annotationsMarker.drop();
+    if (annotationsMarker != null) {
+        annotationsMarker.drop();
+    }
     recover(input, re);
     reportError(marker, re, false);
   }
+
+colon
+  : COLON;
+
+end_field_directive
+  : END_FIELD_DIRECTIVE;
 
 field_initializer
   @init { Marker marker = mark(); }
