@@ -209,7 +209,7 @@ smali_file
 
 class_spec
   @init { Marker marker = mark(); }
-  : CLASS_DIRECTIVE access_list class_descriptor
+  : CLASS_DIRECTIVE class_access_list class_descriptor
   { marker.done(SmaliElementTypes.CLASS_STATEMENT); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -238,6 +238,18 @@ source_spec
   @init { Marker marker = mark(); }
   : SOURCE_DIRECTIVE string_literal
   { marker.done(SmaliElementTypes.SOURCE_STATEMENT); };
+  catch [RecognitionException re] {
+    recover(input, re);
+    reportError(marker, re, false);
+  }
+
+// class_access_list should be separate from access_list, because
+// it exists in a slightly different context, and can consume
+// ACCESS_SPECs greedily, without having to look ahead.
+class_access_list
+  @init { Marker marker = mark(); }
+  : ACCESS_SPEC*
+  { marker.done(SmaliElementTypes.ACCESS_LIST); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
