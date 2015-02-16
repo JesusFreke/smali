@@ -31,31 +31,9 @@
 
 package org.jf.smalidea;
 
-import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
-import com.intellij.psi.stubs.*;
-import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.testFramework.ParsingTestCase;
-import org.jf.smalidea.psi.SmaliElementTypes;
-import org.jf.smalidea.psi.impl.SmaliFile;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-public class ParserTest extends ParsingTestCase {
+public class ParserTest extends LightCodeInsightParsingTestCase {
     public ParserTest() {
-        super("", "smalidea", new SmaliParserDefinition());
-    }
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-
-        registerApplicationService(SerializationManager.class, new SerializationManagerImpl());
-
-        StubElementTypeHolderEP stubHolder = new StubElementTypeHolderEP();
-        stubHolder.holderClass = SmaliElementTypes.class.getCanonicalName();
-        registerExtension(StubElementTypeHolderEP.EP_NAME, stubHolder);
+        super("", "smalidea", SmaliLanguage.INSTANCE);
     }
 
     @Override
@@ -63,42 +41,11 @@ public class ParserTest extends ParsingTestCase {
         return "testData";
     }
 
-    @Override protected void doTest(boolean checkResult) {
-        String name = getTestName(false);
-        try {
-            String text = loadFile(name + "." + myFileExt);
-            SmaliFile f = (SmaliFile)createPsiFile(name, text);
-
-            StubTree stubTree = f.calcStubTree();
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            SerializationManagerImpl.getInstanceEx().serialize(stubTree.getRoot(), baos);
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            SerializationManagerImpl.getInstanceEx().deserialize(bais);
-
-            ensureParsed(f);
-            assertEquals("light virtual file text mismatch", text,
-                    ((LightVirtualFile)f.getVirtualFile()).getContent().toString());
-            assertEquals("virtual file text mismatch", text, LoadTextUtil.loadText(f.getVirtualFile()));
-            assertEquals("doc text mismatch", text, f.getViewProvider().getDocument().getText());
-            assertEquals("psi text mismatch", text, f.getText());
-            if (checkResult){
-                checkResult(name, f);
-            }
-            else{
-                toParseTreeText(f, skipSpaces(), includeRanges());
-            }
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (SerializerNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public void testEmpty() throws Exception { doTest(true); }
     public void testInvalidClassDirective() throws Exception { doTest(true); }
     public void testInvalidClassDirective2() throws Exception { doTest(true); }
     public void testInvalidClassDirective3() throws Exception { doTest(true); }
+    public void testInvalidField() throws Exception { doTest(true); }
     public void testParamListInvalidParameter() throws Exception { doTest(true); }
     public void testSuperClassInvalidSyntax() throws Exception { doTest(true); }
     public void testSuperClassInvalidSyntax2() throws Exception { doTest(true); }
