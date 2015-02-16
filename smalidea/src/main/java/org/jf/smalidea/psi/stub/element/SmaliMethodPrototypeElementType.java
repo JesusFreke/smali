@@ -37,7 +37,6 @@ import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
-import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliMethodPrototype;
 import org.jf.smalidea.psi.stub.SmaliMethodPrototypeStub;
@@ -83,12 +82,7 @@ public class SmaliMethodPrototypeElementType
     @NotNull @Override
     public SmaliMethodPrototypeStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub)
             throws IOException {
-        StringRef returnTypeRef = dataStream.readName();
-        String returnType = null;
-        if (returnTypeRef != null) {
-            returnType = returnTypeRef.getString();
-        }
-        return new SmaliMethodPrototypeStub(parentStub, returnType);
+        return new SmaliMethodPrototypeStub(parentStub, deserializeNullableString(dataStream));
     }
 
     @Override public void indexStub(@NotNull SmaliMethodPrototypeStub stub, @NotNull IndexSink sink) {

@@ -36,7 +36,6 @@ import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
-import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliMethodParameter;
 import org.jf.smalidea.psi.stub.SmaliMethodParameterStub;
@@ -77,11 +76,8 @@ public class SmaliMethodParameterElementType
     @NotNull @Override
     public SmaliMethodParameterStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub)
             throws IOException {
-        String type = dataStream.readName().getString();
-        StringRef nameRef = dataStream.readName();
-        String name = nameRef==null ? null : nameRef.getString();
-
-        return new SmaliMethodParameterStub(parentStub, type, name);
+        return new SmaliMethodParameterStub(parentStub, dataStream.readName().getString(),
+                deserializeNullableString(dataStream));
     }
 
     @Override public void indexStub(@NotNull SmaliMethodParameterStub stub, @NotNull IndexSink sink) {
