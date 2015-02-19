@@ -64,7 +64,7 @@ public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStat
     }
 
     @Nullable
-    public SmaliAccessList getAccessFlagsNode() {
-        return findChildByClass(SmaliAccessList.class);
+    public SmaliModifierList getModifierList() {
+        return getStubOrPsiChild(SmaliElementTypes.MODIFIER_LIST);
     }
 }

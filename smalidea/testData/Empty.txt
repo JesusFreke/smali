@@ -1,7 +1,5 @@
 smali.FILE
   SmaliClass(CLASS)
-    SmaliModifierList(MODIFIER_LIST)
-      <empty list>
     SmaliExtendsList(EXTENDS_LIST)
       <empty list>
     SmaliImplementsList(IMPLEMENTS_LIST)

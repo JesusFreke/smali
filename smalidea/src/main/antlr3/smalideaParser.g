@@ -189,7 +189,6 @@ sync[boolean toEof]
 
 smali_file
   @init {
-    mark().done(SmaliElementTypes.MODIFIER_LIST);
     mark().done(SmaliElementTypes.EXTENDS_LIST);
     mark().done(SmaliElementTypes.IMPLEMENTS_LIST);
   }
@@ -249,7 +248,7 @@ source_spec
 class_access_list
   @init { Marker marker = mark(); }
   : ACCESS_SPEC*
-  { marker.done(SmaliElementTypes.ACCESS_LIST); };
+  { marker.done(SmaliElementTypes.MODIFIER_LIST); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -258,7 +257,7 @@ class_access_list
 access_list
   @init { Marker marker = mark(); }
   : ACCESS_SPEC*
-  { marker.done(SmaliElementTypes.ACCESS_LIST); };
+  { marker.done(SmaliElementTypes.MODIFIER_LIST); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
@@ -271,7 +270,6 @@ add them to the $smali_file::classAnnotations list*/
 field
   @init {
     Marker marker = mark();
-    mark().done(SmaliElementTypes.MODIFIER_LIST);
     Marker annotationsMarker = null;
     boolean classAnnotations = true;
   }
@@ -325,7 +323,6 @@ field_initializer
 method
   @init {
     Marker marker = mark();
-    mark().done(SmaliElementTypes.MODIFIER_LIST);
     mark().done(SmaliElementTypes.THROWS_LIST);
   }
   : METHOD_DIRECTIVE access_list member_name method_prototype statements_and_directives

@@ -1,7 +1,5 @@
 smali.FILE
   SmaliClass(CLASS)
-    SmaliModifierList(MODIFIER_LIST)
-      <empty list>
     SmaliExtendsList(EXTENDS_LIST)
       <empty list>
     SmaliImplementsList(IMPLEMENTS_LIST)
@@ -9,7 +7,7 @@ smali.FILE
     SmaliClassStatement(CLASS_STATEMENT)
       PsiElement(CLASS_DIRECTIVE)('.class')
       PsiWhiteSpace(' ')
-      PsiElement(ACCESS_LIST)
+      SmaliModifierList(MODIFIER_LIST)
         PsiElement(ACCESS_SPEC)('public')
       PsiWhiteSpace(' ')
       PsiErrorElement:extraneous input '.class' expecting CLASS_DESCRIPTOR

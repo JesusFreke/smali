@@ -260,10 +260,6 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         return getModifierList().hasModifierProperty(name);
     }
 
-    @Nullable @Override public SmaliAccessList getAccessFlagsNode() {
-        return findChildByClass(SmaliAccessList.class);
-    }
-
     @NotNull @Override public SmaliAnnotation[] getAnnotations() {
         return getStubOrPsiChildren(SmaliElementTypes.ANNOTATION, new SmaliAnnotation[0]);
     }

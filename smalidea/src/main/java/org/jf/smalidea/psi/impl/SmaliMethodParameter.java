@@ -52,11 +52,6 @@ public class SmaliMethodParameter extends SmaliStubBasedPsiElement<SmaliMethodPa
         super(node);
     }
 
-    @Nullable @Override public SmaliAccessList getAccessFlagsNode() {
-        // not applicable
-        return null;
-    }
-
     @NotNull @Override public SmaliModifierList getModifierList() {
         return getRequiredStubOrPsiChild(SmaliElementTypes.MODIFIER_LIST);
     }

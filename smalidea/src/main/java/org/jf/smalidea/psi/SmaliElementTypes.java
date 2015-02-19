@@ -61,8 +61,6 @@ public class SmaliElementTypes {
             new SmaliCompositeElementType("REGISTERS_STATEMENT", SmaliRegistersStatement.FACTORY);
     public static final SmaliCompositeElementType REGISTER_REFERENCE =
             new SmaliCompositeElementType("REGISTER_REFERENCE", SmaliRegisterReference.FACTORY);
-    public static final SmaliCompositeElementType ACCESS_LIST =
-            new SmaliCompositeElementType("ACCESS_LIST", SmaliAccessList.FACTORY);
     public static final SmaliCompositeElementType MEMBER_NAME =
             new SmaliCompositeElementType("MEMBER_NAME", SmaliMemberName.FACTORY);
     public static final SmaliCompositeElementType LOCAL_NAME =

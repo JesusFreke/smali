@@ -99,28 +99,21 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         return name.substring(0, lastDot);
     }
 
-    @Nullable @Override public SmaliAccessList getAccessFlagsNode() {
-        SmaliClassStatement classStatement = findChildByClass(SmaliClassStatement.class);
-        if (classStatement == null) {
-            return null;
-        }
-        return classStatement.getAccessFlagsNode();
-    }
     @Override public boolean hasTypeParameters() {
         // TODO: implement generics
         return false;
     }
 
     @Override public boolean isInterface() {
-        return getModifierList().hasModifierProperty("interface");
+        return hasModifierProperty("interface");
     }
 
     @Override public boolean isAnnotationType() {
-        return getModifierList().hasModifierProperty("annotation");
+        return hasModifierProperty("annotation");
     }
 
     @Override public boolean isEnum() {
-        return getModifierList().hasModifierProperty("enum");
+        return hasModifierProperty("enum");
     }
 
     @Nullable public SmaliSuperStatement getSuperStatement() {
@@ -277,14 +270,17 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         return new PsiTypeParameter[0];
     }
 
-    @NotNull @Override public SmaliModifierList getModifierList() {
-        SmaliModifierList modifierList = getStubOrPsiChild(SmaliElementTypes.MODIFIER_LIST);
-        assert modifierList != null;
-        return modifierList;
+    @Nullable @Override public SmaliModifierList getModifierList() {
+        SmaliClassStatement classStatement = getStubOrPsiChild(SmaliElementTypes.CLASS_STATEMENT);
+        if (classStatement == null) {
+            return null;
+        }
+        return classStatement.getModifierList();
     }
 
     @Override public boolean hasModifierProperty(@ModifierConstant @NonNls @NotNull String name) {
-        return getModifierList().hasModifierProperty(name);
+        SmaliModifierList smaliModifierList = getModifierList();
+        return smaliModifierList != null && smaliModifierList.hasModifierProperty(name);
     }
 
     @NotNull @Override public SmaliAnnotation[] getAnnotations() {

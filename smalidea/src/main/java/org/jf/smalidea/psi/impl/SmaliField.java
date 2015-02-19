@@ -66,10 +66,6 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
         return smaliMemberName.getText();
     }
 
-    @Nullable @Override public SmaliAccessList getAccessFlagsNode() {
-        return findChildByClass(SmaliAccessList.class);
-    }
-
     @NotNull @Override public SmaliModifierList getModifierList() {
         SmaliModifierList modifierList = getStubOrPsiChild(SmaliElementTypes.MODIFIER_LIST);
         assert modifierList != null;

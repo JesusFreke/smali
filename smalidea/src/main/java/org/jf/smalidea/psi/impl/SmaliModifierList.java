@@ -33,13 +33,13 @@ package org.jf.smalidea.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier.ModifierConstant;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.StubBasedPsiElement;
 import com.intellij.psi.impl.source.tree.Factory;
 import com.intellij.psi.impl.source.tree.TreeElement;
-import com.intellij.psi.tree.TokenSet;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -62,29 +62,16 @@ public class SmaliModifierList extends SmaliStubBasedPsiElement<SmaliModifierLis
         super(stub, SmaliModifierListElementType.INSTANCE);
     }
 
-    @Nullable
-    private SmaliAccessList findAccessListNode() {
-        SmaliModifierListOwner modifierListOwner = (SmaliModifierListOwner)getStubOrPsiParent();
-        if (modifierListOwner == null) {
-            return null;
-        }
-        return modifierListOwner.getAccessFlagsNode();
-    }
-
     public int getAccessFlags() {
         SmaliModifierListStub stub = getStub();
         if (stub != null) {
             return stub.getAccessFlags();
         }
 
-        ASTNode accessListNode = findAccessListNode();
-        if (accessListNode == null) {
-            return 0;
-        }
-
         int flags = 0;
-        for (ASTNode accessSpecNode: accessListNode.getChildren(TokenSet.create(SmaliTokens.ACCESS_SPEC))) {
-            AccessFlags flag = AccessFlags.getAccessFlag(accessSpecNode.getText());
+
+        for (PsiElement accessSpec: findChildrenByType(SmaliTokens.ACCESS_SPEC)) {
+            AccessFlags flag = AccessFlags.getAccessFlag(accessSpec.getText());
             if (flag != null) {
                 flags |= flag.getValue();
             }
@@ -107,13 +94,8 @@ public class SmaliModifierList extends SmaliStubBasedPsiElement<SmaliModifierLis
             return (stub.getAccessFlags() & flag.getValue()) != 0;
         }
 
-        ASTNode accessListNode = findAccessListNode();
-        if (accessListNode == null) {
-            return false;
-        }
-
-        for (ASTNode accessSpecNode: accessListNode.getChildren(TokenSet.create(SmaliTokens.ACCESS_SPEC))) {
-            if (accessSpecNode.getText().equals(name)) {
+        for (PsiElement accessSpec: findChildrenByType(SmaliTokens.ACCESS_SPEC)) {
+            if (accessSpec.getText().equals(name)) {
                 return true;
             }
         }
@@ -125,28 +107,20 @@ public class SmaliModifierList extends SmaliStubBasedPsiElement<SmaliModifierLis
     public void setModifierProperty(@ModifierConstant @NotNull @NonNls String name, boolean addModifier)
             throws IncorrectOperationException {
         if (addModifier) {
-            final SmaliAccessList accessListNode = findAccessListNode();
-            if (accessListNode == null) {
-                throw new IncorrectOperationException("Cannot add modifier: no .class statement");
-            }
+
             final TreeElement leaf = Factory.createSingleLeafElement(SmaliTokens.ACCESS_SPEC, name, null, getManager());
 
             new WriteCommandAction.Simple(getProject(), getContainingFile()) {
                 @Override protected void run() throws Throwable {
-                    accessListNode.addInternal(leaf, leaf, null, null);
+                    addInternal(leaf, leaf, null, null);
                 }
             }.execute();
         } else {
-            SmaliAccessList accessListNode = findAccessListNode();
-            if (accessListNode == null) {
-                return;
-            }
-
-            final ASTNode accessSpec = accessListNode.getAccessFlagNode(name);
+            final PsiElement accessSpec = getAccessFlagElement(name);
             if (accessSpec != null) {
                 new WriteCommandAction.Simple(getProject(), getContainingFile()) {
                     @Override protected void run() throws Throwable {
-                        accessSpec.getPsi().delete();
+                        accessSpec.delete();
                     }
                 }.execute();
             }
@@ -179,5 +153,14 @@ public class SmaliModifierList extends SmaliStubBasedPsiElement<SmaliModifierLis
 
     @NotNull @Override public SmaliAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
         return getParentForAnnotations().addAnnotation(qualifiedName);
+    }
+
+    @Nullable public PsiElement getAccessFlagElement(@NotNull String accessFlag) {
+        for (PsiElement accessSpec: findChildrenByType(SmaliTokens.ACCESS_SPEC)) {
+            if (accessSpec.getText().equals(accessFlag)) {
+                return accessSpec;
+            }
+        }
+        return null;
     }
 }

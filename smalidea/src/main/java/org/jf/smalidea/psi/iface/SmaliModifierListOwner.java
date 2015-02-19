@@ -35,11 +35,9 @@ import com.intellij.psi.PsiAnnotationOwner;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.impl.SmaliAccessList;
 import org.jf.smalidea.psi.impl.SmaliAnnotation;
 
 public interface SmaliModifierListOwner extends PsiAnnotationOwner {
-    @Nullable SmaliAccessList getAccessFlagsNode();
     @NotNull @Override SmaliAnnotation[] getAnnotations();
     @NotNull @Override SmaliAnnotation[] getApplicableAnnotations();
     @Nullable @Override SmaliAnnotation findAnnotation(@NotNull @NonNls String qualifiedName);
