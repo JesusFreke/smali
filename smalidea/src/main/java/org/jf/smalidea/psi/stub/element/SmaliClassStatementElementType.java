@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,55 +37,44 @@ import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.jf.smalidea.psi.SmaliElementTypes;
-import org.jf.smalidea.psi.impl.SmaliClass;
-import org.jf.smalidea.psi.index.SmaliClassNameIndex;
+import org.jf.smalidea.psi.impl.SmaliClassStatement;
 import org.jf.smalidea.psi.stub.SmaliClassStatementStub;
-import org.jf.smalidea.psi.stub.SmaliClassStub;
 
 import java.io.IOException;
 
-public class SmaliClassElementType extends SmaliStubElementType<SmaliClassStub, SmaliClass> {
-    public static final SmaliClassElementType INSTANCE = new SmaliClassElementType();
+public class SmaliClassStatementElementType extends SmaliStubElementType<SmaliClassStatementStub, SmaliClassStatement> {
+    public static final SmaliClassStatementElementType INSTANCE = new SmaliClassStatementElementType();
 
-    private SmaliClassElementType() {
-        super("CLASS");
+    public SmaliClassStatementElementType() {
+        super("CLASS_STATEMENT");
+    }
+
+    @Override public SmaliClassStatement createPsi(@NotNull ASTNode node) {
+        return new SmaliClassStatement(node);
+    }
+
+    @Override public SmaliClassStatement createPsi(@NotNull SmaliClassStatementStub stub) {
+        return new SmaliClassStatement(stub);
+    }
+
+    @Override public SmaliClassStatementStub createStub(@NotNull SmaliClassStatement psi, StubElement parentStub) {
+        return new SmaliClassStatementStub(parentStub, psi.getQualifiedName());
     }
 
     @NotNull @Override public String getExternalId() {
-        return "smali.class";
-    }
-
-    @Override public SmaliClass createPsi(@NotNull SmaliClassStub stub) {
-        return new SmaliClass(stub);
-    }
-
-    @Override public SmaliClass createPsi(@NotNull ASTNode node) {
-        return new SmaliClass(node);
-    }
-
-    @Override public SmaliClassStub createStub(@NotNull SmaliClass psi, StubElement parentStub) {
-        return new SmaliClassStub(parentStub);
+        return "smali.class_statement";
     }
 
     @Override
-    public void serialize(@NotNull SmaliClassStub stub, @NotNull StubOutputStream dataStream) throws IOException {
-
+    public void serialize(@NotNull SmaliClassStatementStub stub, @NotNull StubOutputStream dataStream) throws IOException {
+        dataStream.writeName(stub.getQualifiedName());
     }
 
     @NotNull @Override
-    public SmaliClassStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliClassStub(parentStub);
+    public SmaliClassStatementStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
+        return new SmaliClassStatementStub(parentStub, deserializeNullableString(dataStream));
     }
 
-    @Override public void indexStub(@NotNull SmaliClassStub stub, @NotNull IndexSink sink) {
-        SmaliClassStatementStub smaliClassStatementStub =
-                (SmaliClassStatementStub)stub.findChildStubByType(SmaliElementTypes.CLASS_STATEMENT);
-        if (smaliClassStatementStub != null) {
-            String qualifiedName = smaliClassStatementStub.getQualifiedName();
-            if (qualifiedName != null) {
-                sink.occurrence(SmaliClassNameIndex.KEY, qualifiedName);
-            }
-        }
+    @Override public void indexStub(@NotNull SmaliClassStatementStub stub, @NotNull IndexSink sink) {
     }
 }

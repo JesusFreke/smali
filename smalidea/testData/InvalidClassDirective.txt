@@ -6,7 +6,7 @@ smali.FILE
       <empty list>
     SmaliImplementsList(IMPLEMENTS_LIST)
       <empty list>
-    PsiElement(CLASS_STATEMENT)
+    SmaliClassStatement(CLASS_STATEMENT)
       PsiElement(CLASS_DIRECTIVE)('.class')
       PsiElement(ACCESS_LIST)
         <empty list>

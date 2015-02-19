@@ -31,26 +31,31 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.lang.ASTNode;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.stub.SmaliClassStatementStub;
 
-public class SmaliClassStatement extends SmaliCompositeElement {
-    public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
-        @Override public SmaliCompositeElement createElement() {
-            return new SmaliClassStatement();
-        }
-    };
+public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStatementStub> {
+    public SmaliClassStatement(@NotNull SmaliClassStatementStub stub) {
+        super(stub, SmaliElementTypes.CLASS_STATEMENT);
+    }
 
-    public SmaliClassStatement() {
-        super(SmaliElementTypes.CLASS_STATEMENT);
+    public SmaliClassStatement(@NotNull ASTNode node) {
+        super(node);
     }
 
     /**
      * @return the fully qualified java-style name of the class in this .class statement
      */
     @Nullable
-    public String getJavaType() {
+    public String getQualifiedName() {
+        SmaliClassStatementStub stub = getStub();
+        if (stub != null) {
+            return stub.getQualifiedName();
+        }
+
         SmaliClassTypeElement classType = findChildByClass(SmaliClassTypeElement.class);
         if (classType == null) {
             return null;

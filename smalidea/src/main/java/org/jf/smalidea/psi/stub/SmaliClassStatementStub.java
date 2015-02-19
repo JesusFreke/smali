@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,19 @@ package org.jf.smalidea.psi.stub;
 
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
-import org.jf.smalidea.psi.impl.SmaliClass;
+import org.jf.smalidea.psi.impl.SmaliClassStatement;
 
-public class SmaliClassStub extends StubBase<SmaliClass> {
-    public SmaliClassStub(StubElement parent) {
-        super(parent, SmaliElementTypes.CLASS);
+public class SmaliClassStatementStub extends StubBase<SmaliClassStatement>  {
+    @Nullable private final String qualifiedName;
+
+    public SmaliClassStatementStub(StubElement parent, @Nullable String qualifiedName) {
+        super(parent, SmaliElementTypes.CLASS_STATEMENT);
+        this.qualifiedName = qualifiedName;
+    }
+
+    @Nullable public String getQualifiedName() {
+        return qualifiedName;
     }
 }

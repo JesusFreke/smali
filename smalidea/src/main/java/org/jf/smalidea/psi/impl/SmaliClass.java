@@ -80,16 +80,11 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @Nullable @Override public String getQualifiedName() {
-        SmaliClassStub stub = getStub();
-        if (stub != null) {
-            return stub.getQualifiedName();
-        }
-
-        SmaliClassStatement classStatement = findChildByClass(SmaliClassStatement.class);
+        SmaliClassStatement classStatement = getStubOrPsiChild(SmaliElementTypes.CLASS_STATEMENT);
         if (classStatement == null) {
             return null;
         }
-        return classStatement.getJavaType();
+        return classStatement.getQualifiedName();
     }
 
     @NotNull public String getPackageName() {

@@ -39,6 +39,7 @@ public class SmaliElementTypes {
     public static final SmaliClassElementType CLASS = SmaliClassElementType.INSTANCE;
     public static final SmaliFieldElementType FIELD = SmaliFieldElementType.INSTANCE;
     public static final SmaliMethodElementType METHOD = SmaliMethodElementType.INSTANCE;
+    public static final SmaliClassStatementElementType CLASS_STATEMENT = SmaliClassStatementElementType.INSTANCE;
     public static final SmaliMethodPrototypeElementType METHOD_PROTOTYPE = SmaliMethodPrototypeElementType.INSTANCE;
     public static final SmaliMethodParamListElementType METHOD_PARAM_LIST = SmaliMethodParamListElementType.INSTANCE;
     public static final SmaliMethodParameterElementType METHOD_PARAMETER = SmaliMethodParameterElementType.INSTANCE;
@@ -50,8 +51,6 @@ public class SmaliElementTypes {
 
     public static final SmaliCompositeElementType LITERAL =
             new SmaliCompositeElementType("LITERAL", SmaliLiteral.FACTORY);
-    public static final SmaliCompositeElementType CLASS_STATEMENT =
-            new SmaliCompositeElementType("CLASS_STATEMENT", SmaliClassStatement.FACTORY);
     public static final SmaliCompositeElementType SUPER_STATEMENT =
             new SmaliCompositeElementType("SUPER_STATEMENT", SmaliSuperStatement.FACTORY);
     public static final SmaliCompositeElementType IMPLEMENTS_STATEMENT =
