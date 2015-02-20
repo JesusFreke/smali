@@ -25,8 +25,9 @@ smali.FILE
       PsiWhiteSpace(' ')
       SmaliModifierList(MODIFIER_LIST)
         <empty list>
-      PsiErrorElement:no viable alternative at input '.blah'
-        PsiElement(BAD_CHARACTER)('.blah')
+      PsiElement(MEMBER_NAME)
+        PsiErrorElement:no viable alternative at input '.blah'
+          PsiElement(BAD_CHARACTER)('.blah')
       SmaliMethodPrototype(METHOD_PROTOTYPE)
         SmaliMethodParamList(METHOD_PARAM_LIST)
           <empty list>

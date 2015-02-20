@@ -405,12 +405,16 @@ simple_name
 
 member_name
   @init { Marker marker = mark(); }
+  : member_name_inner
+  { marker.done(SmaliElementTypes.MEMBER_NAME); };
+
+member_name_inner
   : (simple_name
-    | MEMBER_NAME)
-  { finishToken(marker, SmaliElementTypes.MEMBER_NAME); };
+    | MEMBER_NAME);
   catch [RecognitionException re] {
+    Marker errorMarker = mark();
     recover(input, re);
-    reportError(marker, re, false);
+    reportError(errorMarker, re, false);
   }
 
 method_prototype

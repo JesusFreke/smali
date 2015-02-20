@@ -41,8 +41,9 @@ smali.FILE
       PsiElement(METHOD_DIRECTIVE)('.method')
       SmaliModifierList(MODIFIER_LIST)
         <empty list>
-      PsiErrorElement:no viable alternative at input '<EOF>'
-        <empty list>
+      PsiElement(MEMBER_NAME)
+        PsiErrorElement:no viable alternative at input '<EOF>'
+          <empty list>
       SmaliMethodPrototype(METHOD_PROTOTYPE)
         SmaliMethodParamList(METHOD_PARAM_LIST)
           <empty list>

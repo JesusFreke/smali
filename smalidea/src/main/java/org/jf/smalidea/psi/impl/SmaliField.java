@@ -60,7 +60,7 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
         }
 
         SmaliMemberName smaliMemberName = findChildByClass(SmaliMemberName.class);
-        if (smaliMemberName == null) {
+        if (smaliMemberName == null || smaliMemberName.getText().isEmpty()) {
             return null;
         }
         return smaliMemberName.getText();
