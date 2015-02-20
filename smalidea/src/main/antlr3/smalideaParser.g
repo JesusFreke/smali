@@ -96,15 +96,6 @@ import javax.annotation.Nullable;
         endResync();
     }
 
-    public Marker recoverWithMarker(IntStream input, RecognitionException re) {
-        BitSet followSet = computeErrorRecoverySet();
-        beginResync();
-        Marker marker = mark();
-        consumeUntil(input, followSet);
-        endResync();
-        return marker;
-    }
-
     @Override
     protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow)
             throws RecognitionException
@@ -442,7 +433,8 @@ param_list_inner
     | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
     | (param*));
   catch [RecognitionException re] {
-    Marker errorMarker = recoverWithMarker(input, re);
+    Marker errorMarker = mark();
+    recover(input, re);
     reportError(errorMarker, re, false);
   }
 
