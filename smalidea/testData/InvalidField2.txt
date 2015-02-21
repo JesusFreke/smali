@@ -1,0 +1,17 @@
+smali.FILE
+  SmaliClass(CLASS)
+    SmaliExtendsList(EXTENDS_LIST)
+      <empty list>
+    SmaliImplementsList(IMPLEMENTS_LIST)
+      <empty list>
+    SmaliField(FIELD)
+      PsiElement(FIELD_DIRECTIVE)('.field')
+      PsiWhiteSpace(' ')
+      SmaliModifierList(MODIFIER_LIST)
+        PsiElement(ACCESS_SPEC)('public')
+      PsiWhiteSpace(' ')
+      PsiElement(MEMBER_NAME)
+        PsiElement(SIMPLE_NAME)('blah')
+      PsiWhiteSpace(' ')
+      PsiErrorElement:mismatched input '.blah' expecting COLON
+        PsiElement(BAD_CHARACTER)('.blah')

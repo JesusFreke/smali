@@ -298,6 +298,11 @@ field
 
 colon
   : COLON;
+  catch [RecognitionException re] {
+    Marker marker = mark();
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 end_field_directive
   : END_FIELD_DIRECTIVE;
