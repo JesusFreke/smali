@@ -262,27 +262,27 @@ field
   @init {
     Marker marker = mark();
     Marker annotationsMarker = null;
-    boolean classAnnotations = true;
+    boolean gotEndField = false;
   }
   : FIELD_DIRECTIVE
     access_list
     member_name colon nonvoid_type_descriptor
     field_initializer?
-    ( end_field_directive
-    | (ANNOTATION_DIRECTIVE)=> ( {annotationsMarker = mark();}
-                                 ((ANNOTATION_DIRECTIVE)=> annotation)+
-                                 (end_field_directive {classAnnotations = false;})?
-                               )
-    | /*epsilon*/
-    )
+    (
+       (ANNOTATION_DIRECTIVE)=> (
+         { annotationsMarker = mark(); }
+         ((ANNOTATION_DIRECTIVE)=> annotation)+
+       )
+    )?
+    ( end_field_directive { gotEndField = true; } )?
   {
     if (annotationsMarker != null) {
-      if (classAnnotations) {
-        marker.doneBefore(SmaliElementTypes.FIELD, annotationsMarker);
-        annotationsMarker.drop();
-      } else {
+      if (gotEndField) {
         annotationsMarker.drop();
         marker.done(SmaliElementTypes.FIELD);
+      } else {
+        marker.doneBefore(SmaliElementTypes.FIELD, annotationsMarker);
+        annotationsMarker.drop();
       }
     } else {
       marker.done(SmaliElementTypes.FIELD);

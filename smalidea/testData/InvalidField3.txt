@@ -1,0 +1,22 @@
+smali.FILE
+  SmaliClass(CLASS)
+    SmaliExtendsList(EXTENDS_LIST)
+      <empty list>
+    SmaliImplementsList(IMPLEMENTS_LIST)
+      <empty list>
+    SmaliField(FIELD)
+      PsiElement(FIELD_DIRECTIVE)('.field')
+      PsiWhiteSpace(' ')
+      SmaliModifierList(MODIFIER_LIST)
+        PsiElement(ACCESS_SPEC)('public')
+      PsiWhiteSpace(' ')
+      PsiElement(MEMBER_NAME)
+        PsiElement(ACCESS_SPEC)('public')
+      PsiElement(COLON)(':')
+      PsiElement(PRIMITIVE_TYPE)
+        PsiElement(PRIMITIVE_TYPE)('I')
+    PsiWhiteSpace('\n')
+    PsiErrorElement:Unexpected tokens
+      PsiElement(BAD_CHARACTER)('.blah')
+      PsiWhiteSpace('\n')
+      PsiElement(END_FIELD_DIRECTIVE)('.end field')

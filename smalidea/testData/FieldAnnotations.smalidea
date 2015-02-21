@@ -1,0 +1,15 @@
+.field public blah:I
+
+.field public blah2:I
+    .annotation runtime Lblah;
+    .end annotation
+    .annotation runtime Lblah;
+    .end annotation
+.end field
+
+.field public blah2:I
+
+.annotation runtime Lblah;
+.end annotation
+.annotation runtime Lblah;
+.end annotation
