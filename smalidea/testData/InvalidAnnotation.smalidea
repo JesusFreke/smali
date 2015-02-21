@@ -7,3 +7,7 @@
 .annotation runtime Lblah;
  blah .blah .blah
 .end annotation
+
+.annotation runtime Lblah;
+ blah = .blah .blah
+.end annotation

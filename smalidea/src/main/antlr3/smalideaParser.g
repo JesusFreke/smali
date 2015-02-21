@@ -690,6 +690,11 @@ literal
   | subannotation
   | type_field_method_literal
   | enum_literal;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 integral_literal
   : long_literal
@@ -697,6 +702,11 @@ integral_literal
   | short_literal
   | char_literal
   | byte_literal;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 fixed_32bit_literal
   : long_literal
@@ -706,6 +716,11 @@ fixed_32bit_literal
   | float_literal
   | char_literal
   | bool_literal;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 fixed_literal
   : integer_literal
@@ -716,6 +731,11 @@ fixed_literal
   | double_literal
   | char_literal
   | bool_literal;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 annotation_element
   @init {
