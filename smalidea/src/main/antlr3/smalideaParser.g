@@ -723,11 +723,19 @@ annotation_element
     Marker nameMarker = null;
   }
   : { nameMarker = mark(); } simple_name { nameMarker.done(SmaliElementTypes.ANNOTATION_ELEMENT_NAME); }
-    EQUAL literal
+    equal literal
   { marker.done(SmaliElementTypes.ANNOTATION_ELEMENT); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
+  }
+
+equal
+  : EQUAL;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
   }
 
 annotation
