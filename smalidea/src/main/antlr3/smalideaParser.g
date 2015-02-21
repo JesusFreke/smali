@@ -735,15 +735,27 @@ annotation
     Marker marker = mark();
     Marker paramListMarker = null;
   }
-  : ANNOTATION_DIRECTIVE ANNOTATION_VISIBILITY class_descriptor
+  : ANNOTATION_DIRECTIVE annotation_visibility class_descriptor
     { paramListMarker = mark(); }
     annotation_element*
     { paramListMarker.done(SmaliElementTypes.ANNOTATION_PARAMETER_LIST); }
-    END_ANNOTATION_DIRECTIVE
+    end_annotation_directive
   { marker.done(SmaliElementTypes.ANNOTATION); };
+
+annotation_visibility
+  : ANNOTATION_VISIBILITY;
   catch [RecognitionException re] {
+    Marker errorMarker = mark();
     recover(input, re);
-    reportError(marker, re, false);
+    reportError(errorMarker, re, false);
+  }
+
+end_annotation_directive
+  : END_ANNOTATION_DIRECTIVE;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
   }
 
 // TODO: check missing initial token

@@ -52,7 +52,7 @@ public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStu
 
     @NotNull @Override public SmaliAnnotationParameterList getParameterList() {
         SmaliAnnotationParameterList paramList = findChildByClass(SmaliAnnotationParameterList.class);
-        // TODO: test that this is true even if there are syntax errors
+        // The structure of the parser should ensure the param list is always present, even if there are syntax errors
         assert paramList != null;
         return paramList;
     }
@@ -71,7 +71,6 @@ public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStu
     }
 
     @Nullable @Override public PsiJavaCodeReferenceElement getNameReferenceElement() {
-        // TODO: have SmaliClassTypeElement implement PsiJavaCodeReferenceElement?
         // TODO: we need to have a PsiAnnotationMethod implementation for methods in an annotation class (see PsiUtil.isAnnotationMethod and PsiImplUtil.findAttributeValue)
         // TODO: alternately, we should implement findAttributeValue and findAttributeValue ourselves, instead of relying on PsiImplUtil (don't forget about finding default values..)
         SmaliAnnotationStub stub = getStub();

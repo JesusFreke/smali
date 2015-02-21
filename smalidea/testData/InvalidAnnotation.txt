@@ -1,0 +1,30 @@
+smali.FILE
+  SmaliClass(CLASS)
+    SmaliExtendsList(EXTENDS_LIST)
+      <empty list>
+    SmaliImplementsList(IMPLEMENTS_LIST)
+      <empty list>
+    SmaliAnnotation(ANNOTATION)
+      PsiElement(ANNOTATION_DIRECTIVE)('.annotation')
+      PsiWhiteSpace(' ')
+      PsiErrorElement:mismatched input '.blah' expecting ANNOTATION_VISIBILITY
+        PsiElement(BAD_CHARACTER)('.blah')
+      PsiWhiteSpace(' ')
+      PsiElement(CLASS_TYPE)
+        PsiElement(CLASS_DESCRIPTOR)('Lblah;')
+      PsiWhiteSpace('\n')
+      PsiElement(ANNOTATION_PARAMETER_LIST)
+        <empty list>
+      PsiElement(END_ANNOTATION_DIRECTIVE)('.end annotation')
+    PsiWhiteSpace('\n\n')
+    SmaliAnnotation(ANNOTATION)
+      PsiElement(ANNOTATION_DIRECTIVE)('.annotation')
+      PsiWhiteSpace(' ')
+      PsiElement(ANNOTATION_VISIBILITY)('runtime')
+      PsiWhiteSpace(' ')
+      PsiErrorElement:mismatched input '.blah' expecting CLASS_DESCRIPTOR
+        PsiElement(BAD_CHARACTER)('.blah')
+      PsiWhiteSpace('\n')
+      PsiElement(ANNOTATION_PARAMETER_LIST)
+        <empty list>
+      PsiElement(END_ANNOTATION_DIRECTIVE)('.end annotation')

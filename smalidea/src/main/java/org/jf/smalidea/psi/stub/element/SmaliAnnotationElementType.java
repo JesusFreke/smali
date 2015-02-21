@@ -72,7 +72,7 @@ public class SmaliAnnotationElementType extends SmaliStubElementType<SmaliAnnota
 
     @NotNull @Override
     public SmaliAnnotationStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new SmaliAnnotationStub(parentStub, dataStream.readName().getString());
+        return new SmaliAnnotationStub(parentStub, deserializeNullableString(dataStream));
     }
 
     @Override public void indexStub(@NotNull SmaliAnnotationStub stub, @NotNull IndexSink sink) {

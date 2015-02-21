@@ -1,0 +1,6 @@
+.annotation .blah Lblah;
+.end annotation
+
+.annotation runtime .blah
+.end annotation
+

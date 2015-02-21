@@ -43,6 +43,7 @@ public class ParserTest extends LightCodeInsightParsingTestCase {
 
     public void testEmpty() throws Exception { doTest(true); }
     public void testFieldAnnotations() throws Exception { doTest(true); }
+    public void testInvalidAnnotation() throws Exception { doTest(true); }
     public void testInvalidClassDirective() throws Exception { doTest(true); }
     public void testInvalidClassDirective2() throws Exception { doTest(true); }
     public void testInvalidClassDirective3() throws Exception { doTest(true); }
