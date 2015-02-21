@@ -668,11 +668,19 @@ type_field_method_literal
 // TODO: check missing initial token
 subannotation
   @init { Marker marker = mark(); }
-  : SUBANNOTATION_DIRECTIVE class_descriptor annotation_element* END_SUBANNOTATION_DIRECTIVE
+  : SUBANNOTATION_DIRECTIVE class_descriptor annotation_element* end_subannotation_directive
   { marker.done(SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);
+  }
+
+end_subannotation_directive
+  : END_SUBANNOTATION_DIRECTIVE;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
   }
 
 literal

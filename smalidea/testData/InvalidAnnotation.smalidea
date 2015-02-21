@@ -11,3 +11,9 @@
 .annotation runtime Lblah;
  blah = .blah .blah
 .end annotation
+
+.annotation runtime Lblah;
+ blah = .subannotation Lblah2;
+           blah = "blah"
+        .blah
+.end annotation
