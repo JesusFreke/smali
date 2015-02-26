@@ -85,7 +85,7 @@ public class ClassPath {
      * @param api API level
      */
     public ClassPath(@Nonnull Iterable<DexFile> classPath, int api, boolean isOat) {
-        this(Lists.newArrayList(classPath), api, api == 17);
+        this(Lists.newArrayList(classPath), api, isOat, api == 17);
     }
 
     /**
@@ -185,6 +185,8 @@ public class ClassPath {
     @Nonnull
     public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile,
                                           int api, boolean checkPackagePrivateAccess) {
+
+        List<String> skipClassPaths = new ArrayList<String>();
         ArrayList<DexFile> dexFiles = Lists.newArrayList();
 
         // Load boot.oat first
