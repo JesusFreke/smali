@@ -124,7 +124,9 @@ public class SmaliMethodReference extends SmaliCompositeElement implements PsiRe
     @Nullable
     public SmaliTypeElement getReturnType() {
         SmaliTypeElement[] types = findChildrenByClass(SmaliTypeElement.class);
-        assert types.length == 2;
+        if (types.length < 2) {
+            return null;
+        }
         return types[1];
     }
 
