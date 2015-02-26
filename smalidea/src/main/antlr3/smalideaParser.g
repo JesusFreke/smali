@@ -540,6 +540,11 @@ nonvoid_type_descriptor
 reference_type_descriptor
   : class_descriptor
   | array_descriptor;
+  catch [RecognitionException re] {
+    Marker marker = mark();
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 null_literal
   @init { Marker marker = mark(); }

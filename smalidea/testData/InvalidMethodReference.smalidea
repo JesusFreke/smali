@@ -1,0 +1,4 @@
+.method blah()V
+.registers 1
+invoke-virtual {v0}, .blah->
+.end method
