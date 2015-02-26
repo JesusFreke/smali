@@ -30,10 +30,9 @@ smali.FILE
       SmaliMethodPrototype(METHOD_PROTOTYPE)
         PsiElement(OPEN_PAREN)('(')
         SmaliMethodParamList(METHOD_PARAM_LIST)
-          PsiErrorElement:no viable alternative at input 'f'
-            PsiElement(SIMPLE_NAME)('f')
-        PsiElement(CLOSE_PAREN)(')')
-        PsiErrorElement:no viable alternative at input '.end method'
           <empty list>
+        PsiErrorElement:extraneous input 'f' expecting CLOSE_PAREN
+          PsiElement(SIMPLE_NAME)('f')
+        PsiElement(CLOSE_PAREN)(')')
       PsiWhiteSpace('\n')
       PsiElement(END_METHOD_DIRECTIVE)('.end method')

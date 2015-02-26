@@ -438,14 +438,24 @@ method_prototype
 
 open_paren
   : OPEN_PAREN;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 close_paren
   : CLOSE_PAREN;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 param_list_inner
   : ((PARAM_LIST_START param* PARAM_LIST_END)
     | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
-    | (param*));
+    | (param+));
   catch [RecognitionException re] {
     Marker errorMarker = mark();
     recover(input, re);
@@ -454,7 +464,7 @@ param_list_inner
 
 param_list
   @init { Marker marker = mark(); }
-  : param_list_inner
+  : param_list_inner?
     { marker.done(SmaliElementTypes.METHOD_PARAM_LIST); };
 
 param
@@ -470,7 +480,7 @@ param
   }
 
 method_prototype_reference
-  : OPEN_PAREN param_list_reference CLOSE_PAREN type_descriptor;
+  : open_paren param_list_reference close_paren type_descriptor;
 
 param_list_reference
   @init {
