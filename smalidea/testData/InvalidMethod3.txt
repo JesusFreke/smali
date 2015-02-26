@@ -1,0 +1,63 @@
+smali.FILE
+  SmaliClass(CLASS)
+    SmaliExtendsList(EXTENDS_LIST)
+      <empty list>
+    SmaliImplementsList(IMPLEMENTS_LIST)
+      <empty list>
+    SmaliMethod(METHOD)
+      SmaliThrowsList(THROWS_LIST)
+        <empty list>
+      PsiElement(METHOD_DIRECTIVE)('.method')
+      PsiWhiteSpace(' ')
+      SmaliModifierList(MODIFIER_LIST)
+        <empty list>
+      PsiElement(MEMBER_NAME)
+        PsiElement(SIMPLE_NAME)('blah')
+      SmaliMethodPrototype(METHOD_PROTOTYPE)
+        PsiElement(OPEN_PAREN)('(')
+        SmaliMethodParamList(METHOD_PARAM_LIST)
+          <empty list>
+        PsiElement(CLOSE_PAREN)(')')
+        PsiElement(VOID_TYPE)
+          PsiElement(VOID_TYPE)('V')
+      PsiWhiteSpace('\n')
+      PsiErrorElement:mismatched input '.end' expecting END_METHOD_DIRECTIVE
+        PsiElement(BAD_CHARACTER)('.end')
+    PsiWhiteSpace('\n\n\n\n')
+    SmaliMethod(METHOD)
+      SmaliThrowsList(THROWS_LIST)
+        <empty list>
+      PsiElement(METHOD_DIRECTIVE)('.method')
+      PsiWhiteSpace(' ')
+      SmaliModifierList(MODIFIER_LIST)
+        <empty list>
+      PsiElement(MEMBER_NAME)
+        PsiElement(INSTRUCTION_FORMAT11x)('return-object')
+      SmaliMethodPrototype(METHOD_PROTOTYPE)
+        PsiElement(OPEN_PAREN)('(')
+        SmaliMethodParamList(METHOD_PARAM_LIST)
+          <empty list>
+        PsiElement(CLOSE_PAREN)(')')
+        PsiElement(VOID_TYPE)
+          PsiElement(VOID_TYPE)('V')
+      PsiWhiteSpace('\n')
+      PsiElement(REGISTERS_STATEMENT)
+        PsiElement(REGISTERS_DIRECTIVE)('.registers')
+        PsiWhiteSpace(' ')
+        PsiElement(LITERAL)
+          PsiElement(POSITIVE_INTEGER_LITERAL)('0')
+      PsiErrorElement:missing END_METHOD_DIRECTIVE at '.method'
+        <empty list>
+    PsiWhiteSpace('\n\n\n\n')
+    SmaliMethod(METHOD)
+      SmaliThrowsList(THROWS_LIST)
+        <empty list>
+      PsiElement(METHOD_DIRECTIVE)('.method')
+      SmaliModifierList(MODIFIER_LIST)
+        <empty list>
+      PsiElement(MEMBER_NAME)
+        PsiErrorElement:no viable alternative at input '<EOF>'
+          <empty list>
+      SmaliMethodPrototype(METHOD_PROTOTYPE)
+        SmaliMethodParamList(METHOD_PARAM_LIST)
+          <empty list>

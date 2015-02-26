@@ -56,4 +56,5 @@ public class ParserTest extends LightCodeInsightParsingTestCase {
     public void testSuperClassInvalidSyntax2() throws Exception { doTest(true); }
     public void testInvalidMethod() throws Exception { doTest(true); }
     public void testInvalidMethod2() throws Exception { doTest(true); }
+    public void testInvalidMethod3() throws Exception { doTest(true); }
 }

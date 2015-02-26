@@ -1,0 +1,11 @@
+.method blah()V
+.end
+
+
+
+.method return-object()V
+.registers 0
+
+
+
+.method

@@ -331,6 +331,11 @@ method
 
 end_method_directive
   : END_METHOD_DIRECTIVE;
+catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 statements_and_directives
   : (
