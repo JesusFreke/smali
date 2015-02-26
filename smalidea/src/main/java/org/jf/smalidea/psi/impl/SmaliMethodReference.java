@@ -31,6 +31,7 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -108,7 +109,7 @@ public class SmaliMethodReference extends SmaliCompositeElement implements PsiRe
     public List<PsiType> getParameterTypes() {
         SmaliMethodReferenceParamList paramList = findChildByClass(SmaliMethodReferenceParamList.class);
         if (paramList == null) {
-            return null;
+            return Lists.newArrayList();
         }
 
         SmaliTypeElement[] parameterElements = paramList.getParameterTypes();
@@ -144,7 +145,12 @@ public class SmaliMethodReference extends SmaliCompositeElement implements PsiRe
             pattern.addParameter("", type);
         }
 
-        pattern.setMethodReturnType(getReturnType().getType());
+        SmaliTypeElement returnTypeElement = getReturnType();
+        if (returnTypeElement == null) {
+            return null;
+        }
+
+        pattern.setMethodReturnType(returnTypeElement.getType());
 
         // TODO: what about static constructor?
         pattern.setConstructor(memberName.getText().equals("<init>"));
