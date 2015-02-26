@@ -37,17 +37,23 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 
 public class Opcodes {
-    private final Opcode[] opcodesByValue;
+    private final HashMap<Integer, Opcode> opcodesByValueUint;
+    private final HashMap<Short, Opcode> opcodesByValue;
     private final HashMap<String, Opcode> opcodesByName;
 
     public Opcodes(int api) {
-        opcodesByValue = new Opcode[256];
+        opcodesByValueUint = new HashMap<Integer, Opcode>();
+        opcodesByValue = new HashMap<Short, Opcode>();
         opcodesByName = Maps.newHashMap();
 
         for (Opcode opcode: Opcode.values()) {
             if (!opcode.format.isPayloadFormat) {
                 if (api <= opcode.getMaxApi() && api >= opcode.getMinApi()) {
-                    opcodesByValue[opcode.value] = opcode;
+                    if (opcode.isShort()) {
+                        opcodesByValue.put((short)opcode.value, opcode);
+                    } else {
+                        opcodesByValueUint.put(opcode.value, opcode);
+                    }
                     opcodesByName.put(opcode.name.toLowerCase(), opcode);
                 }
             }
@@ -60,6 +66,20 @@ public class Opcodes {
     }
 
     @Nullable
+    public Opcode getOpcodeByValue(short opcodeValue) {
+        switch (opcodeValue) {
+            case 0x100:
+                return Opcode.PACKED_SWITCH_PAYLOAD;
+            case 0x200:
+                return Opcode.SPARSE_SWITCH_PAYLOAD;
+            case 0x300:
+                return Opcode.ARRAY_PAYLOAD;
+            default:
+                return opcodesByValue.get(opcodeValue);
+        }
+    }
+
+    @Nullable
     public Opcode getOpcodeByValue(int opcodeValue) {
         switch (opcodeValue) {
             case 0x100:
@@ -69,10 +89,7 @@ public class Opcodes {
             case 0x300:
                 return Opcode.ARRAY_PAYLOAD;
             default:
-                if (opcodeValue >= 0 && opcodeValue < opcodesByValue.length) {
-                    return opcodesByValue[opcodeValue];
-                }
-                return null;
+                return opcodesByValueUint.get(opcodeValue);
         }
     }
 }

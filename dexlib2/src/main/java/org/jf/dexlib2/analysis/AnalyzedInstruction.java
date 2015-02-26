@@ -110,13 +110,13 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
     }
 
     protected void setDeodexedInstruction(Instruction instruction) {
-        assert originalInstruction.getOpcode().odexOnly();
-        this.instruction = instruction;
+        if(originalInstruction.getOpcode().odexOnly() || originalInstruction.getOpcode().oatOnly())
+            this.instruction = instruction;
     }
 
     protected void restoreOdexedInstruction() {
-        assert originalInstruction.getOpcode().odexOnly();
-        instruction = originalInstruction;
+        if(originalInstruction.getOpcode().odexOnly() || originalInstruction.getOpcode().oatOnly())
+            instruction = originalInstruction;
     }
 
     public int getSuccessorCount() {

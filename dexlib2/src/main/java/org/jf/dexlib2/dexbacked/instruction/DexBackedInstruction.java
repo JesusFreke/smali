@@ -57,16 +57,29 @@ public abstract class DexBackedInstruction implements Instruction {
     @Override public int getCodeUnits() { return opcode.format.size / 2; }
 
     @Nonnull
-    public static Instruction readFrom(@Nonnull DexReader reader) {
-        int opcodeValue = reader.peekUbyte();
+    public static Instruction peekFrom(@Nonnull DexReader reader) {
+        Opcode opcode = null;
+        try {
+            opcode = reader.dexBuf.getOpcodes().getOpcodeByValue(reader.peekSmallUint());
+        } catch(ExceptionWithContext ex) {
+            opcode = null;
+        }
+        if (opcode == null) {
+            short opcodeValue = (short)reader.peekUbyte();
+            if (opcodeValue == 0) {
+                opcodeValue = (short)reader.peekUshort();
+            }
 
-        if (opcodeValue == 0) {
-            opcodeValue = reader.peekUshort();
+            opcode = reader.dexBuf.getOpcodes().getOpcodeByValue(opcodeValue);
         }
 
-        Opcode opcode = reader.dexBuf.getOpcodes().getOpcodeByValue(opcodeValue);
-
         Instruction instruction = buildInstruction(reader.dexBuf, opcode, reader.getOffset());
+        return instruction;
+    }
+
+    @Nonnull
+    public static Instruction readFrom(@Nonnull DexReader reader) {
+        Instruction instruction = peekFrom(reader);
         reader.moveRelative(instruction.getCodeUnits()*2);
         return instruction;
     }
@@ -139,6 +152,8 @@ public abstract class DexBackedInstruction implements Instruction {
                 return new DexBackedInstruction3rms(dexFile, opcode, instructionStartOffset);
             case Format51l:
                 return new DexBackedInstruction51l(dexFile, opcode, instructionStartOffset);
+            case FormatTwoOp:
+                return new DexBackedInstructionTwoOp(dexFile, opcode, instructionStartOffset);
             case PackedSwitchPayload:
                 return new DexBackedPackedSwitchPayload(dexFile, instructionStartOffset);
             case SparseSwitchPayload:

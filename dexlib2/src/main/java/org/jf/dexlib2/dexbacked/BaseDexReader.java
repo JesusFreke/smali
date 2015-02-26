@@ -217,6 +217,10 @@ public class BaseDexReader<T extends BaseDexBuffer> {
         return result;
     }
 
+    public int peekSmallUint() {
+        return dexBuf.readSmallUint(offset);
+    }
+
     public int readOptionalUint() {
         int o = offset;
         int result = dexBuf.readOptionalUint(o);

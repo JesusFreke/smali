@@ -34,6 +34,7 @@ package org.jf.dexlib2;
 import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
+import org.jf.dexlib2.dexbacked.DexBackedOatFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.writer.pool.DexPool;
 import org.jf.util.ExceptionWithContext;
@@ -46,21 +47,21 @@ import java.util.zip.ZipFile;
 public final class DexFileFactory {
     @Nonnull
     public static DexBackedDexFile loadDexFile(String path, int api) throws IOException {
-        return loadDexFile(new File(path), "classes.dex", new Opcodes(api));
+        return loadDexFile(new File(path), "classes.dex", api, new Opcodes(api));
     }
 
     @Nonnull
     public static DexBackedDexFile loadDexFile(File dexFile, int api) throws IOException {
-        return loadDexFile(dexFile, "classes.dex", new Opcodes(api));
+        return loadDexFile(dexFile, "classes.dex", api, new Opcodes(api));
     }
 
     @Nonnull
     public static DexBackedDexFile loadDexFile(File dexFile, String dexEntry, int api) throws IOException {
-        return loadDexFile(dexFile, dexEntry, new Opcodes(api));
+        return loadDexFile(dexFile, dexEntry, api, new Opcodes(api));
     }
 
     @Nonnull
-    public static DexBackedDexFile loadDexFile(File dexFile, String dexEntry, @Nonnull Opcodes opcodes) throws IOException {
+    public static DexBackedDexFile loadDexFile(File dexFile, String dexEntry, int api, @Nonnull Opcodes opcodes) throws IOException {
         ZipFile zipFile = null;
         boolean isZipFile = false;
         try {
@@ -113,7 +114,16 @@ public final class DexFileFactory {
             // just eat it
         }
 
-        throw new ExceptionWithContext("%s is not an apk, dex file or odex file.", dexFile.getPath());
+        try {
+            if(api < 20)
+                opcodes = new Opcodes(20);
+
+            return DexBackedOatFile.fromInputStream(opcodes, inputStream);
+        } catch (DexBackedOatFile.NotAnOatFile ex) {
+            // just eat it
+        }
+
+        throw new ExceptionWithContext("%s is not an apk, dex file, odex file or oat file.", dexFile.getPath());
     }
 
     public static void writeDexFile(String path, DexFile dexFile) throws IOException {

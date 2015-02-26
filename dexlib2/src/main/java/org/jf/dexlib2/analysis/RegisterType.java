@@ -282,6 +282,11 @@ public class RegisterType {
             if (type != null) {
                 if (other.type != null) {
                     mergedType = type.getCommonSuperclass(other.type);
+
+                    // Check if other type implements type, so we can use other.type.
+                    if (mergedType.getType().equals(type.getType())) {
+                        mergedType = other.type;
+                    }
                 } else {
                     mergedType = type;
                 }

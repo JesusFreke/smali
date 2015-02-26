@@ -34,6 +34,7 @@ import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.baksmali.baksmaliOptions;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.InvalidItemIndex;
@@ -341,6 +342,33 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeInvokeRangeRegisters(writer);
                 writer.write(", ");
                 writeVtableIndex(writer);
+                break;
+            case FormatTwoOp:
+                int value = instruction.getOpcode().value;
+                short op1 = (short)value;
+                short op2 = (short)(value >> 16);
+   
+                Opcode opcode1 = null;
+                Opcode opcode2 = null;
+                for (Opcode op: Opcode.values()) {
+                    if (op.value == op1 && op.isShort()) {
+                        opcode1 = op;
+                    }
+                    if (op.value == op2 && op.isShort()) {
+                        opcode2 = op;
+                    }
+
+                    if (opcode1 != null && opcode2 != null) {
+                        break;
+                    }
+                }
+                if (opcode1  != null) {
+                    writer.write(opcode1.name);
+                    writer.write("\n\n");
+                }
+                if (opcode2  != null) {
+                    writer.write(opcode2.name);
+                }
                 break;
             default:
                 assert false;

@@ -35,6 +35,7 @@ import com.google.common.collect.Ordering;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
+import org.jf.dexlib2.dexbacked.DexBackedOatFile;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
@@ -56,7 +57,15 @@ import javax.xml.parsers.ParserConfigurationException;
 public class baksmali {
 
     public static boolean disassembleDexFile(DexFile dexFile, final baksmaliOptions options) {
-        if (options.registerInfo != 0 || options.deodex) {
+        return disassembleDexFile(dexFile, options, true);
+    }
+
+    public static boolean disassembleDexFile(DexFile dexFile, final baksmaliOptions options, boolean setClassPath) {
+        return disassembleDexFile(dexFile, options, setClassPath, false);
+    }
+
+    public static boolean disassembleDexFile(DexFile dexFile, final baksmaliOptions options, boolean setClassPath, boolean separateFolders) {
+        if (setClassPath && (options.registerInfo != 0 || options.deodex)) {
             try {
                 Iterable<String> extraClassPathEntries;
                 if (options.extraClassPathEntries != null) {
@@ -121,7 +130,15 @@ public class baksmali {
             }
         }
 
-        File outputDirectoryFile = new File(options.outputDirectory);
+        File outputDirectoryFile;
+
+        if (separateFolders && dexFile instanceof DexBackedOatFile) {
+            DexBackedOatFile oatDexFile = (DexBackedOatFile)dexFile;
+            outputDirectoryFile = new File(options.outputDirectory, oatDexFile.getSimpleName());
+        } else {
+            outputDirectoryFile = new File(options.outputDirectory);
+        }
+
         if (!outputDirectoryFile.exists()) {
             if (!outputDirectoryFile.mkdirs()) {
                 System.err.println("Can't create the output directory " + options.outputDirectory);

@@ -89,13 +89,7 @@ public class SparseArray<E> {
      */
     public void delete(int key) {
         int i = binarySearch(mKeys, 0, mSize, key);
-
-        if (i >= 0) {
-            if (mValues[i] != DELETED) {
-                mValues[i] = DELETED;
-                mGarbage = true;
-            }
-        }
+        removeAt(i);
     }
 
     /**
@@ -103,6 +97,15 @@ public class SparseArray<E> {
      */
     public void remove(int key) {
         delete(key);
+    }
+
+    public void removeAt(int index) {
+        if (index >= 0 && index < mValues.length) {
+            if (mValues[index] != DELETED) {
+                mValues[index] = DELETED;
+                mGarbage = true;
+            }
+        }
     }
 
     private void gc() {
