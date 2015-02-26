@@ -650,7 +650,7 @@ array_literal
 
 enum_literal
   @init { Marker marker = mark(); }
-  : ENUM_DIRECTIVE reference_type_descriptor ARROW simple_name COLON reference_type_descriptor
+  : ENUM_DIRECTIVE reference_type_descriptor arrow simple_name COLON reference_type_descriptor
   { marker.done(SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -661,7 +661,7 @@ enum_literal
 type_field_method_literal
   @init { Marker marker = mark(); }
   : ( reference_type_descriptor
-      ( ARROW
+      ( arrow
         ( member_name COLON nonvoid_type_descriptor
         | member_name method_prototype_reference
         )
@@ -804,10 +804,18 @@ end_annotation_directive
     reportError(errorMarker, re, false);
   }
 
+arrow
+  : ARROW;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
+
 // TODO: check missing initial token
 fully_qualified_method
   @init { Marker marker = mark(); }
-  : reference_type_descriptor ARROW member_name method_prototype_reference
+  : reference_type_descriptor arrow member_name method_prototype_reference
   { marker.done(SmaliElementTypes.METHOD_REFERENCE); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -817,7 +825,7 @@ fully_qualified_method
 // TODO: check missing initial token
 fully_qualified_field
   @init { Marker marker = mark(); }
-  : reference_type_descriptor ARROW member_name COLON nonvoid_type_descriptor
+  : reference_type_descriptor arrow member_name COLON nonvoid_type_descriptor
   { marker.done(SmaliElementTypes.FIELD_REFERENCE); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -1243,7 +1251,7 @@ insn_sparse_switch_directive
 
 sparse_switch_element
   @init { Marker marker = mark(); }
-  : fixed_32bit_literal ARROW label_ref
+  : fixed_32bit_literal arrow label_ref
   { marker.done(SmaliElementTypes.SPARSE_SWITCH_ELEMENT); };
   catch [RecognitionException re] {
     recover(input, re);
