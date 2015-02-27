@@ -868,11 +868,10 @@ label_ref
   }
 
 register_list
-  : register (COMMA register)*
-  | /* epsilon */;
+  : OPEN_BRACE (register (COMMA register)*)? CLOSE_BRACE;
 
 register_range
-  : (register (DOTDOT register)?)?;
+  : OPEN_BRACE (register (DOTDOT register)?)? CLOSE_BRACE;
 
 verification_error_reference
   : class_descriptor | fully_qualified_field | fully_qualified_method;
@@ -1188,43 +1187,43 @@ insn_format32x
 
 insn_format35c_method
   : //e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-    INSTRUCTION_FORMAT35c_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method;
+    INSTRUCTION_FORMAT35c_METHOD register_list COMMA fully_qualified_method;
 
 insn_format35c_type
   : //e.g. filled-new-array {v0,v1}, I
-    INSTRUCTION_FORMAT35c_TYPE OPEN_BRACE register_list CLOSE_BRACE COMMA nonvoid_type_descriptor;
+    INSTRUCTION_FORMAT35c_TYPE register_list COMMA nonvoid_type_descriptor;
 
 insn_format35c_method_odex
   : //e.g. invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-    INSTRUCTION_FORMAT35c_METHOD_ODEX OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method;
+    INSTRUCTION_FORMAT35c_METHOD_ODEX register_list COMMA fully_qualified_method;
 
 insn_format35mi_method
   : //e.g. execute-inline {v0, v1}, inline@0x4
-    INSTRUCTION_FORMAT35mi_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA INLINE_INDEX;
+    INSTRUCTION_FORMAT35mi_METHOD register_list COMMA INLINE_INDEX;
 
 insn_format35ms_method
   : //e.g. invoke-virtual-quick {v0, v1}, vtable@0x4
-    INSTRUCTION_FORMAT35ms_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA VTABLE_INDEX;
+    INSTRUCTION_FORMAT35ms_METHOD register_list COMMA VTABLE_INDEX;
 
 insn_format3rc_method
   : //e.g. invoke-virtual/range {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    INSTRUCTION_FORMAT3rc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA fully_qualified_method;
+    INSTRUCTION_FORMAT3rc_METHOD register_range COMMA fully_qualified_method;
 
 insn_format3rc_method_odex
   : //e.g. invoke-object-init/range {p0}, Ljava/lang/Object;-><init>()V
-    INSTRUCTION_FORMAT3rc_METHOD_ODEX OPEN_BRACE register_list CLOSE_BRACE COMMA fully_qualified_method;
+    INSTRUCTION_FORMAT3rc_METHOD_ODEX register_list COMMA fully_qualified_method;
 
 insn_format3rc_type
   : //e.g. filled-new-array/range {v0..v6}, I
-    INSTRUCTION_FORMAT3rc_TYPE OPEN_BRACE register_range CLOSE_BRACE COMMA nonvoid_type_descriptor;
+    INSTRUCTION_FORMAT3rc_TYPE register_range COMMA nonvoid_type_descriptor;
 
 insn_format3rmi_method
   : //e.g. execute-inline/range {v0 .. v10}, inline@0x14
-    INSTRUCTION_FORMAT3rmi_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA INLINE_INDEX;
+    INSTRUCTION_FORMAT3rmi_METHOD register_range COMMA INLINE_INDEX;
 
 insn_format3rms_method
   : //e.g. invoke-virtual-quick/range {v0 .. v10}, vtable@0x14
-    INSTRUCTION_FORMAT3rms_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA VTABLE_INDEX;
+    INSTRUCTION_FORMAT3rms_METHOD register_range COMMA VTABLE_INDEX;
 
 insn_format51l
   : //e.g. const-wide v0, 5000000000L
