@@ -17,3 +17,8 @@ invoke-virtual {v0}, Lblah;->blah .blah )V
 .registers 1
 invoke-virtual {v0}, Lblah;->blah(I .blah V
 .end method
+
+.method blah5()V
+.registers 1
+invoke-virtual {v0}, Lblah;->blah())V
+.end method

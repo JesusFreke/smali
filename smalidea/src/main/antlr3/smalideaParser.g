@@ -536,6 +536,11 @@ type_descriptor
   | primitive_type
   | class_descriptor
   | array_descriptor;
+  catch [RecognitionException re] {
+    Marker marker = mark();
+    recover(input, re);
+    reportError(marker, re, false);
+  }
 
 nonvoid_type_descriptor
   : primitive_type

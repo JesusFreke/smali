@@ -51,3 +51,23 @@ smali.FILE
           PsiElement(VOID_TYPE)('V')
       PsiWhiteSpace('\n')
       PsiElement(END_METHOD_DIRECTIVE)('.end method')
+    PsiWhiteSpace('\n\n')
+    SmaliMethod(METHOD)
+      SmaliThrowsList(THROWS_LIST)
+        <empty list>
+      PsiElement(METHOD_DIRECTIVE)('.method')
+      PsiWhiteSpace(' ')
+      SmaliModifierList(MODIFIER_LIST)
+        <empty list>
+      PsiElement(MEMBER_NAME)
+        PsiElement(SIMPLE_NAME)('blah')
+      SmaliMethodPrototype(METHOD_PROTOTYPE)
+        PsiElement(OPEN_PAREN)('(')
+        SmaliMethodParamList(METHOD_PARAM_LIST)
+          <empty list>
+        PsiElement(CLOSE_PAREN)(')')
+        PsiErrorElement:no viable alternative at input ')'
+          PsiElement(CLOSE_PAREN)(')')
+          PsiElement(VOID_TYPE)('V')
+      PsiWhiteSpace('\n')
+      PsiElement(END_METHOD_DIRECTIVE)('.end method')
