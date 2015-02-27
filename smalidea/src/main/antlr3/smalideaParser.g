@@ -468,6 +468,14 @@ close_brace
     reportError(errorMarker, re, false);
   }
 
+comma
+  : COMMA;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
+
 param_list_inner
   : ((PARAM_LIST_START param* PARAM_LIST_END)
     | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
@@ -672,7 +680,7 @@ string_literal
 
 array_literal
   @init { Marker marker = mark(); }
-  : open_brace (literal (COMMA literal)* | ) close_brace
+  : open_brace (literal (comma literal)* | ) close_brace
   { marker.done(SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -884,7 +892,7 @@ label_ref
   }
 
 register_list
-  : open_brace (register (COMMA register)*)? close_brace;
+  : open_brace (register (comma register)*)? close_brace;
 
 register_range
   : open_brace (register (DOTDOT register)?)? close_brace;
@@ -921,7 +929,7 @@ parameter_directive
     Marker nameMarker = null;
   }
   : PARAMETER_DIRECTIVE register
-    (COMMA { nameMarker = mark(); } string_literal { nameMarker.done(SmaliElementTypes.LOCAL_NAME); })?
+    (comma { nameMarker = mark(); } string_literal { nameMarker.done(SmaliElementTypes.LOCAL_NAME); })?
     { preAnnotationMarker = mark(); }
     ({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation)*
     ( END_PARAMETER_DIRECTIVE {
@@ -963,8 +971,8 @@ line_directive
 
 local_directive
   @init { Marker marker = mark(); }
-  : LOCAL_DIRECTIVE register (COMMA (null_literal | string_literal) COLON (void_type | nonvoid_type_descriptor)
-                              (COMMA string_literal)? )?
+  : LOCAL_DIRECTIVE register (comma (null_literal | string_literal) COLON (void_type | nonvoid_type_descriptor)
+                              (comma string_literal)? )?
   { marker.done(SmaliElementTypes.LOCAL_DEBUG_STATEMENT); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -1095,7 +1103,7 @@ insn_format10x_odex
 
 insn_format11n
   : //e.g. const/4 v0, 5
-    INSTRUCTION_FORMAT11n register COMMA integral_literal;
+    INSTRUCTION_FORMAT11n register comma integral_literal;
 
 insn_format11x
   : //e.g. move-result-object v1
@@ -1103,11 +1111,11 @@ insn_format11x
 
 insn_format12x
   : //e.g. move v1 v2
-    instruction_format12x register COMMA register;
+    instruction_format12x register comma register;
 
 insn_format20bc
   : //e.g. throw-verification-error generic-error, Lsome/class;
-    INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE COMMA verification_error_reference;
+    INSTRUCTION_FORMAT20bc VERIFICATION_ERROR_TYPE comma verification_error_reference;
 
 insn_format20t
   : //e.g. goto/16 endloop:
@@ -1115,71 +1123,71 @@ insn_format20t
 
 insn_format21c_field
   : //e.g. sget-object v0, java/lang/System/out LJava/io/PrintStream;
-    INSTRUCTION_FORMAT21c_FIELD register COMMA fully_qualified_field;
+    INSTRUCTION_FORMAT21c_FIELD register comma fully_qualified_field;
 
 insn_format21c_field_odex
   : //e.g. sget-object-volatile v0, java/lang/System/out LJava/io/PrintStream;
-    INSTRUCTION_FORMAT21c_FIELD_ODEX register COMMA fully_qualified_field;
+    INSTRUCTION_FORMAT21c_FIELD_ODEX register comma fully_qualified_field;
 
 insn_format21c_string
   : //e.g. const-string v1, "Hello World!"
-    INSTRUCTION_FORMAT21c_STRING register COMMA string_literal;
+    INSTRUCTION_FORMAT21c_STRING register comma string_literal;
 
 insn_format21c_type
   : //e.g. const-class v2, Lorg/jf/HelloWorld2/HelloWorld2;
-    INSTRUCTION_FORMAT21c_TYPE register COMMA nonvoid_type_descriptor;
+    INSTRUCTION_FORMAT21c_TYPE register comma nonvoid_type_descriptor;
 
 insn_format21ih
   : //e.g. const/high16 v1, 1234
-    INSTRUCTION_FORMAT21ih register COMMA fixed_32bit_literal;
+    INSTRUCTION_FORMAT21ih register comma fixed_32bit_literal;
 
 insn_format21lh
   : //e.g. const-wide/high16 v1, 1234
-    INSTRUCTION_FORMAT21lh register COMMA fixed_32bit_literal;
+    INSTRUCTION_FORMAT21lh register comma fixed_32bit_literal;
 
 insn_format21s
   : //e.g. const/16 v1, 1234
-    INSTRUCTION_FORMAT21s register COMMA integral_literal;
+    INSTRUCTION_FORMAT21s register comma integral_literal;
 
 insn_format21t
   : //e.g. if-eqz v0, endloop:
-    INSTRUCTION_FORMAT21t register COMMA label_ref;
+    INSTRUCTION_FORMAT21t register comma label_ref;
 
 insn_format22b
   : //e.g. add-int v0, v1, 123
-    INSTRUCTION_FORMAT22b register COMMA register COMMA integral_literal;
+    INSTRUCTION_FORMAT22b register comma register comma integral_literal;
 
 insn_format22c_field
   : //e.g. iput-object v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-    INSTRUCTION_FORMAT22c_FIELD register COMMA register COMMA fully_qualified_field;
+    INSTRUCTION_FORMAT22c_FIELD register comma register comma fully_qualified_field;
 
 insn_format22c_field_odex
   : //e.g. iput-object-volatile v1, v0 org/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
-    INSTRUCTION_FORMAT22c_FIELD_ODEX register COMMA register COMMA fully_qualified_field;
+    INSTRUCTION_FORMAT22c_FIELD_ODEX register comma register comma fully_qualified_field;
 
 insn_format22c_type
   : //e.g. instance-of v0, v1, Ljava/lang/String;
-    INSTRUCTION_FORMAT22c_TYPE register COMMA register COMMA nonvoid_type_descriptor;
+    INSTRUCTION_FORMAT22c_TYPE register comma register comma nonvoid_type_descriptor;
 
 insn_format22cs_field
   : //e.g. iget-quick v0, v1, field@0xc
-    INSTRUCTION_FORMAT22cs_FIELD register COMMA register COMMA FIELD_OFFSET;
+    INSTRUCTION_FORMAT22cs_FIELD register comma register comma FIELD_OFFSET;
 
 insn_format22s
   : //e.g. add-int/lit16 v0, v1, 12345
-    instruction_format22s register COMMA register COMMA integral_literal;
+    instruction_format22s register comma register comma integral_literal;
 
 insn_format22t
   : //e.g. if-eq v0, v1, endloop:
-    INSTRUCTION_FORMAT22t register COMMA register COMMA label_ref;
+    INSTRUCTION_FORMAT22t register comma register comma label_ref;
 
 insn_format22x
   : //e.g. move/from16 v1, v1234
-    INSTRUCTION_FORMAT22x register COMMA register;
+    INSTRUCTION_FORMAT22x register comma register;
 
 insn_format23x
   : //e.g. add-int v1, v2, v3
-    INSTRUCTION_FORMAT23x register COMMA register COMMA register;
+    INSTRUCTION_FORMAT23x register comma register comma register;
 
 insn_format30t
   : //e.g. goto/32 endloop:
@@ -1187,63 +1195,63 @@ insn_format30t
 
 insn_format31c
   : //e.g. const-string/jumbo v1 "Hello World!"
-    INSTRUCTION_FORMAT31c register COMMA string_literal;
+    INSTRUCTION_FORMAT31c register comma string_literal;
 
 insn_format31i
   : //e.g. const v0, 123456
-    instruction_format31i register COMMA fixed_32bit_literal;
+    instruction_format31i register comma fixed_32bit_literal;
 
 insn_format31t
   : //e.g. fill-array-data v0, ArrayData:
-    INSTRUCTION_FORMAT31t register COMMA label_ref;
+    INSTRUCTION_FORMAT31t register comma label_ref;
 
 insn_format32x
   : //e.g. move/16 v4567, v1234
-    INSTRUCTION_FORMAT32x register COMMA register;
+    INSTRUCTION_FORMAT32x register comma register;
 
 insn_format35c_method
   : //e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-    INSTRUCTION_FORMAT35c_METHOD register_list COMMA fully_qualified_method;
+    INSTRUCTION_FORMAT35c_METHOD register_list comma fully_qualified_method;
 
 insn_format35c_type
   : //e.g. filled-new-array {v0,v1}, I
-    INSTRUCTION_FORMAT35c_TYPE register_list COMMA nonvoid_type_descriptor;
+    INSTRUCTION_FORMAT35c_TYPE register_list comma nonvoid_type_descriptor;
 
 insn_format35c_method_odex
   : //e.g. invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-    INSTRUCTION_FORMAT35c_METHOD_ODEX register_list COMMA fully_qualified_method;
+    INSTRUCTION_FORMAT35c_METHOD_ODEX register_list comma fully_qualified_method;
 
 insn_format35mi_method
   : //e.g. execute-inline {v0, v1}, inline@0x4
-    INSTRUCTION_FORMAT35mi_METHOD register_list COMMA INLINE_INDEX;
+    INSTRUCTION_FORMAT35mi_METHOD register_list comma INLINE_INDEX;
 
 insn_format35ms_method
   : //e.g. invoke-virtual-quick {v0, v1}, vtable@0x4
-    INSTRUCTION_FORMAT35ms_METHOD register_list COMMA VTABLE_INDEX;
+    INSTRUCTION_FORMAT35ms_METHOD register_list comma VTABLE_INDEX;
 
 insn_format3rc_method
   : //e.g. invoke-virtual/range {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    INSTRUCTION_FORMAT3rc_METHOD register_range COMMA fully_qualified_method;
+    INSTRUCTION_FORMAT3rc_METHOD register_range comma fully_qualified_method;
 
 insn_format3rc_method_odex
   : //e.g. invoke-object-init/range {p0}, Ljava/lang/Object;-><init>()V
-    INSTRUCTION_FORMAT3rc_METHOD_ODEX register_list COMMA fully_qualified_method;
+    INSTRUCTION_FORMAT3rc_METHOD_ODEX register_list comma fully_qualified_method;
 
 insn_format3rc_type
   : //e.g. filled-new-array/range {v0..v6}, I
-    INSTRUCTION_FORMAT3rc_TYPE register_range COMMA nonvoid_type_descriptor;
+    INSTRUCTION_FORMAT3rc_TYPE register_range comma nonvoid_type_descriptor;
 
 insn_format3rmi_method
   : //e.g. execute-inline/range {v0 .. v10}, inline@0x14
-    INSTRUCTION_FORMAT3rmi_METHOD register_range COMMA INLINE_INDEX;
+    INSTRUCTION_FORMAT3rmi_METHOD register_range comma INLINE_INDEX;
 
 insn_format3rms_method
   : //e.g. invoke-virtual-quick/range {v0 .. v10}, vtable@0x14
-    INSTRUCTION_FORMAT3rms_METHOD register_range COMMA VTABLE_INDEX;
+    INSTRUCTION_FORMAT3rms_METHOD register_range comma VTABLE_INDEX;
 
 insn_format51l
   : //e.g. const-wide v0, 5000000000L
-    INSTRUCTION_FORMAT51l register COMMA fixed_literal;
+    INSTRUCTION_FORMAT51l register comma fixed_literal;
 
 insn_array_data_directive
   : ARRAY_DATA_DIRECTIVE
