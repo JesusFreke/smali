@@ -452,6 +452,22 @@ close_paren
     reportError(errorMarker, re, false);
   }
 
+open_brace
+  : OPEN_BRACE;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
+
+close_brace
+  : CLOSE_BRACE;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
+
 param_list_inner
   : ((PARAM_LIST_START param* PARAM_LIST_END)
     | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
@@ -656,7 +672,7 @@ string_literal
 
 array_literal
   @init { Marker marker = mark(); }
-  : OPEN_BRACE (literal (COMMA literal)* | ) CLOSE_BRACE
+  : open_brace (literal (COMMA literal)* | ) close_brace
   { marker.done(SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -868,17 +884,17 @@ label_ref
   }
 
 register_list
-  : OPEN_BRACE (register (COMMA register)*)? CLOSE_BRACE;
+  : open_brace (register (COMMA register)*)? close_brace;
 
 register_range
-  : OPEN_BRACE (register (DOTDOT register)?)? CLOSE_BRACE;
+  : open_brace (register (DOTDOT register)?)? close_brace;
 
 verification_error_reference
   : class_descriptor | fully_qualified_field | fully_qualified_method;
 
 catch_directive
   @init { Marker marker = mark(); }
-  : CATCH_DIRECTIVE nonvoid_type_descriptor OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref
+  : CATCH_DIRECTIVE nonvoid_type_descriptor open_brace label_ref DOTDOT label_ref close_brace label_ref
   { marker.done(SmaliElementTypes.CATCH_STATEMENT); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -887,7 +903,7 @@ catch_directive
 
 catchall_directive
   @init { Marker marker = mark(); }
-  : CATCHALL_DIRECTIVE OPEN_BRACE label_ref DOTDOT label_ref CLOSE_BRACE label_ref
+  : CATCHALL_DIRECTIVE open_brace label_ref DOTDOT label_ref close_brace label_ref
   { marker.done(SmaliElementTypes.CATCH_ALL_STATEMENT); };
   catch [RecognitionException re] {
     recover(input, re);
