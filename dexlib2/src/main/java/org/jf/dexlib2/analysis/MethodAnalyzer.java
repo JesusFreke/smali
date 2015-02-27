@@ -1588,8 +1588,8 @@ public class MethodAnalyzer {
         FieldReference resolvedField = classTypeProto.getFieldByOffset(fieldOffset);
 
         if (resolvedField == null) {
-            throw new AnalysisException("Could not resolve the field in class %s at offset %d",
-                    objectRegisterType.type.getType(), fieldOffset);
+            throw new AnalysisException("Could not resolve the field in class %s at offset %d, from %s->%s",
+                    objectRegisterType.type.getType(), fieldOffset, method.getDefiningClass(), method.getName());
         }
 
         //System.err.printf("Found field@0x%02x: %s\n", fieldOffset, ReferenceUtil.getShortFieldDescriptor(resolvedField));
@@ -1685,11 +1685,6 @@ public class MethodAnalyzer {
                     objectRegisterType.type.getType(), methodIndex);
         }
 
-        if(method.getDefiningClass().equals("Lcom/google/android/apps/gmm/u/b/c/c;")) {
-            System.out.printf("Before:\n");
-            System.out.printf("%s->%s from %s\n", resolvedMethod.getDefiningClass(), resolvedMethod.getName(), method.getDefiningClass());
-        }
-
         // no need to check class access for invoke-super. A class can obviously access its superclass.
         ClassDef thisClass = classPath.getClassDef(method.getDefiningClass());
 
@@ -1721,44 +1716,14 @@ public class MethodAnalyzer {
             resolvedMethod = new ImmutableMethodReference(methodClass.getType(), resolvedMethod.getName(),
                     resolvedMethod.getParameterTypes(), resolvedMethod.getReturnType());
         }
-        
-        if(method.getDefiningClass().equals("Lcom/google/android/apps/gmm/u/b/c/c;")) {
-            System.out.printf("After:\n");
-            System.out.printf("%s->%s from %s->%s\n", resolvedMethod.getDefiningClass(), resolvedMethod.getName(), method.getDefiningClass(), method.getName());
-        }
 
-        /*if (!isSuper && resolvedMethod instanceof Method) {
-            Method methodMethod = (Method) resolvedMethod;
-            if (AccessFlags.PROTECTED.isSet(methodMethod.getAccessFlags())) {
-                TypeProto typeProto = classPath.getClass(methodMethod.getDefiningClass());
-                TypeProto superType;
-
-                String superclassType = typeProto.getSuperclass();
-                if (superclassType != null) {
-                    superType = classPath.getClass(superclassType);
-                } else {
-                    // This is either java.lang.Object, or an UnknownClassProto
-                    superType = typeProto;
-                }
-
-                MethodReference newResolvedMethod = superType.getMethodByVtableIndex(methodIndex);
-                if(newResolvedMethod instanceof Method) {
-                    Method newMethod = (Method)newResolvedMethod;
-
-                    if (AccessFlags.PUBLIC.isSet(newMethod.getAccessFlags()) && 
-                        AccessFlags.ABSTRACT.isSet(newMethod.getAccessFlags())) {
-
-                        ClassDef methodClass = classPath.getClassDef(newMethod.getDefiningClass());
-
-                        System.out.printf("%s vs %s\n", resolvedMethod.getDefiningClass(), newResolvedMethod.getDefiningClass());
-
-                        resolvedMethod = newResolvedMethod;
-                        resolvedMethod = new ImmutableMethodReference(methodClass.getType(), resolvedMethod.getName(),
-                            resolvedMethod.getParameterTypes(), resolvedMethod.getReturnType());
-                    }
-                }
+        if(!isSuper) {
+            try {
+                resolvedMethod = ensureCanCallMethod(resolvedMethod, methodIndex);
+            } catch(Exception e) {
+                // Ignore...
             }
-        }*/
+        }
 
         Instruction deodexedInstruction;
         if (isRange) {
@@ -1790,6 +1755,68 @@ public class MethodAnalyzer {
         analyzeInstruction(analyzedInstruction);
 
         return true;
+    }
+
+    /*
+        This is an odd one.
+        Deodexing sometimes causes an invoke to call the method of a class that extends an
+        abstract class, and that method may not always be public, even though the super abstract method is.
+        This causes an access exception, since other classes don't always have access to the instance method.
+        It should be noted that according to the java specifications you cannot assign weaker access,
+        ie, you cannot make an override protected if the super method is public. So I have no idea what's
+        going on here.
+
+        You can see this behaviour in Google Maps:
+        com/google/android/apps/gmm/map/ui/BaseCompassButtonView is an abstract class declaring some
+            public abstract methods.
+        com/google/android/apps/gmm/base/views/CompassButtonView extends BaseCompassButtonView and overrides
+            the methods found in there, but with a weaker access (protected versus public).
+    */
+    private MethodReference ensureCanCallMethod(@Nonnull MethodReference resolvedMethod, int methodIndex) {
+        // Only check methods.
+        if(!(resolvedMethod instanceof Method)) {
+            return resolvedMethod;
+        }
+
+        ClassDef thisClass = classPath.getClassDef(method.getDefiningClass());
+        ClassDef methodClass = classPath.getClassDef(resolvedMethod.getDefiningClass());
+
+        String thisPackage = getPackage(thisClass.getType());
+        String methodPackage = getPackage(methodClass.getType());
+
+        Method methodMethod = (Method) resolvedMethod;
+        if (thisPackage.equals(methodPackage) || AccessFlags.PUBLIC.isSet(methodMethod.getAccessFlags())) {
+            return resolvedMethod;
+        }
+
+        TypeProto typeProto = classPath.getClass(methodMethod.getDefiningClass());
+        TypeProto superType = typeProto;
+
+        // Loop through the supers trying to find a valid method.
+        String superclassType;
+        while((superclassType = superType.getSuperclass()) != null) {
+            superType = classPath.getClass(superclassType);
+
+            MethodReference newResolvedMethod = superType.getMethodByVtableIndex(methodIndex);
+            if(newResolvedMethod instanceof Method) {
+                Method newMethod = (Method)newResolvedMethod;
+
+                // Look for an abstract method, this should ALWAYS be callable from children.
+                if (AccessFlags.ABSTRACT.isSet(newMethod.getAccessFlags())) {
+                    methodClass = classPath.getClassDef(newMethod.getDefiningClass());
+
+                    //System.out.printf("%s vs %s from %s->%s\n", resolvedMethod.getDefiningClass(), newResolvedMethod.getDefiningClass(), method.getDefiningClass(), method.getName());
+
+                    resolvedMethod = newResolvedMethod;
+                    resolvedMethod = new ImmutableMethodReference(methodClass.getType(), resolvedMethod.getName(),
+                        resolvedMethod.getParameterTypes(), resolvedMethod.getReturnType());
+
+                    break;
+                }
+            }
+        }
+
+        return resolvedMethod;
     }
 
     private boolean canAccessClass(@Nonnull ClassDef accessorClassDef, @Nonnull ClassDef accesseeClassDef) {
