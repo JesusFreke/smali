@@ -29,53 +29,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.dexbacked.instruction;
+package org.jf.dexlib2.iface.instruction;
 
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
-import org.jf.dexlib2.iface.instruction.OpcodeForwardInstruction;
-import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
 import org.jf.dexlib2.iface.reference.Reference;
 
 import javax.annotation.Nonnull;
 
-public class DexBackedInstructionTwoOp extends DexBackedInstruction implements OpcodeForwardInstruction, Instruction21c {
-    private Opcode mForwardOpcode;
-    private int mRegisterA = 0;
-    private Reference mReference;
-
-    public DexBackedInstructionTwoOp(@Nonnull DexBackedDexFile dexFile,
-                                   @Nonnull Opcode opcode,
-                                   int instructionStart) {
-        super(dexFile, opcode, instructionStart);
-    }
-
-    @Nonnull
-    @Override
-    public Opcode getForwardOpcode() {
-        return mForwardOpcode;
-    }
-
-    @Override
-    public int getRegisterA() {
-        return mRegisterA;
-    }
-
-    @Nonnull
-    @Override
-    public Reference getReference() {
-        return mReference;
-    }
-
-    @Override
-    public int getReferenceType() {
-        return opcode.referenceType;
-    }
-
-    public void setRegisterReference(Opcode forwardOpcode, int register, Reference reference) {
-        mForwardOpcode = forwardOpcode;
-        mRegisterA = register;
-        mReference = reference;
-    }
+public interface OpcodeForwardInstruction extends OneRegisterInstruction {
+    @Nonnull Opcode getForwardOpcode();
 }

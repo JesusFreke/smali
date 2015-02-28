@@ -282,16 +282,6 @@ public class RegisterType {
             if (type != null) {
                 if (other.type != null) {
                     mergedType = type.getCommonSuperclass(other.type);
-
-                    /*
-                        An Object type can always be cast to other.type, since all objects extend from Object.
-                        This fixes Launcher2 not deodexing properly on ART
-                    */
-                    if (type.getType().equals("Ljava/lang/Object;") && mergedType.getType().equals(type.getType())) {
-                        //System.out.printf("merged %s, type %s, other %s\n", mergedType.getType(), type.getType(), other.type);
-
-                        mergedType = other.type;
-                    }
                 } else {
                     mergedType = type;
                 }

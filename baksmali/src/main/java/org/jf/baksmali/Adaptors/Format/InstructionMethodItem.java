@@ -344,31 +344,11 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeVtableIndex(writer);
                 break;
             case FormatTwoOp:
-                int value = instruction.getOpcode().value;
-                short op1 = (short)value;
-                short op2 = (short)(value >> 16);
-   
-                Opcode opcode1 = null;
-                Opcode opcode2 = null;
-                for (Opcode op: Opcode.values()) {
-                    if (op.value == op1 && op.isShort()) {
-                        opcode1 = op;
-                    }
-                    if (op.value == op2 && op.isShort()) {
-                        opcode2 = op;
-                    }
-
-                    if (opcode1 != null && opcode2 != null) {
-                        break;
-                    }
-                }
-                if (opcode1  != null) {
-                    writer.write(opcode1.name);
-                    writer.write("\n\n");
-                }
-                if (opcode2  != null) {
-                    writer.write(opcode2.name);
-                }
+                writeOpcode(writer);
+                writer.write(' ');
+                writeFirstRegister(writer);
+                writer.write(", ");
+                writer.write(referenceString);
                 break;
             default:
                 assert false;
@@ -383,7 +363,12 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeOpcode(IndentingWriter writer) throws IOException {
-        writer.write(instruction.getOpcode().name);
+        if (instruction instanceof OpcodeForwardInstruction) {
+            OpcodeForwardInstruction forwardInstruction = (OpcodeForwardInstruction) instruction;
+            writer.write(forwardInstruction.getForwardOpcode().name);
+        } else {
+            writer.write(instruction.getOpcode().name);
+        }
     }
 
     protected void writeTargetLabel(IndentingWriter writer) throws IOException {

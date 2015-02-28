@@ -38,6 +38,7 @@ import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.*;
+import org.jf.dexlib2.dexbacked.instruction.DexBackedInstructionTwoOp;
 import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
@@ -398,6 +399,42 @@ public class MethodAnalyzer {
             analyzedInstructions.append(currentCodeAddress, new AnalyzedInstruction(instruction, i, registerCount));
             assert analyzedInstructions.indexOfKey(currentCodeAddress) == i;
             currentCodeAddress += instruction.getCodeUnits();
+        }
+
+        /*
+            ART may sometimes optimise a check-cast call to two nop's 
+            when the instruction has a local debug item, so we need
+            to turn the two nop's back into a check-cast call.
+        */
+        for(int i = 0; i < analyzedInstructions.size(); i++) {
+            AnalyzedInstruction analyzedInstruction = analyzedInstructions.valueAt(i);
+            Opcode instructionOpcode = analyzedInstruction.instruction.getOpcode();
+            if(instructionOpcode != Opcode.OAT_NOP_NOP || !(analyzedInstruction.instruction instanceof DexBackedInstructionTwoOp)) {
+                continue;
+            }
+
+            AnalyzedInstruction nextInstruction = analyzedInstructions.valueAt(analyzedInstruction.instructionIndex+1);
+            int codeAddress = getInstructionAddress(nextInstruction);
+            StartLocal registerItem = null;
+            for (DebugItem debugItem: methodImpl.getDebugItems()) {
+                if (debugItem.getCodeAddress() == codeAddress) {
+                    if (debugItem instanceof StartLocal) {
+                        StartLocal startItem = (StartLocal)debugItem;
+                        registerItem = startItem;
+                    }
+                }
+            }
+
+            if (registerItem == null) {
+                continue;
+            }
+
+            Reference typeDef = new ImmutableTypeReference(registerItem.getTypeReference().getType());
+
+            DexBackedInstructionTwoOp instruction = (DexBackedInstructionTwoOp) analyzedInstruction.instruction;
+            instruction.setRegisterReference(Opcode.CHECK_CAST, registerItem.getRegister(), typeDef);
+
+            analyzedInstructions.setValueAt(i, analyzedInstruction);
         }
 
         //next, populate the exceptionHandlers array. The array item for each instruction that can throw an exception
@@ -998,7 +1035,8 @@ public class MethodAnalyzer {
             case OAT_INVOKE_VIRTUAL_QUICK_RANGE:
                 return analyzeInvokeVirtualQuick(analyzedInstruction, false, true);
             case OAT_NOP_NOP:
-                analyzeNopNop(analyzedInstruction);
+                analyzeCheckCast(analyzedInstruction);
+                return true;
             default:
                 assert false;
                 return true;
@@ -1035,34 +1073,6 @@ public class MethodAnalyzer {
             RegisterType.NULL,
             RegisterType.ONE,
             RegisterType.BOOLEAN);
-
-    /* ART may sometimes optimise a check-cast call to two nop's 
-        when the instruction has a local debug item, so we need
-        to turn the two nop's back into a check-cast call.
-        MAJOR HACKERY BELOW */
-    private void analyzeNopNop(@Nonnull AnalyzedInstruction analyzedInstruction) {
-        AnalyzedInstruction nextInstruction = analyzedInstructions.valueAt(analyzedInstruction.instructionIndex+1);
-        int codeAddress = getInstructionAddress(nextInstruction);
-        StartLocal registerItem = null;
-        for (DebugItem debugItem: methodImpl.getDebugItems()) {
-            if (debugItem.getCodeAddress() == codeAddress) {
-                if (debugItem instanceof StartLocal) {
-                    StartLocal startItem = (StartLocal)debugItem;
-                    registerItem = startItem;
-                }
-            }
-        }
-
-        if (registerItem == null) {
-            return;
-        }
-            
-        Reference typeDef = new ImmutableTypeReference(registerItem.getTypeReference().getType());
-        Instruction deodexedInstruction = new ImmutableInstruction21c(Opcode.CHECK_CAST, registerItem.getRegister(), typeDef);
-
-        analyzedInstruction.instruction = (deodexedInstruction);
-        analyzeInstruction(analyzedInstruction);
-    }
 
     private void analyzeMove(@Nonnull AnalyzedInstruction analyzedInstruction) {
         TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.instruction;

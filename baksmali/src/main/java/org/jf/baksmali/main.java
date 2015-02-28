@@ -259,7 +259,7 @@ public class main {
 
         // Force the api level to 21 or higher for oat files.
         if(dexFile instanceof DexBackedOatFile) {
-            if(options.apiLevel < 20)
+            if(options.apiLevel < 21)
                 options.apiLevel = 21;
         }
 

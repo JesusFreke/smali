@@ -301,7 +301,7 @@ public enum Opcode
     OAT_IPUT_CHAR_QUICK((short)0xed, "iput-char-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     OAT_IPUT_SHORT_QUICK((short)0xee, "iput-short-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
 
-    OAT_NOP_NOP((int)0x00000000, "nop-nop", minApi(20), ReferenceType.NONE, Format.FormatTwoOp, Opcode.OAT_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    OAT_NOP_NOP((int)0x00000000, "nop-nop", minApi(20), ReferenceType.TYPE, Format.FormatTwoOp, Opcode.OAT_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
 
     PACKED_SWITCH_PAYLOAD((short)0x100, "packed-switch-payload", ReferenceType.NONE, Format.PackedSwitchPayload, 0),
     SPARSE_SWITCH_PAYLOAD((short)0x200, "sparse-switch-payload", ReferenceType.NONE, Format.SparseSwitchPayload, 0),
