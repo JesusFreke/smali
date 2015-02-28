@@ -296,14 +296,6 @@ field
     reportError(marker, re, false);
   }
 
-colon
-  : COLON;
-  catch [RecognitionException re] {
-    Marker marker = mark();
-    recover(input, re);
-    reportError(marker, re, false);
-  }
-
 end_field_directive
   : END_FIELD_DIRECTIVE;
 
@@ -470,6 +462,14 @@ close_brace
 
 comma
   : COMMA;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
+
+colon
+  : COLON;
   catch [RecognitionException re] {
     Marker errorMarker = mark();
     recover(input, re);
@@ -689,7 +689,7 @@ array_literal
 
 enum_literal
   @init { Marker marker = mark(); }
-  : ENUM_DIRECTIVE reference_type_descriptor arrow simple_name COLON reference_type_descriptor
+  : ENUM_DIRECTIVE reference_type_descriptor arrow simple_name colon reference_type_descriptor
   { marker.done(SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -701,7 +701,7 @@ type_field_method_literal
   @init { Marker marker = mark(); }
   : ( reference_type_descriptor
       ( arrow
-        ( member_name COLON nonvoid_type_descriptor
+        ( member_name colon nonvoid_type_descriptor
         | member_name method_prototype_reference
         )
       | /* epsilon */
@@ -864,7 +864,7 @@ fully_qualified_method
 // TODO: check missing initial token
 fully_qualified_field
   @init { Marker marker = mark(); }
-  : reference_type_descriptor arrow member_name COLON nonvoid_type_descriptor
+  : reference_type_descriptor arrow member_name colon nonvoid_type_descriptor
   { marker.done(SmaliElementTypes.FIELD_REFERENCE); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -874,7 +874,7 @@ fully_qualified_field
 // TODO: check missing initial token
 label
   @init { Marker marker = mark(); }
-  : COLON simple_name
+  : colon simple_name
   { marker.done(SmaliElementTypes.LABEL); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -884,7 +884,7 @@ label
 // TODO: check missing initial token
 label_ref
   @init { Marker marker = mark(); }
-  : COLON simple_name
+  : colon simple_name
   { marker.done(SmaliElementTypes.LABEL_REFERENCE); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -971,7 +971,7 @@ line_directive
 
 local_directive
   @init { Marker marker = mark(); }
-  : LOCAL_DIRECTIVE register (comma (null_literal | string_literal) COLON (void_type | nonvoid_type_descriptor)
+  : LOCAL_DIRECTIVE register (comma (null_literal | string_literal) colon (void_type | nonvoid_type_descriptor)
                               (comma string_literal)? )?
   { marker.done(SmaliElementTypes.LOCAL_DEBUG_STATEMENT); };
   catch [RecognitionException re] {

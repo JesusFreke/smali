@@ -1,0 +1,1 @@
+.field public static blah:Ljava/lang/Object; = .enum Lblah;->blah .blah Lblah;
