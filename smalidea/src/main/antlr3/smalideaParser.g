@@ -360,7 +360,7 @@ registers_directive
   }
 
 param_list_or_id
-  : PARAM_LIST_OR_ID_START primitive_type+ PARAM_LIST_OR_ID_END;
+  : PARAM_LIST_OR_ID_PRIMITIVE_TYPE+;
 
 /*identifiers are much more general than most languages. Any of the below can either be
 the indicated type OR an identifier, depending on the context*/
@@ -478,7 +478,6 @@ colon
 
 param_list_inner
   : ((PARAM_LIST_START param* PARAM_LIST_END)
-    | (PARAM_LIST_OR_ID_START param* PARAM_LIST_OR_ID_END)
     | (param+));
   catch [RecognitionException re] {
     Marker errorMarker = mark();
@@ -511,8 +510,7 @@ param_list_reference
     Marker marker = mark();
   }
   : ((PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END)
-    | (PARAM_LIST_OR_ID_START nonvoid_type_descriptor* PARAM_LIST_OR_ID_END)
-    | (nonvoid_type_descriptor*))
+    | (nonvoid_type_descriptor)*)
   { marker.done(SmaliElementTypes.METHOD_REFERENCE_PARAM_LIST); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -521,7 +519,7 @@ param_list_reference
 
 primitive_type
   @init { Marker marker = mark(); }
-  : PRIMITIVE_TYPE
+  : (PRIMITIVE_TYPE | PARAM_LIST_OR_ID_PRIMITIVE_TYPE)
   { finishToken(marker, SmaliElementTypes.PRIMITIVE_TYPE); };
   catch [RecognitionException re] {
     recover(input, re);

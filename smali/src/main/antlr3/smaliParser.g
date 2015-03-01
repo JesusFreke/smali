@@ -131,8 +131,7 @@ tokens {
   PACKED_SWITCH_DIRECTIVE;
   PARAM_LIST_END;
   PARAM_LIST_START;
-  PARAM_LIST_OR_ID_END;
-  PARAM_LIST_OR_ID_START;
+  PARAM_LIST_OR_ID_PRIMITIVE_TYPE;
   PARAMETER_DIRECTIVE;
   POSITIVE_INTEGER_LITERAL;
   PRIMITIVE_TYPE;
@@ -529,7 +528,7 @@ registers_directive
     };
 
 param_list_or_id
-  : PARAM_LIST_OR_ID_START PRIMITIVE_TYPE+ PARAM_LIST_OR_ID_END;
+  : PARAM_LIST_OR_ID_PRIMITIVE_TYPE+;
 
 /*identifiers are much more general than most languages. Any of the below can either be
 the indicated type OR an identifier, depending on the context*/
@@ -584,7 +583,7 @@ method_prototype
 
 param_list
   : PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END -> nonvoid_type_descriptor*
-  | PARAM_LIST_OR_ID_START PRIMITIVE_TYPE* PARAM_LIST_OR_ID_END -> PRIMITIVE_TYPE*
+  | (PARAM_LIST_OR_ID_PRIMITIVE_TYPE -> PRIMITIVE_TYPE[$PARAM_LIST_OR_ID_PRIMITIVE_TYPE])+
   | nonvoid_type_descriptor*;
 
 array_descriptor

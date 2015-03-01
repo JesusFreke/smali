@@ -307,9 +307,9 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
 }
 
 <PARAM_LIST_OR_ID> {
-    {PrimitiveType} { return newToken(PRIMITIVE_TYPE); }
-    [^] { yypushback(1); yybegin(YYINITIAL); return newToken(PARAM_LIST_OR_ID_END); }
-    <<EOF>> { yybegin(YYINITIAL); return newToken(PARAM_LIST_OR_ID_END); }
+    {PrimitiveType} { return newToken(PARAM_LIST_OR_ID_PRIMITIVE_TYPE); }
+    [^] { yypushback(1); yybegin(YYINITIAL); }
+    <<EOF>> { yybegin(YYINITIAL); }
 }
 
 <PARAM_LIST> {
@@ -632,9 +632,9 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     }
 
     {PrimitiveType} {PrimitiveType}+ {
+        // go back and re-lex it as a PARAM_LIST_OR_ID
         yypushback(yylength());
         yybegin(PARAM_LIST_OR_ID);
-        return newToken(PARAM_LIST_OR_ID_START);
     }
 
     {Type} {Type}+ {
