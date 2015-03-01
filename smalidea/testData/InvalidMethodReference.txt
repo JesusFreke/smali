@@ -43,6 +43,8 @@ smali.FILE
           PsiWhiteSpace('\n')
           PsiElement(MEMBER_NAME)
             <empty list>
+          PsiElement(METHOD_REFERENCE_PARAM_LIST)
+            <empty list>
       PsiElement(END_METHOD_DIRECTIVE)('.end method')
     PsiWhiteSpace('\n\n')
     SmaliMethod(METHOD)
@@ -84,6 +86,8 @@ smali.FILE
             PsiElement(BAD_CHARACTER)('.blah')
           PsiWhiteSpace('\n')
           PsiElement(MEMBER_NAME)
+            <empty list>
+          PsiElement(METHOD_REFERENCE_PARAM_LIST)
             <empty list>
       PsiElement(END_METHOD_DIRECTIVE)('.end method')
     PsiWhiteSpace('\n\n')

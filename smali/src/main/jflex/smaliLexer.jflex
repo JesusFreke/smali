@@ -316,8 +316,8 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     {PrimitiveType} { return newToken(PRIMITIVE_TYPE); }
     {ClassDescriptor} { return newToken(CLASS_DESCRIPTOR); }
     {ArrayPrefix} { return newToken(ARRAY_TYPE_PREFIX); }
-    [^] { yypushback(1); yybegin(YYINITIAL); return newToken(PARAM_LIST_END); }
-    <<EOF>> { yybegin(YYINITIAL); return newToken(PARAM_LIST_END); }
+    [^] { yypushback(1); yybegin(YYINITIAL);}
+    <<EOF>> { yybegin(YYINITIAL);}
 }
 
 <STRING> {
@@ -638,9 +638,9 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     }
 
     {Type} {Type}+ {
+        // go back and re-lex it as a PARAM_LIST
         yypushback(yylength());
         yybegin(PARAM_LIST);
-        return newToken(PARAM_LIST_START);
     }
 
     {SimpleName} { return newToken(SIMPLE_NAME); }

@@ -129,8 +129,6 @@ tokens {
   OPEN_BRACE;
   OPEN_PAREN;
   PACKED_SWITCH_DIRECTIVE;
-  PARAM_LIST_END;
-  PARAM_LIST_START;
   PARAM_LIST_OR_ID_PRIMITIVE_TYPE;
   PARAMETER_DIRECTIVE;
   POSITIVE_INTEGER_LITERAL;
@@ -582,8 +580,7 @@ method_prototype
     -> ^(I_METHOD_PROTOTYPE[$start, "I_METHOD_PROTOTYPE"] ^(I_METHOD_RETURN_TYPE type_descriptor) param_list?);
 
 param_list
-  : PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END -> nonvoid_type_descriptor*
-  | (PARAM_LIST_OR_ID_PRIMITIVE_TYPE -> PRIMITIVE_TYPE[$PARAM_LIST_OR_ID_PRIMITIVE_TYPE])+
+  : (PARAM_LIST_OR_ID_PRIMITIVE_TYPE -> PRIMITIVE_TYPE[$PARAM_LIST_OR_ID_PRIMITIVE_TYPE])+
   | nonvoid_type_descriptor*;
 
 array_descriptor

@@ -477,8 +477,7 @@ colon
   }
 
 param_list_inner
-  : ((PARAM_LIST_START param* PARAM_LIST_END)
-    | (param+));
+  : param+;
   catch [RecognitionException re] {
     Marker errorMarker = mark();
     recover(input, re);
@@ -509,8 +508,7 @@ param_list_reference
   @init {
     Marker marker = mark();
   }
-  : ((PARAM_LIST_START nonvoid_type_descriptor* PARAM_LIST_END)
-    | (nonvoid_type_descriptor)*)
+  : nonvoid_type_descriptor*
   { marker.done(SmaliElementTypes.METHOD_REFERENCE_PARAM_LIST); };
   catch [RecognitionException re] {
     recover(input, re);

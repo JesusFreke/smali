@@ -141,8 +141,6 @@ public class SmaliTokens {
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType OPEN_BRACE;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType OPEN_PAREN;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType PACKED_SWITCH_DIRECTIVE;
-    @SuppressWarnings({"UnusedDeclaration"}) public static IElementType PARAM_LIST_END;
-    @SuppressWarnings({"UnusedDeclaration"}) public static IElementType PARAM_LIST_START;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType PARAM_LIST_OR_ID_PRIMITIVE_TYPE;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType PARAMETER_DIRECTIVE;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType POSITIVE_INTEGER_LITERAL;
@@ -261,9 +259,7 @@ public class SmaliTokens {
         tokenColors.put("OPEN_BRACE", SmaliHighlightingColors.BRACES);
         tokenColors.put("OPEN_PAREN", SmaliHighlightingColors.PARENS);
         tokenColors.put("PACKED_SWITCH_DIRECTIVE", SmaliHighlightingColors.DIRECTIVE);
-        tokenColors.put("PARAM_LIST_END", SmaliHighlightingColors.TYPE);
         tokenColors.put("PARAM_LIST_OR_ID_PRIMITIVE_TYPE", SmaliHighlightingColors.TYPE);
-        tokenColors.put("PARAM_LIST_START", SmaliHighlightingColors.TYPE);
         tokenColors.put("PARAMETER_DIRECTIVE", SmaliHighlightingColors.DIRECTIVE);
         tokenColors.put("POSITIVE_INTEGER_LITERAL", SmaliHighlightingColors.NUMBER);
         tokenColors.put("PRIMITIVE_TYPE", SmaliHighlightingColors.TYPE);
