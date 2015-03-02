@@ -39,7 +39,7 @@ if (!('release' in gradle.startParameter.taskNames)) {
     def versionSuffix
     try {
         def git = org.eclipse.jgit.api.Git.open(file('.'))
-        def head = git.getRepository().getRef("HEAD")
+        def head = git.getRepository().getRef('HEAD')
         versionSuffix = head.getObjectId().abbreviate(8).name()
 
         if (!git.status().call().clean) {
@@ -125,7 +125,7 @@ subprojects {
         }
 
         signing {
-            required { gradle.taskGraph.hasTask("uploadArchives") }
+            required { gradle.taskGraph.hasTask('uploadArchives') }
             sign configurations.archives
         }
 
@@ -136,7 +136,7 @@ subprojects {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
                 if (rootProject.hasProperty('sonatypeUsername') && rootProject.hasProperty('sonatypePassword')) {
-                    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
                         authentication(userName: sonatypeUsername, password: sonatypePassword)
                     }
                 }

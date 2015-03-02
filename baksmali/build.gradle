@@ -62,11 +62,11 @@ task fatJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
-        attributes("Main-Class": "org.jf.baksmali.main")
+        attributes('Main-Class': 'org.jf.baksmali.main')
     }
 
     doLast {
-        if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
             ant.symlink(link: file("${destinationDir}/baksmali.jar"), resource: archivePath, overwrite: true)
         }
     }

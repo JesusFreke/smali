@@ -94,11 +94,11 @@ task fatJar(type: Jar, dependsOn: jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
-        attributes("Main-Class": "org.jf.smali.main")
+        attributes('Main-Class': 'org.jf.smali.main')
     }
 
     doLast {
-        if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
             ant.symlink(link: file("${destinationDir}/smali.jar"), resource: archivePath, overwrite: true)
         }
     }
@@ -106,15 +106,15 @@ task fatJar(type: Jar, dependsOn: jar) {
 tasks.getByPath('build').dependsOn(fatJar)
 
 generateTestGrammarSource {
-    outputDirectory = new File(outputDirectory, "org/jf/smali")
+    outputDirectory = new File(outputDirectory, 'org/jf/smali')
 }
 
 generateGrammarSource {
-    outputDirectory = new File(outputDirectory, "org/jf/smali")
+    outputDirectory = new File(outputDirectory, 'org/jf/smali')
 }
 
 generateJFlexSource {
-    outputDirectory = new File(outputDirectory, "org/jf/smali")
+    outputDirectory = new File(outputDirectory, 'org/jf/smali')
 }
 
 uploadArchives {
