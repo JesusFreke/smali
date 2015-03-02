@@ -145,6 +145,10 @@ public class baksmali {
         List<Future<Boolean>> tasks = Lists.newArrayList();
 
         for (final ClassDef classDef: classDefs) {
+            // if a class prefix is given, only disassemble classes with this prefix (e.g. Lcom.example)
+            if (options.onlyClassPrefix != null && !classDef.toString().startsWith(options.onlyClassPrefix)) {
+                continue;
+            }
             tasks.add(executor.submit(new Callable<Boolean>() {
                 @Override public Boolean call() throws Exception {
                     return disassembleClass(classDef, fileNameHandler, options);

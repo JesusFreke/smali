@@ -80,6 +80,8 @@ public class baksmaliOptions {
     public ClassPath classPath = null;
     public int jobs = -1;
 
+    public String onlyClassPrefix = null;
+
     public SyntheticAccessorResolver syntheticAccessorResolver = null;
 
     public void setBootClassPath(String bootClassPath) {
