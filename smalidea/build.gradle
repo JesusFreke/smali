@@ -59,27 +59,36 @@ idea {
                 excludeDirs.remove(sourceDir);
             }
         }
+
+        iml {
+            withXml {
+                it.node.@type = "PLUGIN_MODULE"
+            }
+        }
     }
 }
 
 // We can't actually compile the plugin with gradle, so we just disable everything
 // except the tasks related to generating the IDEA module and ANTLR parser
 tasks.all {
-    if (name != 'idea' && name != 'ideaModule' && name != 'generateParserAntlrSource') {
+    if (!(name in ['idea', 'ideaModule', 'generateParserAntlrSource', 'clean'])) {
         enabled = false
     }
 }
 
-task generateParserAntlrSource(type: JavaExec) {
+task generateParserAntlrSource(type: JavaExec, dependsOn: ":smali:generateGrammarSource") {
+    def smaliOutputDir = file(relativePath(project.parent.childProjects.get('smali')
+            .generateGrammarSource.outputDirectory))
+
+    inputs.file new File(smaliOutputDir, "smaliParser.tokens")
     inputs.dir file(antlrSource)
     outputs.dir file(antlrOutput)
 
-    mkdir(antlrOutput)
-    def grammars = fileTree(antlrSource).include('**/smalideaParser.g')
+    file(antlrOutput).mkdirs()
 
     classpath = configurations.antlr3
     main = 'org.antlr.Tool'
     args '-fo', relativePath("${antlrOutput}/org/jf/smalidea")
-    args '-lib', relativePath(project.parent.childProjects.get('smali').antlrOutput) + "/org/jf/smali"
-    args grammars.files
+    args '-lib', smaliOutputDir
+    args new File(antlrSource, "smalideaParser.g")
 }
