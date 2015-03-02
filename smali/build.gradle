@@ -29,9 +29,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+apply plugin: 'jflex'
+
 configurations {
     antlr3
-    jflex
 }
 
 buildscript {
@@ -39,21 +40,24 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath depends.jflex_plugin
         classpath depends.proguard_gradle
     }
+}
+
+configurations {
+    // The jflex lexer doesn't have any runtime dependencies, so remove the dependency
+    // that gets added by the jflex plugin
+    compile.exclude group: 'de.jflex', module: 'jflex'
 }
 
 ext.antlrSource = 'src/main/antlr3'
 ext.antlrOutput = file("${buildDir}/generated-sources/antlr3")
 
-ext.jflexSource = "src/main/jflex"
-ext.jflexOutput = file("${buildDir}/generated-sources/jflex")
-
 ext.testAntlrSource = 'src/test/antlr3'
 ext.testAntlrOutput = file("${buildDir}/generated-test-sources/antlr3")
 
 sourceSets.main.java.srcDir antlrOutput
-sourceSets.main.java.srcDir jflexOutput
 
 sourceSets.test.java.srcDir testAntlrOutput
 
@@ -124,22 +128,7 @@ task generateTestAntlrSource(type: JavaExec) {
     args grammars.files.join(' ')
 }
 
-task generateJflexSource(type: JavaExec) {
-    inputs.dir file(jflexSource)
-    outputs.dir file(jflexOutput)
-
-    mkdir(jflexOutput)
-    def grammars = fileTree(jflexSource).include('**/*.flex')
-
-    classpath = configurations.jflex
-    main = 'JFlex.Main'
-    args '-q'
-    args '-d', relativePath("${jflexOutput}/org/jf/smali")
-    args grammars.files.join(' ')
-    environment LC_ALL: "en_US"
-}
-
-compileJava.dependsOn generateParserAntlrSource, generateTreeWalkerAntlrSource, generateJflexSource
+compileJava.dependsOn generateParserAntlrSource, generateTreeWalkerAntlrSource
 compileTestJava.dependsOn generateTestAntlrSource
 
 processResources.inputs.property('version', version)
@@ -166,6 +155,10 @@ task fatJar(type: Jar, dependsOn: jar) {
     }
 }
 tasks.getByPath('build').dependsOn(fatJar)
+
+generateJFlexSource {
+    outputDirectory = new File(outputDirectory, "org/jf/smali")
+}
 
 uploadArchives {
     repositories.mavenDeployer {
