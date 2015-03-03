@@ -169,12 +169,17 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
      * register is a destination register for this instruction, or if the pre-instruction register type didn't change
      * after merging in the given register type
      */
-    protected boolean mergeRegister(int registerNumber, RegisterType registerType, BitSet verifiedInstructions) {
+    protected boolean mergeRegister(int registerNumber, RegisterType registerType, BitSet verifiedInstructions, boolean force) {
         assert registerNumber >= 0 && registerNumber < postRegisterMap.length;
         assert registerType != null;
 
         RegisterType oldRegisterType = preRegisterMap[registerNumber];
-        RegisterType mergedRegisterType = oldRegisterType.merge(registerType);
+        RegisterType mergedRegisterType;
+        if(!force) {
+            mergedRegisterType = oldRegisterType.merge(registerType);
+        } else {
+            mergedRegisterType = registerType;
+        }
 
         if (mergedRegisterType.equals(oldRegisterType)) {
             return false;

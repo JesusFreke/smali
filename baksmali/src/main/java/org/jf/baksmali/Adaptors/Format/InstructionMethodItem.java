@@ -344,11 +344,17 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeVtableIndex(writer);
                 break;
             case FormatTwoOp:
-                writeOpcode(writer);
-                writer.write(' ');
-                writeFirstRegister(writer);
-                writer.write(", ");
-                writer.write(referenceString);
+                OpcodeForwardInstruction forwardInstruction = (OpcodeForwardInstruction) instruction;
+                if(forwardInstruction.getForwardOpcode() != null) {
+                    writer.write(forwardInstruction.getForwardOpcode().name);
+                    writer.write(' ');
+                    writeFirstRegister(writer);
+                    writer.write(", ");
+                    writer.write(referenceString);
+                } else {
+                    writer.write("# optimized check-cast opcode");
+                }
+
                 break;
             default:
                 assert false;
@@ -363,12 +369,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeOpcode(IndentingWriter writer) throws IOException {
-        if (instruction instanceof OpcodeForwardInstruction) {
-            OpcodeForwardInstruction forwardInstruction = (OpcodeForwardInstruction) instruction;
-            writer.write(forwardInstruction.getForwardOpcode().name);
-        } else {
-            writer.write(instruction.getOpcode().name);
-        }
+        writer.write(instruction.getOpcode().name);
     }
 
     protected void writeTargetLabel(IndentingWriter writer) throws IOException {

@@ -91,6 +91,7 @@ public interface FieldReference extends Reference, Comparable<FieldReference> {
      *
      * The comparison is based on the comparison of the return values of getDefiningClass(), getName() and
      * getType(), in that order.
+     * On ART this is based on the type size, type, and name.
      *
      * @param o The FieldReference to compare with this FieldReference
      * @return An integer representing the result of the comparison

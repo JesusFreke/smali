@@ -371,7 +371,6 @@ public class ClassProto implements TypeProto {
                     //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
                     //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
                     //See mydroid/dalvik/vm/oo/Class.c - computeFieldOffsets()
-
                     final byte REFERENCE = 0;
                     final byte WIDE = 1;
                     final byte OTHER = 2;
@@ -462,41 +461,50 @@ public class ClassProto implements TypeProto {
                             }
                         }
                     } else {
-                        ArrayList<Field> fieldsReference = new ArrayList<Field>();
-                        ArrayList<Field> fieldsWide = new ArrayList<Field>();
-                        ArrayList<Field> fieldsOther = new ArrayList<Field>();
-                        for(int i = 0; i < fields.size(); i++) {
-                            Field field = fields.get(i);
-                            byte type = getFieldType(field);
-                            if(type == REFERENCE) {
-                                fieldsReference.add(field);
-                            } else if(type == WIDE) {
-                                fieldsWide.add(field);
-                            } else {
-                                fieldsOther.add(field);
+                        Collections.sort(fields);
+
+                        int referenceSize = 0;
+                        for(Field field: fields) {
+                            char type = field.getType().charAt(0);
+                            if(type == 'L' || type == '[') {
+                                referenceSize++;
+                                continue;
                             }
+
+                            break;
                         }
 
-                        Collections.sort(fieldsReference);
-                        Collections.sort(fieldsWide);
-                        Collections.sort(fieldsOther);
+                        int wideSize = 0;
+                        for(int i = referenceSize; i < fields.size(); i++) {
+                            char type = fields.get(i).getType().charAt(0);
+                            if(type == 'J' || type == 'D') {
+                                wideSize++;
+                                continue;
+                            }
 
-                        fields.clear();
-                        fields.addAll(fieldsReference);
-                        fields.addAll(fieldsWide);
-                        fields.addAll(fieldsOther);
+                            break;
+                        }
 
-                        // Check if we need to swap in a field to make sure the wide fields are aligned.
-                        if (fieldsReference.size() < fields.size() && (fieldsReference.size() % 2) != fieldIndexMod) {
-                            int wideStart = fieldsReference.size();
-                            int otherStart = wideStart + fieldsWide.size();
+                        /*for(Field field1: fields) {
+                            for(Field field2: fields) {
+                                if(field1.getName().equals(field2.getName()) && !field1.equals(field2)) {
+                                    System.out.printf("Found two fields with the same name in %s, %s vs %s!\n", getType(), field1.getName(), field2.getName());
+                                    break;
+                                }
+                            }
+                        }*/
+
+                        // Check if we need to swap in a field to align the wide fields.
+                        if (referenceSize < fields.size() && (referenceSize % 2) != fieldIndexMod) {
+                            int wideStart = referenceSize;
+                            int otherStart = wideStart + wideSize;
 
                             Field field = fields.get(otherStart);
                             fields.remove(otherStart);
                             fields.add(wideStart, field);
                         }
 
-                        for (int i=0; i<fieldCount; i++) {
+                        for (int i = 0; i < fieldCount; i++) {
                             fieldTypes[i] = getFieldType(fields.get(i));
                         }
                     }

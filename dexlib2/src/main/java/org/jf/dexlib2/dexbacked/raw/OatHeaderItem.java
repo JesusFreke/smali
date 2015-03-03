@@ -79,6 +79,17 @@ public class OatHeaderItem {
         return false;
     }
 
+    public static int getVersion(byte[] buf) {
+        int offset = getOatOffset(buf);
+        for(int i = 0; i < OAT_MAGIC_VALUE.length; i++) {
+            if(buf[offset + i] != OAT_MAGIC_VALUE[i]) {
+                return -1;
+            }
+        }
+
+        return Integer.parseInt(new String(buf, offset + OAT_MAGIC_VALUE.length, 3), 10);
+    }
+
     public static int getDexOffset(byte[] buf) {
         int offset = MAGIC_LENGTH;
         while(offset < buf.length - MAGIC_LENGTH) {
@@ -95,22 +106,18 @@ public class OatHeaderItem {
     public static List<DexItem> getDexes(byte[] buf) {
         List<DexItem> dexes = new ArrayList<DexItem>();
 
-        int offset = 0x1000;
+        int offset = getOatOffset(buf);
         for(int i = 0; i < OAT_MAGIC_VALUE.length; i++) {
             if(buf[offset + i] != OAT_MAGIC_VALUE[i])
                 return dexes;
         }
 
-        int version = Integer.parseInt(new String(buf, offset + 5, 2));
+        int version = Integer.parseInt(new String(buf, offset + OAT_MAGIC_VALUE.length, 3), 10);
         int headerIndex = (version == 31)?0:1;
         int numDexes = readUint(buf, offset + OAT_HEADER_OFFSET_NUMDEXES); 
         int keyValueSize = readUint(buf, offset + OAT_HEADER_SIZE[headerIndex] - 4);
 
-        //System.err.printf("Found oat: %d, numdexes: %d, keyValueSize: %d\n", version, numDexes, keyValueSize);
-
         offset += OAT_HEADER_SIZE[headerIndex] + keyValueSize;
-
-        //System.err.printf("Reading dexes at offset: %08X\n", offset);
 
         for(int i = 0; i < numDexes; i++) {
             int fileNameSize = readUint(buf, offset);
@@ -125,12 +132,15 @@ public class OatHeaderItem {
             int classDefsSize = readUint(buf, dexOffset + HeaderItem.CLASS_COUNT_OFFSET);
             offset += classDefsSize * 4;
 
-            //System.err.printf("Found dex: %s at offset %08x, next offset: %08x\n", name, dexOffset, offset);
-
             dexes.add(new DexItem(name, dexOffset, dexSize));
         }
 
         return dexes;
+    }
+
+    private static int getOatOffset(byte[] buf) {
+        // TODO: Remove hard-coded offset.
+        return 0x1000;
     }
 
     private static int readUint(byte[] buf, int offset) {

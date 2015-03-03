@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class DexBackedOatFile extends DexBackedDexFile {
+    private int version = -1;
     private String name;
     private DexBackedOatFile parent = null;
     private List<DexBackedDexFile> dexes = new ArrayList<DexBackedDexFile>();
@@ -60,6 +61,8 @@ public class DexBackedOatFile extends DexBackedDexFile {
     }
     public DexBackedOatFile(@Nonnull Opcodes opcodes, byte[] oatBuf, List<OatHeaderItem.DexItem> dexes) {
         super(opcodes, oatBuf, dexes.get(0).offset);
+
+        this.version = OatHeaderItem.getVersion(oatBuf);
 
         for(OatHeaderItem.DexItem dex: dexes) {
             byte[] dexBuf = new byte[dex.size];
@@ -101,6 +104,14 @@ public class DexBackedOatFile extends DexBackedDexFile {
 
     public List<DexBackedDexFile> getDexes() {
         return this.dexes;
+    }
+
+    public int getVersion() {
+        DexBackedOatFile oat = this;
+        while(oat.parent != null) {
+            oat = oat.parent;
+        }
+        return oat.version;
     }
 
     public String getName() {
