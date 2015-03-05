@@ -5,3 +5,6 @@
 /dexlib2/accessorTestGenerator/build
 /smali/build
 /util/build
+*.iml
+*.ipr
+*.iws

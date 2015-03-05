@@ -29,8 +29,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-configurations {
-    proguard
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath depends.proguard_gradle
+    }
 }
 
 dependencies {
@@ -41,8 +46,6 @@ dependencies {
 
     testCompile depends.junit
     testCompile project(':smali')
-
-    proguard depends.proguard
 }
 
 processResources.inputs.property('version', version)
@@ -59,11 +62,11 @@ task fatJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
-        attributes("Main-Class": "org.jf.baksmali.main")
+        attributes('Main-Class': 'org.jf.baksmali.main')
     }
 
     doLast {
-        if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
             ant.symlink(link: file("${destinationDir}/baksmali.jar"), resource: archivePath, overwrite: true)
         }
     }
@@ -81,22 +84,22 @@ uploadArchives {
     }
 }
 
-task proguard(type: JavaExec, dependsOn: fatJar) {
+task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
     def outFile = fatJar.destinationDir.getPath() + '/' + fatJar.baseName + '-' + fatJar.version + '-small' + '.' + fatJar.extension
-    inputs.file fatJar.archivePath
-    outputs.file outFile
 
-    classpath = configurations.proguard
-    main = 'proguard.ProGuard'
-    args '-injars ' + fatJar.archivePath
-    args '-outjars ' + outFile
-    args '-libraryjars ' + System.properties['java.home'] + '/lib/rt.jar'
-    args '-dontobfuscate'
-    args '-dontoptimize'
-    args '-keep public class org.jf.baksmali.main { public static void main(java.lang.String[]); }'
-    args '-keepclassmembers enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
-    args '-dontwarn com.google.common.**'
-    args '-dontnote com.google.common.**'
+    injars fatJar.archivePath
+    outjars outFile
+
+    libraryjars "${System.properties['java.home']}/lib/rt.jar"
+
+    dontobfuscate
+    dontoptimize
+
+    keep 'public class org.jf.baksmali.main { public static void main(java.lang.String[]); }'
+    keepclassmembers 'enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
+
+    dontwarn 'com.google.common.**'
+    dontnote 'com.google.common.**'
 }
 
 tasks.getByPath(':release').dependsOn(proguard)

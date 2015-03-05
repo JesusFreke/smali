@@ -39,7 +39,7 @@ if (!('release' in gradle.startParameter.taskNames)) {
     def versionSuffix
     try {
         def git = org.eclipse.jgit.api.Git.open(file('.'))
-        def head = git.getRepository().getRef("HEAD")
+        def head = git.getRepository().getRef('HEAD')
         versionSuffix = head.getObjectId().abbreviate(8).name()
 
         if (!git.status().call().clean) {
@@ -90,7 +90,8 @@ subprojects {
                    stringtemplate: 'org.antlr:stringtemplate:3.2.1',
                    commons_cli: 'commons-cli:commons-cli:1.2',
                    jflex: 'de.jflex:jflex:1.4.3',
-                   proguard: 'net.sf.proguard:proguard-base:4.8'
+                   jflex_plugin: 'co.tomlee.gradle.plugins:gradle-jflex-plugin:0.0.1',
+                   proguard_gradle: 'net.sf.proguard:proguard-gradle:5.1'
          ]
     }
 
@@ -124,7 +125,7 @@ subprojects {
         }
 
         signing {
-            required { gradle.taskGraph.hasTask("uploadArchives") }
+            required { gradle.taskGraph.hasTask('uploadArchives') }
             sign configurations.archives
         }
 
@@ -135,7 +136,7 @@ subprojects {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
                 if (rootProject.hasProperty('sonatypeUsername') && rootProject.hasProperty('sonatypePassword')) {
-                    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
                         authentication(userName: sonatypeUsername, password: sonatypePassword)
                     }
                 }
@@ -182,5 +183,5 @@ buildscript {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
+    gradleVersion = '2.3'
 }

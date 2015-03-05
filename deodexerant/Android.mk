@@ -39,4 +39,6 @@ LOCAL_SHARED_LIBRARIES := libdl
 
 LOCAL_MODULE_TAGS := optional
 
+LOCAL_LDFLAGS := -Wl,--hash-style=sysv
+
 include $(BUILD_EXECUTABLE)
