@@ -107,7 +107,7 @@ public class SmaliMethodParameter extends SmaliStubBasedPsiElement<SmaliMethodPa
         return null;
     }
 
-    @Override public String getName() {
+    @Nullable @Override public String getName() {
         SmaliMethodParameterStub stub = getStub();
         if (stub != null) {
             return stub.getName();

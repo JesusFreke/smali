@@ -923,22 +923,56 @@ add them to the $statements_and_directives::methodAnnotations list*/
 parameter_directive
   @init {
     Marker marker = mark();
-    Marker preAnnotationMarker = null;
-    Marker nameMarker = null;
+    Marker annotationsMarker = null;
+    boolean gotEndParam = false;
   }
   : PARAMETER_DIRECTIVE register
-    (comma { nameMarker = mark(); } string_literal { nameMarker.done(SmaliElementTypes.LOCAL_NAME); })?
-    { preAnnotationMarker = mark(); }
-    ({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation)*
-    ( END_PARAMETER_DIRECTIVE {
-        preAnnotationMarker.drop();
-        marker.done(SmaliElementTypes.PARAMETER_STATEMENT);
-      }
-    | /*epsilon*/ {
-        marker.doneBefore(SmaliElementTypes.PARAMETER_STATEMENT, preAnnotationMarker);
-        preAnnotationMarker.drop();
-      }
-    );
+    (comma local_name)?
+    { annotationsMarker = mark(); } parameter_annotations
+    ( end_parameter_directive { gotEndParam = true; } )?
+  {
+    if (gotEndParam) {
+      annotationsMarker.drop();
+      marker.done(SmaliElementTypes.PARAMETER_STATEMENT);
+    } else {
+      marker.doneBefore(SmaliElementTypes.PARAMETER_STATEMENT, annotationsMarker);
+      annotationsMarker.drop();
+    }
+  };
+  catch [RecognitionException re] {
+    if (annotationsMarker != null) {
+        annotationsMarker.drop();
+    }
+    recover(input, re);
+    reportError(marker, re, false);
+  }
+
+parameter_annotations
+  : ((ANNOTATION_DIRECTIVE)=> annotation)*;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
+
+end_parameter_directive
+  : END_PARAMETER_DIRECTIVE;
+
+local_name
+  @init {
+    Marker localNameMarker = mark();
+    Marker stringMarker = mark();
+  }
+  : STRING_LITERAL
+  {
+    finishToken(stringMarker, SmaliElementTypes.LITERAL);
+    finishToken(localNameMarker, SmaliElementTypes.LOCAL_NAME);
+  };
+  catch [RecognitionException re] {
+      stringMarker.drop();
+      recover(input, re);
+      reportError(localNameMarker, re, false);
+  }
 
 register
   @init { Marker marker = mark(); }

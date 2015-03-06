@@ -1,0 +1,10 @@
+.method public blah()V
+    .param v0, "blah"
+      .a
+.end method
+
+.method public blah()V
+    .param v0, "blah"
+    .annotation runtime Lblah; .end annotation
+    .
+.end method
