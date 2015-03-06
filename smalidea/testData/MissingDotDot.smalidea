@@ -1,0 +1,9 @@
+.method public blah()V
+    invoke-virtual/range {v0 v1}, Lblah;->blah()V
+
+    invoke-virtual/range {v0 .blah v1}, Lblah;->blah()V
+
+    .catch Ljava/lang/Exception; { :blah1 :blah2 } :blah3
+
+    .catch Ljava/lang/Exception; { :blah1 .blah :blah2 } :blah3
+.end method

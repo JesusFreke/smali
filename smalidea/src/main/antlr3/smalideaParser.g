@@ -476,6 +476,14 @@ colon
     reportError(errorMarker, re, false);
   }
 
+dotdot
+  : DOTDOT;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
+
 param_list_inner
   : param+;
   catch [RecognitionException re] {
@@ -885,14 +893,14 @@ register_list
   : open_brace (register (comma register)*)? close_brace;
 
 register_range
-  : open_brace (register (DOTDOT register)?)? close_brace;
+  : open_brace (register (dotdot register)?)? close_brace;
 
 verification_error_reference
   : class_descriptor | fully_qualified_field | fully_qualified_method;
 
 catch_directive
   @init { Marker marker = mark(); }
-  : CATCH_DIRECTIVE nonvoid_type_descriptor open_brace label_ref DOTDOT label_ref close_brace label_ref
+  : CATCH_DIRECTIVE nonvoid_type_descriptor open_brace label_ref dotdot label_ref close_brace label_ref
   { marker.done(SmaliElementTypes.CATCH_STATEMENT); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -901,7 +909,7 @@ catch_directive
 
 catchall_directive
   @init { Marker marker = mark(); }
-  : CATCHALL_DIRECTIVE open_brace label_ref DOTDOT label_ref close_brace label_ref
+  : CATCHALL_DIRECTIVE open_brace label_ref dotdot label_ref close_brace label_ref
   { marker.done(SmaliElementTypes.CATCH_ALL_STATEMENT); };
   catch [RecognitionException re] {
     recover(input, re);
