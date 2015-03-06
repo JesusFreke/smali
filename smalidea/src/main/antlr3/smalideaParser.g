@@ -755,6 +755,15 @@ literal
     reportError(errorMarker, re, false);
   }
 
+string_or_null_literal
+  : string_literal
+  | null_literal;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
+
 integral_literal
   : long_literal
   | integer_literal
@@ -770,7 +779,7 @@ integral_literal
 fixed_32bit_literal
   : long_literal
   | integer_literal
-  | short_literal
+      | short_literal
   | byte_literal
   | float_literal
   | char_literal
@@ -1003,7 +1012,7 @@ line_directive
 
 local_directive
   @init { Marker marker = mark(); }
-  : LOCAL_DIRECTIVE register (comma (null_literal | string_literal) colon (void_type | nonvoid_type_descriptor)
+  : LOCAL_DIRECTIVE register (comma string_or_null_literal colon type_descriptor
                               (comma string_literal)? )?
   { marker.done(SmaliElementTypes.LOCAL_DEBUG_STATEMENT); };
   catch [RecognitionException re] {
