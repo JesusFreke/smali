@@ -692,7 +692,6 @@ enum_literal
     reportError(marker, re, false);
   }
 
-// TODO: check missing initial token
 type_field_method_literal
   @init { Marker marker = mark(); }
   : ( reference_type_descriptor
@@ -710,7 +709,6 @@ type_field_method_literal
     reportError(marker, re, false);
   }
 
-// TODO: check missing initial token
 subannotation
   @init { Marker marker = mark(); }
   : SUBANNOTATION_DIRECTIVE class_descriptor annotation_element* end_subannotation_directive
@@ -847,7 +845,6 @@ arrow
     reportError(errorMarker, re, false);
   }
 
-// TODO: check missing initial token
 fully_qualified_method
   @init { Marker marker = mark(); }
   : reference_type_descriptor arrow member_name method_prototype_reference
@@ -857,7 +854,6 @@ fully_qualified_method
     reportError(marker, re, false);
   }
 
-// TODO: check missing initial token
 fully_qualified_field
   @init { Marker marker = mark(); }
   : reference_type_descriptor arrow member_name colon nonvoid_type_descriptor
@@ -867,7 +863,6 @@ fully_qualified_field
     reportError(marker, re, false);
   }
 
-// TODO: check missing initial token
 label
   @init { Marker marker = mark(); }
   : colon simple_name
@@ -877,7 +872,6 @@ label
     reportError(marker, re, false);
   }
 
-// TODO: check missing initial token
 label_ref
   @init { Marker marker = mark(); }
   : colon simple_name
