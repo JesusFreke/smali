@@ -48,11 +48,13 @@ import com.sun.jdi.ReferenceType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jf.smalidea.SmaliIcons;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliClassStub;
 
 import javax.annotation.Nonnull;
+import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
 
@@ -329,5 +331,9 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
                                        PsiElement lastParent, @NotNull PsiElement place) {
         return PsiClassImplUtil.processDeclarationsInClass(this, processor, state, null, lastParent, place,
                 PsiUtil.getLanguageLevel(place), false);
+    }
+
+    @Nullable @Override protected Icon getElementIcon(@IconFlags int flags) {
+        return SmaliIcons.SmaliIcon;
     }
 }
