@@ -1320,7 +1320,15 @@ insn_packed_switch_directive
   : PACKED_SWITCH_DIRECTIVE
     fixed_32bit_literal
     packed_switch_element*
-    END_PACKED_SWITCH_DIRECTIVE;
+    end_packed_switch_directive;
+
+end_packed_switch_directive
+  : END_PACKED_SWITCH_DIRECTIVE;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 packed_switch_element
   @init { Marker marker = mark(); }

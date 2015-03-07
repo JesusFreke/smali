@@ -14,3 +14,10 @@ invoke-virtual {v1, v2} .blah Lblah;->blah()V
     2
   .blah
 .end method
+
+.method blah4()V
+  .packed-switch 1
+    :blah
+    :blah2
+  .blah
+.end method
