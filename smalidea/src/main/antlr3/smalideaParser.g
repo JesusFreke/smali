@@ -1297,7 +1297,15 @@ insn_format51l
 insn_array_data_directive
   : ARRAY_DATA_DIRECTIVE
     integer_literal
-    array_data_element* END_ARRAY_DATA_DIRECTIVE;
+    array_data_element* end_array_data_directive;
+
+end_array_data_directive
+  : END_ARRAY_DATA_DIRECTIVE;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 array_data_element
   @init { Marker marker = mark(); }

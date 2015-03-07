@@ -7,3 +7,10 @@ invoke-virtual .blah v0}, Lblah;->blah()V
 .registers 1
 invoke-virtual {v1, v2} .blah Lblah;->blah()V
 .end method
+
+.method blah3()V
+  .array-data 4
+    1
+    2
+  .blah
+.end method
