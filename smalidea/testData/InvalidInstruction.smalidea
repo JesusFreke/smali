@@ -21,3 +21,11 @@ invoke-virtual {v1, v2} .blah Lblah;->blah()V
     :blah2
   .blah
 .end method
+
+.method blah5()V
+  .sparse-switch
+    1 -> :blah
+    3 -> :blah2
+    5 -> :blah3
+  .blah
+.end method

@@ -1342,7 +1342,15 @@ packed_switch_element
 insn_sparse_switch_directive
   : SPARSE_SWITCH_DIRECTIVE
     sparse_switch_element*
-    END_SPARSE_SWITCH_DIRECTIVE;
+    end_sparse_switch_directive;
+
+end_sparse_switch_directive
+  : END_SPARSE_SWITCH_DIRECTIVE;
+  catch [RecognitionException re] {
+    Marker errorMarker = mark();
+    recover(input, re);
+    reportError(errorMarker, re, false);
+  }
 
 sparse_switch_element
   @init { Marker marker = mark(); }
