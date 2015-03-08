@@ -26,6 +26,9 @@
                                  implementation="org.jf.smalidea.debugging.SmaliDebuggerSupport"/>
       <debugger.codeFragmentFactory implementation="org.jf.smalidea.debugging.SmaliCodeFragmentFactory"/>
       <stubElementTypeHolder class="org.jf.smalidea.psi.SmaliElementTypes" />
+      <lang.findUsagesProvider language="smali"
+                               implementationClass="org.jf.smalidea.findUsages.SmaliFindUsagesProvider"/>
+      <referencesSearch implementation="org.jf.smalidea.findUsages.SmaliClassReferenceSearcher"/>
   </extensions>
 
   <application-components>

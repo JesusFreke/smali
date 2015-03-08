@@ -112,7 +112,7 @@ public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCo
     }
 
     @Override public boolean isReferenceTo(PsiElement element) {
-        if (!(element instanceof PsiClassType)) {
+        if (!(element instanceof PsiClass)) {
             return false;
         }
         return element.getManager().areElementsEquivalent(element, resolve());
