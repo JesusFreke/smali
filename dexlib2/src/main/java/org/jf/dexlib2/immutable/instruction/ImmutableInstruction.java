@@ -121,6 +121,8 @@ public abstract class ImmutableInstruction implements Instruction {
                 return ImmutableInstruction3rms.of((Instruction3rms)instruction);
             case Format51l:
                 return ImmutableInstruction51l.of((Instruction51l)instruction);
+            case FormatTwoOp:
+                return ImmutableInstructionTwoOp.of((InstructionTwoOp)instruction);
             case PackedSwitchPayload:
                 return ImmutablePackedSwitchPayload.of((PackedSwitchPayload) instruction);
             case SparseSwitchPayload:

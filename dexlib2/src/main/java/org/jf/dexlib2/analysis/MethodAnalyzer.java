@@ -37,6 +37,8 @@ import com.google.common.collect.Lists;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.debug.*;
+import org.jf.dexlib2.dexbacked.instruction.DexBackedInstructionTwoOp;
 import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
@@ -46,6 +48,7 @@ import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
 import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
+import org.jf.dexlib2.immutable.reference.ImmutableTypeReference;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.util.TypeUtils;
@@ -55,6 +58,7 @@ import org.jf.util.SparseArray;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
@@ -91,6 +95,10 @@ public class MethodAnalyzer {
     //successors, e.g. the first real instruction, the first instructions in any exception handlers covering the first
     //instruction, etc.
     private final AnalyzedInstruction startOfMethod;
+
+    // This is a list of nop-nop opcodes found that need to, at some point, be unoptimised back
+    // to a check-cast call.
+    private final SparseArray<AnalyzedInstruction> nopNopsFound = new SparseArray<AnalyzedInstruction>(0);
 
     public MethodAnalyzer(@Nonnull ClassPath classPath, @Nonnull Method method,
                           @Nullable InlineMethodResolver inlineResolver) {
@@ -135,6 +143,10 @@ public class MethodAnalyzer {
         analyzedState = new BitSet(analyzedInstructions.size());
         paramRegisterCount = MethodUtil.getParameterRegisterCount(method);
         analyze();
+
+        if(nopNopsFound.size() > 0) {
+            //System.out.printf("WARNING: Stray nop-nop found in %s->%s!\n", method.getDefiningClass(), method.getName());
+        }
     }
 
     private void analyze() {
@@ -192,7 +204,7 @@ public class MethodAnalyzer {
                     }
                     AnalyzedInstruction instructionToAnalyze = analyzedInstructions.valueAt(i);
                     try {
-                        if (instructionToAnalyze.originalInstruction.getOpcode().odexOnly()) {
+                        if (instructionToAnalyze.originalInstruction.getOpcode().odexOnly() || instructionToAnalyze.originalInstruction.getOpcode().oatOnly()) {
                             //if we had deodexed an odex instruction in a previous pass, we might have more specific
                             //register information now, so let's restore the original odexed instruction and
                             //re-deodex it
@@ -247,7 +259,7 @@ public class MethodAnalyzer {
 
             Instruction instruction = analyzedInstruction.getInstruction();
 
-            if (instruction.getOpcode().odexOnly()) {
+            if (instruction.getOpcode().odexOnly() || instruction.getOpcode().oatOnly()) {
                 int objectRegisterNumber;
                 switch (instruction.getOpcode().format) {
                     case Format10x:
@@ -335,14 +347,18 @@ public class MethodAnalyzer {
 
     private void setPostRegisterTypeAndPropagateChanges(@Nonnull AnalyzedInstruction analyzedInstruction,
                                                         int registerNumber, @Nonnull RegisterType registerType) {
+        setPostRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber, registerType, false);
+    }
 
+    private void setPostRegisterTypeAndPropagateChanges(@Nonnull AnalyzedInstruction analyzedInstruction,
+                                                        int registerNumber, @Nonnull RegisterType registerType, boolean force) {
         BitSet changedInstructions = new BitSet(analyzedInstructions.size());
 
         if (!analyzedInstruction.setPostRegisterType(registerNumber, registerType)) {
             return;
         }
 
-        propagateRegisterToSuccessors(analyzedInstruction, registerNumber, changedInstructions);
+        propagateRegisterToSuccessors(analyzedInstruction, registerNumber, changedInstructions, force);
 
         //Using a for loop inside the while loop optimizes for the common case of the successors of an instruction
         //occurring after the instruction. Any successors that occur prior to the instruction will be picked up on
@@ -358,7 +374,7 @@ public class MethodAnalyzer {
                 changedInstructions.clear(instructionIndex);
 
                 propagateRegisterToSuccessors(analyzedInstructions.valueAt(instructionIndex), registerNumber,
-                        changedInstructions);
+                        changedInstructions, force);
             }
         }
 
@@ -372,10 +388,10 @@ public class MethodAnalyzer {
     }
 
     private void propagateRegisterToSuccessors(@Nonnull AnalyzedInstruction instruction, int registerNumber,
-                                               @Nonnull BitSet changedInstructions) {
+                                               @Nonnull BitSet changedInstructions, boolean force) {
         RegisterType postRegisterType = instruction.getPostInstructionRegisterType(registerNumber);
         for (AnalyzedInstruction successor: instruction.successors) {
-            if (successor.mergeRegister(registerNumber, postRegisterType, analyzedState)) {
+            if (successor.mergeRegister(registerNumber, postRegisterType, analyzedState, force)) {
                 changedInstructions.set(successor.instructionIndex);
             }
         }
@@ -392,6 +408,7 @@ public class MethodAnalyzer {
         int currentCodeAddress = 0;
         for (int i=0; i<instructions.size(); i++) {
             Instruction instruction = instructions.get(i);
+
             analyzedInstructions.append(currentCodeAddress, new AnalyzedInstruction(instruction, i, registerCount));
             assert analyzedInstructions.indexOfKey(currentCodeAddress) == i;
             currentCodeAddress += instruction.getCodeUnits();
@@ -481,9 +498,55 @@ public class MethodAnalyzer {
                     int targetAddressOffset = offsetInstruction.getCodeOffset();
                     AnalyzedInstruction targetInstruction = analyzedInstructions.get(instructionCodeAddress +
                             targetAddressOffset);
-                    addPredecessorSuccessor(instruction, targetInstruction, exceptionHandlers, instructionsToProcess);
+
+                    if(targetInstruction == null) {
+                        System.err.println("offset invalid: " + instructionCodeAddress + ", target: " + targetAddressOffset);
+                    } else {
+                        addPredecessorSuccessor(instruction, targetInstruction, exceptionHandlers, instructionsToProcess);
+                    }
                 }
             }
+        }
+
+        /*
+            ART may sometimes optimise a check-cast call to two nop's 
+            when the instruction has a local debug item, so we need
+            to turn the two nop's back into a check-cast call.
+        */
+        for(int i = 0; i < analyzedInstructions.size(); i++) {
+            AnalyzedInstruction analyzedInstruction = analyzedInstructions.valueAt(i);
+            Opcode instructionOpcode = analyzedInstruction.instruction.getOpcode();
+            if(instructionOpcode != Opcode.OAT_NOP_NOP || !(analyzedInstruction.instruction instanceof DexBackedInstructionTwoOp)) {
+                continue;
+            }
+
+            AnalyzedInstruction nextInstruction = analyzedInstructions.valueAt(analyzedInstruction.instructionIndex+1);
+            int codeAddress = getInstructionAddress(nextInstruction);
+            StartLocal registerItem = null;
+            for (DebugItem debugItem: methodImpl.getDebugItems()) {
+                if (debugItem.getCodeAddress() == codeAddress) {
+                    if (debugItem instanceof StartLocal) {
+                        StartLocal startItem = (StartLocal)debugItem;
+                        registerItem = startItem;
+                    }
+                }
+            }
+
+            //System.out.printf("Found nop-nop\n");
+
+            // No local register item found, add it to the list for analysis later.
+            if (registerItem == null) {
+                nopNopsFound.put(analyzedInstructions.keyAt(i), analyzedInstruction);
+
+                continue;
+            }
+
+            Reference typeDef = new ImmutableTypeReference(registerItem.getTypeReference().getType());
+
+            DexBackedInstructionTwoOp instruction = (DexBackedInstructionTwoOp) analyzedInstruction.instruction;
+            instruction.setRegisterReference(Opcode.CHECK_CAST, registerItem.getRegister(), typeDef);
+
+            analyzedInstructions.setValueAt(i, analyzedInstruction);
         }
     }
 
@@ -735,6 +798,7 @@ public class MethodAnalyzer {
                 return true;
             case INVOKE_VIRTUAL:
             case INVOKE_SUPER:
+                analyzeInvoke(analyzedInstruction);
                 return true;
             case INVOKE_DIRECT:
                 analyzeInvokeDirect(analyzedInstruction);
@@ -743,12 +807,14 @@ public class MethodAnalyzer {
             case INVOKE_INTERFACE:
             case INVOKE_VIRTUAL_RANGE:
             case INVOKE_SUPER_RANGE:
+                analyzeInvoke(analyzedInstruction);
                 return true;
             case INVOKE_DIRECT_RANGE:
                 analyzeInvokeDirectRange(analyzedInstruction);
                 return true;
             case INVOKE_STATIC_RANGE:
             case INVOKE_INTERFACE_RANGE:
+                analyzeInvoke(analyzedInstruction);
                 return true;
             case NEG_INT:
             case NOT_INT:
@@ -969,6 +1035,29 @@ public class MethodAnalyzer {
             case SPUT_OBJECT_VOLATILE:
                 analyzePutGetVolatile(analyzedInstruction);
                 return true;
+
+            /* OAT opcodes */
+            case OAT_RETURN_VOID_BARRIER:
+                analyzeReturnVoidBarrier(analyzedInstruction);
+                return true;
+            case OAT_IGET_QUICK:
+            case OAT_IGET_WIDE_QUICK:
+            case OAT_IGET_OBJECT_QUICK:
+            case OAT_IPUT_QUICK:
+            case OAT_IPUT_WIDE_QUICK:
+            case OAT_IPUT_OBJECT_QUICK:
+            case OAT_IPUT_BYTE_QUICK:
+            case OAT_IPUT_BOOLEAN_QUICK:
+            case OAT_IPUT_CHAR_QUICK:
+            case OAT_IPUT_SHORT_QUICK:
+                return analyzeIputIgetQuick(analyzedInstruction);
+            case OAT_INVOKE_VIRTUAL_QUICK:
+                return analyzeInvokeVirtualQuick(analyzedInstruction, false, false);
+            case OAT_INVOKE_VIRTUAL_QUICK_RANGE:
+                return analyzeInvokeVirtualQuick(analyzedInstruction, false, true);
+            case OAT_NOP_NOP:
+                analyzeCheckCast(analyzedInstruction);
+                return true;
             default:
                 assert false;
                 return true;
@@ -1103,6 +1192,10 @@ public class MethodAnalyzer {
     private void analyzeCheckCast(@Nonnull AnalyzedInstruction analyzedInstruction) {
         ReferenceInstruction instruction = (ReferenceInstruction)analyzedInstruction.instruction;
         TypeReference reference = (TypeReference)instruction.getReference();
+        if(reference == null && instruction instanceof DexBackedInstructionTwoOp) {
+            return;
+        }
+
         RegisterType castRegisterType = RegisterType.getRegisterType(classPath, reference);
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, castRegisterType);
     }
@@ -1227,12 +1320,173 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, fieldType);
     }
 
+    private void analyzeInvoke(@Nonnull AnalyzedInstruction analyzedInstruction) {
+        if(nopNopsFound.size() == 0) {
+            return;
+        }
+
+        if(!(analyzedInstruction.instruction instanceof ReferenceInstruction)) {
+            //System.out.printf("Not a reference instruction\n");
+            return;
+        }
+
+        boolean isStatic = analyzedInstruction.instruction.getOpcode() == Opcode.INVOKE_STATIC ||
+            analyzedInstruction.instruction.getOpcode() == Opcode.INVOKE_STATIC_RANGE;
+
+        ReferenceInstruction referenceInstruction = (ReferenceInstruction) analyzedInstruction.instruction;
+        MethodReference methodReference = (MethodReference) referenceInstruction.getReference();
+
+        analyzeInvokeCommon(analyzedInstruction, methodReference, isStatic);     
+    }
+
+    private void analyzeInvokeCommon(@Nonnull AnalyzedInstruction analyzedInstruction, @Nonnull MethodReference methodReference, boolean isStatic) {
+        List<? extends CharSequence> params = methodReference.getParameterTypes();
+        if(isStatic && params.size() == 0) {
+            //System.out.printf("Is static params == 0\n");
+            return;
+        }
+
+        if(!isStatic) {
+            String expectedType = methodReference.getDefiningClass();
+            int registerNumber = registerMethodTypeMatch(analyzedInstruction, 0, expectedType);
+            if(registerNumber >= 0) {
+                checkNopNopExists(analyzedInstruction, registerNumber, expectedType);
+            } 
+        }
+
+        // Check parameters
+        int startIndex = (isStatic)?0:1;
+        for(int i = 0; i < params.size(); i++) {
+            String expectedType = (String) params.get(i);
+            int registerNumber = registerMethodTypeMatch(analyzedInstruction, startIndex + i, expectedType);
+            if(registerNumber >= 0) {
+                checkNopNopExists(analyzedInstruction, registerNumber, expectedType);
+            }
+
+            // long (J) and double (D) take up two registers.
+            if(expectedType.length() == 1) {
+                char type = expectedType.charAt(0);
+                if(type == 'J' || type == 'D') {
+                    startIndex++;
+                }
+            }
+        }
+    }
+
+    // Check if a nop-nop exists in this instruction's predecessors that can be
+    // transformed into a check-cast call.
+    private void checkNopNopExists(@Nonnull AnalyzedInstruction analyzedInstruction, int registerNumber, String registerType) {
+        if(nopNopsFound.size() == 0) {
+            return;
+        }
+
+        int key = getMatchingNopNop(analyzedInstruction);
+        if(key >= 0) {
+            AnalyzedInstruction nopnopInstruction = analyzedInstructions.get(key);
+
+            //System.out.printf("Nop-nop found %d %s in %s->%s\n", registerNumber, registerType, method.getDefiningClass(), method.getName());
+
+            TypeReference typeDef = new ImmutableTypeReference(registerType);
+
+            DexBackedInstructionTwoOp instr = (DexBackedInstructionTwoOp) nopnopInstruction.instruction;
+            instr.setRegisterReference(Opcode.CHECK_CAST, registerNumber, typeDef);
+
+            analyzeCheckCast(nopnopInstruction);
+
+            RegisterType castRegisterType = RegisterType.getRegisterType(classPath, typeDef);
+            setPostRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber, castRegisterType, true);
+        } else {
+            //System.out.printf("Nop-nop not found in %s->%s %d %s!\n", method.getDefiningClass(), method.getName(), registerNumber, registerType);
+        }
+    }
+
+    private int getMatchingNopNop(AnalyzedInstruction instruction) {
+        for(int i = 0; i < nopNopsFound.size(); i++) {
+            AnalyzedInstruction nopnop = nopNopsFound.valueAt(i);
+            if(isPredecessorNopNop(instruction, nopnop)) {
+                return nopNopsFound.keyAt(i);
+            }
+        }
+
+        return -1;
+    }
+
+    private boolean isPredecessorNopNop(AnalyzedInstruction instruction, AnalyzedInstruction nopnop) {
+        if(instruction == null) {
+            return false;
+        }
+
+        for(AnalyzedInstruction predecessor: instruction.predecessors) {
+            if(predecessor.equals(nopnop)) {
+                return true;
+            }
+
+            return isPredecessorNopNop(predecessor, nopnop);
+        }
+
+        return false;
+    }
+
+    private int registerMethodTypeMatch(AnalyzedInstruction analyzedInstruction, int index, String type) {
+        int register;
+        if(analyzedInstruction.instruction instanceof FiveRegisterInstruction) {
+            FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
+            int registers[] = {instruction.getRegisterC(), instruction.getRegisterD(), instruction.getRegisterE(), instruction.getRegisterF(), instruction.getRegisterG()};
+            register = registers[index];
+        } else if(analyzedInstruction.instruction instanceof RegisterRangeInstruction) {
+            RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
+            register = instruction.getStartRegister() + index;
+        } else {
+            return -1;
+        }
+
+        RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
+        if((registerType.type != null && registerType.type.getType().equals(type)) || 
+            registerType.category < RegisterType.UNINIT_REF) {
+            return -1;
+        }
+
+        RegisterType expectedRegisterType = RegisterType.getRegisterType(classPath, type);
+        if(registerType.type == null && expectedRegisterType.type != null) {
+            return register;
+        }
+
+        // Check super classes first.
+        ClassDef methodClass = classPath.getClassDef(registerType.type.getType());
+        while(methodClass != null) {
+            if(methodClass.getType().equals(type)) {
+                return -1;
+            }
+
+            String superclass = methodClass.getSuperclass();
+            if(superclass == null) {
+                break;
+            }
+
+            methodClass = classPath.getClassDef(superclass);
+        }
+
+        // Then check interfaces.
+        methodClass = classPath.getClassDef(registerType.type.getType());
+        for(String interfaceClass: methodClass.getInterfaces()) {
+            if(interfaceClass.equals(type)) {
+                return -1;
+            }
+        }
+
+        return register;
+    }
+
     private void analyzeInvokeDirect(@Nonnull AnalyzedInstruction analyzedInstruction) {
+        analyzeInvoke(analyzedInstruction);
+
         FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.instruction;
         analyzeInvokeDirectCommon(analyzedInstruction, instruction.getRegisterC());
     }
 
     private void analyzeInvokeDirectRange(@Nonnull AnalyzedInstruction analyzedInstruction) {
+        analyzeInvoke(analyzedInstruction);
+
         RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.instruction;
         analyzeInvokeDirectCommon(analyzedInstruction, instruction.getStartRegister());
     }
@@ -1529,9 +1783,20 @@ public class MethodAnalyzer {
         TypeProto classTypeProto = classPath.getClass(objectRegisterTypeProto.getType());
         FieldReference resolvedField = classTypeProto.getFieldByOffset(fieldOffset);
 
+        /*if(!resolvedField.getType().startsWith("L")) {
+            ClassProto classProto = (ClassProto)classPath.getClass(method.getDefiningClass());
+            SparseArray<FieldReference> instanceFields = classProto.getInstanceFields();
+            for(int i = 0; i < instanceFields.size(); i++) {
+                FieldReference fieldRef = instanceFields.valueAt(i);
+                if(!resolvedField.equals(fieldRef) && fieldRef.getName().equals(resolvedField.getName())) {
+                    System.out.printf("Fields in %s - %s vs %s - %s@0x%x\n", method.getDefiningClass(), resolvedField.getName(), fieldRef.getName(), instruction.getOpcode().name, fieldOffset);
+                }
+            }
+        }*/
+
         if (resolvedField == null) {
-            throw new AnalysisException("Could not resolve the field in class %s at offset %d",
-                    objectRegisterType.type.getType(), fieldOffset);
+            throw new AnalysisException("Could not resolve the field in class %s at offset %d, from %s->%s",
+                    objectRegisterType.type.getType(), fieldOffset, method.getDefiningClass(), method.getName());
         }
 
         ClassDef thisClass = classPath.getClassDef(method.getDefiningClass());
@@ -1657,6 +1922,14 @@ public class MethodAnalyzer {
                     resolvedMethod.getParameterTypes(), resolvedMethod.getReturnType());
         }
 
+        if(!isSuper) {
+            try {
+                resolvedMethod = ensureCanCallMethod(resolvedMethod, methodIndex);
+            } catch(Exception e) {
+                // Ignore...
+            }
+        }
+
         Instruction deodexedInstruction;
         if (isRange) {
             Instruction3rms instruction = (Instruction3rms)analyzedInstruction.instruction;
@@ -1687,6 +1960,65 @@ public class MethodAnalyzer {
         analyzeInstruction(analyzedInstruction);
 
         return true;
+    }
+
+    /*
+        This is an odd one.
+        Deodexing sometimes causes an invoke to call the method of a class that extends an
+        abstract class, and that method may not always be public, even though the super abstract method is.
+        This causes an access exception, since other classes don't always have access to the instance method.
+        It should be noted that according to the java specifications you cannot assign weaker access,
+        ie, you cannot make an override protected if the super method is public. So I have no idea what's
+        going on here.
+
+        You can see this behaviour in Google Maps:
+        com/google/android/apps/gmm/map/ui/BaseCompassButtonView is an abstract class declaring some
+            public abstract methods.
+        com/google/android/apps/gmm/base/views/CompassButtonView extends BaseCompassButtonView and overrides
+            the methods found in there, but with a weaker access (protected versus public).
+    */
+    private MethodReference ensureCanCallMethod(@Nonnull MethodReference resolvedMethod, int methodIndex) {
+        // Only check methods.
+        if(!(resolvedMethod instanceof Method)) {
+            return resolvedMethod;
+        }
+
+        ClassDef thisClass = classPath.getClassDef(method.getDefiningClass());
+        ClassDef methodClass = classPath.getClassDef(resolvedMethod.getDefiningClass());
+
+        String thisPackage = getPackage(thisClass.getType());
+        String methodPackage = getPackage(methodClass.getType());
+
+        Method methodMethod = (Method) resolvedMethod;
+        if (thisPackage.equals(methodPackage) || AccessFlags.PUBLIC.isSet(methodMethod.getAccessFlags())) {
+            return resolvedMethod;
+        }
+
+        TypeProto typeProto = classPath.getClass(methodMethod.getDefiningClass());
+        TypeProto superType = typeProto;
+
+        // Loop through the supers trying to find a valid method.
+        String superclassType;
+        while((superclassType = superType.getSuperclass()) != null) {
+            superType = classPath.getClass(superclassType);
+
+            MethodReference newResolvedMethod = superType.getMethodByVtableIndex(methodIndex);
+            if(newResolvedMethod instanceof Method) {
+                Method newMethod = (Method)newResolvedMethod;
+
+                // Look for an abstract method, this should ALWAYS be callable from children.
+                if (AccessFlags.ABSTRACT.isSet(newMethod.getAccessFlags())) {
+                    methodClass = classPath.getClassDef(newMethod.getDefiningClass());
+                    resolvedMethod = newResolvedMethod;
+                    resolvedMethod = new ImmutableMethodReference(methodClass.getType(), resolvedMethod.getName(),
+                        resolvedMethod.getParameterTypes(), resolvedMethod.getReturnType());
+
+                    break;
+                }
+            }
+        }
+
+        return resolvedMethod;
     }
 
     private boolean canAccessClass(@Nonnull ClassDef accessorClassDef, @Nonnull ClassDef accesseeClassDef) {

@@ -107,7 +107,30 @@ public class OdexedFieldInstructionMapper {
                                 /*J,D*/ Opcode.SGET_WIDE,
                                 /*L,[*/ Opcode.SGET_OBJECT
                             }
-                    }
+                    },
+                    //ART iget quick
+                    new Opcode[][] {
+                            //odexed
+                            new Opcode[] {
+                                /*Z*/   Opcode.OAT_IGET_QUICK,
+                                /*B*/   Opcode.OAT_IGET_QUICK,
+                                /*S*/   Opcode.OAT_IGET_QUICK,
+                                /*C*/   Opcode.OAT_IGET_QUICK,
+                                /*I,F*/ Opcode.OAT_IGET_QUICK,
+                                /*J,D*/ Opcode.OAT_IGET_WIDE_QUICK,
+                                /*L,[*/ Opcode.OAT_IGET_OBJECT_QUICK
+                            },
+                            //deodexed
+                            new Opcode[] {
+                                /*Z*/   Opcode.IGET_BOOLEAN,
+                                /*B*/   Opcode.IGET_BYTE,
+                                /*S*/   Opcode.IGET_SHORT,
+                                /*C*/   Opcode.IGET_CHAR,
+                                /*I,F*/ Opcode.IGET,
+                                /*J,D*/ Opcode.IGET_WIDE,
+                                /*L,[*/ Opcode.IGET_OBJECT
+                            }
+                    },
             },
             //put opcodes
             new Opcode[][][] {
@@ -179,7 +202,30 @@ public class OdexedFieldInstructionMapper {
                                 /*J,D*/ Opcode.SPUT_WIDE,
                                 /*L,[*/ Opcode.SPUT_OBJECT
                             }
-                    }
+                    },
+                    //ART iput quick
+                    new Opcode[][] {
+                            //odexed
+                            new Opcode[] {
+                                /*Z*/   Opcode.OAT_IPUT_QUICK,
+                                /*B*/   Opcode.OAT_IPUT_QUICK,
+                                /*S*/   Opcode.OAT_IPUT_QUICK,
+                                /*C*/   Opcode.OAT_IPUT_QUICK,
+                                /*I,F*/ Opcode.OAT_IPUT_QUICK,
+                                /*J,D*/ Opcode.OAT_IPUT_WIDE_QUICK,
+                                /*L,[*/ Opcode.OAT_IPUT_OBJECT_QUICK
+                            },
+                            //deodexed
+                            new Opcode[] {
+                                /*Z*/   Opcode.IPUT_BOOLEAN,
+                                /*B*/   Opcode.IPUT_BYTE,
+                                /*S*/   Opcode.IPUT_SHORT,
+                                /*C*/   Opcode.IPUT_CHAR,
+                                /*I,F*/ Opcode.IPUT,
+                                /*J,D*/ Opcode.IPUT_WIDE,
+                                /*L,[*/ Opcode.IPUT_OBJECT
+                            }
+                    },
             }
     };
 
@@ -208,12 +254,22 @@ public class OdexedFieldInstructionMapper {
     }
 
     private static int getOpcodeSubtype(@Nonnull Opcode opcode) {
-        if (opcode.isOdexedInstanceQuick()) {
-            return 0;
-        } else if (opcode.isOdexedInstanceVolatile()) {
-            return 1;
-        } else if (opcode.isOdexedStaticVolatile()) {
-            return 2;
+        if (opcode.oatOnly()) {
+            if (opcode.isOdexedInstanceQuick()) {
+                return 3;
+            } else if (opcode.isOdexedInstanceVolatile()) {
+                return 1;
+            } else if (opcode.isOdexedStaticVolatile()) {
+                return 2;
+            }
+        } else {
+            if (opcode.isOdexedInstanceQuick()) {
+                return 0;
+            } else if (opcode.isOdexedInstanceVolatile()) {
+                return 1;
+            } else if (opcode.isOdexedStaticVolatile()) {
+                return 2;
+            }
         }
         throw new RuntimeException(String.format("Not an odexed field access opcode: %s", opcode.name));
     }

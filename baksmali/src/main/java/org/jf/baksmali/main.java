@@ -34,6 +34,8 @@ import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
+import org.jf.dexlib2.dexbacked.DexBackedOatFile;
+import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
@@ -255,6 +257,12 @@ public class main {
         //Read in and parse the dex file
         DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile, options.dexEntry, options.apiLevel);
 
+        // Force the api level to 21 or higher for oat files.
+        if(dexFile instanceof DexBackedOatFile) {
+            if(options.apiLevel < 21)
+                options.apiLevel = 21;
+        }
+
         if (dexFile.isOdexFile()) {
             if (!options.deodex) {
                 System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
@@ -280,15 +288,43 @@ public class main {
         }
 
         boolean errorOccurred = false;
-        if (disassemble) {
-            errorOccurred = !baksmali.disassembleDexFile(dexFile, options);
-        }
+        if (dexFile instanceof DexBackedOatFile) {
+            DexBackedOatFile oatFile = (DexBackedOatFile)dexFile;
 
-        if (doDump) {
-            if (dumpFileName == null) {
-                dumpFileName = commandLine.getOptionValue(inputDexFileName + ".dump");
+            if (oatFile.getDexes().size() > 1) {
+                System.err.println("Warning: Multiple dexes inside OAT found - will output contents");
+                System.err.println("to sub-folders inside \"" + options.outputDirectory + "\".");
             }
-            dump.dump(dexFile, dumpFileName, options.apiLevel);
+
+            boolean setClassPath = true;
+
+            for(DexBackedDexFile oat: oatFile.getDexes()) {
+                if (disassemble) {
+                    errorOccurred = !baksmali.disassembleDexFile(oat, options, setClassPath, oatFile.getDexes().size() > 1);
+                    setClassPath = false;
+                }
+
+                if (doDump) {
+                    if (dumpFileName == null) {
+                        dumpFileName = commandLine.getOptionValue(inputDexFileName + ".dump");
+                    }
+                    dump.dump(oat, dumpFileName, options.apiLevel);
+                }
+
+                if(errorOccurred)
+                    break;
+            }
+        } else {
+            if (disassemble) {
+                errorOccurred = !baksmali.disassembleDexFile(dexFile, options);
+            }
+
+            if (doDump) {
+                if (dumpFileName == null) {
+                    dumpFileName = commandLine.getOptionValue(inputDexFileName + ".dump");
+                }
+                dump.dump(dexFile, dumpFileName, options.apiLevel);
+            }
         }
 
         if (errorOccurred) {
@@ -537,10 +573,37 @@ public class main {
                     "/system/framework/apache-xml.jar",
                     "/system/framework/filterfw.jar");
 
-        } else {
+        } else if (apiLevel < 20) {
             // this is correct as of api 17/4.2.2
             return Lists.newArrayList(
                     "/system/framework/core.jar",
+                    "/system/framework/core-junit.jar",
+                    "/system/framework/bouncycastle.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/telephony-common.jar",
+                    "/system/framework/mms-common.jar",
+                    "/system/framework/android.policy.jar",
+                    "/system/framework/services.jar",
+                    "/system/framework/apache-xml.jar");
+        } else if (apiLevel == 20) {
+            // this is correct as of api 20/L-preview
+            return Lists.newArrayList(
+                    "/system/framework/core-libart.jar",
+                    "/system/framework/core-junit.jar",
+                    "/system/framework/bouncycastle.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/framework2.jar",
+                    "/system/framework/telephony-common.jar",
+                    "/system/framework/mms-common.jar",
+                    "/system/framework/android.policy.jar",
+                    "/system/framework/services.jar",
+                    "/system/framework/apache-xml.jar");
+        } else {
+            // this is correct as of api 21/5.0
+            return Lists.newArrayList(
+                    "/system/framework/core-libart.jar",
                     "/system/framework/core-junit.jar",
                     "/system/framework/bouncycastle.jar",
                     "/system/framework/ext.jar",

@@ -34,6 +34,7 @@ import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.baksmali.baksmaliOptions;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.InvalidItemIndex;
@@ -341,6 +342,19 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeInvokeRangeRegisters(writer);
                 writer.write(", ");
                 writeVtableIndex(writer);
+                break;
+            case FormatTwoOp:
+                OpcodeForwardInstruction forwardInstruction = (OpcodeForwardInstruction) instruction;
+                if(forwardInstruction.getForwardOpcode() != null) {
+                    writer.write(forwardInstruction.getForwardOpcode().name);
+                    writer.write(' ');
+                    writeFirstRegister(writer);
+                    writer.write(", ");
+                    writer.write(referenceString);
+                } else {
+                    writer.write("# optimized check-cast opcode");
+                }
+
                 break;
             default:
                 assert false;

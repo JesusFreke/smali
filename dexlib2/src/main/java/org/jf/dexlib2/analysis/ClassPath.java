@@ -40,6 +40,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.analysis.reflection.ReflectionClassDef;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBackedOatFile;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.immutable.ImmutableDexFile;
@@ -50,13 +52,21 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipFile;
 
 public class ClassPath {
+    private static final String[] DEX_ODEXDIR = {"", "arm", "arm64", "mips", "x86", "x86_64"};
+    private static final String[] DEX_EXTENSIONS = {"", ".odex", ".jar", ".apk", ".zip"};
+
     @Nonnull private final TypeProto unknownClass;
     @Nonnull private HashMap<String, ClassDef> availableClasses = Maps.newHashMap();
+
+    private int api;
+    private boolean isOat = false;
     private boolean checkPackagePrivateAccess;
 
     /**
@@ -65,7 +75,7 @@ public class ClassPath {
      * @param classPath An array of DexFile objects. When loading a class, these dex files will be searched in order
      */
     public ClassPath(DexFile... classPath) throws IOException {
-        this(Lists.newArrayList(classPath), 15);
+        this(Lists.newArrayList(classPath), 15, false);
     }
 
     /**
@@ -74,8 +84,8 @@ public class ClassPath {
      * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
      * @param api API level
      */
-    public ClassPath(@Nonnull Iterable<DexFile> classPath, int api) {
-        this(Lists.newArrayList(classPath), api == 17);
+    public ClassPath(@Nonnull Iterable<DexFile> classPath, int api, boolean isOat) {
+        this(Lists.newArrayList(classPath), api, isOat, api == 17);
     }
 
     /**
@@ -84,12 +94,15 @@ public class ClassPath {
      * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
      * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by default
      */
-    public ClassPath(@Nonnull Iterable<DexFile> classPath, boolean checkPackagePrivateAccess) {
+    public ClassPath(@Nonnull Iterable<DexFile> classPath, int api, boolean isOat, boolean checkPackagePrivateAccess) {
         // add fallbacks for certain special classes that must be present
         Iterable<DexFile> dexFiles = Iterables.concat(classPath, Lists.newArrayList(getBasicClasses()));
 
         unknownClass = new UnknownClassProto(this);
         loadedClasses.put(unknownClass.getType(), unknownClass);
+
+        this.api = api;
+        this.isOat = isOat;
         this.checkPackagePrivateAccess = checkPackagePrivateAccess;
 
         loadPrimitiveType("Z");
@@ -137,7 +150,7 @@ public class ClassPath {
             if (type.charAt(0) == '[') {
                 return new ArrayProto(ClassPath.this, type);
             } else {
-                return new ClassProto(ClassPath.this, type);
+                return new ClassProto(ClassPath.this, type, ClassPath.this.isOat);
             }
         }
     };
@@ -165,27 +178,96 @@ public class ClassPath {
     @Nonnull
     public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile,
                                           int api) {
+        List<String> skipClassPaths = new ArrayList<String>();
         return fromClassPath(classPathDirs, classPath, dexFile, api, api == 17);
     }
 
     @Nonnull
     public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile,
                                           int api, boolean checkPackagePrivateAccess) {
+
+        List<String> skipClassPaths = new ArrayList<String>();
         ArrayList<DexFile> dexFiles = Lists.newArrayList();
 
-        for (String classPathEntry: classPath) {
-            try {
-                dexFiles.add(loadClassPathEntry(classPathDirs, classPathEntry, api));
-            } catch (ExceptionWithContext e){}
+        // Load boot.oat first
+        try {
+            if(api >= 20) {
+                List<DexBackedDexFile> oatFiles = loadClassPathOAT(classPathDirs, "boot.oat", api);
+                //System.err.printf("Oat files: %d\n", oatFiles.size());
+
+                for(DexBackedDexFile oatFile: oatFiles) {
+                    DexBackedOatFile file = (DexBackedOatFile) oatFile;
+
+                    //System.err.printf("Adding to class path: %s\n", file.getName());
+
+                    skipClassPaths.add(file.getName());
+                    dexFiles.add(oatFile);
+                }
+            }
+        } catch(ExceptionWithContext ex) {
+            // Ignore if we could not loat boot.oat
         }
-        dexFiles.add(dexFile);
-        return new ClassPath(dexFiles, checkPackagePrivateAccess);
+
+        for (String classPathEntry: classPath) {
+            if (skipClassPaths.contains(classPathEntry))
+                continue;
+
+            //System.err.printf("Adding to class path: %s\n", classPathEntry);
+
+            dexFiles.addAll(loadClassPathEntry(classPathDirs, classPathEntry, api));
+        }
+        if (dexFile instanceof DexBackedOatFile) {
+            DexBackedOatFile oatFile = (DexBackedOatFile)dexFile;
+            do {
+                for(DexBackedDexFile dex: oatFile.getDexes()) {
+                    DexBackedOatFile oat = (DexBackedOatFile)dex;
+                    //System.err.printf("Adding to class path: %s\n", oat.getName());
+                    dexFiles.add(oat);
+                }
+            } while((oatFile = oatFile.getParent()) != null);
+        } else {
+            dexFiles.add(dexFile);
+        }
+        
+        return new ClassPath(dexFiles, api, dexFile instanceof DexBackedOatFile, checkPackagePrivateAccess);
     }
 
     private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
 
     @Nonnull
-    private static DexFile loadClassPathEntry(@Nonnull Iterable<String> classPathDirs,
+    private static List<DexBackedDexFile> loadClassPathOAT(@Nonnull Iterable<String> classPathDirs,
+                                              @Nonnull String bootClassPathEntry, int api) {
+        for (String classPathDir: classPathDirs) {
+            for (String odexDir: DEX_ODEXDIR) {
+                File file = new File(classPathDir + "/" + odexDir, bootClassPathEntry);
+
+                if (file.exists() && file.isFile()) {
+                    if (!file.canRead()) {
+                        System.err.println(String.format(
+                                "warning: cannot open %s for reading. Will continue looking.", file.getPath()));
+                    } else {
+                        try {
+                            DexFile dexFile = DexFileFactory.loadDexFile(file, api);
+                            if(!(dexFile instanceof DexBackedOatFile))
+                                throw new ExceptionWithContext("\"%s\" is not an OAT file", bootClassPathEntry);
+
+                            DexBackedOatFile oatFile = (DexBackedOatFile)dexFile;
+                            return oatFile.getDexes();
+                        } catch (DexFileFactory.NoClassesDexException ex) {
+                            // ignore and continue
+                        } catch (Exception ex) {
+                            throw ExceptionWithContext.withContext(ex,
+                                    "Error while reading boot class path entry \"%s\"", bootClassPathEntry);
+                        }
+                    }
+                }
+            }
+        }
+        throw new ExceptionWithContext("Cannot locate boot class path file %s", bootClassPathEntry);
+    }
+
+    @Nonnull
+    private static List<DexFile> loadClassPathEntry(@Nonnull Iterable<String> classPathDirs,
                                               @Nonnull String bootClassPathEntry, int api) {
         File rawEntry = new File(bootClassPathEntry);
         // strip off the path - we only care about the filename
@@ -212,21 +294,58 @@ public class ClassPath {
         }
 
         for (String classPathDir: classPathDirs) {
-            for (String ext: new String[]{"", ".odex", ".jar", ".apk", ".zip"}) {
-                File file = new File(classPathDir, baseEntryName + ext);
+            for (String odexDir: DEX_ODEXDIR) {
+                for (String ext: DEX_EXTENSIONS) {
+                    File file = new File(classPathDir + "/" + odexDir, baseEntryName + ext);
 
-                if (file.exists() && file.isFile()) {
-                    if (!file.canRead()) {
-                        System.err.println(String.format(
-                                "warning: cannot open %s for reading. Will continue looking.", file.getPath()));
-                    } else {
-                        try {
-                            return DexFileFactory.loadDexFile(file, api);
-                        } catch (DexFileFactory.NoClassesDexException ex) {
-                            // ignore and continue
-                        } catch (Exception ex) {
-                            throw ExceptionWithContext.withContext(ex,
-                                    "Error while reading boot class path entry \"%s\"", bootClassPathEntry);
+                    if (file.exists() && file.isFile()) {
+                        if (!file.canRead()) {
+                            System.err.println(String.format(
+                                    "warning: cannot open %s for reading. Will continue looking.", file.getPath()));
+                        } else {
+                            List<DexFile> dexFiles = new ArrayList<DexFile>();
+                            try {
+                                boolean isZipFile = false;
+
+                                ZipFile zipFile = null;
+                                try {
+                                    zipFile = new ZipFile(file);
+                                    // if we get here, it's safe to assume we have a zip file
+                                    isZipFile = true;
+                                } catch(IOException ex) {
+                                } finally {
+                                    if (zipFile != null) {
+                                        try {
+                                            zipFile.close();
+                                        } catch (IOException ex) {
+                                            // just eat it
+                                        }
+                                    }
+                                }
+
+                                // An apk/jar may have several classes.dex files inside.
+                                if(isZipFile) {
+                                    for(int i = 1; ; i++) {
+                                        String dexName = "classes";
+                                        if (i > 1)
+                                            dexName += i;
+
+                                        dexName += ".dex";
+
+                                        //System.err.printf("Trying to load %s from %s\n", dexName, baseEntryName + ext);
+                                        dexFiles.add(DexFileFactory.loadDexFile(file, dexName, api));
+                                    }
+                                } else {
+                                    dexFiles.add(DexFileFactory.loadDexFile(file, api));
+                                }
+                            } catch (DexFileFactory.NoClassesDexException ex) {
+                                // ignore and continue
+                            } catch (Exception ex) {
+                                throw ExceptionWithContext.withContext(ex,
+                                        "Error while reading boot class path entry \"%s\"", bootClassPathEntry);
+                            }
+
+                            return dexFiles;
                         }
                     }
                 }

@@ -48,6 +48,9 @@ public class UnresolvedOdexInstructionMethodItem extends InstructionMethodItem<U
 
     private void writeThrowTo(IndentingWriter writer) throws IOException {
         writer.write("#Replaced unresolvable odex instruction with a throw\n");
+        writer.write("#");
+        writer.write(instruction.getOpcode().name);
+        writer.write("\n");
         writer.write("throw ");
         writeRegister(writer, instruction.objectRegisterNum);
     }

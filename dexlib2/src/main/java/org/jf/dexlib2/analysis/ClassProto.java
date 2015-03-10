@@ -66,13 +66,19 @@ public class ClassProto implements TypeProto {
 
     protected boolean vtableFullyResolved = true;
     protected boolean interfacesFullyResolved = true;
+    protected boolean isOat = false;
 
     public ClassProto(@Nonnull ClassPath classPath, @Nonnull String type) {
+        this(classPath, type, false);
+    }
+
+    public ClassProto(@Nonnull ClassPath classPath, @Nonnull String type, boolean isOat) {
         if (type.charAt(0) != 'L') {
             throw new ExceptionWithContext("Cannot construct ClassProto for non reference type: %s", type);
         }
         this.classPath = classPath;
         this.type = type;
+        this.isOat = isOat;
     }
 
     @Override public String toString() { return type; }
@@ -365,38 +371,12 @@ public class ClassProto implements TypeProto {
                     //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
                     //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
                     //See mydroid/dalvik/vm/oo/Class.c - computeFieldOffsets()
-
                     final byte REFERENCE = 0;
                     final byte WIDE = 1;
                     final byte OTHER = 2;
 
                     ArrayList<Field> fields = getSortedInstanceFields(getClassDef());
                     final int fieldCount = fields.size();
-                    //the "type" for each field in fields. 0=reference,1=wide,2=other
-                    byte[] fieldTypes = new byte[fields.size()];
-                    for (int i=0; i<fieldCount; i++) {
-                        fieldTypes[i] = getFieldType(fields.get(i));
-                    }
-
-                    //The first operation is to move all of the reference fields to the front. To do this, find the first
-                    //non-reference field, then find the last reference field, swap them and repeat
-                    int back = fields.size() - 1;
-                    int front;
-                    for (front = 0; front<fieldCount; front++) {
-                        if (fieldTypes[front] != REFERENCE) {
-                            while (back > front) {
-                                if (fieldTypes[back] == REFERENCE) {
-                                    swap(fieldTypes, fields, front, back--);
-                                    break;
-                                }
-                                back--;
-                            }
-                        }
-
-                        if (fieldTypes[front] != REFERENCE) {
-                            break;
-                        }
-                    }
 
                     int startFieldOffset = 8;
                     String superclassType = getSuperclass();
@@ -415,42 +395,117 @@ public class ClassProto implements TypeProto {
                         fieldIndexMod = 1;
                     }
 
-                    //next, we need to group all the wide fields after the reference fields. But the wide fields have to be
-                    //8-byte aligned. If we're on an odd field index, we need to insert a 32-bit field. If the next field
-                    //is already a 32-bit field, use that. Otherwise, find the first 32-bit field from the end and swap it in.
-                    //If there are no 32-bit fields, do nothing for now. We'll add padding when calculating the field offsets
-                    if (front < fieldCount && (front % 2) != fieldIndexMod) {
-                        if (fieldTypes[front] == WIDE) {
-                            //we need to swap in a 32-bit field, so the wide fields will be correctly aligned
-                            back = fieldCount - 1;
-                            while (back > front) {
-                                if (fieldTypes[back] == OTHER) {
-                                    swap(fieldTypes, fields, front++, back);
-                                    break;
-                                }
-                                back--;
-                            }
-                        } else {
-                            //there's already a 32-bit field here that we can use
-                            front++;
+                    //the "type" for each field in fields. 0=reference,1=wide,2=other
+                    byte[] fieldTypes = new byte[fields.size()];
+                    if (!isOat) {
+                        for (int i=0; i<fieldCount; i++) {
+                            fieldTypes[i] = getFieldType(fields.get(i));
                         }
-                    }
 
-                    //do the swap thing for wide fields
-                    back = fieldCount - 1;
-                    for (; front<fieldCount; front++) {
-                        if (fieldTypes[front] != WIDE) {
-                            while (back > front) {
-                                if (fieldTypes[back] == WIDE) {
-                                    swap(fieldTypes, fields, front, back--);
-                                    break;
+                        //The first operation is to move all of the reference fields to the front. To do this, find the first
+                        //non-reference field, then find the last reference field, swap them and repeat
+                        int back = fields.size() - 1;
+                        int front;
+                        for (front = 0; front<fieldCount; front++) {
+                            if (fieldTypes[front] != REFERENCE) {
+                                while (back > front) {
+                                    if (fieldTypes[back] == REFERENCE) {
+                                        swap(fieldTypes, fields, front, back--);
+                                        break;
+                                    }
+                                    back--;
                                 }
-                                back--;
+                            }
+
+                            if (fieldTypes[front] != REFERENCE) {
+                                break;
                             }
                         }
 
-                        if (fieldTypes[front] != WIDE) {
+                        //next, we need to group all the wide fields after the reference fields. But the wide fields have to be
+                        //8-byte aligned. If we're on an odd field index, we need to insert a 32-bit field. If the next field
+                        //is already a 32-bit field, use that. Otherwise, find the first 32-bit field from the end and swap it in.
+                        //If there are no 32-bit fields, do nothing for now. We'll add padding when calculating the field offsets
+                        if (front < fieldCount && (front % 2) != fieldIndexMod) {
+                            if (fieldTypes[front] == WIDE) {
+                                //we need to swap in a 32-bit field, so the wide fields will be correctly aligned
+                                back = fieldCount - 1;
+                                while (back > front) {
+                                    if (fieldTypes[back] == OTHER) {
+                                        swap(fieldTypes, fields, front++, back);
+                                        break;
+                                    }
+                                    back--;
+                                }
+                            } else {
+                                //there's already a 32-bit field here that we can use
+                                front++;
+                            }
+                        }
+
+                        //do the swap thing for wide fields
+                        back = fieldCount - 1;
+                        for (; front<fieldCount; front++) {
+                            if (fieldTypes[front] != WIDE) {
+                                while (back > front) {
+                                    if (fieldTypes[back] == WIDE) {
+                                        swap(fieldTypes, fields, front, back--);
+                                        break;
+                                    }
+                                    back--;
+                                }
+                            }
+
+                            if (fieldTypes[front] != WIDE) {
+                                break;
+                            }
+                        }
+                    } else {
+                        Collections.sort(fields);
+
+                        int referenceSize = 0;
+                        for(Field field: fields) {
+                            char type = field.getType().charAt(0);
+                            if(type == 'L' || type == '[') {
+                                referenceSize++;
+                                continue;
+                            }
+
                             break;
+                        }
+
+                        int wideSize = 0;
+                        for(int i = referenceSize; i < fields.size(); i++) {
+                            char type = fields.get(i).getType().charAt(0);
+                            if(type == 'J' || type == 'D') {
+                                wideSize++;
+                                continue;
+                            }
+
+                            break;
+                        }
+
+                        /*for(Field field1: fields) {
+                            for(Field field2: fields) {
+                                if(field1.getName().equals(field2.getName()) && !field1.equals(field2)) {
+                                    System.out.printf("Found two fields with the same name in %s, %s vs %s!\n", getType(), field1.getName(), field2.getName());
+                                    break;
+                                }
+                            }
+                        }*/
+
+                        // Check if we need to swap in a field to align the wide fields.
+                        if (referenceSize < fields.size() && (referenceSize % 2) != fieldIndexMod) {
+                            int wideStart = referenceSize;
+                            int otherStart = wideStart + wideSize;
+
+                            Field field = fields.get(otherStart);
+                            fields.remove(otherStart);
+                            fields.add(wideStart, field);
+                        }
+
+                        for (int i = 0; i < fieldCount; i++) {
+                            fieldTypes[i] = getFieldType(fields.get(i));
                         }
                     }
 
@@ -470,6 +525,8 @@ public class ClassProto implements TypeProto {
 
                     if (superclass != null && superFieldCount > 0) {
                         for (int i=0; i<superFieldCount; i++) {
+                            //System.err.printf("Adding super field %s @ %02x, type: %s\n", superFields.valueAt(i).getName(), superFields.keyAt(i), superFields.valueAt(i).getType());
+
                             instanceFields.append(superFields.keyAt(i), superFields.valueAt(i));
                         }
 
@@ -484,12 +541,19 @@ public class ClassProto implements TypeProto {
                         }
                     } else {
                         //the field values start at 8 bytes into the DataObject dalvik structure
-                        fieldOffset = 8;
+                        fieldOffset = startFieldOffset;
                     }
 
                     boolean gotDouble = false;
                     for (int i=0; i<fieldCount; i++) {
                         FieldReference field = fields.get(i);
+
+                        // ART adds two new fields to Object that should not be considered as part of the class,
+                        // shadow$_klass_ and shadow$_monitor_
+                        if(ClassProto.this.isOat && field.getDefiningClass().equals("Ljava/lang/Object;") && (field.getName().startsWith("shadow$_"))) {
+                            //System.err.printf("Skipping field %s->%s:%s\n", ClassProto.this.type, field.getName(), field.getType());
+                            continue;
+                        }
 
                         //add padding to align the wide fields, if needed
                         if (fieldTypes[i] == WIDE && !gotDouble) {
@@ -501,6 +565,8 @@ public class ClassProto implements TypeProto {
                                 gotDouble = true;
                             }
                         }
+
+                        //System.err.printf("Adding field %s->%s @ %02x, type: %s\n", field.getDefiningClass(), field.getName(), fieldOffset, field.getType());
 
                         instanceFields.append(fieldOffset, field);
                         if (fieldTypes[i] == WIDE) {

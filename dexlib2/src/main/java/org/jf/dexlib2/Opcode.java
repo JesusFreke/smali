@@ -252,15 +252,15 @@ public enum Opcode
     SHR_INT_LIT8((short)0xe1, "shr-int/lit8", ReferenceType.NONE, Format.Format22b, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     USHR_INT_LIT8((short)0xe2, "ushr-int/lit8", ReferenceType.NONE, Format.Format22b, Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
 
-    IGET_VOLATILE((short)0xe3, "iget-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IPUT_VOLATILE((short)0xe4, "iput-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SGET_VOLATILE((short)0xe5, "sget-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    SPUT_VOLATILE((short)0xe6, "sput-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    IGET_OBJECT_VOLATILE((short)0xe7, "iget-object-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
-    IGET_WIDE_VOLATILE((short)0xe8, "iget-wide-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    IPUT_WIDE_VOLATILE((short)0xe9, "iput-wide-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
-    SGET_WIDE_VOLATILE((short)0xea, "sget-wide-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
-    SPUT_WIDE_VOLATILE((short)0xeb, "sput-wide-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IGET_VOLATILE((short)0xe3, "iget-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IPUT_VOLATILE((short)0xe4, "iput-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SGET_VOLATILE((short)0xe5, "sget-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    SPUT_VOLATILE((short)0xe6, "sput-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    IGET_OBJECT_VOLATILE((short)0xe7, "iget-object-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    IGET_WIDE_VOLATILE((short)0xe8, "iget-wide-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    IPUT_WIDE_VOLATILE((short)0xe9, "iput-wide-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    SGET_WIDE_VOLATILE((short)0xea, "sget-wide-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    SPUT_WIDE_VOLATILE((short)0xeb, "sput-wide-volatile", minMaxApi(9, 19), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
 
     THROW_VERIFICATION_ERROR((short)0xed, "throw-verification-error", minApi(5), ReferenceType.NONE, Format.Format20bc, Opcode.ODEX_ONLY | Opcode.CAN_THROW),
     EXECUTE_INLINE((short)0xee, "execute-inline", ReferenceType.NONE,  Format.Format35mi, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
@@ -282,6 +282,26 @@ public enum Opcode
     IPUT_OBJECT_VOLATILE((short)0xfc, "iput-object-volatile", minApi(9), ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.ODEXED_INSTANCE_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     SGET_OBJECT_VOLATILE((short)0xfd, "sget-object-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
     SPUT_OBJECT_VOLATILE((short)0xfe, "sput-object-volatile", minApi(9), ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.ODEXED_STATIC_VOLATILE | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+
+    OAT_RETURN_VOID_BARRIER((short)0x73, "return-void-barrier", minApi(20), ReferenceType.NONE, Format.Format10x, Opcode.OAT_ONLY),
+
+    OAT_IGET_QUICK((short)0xe3, "iget-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    OAT_IGET_WIDE_QUICK((short)0xe4, "iget-wide-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.SETS_WIDE_REGISTER),
+    OAT_IGET_OBJECT_QUICK((short)0xe5, "iget-object-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    
+    OAT_IPUT_QUICK((short)0xe6, "iput-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    OAT_IPUT_WIDE_QUICK((short)0xe7, "iput-wide-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    OAT_IPUT_OBJECT_QUICK((short)0xe8, "iput-object-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    OAT_INVOKE_VIRTUAL_QUICK((short)0xe9, "invoke-virtual-quick", minApi(20), ReferenceType.NONE,  Format.Format35ms, Opcode.OAT_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    OAT_INVOKE_VIRTUAL_QUICK_RANGE((short)0xea, "invoke-virtual-quick/range", minApi(20), ReferenceType.NONE,  Format.Format3rms, Opcode.OAT_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    
+    // The following opcodes don't appear to be used.
+    OAT_IPUT_BOOLEAN_QUICK((short)0xeb, "iput-boolean-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    OAT_IPUT_BYTE_QUICK((short)0xec, "iput-byte-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    OAT_IPUT_CHAR_QUICK((short)0xed, "iput-char-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+    OAT_IPUT_SHORT_QUICK((short)0xee, "iput-short-quick", minApi(20), ReferenceType.NONE,  Format.Format22cs, Opcode.OAT_ONLY | Opcode.ODEXED_INSTANCE_QUICK | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
+
+    OAT_NOP_NOP((int)0x00000000, "nop-nop", minApi(20), ReferenceType.TYPE, Format.FormatTwoOp, Opcode.OAT_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
 
     PACKED_SWITCH_PAYLOAD((short)0x100, "packed-switch-payload", ReferenceType.NONE, Format.PackedSwitchPayload, 0),
     SPARSE_SWITCH_PAYLOAD((short)0x200, "sparse-switch-payload", ReferenceType.NONE, Format.SparseSwitchPayload, 0),
@@ -309,6 +329,8 @@ public enum Opcode
     public static final int JUMBO_OPCODE = 0x200;
     //if the instruction can initialize an uninitialized object reference
     public static final int CAN_INITIALIZE_REFERENCE = 0x400;
+    //if the instruction is an OAT (ART) onlu function
+    public static final int OAT_ONLY = 0x800;
 
     private static final int ALL_APIS = 0xFFFF0000;
 
@@ -320,7 +342,12 @@ public enum Opcode
         return api << 16;
     }
 
-    public final short value;
+    private static int minMaxApi(int min, int max) {
+        return minApi(min) | maxApi(max);
+    }
+
+    public final boolean isshort;
+    public final int value;
     public final String name;
     // high 16-bits is the max api, low 16-bits is the min api
     public final int apiConstraints;
@@ -350,12 +377,42 @@ public enum Opcode
 
     Opcode(short opcodeValue, String opcodeName, int apiConstraints, int referenceType, Format format, int flags,
            short jumboOpcodeValue) {
+        this((int)opcodeValue, opcodeName, apiConstraints, referenceType, format, flags, jumboOpcodeValue, true);
+    }
+    Opcode(int opcodeValue, String opcodeName, int referenceType, Format format) {
+        this(opcodeValue, opcodeName, ALL_APIS, referenceType, format, 0, (short)-1);
+    }
+
+    Opcode(int opcodeValue, String opcodeName, int referenceType, Format format, int flags) {
+        this(opcodeValue, opcodeName, ALL_APIS, referenceType, format, flags, (short)-1);
+    }
+
+    Opcode(int opcodeValue, String opcodeName, int referenceType, Format format, int flags, short jumboOpcodeValue) {
+        this(opcodeValue, opcodeName, ALL_APIS, referenceType, format, flags, jumboOpcodeValue);
+    }
+
+    Opcode(int opcodeValue, String opcodeName, int apiConstraints, int referenceType, Format format) {
+        this(opcodeValue, opcodeName, apiConstraints, referenceType, format, 0, (short)-1);
+    }
+
+    Opcode(int opcodeValue, String opcodeName, int apiConstraints, int referenceType, Format format, int flags) {
+        this(opcodeValue, opcodeName, apiConstraints, referenceType, format, flags, (short)-1);
+    }
+
+    Opcode(int opcodeValue, String opcodeName, int apiConstraints, int referenceType, Format format, int flags,
+           short jumboOpcodeValue) {
+        this(opcodeValue, opcodeName, apiConstraints, referenceType, format, flags, jumboOpcodeValue, false);
+    }
+
+    Opcode(int opcodeValue, String opcodeName, int apiConstraints, int referenceType, Format format, int flags,
+           short jumboOpcodeValue, boolean isshort) {
         this.value = opcodeValue;
         this.name = opcodeName;
         this.apiConstraints = apiConstraints;
         this.referenceType = referenceType;
         this.format = format;
         this.flags = flags;
+        this.isshort = isshort;
         // TODO: implement jumbo opcodes for dexlib2 and uncomment
         // this.jumboOpcode = jumboOpcodeValue;
     }
@@ -414,7 +471,15 @@ public enum Opcode
         return (flags & JUMBO_OPCODE) != 0;
     }
 
+    public final boolean isShort() {
+        return this.isshort;
+    }
+
     public final boolean canInitializeReference() {
         return (flags & CAN_INITIALIZE_REFERENCE) != 0;
+    }
+
+    public final boolean oatOnly() {
+        return (flags & OAT_ONLY) != 0;
     }
 }

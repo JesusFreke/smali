@@ -46,6 +46,7 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.immutable.instruction.ImmutableInstruction10x;
 import org.jf.dexlib2.util.InstructionOffsetMap;
 import org.jf.dexlib2.util.InstructionOffsetMap.InvalidInstructionOffset;
 import org.jf.dexlib2.util.ReferenceUtil;
@@ -334,7 +335,7 @@ public class MethodDefinition {
 
     private boolean needsAnalyzed() {
         for (Instruction instruction: methodImpl.getInstructions()) {
-            if (instruction.getOpcode().odexOnly()) {
+            if (instruction.getOpcode().odexOnly() || instruction.getOpcode().oatOnly()) {
                 return true;
             }
         }

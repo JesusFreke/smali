@@ -40,6 +40,7 @@ import org.jf.dexlib2.dexbacked.util.VariableSizeLookaheadIterator;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.Opcode;
 import org.jf.util.AlignmentUtils;
 import org.jf.util.ExceptionWithContext;
 
