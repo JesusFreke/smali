@@ -31,50 +31,20 @@
 
 package org.jf.smalidea.findUsages;
 
-import com.intellij.find.impl.HelpID;
-import com.intellij.lang.LangBundle;
 import com.intellij.lang.cacheBuilder.WordsScanner;
-import com.intellij.lang.findUsages.FindUsagesProvider;
+import com.intellij.lang.java.JavaFindUsagesProvider;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SmaliFindUsagesProvider implements FindUsagesProvider {
+public class SmaliFindUsagesProvider extends JavaFindUsagesProvider {
     @Override public boolean canFindUsagesFor(@NotNull PsiElement element) {
         return element instanceof PsiClass;
     }
 
     @Nullable @Override public WordsScanner getWordsScanner() {
         return new SmaliWordScanner();
-    }
-
-    @Nullable @Override public String getHelpId(@NotNull PsiElement element) {
-        return HelpID.FIND_CLASS_USAGES;
-    }
-
-    @NotNull @Override public String getType(@NotNull PsiElement element) {
-        return LangBundle.message("java.terms.class");
-    }
-
-    @NotNull @Override public String getDescriptiveName(@NotNull PsiElement element) {
-        PsiClass psiClass = (PsiClass)element;
-        String qualifiedName = psiClass.getQualifiedName();
-        if (qualifiedName != null) {
-            return qualifiedName;
-        }
-        return psiClass.getName();
-    }
-
-    @NotNull @Override public String getNodeText(@NotNull PsiElement element, boolean onlyQualifiedNames) {
-        PsiClass psiClass = (PsiClass)element;
-        String qualifiedName = psiClass.getQualifiedName();
-        if (qualifiedName != null) {
-            return qualifiedName;
-        } else if (onlyQualifiedNames) {
-            return "";
-        }
-        return psiClass.getName();
     }
 
 
