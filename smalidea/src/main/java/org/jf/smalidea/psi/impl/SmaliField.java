@@ -72,7 +72,7 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
         return modifierList;
     }
 
-    @NotNull @Override public PsiIdentifier getNameIdentifier() {
+    @NotNull @Override public SmaliMemberName getNameIdentifier() {
         SmaliMemberName memberName = findChildByClass(SmaliMemberName.class);
         assert memberName != null;
         return memberName;
@@ -162,5 +162,13 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
 
     @Override public void setInitializer(@Nullable PsiExpression initializer) throws IncorrectOperationException {
         // TODO: implement this
+    }
+
+    @Override public int getTextOffset() {
+        SmaliMemberName smaliMemberName = getNameIdentifier();
+        if (smaliMemberName != null) {
+            return smaliMemberName.getTextOffset();
+        }
+        return super.getTextOffset();
     }
 }
