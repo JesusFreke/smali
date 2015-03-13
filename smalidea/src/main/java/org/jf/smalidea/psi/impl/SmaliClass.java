@@ -31,6 +31,7 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.google.common.collect.Lists;
 import com.intellij.debugger.SourcePosition;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Pair;
@@ -159,7 +160,21 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @NotNull @Override public SmaliField[] getFields() {
-        return getStubOrPsiChildren(SmaliElementTypes.FIELD, new SmaliField[0]);
+        SmaliField[] fields = getStubOrPsiChildren(SmaliElementTypes.FIELD, new SmaliField[0]);
+        List<SmaliField> filteredFields = null;
+        for (int i=fields.length-1; i>=0; i--) {
+            SmaliField field = fields[i];
+            if (field.getName() == null) {
+                if (filteredFields == null) {
+                    filteredFields = Lists.newArrayList(fields);
+                }
+                filteredFields.remove(i);
+            }
+        }
+        if (filteredFields != null) {
+            return filteredFields.toArray(new SmaliField[filteredFields.size()]);
+        }
+        return fields;
     }
 
     @NotNull @Override public SmaliMethod[] getMethods() {
