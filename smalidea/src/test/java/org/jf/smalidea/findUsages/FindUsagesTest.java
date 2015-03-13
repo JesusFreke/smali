@@ -32,6 +32,7 @@
 package org.jf.smalidea.findUsages;
 
 import com.google.common.collect.Lists;
+import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.find.FindManager;
 import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesManager;
@@ -42,6 +43,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.PsiTestCase;
 import com.intellij.usageView.UsageInfo;
+import com.intellij.usages.PsiElementUsageTarget;
+import com.intellij.usages.UsageTarget;
+import com.intellij.usages.UsageTargetUtil;
 import com.intellij.util.CommonProcessors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -101,18 +105,41 @@ public abstract class FindUsagesTest extends PsiTestCase {
     }
 
     protected void doTest() {
+
         PsiReference reference = null;
+        PsiElement targetElement = null;
+
         for (TestFile testFile: testFiles) {
             int refIndex = testFile.getRefIndex();
             if (refIndex != -1) {
-                reference = testFile.psiFile.findReferenceAt(refIndex);
+                PsiElement element = testFile.psiFile.findElementAt(refIndex);
+
+                UsageTarget[] targets = UsageTargetUtil.findUsageTargets(element);
+                if (targets != null) {
+                    for (UsageTarget target : targets) {
+                        if (target instanceof PsiElementUsageTarget) {
+                            targetElement = ((PsiElementUsageTarget)target).getElement();
+                            break;
+                        }
+                    }
+                }
+
+                if (targetElement == null) {
+                    reference = testFile.psiFile.findReferenceAt(refIndex);
+                    if (reference != null) {
+                        targetElement = reference.resolve();
+                    } else {
+                        targetElement = TargetElementUtilBase.getInstance().getNamedElement(
+                                testFile.psiFile.findElementAt(refIndex), 0);
+                    }
+                }
                 break;
             }
         }
 
-        Assert.assertNotNull(reference);
+        Assert.assertNotNull(targetElement);
 
-        Collection<UsageInfo> usages = findUsages(reference);
+        Collection<UsageInfo> usages = findUsages(targetElement);
         for (TestFile testFile: testFiles) {
             assertUsages(testFile, usages);
         }
@@ -143,27 +170,24 @@ public abstract class FindUsagesTest extends PsiTestCase {
         Assert.assertEquals(0, fileUsages.size());
     }
 
-    private Collection<UsageInfo> findUsages(@NotNull PsiReference reference) {
-        PsiElement resolved = reference.resolve();
-        Assert.assertNotNull(resolved);
-
+    private Collection<UsageInfo> findUsages(@NotNull PsiElement element) {
         FindUsagesManager findUsagesManager =
                 ((FindManagerImpl)FindManager.getInstance(getProject())).getFindUsagesManager();
 
         FindUsagesHandler findUsagesHandler =
-                findUsagesManager.getFindUsagesHandler(resolved, false);
+                findUsagesManager.getFindUsagesHandler(element, false);
         Assert.assertNotNull(findUsagesHandler);
 
         final FindUsagesOptions options = findUsagesHandler.getFindUsagesOptions();
         final CommonProcessors.CollectProcessor<UsageInfo> processor =
                 new CommonProcessors.CollectProcessor<UsageInfo>();
 
-        for (PsiElement element : findUsagesHandler.getPrimaryElements()) {
-            findUsagesHandler.processElementUsages(element, processor, options);
+        for (PsiElement primaryElement : findUsagesHandler.getPrimaryElements()) {
+            findUsagesHandler.processElementUsages(primaryElement, processor, options);
         }
 
-        for (PsiElement element : findUsagesHandler.getSecondaryElements()) {
-            findUsagesHandler.processElementUsages(element, processor, options);
+        for (PsiElement secondaryElement: findUsagesHandler.getSecondaryElements()) {
+            findUsagesHandler.processElementUsages(secondaryElement, processor, options);
         }
 
         return processor.getResults();

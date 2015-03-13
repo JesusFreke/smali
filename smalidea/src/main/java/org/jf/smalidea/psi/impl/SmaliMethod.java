@@ -322,4 +322,12 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         super.subtreeChanged();
         methodAnalyzer = null;
     }
+
+    @Override public int getTextOffset() {
+        SmaliMemberName smaliMemberName = getNameIdentifier();
+        if (smaliMemberName != null) {
+            return smaliMemberName.getTextOffset();
+        }
+        return super.getTextOffset();
+    }
 }
