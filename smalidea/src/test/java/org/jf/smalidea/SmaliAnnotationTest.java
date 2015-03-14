@@ -35,6 +35,7 @@ import com.intellij.psi.*;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
+import org.jf.smalidea.psi.impl.SmaliLiteral;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 import org.junit.Assert;
 
@@ -242,5 +243,31 @@ public class SmaliAnnotationTest extends LightCodeInsightFixtureTestCase {
         parameterList = smaliAnnotation.getParameterList();
         Assert.assertNotNull(parameterList);
         Assert.assertEquals(0, parameterList.getAttributes().length);
+    }
+
+    public void testDefaultValue() {
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("AnnotationWithDefaultValue.smali", "" +
+                ".class public abstract interface annotation LAnnotationWithValues;\n" +
+                ".super Ljava/lang/Object;\n" +
+                ".implements Ljava/lang/annotation/Annotation;\n" +
+                "\n" +
+                ".method public abstract intValue()I\n" +
+                ".end method\n" +
+                "\n" +
+                ".annotation system Ldalvik/annotation/AnnotationDefault;\n" +
+                "    value = .subannotation LAnnotationWithValues;\n" +
+                "                intValue = 4\n" +
+                "            .end subannotation\n" +
+                ".end annotation\n" +
+                "\n");
+
+        SmaliClass smaliClass = file.getPsiClass();
+        Assert.assertNotNull(smaliClass);
+        SmaliMethod method = smaliClass.getMethods()[0];
+        Assert.assertEquals("intValue", method.getName());
+
+        PsiAnnotationMemberValue defaultValue = method.getDefaultValue();
+        Assert.assertTrue(defaultValue instanceof SmaliLiteral);
+        Assert.assertEquals(4, ((SmaliLiteral)defaultValue).getIntegralValue());
     }
 }

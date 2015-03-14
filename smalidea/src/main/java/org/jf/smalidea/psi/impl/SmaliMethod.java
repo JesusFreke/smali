@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Map;
 
 public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
-        implements PsiMethod, SmaliModifierListOwner {
+        implements PsiMethod, SmaliModifierListOwner, PsiAnnotationMethod {
     public SmaliMethod(@NotNull SmaliMethodStub stub) {
         super(stub, SmaliElementTypes.METHOD);
     }
@@ -252,7 +252,7 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
         return new PsiTypeParameter[0];
     }
 
-    @Nullable @Override public PsiClass getContainingClass() {
+    @Nullable @Override public SmaliClass getContainingClass() {
         return (SmaliClass)getStubOrPsiParent();
     }
 
@@ -329,5 +329,28 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
             return smaliMemberName.getTextOffset();
         }
         return super.getTextOffset();
+    }
+
+    @Nullable @Override public PsiAnnotationMemberValue getDefaultValue() {
+        SmaliClass containingClass = getContainingClass();
+        if (containingClass == null || !containingClass.isAnnotationType()) {
+            return null;
+        }
+
+        for (SmaliAnnotation annotation: containingClass.getAnnotations()) {
+            String annotationType = annotation.getQualifiedName();
+            if (annotationType == null) {
+                continue;
+            }
+            if (annotationType.equals("dalvik.annotation.AnnotationDefault")) {
+                PsiAnnotationMemberValue value = annotation.findAttributeValue("value");
+                if (!(value instanceof SmaliAnnotation)) {
+                    return null;
+                }
+                SmaliAnnotation valueSubAnnotation = (SmaliAnnotation)value;
+                return valueSubAnnotation.findAttributeValue(getName());
+            }
+        }
+        return null;
     }
 }

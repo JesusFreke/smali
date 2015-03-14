@@ -718,9 +718,16 @@ type_field_method_literal
   }
 
 subannotation
-  @init { Marker marker = mark(); }
-  : SUBANNOTATION_DIRECTIVE class_descriptor annotation_element* end_subannotation_directive
-  { marker.done(SmaliElementTypes.LITERAL); };
+  @init {
+    Marker marker = mark();
+    Marker paramListMarker = null;
+  }
+  : SUBANNOTATION_DIRECTIVE class_descriptor
+    { paramListMarker = mark(); }
+    annotation_element*
+    { paramListMarker.done(SmaliElementTypes.ANNOTATION_PARAMETER_LIST); }
+    end_subannotation_directive
+    { marker.done(SmaliElementTypes.ANNOTATION); };
   catch [RecognitionException re] {
     recover(input, re);
     reportError(marker, re, false);

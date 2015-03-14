@@ -31,10 +31,13 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameValuePair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jf.smalidea.SmaliTokens;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
@@ -63,9 +66,20 @@ public class SmaliAnnotationElement extends SmaliCompositeElement implements Psi
         return findChildByClass(SmaliAnnotationElementName.class);
     }
 
-    @Nullable @Override public SmaliLiteral getValue() {
-        // TODO: implement the various psi expression classes that would be expected in the java stuff. Is SmaliLiteral implementing PsiLiteral and PsiExpression enough? What about method/field/enum literals?
-        return findChildByClass(SmaliLiteral.class);
+    @Nullable @Override public PsiAnnotationMemberValue getValue() {
+        ASTNode equalNode = findChildByType(SmaliTokens.EQUAL);
+        if (equalNode == null) {
+            return null;
+        }
+
+        PsiElement nextElement = equalNode.getPsi().getNextSibling();
+        while (nextElement != null) {
+            if (nextElement instanceof PsiAnnotationMemberValue) {
+                return (PsiAnnotationMemberValue)nextElement;
+            }
+            nextElement = nextElement.getNextSibling();
+        }
+        return null;
     }
 
     @NotNull @Override public PsiAnnotationMemberValue setValue(@NotNull PsiAnnotationMemberValue newValue) {
