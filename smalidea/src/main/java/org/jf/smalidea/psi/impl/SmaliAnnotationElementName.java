@@ -31,12 +31,17 @@
 
 package org.jf.smalidea.psi.impl;
 
-import com.intellij.psi.PsiIdentifier;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
 
-public class SmaliAnnotationElementName extends SmaliCompositeElement implements PsiIdentifier {
+public class SmaliAnnotationElementName extends SmaliCompositeElement implements PsiIdentifier, PsiReference {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
         @Override public SmaliCompositeElement createElement() {
             return new SmaliAnnotationElementName();
@@ -53,5 +58,78 @@ public class SmaliAnnotationElementName extends SmaliCompositeElement implements
 
     @Override public String getName() {
         return getText();
+    }
+
+    @Nullable
+    public SmaliAnnotation getContainingAnnotation() {
+        return findAncestorByClass(SmaliAnnotation.class);
+    }
+
+    @Override public PsiElement bindToElement(PsiElement element) throws IncorrectOperationException {
+        //TODO: implement this if needed
+        throw new IncorrectOperationException();
+    }
+
+    @Override public PsiElement getElement() {
+        return this;
+    }
+
+    @Override public TextRange getRangeInElement() {
+        return new TextRange(0, getTextLength());
+    }
+
+    @Nullable @Override public PsiElement resolve() {
+        SmaliAnnotation smaliAnnotation = getContainingAnnotation();
+        if (smaliAnnotation == null) {
+            return null;
+        }
+
+        String annotationType = smaliAnnotation.getQualifiedName();
+        if (annotationType == null) {
+            return null;
+        }
+
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
+        PsiClass annotationClass = facade.findClass(annotationType, getResolveScope());
+        if (annotationClass == null) {
+            return null;
+        }
+
+        for (PsiMethod method : annotationClass.findMethodsByName(getName(), true)) {
+            if (method.getParameterList().getParametersCount() == 0) {
+                return method;
+            }
+        }
+        return null;
+    }
+
+    @NotNull @Override public String getCanonicalText() {
+        // TODO: return a full method reference here?
+        String name = getName();
+        if (name == null) {
+            return "";
+        }
+        return name;
+    }
+
+    @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+        //TODO: implement this
+        throw new IncorrectOperationException();
+    }
+
+    @Override public boolean isReferenceTo(PsiElement element) {
+        return resolve() == element;
+    }
+
+    @NotNull @Override public Object[] getVariants() {
+        return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    }
+
+    @Override public boolean isSoft() {
+        return false;
+    }
+
+    @Override public PsiReference getReference() {
+        return this;
     }
 }
