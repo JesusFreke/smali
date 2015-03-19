@@ -71,9 +71,6 @@ public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStu
     }
 
     @Nullable @Override public PsiJavaCodeReferenceElement getNameReferenceElement() {
-        // TODO: we need to have a PsiAnnotationMethod implementation for methods in an annotation class (see PsiUtil.isAnnotationMethod and PsiImplUtil.findAttributeValue)
-        // TODO: alternately, we should implement findAttributeValue and findAttributeValue ourselves, instead of relying on PsiImplUtil (don't forget about finding default values..)
-        // TODO: ensure that PsiAnnotationMethodReferencesSearcher will pick up method usages based on our annotation elements
         SmaliAnnotationStub stub = getStub();
         if (stub != null) {
             String qualifiedName = stub.getAnnotationType();
