@@ -32,38 +32,64 @@
 package org.jf.baksmali;
 
 import org.antlr.runtime.RecognitionException;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.dexlib2.iface.ClassDef;
-import org.jf.smali.SmaliTestUtils;
-import org.jf.util.IndentingWriter;
-import org.jf.util.TextUtils;
 import org.junit.Assert;
-import org.junit.Test;
 
+import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 
-public class RoundtripTest {
-    @Test
-    public void testParamListMethodName() throws IOException, RecognitionException {
-        String text = "" +
-                ".class Lblah;\n" +
-                ".super Ljava/lang/Object;\n" +
-                "# virtual methods\n" +
-                ".method public abstract II()V\n" +
-                ".end method\n";
-        ClassDef classDef = SmaliTestUtils.compileSmali(text);
+/**
+ * A base test class for performing a roundtrip assembly/disassembly
+ *
+ * The test accepts a smali file as input, performs a smali -> dex -> smali roundtrip, and
+ * verifies that the result equals a known-good output smali file.
+ *
+ * By default, the input and output files should be resources at [testDir]/[testName]Input.smali
+ * and [testDir]/[testName]Output.smali respectively
+ */
+public abstract class RoundtripTest {
+    protected final String testDir;
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = true;
+    protected RoundtripTest(@Nonnull String testDir) {
+        this.testDir = testDir;
+    }
 
-        StringWriter stringWriter = new StringWriter();
-        IndentingWriter writer = new IndentingWriter(stringWriter);
-        ClassDefinition classDefinition = new ClassDefinition(options, classDef);
-        classDefinition.writeTo(writer);
-        writer.close();
+    protected RoundtripTest() {
+        this.testDir = this.getClass().getSimpleName();
+    }
 
-        Assert.assertEquals(TextUtils.normalizeWhitespace(text),
-                TextUtils.normalizeWhitespace(stringWriter.toString()));
+    @Nonnull
+    protected String getInputFilename(@Nonnull String testName) {
+        return String.format("%s%s%sInput.smali", testDir, File.separatorChar, testName);
+    }
+
+    @Nonnull
+    protected String getOutputFilename(@Nonnull String testName) {
+        return String.format("%s%s%sOutput.smali", testDir, File.separatorChar, testName);
+    }
+
+    protected void runTest(@Nonnull String testName) {
+        runTest(testName, new baksmaliOptions());
+    }
+
+    protected void runTest(@Nonnull String testName, @Nonnull baksmaliOptions options) {
+        try {
+            // Load file from resources as a stream
+            String inputFilename = getInputFilename(testName);
+            String input = BaksmaliTestUtils.readResourceFully(getInputFilename(testName));
+            String output;
+            if (getOutputFilename(testName).equals(inputFilename)) {
+                output = input;
+            } else {
+                output = BaksmaliTestUtils.readResourceFully(getOutputFilename(testName));
+            }
+
+            // Run smali, baksmali, and then compare strings are equal (minus comments/whitespace)
+            BaksmaliTestUtils.assertSmaliCompiledEquals(input, output, options, true);
+        } catch (IOException ex) {
+            Assert.fail();
+        } catch (RecognitionException ex) {
+            Assert.fail();
+        }
     }
 }

@@ -41,8 +41,6 @@ import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.instruction.formats.Instruction20bc;
 import org.jf.dexlib2.iface.instruction.formats.Instruction31t;
 import org.jf.dexlib2.iface.instruction.formats.UnknownInstruction;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.ExceptionWithContext;
@@ -132,26 +130,37 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         }
 
         if (instruction instanceof Instruction31t) {
-            Opcode payloadOpcode;
+            boolean validPayload = true;
+
             switch (instruction.getOpcode()) {
                 case PACKED_SWITCH:
-                    payloadOpcode = Opcode.PACKED_SWITCH_PAYLOAD;
+                    int baseAddress = methodDef.getPackedSwitchBaseAddress(
+                            this.codeAddress + ((Instruction31t)instruction).getCodeOffset());
+                    if (baseAddress == -1) {
+                        validPayload = false;
+                    }
                     break;
                 case SPARSE_SWITCH:
-                    payloadOpcode = Opcode.SPARSE_SWITCH_PAYLOAD;
+                    baseAddress = methodDef.getSparseSwitchBaseAddress(
+                            this.codeAddress + ((Instruction31t)instruction).getCodeOffset());
+                    if (baseAddress == -1) {
+                        validPayload = false;
+                    }
                     break;
                 case FILL_ARRAY_DATA:
-                    payloadOpcode = Opcode.ARRAY_PAYLOAD;
+                    try {
+                        methodDef.findPayloadOffset(this.codeAddress + ((Instruction31t)instruction).getCodeOffset(),
+                                Opcode.ARRAY_PAYLOAD);
+                    } catch (InvalidSwitchPayload ex) {
+                        validPayload = false;
+                    }
                     break;
                 default:
                     throw new ExceptionWithContext("Invalid 31t opcode: %s", instruction.getOpcode());
             }
 
-            try {
-                methodDef.findSwitchPayload(this.codeAddress + ((Instruction31t)instruction).getCodeOffset(),
-                        payloadOpcode);
-            } catch (InvalidSwitchPayload ex) {
-                writer.write("#invalid payload reference");
+            if (!validPayload) {
+                writer.write("#invalid payload reference\n");
                 commentOutInstruction = true;
             }
         }
@@ -300,6 +309,11 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeThirdRegister(writer);
                 break;
+             case Format25x:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeInvoke25xRegisters(writer);  // vC, {vD, ...}
+                break;
             case Format35c:
                 writeOpcode(writer);
                 writer.write(' ');
@@ -420,6 +434,43 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeRegister(writer, instruction.getRegisterF());
                 writer.write(", ");
                 writeRegister(writer, instruction.getRegisterG());
+                break;
+        }
+        writer.write('}');
+    }
+
+    protected void writeInvoke25xRegisters(IndentingWriter writer) throws IOException {
+        OneFixedFourParameterRegisterInstruction instruction =
+                (OneFixedFourParameterRegisterInstruction)this.instruction;
+        final int parameterRegCount = instruction.getParameterRegisterCount();
+
+        writeRegister(writer, instruction.getRegisterFixedC());  // fixed register always present
+
+        writer.write(", {");
+        switch (parameterRegCount) {
+            case 1:
+                writeRegister(writer, instruction.getRegisterParameterD());
+                break;
+            case 2:
+                writeRegister(writer, instruction.getRegisterParameterD());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterParameterE());
+                break;
+            case 3:
+                writeRegister(writer, instruction.getRegisterParameterD());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterParameterE());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterParameterF());
+                break;
+            case 4:
+                writeRegister(writer, instruction.getRegisterParameterD());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterParameterE());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterParameterF());
+                writer.write(", ");
+                writeRegister(writer, instruction.getRegisterParameterG());
                 break;
         }
         writer.write('}');
