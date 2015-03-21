@@ -37,6 +37,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
 import com.intellij.psi.PsiModifier.ModifierConstant;
+import com.intellij.psi.impl.InheritanceImplUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -252,11 +253,11 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @Override public boolean isInheritor(@NotNull PsiClass baseClass, boolean checkDeep) {
-        return false;
+        return InheritanceImplUtil.isInheritor(this, baseClass, checkDeep);
     }
 
     @Override public boolean isInheritorDeep(PsiClass baseClass, @Nullable PsiClass classToByPass) {
-        return false;
+        return InheritanceImplUtil.isInheritorDeep(this, baseClass, classToByPass);
     }
 
     @Nullable @Override public PsiClass getContainingClass() {

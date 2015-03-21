@@ -31,7 +31,10 @@
 
 package org.jf.smalidea;
 
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElementFactory;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
@@ -107,5 +110,37 @@ public class SmaliClassTest extends LightCodeInsightFixtureTestCase {
 
         Assert.assertEquals(1, smaliClass.getInterfaces().length);
         Assert.assertEquals("iface", smaliClass.getInterfaces()[0].getQualifiedName());
+    }
+
+    public void testIsInheritor() {
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("blah.smali",
+                ".class public Lblah; .super Ljava/lang/Exception;");
+        SmaliClass smaliClass = file.getPsiClass();
+        Assert.assertEquals("blah", smaliClass.getQualifiedName());
+
+        PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
+        PsiClassType throwableType = factory.createTypeByFQClassName("java.lang.Throwable", file.getResolveScope());
+        PsiClass throwableClass = throwableType.resolve();
+        Assert.assertNotNull(throwableClass);
+
+        PsiClassType exceptionType = factory.createTypeByFQClassName("java.lang.Exception", file.getResolveScope());
+        PsiClass exceptionClass = exceptionType.resolve();
+        Assert.assertNotNull(exceptionClass);
+
+        PsiClassType objectType = factory.createTypeByFQClassName("java.lang.Object", file.getResolveScope());
+        PsiClass objectClass = objectType.resolve();
+        Assert.assertNotNull(objectClass);
+
+        Assert.assertTrue(smaliClass.isInheritor(exceptionClass, true));
+        Assert.assertTrue(smaliClass.isInheritor(throwableClass, true));
+        Assert.assertTrue(smaliClass.isInheritor(objectClass, true));
+
+        Assert.assertTrue(smaliClass.isInheritorDeep(exceptionClass, null));
+        Assert.assertTrue(smaliClass.isInheritorDeep(throwableClass, null));
+        Assert.assertTrue(smaliClass.isInheritorDeep(objectClass, null));
+
+        Assert.assertTrue(smaliClass.isInheritor(exceptionClass, false));
+        Assert.assertFalse(smaliClass.isInheritor(throwableClass, false));
+        Assert.assertFalse(smaliClass.isInheritor(objectClass, false));
     }
 }
