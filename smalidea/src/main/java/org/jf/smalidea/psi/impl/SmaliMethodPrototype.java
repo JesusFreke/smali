@@ -59,7 +59,7 @@ public class SmaliMethodPrototype extends SmaliStubBasedPsiElement<SmaliMethodPr
                 return null;
             }
             PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
-            return factory.createTypeByFQClassName(returnType, getResolveScope());
+            return factory.createTypeFromText(returnType, this);
         }
 
         PsiTypeElement returnTypeElement = getReturnTypeElement();

@@ -101,7 +101,7 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
         if (typeElement == null) {
             // If we don't have a type (i.e. syntax error), use Object as a safe-ish fallback
             PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
-            return factory.createTypeByFQClassName("java.lang.Object", getResolveScope());
+            return factory.createTypeFromText("java.lang.Object", this);
         }
         return getTypeElement().getType();
     }

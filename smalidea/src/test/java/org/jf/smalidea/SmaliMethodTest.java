@@ -33,6 +33,7 @@ package org.jf.smalidea;
 
 import com.intellij.debugger.SourcePosition;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.jf.dexlib2.Opcode;
 import org.jf.smalidea.psi.impl.*;
@@ -286,5 +287,23 @@ public class SmaliMethodTest extends LightCodeInsightFixtureTestCase {
         Assert.assertNotNull(throwsList);
         Assert.assertEquals(0, throwsList.getReferencedTypes().length);
         Assert.assertEquals(0, throwsList.getReferenceElements().length);
+    }
+
+    public void testPrimitiveReturnType() {
+        String text = "" +
+                ".class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
+                ".method blah()I\n" +
+                "    .registers 123\n" +
+                "    return-void\n" +
+                ".end method";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("my/pkg/blah.smali", text);
+        SmaliClass smaliClass = file.getPsiClass();
+        Assert.assertNotNull(smaliClass);
+        SmaliMethod smaliMethod = smaliClass.getMethods()[0];
+
+        Assert.assertNotNull(smaliMethod.getReturnType());
+        Assert.assertTrue(smaliMethod.getReturnType().isConvertibleFrom(PsiPrimitiveType.INT));
+        Assert.assertTrue(smaliMethod.getReturnType().isAssignableFrom(PsiPrimitiveType.INT));
     }
 }
