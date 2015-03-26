@@ -693,7 +693,7 @@ array_literal
 
 enum_literal
   @init { Marker marker = mark(); }
-  : ENUM_DIRECTIVE reference_type_descriptor arrow simple_name colon reference_type_descriptor
+  : ENUM_DIRECTIVE fully_qualified_field
   { marker.done(SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);
@@ -702,15 +702,9 @@ enum_literal
 
 type_field_method_literal
   @init { Marker marker = mark(); }
-  : ( reference_type_descriptor
-      ( arrow
-        ( member_name colon nonvoid_type_descriptor
-        | member_name method_prototype_reference
-        )
-      | /* epsilon */
-      )
-    | primitive_type
-    | void_type)
+  : ( type_descriptor
+    | fully_qualified_field
+    | fully_qualified_method)
   { marker.done(SmaliElementTypes.LITERAL); };
   catch [RecognitionException re] {
     recover(input, re);

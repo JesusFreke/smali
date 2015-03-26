@@ -687,9 +687,10 @@ subannotation
   : SUBANNOTATION_DIRECTIVE CLASS_DESCRIPTOR annotation_element* END_SUBANNOTATION_DIRECTIVE
     -> ^(I_SUBANNOTATION[$start, "I_SUBANNOTATION"] CLASS_DESCRIPTOR annotation_element*);
 
+// TODO: how does dalvik handle a primitive or array type, or a non-enum type?
 enum_literal
-  : ENUM_DIRECTIVE reference_type_descriptor ARROW simple_name COLON reference_type_descriptor
-  -> ^(I_ENCODED_ENUM reference_type_descriptor simple_name reference_type_descriptor);
+  : ENUM_DIRECTIVE field_reference
+  -> ^(I_ENCODED_ENUM field_reference);
 
 type_field_method_literal
   : reference_type_descriptor

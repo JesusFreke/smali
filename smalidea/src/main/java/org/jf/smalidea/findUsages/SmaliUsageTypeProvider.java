@@ -33,6 +33,7 @@ package org.jf.smalidea.findUsages;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.usages.impl.rules.UsageType;
@@ -63,6 +64,8 @@ public class SmaliUsageTypeProvider implements UsageTypeProvider {
             if (referenced != null) {
                 if (referenced instanceof PsiClass) {
                     return findClassUsageType(element);
+                } else if (referenced instanceof PsiField) {
+                    return findFieldUsageType(element);
                 }
             }
         }
@@ -71,6 +74,18 @@ public class SmaliUsageTypeProvider implements UsageTypeProvider {
 
     private final Set<Opcode> newArrayInstructions = EnumSet.of(Opcode.FILLED_NEW_ARRAY, Opcode.NEW_ARRAY,
             Opcode.FILLED_NEW_ARRAY_RANGE);
+
+    private final Set<Opcode> fieldReadInstructions = EnumSet.of(Opcode.IGET, Opcode.IGET_BOOLEAN, Opcode.IGET_BYTE,
+            Opcode.IGET_CHAR, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT_VOLATILE, Opcode.IGET_SHORT, Opcode.IGET_VOLATILE,
+            Opcode.IGET_WIDE, Opcode.IGET_WIDE_VOLATILE, Opcode.SGET, Opcode.SGET_BOOLEAN, Opcode.SGET_BYTE,
+            Opcode.SGET_CHAR, Opcode.SGET_OBJECT, Opcode.SGET_OBJECT_VOLATILE, Opcode.SGET_SHORT, Opcode.SGET_VOLATILE,
+            Opcode.SGET_WIDE, Opcode.SGET_WIDE_VOLATILE);
+
+    private final Set<Opcode> fieldWriteInstructions = EnumSet.of(Opcode.IPUT, Opcode.IPUT_BOOLEAN, Opcode.IPUT_BYTE,
+            Opcode.IPUT_CHAR, Opcode.IPUT_OBJECT, Opcode.IPUT_OBJECT_VOLATILE, Opcode.IPUT_SHORT, Opcode.IPUT_VOLATILE,
+            Opcode.IPUT_WIDE, Opcode.IPUT_WIDE_VOLATILE, Opcode.SPUT, Opcode.SPUT_BOOLEAN, Opcode.SPUT_BYTE,
+            Opcode.SPUT_CHAR, Opcode.SPUT_OBJECT, Opcode.SPUT_OBJECT_VOLATILE, Opcode.SPUT_SHORT, Opcode.SPUT_VOLATILE,
+            Opcode.SPUT_WIDE, Opcode.SPUT_WIDE_VOLATILE);
 
     @Nullable
     private UsageType findClassUsageType(@NotNull PsiElement element) {
@@ -138,6 +153,29 @@ public class SmaliUsageTypeProvider implements UsageTypeProvider {
                 return LITERAL;
             }
             element = element.getParent();
+        }
+        return UsageType.UNCLASSIFIED;
+    }
+
+    @Nullable
+    private UsageType findFieldUsageType(@NotNull PsiElement element) {
+        PsiElement originalElement = element;
+
+        while (element != null) {
+            element = element.getParent();
+
+            if (element instanceof SmaliInstruction) {
+                Opcode opcode = ((SmaliInstruction) element).getOpcode();
+                if (fieldReadInstructions.contains(opcode)) {
+                    return UsageType.READ;
+                } else if (fieldWriteInstructions.contains(opcode)) {
+                    return UsageType.WRITE;
+                } else if (opcode == Opcode.THROW_VERIFICATION_ERROR) {
+                    return VERIFICATION_ERROR;
+                }
+            } if (element instanceof SmaliLiteral) {
+                return LITERAL;
+            }
         }
         return UsageType.UNCLASSIFIED;
     }
