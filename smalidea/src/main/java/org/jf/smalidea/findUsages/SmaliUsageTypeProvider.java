@@ -31,10 +31,7 @@
 
 package org.jf.smalidea.findUsages;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.usages.impl.rules.UsageType;
 import com.intellij.usages.impl.rules.UsageTypeProvider;
@@ -66,6 +63,8 @@ public class SmaliUsageTypeProvider implements UsageTypeProvider {
                     return findClassUsageType(element);
                 } else if (referenced instanceof PsiField) {
                     return findFieldUsageType(element);
+                } else if (referenced instanceof PsiMethod) {
+                    return findMethodUsageType(element);
                 }
             }
         }
@@ -171,6 +170,25 @@ public class SmaliUsageTypeProvider implements UsageTypeProvider {
                 } else if (fieldWriteInstructions.contains(opcode)) {
                     return UsageType.WRITE;
                 } else if (opcode == Opcode.THROW_VERIFICATION_ERROR) {
+                    return VERIFICATION_ERROR;
+                }
+            } if (element instanceof SmaliLiteral) {
+                return LITERAL;
+            }
+        }
+        return UsageType.UNCLASSIFIED;
+    }
+
+    @Nullable
+    private UsageType findMethodUsageType(@NotNull PsiElement element) {
+        PsiElement originalElement = element;
+
+        while (element != null) {
+            element = element.getParent();
+
+            if (element instanceof SmaliInstruction) {
+                Opcode opcode = ((SmaliInstruction) element).getOpcode();
+                if (opcode == Opcode.THROW_VERIFICATION_ERROR) {
                     return VERIFICATION_ERROR;
                 }
             } if (element instanceof SmaliLiteral) {
