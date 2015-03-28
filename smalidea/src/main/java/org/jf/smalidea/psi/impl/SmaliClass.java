@@ -53,6 +53,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.SmaliIcons;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
+import org.jf.smalidea.psi.leaf.SmaliClassDescriptor;
 import org.jf.smalidea.psi.stub.SmaliClassStub;
 
 import javax.annotation.Nonnull;
@@ -244,8 +245,16 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         return null;
     }
 
-    @Nullable @Override public PsiIdentifier getNameIdentifier() {
-        return null;
+    @Nullable public SmaliClassStatement getClassStatement() {
+        return getStubOrPsiChild(SmaliElementTypes.CLASS_STATEMENT);
+    }
+
+    @Nullable @Override public SmaliClassDescriptor getNameIdentifier() {
+        SmaliClassStatement classStatement = getClassStatement();
+        if (classStatement == null) {
+            return null;
+        }
+        return classStatement.getNameIdentifier();
     }
 
     @Override public PsiElement getScope() {
@@ -269,7 +278,52 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @Override public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-        return null;
+        SmaliClassStatement classStatement = getClassStatement();
+        if (classStatement == null) {
+            throw new IncorrectOperationException();
+        }
+
+        SmaliClassTypeElement classTypeElement = classStatement.getNameElement();
+        if (classTypeElement == null) {
+            throw new IncorrectOperationException();
+        }
+
+        String expectedPath = "/" + getName() + ".smali";
+        String actualPath = this.getContainingFile().getVirtualFile().getPath();
+        if (actualPath.endsWith(expectedPath)) {
+            getContainingFile().setName(name + ".smali");
+        }
+
+        String packageName = this.getPackageName();
+        String newName;
+        if (packageName.length() > 0) {
+            newName = packageName + "." + name;
+        } else {
+            newName = name;
+        }
+        classTypeElement.handleElementRename(newName);
+        return this;
+    }
+
+    public void setPackageName(@NonNls @NotNull String packageName) {
+        SmaliClassStatement classStatement = getClassStatement();
+        if (classStatement == null) {
+            throw new IncorrectOperationException();
+        }
+
+        SmaliClassTypeElement classTypeElement = classStatement.getNameElement();
+        if (classTypeElement == null) {
+            throw new IncorrectOperationException();
+        }
+
+        String newName;
+        if (packageName.length() > 0) {
+            newName = packageName + "." + getName();
+        } else {
+            newName = getName();
+        }
+
+        classTypeElement.handleElementRename(newName);
     }
 
     @Nullable @Override public PsiDocComment getDocComment() {

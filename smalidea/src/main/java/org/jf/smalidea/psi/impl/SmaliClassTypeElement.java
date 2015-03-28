@@ -33,6 +33,7 @@ package org.jf.smalidea.psi.impl;
 
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.codeStyle.CodeEditUtil;
 import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.util.IncorrectOperationException;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.leaf.SmaliClassDescriptor;
 import org.jf.smalidea.util.NameUtils;
 
 public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCodeReferenceElement {
@@ -102,12 +104,23 @@ public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCo
     }
 
     @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-        //TODO: implement this
-        throw new IncorrectOperationException();
+        SmaliClassDescriptor descriptor = getReferenceNameElement();
+        if (descriptor == null) {
+            throw new IncorrectOperationException();
+        }
+
+        SmaliClassDescriptor newDescriptor = new SmaliClassDescriptor(NameUtils.javaToSmaliType(newElementName));
+        CodeEditUtil.setNodeGenerated(newDescriptor, true);
+
+        this.replaceChild(descriptor, newDescriptor);
+        return this;
     }
 
     @Override public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
-        //TODO: implement this
+        if (element instanceof PsiClass) {
+            handleElementRename(((PsiClass) element).getQualifiedName());
+            return this;
+        }
         throw new IncorrectOperationException();
     }
 
@@ -135,9 +148,8 @@ public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCo
         throw new UnsupportedOperationException();
     }
 
-    @Nullable @Override public PsiElement getReferenceNameElement() {
-        // TODO: implement if needed
-        throw new UnsupportedOperationException();
+    @Nullable @Override public SmaliClassDescriptor getReferenceNameElement() {
+        return findChildByClass(SmaliClassDescriptor.class);
     }
 
     @Nullable @Override public PsiReferenceParameterList getParameterList() {

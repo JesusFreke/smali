@@ -35,6 +35,7 @@ import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.leaf.SmaliClassDescriptor;
 import org.jf.smalidea.psi.stub.SmaliClassStatementStub;
 
 public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStatementStub> {
@@ -44,6 +45,20 @@ public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStat
 
     public SmaliClassStatement(@NotNull ASTNode node) {
         super(node);
+    }
+
+    @Nullable
+    public SmaliClassTypeElement getNameElement() {
+        return findChildByClass(SmaliClassTypeElement.class);
+    }
+
+    @Nullable
+    public SmaliClassDescriptor getNameIdentifier() {
+        SmaliClassTypeElement classTypeElement = getNameElement();
+        if (classTypeElement == null) {
+            return null;
+        }
+        return classTypeElement.getReferenceNameElement();
     }
 
     /**

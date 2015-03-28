@@ -85,6 +85,10 @@ public class SmaliFile extends PsiFileBase implements PsiClassOwner {
     }
 
     @Override public void setPackageName(String packageName) throws IncorrectOperationException {
-        // TODO: implement this
+        SmaliClass smaliClass = getPsiClass();
+        if (smaliClass == null) {
+            return;
+        }
+        smaliClass.setPackageName(packageName);
     }
 }
