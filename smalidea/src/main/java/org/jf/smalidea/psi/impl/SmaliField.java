@@ -130,8 +130,9 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
     }
 
     @Override public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-        // TODO: implement this
-        return null;
+        SmaliMemberName smaliMemberName = getNameIdentifier();
+        smaliMemberName.setName(name);
+        return this;
     }
 
     @Override public boolean hasModifierProperty(@ModifierConstant @NonNls @NotNull String name) {

@@ -32,7 +32,10 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiReference;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
@@ -138,7 +141,11 @@ public class SmaliFieldReference extends SmaliCompositeElement implements PsiRef
     }
 
     @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-        //TODO: implement this
-        throw new IncorrectOperationException();
+        SmaliMemberName memberName = getMemberName();
+        if (memberName == null) {
+            throw new IncorrectOperationException();
+        }
+        memberName.setName(newElementName);
+        return this;
     }
 }

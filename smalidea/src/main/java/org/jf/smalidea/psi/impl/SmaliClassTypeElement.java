@@ -188,8 +188,7 @@ public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCo
     }
 
     @Nullable @Override public PsiElement getQualifier() {
-        // TODO: implement this if needed
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     @Nullable @Override public String getReferenceName() {

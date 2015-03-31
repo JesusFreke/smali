@@ -32,9 +32,12 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.impl.source.codeStyle.CodeEditUtil;
 import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliCompositeElementFactory;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.leaf.SmaliSimpleName;
 
 public class SmaliMemberName extends SmaliCompositeElement implements PsiIdentifier {
     public static final SmaliCompositeElementFactory FACTORY = new SmaliCompositeElementFactory() {
@@ -49,5 +52,18 @@ public class SmaliMemberName extends SmaliCompositeElement implements PsiIdentif
 
     @Override public IElementType getTokenType() {
         return getElementType();
+    }
+
+    @Override
+    public String getName() {
+        return this.getText();
+    }
+
+    public void setName(@NotNull String newElementName) {
+        removeAllChildren();
+        SmaliSimpleName newNameElement = new SmaliSimpleName(newElementName);
+        CodeEditUtil.setNodeGenerated(newNameElement, true);
+
+        addChild(newNameElement);
     }
 }
