@@ -48,4 +48,15 @@ public class SmaliClassStatementStub extends StubBase<SmaliClassStatement>  {
     @Nullable public String getQualifiedName() {
         return qualifiedName;
     }
+
+    @Nullable public String getName() {
+        if (qualifiedName == null) {
+            return null;
+        }
+        int lastDot = qualifiedName.lastIndexOf('.');
+        if (lastDot < 0) {
+            return qualifiedName;
+        }
+        return qualifiedName.substring(lastDot+1);
+    }
 }

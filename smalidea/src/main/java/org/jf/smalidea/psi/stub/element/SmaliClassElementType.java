@@ -32,6 +32,7 @@
 package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.impl.java.stubs.index.JavaStubIndexKeys;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
@@ -85,6 +86,11 @@ public class SmaliClassElementType extends SmaliStubElementType<SmaliClassStub, 
             String qualifiedName = smaliClassStatementStub.getQualifiedName();
             if (qualifiedName != null) {
                 sink.occurrence(SmaliClassNameIndex.KEY, qualifiedName);
+            }
+
+            final String shortName = smaliClassStatementStub.getName();
+            if (shortName != null) {
+                sink.occurrence(JavaStubIndexKeys.CLASS_SHORT_NAMES, shortName);
             }
         }
     }
