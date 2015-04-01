@@ -225,8 +225,12 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
     }
 
     @Override public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-        // TODO: implement this
-        throw new IncorrectOperationException();
+        SmaliMemberName smaliMemberName = getNameIdentifier();
+        if (smaliMemberName == null) {
+            throw new IncorrectOperationException();
+        }
+        smaliMemberName.setName(name);
+        return this;
     }
 
     @NotNull @Override public HierarchicalMethodSignature getHierarchicalMethodSignature() {
@@ -253,7 +257,11 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
     }
 
     @Nullable @Override public SmaliClass getContainingClass() {
-        return (SmaliClass)getStubOrPsiParent();
+        PsiElement parent = getStubOrPsiParent();
+        if (parent instanceof SmaliClass) {
+            return (SmaliClass) parent;
+        }
+        return null;
     }
 
     @Override public boolean hasModifierProperty(@ModifierConstant @NonNls @NotNull String name) {

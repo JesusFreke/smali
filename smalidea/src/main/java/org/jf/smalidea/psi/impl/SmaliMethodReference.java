@@ -177,8 +177,12 @@ public class SmaliMethodReference extends SmaliCompositeElement implements PsiRe
     }
 
     @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-        //TODO: implement this
-        throw new IncorrectOperationException();
+        SmaliMemberName memberName = getMemberName();
+        if (memberName == null) {
+            throw new IncorrectOperationException();
+        }
+        memberName.setName(newElementName);
+        return this;
     }
 
     @Override public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
