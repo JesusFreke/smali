@@ -32,13 +32,16 @@
 package org.jf.smalidea.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
+import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.leaf.SmaliClassDescriptor;
 import org.jf.smalidea.psi.stub.SmaliClassStatementStub;
 
-public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStatementStub> {
+public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStatementStub>
+        implements SmaliModifierListOwner {
     public SmaliClassStatement(@NotNull SmaliClassStatementStub stub) {
         super(stub, SmaliElementTypes.CLASS_STATEMENT);
     }
@@ -50,6 +53,11 @@ public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStat
     @Nullable
     public SmaliClassTypeElement getNameElement() {
         return findChildByClass(SmaliClassTypeElement.class);
+    }
+
+    @Nullable
+    public SmaliClass getContainingClass() {
+        return getStubOrPsiParentOfType(SmaliClass.class);
     }
 
     @Nullable
@@ -81,5 +89,55 @@ public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStat
     @Nullable
     public SmaliModifierList getModifierList() {
         return getStubOrPsiChild(SmaliElementTypes.MODIFIER_LIST);
+    }
+
+    @NotNull
+    @Override
+    public SmaliAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
+        SmaliClass containingClass = getContainingClass();
+        if (containingClass == null) {
+            // TODO: what should we do here?
+            return null;
+        }
+        return containingClass.addAnnotation(qualifiedName);
+    }
+
+    @NotNull
+    @Override
+    public SmaliAnnotation[] getAnnotations() {
+        SmaliClass containingClass = getContainingClass();
+        if (containingClass == null) {
+            return new SmaliAnnotation[0];
+        }
+        return containingClass.getAnnotations();
+    }
+
+    @NotNull
+    @Override
+    public SmaliAnnotation[] getApplicableAnnotations() {
+        SmaliClass containingClass = getContainingClass();
+        if (containingClass == null) {
+            return new SmaliAnnotation[0];
+        }
+        return containingClass.getApplicableAnnotations();
+    }
+
+    @Nullable
+    @Override
+    public SmaliAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
+        SmaliClass containingClass = getContainingClass();
+        if (containingClass == null) {
+            return null;
+        }
+        return containingClass.findAnnotation(qualifiedName);
+    }
+
+    @Override
+    public boolean hasModifierProperty(@NonNls @NotNull String name) {
+        SmaliClass containingClass = getContainingClass();
+        if (containingClass == null) {
+            return false;
+        }
+        return containingClass.hasModifierProperty(name);
     }
 }

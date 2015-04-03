@@ -32,14 +32,17 @@
 package org.jf.smalidea.psi.iface;
 
 import com.intellij.psi.PsiAnnotationOwner;
+import com.intellij.psi.PsiModifierListOwner;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.impl.SmaliAnnotation;
+import org.jf.smalidea.psi.impl.SmaliModifierList;
 
-public interface SmaliModifierListOwner extends PsiAnnotationOwner {
+public interface SmaliModifierListOwner extends PsiModifierListOwner, PsiAnnotationOwner {
     @NotNull @Override SmaliAnnotation[] getAnnotations();
     @NotNull @Override SmaliAnnotation[] getApplicableAnnotations();
     @Nullable @Override SmaliAnnotation findAnnotation(@NotNull @NonNls String qualifiedName);
     @NotNull @Override SmaliAnnotation addAnnotation(@NotNull @NonNls String qualifiedName);
+    @Nullable @Override SmaliModifierList getModifierList();
 }

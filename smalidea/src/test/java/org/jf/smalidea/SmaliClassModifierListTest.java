@@ -32,6 +32,7 @@
 package org.jf.smalidea;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.smalidea.psi.impl.SmaliAnnotation;
@@ -162,6 +163,11 @@ public class SmaliClassModifierListTest extends LightCodeInsightFixtureTestCase 
 
         SmaliClass smaliClass = file.getPsiClass();
         SmaliModifierList modifierList = smaliClass.getModifierList();
+
+        // Ensures that the parent of the modifier list is a PsiModifierListOwner
+        // e.g. for code like JavaSuppressionUtil.getInspectionIdsSuppressedInAnnotation,
+        // which assumes the parent is a PsiModifierListOwner
+        Assert.assertTrue(modifierList.getParent() instanceof PsiModifierListOwner);
 
         Assert.assertEquals(0, modifierList.getAnnotations().length);
         Assert.assertEquals(0, modifierList.getApplicableAnnotations().length);
