@@ -32,6 +32,7 @@
       <referencesSearch implementation="org.jf.smalidea.findUsages.SmaliClassReferenceSearcher"/>
       <usageTargetProvider implementation="org.jf.smalidea.findUsages.SmaliUsageTargetProvider" />
       <usageTypeProvider implementation="org.jf.smalidea.findUsages.SmaliUsageTypeProvider"/>
+      <errorHandler implementation="org.jf.smalidea.errorReporting.ErrorReporter"/>
   </extensions>
 
   <application-components>
