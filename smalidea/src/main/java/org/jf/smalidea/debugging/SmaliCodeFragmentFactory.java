@@ -53,6 +53,7 @@ import com.sun.tools.jdi.LocationImpl;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.RegisterType;
 import org.jf.smalidea.SmaliFileType;
+import org.jf.smalidea.SmaliLanguage;
 import org.jf.smalidea.psi.impl.SmaliInstruction;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 
@@ -64,6 +65,11 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
     @Override
     public JavaCodeFragment createCodeFragment(TextWithImports item, PsiElement context, Project project) {
         return super.createCodeFragment(item, wrapContext(project, context), project);
+    }
+
+    @Override
+    public boolean isContextAccepted(PsiElement contextElement) {
+        return contextElement.getLanguage() == SmaliLanguage.INSTANCE;
     }
 
     @Override
