@@ -142,7 +142,16 @@ public class SmaliPositionManager implements PositionManager {
     @Override
     public ClassPrepareRequest createPrepareRequest(@NotNull final ClassPrepareRequestor requestor,
                                                     @NotNull final SourcePosition position) throws NoDataException {
-        if (!(position.getElementAt().getContainingFile() instanceof SmaliFile)) {
+        Computable<Boolean> isSmaliFile = new Computable<Boolean>() {
+            @Override
+            public Boolean compute() {
+                return position.getElementAt().getContainingFile() instanceof SmaliFile;
+            }
+        };
+
+        ApplicationManager.getApplication().runReadAction(isSmaliFile);
+
+        if (!isSmaliFile.compute()) {
             throw NoDataException.INSTANCE;
         }
 
