@@ -57,6 +57,11 @@ if (!('release' in gradle.startParameter.taskNames)) {
     // use something like module-1.2.3-dev.jar for the jar name, rather than the full
     // module-1.2.3-001afe02-dirty.jar
     jarVersion = baseVersion + '-dev'
+} else {
+    if (System.env.JDK6_HOME == null && !JavaVersion.current().isJava6()) {
+        throw new InvalidUserDataException("bzzzzzzzt. Release builds must be performed with java 6. " +
+                "Either run gradle with java 6, or define the JDK6_HOME environment variable.")
+    }
 }
 
 // Note: please don't use this. This is strictly for the official releases
@@ -79,6 +84,19 @@ subprojects {
         }
     }
 
+    if (System.env.JDK6_HOME != null) {
+        sourceCompatibility = 1.6
+        targetCompatibility = 1.6
+
+        tasks.withType(JavaCompile) {
+            doFirst {
+                options.fork = true
+                options.bootClasspath = "$System.env.JDK6_HOME/jre/lib/rt.jar"
+                options.bootClasspath += "$File.pathSeparator$System.env.JDK6_HOME/jre/lib/jsse.jar"
+            }
+        }
+    }
+
     version = parent.version
 
     ext {
@@ -90,7 +108,7 @@ subprojects {
                    stringtemplate: 'org.antlr:stringtemplate:3.2.1',
                    commons_cli: 'commons-cli:commons-cli:1.2',
                    jflex: 'de.jflex:jflex:1.4.3',
-                   jflex_plugin: 'co.tomlee.gradle.plugins:gradle-jflex-plugin:0.0.1',
+                   jflex_plugin: 'co.tomlee.gradle.plugins:gradle-jflex-plugin:0.0.2',
                    proguard_gradle: 'net.sf.proguard:proguard-gradle:5.2.1',
                    dx: 'com.google.android.tools:dx:1.7'
          ]
