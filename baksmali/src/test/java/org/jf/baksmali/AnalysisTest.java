@@ -106,8 +106,8 @@ public class AnalysisTest {
                     className.substring(1, className.length() - 1));
             String smaliContents = readResource(smaliPath);
 
-            Assert.assertEquals(TextUtils.normalizeNewlines(smaliContents),
-                    TextUtils.normalizeNewlines(stringWriter.toString()));
+            Assert.assertEquals(TextUtils.normalizeWhitespace(smaliContents),
+                    TextUtils.normalizeWhitespace((stringWriter.toString())));
         }
     }
 
