@@ -69,6 +69,9 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
 
     @Override
     public boolean isContextAccepted(PsiElement contextElement) {
+        if (contextElement == null) {
+            return false;
+        }
         return contextElement.getLanguage() == SmaliLanguage.INSTANCE;
     }
 
