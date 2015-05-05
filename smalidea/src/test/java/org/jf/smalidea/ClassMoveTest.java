@@ -3,13 +3,11 @@ package org.jf.smalidea;
 import com.intellij.openapi.roots.JavaProjectRootsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.MultiFileTestCase;
 import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.move.moveClassesOrPackages.AutocreatingSingleSourceRootMoveDestination;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
-import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -46,23 +44,12 @@ public class ClassMoveTest extends MultiFileTestCase {
     private void doMove(String oldQualifiedName, final String newPackage) throws Exception {
         final PsiClass testClass = myJavaFacade.findClass(oldQualifiedName, GlobalSearchScope.allScope(getProject()));
 
-        PsiDirectory newDirectory = MoveClassesOrPackagesUtil.chooseDestinationPackage(getProject(),
-                newPackage, testClass.getContainingFile().getContainingDirectory());
-
         final List<VirtualFile> contentSourceRoots =
                 JavaProjectRootsUtil.getSuitableDestinationSourceRoots(getProject());
 
         new MoveClassesOrPackagesProcessor(getProject(), new PsiClass[] {testClass},
                 new AutocreatingSingleSourceRootMoveDestination(new PackageWrapper(getPsiManager(), newPackage),
                         contentSourceRoots.get(0)), false, false, null).run();
-
-        /*new WriteCommandAction.Simple(getProject(), testClass.getContainingFile()) {
-            @Override protected void run() throws Throwable {
-
-
-                MoveClassesOrPackagesUtil.doMoveClass(testClass, newDirectory);
-            }
-        }.execute();*/
     }
 
 }
