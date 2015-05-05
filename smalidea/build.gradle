@@ -41,6 +41,7 @@ sourceSets.main.java.srcDir antlrOutput
 dependencies {
     compile project(':smali')
     compile depends.antlr_runtime
+    compile depends.gson
 
     antlr3 depends.antlr
 }
