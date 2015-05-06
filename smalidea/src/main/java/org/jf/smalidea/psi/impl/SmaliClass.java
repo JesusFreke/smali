@@ -35,6 +35,7 @@ import com.google.common.collect.Lists;
 import com.intellij.debugger.SourcePosition;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.PsiModifier.ModifierConstant;
 import com.intellij.psi.impl.InheritanceImplUtil;
@@ -289,9 +290,13 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
         }
 
         String expectedPath = "/" + getName() + ".smali";
-        String actualPath = this.getContainingFile().getVirtualFile().getPath();
-        if (actualPath.endsWith(expectedPath)) {
-            getContainingFile().setName(name + ".smali");
+
+        VirtualFile virtualFile = this.getContainingFile().getVirtualFile();
+        if (virtualFile != null) {
+            String actualPath = virtualFile.getPath();
+            if (actualPath.endsWith(expectedPath)) {
+                getContainingFile().setName(name + ".smali");
+            }
         }
 
         String packageName = this.getPackageName();
