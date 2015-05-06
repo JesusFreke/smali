@@ -631,6 +631,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
    {PrimitiveType} { yybegin(YYINITIAL); return newToken(PRIMITIVE_TYPE); }
    {ClassDescriptor} { yybegin(YYINITIAL); return newToken(CLASS_DESCRIPTOR); }
    [^] { yypushback(1); yybegin(YYINITIAL); }
+   <<EOF>> { yybegin(YYINITIAL); }
 }
 
 /*Types*/

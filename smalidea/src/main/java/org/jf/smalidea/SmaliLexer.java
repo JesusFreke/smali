@@ -126,5 +126,6 @@ public class SmaliLexer extends LexerBase {
             token = (CommonToken)lexer.nextToken();
             state = lexer.yystate();
         }
+        assert token != null;
     }
 }
