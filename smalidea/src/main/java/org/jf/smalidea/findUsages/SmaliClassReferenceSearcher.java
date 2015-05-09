@@ -71,14 +71,22 @@ public class SmaliClassReferenceSearcher extends QueryExecutorBase<PsiReference,
 
         final SingleTargetRequestResultProcessor processor = new SingleTargetRequestResultProcessor(element);
 
+        SearchScope querySearchScope = ApplicationManager.getApplication().runReadAction(
+                new Computable<SearchScope>() {
+                    @Override public SearchScope compute() {
+                        return queryParameters.getEffectiveSearchScope();
+                    }
+                });
+
         // TODO: is it possible to get a LocalSearchScope here? If so, how to handle it?
-        if (!(queryParameters.getEffectiveSearchScope() instanceof GlobalSearchScope)) {
+        if (!(querySearchScope instanceof GlobalSearchScope)) {
+            assert false;
             return;
         }
 
         PsiSearchHelper helper = PsiSearchHelper.SERVICE.getInstance(element.getProject());
         // TODO: limit search scope to only smali files. See, e.g. AnnotatedPackagesSearcher.PackageInfoFilesOnly
-        helper.processAllFilesWithWord(smaliType, (GlobalSearchScope)queryParameters.getEffectiveSearchScope(),
+        helper.processAllFilesWithWord(smaliType, (GlobalSearchScope)querySearchScope,
                 new Processor<PsiFile>() {
                     @Override
                     public boolean process(PsiFile file) {
