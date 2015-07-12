@@ -260,7 +260,7 @@ import org.jf.dexlib2.Opcodes;
   private boolean verboseErrors = false;
   private boolean allowOdex = false;
   private int apiLevel = 15;
-  private Opcodes opcodes = new Opcodes(apiLevel, false);
+  private Opcodes opcodes = Opcodes.forApi(apiLevel);
 
   public void setVerboseErrors(boolean verboseErrors) {
     this.verboseErrors = verboseErrors;

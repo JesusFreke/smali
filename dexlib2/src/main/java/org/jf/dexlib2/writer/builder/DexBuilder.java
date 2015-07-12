@@ -34,8 +34,8 @@ package org.jf.dexlib2.writer.builder;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.MethodImplementation;
@@ -49,7 +49,6 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -59,20 +58,27 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
         BuilderClassDef, BuilderAnnotation, BuilderAnnotationSet, BuilderTypeList, BuilderField, BuilderMethod,
         BuilderEncodedValue, BuilderAnnotationElement> {
 
-    private final BuilderContext context;
+    @Nonnull private final BuilderContext context;
 
-    public static DexBuilder makeDexBuilder() {
+    @Nonnull public static DexBuilder makeDexBuilder() {
         BuilderContext context = new BuilderContext();
-        return new DexBuilder(15, context);
+        return new DexBuilder(Opcodes.forApi(20), context);
     }
 
+    @Deprecated
+    @Nonnull
     public static DexBuilder makeDexBuilder(int api) {
         BuilderContext context = new BuilderContext();
-        return new DexBuilder(api, context);
+        return new DexBuilder(Opcodes.forApi(api), context);
     }
 
-    private DexBuilder(int api, @Nonnull BuilderContext context) {
-        super(api, context.stringPool, context.typePool, context.protoPool,
+    @Nonnull public static DexBuilder makeDexBuilder(@Nonnull Opcodes opcodes) {
+        BuilderContext context = new BuilderContext();
+        return new DexBuilder(opcodes, context);
+    }
+
+    private DexBuilder(@Nonnull Opcodes opcodes, @Nonnull BuilderContext context) {
+        super(opcodes, context.stringPool, context.typePool, context.protoPool,
                 context.fieldPool, context.methodPool, context.classPool, context.typeListPool, context.annotationPool,
                 context.annotationSetPool);
         this.context = context;

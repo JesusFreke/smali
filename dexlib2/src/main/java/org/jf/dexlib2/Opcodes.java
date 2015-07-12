@@ -32,35 +32,90 @@
 package org.jf.dexlib2;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.RangeMap;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.EnumMap;
 import java.util.HashMap;
 
 public class Opcodes {
-    private final Opcode[] opcodesByValue;
-    private final HashMap<String, Opcode> opcodesByName;
 
+    /**
+     * Either the api level for dalvik opcodes, or the art version for art opcodes
+     */
+    public final int api;
+    public final int artVersion;
+    @Nonnull private final Opcode[] opcodesByValue = new Opcode[255];
+    @Nonnull private final EnumMap<Opcode, Short> opcodeValues;
+    @Nonnull private final HashMap<String, Opcode> opcodesByName;
+
+    @Nonnull
+    public static Opcodes forApi(int api) {
+        return new Opcodes(api, VersionMap.mapApiToArtVersion(api), false);
+    }
+
+    @Nonnull
+    public static Opcodes forApi(int api, boolean experimental) {
+        return new Opcodes(api, VersionMap.mapApiToArtVersion(api), experimental);
+    }
+
+    @Nonnull
+    public static Opcodes forArtVersion(int artVersion) {
+        return forArtVersion(artVersion, false);
+    }
+
+    @Nonnull
+    public static Opcodes forArtVersion(int artVersion, boolean experimental) {
+        return new Opcodes(VersionMap.mapArtVersionToApi(artVersion), artVersion, experimental);
+    }
+
+    @Deprecated
     public Opcodes(int api) {
         this(api, false);
     }
 
+    @Deprecated
     public Opcodes(int api, boolean experimental) {
-        opcodesByValue = new Opcode[256];
+        this(api, VersionMap.mapApiToArtVersion(api), experimental);
+    }
+
+    private Opcodes(int api, int artVersion, boolean experimental) {
+        this.api = api;
+        this.artVersion = artVersion;
+
+        opcodeValues = new EnumMap<Opcode, Short>(Opcode.class);
         opcodesByName = Maps.newHashMap();
 
+        int version;
+        if (isArt()) {
+            version = artVersion;
+        } else {
+            version = api;
+        }
+
         for (Opcode opcode: Opcode.values()) {
-            if (!opcode.format.isPayloadFormat) {
-                if (api <= opcode.getMaxApi() && api >= opcode.getMinApi() &&
-                        (experimental || !opcode.isExperimental())) {
-                    opcodesByValue[opcode.value] = opcode;
-                    opcodesByName.put(opcode.name.toLowerCase(), opcode);
+            RangeMap<Integer, Short> versionToValueMap;
+
+            if (isArt()) {
+                versionToValueMap = opcode.artVersionToValueMap;
+            } else {
+                versionToValueMap = opcode.apiToValueMap;
+            }
+
+            Short opcodeValue = versionToValueMap.get(version);
+            if (opcodeValue != null && (!opcode.isExperimental() || experimental)) {
+                if (!opcode.format.isPayloadFormat) {
+                    opcodesByValue[opcodeValue] = opcode;
                 }
+                opcodeValues.put(opcode, opcodeValue);
+                opcodesByName.put(opcode.name.toLowerCase(), opcode);
             }
         }
     }
 
     @Nullable
-    public Opcode getOpcodeByName(String opcodeName) {
+    public Opcode getOpcodeByName(@Nonnull String opcodeName) {
         return opcodesByName.get(opcodeName.toLowerCase());
     }
 
@@ -79,5 +134,14 @@ public class Opcodes {
                 }
                 return null;
         }
+    }
+
+    @Nullable
+    public Short getOpcodeValue(@Nonnull Opcode opcode) {
+        return opcodeValues.get(opcode);
+    }
+
+    public boolean isArt() {
+        return artVersion != VersionMap.NO_VERSION;
     }
 }

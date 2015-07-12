@@ -63,7 +63,7 @@ public class OatFile extends BaseDexBuffer {
     @Nonnull private final OatHeader oatHeader;
     @Nonnull private final Opcodes opcodes;
 
-    public OatFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf) {
+    public OatFile(@Nonnull byte[] buf) {
         super(buf);
 
         if (buf.length < ELF_HEADER_SIZE) {
@@ -71,8 +71,6 @@ public class OatFile extends BaseDexBuffer {
         }
 
         verifyMagic(buf);
-
-        this.opcodes = opcodes;
 
         OatHeader oatHeader = null;
         SymbolTable symbolTable = getSymbolTable();
@@ -91,6 +89,8 @@ public class OatFile extends BaseDexBuffer {
         if (!oatHeader.isValid()) {
             throw new InvalidOatFileException("Invalid oat magic value");
         }
+
+        this.opcodes = Opcodes.forArtVersion(oatHeader.getVersion());
     }
 
     private static void verifyMagic(byte[] buf) {
@@ -101,7 +101,6 @@ public class OatFile extends BaseDexBuffer {
         }
     }
 
-    @Nonnull
     public static OatFile fromInputStream(@Nonnull InputStream is)
             throws IOException {
         if (!is.markSupported()) {
@@ -122,7 +121,7 @@ public class OatFile extends BaseDexBuffer {
         is.reset();
 
         byte[] buf = ByteStreams.toByteArray(is);
-        return new OatFile(new Opcodes(21), buf);
+        return new OatFile(buf);
     }
 
     public int isSupportedVersion() {

@@ -36,8 +36,8 @@ import org.antlr.runtime.Token;
 import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
-import org.antlr.runtime.tree.TreeNodeStream;
 import org.apache.commons.cli.*;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.writer.builder.DexBuilder;
 import org.jf.dexlib2.writer.io.FileDataStore;
 import org.jf.util.ConsoleUtil;
@@ -218,7 +218,8 @@ public class main {
 
             boolean errors = false;
 
-            final DexBuilder dexBuilder = DexBuilder.makeDexBuilder(apiLevel);
+            final DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.forApi(apiLevel, experimental));
+
             ExecutorService executor = Executors.newFixedThreadPool(jobs);
             List<Future<Boolean>> tasks = Lists.newArrayList();
 

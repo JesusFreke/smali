@@ -53,7 +53,7 @@ public final class DexFileFactory {
     @Nonnull
     public static DexBackedDexFile loadDexFile(String path, int api, boolean experimental)
             throws IOException {
-        return loadDexFile(new File(path), "classes.dex", new Opcodes(api, experimental));
+        return loadDexFile(new File(path), "classes.dex", Opcodes.forApi(api, experimental));
     }
 
     @Nonnull
@@ -64,13 +64,13 @@ public final class DexFileFactory {
     @Nonnull
     public static DexBackedDexFile loadDexFile(File dexFile, int api, boolean experimental)
             throws IOException {
-        return loadDexFile(dexFile, "classes.dex", new Opcodes(api, experimental));
+        return loadDexFile(dexFile, "classes.dex", Opcodes.forApi(api, experimental));
     }
 
     @Nonnull
     public static DexBackedDexFile loadDexFile(File dexFile, String dexEntry, int api,
             boolean experimental) throws IOException {
-        return loadDexFile(dexFile, dexEntry, new Opcodes(api, experimental));
+        return loadDexFile(dexFile, dexEntry, Opcodes.forApi(api, experimental));
     }
 
     @Nonnull

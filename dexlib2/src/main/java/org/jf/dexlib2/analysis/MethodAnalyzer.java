@@ -251,7 +251,7 @@ public class MethodAnalyzer {
                 int objectRegisterNumber;
                 switch (instruction.getOpcode().format) {
                     case Format10x:
-                        analyzeReturnVoidBarrier(analyzedInstruction, false);
+                        analyzeOdexReturnVoid(analyzedInstruction, false);
                         continue;
                     case Format21c:
                     case Format22c:
@@ -578,7 +578,8 @@ public class MethodAnalyzer {
             case RETURN_OBJECT:
                 return true;
             case RETURN_VOID_BARRIER:
-                analyzeReturnVoidBarrier(analyzedInstruction);
+            case RETURN_VOID_NO_BARRIER:
+                analyzeOdexReturnVoid(analyzedInstruction);
                 return true;
             case CONST_4:
             case CONST_16:
@@ -955,6 +956,14 @@ public class MethodAnalyzer {
             case IPUT_QUICK:
             case IPUT_WIDE_QUICK:
             case IPUT_OBJECT_QUICK:
+            case IPUT_BOOLEAN_QUICK:
+            case IPUT_BYTE_QUICK:
+            case IPUT_CHAR_QUICK:
+            case IPUT_SHORT_QUICK:
+            case IGET_BOOLEAN_QUICK:
+            case IGET_BYTE_QUICK:
+            case IGET_CHAR_QUICK:
+            case IGET_SHORT_QUICK:
                 return analyzeIputIgetQuick(analyzedInstruction);
             case INVOKE_VIRTUAL_QUICK:
                 return analyzeInvokeVirtualQuick(analyzedInstruction, false, false);
@@ -1061,11 +1070,11 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, exceptionType);
     }
 
-    private void analyzeReturnVoidBarrier(AnalyzedInstruction analyzedInstruction) {
-        analyzeReturnVoidBarrier(analyzedInstruction, true);
+    private void analyzeOdexReturnVoid(AnalyzedInstruction analyzedInstruction) {
+        analyzeOdexReturnVoid(analyzedInstruction, true);
     }
 
-    private void analyzeReturnVoidBarrier(@Nonnull AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
+    private void analyzeOdexReturnVoid(@Nonnull AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
         Instruction10x deodexedInstruction = new ImmutableInstruction10x(Opcode.RETURN_VOID);
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
