@@ -124,8 +124,12 @@ public class OatFile extends BaseDexBuffer {
         return new OatFile(buf);
     }
 
+    public int getOatVersion() {
+        return oatHeader.getVersion();
+    }
+
     public int isSupportedVersion() {
-        int version = oatHeader.getVersion();
+        int version = getOatVersion();
         if (version < MIN_OAT_VERSION) {
             return UNSUPPORTED;
         }
@@ -186,6 +190,10 @@ public class OatFile extends BaseDexBuffer {
         public OatDexFile(int offset, @Nonnull String filename) {
             super(opcodes, OatFile.this.buf, offset);
             this.filename = filename;
+        }
+
+        @Override public boolean hasOdexOpcodes() {
+            return true;
         }
     }
 

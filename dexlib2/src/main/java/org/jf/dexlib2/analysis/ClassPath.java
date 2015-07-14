@@ -39,6 +39,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.DexFileFactory.DexFileNotFound;
 import org.jf.dexlib2.analysis.reflection.ReflectionClassDef;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
@@ -58,6 +59,7 @@ public class ClassPath {
     @Nonnull private final TypeProto unknownClass;
     @Nonnull private HashMap<String, ClassDef> availableClasses = Maps.newHashMap();
     private boolean checkPackagePrivateAccess;
+    public boolean isArt;
 
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
@@ -82,15 +84,29 @@ public class ClassPath {
      * Creates a new ClassPath instance that can load classes from the given dex files
      *
      * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
-     * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by default
+     * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by
+     *                                  default
      */
     public ClassPath(@Nonnull Iterable<DexFile> classPath, boolean checkPackagePrivateAccess) {
+        this(classPath, checkPackagePrivateAccess, false);
+    }
+
+    /**
+     * Creates a new ClassPath instance that can load classes from the given dex files
+     *
+     * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
+     * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by
+     *                                  default
+     * @param isArt Whether this is ClassPath is for ART
+     */
+    public ClassPath(@Nonnull Iterable < DexFile > classPath, boolean checkPackagePrivateAccess, boolean isArt) {
         // add fallbacks for certain special classes that must be present
         Iterable<DexFile> dexFiles = Iterables.concat(classPath, Lists.newArrayList(getBasicClasses()));
 
         unknownClass = new UnknownClassProto(this);
         loadedClasses.put(unknownClass.getType(), unknownClass);
         this.checkPackagePrivateAccess = checkPackagePrivateAccess;
+        this.isArt = isArt;
 
         loadPrimitiveType("Z");
         loadPrimitiveType("B");
@@ -223,7 +239,7 @@ public class ClassPath {
                     } else {
                         try {
                             return DexFileFactory.loadDexFile(file, api, experimental);
-                        } catch (DexFileFactory.NoClassesDexException ex) {
+                        } catch (DexFileNotFound ex) {
                             // ignore and continue
                         } catch (Exception ex) {
                             throw ExceptionWithContext.withContext(ex,

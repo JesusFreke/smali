@@ -59,7 +59,7 @@ public class RawDexFile extends DexBackedDexFile {
 
     @Nonnull
     public byte[] readByteRange(int start, int length) {
-        return Arrays.copyOfRange(getBuf(), start, start+length);
+        return Arrays.copyOfRange(getBuf(), getBaseOffset() + start, getBaseOffset() + start + length);
     }
 
     public int getMapOffset() {
@@ -94,6 +94,7 @@ public class RawDexFile extends DexBackedDexFile {
     }
 
     public void writeAnnotations(@Nonnull Writer out, @Nonnull AnnotatedBytes annotatedBytes) throws IOException {
+        // TODO: need to pass in the offset
         annotatedBytes.writeAnnotations(out, getBuf());
     }
 }

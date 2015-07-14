@@ -33,7 +33,6 @@ package org.jf.dexlib2.dexbacked;
 
 import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.Opcodes;
-import org.jf.dexlib2.dexbacked.raw.HeaderItem;
 import org.jf.dexlib2.dexbacked.raw.OdexHeaderItem;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 
@@ -58,6 +57,10 @@ public class DexBackedOdexFile extends DexBackedDexFile {
     }
 
     @Override public boolean isOdexFile() {
+        return true;
+    }
+
+    @Override public boolean hasOdexOpcodes() {
         return true;
     }
 

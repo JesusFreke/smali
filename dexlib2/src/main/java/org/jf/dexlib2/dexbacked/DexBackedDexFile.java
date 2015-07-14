@@ -62,7 +62,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int classStartOffset;
 
     private DexBackedDexFile(Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
-        super(buf);
+        super(buf, offset);
 
         this.opcodes = opcodes;
 
@@ -121,7 +121,13 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         return opcodes;
     }
 
+    // Will only be true for a dalvik-style odex file
     public boolean isOdexFile() {
+        return false;
+    }
+
+    // Will be true for both a dalvik-style odex file, and an art-style odex file embedded in an oat file
+    public boolean hasOdexOpcodes() {
         return false;
     }
 
