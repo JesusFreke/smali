@@ -403,9 +403,9 @@ public class main {
                 .create("r");
 
         Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
-                .withDescription("the bootclasspath jars to use, for analysis. Defaults to " +
-                        "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar. If the value begins with a " +
-                        ":, it will be appended to the default bootclasspath instead of replacing it")
+                .withDescription("A colon-separated list of bootclasspath jar/oat files to use for analysis. Add an " +
+                        "initial colon to specify that the jars/oats should be appended to the default bootclasspath " +
+                        "instead of replacing it")
                 .hasOptionalArg()
                 .withArgName("BOOTCLASSPATH")
                 .create("c");
