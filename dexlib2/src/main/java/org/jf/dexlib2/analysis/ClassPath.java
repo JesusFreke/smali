@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -205,7 +207,7 @@ public class ClassPath {
             dexFiles.addAll(classPathDexFiles);
         }
         dexFiles.add(dexFile);
-        return new ClassPath(dexFiles, checkPackagePrivateAccess);
+        return new ClassPath(dexFiles, checkPackagePrivateAccess, isArt);
     }
 
     @Nonnull
@@ -215,9 +217,7 @@ public class ClassPath {
         ArrayList<DexFile> dexFiles = Lists.newArrayList();
 
         for (String classPathEntry: classPath) {
-            try {
-                dexFiles.addAll(loadClassPathEntry(classPathDirs, classPathEntry, api, experimental));
-            } catch (ExceptionWithContext e){}
+            dexFiles.addAll(loadClassPathEntry(classPathDirs, classPathEntry, api, experimental));
         }
         dexFiles.add(dexFile);
         return new ClassPath(dexFiles, checkPackagePrivateAccess, isArt);
@@ -285,5 +285,17 @@ public class ClassPath {
             }
         }
         throw new ExceptionWithContext("Cannot locate boot class path file %s", bootClassPathEntry);
+    }
+
+    private final Supplier<OdexedFieldInstructionMapper> fieldInstructionMapperSupplier = Suppliers.memoize(
+            new Supplier<OdexedFieldInstructionMapper>() {
+                @Override public OdexedFieldInstructionMapper get() {
+                    return new OdexedFieldInstructionMapper(isArt);
+                }
+            });
+
+    @Nonnull
+    public OdexedFieldInstructionMapper getFieldInstructionMapper() {
+        return fieldInstructionMapperSupplier.get();
     }
 }

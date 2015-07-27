@@ -34,154 +34,110 @@ package org.jf.dexlib2.analysis;
 import org.jf.dexlib2.Opcode;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OdexedFieldInstructionMapper {
-    private static Opcode[][][][] opcodeMap = new Opcode[][][][] {
-            //get opcodes
-            new Opcode[][][] {
-                    //iget quick
-                    new Opcode[][] {
-                            //odexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.IGET_QUICK,
-                                /*B*/   Opcode.IGET_QUICK,
-                                /*S*/   Opcode.IGET_QUICK,
-                                /*C*/   Opcode.IGET_QUICK,
-                                /*I,F*/ Opcode.IGET_QUICK,
-                                /*J,D*/ Opcode.IGET_WIDE_QUICK,
-                                /*L,[*/ Opcode.IGET_OBJECT_QUICK
-                            },
-                            //deodexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.IGET_BOOLEAN,
-                                /*B*/   Opcode.IGET_BYTE,
-                                /*S*/   Opcode.IGET_SHORT,
-                                /*C*/   Opcode.IGET_CHAR,
-                                /*I,F*/ Opcode.IGET,
-                                /*J,D*/ Opcode.IGET_WIDE,
-                                /*L,[*/ Opcode.IGET_OBJECT
-                            }
-                    },
-                    //iget volatile
-                    new Opcode[][] {
-                            //odexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.IGET_VOLATILE,
-                                /*B*/   Opcode.IGET_VOLATILE,
-                                /*S*/   Opcode.IGET_VOLATILE,
-                                /*C*/   Opcode.IGET_VOLATILE,
-                                /*I,F*/ Opcode.IGET_VOLATILE,
-                                /*J,D*/ Opcode.IGET_WIDE_VOLATILE,
-                                /*L,[*/ Opcode.IGET_OBJECT_VOLATILE
-                            },
-                            //deodexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.IGET_BOOLEAN,
-                                /*B*/   Opcode.IGET_BYTE,
-                                /*S*/   Opcode.IGET_SHORT,
-                                /*C*/   Opcode.IGET_CHAR,
-                                /*I,F*/ Opcode.IGET,
-                                /*J,D*/ Opcode.IGET_WIDE,
-                                /*L,[*/ Opcode.IGET_OBJECT
-                            }
-                    },
-                    //sget volatile
-                    new Opcode[][] {
-                            //odexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.SGET_VOLATILE,
-                                /*B*/   Opcode.SGET_VOLATILE,
-                                /*S*/   Opcode.SGET_VOLATILE,
-                                /*C*/   Opcode.SGET_VOLATILE,
-                                /*I,F*/ Opcode.SGET_VOLATILE,
-                                /*J,D*/ Opcode.SGET_WIDE_VOLATILE,
-                                /*L,[*/ Opcode.SGET_OBJECT_VOLATILE
-                            },
-                            //deodexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.SGET_BOOLEAN,
-                                /*B*/   Opcode.SGET_BYTE,
-                                /*S*/   Opcode.SGET_SHORT,
-                                /*C*/   Opcode.SGET_CHAR,
-                                /*I,F*/ Opcode.SGET,
-                                /*J,D*/ Opcode.SGET_WIDE,
-                                /*L,[*/ Opcode.SGET_OBJECT
-                            }
-                    }
-            },
-            //put opcodes
-            new Opcode[][][] {
-                    //iput quick
-                    new Opcode[][] {
-                            //odexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.IPUT_QUICK,
-                                /*B*/   Opcode.IPUT_QUICK,
-                                /*S*/   Opcode.IPUT_QUICK,
-                                /*C*/   Opcode.IPUT_QUICK,
-                                /*I,F*/ Opcode.IPUT_QUICK,
-                                /*J,D*/ Opcode.IPUT_WIDE_QUICK,
-                                /*L,[*/ Opcode.IPUT_OBJECT_QUICK
-                            },
-                            //deodexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.IPUT_BOOLEAN,
-                                /*B*/   Opcode.IPUT_BYTE,
-                                /*S*/   Opcode.IPUT_SHORT,
-                                /*C*/   Opcode.IPUT_CHAR,
-                                /*I,F*/ Opcode.IPUT,
-                                /*J,D*/ Opcode.IPUT_WIDE,
-                                /*L,[*/ Opcode.IPUT_OBJECT
-                            }
-                    },
-                    //iput volatile
-                    new Opcode[][] {
-                            //odexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.IPUT_VOLATILE,
-                                /*B*/   Opcode.IPUT_VOLATILE,
-                                /*S*/   Opcode.IPUT_VOLATILE,
-                                /*C*/   Opcode.IPUT_VOLATILE,
-                                /*I,F*/ Opcode.IPUT_VOLATILE,
-                                /*J,D*/ Opcode.IPUT_WIDE_VOLATILE,
-                                /*L,[*/ Opcode.IPUT_OBJECT_VOLATILE
-                            },
-                            //deodexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.IPUT_BOOLEAN,
-                                /*B*/   Opcode.IPUT_BYTE,
-                                /*S*/   Opcode.IPUT_SHORT,
-                                /*C*/   Opcode.IPUT_CHAR,
-                                /*I,F*/ Opcode.IPUT,
-                                /*J,D*/ Opcode.IPUT_WIDE,
-                                /*L,[*/ Opcode.IPUT_OBJECT
-                            }
-                    },
-                    //sput volatile
-                    new Opcode[][] {
-                            //odexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.SPUT_VOLATILE,
-                                /*B*/   Opcode.SPUT_VOLATILE,
-                                /*S*/   Opcode.SPUT_VOLATILE,
-                                /*C*/   Opcode.SPUT_VOLATILE,
-                                /*I,F*/ Opcode.SPUT_VOLATILE,
-                                /*J,D*/ Opcode.SPUT_WIDE_VOLATILE,
-                                /*L,[*/ Opcode.SPUT_OBJECT_VOLATILE
-                            },
-                            //deodexed
-                            new Opcode[] {
-                                /*Z*/   Opcode.SPUT_BOOLEAN,
-                                /*B*/   Opcode.SPUT_BYTE,
-                                /*S*/   Opcode.SPUT_SHORT,
-                                /*C*/   Opcode.SPUT_CHAR,
-                                /*I,F*/ Opcode.SPUT,
-                                /*J,D*/ Opcode.SPUT_WIDE,
-                                /*L,[*/ Opcode.SPUT_OBJECT
-                            }
-                    }
-            }
+
+    private static final int GET = 0;
+    private static final int PUT = 1;
+
+    private static final int PRIMITIVE = 0;
+    private static final int WIDE = 1;
+    private static final int REFERENCE = 2;
+
+    private static class FieldOpcode {
+        public final char type;
+        @Nonnull public final Opcode normalOpcode;
+        @Nonnull public final Opcode quickOpcode;
+        @Nullable public final Opcode volatileOpcode;
+
+        public FieldOpcode(char type, @Nonnull Opcode normalOpcode, @Nonnull Opcode quickOpcode,
+                           @Nullable Opcode volatileOpcode) {
+            this.type = type;
+            this.normalOpcode = normalOpcode;
+            this.quickOpcode = quickOpcode;
+            this.volatileOpcode = volatileOpcode;
+        }
+
+        public FieldOpcode(char type, @Nonnull Opcode normalOpcode, @Nonnull Opcode quickOpcode) {
+            this.type = type;
+            this.normalOpcode = normalOpcode;
+            this.quickOpcode = quickOpcode;
+            this.volatileOpcode = null;
+        }
+    }
+
+    private static final FieldOpcode[] dalvikFieldOpcodes = new FieldOpcode[] {
+            new FieldOpcode('Z', Opcode.IGET_BOOLEAN, Opcode.IGET_QUICK, Opcode.IGET_VOLATILE),
+            new FieldOpcode('B', Opcode.IGET_BYTE, Opcode.IGET_QUICK, Opcode.IGET_VOLATILE),
+            new FieldOpcode('S', Opcode.IGET_SHORT, Opcode.IGET_QUICK, Opcode.IGET_VOLATILE),
+            new FieldOpcode('C', Opcode.IGET_CHAR, Opcode.IGET_QUICK, Opcode.IGET_VOLATILE),
+            new FieldOpcode('I', Opcode.IGET, Opcode.IGET_QUICK, Opcode.IGET_VOLATILE),
+            new FieldOpcode('F', Opcode.IGET, Opcode.IGET_QUICK, Opcode.IGET_VOLATILE),
+            new FieldOpcode('J', Opcode.IGET_WIDE, Opcode.IGET_WIDE_QUICK, Opcode.IGET_WIDE_VOLATILE),
+            new FieldOpcode('D', Opcode.IGET_WIDE, Opcode.IGET_WIDE_QUICK, Opcode.IGET_WIDE_VOLATILE),
+            new FieldOpcode('L', Opcode.IGET_OBJECT, Opcode.IGET_OBJECT_QUICK, Opcode.IGET_OBJECT_VOLATILE),
+            new FieldOpcode('[', Opcode.IGET_OBJECT, Opcode.IGET_OBJECT_QUICK, Opcode.IGET_OBJECT_VOLATILE),
+
+            new FieldOpcode('Z', Opcode.IPUT_BOOLEAN, Opcode.IPUT_QUICK, Opcode.IPUT_VOLATILE),
+            new FieldOpcode('B', Opcode.IPUT_BYTE, Opcode.IPUT_QUICK, Opcode.IPUT_VOLATILE),
+            new FieldOpcode('S', Opcode.IPUT_SHORT, Opcode.IPUT_QUICK, Opcode.IPUT_VOLATILE),
+            new FieldOpcode('C', Opcode.IPUT_CHAR, Opcode.IPUT_QUICK, Opcode.IPUT_VOLATILE),
+            new FieldOpcode('I', Opcode.IPUT, Opcode.IPUT_QUICK, Opcode.IPUT_VOLATILE),
+            new FieldOpcode('F', Opcode.IPUT, Opcode.IPUT_QUICK, Opcode.IPUT_VOLATILE),
+            new FieldOpcode('J', Opcode.IPUT_WIDE, Opcode.IPUT_WIDE_QUICK, Opcode.IPUT_WIDE_VOLATILE),
+            new FieldOpcode('D', Opcode.IPUT_WIDE, Opcode.IPUT_WIDE_QUICK, Opcode.IPUT_WIDE_VOLATILE),
+            new FieldOpcode('L', Opcode.IPUT_OBJECT, Opcode.IPUT_OBJECT_QUICK, Opcode.IPUT_OBJECT_VOLATILE),
+            new FieldOpcode('[', Opcode.IPUT_OBJECT, Opcode.IPUT_OBJECT_QUICK, Opcode.IPUT_OBJECT_VOLATILE),
     };
+
+    private static final FieldOpcode[] artFieldOpcodes = new FieldOpcode[] {
+            new FieldOpcode('Z', Opcode.IGET_BOOLEAN, Opcode.IGET_BOOLEAN_QUICK),
+            new FieldOpcode('B', Opcode.IGET_BYTE, Opcode.IGET_BYTE_QUICK),
+            new FieldOpcode('S', Opcode.IGET_SHORT, Opcode.IGET_SHORT_QUICK),
+            new FieldOpcode('C', Opcode.IGET_CHAR, Opcode.IGET_CHAR_QUICK),
+            new FieldOpcode('I', Opcode.IGET, Opcode.IGET_QUICK),
+            new FieldOpcode('F', Opcode.IGET, Opcode.IGET_QUICK),
+            new FieldOpcode('J', Opcode.IGET_WIDE, Opcode.IGET_WIDE_QUICK),
+            new FieldOpcode('D', Opcode.IGET_WIDE, Opcode.IGET_WIDE_QUICK),
+            new FieldOpcode('L', Opcode.IGET_OBJECT, Opcode.IGET_OBJECT_QUICK),
+            new FieldOpcode('[', Opcode.IGET_OBJECT, Opcode.IGET_OBJECT_QUICK),
+
+            new FieldOpcode('Z', Opcode.IPUT_BOOLEAN, Opcode.IPUT_BOOLEAN_QUICK),
+            new FieldOpcode('B', Opcode.IPUT_BYTE, Opcode.IPUT_BYTE_QUICK),
+            new FieldOpcode('S', Opcode.IPUT_SHORT, Opcode.IPUT_SHORT_QUICK),
+            new FieldOpcode('C', Opcode.IPUT_CHAR, Opcode.IPUT_CHAR_QUICK),
+            new FieldOpcode('I', Opcode.IPUT, Opcode.IPUT_QUICK),
+            new FieldOpcode('F', Opcode.IPUT, Opcode.IPUT_QUICK),
+            new FieldOpcode('J', Opcode.IPUT_WIDE, Opcode.IPUT_WIDE_QUICK),
+            new FieldOpcode('D', Opcode.IPUT_WIDE, Opcode.IPUT_WIDE_QUICK),
+            new FieldOpcode('L', Opcode.IPUT_OBJECT, Opcode.IPUT_OBJECT_QUICK),
+            new FieldOpcode('[', Opcode.IPUT_OBJECT, Opcode.IPUT_OBJECT_QUICK)
+    };
+
+    private final FieldOpcode[][] opcodeMap = new FieldOpcode[2][10];
+    private final Map<Opcode, Integer> opcodeValueTypeMap = new HashMap<Opcode, Integer>(30);
+
+    private static int getValueType(char type) {
+        switch (type) {
+            case 'Z':
+            case 'B':
+            case 'S':
+            case 'C':
+            case 'I':
+            case 'F':
+                return PRIMITIVE;
+            case 'J':
+            case 'D':
+                return WIDE;
+            case 'L':
+            case '[':
+                return REFERENCE;
+        }
+        throw new RuntimeException(String.format("Unknown type %s: ", type));
+    }
 
     private static int getTypeIndex(char type) {
         switch (type) {
@@ -194,47 +150,61 @@ public class OdexedFieldInstructionMapper {
             case 'C':
                 return 3;
             case 'I':
-            case 'F':
                 return 4;
-            case 'J':
-            case 'D':
+            case 'F':
                 return 5;
-            case 'L':
-            case '[':
+            case 'J':
                 return 6;
-            default:
+            case 'D':
+                return 7;
+            case 'L':
+                return 8;
+            case '[':
+                return 9;
         }
         throw new RuntimeException(String.format("Unknown type %s: ", type));
     }
 
-    private static int getOpcodeSubtype(@Nonnull Opcode opcode) {
-        if (opcode.isOdexedInstanceQuick()) {
-            return 0;
-        } else if (opcode.isOdexedInstanceVolatile()) {
-            return 1;
-        } else if (opcode.isOdexedStaticVolatile()) {
-            return 2;
+    private static boolean isGet(@Nonnull Opcode opcode) {
+        return (opcode.flags & Opcode.SETS_REGISTER) != 0;
+    }
+
+    public OdexedFieldInstructionMapper(boolean isArt) {
+        FieldOpcode[] opcodes;
+        if (isArt) {
+            opcodes = artFieldOpcodes;
+        } else {
+            opcodes = dalvikFieldOpcodes;
         }
-        throw new RuntimeException(String.format("Not an odexed field access opcode: %s", opcode.name));
+
+        for (FieldOpcode fieldOpcode: opcodes) {
+            opcodeMap[isGet(fieldOpcode.normalOpcode)?GET:PUT][getTypeIndex(fieldOpcode.type)] = fieldOpcode;
+
+            opcodeValueTypeMap.put(fieldOpcode.quickOpcode, getValueType(fieldOpcode.type));
+            if (fieldOpcode.volatileOpcode != null) {
+                opcodeValueTypeMap.put(fieldOpcode.volatileOpcode, getValueType(fieldOpcode.type));
+            }
+        }
     }
 
     @Nonnull
-    static Opcode getAndCheckDeodexedOpcodeForOdexedOpcode(@Nonnull String fieldType, @Nonnull Opcode odexedOpcode) {
-        int opcodeType = odexedOpcode.setsRegister()?0:1;
-        int opcodeSubType = getOpcodeSubtype(odexedOpcode);
-        int typeIndex = getTypeIndex(fieldType.charAt(0));
+    public Opcode getAndCheckDeodexedOpcode(@Nonnull String fieldType, @Nonnull Opcode odexedOpcode) {
+        FieldOpcode fieldOpcode = opcodeMap[isGet(odexedOpcode)?GET:PUT][getTypeIndex(fieldType.charAt(0))];
 
-        Opcode correctOdexedOpcode, deodexedOpcode;
-
-        correctOdexedOpcode = opcodeMap[opcodeType][opcodeSubType][0][typeIndex];
-        deodexedOpcode = opcodeMap[opcodeType][opcodeSubType][1][typeIndex];
-
-        if (correctOdexedOpcode != odexedOpcode) {
+        if (!isCompatible(odexedOpcode, fieldOpcode.type)) {
             throw new AnalysisException(String.format("Incorrect field type \"%s\" for %s", fieldType,
                     odexedOpcode.name));
         }
 
-        return deodexedOpcode;
+        return fieldOpcode.normalOpcode;
+    }
+
+    private boolean isCompatible(Opcode opcode, char type) {
+        Integer valueType = opcodeValueTypeMap.get(opcode);
+        if (valueType == null) {
+            throw new RuntimeException("Unexpected opcode: " + opcode.name);
+        }
+        return valueType == getValueType(type);
     }
 }
 

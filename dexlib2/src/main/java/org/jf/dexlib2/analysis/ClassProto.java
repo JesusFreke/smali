@@ -34,10 +34,8 @@ package org.jf.dexlib2.analysis;
 import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
+import com.google.common.primitives.Ints;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.iface.ClassDef;
@@ -46,21 +44,23 @@ import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.immutable.ImmutableMethod;
+import org.jf.util.AlignmentUtils;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * A class "prototype". This contains things like the interfaces, the superclass, the vtable and the instance fields
  * and their offsets.
  */
 public class ClassProto implements TypeProto {
+    private static final byte REFERENCE = 0;
+    private static final byte WIDE = 1;
+    private static final byte OTHER = 2;
+
     @Nonnull protected final ClassPath classPath;
     @Nonnull protected final String type;
 
@@ -356,19 +356,19 @@ public class ClassProto implements TypeProto {
     }
 
     @Nonnull SparseArray<FieldReference> getInstanceFields() {
-        return instanceFieldsSupplier.get();
+        if (classPath.isArt) {
+            return artInstanceFieldsSupplier.get();
+        } else {
+            return dalvikInstanceFieldsSupplier.get();
+        }
     }
 
-    @Nonnull private final Supplier<SparseArray<FieldReference>> instanceFieldsSupplier =
+    @Nonnull private final Supplier<SparseArray<FieldReference>> dalvikInstanceFieldsSupplier =
             Suppliers.memoize(new Supplier<SparseArray<FieldReference>>() {
                 @Override public SparseArray<FieldReference> get() {
                     //This is a bit of an "involved" operation. We need to follow the same algorithm that dalvik uses to
                     //arrange fields, so that we end up with the same field offsets (which is needed for deodexing).
                     //See mydroid/dalvik/vm/oo/Class.c - computeFieldOffsets()
-
-                    final byte REFERENCE = 0;
-                    final byte WIDE = 1;
-                    final byte OTHER = 2;
 
                     ArrayList<Field> fields = getSortedInstanceFields(getClassDef());
                     final int fieldCount = fields.size();
@@ -520,19 +520,6 @@ public class ClassProto implements TypeProto {
                     return fields;
                 }
 
-                private byte getFieldType(@Nonnull FieldReference field) {
-                    switch (field.getType().charAt(0)) {
-                        case '[':
-                        case 'L':
-                            return 0; //REFERENCE
-                        case 'J':
-                        case 'D':
-                            return 1; //WIDE
-                        default:
-                            return 2; //OTHER
-                    }
-                }
-
                 private void swap(byte[] fieldTypes, List<Field> fields, int position1, int position2) {
                     byte tempType = fieldTypes[position1];
                     fieldTypes[position1] = fieldTypes[position2];
@@ -543,23 +530,199 @@ public class ClassProto implements TypeProto {
                 }
             });
 
+    private static class FieldGap implements Comparable<FieldGap> {
+        public final int offset;
+        public final int size;
+
+        public FieldGap(int offset, int size) {
+            this.offset = offset;
+            this.size = size;
+        }
+
+        @Override public int compareTo(@Nonnull FieldGap o) {
+            int result = Ints.compare(o.size, size);
+            if (result != 0) {
+                return result;
+            }
+            return Ints.compare(o.offset, offset);
+        }
+    }
+
+    @Nonnull private final Supplier<SparseArray<FieldReference>> artInstanceFieldsSupplier =
+            Suppliers.memoize(new Supplier<SparseArray<FieldReference>>() {
+
+                @Override public SparseArray<FieldReference> get() {
+                    // We need to follow the same algorithm that art uses to arrange fields, so that we end up with the
+                    // same field offsets, which is needed for deodexing.
+                    // See LinkFields() in art/runtime/class_linker.cc
+
+                    PriorityQueue<FieldGap> gaps = new PriorityQueue<FieldGap>();
+
+                    SparseArray<FieldReference> linkedFields = new SparseArray<FieldReference>();
+                    ArrayList<Field> fields = getSortedInstanceFields(getClassDef());
+
+                    int fieldOffset = 0;
+                    String superclassType = getSuperclass();
+                    if (superclassType != null) {
+                        // TODO: what to do if superclass doesn't exist?
+                        ClassProto superclass = (ClassProto) classPath.getClass(superclassType);
+                        SparseArray<FieldReference> superFields = superclass.getInstanceFields();
+                        FieldReference field = null;
+                        int lastOffset = 0;
+                        for (int i=0; i<superFields.size(); i++) {
+                            int offset = superFields.keyAt(i);
+                            field = superFields.valueAt(i);
+                            linkedFields.put(offset, field);
+                            lastOffset = offset;
+                        }
+                        if (field != null) {
+                            fieldOffset = lastOffset + getFieldSize(field);
+                        }
+                    }
+
+                    for (Field field: fields) {
+                        int fieldSize = getFieldSize(field);
+
+                        if (!AlignmentUtils.isAligned(fieldOffset, fieldSize)) {
+                            int oldOffset = fieldOffset;
+                            fieldOffset = AlignmentUtils.alignOffset(fieldOffset, fieldSize);
+                            addFieldGap(oldOffset, fieldOffset, gaps);
+                        }
+
+                        FieldGap gap = gaps.peek();
+                        if (gap != null && gap.size >= fieldSize) {
+                            gaps.poll();
+                            linkedFields.put(gap.offset, field);
+                            if (gap.size > fieldSize) {
+                                addFieldGap(gap.offset + fieldSize, gap.offset + gap.size, gaps);
+                            }
+                        } else {
+                            linkedFields.append(fieldOffset, field);
+                            fieldOffset += fieldSize;
+                        }
+                    }
+
+                    return linkedFields;
+                }
+
+                private void addFieldGap(int gapStart, int gapEnd, @Nonnull PriorityQueue<FieldGap> gaps) {
+                    int offset = gapStart;
+
+                    while (offset < gapEnd) {
+                        int remaining = gapEnd - offset;
+
+                        if ((remaining >= 4) && (offset % 4 == 0)) {
+                            gaps.add(new FieldGap(offset, 4));
+                            offset += 4;
+                        } else if (remaining >= 2 && (offset % 2 == 0)) {
+                            gaps.add(new FieldGap(offset, 2));
+                            offset += 2;
+                        } else {
+                            gaps.add(new FieldGap(offset, 1));
+                            offset += 1;
+                        }
+                    }
+                }
+
+                @Nonnull
+                private ArrayList<Field> getSortedInstanceFields(@Nonnull ClassDef classDef) {
+                    ArrayList<Field> fields = Lists.newArrayList(classDef.getInstanceFields());
+                    Collections.sort(fields, new Comparator<Field>() {
+                        @Override public int compare(Field field1, Field field2) {
+                            int result = Ints.compare(getFieldSortOrder(field1), getFieldSortOrder(field2));
+                            if (result != 0) {
+                                return result;
+                            }
+
+                            result = field1.getName().compareTo(field2.getName());
+                            if (result != 0) {
+                                return result;
+                            }
+                            return field1.getType().compareTo(field2.getType());
+                        }
+                    });
+                    return fields;
+                }
+
+                private int getFieldSortOrder(@Nonnull FieldReference field) {
+                    // The sort order is based on type size (except references are first), and then based on the
+                    // enum value of the primitive type for types of equal size. See: Primitive::Type enum
+                    // in art/runtime/primitive.h
+                    switch (field.getType().charAt(0)) {
+                        /* reference */
+                        case '[':
+                        case 'L':
+                            return 0;
+                        /* 64 bit */
+                        case 'J':
+                            return 1;
+                        case 'D':
+                            return 2;
+                        /* 32 bit */
+                        case 'I':
+                            return 3;
+                        case 'F':
+                            return 4;
+                        /* 16 bit */
+                        case 'C':
+                            return 5;
+                        case 'S':
+                            return 6;
+                        /* 8 bit */
+                        case 'Z':
+                            return 7;
+                        case 'B':
+                            return 8;
+                    }
+                    throw new ExceptionWithContext("Invalid field type: %s", field.getType());
+                }
+
+                private int getFieldSize(@Nonnull FieldReference field) {
+                    return getTypeSize(field.getType().charAt(0));
+                }
+            });
+
     private int getNextFieldOffset() {
         SparseArray<FieldReference> instanceFields = getInstanceFields();
         if (instanceFields.size() == 0) {
-            return 8;
+            return classPath.isArt ? 0 : 8;
         }
 
         int lastItemIndex = instanceFields.size()-1;
         int fieldOffset = instanceFields.keyAt(lastItemIndex);
         FieldReference lastField = instanceFields.valueAt(lastItemIndex);
 
-        switch (lastField.getType().charAt(0)) {
+        if (classPath.isArt) {
+            return fieldOffset + getTypeSize(lastField.getType().charAt(0));
+        } else {
+            switch (lastField.getType().charAt(0)) {
+                case 'J':
+                case 'D':
+                    return fieldOffset + 8;
+                default:
+                    return fieldOffset + 4;
+            }
+        }
+    }
+
+    private static int getTypeSize(char type) {
+        switch (type) {
             case 'J':
             case 'D':
-                return fieldOffset + 8;
-            default:
-                return fieldOffset + 4;
+                return 8;
+            case '[':
+            case 'L':
+            case 'I':
+            case 'F':
+                return 4;
+            case 'C':
+            case 'S':
+                return 2;
+            case 'B':
+            case 'Z':
+                return 1;
         }
+        throw new ExceptionWithContext("Invalid type: %s", type);
     }
 
     @Nonnull List<Method> getVtable() {
@@ -672,4 +835,17 @@ public class ClassProto implements TypeProto {
                     AccessFlags.PUBLIC.getValue())) == 0;
         }
     });
+
+    private static byte getFieldType(@Nonnull FieldReference field) {
+        switch (field.getType().charAt(0)) {
+            case '[':
+            case 'L':
+                return 0; //REFERENCE
+            case 'J':
+            case 'D':
+                return 1; //WIDE
+            default:
+                return 2; //OTHER
+        }
+    }
 }

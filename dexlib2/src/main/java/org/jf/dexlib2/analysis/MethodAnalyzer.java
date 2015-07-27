@@ -1573,8 +1573,8 @@ public class MethodAnalyzer {
 
         String fieldType = resolvedField.getType();
 
-        Opcode opcode = OdexedFieldInstructionMapper.getAndCheckDeodexedOpcodeForOdexedOpcode(fieldType,
-                instruction.getOpcode());
+        Opcode opcode = classPath.getFieldInstructionMapper().getAndCheckDeodexedOpcode(
+                fieldType, instruction.getOpcode());
 
         Instruction22c deodexedInstruction = new ImmutableInstruction22c(opcode, (byte)instruction.getRegisterA(),
                 (byte)instruction.getRegisterB(), resolvedField);
@@ -1726,8 +1726,8 @@ public class MethodAnalyzer {
 
         Opcode originalOpcode = analyzedInstruction.instruction.getOpcode();
 
-        Opcode opcode = OdexedFieldInstructionMapper.getAndCheckDeodexedOpcodeForOdexedOpcode(fieldType,
-                originalOpcode);
+        Opcode opcode = classPath.getFieldInstructionMapper().getAndCheckDeodexedOpcode(
+                fieldType, originalOpcode);
 
         Instruction deodexedInstruction;
 
