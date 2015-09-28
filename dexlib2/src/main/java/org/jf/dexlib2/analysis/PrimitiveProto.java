@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.analysis;
 
+import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.util.ExceptionWithContext;
@@ -65,7 +66,11 @@ public class PrimitiveProto implements TypeProto {
 
     @Override
     @Nullable
-    public MethodReference getMethodByVtableIndex(int vtableIndex) {
+    public Method getMethodByVtableIndex(int vtableIndex) {
         return null;
+    }
+
+    @Override public int findMethodIndexInVtable(@Nonnull MethodReference method) {
+        return -1;
     }
 }

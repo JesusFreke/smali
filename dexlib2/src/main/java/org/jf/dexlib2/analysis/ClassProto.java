@@ -34,7 +34,10 @@ package org.jf.dexlib2.analysis;
 import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.*;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
@@ -44,6 +47,7 @@ import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.immutable.ImmutableMethod;
+import org.jf.dexlib2.util.MethodUtil;
 import org.jf.util.AlignmentUtils;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
@@ -346,13 +350,27 @@ public class ClassProto implements TypeProto {
 
     @Override
     @Nullable
-    public MethodReference getMethodByVtableIndex(int vtableIndex) {
+    public Method getMethodByVtableIndex(int vtableIndex) {
         List<Method> vtable = getVtable();
         if (vtableIndex < 0 || vtableIndex >= vtable.size()) {
             return null;
         }
 
         return vtable.get(vtableIndex);
+    }
+
+    public int findMethodIndexInVtable(@Nonnull MethodReference method) {
+        List<Method> vtable = getVtable();
+        for (int i=0; i<vtable.size(); i++) {
+            Method candidate = vtable.get(i);
+            if (MethodUtil.methodSignaturesMatch(candidate, method)) {
+                if (!classPath.shouldCheckPackagePrivateAccess() ||
+                        AnalyzedMethodUtil.canAccess(this, candidate, true, false, false)) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     @Nonnull SparseArray<FieldReference> getInstanceFields() {
@@ -790,8 +808,9 @@ public class ClassProto implements TypeProto {
             outer: for (Method virtualMethod: methods) {
                 for (int i=0; i<vtable.size(); i++) {
                     Method superMethod = vtable.get(i);
-                    if (methodSignaturesMatch(superMethod, virtualMethod)) {
-                        if (!classPath.shouldCheckPackagePrivateAccess() || canAccess(superMethod)) {
+                    if (MethodUtil.methodSignaturesMatch(superMethod, virtualMethod)) {
+                        if (!classPath.shouldCheckPackagePrivateAccess() ||
+                                AnalyzedMethodUtil.canAccess(ClassProto.this, superMethod, true, false, false)) {
                             if (replaceExisting) {
                                 vtable.set(i, virtualMethod);
                             }
@@ -802,37 +821,6 @@ public class ClassProto implements TypeProto {
                 // we didn't find an equivalent method, so add it as a new entry
                 vtable.add(virtualMethod);
             }
-        }
-
-        private boolean methodSignaturesMatch(@Nonnull Method a, @Nonnull Method b) {
-            return (a.getName().equals(b.getName()) &&
-                    a.getReturnType().equals(b.getReturnType()) &&
-                    a.getParameters().equals(b.getParameters()));
-        }
-
-        private boolean canAccess(@Nonnull Method virtualMethod) {
-            if (!methodIsPackagePrivate(virtualMethod.getAccessFlags())) {
-                return true;
-            }
-
-            String otherPackage = getPackage(virtualMethod.getDefiningClass());
-            String ourPackage = getPackage(getClassDef().getType());
-            return otherPackage.equals(ourPackage);
-        }
-
-        @Nonnull
-        private String getPackage(@Nonnull String classType) {
-            int lastSlash = classType.lastIndexOf('/');
-            if (lastSlash < 0) {
-                return "";
-            }
-            return classType.substring(1, lastSlash);
-        }
-
-        private boolean methodIsPackagePrivate(int accessFlags) {
-            return (accessFlags & (AccessFlags.PRIVATE.getValue() |
-                    AccessFlags.PROTECTED.getValue() |
-                    AccessFlags.PUBLIC.getValue())) == 0;
         }
     });
 

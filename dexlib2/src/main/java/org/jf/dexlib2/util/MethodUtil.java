@@ -35,6 +35,7 @@ import com.google.common.base.Predicate;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.util.CharSequenceUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -66,6 +67,12 @@ public final class MethodUtil {
 
     public static boolean isConstructor(@Nonnull MethodReference methodReference) {
         return methodReference.getName().equals("<init>");
+    }
+
+    public static boolean isPackagePrivate(@Nonnull Method method) {
+        return (method.getAccessFlags() & (AccessFlags.PRIVATE.getValue() |
+                AccessFlags.PROTECTED.getValue() |
+                AccessFlags.PUBLIC.getValue())) == 0;
     }
 
     public static int getParameterRegisterCount(@Nonnull Method method) {
@@ -107,6 +114,12 @@ public final class MethodUtil {
             sb.append(getShortyType(typeRef));
         }
         return sb.toString();
+    }
+
+    public static boolean methodSignaturesMatch(@Nonnull MethodReference a, @Nonnull MethodReference b) {
+        return (a.getName().equals(b.getName()) &&
+                a.getReturnType().equals(b.getReturnType()) &&
+                CharSequenceUtils.listEquals(a.getParameterTypes(), b.getParameterTypes()));
     }
 
     private MethodUtil() {}

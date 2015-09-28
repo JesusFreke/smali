@@ -219,6 +219,9 @@ public class main {
                 case 'k':
                     options.checkPackagePrivateAccess = true;
                     break;
+                case 'n':
+                    options.normalizeVirtualMethods = true;
+                    break;
                 case 'N':
                     disassemble = false;
                     break;
@@ -282,7 +285,7 @@ public class main {
             options.deodex = false;
         }
 
-        if (!setBootClassPath && (options.deodex || options.registerInfo != 0)) {
+        if (!setBootClassPath && (options.deodex || options.registerInfo != 0 || options.normalizeVirtualMethods)) {
             if (dexFile instanceof DexBackedOdexFile) {
                 options.bootClassPathEntries = ((DexBackedOdexFile)dexFile).getDependencies();
             } else {
@@ -457,6 +460,10 @@ public class main {
                         "4.2.1.")
                 .create("k");
 
+        Option normalizeVirtualMethods = OptionBuilder.withLongOpt("normalize-virtual-methods")
+                .withDescription("Normalize virtual method references to the reference the base method.")
+                .create("n");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
                         " (<dexfile>.dump by default), along with the normal disassembly")
@@ -506,6 +513,7 @@ public class main {
         basicOptions.addOption(noImplicitReferencesOption);
         basicOptions.addOption(dexEntryOption);
         basicOptions.addOption(checkPackagePrivateAccessOption);
+        basicOptions.addOption(normalizeVirtualMethods);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);

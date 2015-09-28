@@ -76,6 +76,7 @@ public class baksmaliOptions {
     public boolean ignoreErrors = false;
     public boolean checkPackagePrivateAccess = false;
     public boolean useImplicitReferences = false;
+    public boolean normalizeVirtualMethods = false;
     public File customInlineDefinitions = null;
     public InlineMethodResolver inlineResolver = null;
     public int registerInfo = 0;

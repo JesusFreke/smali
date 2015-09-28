@@ -71,7 +71,7 @@ public class CustomMethodInlineTableTest {
         ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
                 15, false);
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
-        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver);
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
 
         Instruction deodexedInstruction = methodAnalyzer.getInstructions().get(0);
         Assert.assertEquals(Opcode.INVOKE_VIRTUAL, deodexedInstruction.getOpcode());
@@ -98,7 +98,7 @@ public class CustomMethodInlineTableTest {
         ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
                 15, false);
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
-        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver);
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
 
         Instruction deodexedInstruction = methodAnalyzer.getInstructions().get(0);
         Assert.assertEquals(Opcode.INVOKE_STATIC, deodexedInstruction.getOpcode());
@@ -125,7 +125,7 @@ public class CustomMethodInlineTableTest {
         ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
                 15, false);
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
-        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver);
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
 
         Instruction deodexedInstruction = methodAnalyzer.getInstructions().get(0);
         Assert.assertEquals(Opcode.INVOKE_DIRECT, deodexedInstruction.getOpcode());

@@ -146,7 +146,7 @@ public class ClassPath {
     }
 
     @Nonnull
-    public TypeProto getClass(CharSequence type) {
+    public TypeProto getClass(@Nonnull CharSequence type) {
         return loadedClasses.getUnchecked(type.toString());
     }
 

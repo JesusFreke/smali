@@ -366,7 +366,8 @@ public class MethodDefinition {
     private List<MethodItem> getMethodItems() {
         ArrayList<MethodItem> methodItems = new ArrayList<MethodItem>();
 
-        if ((classDef.options.registerInfo != 0) || (classDef.options.deodex && needsAnalyzed())) {
+        if ((classDef.options.registerInfo != 0) || (classDef.options.normalizeVirtualMethods) ||
+                (classDef.options.deodex && needsAnalyzed())) {
             addAnalyzedInstructionMethodItems(methodItems);
         } else {
             addInstructionMethodItems(methodItems);
@@ -460,7 +461,7 @@ public class MethodDefinition {
 
     private void addAnalyzedInstructionMethodItems(List<MethodItem> methodItems) {
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classDef.options.classPath, method,
-                classDef.options.inlineResolver);
+                classDef.options.inlineResolver, classDef.options.normalizeVirtualMethods);
 
         AnalysisException analysisException = methodAnalyzer.getAnalysisException();
         if (analysisException != null) {
