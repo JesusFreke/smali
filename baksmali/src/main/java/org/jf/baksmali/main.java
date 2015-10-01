@@ -31,9 +31,11 @@ package org.jf.baksmali;
 import com.google.common.collect.Lists;
 import org.apache.commons.cli.*;
 import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.DexFileFactory.MultipleDexFilesException;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
+import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
@@ -217,6 +219,9 @@ public class main {
                 case 'k':
                     options.checkPackagePrivateAccess = true;
                     break;
+                case 'n':
+                    options.normalizeVirtualMethods = true;
+                    break;
                 case 'N':
                     disassemble = false;
                     break;
@@ -256,10 +261,20 @@ public class main {
         }
 
         //Read in and parse the dex file
-        DexBackedDexFile dexFile = DexFileFactory.loadDexFile(dexFileFile, options.dexEntry,
-                options.apiLevel, options.experimental);
+        DexBackedDexFile dexFile = null;
+        try {
+            dexFile = DexFileFactory.loadDexFile(dexFileFile, options.dexEntry, options.apiLevel, options.experimental);
+        } catch (MultipleDexFilesException ex) {
+            System.err.println(String.format("%s contains multiple dex files. You must specify which one to " +
+                    "disassemble with the -e option", dexFileFile.getName()));
+            System.err.println("Valid entries include:");
+            for (OatDexFile oatDexFile: ex.oatFile.getDexFiles()) {
+                System.err.println(oatDexFile.filename);
+            }
+            System.exit(1);
+        }
 
-        if (dexFile.isOdexFile()) {
+        if (dexFile.hasOdexOpcodes()) {
             if (!options.deodex) {
                 System.err.println("Warning: You are disassembling an odex file without deodexing it. You");
                 System.err.println("won't be able to re-assemble the results unless you deodex it with the -x");
@@ -270,7 +285,7 @@ public class main {
             options.deodex = false;
         }
 
-        if (!setBootClassPath && (options.deodex || options.registerInfo != 0)) {
+        if (!setBootClassPath && (options.deodex || options.registerInfo != 0 || options.normalizeVirtualMethods)) {
             if (dexFile instanceof DexBackedOdexFile) {
                 options.bootClassPathEntries = ((DexBackedOdexFile)dexFile).getDependencies();
             } else {
@@ -391,9 +406,9 @@ public class main {
                 .create("r");
 
         Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
-                .withDescription("the bootclasspath jars to use, for analysis. Defaults to " +
-                        "core.jar:ext.jar:framework.jar:android.policy.jar:services.jar. If the value begins with a " +
-                        ":, it will be appended to the default bootclasspath instead of replacing it")
+                .withDescription("A colon-separated list of bootclasspath jar/oat files to use for analysis. Add an " +
+                        "initial colon to specify that the jars/oats should be appended to the default bootclasspath " +
+                        "instead of replacing it")
                 .hasOptionalArg()
                 .withArgName("BOOTCLASSPATH")
                 .create("c");
@@ -445,6 +460,10 @@ public class main {
                         "4.2.1.")
                 .create("k");
 
+        Option normalizeVirtualMethods = OptionBuilder.withLongOpt("normalize-virtual-methods")
+                .withDescription("Normalize virtual method references to the reference the base method.")
+                .create("n");
+
         Option dumpOption = OptionBuilder.withLongOpt("dump-to")
                 .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
                         " (<dexfile>.dump by default), along with the normal disassembly")
@@ -494,6 +513,7 @@ public class main {
         basicOptions.addOption(noImplicitReferencesOption);
         basicOptions.addOption(dexEntryOption);
         basicOptions.addOption(checkPackagePrivateAccessOption);
+        basicOptions.addOption(normalizeVirtualMethods);
 
         debugOptions.addOption(dumpOption);
         debugOptions.addOption(ignoreErrorsOption);
@@ -547,8 +567,7 @@ public class main {
                     "/system/framework/services.jar",
                     "/system/framework/apache-xml.jar",
                     "/system/framework/filterfw.jar");
-
-        } else {
+        } else if (apiLevel < 21) {
             // this is correct as of api 17/4.2.2
             return Lists.newArrayList(
                     "/system/framework/core.jar",
@@ -560,6 +579,22 @@ public class main {
                     "/system/framework/mms-common.jar",
                     "/system/framework/android.policy.jar",
                     "/system/framework/services.jar",
+                    "/system/framework/apache-xml.jar");
+        } else { // api >= 21
+            // TODO: verify, add new ones?
+            return Lists.newArrayList(
+                    "/system/framework/core-libart.jar",
+                    "/system/framework/conscrypt.jar",
+                    "/system/framework/okhttp.jar",
+                    "/system/framework/core-junit.jar",
+                    "/system/framework/bouncycastle.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/telephony-common.jar",
+                    "/system/framework/voip-common.jar",
+                    "/system/framework/ims-common.jar",
+                    "/system/framework/mms-common.jar",
+                    "/system/framework/android.policy.jar",
                     "/system/framework/apache-xml.jar");
         }
     }

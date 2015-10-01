@@ -32,6 +32,7 @@
 package org.jf.dexlib2.analysis;
 
 import com.google.common.base.Strings;
+import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
@@ -160,7 +161,11 @@ public class ArrayProto implements TypeProto {
 
     @Override
     @Nullable
-    public MethodReference getMethodByVtableIndex(int vtableIndex) {
+    public Method getMethodByVtableIndex(int vtableIndex) {
         return classPath.getClass("Ljava/lang/Object;").getMethodByVtableIndex(vtableIndex);
+    }
+
+    @Override public int findMethodIndexInVtable(@Nonnull MethodReference method) {
+        return classPath.getClass("Ljava/lang/Object;").findMethodIndexInVtable(method);
     }
 }

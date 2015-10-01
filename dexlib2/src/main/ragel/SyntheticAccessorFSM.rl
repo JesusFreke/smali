@@ -34,6 +34,7 @@ package org.jf.dexlib2.util;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
 import org.jf.dexlib2.iface.instruction.WideLiteralInstruction;
+import org.jf.dexlib2.Opcodes;
 
 import java.util.List;
 
@@ -82,10 +83,12 @@ public class SyntheticAccessorFSM {
         // The return register;
         int returnRegister = -1;
 
+        Opcodes opcodes = Opcodes.forApi(20);
+
         %%{
             import "Opcodes.rl";
             alphtype short;
-            getkey instructions.get(p).getOpcode().value;
+            getkey opcodes.getOpcodeValue(instructions.get(p).getOpcode());
 
             get = (0x52 .. 0x58) | (0x60 .. 0x66); # all igets/sgets
 

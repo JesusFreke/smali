@@ -81,7 +81,7 @@ public class DisassemblyTest {
             String inputFilename = getInputFilename(testName);
             byte[] inputBytes = BaksmaliTestUtils.readResourceBytesFully(getInputFilename(testName));
 
-            DexBackedDexFile inputDex = new DexBackedDexFile(new Opcodes(options.apiLevel, false), inputBytes);
+            DexBackedDexFile inputDex = new DexBackedDexFile(Opcodes.forApi(options.apiLevel), inputBytes);
             Assert.assertEquals(1, inputDex.getClassCount());
             ClassDef inputClass = Iterables.getFirst(inputDex.getClasses(), null);
             Assert.assertNotNull(inputClass);

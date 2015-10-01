@@ -36,6 +36,7 @@ import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,7 +55,7 @@ public class baksmaliOptions {
 
     public int apiLevel = 15;
     public String outputDirectory = "out";
-    public String dexEntry = "classes.dex";
+    @Nullable public String dexEntry = null;
     public List<String> bootClassPathDirs = Lists.newArrayList();
 
     public List<String> bootClassPathEntries = Lists.newArrayList();
@@ -75,6 +76,7 @@ public class baksmaliOptions {
     public boolean ignoreErrors = false;
     public boolean checkPackagePrivateAccess = false;
     public boolean useImplicitReferences = false;
+    public boolean normalizeVirtualMethods = false;
     public File customInlineDefinitions = null;
     public InlineMethodResolver inlineResolver = null;
     public int registerInfo = 0;

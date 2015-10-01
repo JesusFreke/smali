@@ -77,7 +77,7 @@ public class DexWriterTest {
             throw new RuntimeException(ex);
         }
 
-        DexBackedDexFile dexFile = new DexBackedDexFile(new Opcodes(15, false), dataStore.getData());
+        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(15), dataStore.getData());
         ClassDef dbClassDef = Iterables.getFirst(dexFile.getClasses(), null);
         Assert.assertNotNull(dbClassDef);
         Annotation dbAnnotation = Iterables.getFirst(dbClassDef.getAnnotations(), null);
@@ -117,7 +117,7 @@ public class DexWriterTest {
             throw new RuntimeException(ex);
         }
 
-        DexBackedDexFile dexFile = new DexBackedDexFile(new Opcodes(15, false), dataStore.getData());
+        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(15), dataStore.getData());
         ClassDef dbClassDef = Iterables.getFirst(dexFile.getClasses(), null);
         Assert.assertNotNull(dbClassDef);
         Annotation dbAnnotation = Iterables.getFirst(dbClassDef.getAnnotations(), null);

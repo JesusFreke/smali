@@ -77,7 +77,7 @@ import java.util.*;
   public String classType;
   private boolean verboseErrors = false;
   private int apiLevel = 15;
-  private Opcodes opcodes = new Opcodes(apiLevel, false);
+  private Opcodes opcodes = Opcodes.forApi(apiLevel);
   private DexBuilder dexBuilder;
 
   public void setDexBuilder(DexBuilder dexBuilder) {

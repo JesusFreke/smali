@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.writer.pool;
 
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.AnnotationElement;
@@ -56,11 +57,19 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
         EncodedValue, AnnotationElement> {
 
+    @Nonnull
     public static DexPool makeDexPool() {
-        return makeDexPool(15);
+        return makeDexPool(Opcodes.forApi(20));
     }
 
+    @Deprecated
+    @Nonnull
     public static DexPool makeDexPool(int api) {
+        return makeDexPool(Opcodes.forApi(api));
+    }
+
+    @Nonnull
+    public static DexPool makeDexPool(@Nonnull Opcodes opcodes) {
         StringPool stringPool = new StringPool();
         TypePool typePool = new TypePool(stringPool);
         FieldPool fieldPool = new FieldPool(stringPool, typePool);
@@ -72,14 +81,14 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         ClassPool classPool = new ClassPool(stringPool, typePool, fieldPool, methodPool, annotationSetPool,
                 typeListPool);
 
-        return new DexPool(api, stringPool, typePool, protoPool, fieldPool, methodPool, classPool, typeListPool,
+        return new DexPool(opcodes, stringPool, typePool, protoPool, fieldPool, methodPool, classPool, typeListPool,
                 annotationPool, annotationSetPool);
     }
 
-    private DexPool(int api, StringPool stringPool, TypePool typePool, ProtoPool protoPool, FieldPool fieldPool,
+    private DexPool(Opcodes opcodes, StringPool stringPool, TypePool typePool, ProtoPool protoPool, FieldPool fieldPool,
                     MethodPool methodPool, ClassPool classPool, TypeListPool typeListPool,
                     AnnotationPool annotationPool, AnnotationSetPool annotationSetPool) {
-        super(api, stringPool, typePool, protoPool, fieldPool, methodPool,
+        super(opcodes, stringPool, typePool, protoPool, fieldPool, methodPool,
                 classPool, typeListPool, annotationPool, annotationSetPool);
     }
 

@@ -37,6 +37,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.base.BaseAnnotation;
 import org.jf.dexlib2.base.BaseAnnotationElement;
@@ -58,6 +59,7 @@ import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.util.InstructionUtil;
 import org.jf.dexlib2.util.MethodUtil;
+import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.writer.io.DeferredOutputStream;
 import org.jf.dexlib2.writer.io.DeferredOutputStreamFactory;
 import org.jf.dexlib2.writer.io.DexDataStore;
@@ -93,7 +95,7 @@ public abstract class DexWriter<
     public static final int NO_INDEX = -1;
     public static final int NO_OFFSET = 0;
 
-    protected final int api;
+    protected final Opcodes opcodes;
 
     protected int stringIndexSectionOffset = NO_OFFSET;
     protected int typeSectionOffset = NO_OFFSET;
@@ -133,7 +135,7 @@ public abstract class DexWriter<
     protected final AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue> annotationSection;
     protected final AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection;
 
-    protected DexWriter(int api,
+    protected DexWriter(Opcodes opcodes,
                         StringSection<StringKey, StringRef> stringSection,
                         TypeSection<StringKey, TypeKey, TypeRef> typeSection,
                         ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection,
@@ -145,7 +147,8 @@ public abstract class DexWriter<
                         AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement,
                                 EncodedValue> annotationSection,
                         AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection) {
-        this.api = api;
+        this.opcodes = opcodes;
+
         this.stringSection = stringSection;
         this.typeSection = typeSection;
         this.protoSection = protoSection;
@@ -194,6 +197,33 @@ public abstract class DexWriter<
                 fieldSection.getItems().size() * FieldIdItem.ITEM_SIZE +
                 methodSection.getItems().size() * MethodIdItem.ITEM_SIZE +
                 classSection.getItems().size() * ClassDefItem.ITEM_SIZE;
+    }
+
+    @Nonnull
+    public List<String> getMethodReferences() {
+        List<String> methodReferences = Lists.newArrayList();
+        for (Entry<? extends MethodRefKey, Integer> methodReference: methodSection.getItems()) {
+            methodReferences.add(ReferenceUtil.getMethodDescriptor(methodReference.getKey()));
+        }
+        return methodReferences;
+    }
+
+    @Nonnull
+    public List<String> getFieldReferences() {
+        List<String> fieldReferences = Lists.newArrayList();
+        for (Entry<? extends FieldRefKey, Integer> fieldReference: fieldSection.getItems()) {
+            fieldReferences.add(ReferenceUtil.getFieldDescriptor(fieldReference.getKey()));
+        }
+        return fieldReferences;
+    }
+
+    @Nonnull
+    public List<String> getTypeReferences() {
+        List<String> classReferences = Lists.newArrayList();
+        for (Entry<? extends TypeKey, Integer> typeReference: typeSection.getItems()) {
+            classReferences.add(typeReference.getKey().toString());
+        }
+        return classReferences;
     }
 
     public void writeTo(@Nonnull DexDataStore dest) throws IOException {
@@ -405,7 +435,7 @@ public abstract class DexWriter<
         nextIndex = writeClass(indexWriter, offsetWriter, nextIndex, superEntry);
 
         // then, try to write interfaces
-        for (TypeKey interfaceTypeKey: typeListSection.getTypes(classSection.getSortedInterfaces(key))) {
+        for (TypeKey interfaceTypeKey: typeListSection.getTypes(classSection.getInterfaces(key))) {
             Map.Entry<? extends ClassKey, Integer> interfaceEntry = classSection.getClassEntryByType(interfaceTypeKey);
             nextIndex = writeClass(indexWriter, offsetWriter, nextIndex, interfaceEntry);
         }
@@ -418,7 +448,7 @@ public abstract class DexWriter<
         indexWriter.writeInt(typeSection.getItemIndex(classSection.getType(key)));
         indexWriter.writeInt(classSection.getAccessFlags(key));
         indexWriter.writeInt(typeSection.getNullableItemIndex(classSection.getSuperclass(key)));
-        indexWriter.writeInt(typeListSection.getNullableItemOffset(classSection.getSortedInterfaces(key)));
+        indexWriter.writeInt(typeListSection.getNullableItemOffset(classSection.getInterfaces(key)));
         indexWriter.writeInt(stringSection.getNullableItemIndex(classSection.getSourceFile(key)));
         indexWriter.writeInt(classSection.getAnnotationDirectoryOffset(key));
 
@@ -915,7 +945,7 @@ public abstract class DexWriter<
             writer.writeInt(debugItemOffset);
 
             InstructionWriter instructionWriter =
-                    InstructionWriter.makeInstructionWriter(writer, stringSection, typeSection, fieldSection,
+                    InstructionWriter.makeInstructionWriter(opcodes, writer, stringSection, typeSection, fieldSection,
                             methodSection);
 
             writer.writeInt(codeUnitCount);
@@ -1238,6 +1268,6 @@ public abstract class DexWriter<
         // Workaround for a crash in Dalvik VM before Jelly Bean MR1 (4.2)
         // which is triggered by NO_OFFSET in parameter annotation list.
         // (https://code.google.com/p/android/issues/detail?id=35304)
-        return (api < 17);
+        return (opcodes.api < 17);
     }
 }

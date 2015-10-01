@@ -52,7 +52,7 @@ public class dump {
                     consoleWidth = 120;
                 }
 
-                RawDexFile rawDexFile = new RawDexFile(new Opcodes(apiLevel, experimental), dexFile);
+                RawDexFile rawDexFile = new RawDexFile(Opcodes.forApi(apiLevel), dexFile);
                 DexAnnotator annotator = new DexAnnotator(rawDexFile, consoleWidth);
                 annotator.writeAnnotations(writer);
             } catch (IOException ex) {

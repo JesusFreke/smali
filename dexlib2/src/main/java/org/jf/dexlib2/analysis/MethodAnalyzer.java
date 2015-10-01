@@ -73,6 +73,8 @@ public class MethodAnalyzer {
     @Nonnull private final Method method;
     @Nonnull private final MethodImplementation methodImpl;
 
+    private final boolean normalizeVirtualMethods;
+
     private final int paramRegisterCount;
 
     @Nonnull private final ClassPath classPath;
@@ -94,9 +96,10 @@ public class MethodAnalyzer {
     private final AnalyzedInstruction startOfMethod;
 
     public MethodAnalyzer(@Nonnull ClassPath classPath, @Nonnull Method method,
-                          @Nullable InlineMethodResolver inlineResolver) {
+                          @Nullable InlineMethodResolver inlineResolver, boolean normalizeVirtualMethods) {
         this.classPath = classPath;
         this.inlineResolver = inlineResolver;
+        this.normalizeVirtualMethods = normalizeVirtualMethods;
 
         this.method = method;
 
@@ -252,7 +255,7 @@ public class MethodAnalyzer {
                 int objectRegisterNumber;
                 switch (instruction.getOpcode().format) {
                     case Format10x:
-                        analyzeReturnVoidBarrier(analyzedInstruction, false);
+                        analyzeOdexReturnVoid(analyzedInstruction, false);
                         continue;
                     case Format21c:
                     case Format22c:
@@ -580,7 +583,8 @@ public class MethodAnalyzer {
             case RETURN_OBJECT:
                 return true;
             case RETURN_VOID_BARRIER:
-                analyzeReturnVoidBarrier(analyzedInstruction);
+            case RETURN_VOID_NO_BARRIER:
+                analyzeOdexReturnVoid(analyzedInstruction);
                 return true;
             case CONST_4:
             case CONST_16:
@@ -736,21 +740,32 @@ public class MethodAnalyzer {
             case SPUT_OBJECT:
                 return true;
             case INVOKE_VIRTUAL:
+                analyzeInvokeVirtual(analyzedInstruction, false);
+                return true;
             case INVOKE_SUPER:
+                analyzeInvokeVirtual(analyzedInstruction, false);
                 return true;
             case INVOKE_DIRECT:
                 analyzeInvokeDirect(analyzedInstruction);
                 return true;
             case INVOKE_STATIC:
+                return true;
             case INVOKE_INTERFACE:
+                // TODO: normalize interfaces
+                return true;
             case INVOKE_VIRTUAL_RANGE:
+                analyzeInvokeVirtual(analyzedInstruction, true);
+                return true;
             case INVOKE_SUPER_RANGE:
+                analyzeInvokeVirtual(analyzedInstruction, true);
                 return true;
             case INVOKE_DIRECT_RANGE:
                 analyzeInvokeDirectRange(analyzedInstruction);
                 return true;
             case INVOKE_STATIC_RANGE:
+                return true;
             case INVOKE_INTERFACE_RANGE:
+                // TODO: normalize interfaces
                 return true;
             case NEG_INT:
             case NOT_INT:
@@ -957,6 +972,14 @@ public class MethodAnalyzer {
             case IPUT_QUICK:
             case IPUT_WIDE_QUICK:
             case IPUT_OBJECT_QUICK:
+            case IPUT_BOOLEAN_QUICK:
+            case IPUT_BYTE_QUICK:
+            case IPUT_CHAR_QUICK:
+            case IPUT_SHORT_QUICK:
+            case IGET_BOOLEAN_QUICK:
+            case IGET_BYTE_QUICK:
+            case IGET_CHAR_QUICK:
+            case IGET_SHORT_QUICK:
                 return analyzeIputIgetQuick(analyzedInstruction);
             case INVOKE_VIRTUAL_QUICK:
                 return analyzeInvokeVirtualQuick(analyzedInstruction, false, false);
@@ -1063,11 +1086,11 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, exceptionType);
     }
 
-    private void analyzeReturnVoidBarrier(AnalyzedInstruction analyzedInstruction) {
-        analyzeReturnVoidBarrier(analyzedInstruction, true);
+    private void analyzeOdexReturnVoid(AnalyzedInstruction analyzedInstruction) {
+        analyzeOdexReturnVoid(analyzedInstruction, true);
     }
 
-    private void analyzeReturnVoidBarrier(@Nonnull AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
+    private void analyzeOdexReturnVoid(@Nonnull AnalyzedInstruction analyzedInstruction, boolean analyzeResult) {
         Instruction10x deodexedInstruction = new ImmutableInstruction10x(Opcode.RETURN_VOID);
 
         analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
@@ -1538,12 +1561,12 @@ public class MethodAnalyzer {
 
         ClassDef thisClass = classPath.getClassDef(method.getDefiningClass());
 
-        if (!canAccessClass(thisClass, classPath.getClassDef(resolvedField.getDefiningClass()))) {
+        if (!TypeUtils.canAccessClass(thisClass.getType(), classPath.getClassDef(resolvedField.getDefiningClass()))) {
 
             // the class is not accessible. So we start looking at objectRegisterTypeProto (which may be different
             // than resolvedField.getDefiningClass()), and walk up the class hierarchy.
             ClassDef fieldClass = classPath.getClassDef(objectRegisterTypeProto.getType());
-            while (!canAccessClass(thisClass, fieldClass)) {
+            while (!TypeUtils.canAccessClass(thisClass.getType(), fieldClass)) {
                 String superclass = fieldClass.getSuperclass();
                 if (superclass == null) {
                     throw new ExceptionWithContext("Couldn't find accessible class while resolving field %s",
@@ -1566,8 +1589,8 @@ public class MethodAnalyzer {
 
         String fieldType = resolvedField.getType();
 
-        Opcode opcode = OdexedFieldInstructionMapper.getAndCheckDeodexedOpcodeForOdexedOpcode(fieldType,
-                instruction.getOpcode());
+        Opcode opcode = classPath.getFieldInstructionMapper().getAndCheckDeodexedOpcode(
+                fieldType, instruction.getOpcode());
 
         Instruction22c deodexedInstruction = new ImmutableInstruction22c(opcode, (byte)instruction.getRegisterA(),
                 (byte)instruction.getRegisterB(), resolvedField);
@@ -1575,6 +1598,75 @@ public class MethodAnalyzer {
 
         analyzeInstruction(analyzedInstruction);
 
+        return true;
+    }
+
+    private boolean analyzeInvokeVirtual(@Nonnull AnalyzedInstruction analyzedInstruction, boolean isRange) {
+        MethodReference targetMethod;
+
+        if (!normalizeVirtualMethods) {
+            return true;
+        }
+
+        if (isRange) {
+            Instruction3rc instruction = (Instruction3rc)analyzedInstruction.instruction;
+            targetMethod = (MethodReference)instruction.getReference();
+        } else {
+            Instruction35c instruction = (Instruction35c)analyzedInstruction.instruction;
+            targetMethod = (MethodReference)instruction.getReference();
+        }
+
+        TypeProto typeProto = classPath.getClass(targetMethod.getDefiningClass());
+        int methodIndex;
+        try {
+            methodIndex = typeProto.findMethodIndexInVtable(targetMethod);
+        } catch (UnresolvedClassException ex) {
+            return true;
+        }
+
+        if (methodIndex < 0) {
+            return true;
+        }
+
+        Method replacementMethod = typeProto.getMethodByVtableIndex(methodIndex);
+        assert replacementMethod != null;
+        while (true) {
+            String superType = typeProto.getSuperclass();
+            if (superType == null) {
+                break;
+            }
+            typeProto = classPath.getClass(superType);
+            Method resolvedMethod = typeProto.getMethodByVtableIndex(methodIndex);
+            if (resolvedMethod == null) {
+                break;
+            }
+
+            if (!resolvedMethod.equals(replacementMethod)) {
+                if (!AnalyzedMethodUtil.canAccess(typeProto, replacementMethod, true, true, true)) {
+                    continue;
+                }
+
+                replacementMethod = resolvedMethod;
+            }
+        }
+
+        if (replacementMethod.equals(method)) {
+            return true;
+        }
+
+        Instruction deodexedInstruction;
+        if (isRange) {
+            Instruction3rc instruction = (Instruction3rc)analyzedInstruction.instruction;
+            deodexedInstruction = new ImmutableInstruction3rc(instruction.getOpcode(), instruction.getStartRegister(),
+                    instruction.getRegisterCount(), replacementMethod);
+        } else {
+            Instruction35c instruction = (Instruction35c)analyzedInstruction.instruction;
+            deodexedInstruction = new ImmutableInstruction35c(instruction.getOpcode(), instruction.getRegisterCount(),
+                    instruction.getRegisterC(), instruction.getRegisterD(), instruction.getRegisterE(),
+                    instruction.getRegisterF(), instruction.getRegisterG(), replacementMethod);
+        }
+
+        analyzedInstruction.setDeodexedInstruction(deodexedInstruction);
         return true;
     }
 
@@ -1630,12 +1722,13 @@ public class MethodAnalyzer {
         // no need to check class access for invoke-super. A class can obviously access its superclass.
         ClassDef thisClass = classPath.getClassDef(method.getDefiningClass());
 
-        if (!isSuper && !canAccessClass(thisClass, classPath.getClassDef(resolvedMethod.getDefiningClass()))) {
+        if (!isSuper && !TypeUtils.canAccessClass(
+                thisClass.getType(), classPath.getClassDef(resolvedMethod.getDefiningClass()))) {
 
             // the class is not accessible. So we start looking at objectRegisterTypeProto (which may be different
             // than resolvedMethod.getDefiningClass()), and walk up the class hierarchy.
             ClassDef methodClass = classPath.getClassDef(objectRegisterTypeProto.getType());
-            while (!canAccessClass(thisClass, methodClass)) {
+            while (!TypeUtils.canAccessClass(thisClass.getType(), methodClass)) {
                 String superclass = methodClass.getSuperclass();
                 if (superclass == null) {
                     throw new ExceptionWithContext("Couldn't find accessible class while resolving method %s",
@@ -1691,24 +1784,6 @@ public class MethodAnalyzer {
         return true;
     }
 
-    private boolean canAccessClass(@Nonnull ClassDef accessorClassDef, @Nonnull ClassDef accesseeClassDef) {
-        if (AccessFlags.PUBLIC.isSet(accesseeClassDef.getAccessFlags())) {
-            return true;
-        }
-
-        // Classes can only be public or package private. Any private or protected inner classes are actually
-        // package private.
-        return getPackage(accesseeClassDef.getType()).equals(getPackage(accessorClassDef.getType()));
-    }
-
-    private static String getPackage(String className) {
-        int lastSlash = className.lastIndexOf('/');
-        if (lastSlash < 0) {
-            return "";
-        }
-        return className.substring(1, lastSlash);
-    }
-
     private boolean analyzePutGetVolatile(@Nonnull AnalyzedInstruction analyzedInstruction) {
         return analyzePutGetVolatile(analyzedInstruction, true);
     }
@@ -1719,8 +1794,8 @@ public class MethodAnalyzer {
 
         Opcode originalOpcode = analyzedInstruction.instruction.getOpcode();
 
-        Opcode opcode = OdexedFieldInstructionMapper.getAndCheckDeodexedOpcodeForOdexedOpcode(fieldType,
-                originalOpcode);
+        Opcode opcode = classPath.getFieldInstructionMapper().getAndCheckDeodexedOpcode(
+                fieldType, originalOpcode);
 
         Instruction deodexedInstruction;
 

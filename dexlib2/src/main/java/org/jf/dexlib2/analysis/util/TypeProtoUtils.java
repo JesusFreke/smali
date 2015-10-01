@@ -94,4 +94,16 @@ public class TypeProtoUtils {
             return type.getClassPath().getUnknownClass();
         }
     }
+
+    public static boolean extendsFrom(@Nonnull TypeProto candidate, @Nonnull String possibleSuper) {
+        if (candidate.getType().equals(possibleSuper)) {
+            return true;
+        }
+        for (TypeProto superProto: getSuperclassChain(candidate)) {
+            if (superProto.getType().equals(possibleSuper)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

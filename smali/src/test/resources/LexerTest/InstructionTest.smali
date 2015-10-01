@@ -2,6 +2,7 @@ goto
 return-void
 nop
 return-void-barrier
+return-void-no-barrier
 const/4
 move-result
 move-result-wide
@@ -132,6 +133,10 @@ iget-object-quick
 iput-quick
 iput-wide-quick
 iput-object-quick
+iput-boolean-quick
+iput-byte-quick
+iput-char-quick
+iput-short-quick
 rsub-int
 add-int/lit16
 mul-int/lit16

@@ -37,13 +37,19 @@ import javax.annotation.Nonnull;
 
 public class BaseDexBuffer {
     @Nonnull /* package private */ final byte[] buf;
+    /* package private */ final int baseOffset;
 
     public BaseDexBuffer(@Nonnull byte[] buf) {
+        this(buf, 0);
+    }
+    public BaseDexBuffer(@Nonnull byte[] buf, int offset) {
         this.buf = buf;
+        this.baseOffset = offset;
     }
 
     public int readSmallUint(int offset) {
         byte[] buf = this.buf;
+        offset += baseOffset;
         int result = (buf[offset] & 0xff) |
                 ((buf[offset+1] & 0xff) << 8) |
                 ((buf[offset+2] & 0xff) << 16) |
@@ -56,6 +62,7 @@ public class BaseDexBuffer {
 
     public int readOptionalUint(int offset) {
         byte[] buf = this.buf;
+        offset += baseOffset;
         int result = (buf[offset] & 0xff) |
                 ((buf[offset+1] & 0xff) << 8) |
                 ((buf[offset+2] & 0xff) << 16) |
@@ -68,16 +75,18 @@ public class BaseDexBuffer {
 
     public int readUshort(int offset) {
         byte[] buf = this.buf;
+        offset += baseOffset;
         return (buf[offset] & 0xff) |
                 ((buf[offset+1] & 0xff) << 8);
     }
 
     public int readUbyte(int offset) {
-        return buf[offset] & 0xff;
+        return buf[offset + baseOffset] & 0xff;
     }
 
     public long readLong(int offset) {
         byte[] buf = this.buf;
+        offset += baseOffset;
         return (buf[offset] & 0xff) |
                 ((buf[offset+1] & 0xff) << 8) |
                 ((buf[offset+2] & 0xff) << 16) |
@@ -90,6 +99,7 @@ public class BaseDexBuffer {
 
     public int readInt(int offset) {
         byte[] buf = this.buf;
+        offset += baseOffset;
         return (buf[offset] & 0xff) |
                 ((buf[offset+1] & 0xff) << 8) |
                 ((buf[offset+2] & 0xff) << 16) |
@@ -98,12 +108,13 @@ public class BaseDexBuffer {
 
     public int readShort(int offset) {
         byte[] buf = this.buf;
+        offset += baseOffset;
         return (buf[offset] & 0xff) |
                 (buf[offset+1] << 8);
     }
 
     public int readByte(int offset) {
-        return buf[offset];
+        return buf[baseOffset + offset];
     }
 
     @Nonnull
@@ -114,5 +125,9 @@ public class BaseDexBuffer {
     @Nonnull
     protected byte[] getBuf() {
         return buf;
+    }
+
+    protected int getBaseOffset() {
+        return baseOffset;
     }
 }

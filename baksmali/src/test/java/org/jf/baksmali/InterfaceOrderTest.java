@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,48 +29,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.analysis;
+package org.jf.baksmali;
 
-import org.jf.dexlib2.iface.Method;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.util.ExceptionWithContext;
+import org.junit.Test;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-public class PrimitiveProto implements TypeProto {
-    protected final ClassPath classPath;
-    protected final String type;
-
-    public PrimitiveProto(@Nonnull ClassPath classPath, @Nonnull String type) {
-        this.classPath = classPath;
-        this.type = type;
-    }
-
-    @Override public String toString() { return type; }
-    @Nonnull @Override public ClassPath getClassPath() { return classPath; }
-    @Nonnull @Override public String getType() { return type; }
-    @Override public boolean isInterface() { return false; }
-    @Override public boolean implementsInterface(@Nonnull String iface) { return false; }
-    @Nullable @Override public String getSuperclass() { return null; }
-    @Nonnull @Override public TypeProto getCommonSuperclass(@Nonnull TypeProto other) {
-        throw new ExceptionWithContext("Cannot call getCommonSuperclass on PrimitiveProto");
-    }
-
-    @Override
-    @Nullable
-    public FieldReference getFieldByOffset(int fieldOffset) {
-        return null;
-    }
-
-    @Override
-    @Nullable
-    public Method getMethodByVtableIndex(int vtableIndex) {
-        return null;
-    }
-
-    @Override public int findMethodIndexInVtable(@Nonnull MethodReference method) {
-        return -1;
+public class InterfaceOrderTest extends IdenticalRoundtripTest {
+    @Test
+    public void testInterfaceOrder() {
+        runTest("InterfaceOrder", new baksmaliOptions());
     }
 }

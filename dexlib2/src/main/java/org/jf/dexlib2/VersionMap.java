@@ -1,18 +1,18 @@
 /*
- * Copyright 2013, Google Inc.
+ * Copyright 2015, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
  *
- *     * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
  * copyright notice, this list of conditions and the following disclaimer
  * in the documentation and/or other materials provided with the
  * distribution.
- *     * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -29,23 +29,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.analysis;
+package org.jf.dexlib2;
 
-import org.jf.dexlib2.iface.Method;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
+public class VersionMap {
+    public static final int NO_VERSION = -1;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+    public static int mapArtVersionToApi(int artVersion) {
+        // TODO: implement this
+        return 20;
+    }
 
-public interface TypeProto {
-    @Nonnull ClassPath getClassPath();
-    @Nonnull String getType();
-    boolean isInterface();
-    boolean implementsInterface(@Nonnull String iface);
-    @Nullable String getSuperclass();
-    @Nonnull TypeProto getCommonSuperclass(@Nonnull TypeProto other);
-    @Nullable FieldReference getFieldByOffset(int fieldOffset);
-    @Nullable Method getMethodByVtableIndex(int vtableIndex);
-    int findMethodIndexInVtable(@Nonnull MethodReference method);
+    public static int mapApiToArtVersion(int api) {
+        // TODO: implement this
+        if (api < 20) {
+            return NO_VERSION;
+        } else {
+            return 56;
+        }
+    }
 }
