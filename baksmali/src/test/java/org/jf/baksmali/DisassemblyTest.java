@@ -79,7 +79,7 @@ public class DisassemblyTest {
         try {
             // Load file from resources as a stream
             String inputFilename = getInputFilename(testName);
-            byte[] inputBytes = BaksmaliTestUtils.readResourceBytesFully(getInputFilename(testName));
+            byte[] inputBytes = BaksmaliTestUtils.readResourceBytesFully(inputFilename);
 
             DexBackedDexFile inputDex = new DexBackedDexFile(Opcodes.forApi(options.apiLevel), inputBytes);
             Assert.assertEquals(1, inputDex.getClassCount());
