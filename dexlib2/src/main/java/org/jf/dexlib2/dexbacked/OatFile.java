@@ -54,7 +54,7 @@ public class OatFile extends BaseDexBuffer {
     // These are the "known working" versions that I have manually inspected the source for.
     // Later version may or may not work, depending on what changed.
     private static final int MIN_OAT_VERSION = 56;
-    private static final int MAX_OAT_VERSION = 65;
+    private static final int MAX_OAT_VERSION = 67;
 
     public static final int UNSUPPORTED = 0;
     public static final int SUPPORTED = 1;
@@ -190,6 +190,10 @@ public class OatFile extends BaseDexBuffer {
         public OatDexFile(int offset, @Nonnull String filename) {
             super(opcodes, OatFile.this.buf, offset);
             this.filename = filename;
+        }
+
+        public int getOatVersion() {
+            return OatFile.this.getOatVersion();
         }
 
         @Override public boolean hasOdexOpcodes() {

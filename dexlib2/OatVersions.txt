@@ -13,3 +13,6 @@ d7cbf8a6629942e7bd315ffae7e1c77b082f3e11 - 60
 fa2c054b28d4b540c1b3651401a7a091282a015f - 65
 7070ccd8b6439477eafeea7ed3736645d78e003f - 64 (revert of fa2c054b)
 7bf2b4f1d08050f80782217febac55c8cfc5e4ef - 65 (re-commit of fa2c054b)
+0b71357fb52be9bb06d35396a3042b4381b01041 - 66
+fab6788358dfb64e5c370611ddbbbffab0ed0553 - 67
+- Change in FieldGap priority queue ordering
