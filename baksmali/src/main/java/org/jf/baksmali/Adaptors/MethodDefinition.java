@@ -320,7 +320,7 @@ public class MethodDefinition {
             String parameterType = parameter.getType();
             String parameterName = parameter.getName();
             Collection<? extends Annotation> annotations = parameter.getAnnotations();
-            if (parameterName != null || annotations.size() != 0) {
+            if ((options.outputDebugInfo && parameterName != null) || annotations.size() != 0) {
                 writer.write(".param p");
                 writer.printSignedIntAsDec(registerNumber);
 
