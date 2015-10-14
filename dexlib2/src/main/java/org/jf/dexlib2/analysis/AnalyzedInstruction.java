@@ -31,12 +31,15 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
 import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
@@ -71,6 +74,12 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
     protected final RegisterType[] postRegisterMap;
 
     /**
+     * This contains optional register type overrides for register types from predecessors
+     */
+    @Nullable
+    protected Map<PredecessorOverrideKey, RegisterType> predecessorRegisterOverrides = null;
+
+    /**
      * When deodexing, we might need to deodex this instruction multiple times, when we merge in new register
      * information. When this happens, we need to restore the original (odexed) instruction, so we can deodex it again
      */
@@ -99,6 +108,17 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
 
     public SortedSet<AnalyzedInstruction> getPredecessors() {
         return Collections.unmodifiableSortedSet(predecessors);
+    }
+
+    public RegisterType getPredecessorRegisterType(@Nonnull AnalyzedInstruction predecessor, int registerNumber) {
+        if (predecessorRegisterOverrides != null) {
+            RegisterType override = predecessorRegisterOverrides.get(
+                    new PredecessorOverrideKey(predecessor, registerNumber));
+            if (override != null) {
+                return override;
+            }
+        }
+        return predecessor.postRegisterMap[registerNumber];
     }
 
     protected boolean addPredecessor(AnalyzedInstruction predecessor) {
@@ -193,39 +213,82 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
 
     /**
      * Iterates over the predecessors of this instruction, and merges all the post-instruction register types for the
-     * given register. Any dead, unreachable, or odexed predecessor is ignored
+     * given register. Any dead, unreachable, or odexed predecessor is ignored. This takes into account any overridden
+     * predecessor register types
+     *
      * @param registerNumber the register number
      * @return The register type resulting from merging the post-instruction register types from all predecessors
      */
-    protected RegisterType mergePreRegisterTypeFromPredecessors(int registerNumber) {
+    protected RegisterType getMergedPreRegisterTypeFromPredecessors(int registerNumber) {
         RegisterType mergedRegisterType = null;
         for (AnalyzedInstruction predecessor: predecessors) {
-            RegisterType predecessorRegisterType = predecessor.postRegisterMap[registerNumber];
-            assert predecessorRegisterType != null;
-            mergedRegisterType = predecessorRegisterType.merge(mergedRegisterType);
+            RegisterType predecessorRegisterType = getPredecessorRegisterType(predecessor, registerNumber);
+            if (predecessorRegisterType != null) {
+                if (mergedRegisterType == null) {
+                    mergedRegisterType = predecessorRegisterType;
+                } else {
+                    mergedRegisterType = predecessorRegisterType.merge(mergedRegisterType);
+                }
+            }
         }
         return mergedRegisterType;
     }
+    /**
+     * Sets the "post-instruction" register type as indicated.
+     * @param registerNumber Which register to set
+     * @param registerType The "post-instruction" register type
+     * @returns true if the given register type is different than the existing post-instruction register type
+     */
+    protected boolean setPostRegisterType(int registerNumber, RegisterType registerType) {
+        assert registerNumber >= 0 && registerNumber < postRegisterMap.length;
+        assert registerType != null;
 
-    /*
-      * Sets the "post-instruction" register type as indicated.
-      * @param registerNumber Which register to set
-      * @param registerType The "post-instruction" register type
-      * @returns true if the given register type is different than the existing post-instruction register type
-      */
-     protected boolean setPostRegisterType(int registerNumber, RegisterType registerType) {
-         assert registerNumber >= 0 && registerNumber < postRegisterMap.length;
-         assert registerType != null;
+        RegisterType oldRegisterType = postRegisterMap[registerNumber];
+        if (oldRegisterType.equals(registerType)) {
+            return false;
+        }
 
-         RegisterType oldRegisterType = postRegisterMap[registerNumber];
-         if (oldRegisterType.equals(registerType)) {
-             return false;
-         }
+        postRegisterMap[registerNumber] = registerType;
+        return true;
+    }
 
-         postRegisterMap[registerNumber] = registerType;
-         return true;
-     }
+    /**
+     * Adds an override for a register type from a predecessor.
+     *
+     * This is used to set the register type for only one branch from a conditional jump.
+     *
+     * @param predecessor Which predecessor is being overriden
+     * @param registerNumber The register number of the register being overriden
+     * @param registerType The overridden register type
+     * @param verifiedInstructions
+     *
+     * @return true if the post-instruction register type for this instruction changed as a result of this override
+     */
+    protected boolean overridePredecessorRegisterType(@Nonnull AnalyzedInstruction predecessor, int registerNumber,
+                                                      @Nonnull RegisterType registerType, BitSet verifiedInstructions) {
+        if (predecessorRegisterOverrides == null) {
+            predecessorRegisterOverrides = Maps.newHashMap();
+        }
+        predecessorRegisterOverrides.put(new PredecessorOverrideKey(predecessor, registerNumber), registerType);
 
+        RegisterType mergedType = getMergedPreRegisterTypeFromPredecessors(registerNumber);
+
+        if (preRegisterMap[registerNumber].equals(mergedType)) {
+            return false;
+        }
+
+        preRegisterMap[registerNumber] = mergedType;
+        verifiedInstructions.clear(instructionIndex);
+
+        if (!setsRegister(registerNumber)) {
+            if (!postRegisterMap[registerNumber].equals(mergedType)) {
+                postRegisterMap[registerNumber] = mergedType;
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     protected boolean isInvokeInit() {
         if (instruction == null || !instruction.getOpcode().canInitializeReference()) {
@@ -326,6 +389,28 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
             return 0;
         } else {
             return 1;
+        }
+    }
+
+    private static class PredecessorOverrideKey {
+        public final AnalyzedInstruction analyzedInstruction;
+        public final int registerNumber;
+
+        public PredecessorOverrideKey(AnalyzedInstruction analyzedInstruction, int registerNumber) {
+            this.analyzedInstruction = analyzedInstruction;
+            this.registerNumber = registerNumber;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            PredecessorOverrideKey that = (PredecessorOverrideKey)o;
+            return com.google.common.base.Objects.equal(registerNumber, that.registerNumber) &&
+                    Objects.equal(analyzedInstruction, that.analyzedInstruction);
+        }
+
+        @Override public int hashCode() {
+            return Objects.hashCode(analyzedInstruction, registerNumber);
         }
     }
 }

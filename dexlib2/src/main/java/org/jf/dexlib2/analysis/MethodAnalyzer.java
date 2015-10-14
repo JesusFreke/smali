@@ -336,6 +336,49 @@ public class MethodAnalyzer {
                 registerType);
     }
 
+    private void propagateChanges(@Nonnull BitSet changedInstructions, int registerNumber,
+                                  @Nonnull RegisterType registerType) {
+        //Using a for loop inside the while loop optimizes for the common case of the successors of an instruction
+        //occurring after the instruction. Any successors that occur prior to the instruction will be picked up on
+        //the next iteration of the while loop.
+        //This could also be done recursively, but in large methods it would likely cause very deep recursion.
+        while (!changedInstructions.isEmpty()) {
+            for (int instructionIndex=changedInstructions.nextSetBit(0);
+                 instructionIndex>=0;
+                 instructionIndex=changedInstructions.nextSetBit(instructionIndex+1)) {
+
+                changedInstructions.clear(instructionIndex);
+
+                propagateRegisterToSuccessors(analyzedInstructions.valueAt(instructionIndex), registerNumber,
+                        changedInstructions);
+            }
+        }
+    }
+
+    private void overridePredecessorRegisterTypeAndPropagateChanges(
+            @Nonnull AnalyzedInstruction analyzedInstruction, @Nonnull AnalyzedInstruction predecessor,
+            int registerNumber, @Nonnull RegisterType registerType) {
+        BitSet changedInstructions = new BitSet(analyzedInstructions.size());
+
+        if (!analyzedInstruction.overridePredecessorRegisterType(
+                predecessor, registerNumber, registerType, analyzedState)) {
+            return;
+        }
+        changedInstructions.set(analyzedInstruction.instructionIndex);
+
+        propagateChanges(changedInstructions, registerNumber, registerType);
+
+        if (registerType.category == RegisterType.LONG_LO) {
+            checkWidePair(registerNumber, analyzedInstruction);
+            overridePredecessorRegisterTypeAndPropagateChanges(analyzedInstruction, predecessor, registerNumber + 1,
+                    RegisterType.LONG_HI_TYPE);
+        } else if (registerType.category == RegisterType.DOUBLE_LO) {
+            checkWidePair(registerNumber, analyzedInstruction);
+            overridePredecessorRegisterTypeAndPropagateChanges(analyzedInstruction, predecessor, registerNumber + 1,
+                    RegisterType.DOUBLE_HI_TYPE);
+        }
+    }
+
     private void setPostRegisterTypeAndPropagateChanges(@Nonnull AnalyzedInstruction analyzedInstruction,
                                                         int registerNumber, @Nonnull RegisterType registerType) {
 
@@ -347,23 +390,7 @@ public class MethodAnalyzer {
 
         propagateRegisterToSuccessors(analyzedInstruction, registerNumber, changedInstructions);
 
-        //Using a for loop inside the while loop optimizes for the common case of the successors of an instruction
-        //occurring after the instruction. Any successors that occur prior to the instruction will be picked up on
-        //the next iteration of the while loop.
-        //This could also be done recursively, but in large methods it would likely cause very deep recursion,
-        //which requires the user to specify a larger stack size. This isn't really a problem, but it is slightly
-        //annoying.
-        while (!changedInstructions.isEmpty()) {
-            for (int instructionIndex=changedInstructions.nextSetBit(0);
-                     instructionIndex>=0;
-                     instructionIndex=changedInstructions.nextSetBit(instructionIndex+1)) {
-
-                changedInstructions.clear(instructionIndex);
-
-                propagateRegisterToSuccessors(analyzedInstructions.valueAt(instructionIndex), registerNumber,
-                        changedInstructions);
-            }
-        }
+        propagateChanges(changedInstructions, registerNumber, registerType);
 
         if (registerType.category == RegisterType.LONG_LO) {
             checkWidePair(registerNumber, analyzedInstruction);
@@ -1037,8 +1064,11 @@ public class MethodAnalyzer {
     }
 
     private void analyzeMoveResult(@Nonnull AnalyzedInstruction analyzedInstruction) {
-        AnalyzedInstruction previousInstruction = analyzedInstructions.valueAt(analyzedInstruction.instructionIndex-1);
-        if (!previousInstruction.instruction.getOpcode().setsResult()) {
+        AnalyzedInstruction previousInstruction = null;
+        if (analyzedInstruction.instructionIndex > 0) {
+            previousInstruction = analyzedInstructions.valueAt(analyzedInstruction.instructionIndex-1);
+        }
+        if (previousInstruction == null || !previousInstruction.instruction.getOpcode().setsResult()) {
             throw new AnalysisException(analyzedInstruction.instruction.getOpcode().name + " must occur after an " +
                     "invoke-*/fill-new-array instruction");
         }
@@ -1132,6 +1162,21 @@ public class MethodAnalyzer {
 
     private void analyzeInstanceOf(@Nonnull AnalyzedInstruction analyzedInstruction) {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, RegisterType.BOOLEAN_TYPE);
+
+        int instructionIndex = analyzedInstruction.getInstructionIndex();
+        AnalyzedInstruction nextAnalyzedInstruction = analyzedInstructions.valueAt(instructionIndex + 1);
+
+        Instruction nextInstruction = nextAnalyzedInstruction.instruction;
+        if (nextInstruction.getOpcode() == Opcode.IF_EQZ) {
+            if (((Instruction21t)nextInstruction).getRegisterA() == analyzedInstruction.getDestinationRegister()) {
+                Reference reference = ((Instruction22c)analyzedInstruction.getInstruction()).getReference();
+                RegisterType registerType = RegisterType.getRegisterType(classPath, (TypeReference)reference);
+                int objectRegister = ((TwoRegisterInstruction)analyzedInstruction.getInstruction()).getRegisterB();
+
+                overridePredecessorRegisterTypeAndPropagateChanges(analyzedInstructions.valueAt(instructionIndex + 2),
+                        nextAnalyzedInstruction, objectRegister, registerType);
+            }
+        }
     }
 
     private void analyzeArrayLength(@Nonnull AnalyzedInstruction analyzedInstruction) {
