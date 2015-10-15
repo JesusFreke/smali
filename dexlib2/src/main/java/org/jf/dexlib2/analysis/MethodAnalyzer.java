@@ -336,8 +336,7 @@ public class MethodAnalyzer {
                 registerType);
     }
 
-    private void propagateChanges(@Nonnull BitSet changedInstructions, int registerNumber,
-                                  @Nonnull RegisterType registerType) {
+    private void propagateChanges(@Nonnull BitSet changedInstructions, int registerNumber, boolean override) {
         //Using a for loop inside the while loop optimizes for the common case of the successors of an instruction
         //occurring after the instruction. Any successors that occur prior to the instruction will be picked up on
         //the next iteration of the while loop.
@@ -350,7 +349,7 @@ public class MethodAnalyzer {
                 changedInstructions.clear(instructionIndex);
 
                 propagateRegisterToSuccessors(analyzedInstructions.valueAt(instructionIndex), registerNumber,
-                        changedInstructions);
+                        changedInstructions, override);
             }
         }
     }
@@ -366,7 +365,7 @@ public class MethodAnalyzer {
         }
         changedInstructions.set(analyzedInstruction.instructionIndex);
 
-        propagateChanges(changedInstructions, registerNumber, registerType);
+        propagateChanges(changedInstructions, registerNumber, true);
 
         if (registerType.category == RegisterType.LONG_LO) {
             checkWidePair(registerNumber, analyzedInstruction);
@@ -388,9 +387,9 @@ public class MethodAnalyzer {
             return;
         }
 
-        propagateRegisterToSuccessors(analyzedInstruction, registerNumber, changedInstructions);
+        propagateRegisterToSuccessors(analyzedInstruction, registerNumber, changedInstructions, false);
 
-        propagateChanges(changedInstructions, registerNumber, registerType);
+        propagateChanges(changedInstructions, registerNumber, false);
 
         if (registerType.category == RegisterType.LONG_LO) {
             checkWidePair(registerNumber, analyzedInstruction);
@@ -402,10 +401,10 @@ public class MethodAnalyzer {
     }
 
     private void propagateRegisterToSuccessors(@Nonnull AnalyzedInstruction instruction, int registerNumber,
-                                               @Nonnull BitSet changedInstructions) {
+                                               @Nonnull BitSet changedInstructions, boolean override) {
         RegisterType postRegisterType = instruction.getPostInstructionRegisterType(registerNumber);
         for (AnalyzedInstruction successor: instruction.successors) {
-            if (successor.mergeRegister(registerNumber, postRegisterType, analyzedState)) {
+            if (successor.mergeRegister(registerNumber, postRegisterType, analyzedState, override)) {
                 changedInstructions.set(successor.instructionIndex);
             }
         }
