@@ -244,7 +244,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
      * Sets the "post-instruction" register type as indicated.
      * @param registerNumber Which register to set
      * @param registerType The "post-instruction" register type
-     * @returns true if the given register type is different than the existing post-instruction register type
+     * @return true if the given register type is different than the existing post-instruction register type
      */
     protected boolean setPostRegisterType(int registerNumber, RegisterType registerType) {
         assert registerNumber >= 0 && registerNumber < postRegisterMap.length;
