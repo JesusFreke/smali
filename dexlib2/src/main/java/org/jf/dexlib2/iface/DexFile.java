@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.iface;
 
+import org.jf.dexlib2.Opcodes;
+
 import javax.annotation.Nonnull;
 import java.util.Set;
 
@@ -46,4 +48,11 @@ public interface DexFile {
      * @return A set of the classes defined in this dex file
      */
     @Nonnull Set<? extends ClassDef> getClasses();
+
+    /**
+     * Get the Opcodes associated with this dex file
+     *
+     * @return The Opcodes instance representing the possible opcodes that can be encountered in this dex file
+     */
+    @Nonnull Opcodes getOpcodes();
 }

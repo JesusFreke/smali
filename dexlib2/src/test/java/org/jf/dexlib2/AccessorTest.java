@@ -81,7 +81,7 @@ public class AccessorTest {
         Assert.assertNotNull(url);
         DexFile f = DexFileFactory.loadDexFile(url.getFile(), 15, false);
 
-        SyntheticAccessorResolver sar = new SyntheticAccessorResolver(f.getClasses());
+        SyntheticAccessorResolver sar = new SyntheticAccessorResolver(f.getOpcodes(), f.getClasses());
 
         ClassDef accessorTypesClass = null;
         ClassDef accessorsClass = null;

@@ -72,7 +72,7 @@ public class DexWriterTest {
         MemoryDataStore dataStore = new MemoryDataStore();
 
         try {
-            DexPool.writeTo(dataStore, new ImmutableDexFile(ImmutableSet.of(classDef)));
+            DexPool.writeTo(dataStore, new ImmutableDexFile(Opcodes.forApi(19), ImmutableSet.of(classDef)));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -112,7 +112,7 @@ public class DexWriterTest {
         MemoryDataStore dataStore = new MemoryDataStore();
 
         try {
-            DexPool.writeTo(dataStore, new ImmutableDexFile(ImmutableSet.of(classDef)));
+            DexPool.writeTo(dataStore, new ImmutableDexFile(Opcodes.forApi(19), ImmutableSet.of(classDef)));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

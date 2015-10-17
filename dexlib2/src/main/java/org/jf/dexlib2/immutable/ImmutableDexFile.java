@@ -32,6 +32,7 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ImmutableUtils;
@@ -42,21 +43,37 @@ import java.util.Collection;
 
 public class ImmutableDexFile implements DexFile {
     @Nonnull protected final ImmutableSet<? extends ImmutableClassDef> classes;
+    @Nonnull private final Opcodes opcodes;
 
+    @Deprecated
     public ImmutableDexFile(@Nullable Collection<? extends ClassDef> classes) {
         this.classes = ImmutableClassDef.immutableSetOf(classes);
+        this.opcodes = Opcodes.forApi(19);
     }
 
+    @Deprecated
     public ImmutableDexFile(@Nullable ImmutableSet<? extends ImmutableClassDef> classes) {
         this.classes = ImmutableUtils.nullToEmptySet(classes);
+        this.opcodes = Opcodes.forApi(19);
+    }
+
+    public ImmutableDexFile(@Nonnull Opcodes opcodes, @Nullable Collection<? extends ClassDef> classes) {
+        this.classes = ImmutableClassDef.immutableSetOf(classes);
+        this.opcodes = opcodes;
+    }
+
+    public ImmutableDexFile(@Nonnull Opcodes opcodes, @Nullable ImmutableSet<? extends ImmutableClassDef> classes) {
+        this.classes = ImmutableUtils.nullToEmptySet(classes);
+        this.opcodes = opcodes;
     }
 
     public static ImmutableDexFile of(DexFile dexFile) {
         if (dexFile instanceof ImmutableDexFile) {
             return (ImmutableDexFile)dexFile;
         }
-        return new ImmutableDexFile(dexFile.getClasses());
+        return new ImmutableDexFile(dexFile.getOpcodes(), dexFile.getClasses());
     }
 
     @Nonnull @Override public ImmutableSet<? extends ImmutableClassDef> getClasses() { return classes; }
+    @Nonnull @Override public Opcodes getOpcodes() { return opcodes; }
 }

@@ -40,6 +40,7 @@ import com.google.common.collect.*;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.DexFileFactory.DexFileNotFound;
 import org.jf.dexlib2.DexFileFactory.MultipleDexFilesException;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.reflection.ReflectionClassDef;
 import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.iface.ClassDef;
@@ -139,13 +140,14 @@ public class ClassPath {
 
     private static DexFile getBasicClasses() {
         // fallbacks for some special classes that we assume are present
-        return new ImmutableDexFile(ImmutableSet.of(
-                new ReflectionClassDef(Class.class),
-                new ReflectionClassDef(Cloneable.class),
-                new ReflectionClassDef(Object.class),
-                new ReflectionClassDef(Serializable.class),
-                new ReflectionClassDef(String.class),
-                new ReflectionClassDef(Throwable.class)));
+        return new ImmutableDexFile(Opcodes.forApi(19),
+                ImmutableSet.of(
+                        new ReflectionClassDef(Class.class),
+                        new ReflectionClassDef(Cloneable.class),
+                        new ReflectionClassDef(Object.class),
+                        new ReflectionClassDef(Serializable.class),
+                        new ReflectionClassDef(String.class),
+                        new ReflectionClassDef(Throwable.class)));
     }
 
     public boolean isArt() {

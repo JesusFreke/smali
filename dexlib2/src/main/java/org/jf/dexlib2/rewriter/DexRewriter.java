@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.rewriter;
 
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -115,6 +116,10 @@ public class DexRewriter implements Rewriters {
 
         @Override @Nonnull public Set<? extends ClassDef> getClasses() {
             return RewriterUtils.rewriteSet(getClassDefRewriter(), dexFile.getClasses());
+        }
+
+        @Nonnull @Override public Opcodes getOpcodes() {
+            return dexFile.getOpcodes();
         }
     }
 

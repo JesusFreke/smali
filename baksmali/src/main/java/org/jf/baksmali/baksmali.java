@@ -135,7 +135,7 @@ public class baksmali {
         List<? extends ClassDef> classDefs = Ordering.natural().sortedCopy(dexFile.getClasses());
 
         if (!options.noAccessorComments) {
-            options.syntheticAccessorResolver = new SyntheticAccessorResolver(classDefs);
+            options.syntheticAccessorResolver = new SyntheticAccessorResolver(dexFile.getOpcodes(), classDefs);
         }
 
         final ClassFileNameHandler fileNameHandler = new ClassFileNameHandler(outputDirectoryFile, ".smali");
