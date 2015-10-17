@@ -97,6 +97,23 @@ public class BaseDexBuffer {
                 (((long)buf[offset+7]) << 56);
     }
 
+    public int readLongAsSmallUint(int offset) {
+        byte[] buf = this.buf;
+        offset += baseOffset;
+        long result = (buf[offset] & 0xff) |
+                ((buf[offset+1] & 0xff) << 8) |
+                ((buf[offset+2] & 0xff) << 16) |
+                ((buf[offset+3] & 0xffL) << 24) |
+                ((buf[offset+4] & 0xffL) << 32) |
+                ((buf[offset+5] & 0xffL) << 40) |
+                ((buf[offset+6] & 0xffL) << 48) |
+                (((long)buf[offset+7]) << 56);
+        if (result < 0 || result > Integer.MAX_VALUE) {
+            throw new ExceptionWithContext("Encountered out-of-range ulong at offset 0x%x", offset);
+        }
+        return (int)result;
+    }
+
     public int readInt(int offset) {
         byte[] buf = this.buf;
         offset += baseOffset;
