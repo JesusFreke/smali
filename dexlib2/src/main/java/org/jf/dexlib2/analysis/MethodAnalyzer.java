@@ -1170,10 +1170,33 @@ public class MethodAnalyzer {
             if (((Instruction21t)nextInstruction).getRegisterA() == analyzedInstruction.getDestinationRegister()) {
                 Reference reference = ((Instruction22c)analyzedInstruction.getInstruction()).getReference();
                 RegisterType registerType = RegisterType.getRegisterType(classPath, (TypeReference)reference);
-                int objectRegister = ((TwoRegisterInstruction)analyzedInstruction.getInstruction()).getRegisterB();
 
-                overridePredecessorRegisterTypeAndPropagateChanges(analyzedInstructions.valueAt(instructionIndex + 2),
-                        nextAnalyzedInstruction, objectRegister, registerType);
+                if (registerType.type != null && !registerType.type.isInterface()) {
+                    int objectRegister = ((TwoRegisterInstruction)analyzedInstruction.getInstruction()).getRegisterB();
+
+                    RegisterType existingType = nextAnalyzedInstruction.getPostInstructionRegisterType(objectRegister);
+
+                    if (existingType.type != null) {
+                        boolean override = false;
+
+                        // Only override if we're going from an interface to a class, or are going to a narrower class
+                        if (existingType.type.isInterface()) {
+                            override = true;
+                        } else {
+                            TypeProto commonSuperclass = registerType.type.getCommonSuperclass(existingType.type);
+                            // only if it's a narrowing conversion
+                            if (commonSuperclass.getType().equals(existingType.type.getType())) {
+                                override = true;
+                            }
+                        }
+
+                        if (override) {
+                            overridePredecessorRegisterTypeAndPropagateChanges(
+                                    analyzedInstructions.valueAt(instructionIndex + 2), nextAnalyzedInstruction,
+                                    objectRegister, registerType);
+                        }
+                    }
+                }
             }
         }
     }
@@ -1752,7 +1775,7 @@ public class MethodAnalyzer {
             }
 
             resolvedMethod = superType.getMethodByVtableIndex(methodIndex);
-        } else{
+        } else {
             resolvedMethod = objectRegisterTypeProto.getMethodByVtableIndex(methodIndex);
         }
 
