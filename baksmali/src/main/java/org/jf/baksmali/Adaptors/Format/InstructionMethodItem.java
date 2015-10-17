@@ -76,8 +76,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
             return false;
         }
 
-        return opcode.isOdexedInstanceVolatile() || opcode.isOdexedStaticVolatile() ||
-            opcode == Opcode.THROW_VERIFICATION_ERROR;
+        return opcode.isVolatileFieldAccessor() || opcode == Opcode.THROW_VERIFICATION_ERROR;
     }
 
     @Override

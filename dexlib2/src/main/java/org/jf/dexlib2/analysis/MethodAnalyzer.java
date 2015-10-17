@@ -1841,7 +1841,7 @@ public class MethodAnalyzer {
 
         Instruction deodexedInstruction;
 
-        if (originalOpcode.isOdexedStaticVolatile()) {
+        if (originalOpcode.isStaticFieldAccessor()) {
             OneRegisterInstruction instruction = (OneRegisterInstruction)analyzedInstruction.instruction;
             deodexedInstruction = new ImmutableInstruction21c(opcode, instruction.getRegisterA(), field);
         } else {
