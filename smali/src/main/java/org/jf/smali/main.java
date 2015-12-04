@@ -327,7 +327,7 @@ public class main {
 
         LexerErrorInterface lexer;
 
-        FileInputStream fis = new FileInputStream(smaliFile.getAbsolutePath());
+        FileInputStream fis = new FileInputStream(smaliFile);
         InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
 
         lexer = new smaliFlexLexer(reader);
