@@ -90,7 +90,7 @@ public class main {
         Locale locale = new Locale("en", "US");
         Locale.setDefault(locale);
 
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         CommandLine commandLine;
 
         try {
@@ -349,53 +349,64 @@ public class main {
 
     @SuppressWarnings("AccessStaticViaInstance")
     private static void buildOptions() {
-        Option versionOption = OptionBuilder.withLongOpt("version")
-                .withDescription("prints the version then exits")
-                .create("v");
+        Option versionOption = Option.builder("v")
+                .longOpt("version")
+                .desc("prints the version then exits")
+                .build();
 
-        Option helpOption = OptionBuilder.withLongOpt("help")
-                .withDescription("prints the help message then exits. Specify twice for debug options")
-                .create("?");
+        Option helpOption = Option.builder("?")
+                .longOpt("help")
+                .desc("prints the help message then exits. Specify twice for debug options")
+                .build();
 
-        Option outputDirOption = OptionBuilder.withLongOpt("output")
-                .withDescription("the directory where the disassembled files will be placed. The default is out")
+        Option outputDirOption = Option.builder("o")
+                .longOpt("output")
+                .desc("the directory where the disassembled files will be placed. The default is out")
                 .hasArg()
-                .withArgName("DIR")
-                .create("o");
+                .argName("DIR")
+                .build();
 
-        Option noParameterRegistersOption = OptionBuilder.withLongOpt("no-parameter-registers")
-                .withDescription("use the v<n> syntax instead of the p<n> syntax for registers mapped to method " +
+        Option noParameterRegistersOption = Option.builder("p")
+                .longOpt("no-parameter-registers")
+                .desc("use the v<n> syntax instead of the p<n> syntax for registers mapped to method " +
                         "parameters")
-                .create("p");
+                .build();
 
-        Option deodexerantOption = OptionBuilder.withLongOpt("deodex")
-                .withDescription("deodex the given odex file. This option is ignored if the input file is not an " +
+        Option deodexerantOption = Option.builder("x")
+                .longOpt("deodex")
+                .desc("deodex the given odex file. This option is ignored if the input file is not an " +
                         "odex file")
-                .create("x");
+                .build();
 
-        Option experimentalOption = OptionBuilder.withLongOpt("experimental")
-                .withDescription("enable experimental opcodes to be disassembled, even if they aren't necessarily supported in the Android runtime yet")
-                .create("X");
+        Option experimentalOption = Option.builder("X")
+                .longOpt("experimental")
+                .desc("enable experimental opcodes to be disassembled, even if they aren't necessarily supported in the Android runtime yet")
+                .build();
 
-        Option useLocalsOption = OptionBuilder.withLongOpt("use-locals")
-                .withDescription("output the .locals directive with the number of non-parameter registers, rather" +
+        Option useLocalsOption = Option.builder("l")
+                .longOpt("use-locals")
+                .desc("output the .locals directive with the number of non-parameter registers, rather" +
                         " than the .register directive with the total number of register")
-                .create("l");
+                .build();
 
-        Option sequentialLabelsOption = OptionBuilder.withLongOpt("sequential-labels")
-                .withDescription("create label names using a sequential numbering scheme per label type, rather than " +
+        Option sequentialLabelsOption = Option.builder("s")
+                .longOpt("sequential-labels")
+                .desc("create label names using a sequential numbering scheme per label type, rather than " +
                         "using the bytecode address")
-                .create("s");
+                .build();
 
-        Option noDebugInfoOption = OptionBuilder.withLongOpt("no-debug-info")
-                .withDescription("don't write out debug info (.local, .param, .line, etc.)")
-                .create("b");
+        Option noDebugInfoOption = Option.builder("b")
+                .longOpt("no-debug-info")
+                .desc("don't write out debug info (.local, .param, .line, etc.)")
+                .build();
 
-        Option registerInfoOption = OptionBuilder.withLongOpt("register-info")
-                .hasOptionalArgs()
-                .withArgName("REGISTER_INFO_TYPES")
-                .withValueSeparator(',')
-                .withDescription("print the specificed type(s) of register information for each instruction. " +
+        Option registerInfoOption = Option.builder("r")
+                .longOpt("register-info")
+                .optionalArg(true)
+                .hasArgs()
+                .valueSeparator(',')
+                .argName("REGISTER_INFO_TYPES")
+                .desc("print the specificed type(s) of register information for each instruction. " +
                         "\"ARGS,DEST\" is the default if no types are specified.\nValid values are:\nALL: all " +
                         "pre- and post-instruction registers.\nALLPRE: all pre-instruction registers\nALLPOST: all " +
                         "post-instruction registers\nARGS: any pre-instruction registers used as arguments to the " +
@@ -403,95 +414,112 @@ public class main {
                         "pre-instruction register has been merged from more than 1 different post-instruction " +
                         "register from its predecessors\nFULLMERGE: For each register that would be printed by " +
                         "MERGE, also show the incoming register types that were merged")
-                .create("r");
+                .build();
 
-        Option classPathOption = OptionBuilder.withLongOpt("bootclasspath")
-                .withDescription("A colon-separated list of bootclasspath jar/oat files to use for analysis. Add an " +
+        Option classPathOption = Option.builder("c")
+                .longOpt("bootclasspath")
+                .desc("A colon-separated list of bootclasspath jar/oat files to use for analysis. Add an " +
                         "initial colon to specify that the jars/oats should be appended to the default bootclasspath " +
                         "instead of replacing it")
-                .hasOptionalArg()
-                .withArgName("BOOTCLASSPATH")
-                .create("c");
+                .hasArg()
+                .optionalArg(true)
+                .argName("BOOTCLASSPATH")
+                .build();
 
-        Option classPathDirOption = OptionBuilder.withLongOpt("bootclasspath-dir")
-                .withDescription("the base folder to look for the bootclasspath files in. Defaults to the current " +
+        Option classPathDirOption = Option.builder("d")
+                .longOpt("bootclasspath-dir")
+                .desc("the base folder to look for the bootclasspath files in. Defaults to the current " +
                         "directory")
                 .hasArg()
-                .withArgName("DIR")
-                .create("d");
+                .argName("DIR")
+                .build();
 
-        Option codeOffsetOption = OptionBuilder.withLongOpt("code-offsets")
-                .withDescription("add comments to the disassembly containing the code offset for each address")
-                .create("f");
+        Option codeOffsetOption = Option.builder("f")
+                .longOpt("code-offsets")
+                .desc("add comments to the disassembly containing the code offset for each address")
+                .build();
 
-        Option noAccessorCommentsOption = OptionBuilder.withLongOpt("no-accessor-comments")
-                .withDescription("don't output helper comments for synthetic accessors")
-                .create("m");
+        Option noAccessorCommentsOption = Option.builder("m")
+                .longOpt("no-accessor-comments")
+                .desc("don't output helper comments for synthetic accessors")
+                .build();
 
-        Option apiLevelOption = OptionBuilder.withLongOpt("api-level")
-                .withDescription("The numeric api-level of the file being disassembled. If not " +
+        Option apiLevelOption = Option.builder("a")
+                .longOpt("api-level")
+                .desc("The numeric api-level of the file being disassembled. If not " +
                         "specified, it defaults to 15 (ICS).")
                 .hasArg()
-                .withArgName("API_LEVEL")
-                .create("a");
+                .argName("API_LEVEL")
+                .build();
 
-        Option jobsOption = OptionBuilder.withLongOpt("jobs")
-                .withDescription("The number of threads to use. Defaults to the number of cores available, up to a " +
+        Option jobsOption = Option.builder("j")
+                .longOpt("jobs")
+                .desc("The number of threads to use. Defaults to the number of cores available, up to a " +
                         "maximum of 6")
                 .hasArg()
-                .withArgName("NUM_THREADS")
-                .create("j");
+                .argName("NUM_THREADS")
+                .build();
 
-        Option resourceIdFilesOption = OptionBuilder.withLongOpt("resource-id-files")
-                .withDescription("the resource ID files to use, for analysis. A colon-separated list of prefix=file " +
+        Option resourceIdFilesOption = Option.builder("i")
+                .longOpt("resource-id-files")
+                .desc("the resource ID files to use, for analysis. A colon-separated list of prefix=file " +
                         "pairs.  For example R=res/values/public.xml:" +
                         "android.R=$ANDROID_HOME/platforms/android-19/data/res/values/public.xml")
                 .hasArg()
-                .withArgName("FILES")
-                .create("i");
+                .argName("FILES")
+                .build();
 
-        Option noImplicitReferencesOption = OptionBuilder.withLongOpt("implicit-references")
-                .withDescription("Use implicit (type-less) method and field references")
-                .create("t");
+        Option noImplicitReferencesOption = Option.builder("t")
+                .longOpt("no-implicit-references")
+                .desc("Use implicit (type-less) method and field references")
+                .build();
 
-        Option checkPackagePrivateAccessOption = OptionBuilder.withLongOpt("check-package-private-access")
-                .withDescription("When deodexing, use the package-private access check when calculating vtable " +
+        Option checkPackagePrivateAccessOption = Option.builder("k")
+                .longOpt("check-package-private-access")
+                .desc("When deodexing, use the package-private access check when calculating vtable " +
                         "indexes. It should only be needed for 4.2.0 odexes. The functionality was reverted for " +
                         "4.2.1.")
-                .create("k");
+                .build();
 
-        Option normalizeVirtualMethods = OptionBuilder.withLongOpt("normalize-virtual-methods")
-                .withDescription("Normalize virtual method references to the reference the base method.")
-                .create("n");
+        Option normalizeVirtualMethods = Option.builder("n")
+                .longOpt("normalize-virtual-methods")
+                .desc("Normalize virtual method references to the reference the base method.")
+                .build();
 
-        Option dumpOption = OptionBuilder.withLongOpt("dump-to")
-                .withDescription("dumps the given dex file into a single annotated dump file named FILE" +
+        Option dumpOption = Option.builder("D")
+                .longOpt("dump-to")
+                .desc("dumps the given dex file into a single annotated dump file named FILE" +
                         " (<dexfile>.dump by default), along with the normal disassembly")
-                .hasOptionalArg()
-                .withArgName("FILE")
-                .create("D");
+                .hasArg()
+                .optionalArg(true)
+                .argName("FILE")
+                .build();
 
-        Option ignoreErrorsOption = OptionBuilder.withLongOpt("ignore-errors")
-                .withDescription("ignores any non-fatal errors that occur while disassembling/deodexing," +
+        Option ignoreErrorsOption = Option.builder("I")
+                .longOpt("ignore-errors")
+                .desc("ignores any non-fatal errors that occur while disassembling/deodexing," +
                         " ignoring the class if needed, and continuing with the next class. The default" +
                         " behavior is to stop disassembling and exit once an error is encountered")
-                .create("I");
+                .build();
 
-        Option noDisassemblyOption = OptionBuilder.withLongOpt("no-disassembly")
-                .withDescription("suppresses the output of the disassembly")
-                .create("N");
+        Option noDisassemblyOption = Option.builder("N")
+                .longOpt("no-disassembly")
+                .desc("suppresses the output of the disassembly")
+                .build();
 
-        Option inlineTableOption = OptionBuilder.withLongOpt("inline-table")
-                .withDescription("specify a file containing a custom inline method table to use for deodexing")
+        Option inlineTableOption = Option.builder("T")
+                .longOpt("inline-table")
+                .desc("specify a file containing a custom inline method table to use for deodexing")
                 .hasArg()
-                .withArgName("FILE")
-                .create("T");
+                .argName("FILE")
+                .build();
 
-        Option dexEntryOption = OptionBuilder.withLongOpt("dex-file")
-                .withDescription("looks for dex file named DEX_FILE, defaults to classes.dex")
-                .withArgName("DEX_FILE")
+        Option dexEntryOption = Option.builder("e")
+                .longOpt("dex-file")
+                .desc("looks for dex file named DEX_FILE, defaults to classes.dex")
+                .argName("DEX_FILE")
                 .hasArg()
-                .create("e");
+                .build();
 
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);

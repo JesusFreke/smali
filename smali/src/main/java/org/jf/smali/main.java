@@ -99,7 +99,7 @@ public class main {
         Locale locale = new Locale("en", "US");
         Locale.setDefault(locale);
 
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         CommandLine commandLine;
 
         try {
@@ -413,73 +413,85 @@ public class main {
 
     @SuppressWarnings("AccessStaticViaInstance")
     private static void buildOptions() {
-        Option versionOption = OptionBuilder.withLongOpt("version")
-                .withDescription("prints the version then exits")
-                .create("v");
+        Option versionOption = Option.builder("v")
+                .longOpt("version")
+                .desc("prints the version then exits")
+                .build();
 
-        Option helpOption = OptionBuilder.withLongOpt("help")
-                .withDescription("prints the help message then exits. Specify twice for debug options")
-                .create("?");
+        Option helpOption = Option.builder("?")
+                .longOpt("help")
+                .desc("prints the help message then exits. Specify twice for debug options")
+                .build();
 
-        Option outputOption = OptionBuilder.withLongOpt("output")
-                .withDescription("the name of the dex file that will be written. The default is out.dex")
+        Option outputOption = Option.builder("o")
+                .longOpt("output")
+                .desc("the name of the dex file that will be written. The default is out.dex")
                 .hasArg()
-                .withArgName("FILE")
-                .create("o");
+                .argName("FILE")
+                .build();
 
-        Option allowOdexOption = OptionBuilder.withLongOpt("allow-odex-instructions")
-                .withDescription("allow odex instructions to be compiled into the dex file. Only a few" +
+        Option allowOdexOption = Option.builder("x")
+                .longOpt("allow-odex-instructions")
+                .desc("allow odex instructions to be compiled into the dex file. Only a few" +
                         " instructions are supported - the ones that can exist in a dead code path and not" +
                         " cause dalvik to reject the class")
-                .create("x");
+                .build();
 
-        Option apiLevelOption = OptionBuilder.withLongOpt("api-level")
-                .withDescription("The numeric api-level of the file to generate, e.g. 14 for ICS. If not " +
+        Option apiLevelOption = Option.builder("a")
+                .longOpt("api-level")
+                .desc("The numeric api-level of the file to generate, e.g. 14 for ICS. If not " +
                         "specified, it defaults to 15 (ICS).")
                 .hasArg()
-                .withArgName("API_LEVEL")
-                .create("a");
+                .argName("API_LEVEL")
+                .build();
 
-        Option listMethodsOption = OptionBuilder.withLongOpt("list-methods")
-                .withDescription("Lists all the method references to FILE" +
+        Option listMethodsOption = Option.builder("m")
+                .longOpt("list-methods")
+                .desc("Lists all the method references to FILE" +
                         " (<output_dex_filename>.methods by default)")
-                .hasOptionalArg()
-                .withArgName("FILE")
-                .create("m");
+                .optionalArg(true)
+                .argName("FILE")
+                .build();
 
-        Option listFieldsOption = OptionBuilder.withLongOpt("list-fields")
-                .withDescription("Lists all the field references to FILE" +
+        Option listFieldsOption = Option.builder("f")
+                .longOpt("list-fields")
+                .desc("Lists all the field references to FILE" +
                         " (<output_dex_filename>.fields by default)")
-                .hasOptionalArg()
-                .withArgName("FILE")
-                .create("f");
+                .optionalArg(true)
+                .argName("FILE")
+                .build();
 
-        Option listClassesOption = OptionBuilder.withLongOpt("list-types")
-                .withDescription("Lists all the type references to FILE" +
+        Option listClassesOption = Option.builder("t")
+                .longOpt("list-types")
+                .desc("Lists all the type references to FILE" +
                         " (<output_dex_filename>.types by default)")
-                .hasOptionalArg()
-                .withArgName("FILE")
-                .create("t");
+                .optionalArg(true)
+                .argName("FILE")
+                .build();
 
-        Option experimentalOption = OptionBuilder.withLongOpt("experimental")
-                .withDescription("enable experimental opcodes to be assembled, even if they " +
+        Option experimentalOption = Option.builder("X")
+                .longOpt("experimental")
+                .desc("enable experimental opcodes to be assembled, even if they " +
                         " aren't necessarily supported by the Android runtime yet")
-                .create("X");
+                .build();
 
-        Option jobsOption = OptionBuilder.withLongOpt("jobs")
-                .withDescription("The number of threads to use. Defaults to the number of cores available, up to a " +
+        Option jobsOption = Option.builder("j")
+                .longOpt("jobs")
+                .desc("The number of threads to use. Defaults to the number of cores available, up to a " +
                         "maximum of 6")
                 .hasArg()
-                .withArgName("NUM_THREADS")
-                .create("j");
+                .argName("NUM_THREADS")
+                .build();
 
-        Option verboseErrorsOption = OptionBuilder.withLongOpt("verbose-errors")
-                .withDescription("Generate verbose error messages")
-                .create("V");
+        Option verboseErrorsOption = Option.builder("V")
+                .longOpt("verbose-errors")
+                .desc("Generate verbose error messages")
+                .build();
 
-        Option printTokensOption = OptionBuilder.withLongOpt("print-tokens")
-                .withDescription("Print the name and text of each token")
-                .create("T");
+        Option printTokensOption = Option.builder("T")
+                .longOpt("print-tokens")
+                .desc("Print the name and text of each token")
+                .build();
 
         basicOptions.addOption(versionOption);
         basicOptions.addOption(helpOption);
