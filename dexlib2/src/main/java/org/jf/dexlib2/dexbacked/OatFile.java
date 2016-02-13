@@ -49,28 +49,37 @@ import java.util.List;
 public class OatFile extends BaseDexBuffer {
     private static final byte[] ELF_MAGIC = new byte[] { 0x7f, 'E', 'L', 'F' };
     private static final byte[] OAT_MAGIC = new byte[] { 'o', 'a', 't', '\n' };
-    private static final int ELF_HEADER_SIZE = 52;
+    private static final int MIN_ELF_HEADER_SIZE = 52;
 
     // These are the "known working" versions that I have manually inspected the source for.
     // Later version may or may not work, depending on what changed.
     private static final int MIN_OAT_VERSION = 56;
-    private static final int MAX_OAT_VERSION = 65;
+    private static final int MAX_OAT_VERSION = 71;
 
     public static final int UNSUPPORTED = 0;
     public static final int SUPPORTED = 1;
     public static final int UNKNOWN = 2;
 
+    private final boolean is64bit;
     @Nonnull private final OatHeader oatHeader;
     @Nonnull private final Opcodes opcodes;
 
     public OatFile(@Nonnull byte[] buf) {
         super(buf);
 
-        if (buf.length < ELF_HEADER_SIZE) {
+        if (buf.length < MIN_ELF_HEADER_SIZE) {
             throw new NotAnOatFileException();
         }
 
         verifyMagic(buf);
+
+        if (buf[4] == 1) {
+            is64bit = false;
+        } else if (buf[4] == 2) {
+            is64bit = true;
+        } else {
+            throw new InvalidOatFileException(String.format("Invalid word-size value: %x", buf[5]));
+        }
 
         OatHeader oatHeader = null;
         SymbolTable symbolTable = getSymbolTable();
@@ -192,6 +201,10 @@ public class OatFile extends BaseDexBuffer {
             this.filename = filename;
         }
 
+        public int getOatVersion() {
+            return OatFile.this.getOatVersion();
+        }
+
         @Override public boolean hasOdexOpcodes() {
             return true;
         }
@@ -254,9 +267,18 @@ public class OatFile extends BaseDexBuffer {
 
     @Nonnull
     private List<SectionHeader> getSections() {
-        final int offset = readSmallUint(32);
-        final int entrySize = readUshort(46);
-        final int entryCount = readUshort(48);
+        final int offset;
+        final int entrySize;
+        final int entryCount;
+        if (is64bit) {
+            offset = readLongAsSmallUint(40);
+            entrySize = readUshort(58);
+            entryCount = readUshort(60);
+        } else {
+            offset = readSmallUint(32);
+            entrySize = readUshort(46);
+            entryCount = readUshort(48);
+        }
 
         if (offset + (entrySize * entryCount) > buf.length) {
             throw new InvalidOatFileException("The ELF section headers extend past the end of the file");
@@ -267,7 +289,11 @@ public class OatFile extends BaseDexBuffer {
                 if (index < 0 || index >= entryCount) {
                     throw new IndexOutOfBoundsException();
                 }
-                return new SectionHeader(offset + (index * entrySize));
+                if (is64bit) {
+                    return new SectionHeader64Bit(offset + (index * entrySize));
+                } else {
+                    return new SectionHeader32Bit(offset + (index * entrySize));
+                }
             }
 
             @Override public int size() {
@@ -300,43 +326,35 @@ public class OatFile extends BaseDexBuffer {
         }
     }
 
-    private class SectionHeader {
-        private final int offset;
-
+    private abstract class SectionHeader {
+        protected final int offset;
         public static final int TYPE_DYNAMIC_SYMBOL_TABLE = 11;
+        public SectionHeader(int offset) { this.offset = offset; }
+        @Nonnull public String getName() { return getSectionNameStringTable().getString(readSmallUint(offset)); }
+        public int getType() { return readInt(offset + 4); }
+        public abstract long getAddress();
+        public abstract int getOffset();
+        public abstract int getSize();
+        public abstract int getLink();
+        public abstract int getEntrySize();
+    }
 
-        public SectionHeader(int offset) {
-            this.offset = offset;
-        }
+    private class SectionHeader32Bit extends SectionHeader {
+        public SectionHeader32Bit(int offset) { super(offset); }
+        @Override public long getAddress() { return readInt(offset + 12) & 0xFFFFFFFFL; }
+        @Override public int getOffset() { return readSmallUint(offset + 16); }
+        @Override public int getSize() { return readSmallUint(offset + 20); }
+        @Override public int getLink() { return readSmallUint(offset + 24); }
+        @Override public int getEntrySize() { return readSmallUint(offset + 36); }
+    }
 
-        @Nonnull
-        public String getName() {
-            return getSectionNameStringTable().getString(readSmallUint(offset));
-        }
-
-        public int getType() {
-            return readInt(offset + 4);
-        }
-
-        public long getAddress() {
-            return readInt(offset + 12) & 0xFFFFFFFFL;
-        }
-
-        public int getOffset() {
-            return readSmallUint(offset + 16);
-        }
-
-        public int getSize() {
-            return readSmallUint(offset + 20);
-        }
-
-        public int getLink() {
-            return readSmallUint(offset + 24);
-        }
-
-        public int getEntrySize() {
-            return readSmallUint(offset + 36);
-        }
+    private class SectionHeader64Bit extends SectionHeader {
+        public SectionHeader64Bit(int offset) { super(offset); }
+        @Override public long getAddress() { return readLong(offset + 16); }
+        @Override public int getOffset() { return readLongAsSmallUint(offset + 24); }
+        @Override public int getSize() { return readLongAsSmallUint(offset + 32); }
+        @Override public int getLink() { return readSmallUint(offset + 40); }
+        @Override public int getEntrySize() { return readLongAsSmallUint(offset + 56); }
     }
 
     class SymbolTable {
@@ -367,7 +385,11 @@ public class OatFile extends BaseDexBuffer {
                     if (index < 0 || index >= entryCount) {
                         throw new IndexOutOfBoundsException();
                     }
-                    return new Symbol(offset + index * entrySize);
+                    if (is64bit) {
+                        return new Symbol64(offset + index * entrySize);
+                    } else {
+                        return new Symbol32(offset + index * entrySize);
+                    }
                 }
 
                 @Override public int size() {
@@ -376,29 +398,13 @@ public class OatFile extends BaseDexBuffer {
             };
         }
 
-        public class Symbol {
-            private final int offset;
-
-            public Symbol(int offset) {
-                this.offset = offset;
-            }
-
-            @Nonnull
-            public String getName() {
-                return stringTable.getString(readSmallUint(offset));
-            }
-
-            public int getValue() {
-                return readSmallUint(offset + 4);
-            }
-
-            public int getSize() {
-                return readSmallUint(offset + 8);
-            }
-
-            public int getSectionIndex() {
-                return readUshort(offset + 14);
-            }
+        public abstract class Symbol {
+            protected final int offset;
+            public Symbol(int offset) { this.offset = offset; }
+            @Nonnull public abstract String getName();
+            public abstract long getValue();
+            public abstract int getSize();
+            public abstract int getSectionIndex();
 
             public int getFileOffset() {
                 SectionHeader sectionHeader;
@@ -422,6 +428,26 @@ public class OatFile extends BaseDexBuffer {
                 assert fileOffset <= Integer.MAX_VALUE;
                 return (int)fileOffset;
             }
+        }
+
+        public class Symbol32 extends Symbol {
+            public Symbol32(int offset) { super(offset); }
+
+            @Nonnull
+            public String getName() { return stringTable.getString(readSmallUint(offset)); }
+            public long getValue() { return readSmallUint(offset + 4); }
+            public int getSize() { return readSmallUint(offset + 8); }
+            public int getSectionIndex() { return readUshort(offset + 14); }
+        }
+
+        public class Symbol64 extends Symbol {
+            public Symbol64(int offset) { super(offset); }
+
+            @Nonnull
+            public String getName() { return stringTable.getString(readSmallUint(offset)); }
+            public long getValue() { return readLong(offset + 8); }
+            public int getSize() { return readLongAsSmallUint(offset + 16); }
+            public int getSectionIndex() { return readUshort(offset + 6); }
         }
     }
 

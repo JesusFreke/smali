@@ -482,6 +482,49 @@ public class MutableMethodImplementation implements MethodImplementation {
         } while (true);
     }
 
+    private int mapCodeAddressToIndex(int codeAddress) {
+        float avgCodeUnitsPerInstruction = 1.9f;
+
+        int index = (int)(codeAddress/avgCodeUnitsPerInstruction);
+        if (index >= instructionList.size()) {
+            index = instructionList.size() - 1;
+        }
+
+        MethodLocation guessedLocation = instructionList.get(index);
+
+        if (guessedLocation.codeAddress == codeAddress) {
+            return index;
+        } else if (guessedLocation.codeAddress > codeAddress) {
+            do {
+                index--;
+            } while (instructionList.get(index).codeAddress > codeAddress);
+            return index;
+        } else {
+            do {
+                index++;
+            } while (index < instructionList.size() && instructionList.get(index).codeAddress <= codeAddress);
+            return index-1;
+        }
+    }
+
+    @Nonnull
+    public Label newLabelForAddress(int codeAddress) {
+        if (codeAddress < 0 || codeAddress > instructionList.get(instructionList.size()-1).codeAddress) {
+            throw new IndexOutOfBoundsException(String.format("codeAddress %d out of bounds", codeAddress));
+        }
+        MethodLocation referent = instructionList.get(mapCodeAddressToIndex(codeAddress));
+        return referent.addNewLabel();
+    }
+
+    @Nonnull
+    public Label newLabelForIndex(int instructionIndex) {
+        if (instructionIndex < 0 || instructionIndex >= instructionList.size()) {
+            throw new IndexOutOfBoundsException(String.format("instruction index %d out of bounds", instructionIndex));
+        }
+        MethodLocation referent = instructionList.get(instructionIndex);
+        return referent.addNewLabel();
+    }
+
     @Nonnull
     private Label newLabel(@Nonnull int[] codeAddressToIndex, int codeAddress) {
         MethodLocation referent = instructionList.get(mapCodeAddressToIndex(codeAddressToIndex, codeAddress));

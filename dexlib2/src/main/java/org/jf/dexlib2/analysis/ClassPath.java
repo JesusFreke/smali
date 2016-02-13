@@ -40,6 +40,7 @@ import com.google.common.collect.*;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.DexFileFactory.DexFileNotFound;
 import org.jf.dexlib2.DexFileFactory.MultipleDexFilesException;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.reflection.ReflectionClassDef;
 import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.iface.ClassDef;
@@ -60,8 +61,10 @@ import java.util.regex.Pattern;
 public class ClassPath {
     @Nonnull private final TypeProto unknownClass;
     @Nonnull private HashMap<String, ClassDef> availableClasses = Maps.newHashMap();
-    private boolean checkPackagePrivateAccess;
-    public boolean isArt;
+    private final boolean checkPackagePrivateAccess;
+    public final int oatVersion;
+
+    public static final int NOT_ART = -1;
 
     /**
      * Creates a new ClassPath instance that can load classes from the given dex files
@@ -78,7 +81,7 @@ public class ClassPath {
      * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
      * @param api API level
      */
-    public ClassPath(@Nonnull Iterable<DexFile> classPath, int api) {
+    public ClassPath(@Nonnull Iterable<? extends DexFile> classPath, int api) {
         this(Lists.newArrayList(classPath), api == 17);
     }
 
@@ -89,8 +92,8 @@ public class ClassPath {
      * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by
      *                                  default
      */
-    public ClassPath(@Nonnull Iterable<DexFile> classPath, boolean checkPackagePrivateAccess) {
-        this(classPath, checkPackagePrivateAccess, false);
+    public ClassPath(@Nonnull Iterable<? extends DexFile> classPath, boolean checkPackagePrivateAccess) {
+        this(classPath, checkPackagePrivateAccess, NOT_ART);
     }
 
     /**
@@ -99,16 +102,17 @@ public class ClassPath {
      * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
      * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by
      *                                  default
-     * @param isArt Whether this is ClassPath is for ART
+     * @param oatVersion The applicable oat version, or NOT_ART
      */
-    public ClassPath(@Nonnull Iterable < DexFile > classPath, boolean checkPackagePrivateAccess, boolean isArt) {
+    public ClassPath(@Nonnull Iterable<? extends DexFile> classPath, boolean checkPackagePrivateAccess,
+                     int oatVersion) {
         // add fallbacks for certain special classes that must be present
         Iterable<DexFile> dexFiles = Iterables.concat(classPath, Lists.newArrayList(getBasicClasses()));
 
         unknownClass = new UnknownClassProto(this);
         loadedClasses.put(unknownClass.getType(), unknownClass);
         this.checkPackagePrivateAccess = checkPackagePrivateAccess;
-        this.isArt = isArt;
+        this.oatVersion = oatVersion;
 
         loadPrimitiveType("Z");
         loadPrimitiveType("B");
@@ -136,13 +140,18 @@ public class ClassPath {
 
     private static DexFile getBasicClasses() {
         // fallbacks for some special classes that we assume are present
-        return new ImmutableDexFile(ImmutableSet.of(
-                new ReflectionClassDef(Class.class),
-                new ReflectionClassDef(Cloneable.class),
-                new ReflectionClassDef(Object.class),
-                new ReflectionClassDef(Serializable.class),
-                new ReflectionClassDef(String.class),
-                new ReflectionClassDef(Throwable.class)));
+        return new ImmutableDexFile(Opcodes.forApi(19),
+                ImmutableSet.of(
+                        new ReflectionClassDef(Class.class),
+                        new ReflectionClassDef(Cloneable.class),
+                        new ReflectionClassDef(Object.class),
+                        new ReflectionClassDef(Serializable.class),
+                        new ReflectionClassDef(String.class),
+                        new ReflectionClassDef(Throwable.class)));
+    }
+
+    public boolean isArt() {
+        return oatVersion != NOT_ART;
     }
 
     @Nonnull
@@ -191,15 +200,15 @@ public class ClassPath {
                                           int api, boolean checkPackagePrivateAccess, boolean experimental) {
         ArrayList<DexFile> dexFiles = Lists.newArrayList();
 
-        boolean isArt = false;
+        int oatVersion = NOT_ART;
 
         for (String classPathEntry: classPath) {
             List<? extends DexFile> classPathDexFiles =
                     loadClassPathEntry(classPathDirs, classPathEntry, api, experimental);
-            if (!isArt) {
+            if (oatVersion == NOT_ART) {
                 for (DexFile classPathDexFile: classPathDexFiles) {
                     if (classPathDexFile instanceof OatDexFile) {
-                        isArt = true;
+                        oatVersion = ((OatDexFile)classPathDexFile).getOatVersion();
                         break;
                     }
                 }
@@ -207,20 +216,20 @@ public class ClassPath {
             dexFiles.addAll(classPathDexFiles);
         }
         dexFiles.add(dexFile);
-        return new ClassPath(dexFiles, checkPackagePrivateAccess, isArt);
+        return new ClassPath(dexFiles, checkPackagePrivateAccess, oatVersion);
     }
 
     @Nonnull
     public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile,
                                           int api, boolean checkPackagePrivateAccess, boolean experimental,
-                                          boolean isArt) {
+                                          int oatVersion) {
         ArrayList<DexFile> dexFiles = Lists.newArrayList();
 
         for (String classPathEntry: classPath) {
             dexFiles.addAll(loadClassPathEntry(classPathDirs, classPathEntry, api, experimental));
         }
         dexFiles.add(dexFile);
-        return new ClassPath(dexFiles, checkPackagePrivateAccess, isArt);
+        return new ClassPath(dexFiles, checkPackagePrivateAccess, oatVersion);
     }
 
     private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
@@ -290,7 +299,7 @@ public class ClassPath {
     private final Supplier<OdexedFieldInstructionMapper> fieldInstructionMapperSupplier = Suppliers.memoize(
             new Supplier<OdexedFieldInstructionMapper>() {
                 @Override public OdexedFieldInstructionMapper get() {
-                    return new OdexedFieldInstructionMapper(isArt);
+                    return new OdexedFieldInstructionMapper(isArt());
                 }
             });
 

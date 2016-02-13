@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -66,7 +67,7 @@ public class CustomMethodInlineTableTest {
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, null, ImmutableList.of(method));
 
-        DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
         ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
                 15, false);
@@ -93,7 +94,7 @@ public class CustomMethodInlineTableTest {
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, ImmutableList.of(method), null);
 
-        DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
         ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
                 15, false);
@@ -120,7 +121,7 @@ public class CustomMethodInlineTableTest {
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, ImmutableList.of(method), null);
 
-        DexFile dexFile = new ImmutableDexFile(ImmutableList.of(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
         ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
                 15, false);

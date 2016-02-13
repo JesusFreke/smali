@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodImplementation;
@@ -68,10 +69,12 @@ public class SyntheticAccessorResolver {
     public static final int SHR_ASSIGNMENT = 16;
     public static final int USHR_ASSIGNMENT = 17;
 
+    private final SyntheticAccessorFSM syntheticAccessorFSM;
     private final Map<String, ClassDef> classDefMap;
     private final Map<String, AccessedMember> resolvedAccessors = Maps.newConcurrentMap();
 
-    public SyntheticAccessorResolver(Iterable<? extends ClassDef> classDefs) {
+    public SyntheticAccessorResolver(@Nonnull Opcodes opcodes, @Nonnull Iterable<? extends ClassDef> classDefs) {
+        this.syntheticAccessorFSM = new SyntheticAccessorFSM(opcodes);
         ImmutableMap.Builder<String, ClassDef> builder = ImmutableMap.builder();
 
         for (ClassDef classDef: classDefs) {
@@ -124,7 +127,8 @@ public class SyntheticAccessorResolver {
 
         List<Instruction> instructions = ImmutableList.copyOf(matchedMethodImpl.getInstructions());
 
-        int accessType = SyntheticAccessorFSM.test(instructions);
+
+        int accessType = syntheticAccessorFSM.test(instructions);
 
         if (accessType >= 0) {
             AccessedMember member =

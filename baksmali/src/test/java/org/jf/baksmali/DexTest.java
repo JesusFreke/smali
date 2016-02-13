@@ -31,9 +31,8 @@
 
 package org.jf.baksmali;
 
-import com.google.common.collect.Iterables;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.iface.ClassDef;
 import org.junit.Assert;
 
 import javax.annotation.Nonnull;
@@ -41,40 +40,39 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * A base test class for performing a test using a dex file as input
+ */
+/**
  * A base test class for performing a disassembly on a dex file and verifying the results
  *
- * The test accepts a single-class dex file as input, disassembles it, and  verifies that
- * the result equals a known-good output smali file.
- *
- * By default, the input and output files should be resources at [testDir]/[testName]Input.dex
- * and [testDir]/[testName]Output.smali respectively
+ * The test accepts a single-class dex file as input. By default, the input dex file should be a resource at
+ * [testDir]/[testName]Input.dex
  */
-public class DisassemblyTest extends DexTest {
+public abstract class DexTest {
+    protected final String testDir;
+
+    protected DexTest(@Nonnull String testDir) {
+        this.testDir = testDir;
+    }
+
+    protected DexTest() {
+        this.testDir = this.getClass().getSimpleName();
+    }
 
     @Nonnull
-    protected String getOutputFilename(@Nonnull String testName) {
-        return String.format("%s%s%sOutput.smali", testDir, File.separatorChar, testName);
+    protected String getInputFilename(@Nonnull String testName) {
+        return String.format("%s%s%sInput.dex", testDir, File.separatorChar, testName);
     }
 
-    protected void runTest(@Nonnull String testName) {
-        runTest(testName, new baksmaliOptions());
-    }
-
-    protected void runTest(@Nonnull String testName, @Nonnull baksmaliOptions options) {
+    @Nonnull
+    protected DexBackedDexFile getInputDexFile(@Nonnull String testName, @Nonnull baksmaliOptions options) {
         try {
-            DexBackedDexFile inputDex = getInputDexFile(testName, options);
-            Assert.assertEquals(1, inputDex.getClassCount());
-            ClassDef inputClass = Iterables.getFirst(inputDex.getClasses(), null);
-            Assert.assertNotNull(inputClass);
-            String input = BaksmaliTestUtils.getNormalizedSmali(inputClass, options, true);
-
-            String output = BaksmaliTestUtils.readResourceFully(getOutputFilename(testName));
-            output = BaksmaliTestUtils.normalizeSmali(output, true);
-
-            // Run smali, baksmali, and then compare strings are equal (minus comments/whitespace)
-            Assert.assertEquals(output, input);
+            // Load file from resources as a stream
+            byte[] inputBytes = BaksmaliTestUtils.readResourceBytesFully(getInputFilename(testName));
+            return new DexBackedDexFile(Opcodes.forApi(options.apiLevel), inputBytes);
         } catch (IOException ex) {
             Assert.fail();
         }
+        return null;
     }
 }

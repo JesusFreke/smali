@@ -46,7 +46,7 @@ import java.io.InputStream;
 import java.util.Set;
 
 public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
-    private final Opcodes opcodes;
+    @Nonnull private final Opcodes opcodes;
 
     private final int stringCount;
     private final int stringStartOffset;
@@ -61,7 +61,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int classCount;
     private final int classStartOffset;
 
-    private DexBackedDexFile(Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
+    private DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
         super(buf, offset);
 
         this.opcodes = opcodes;
@@ -117,7 +117,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         return new DexBackedDexFile(opcodes, buf, 0, false);
     }
 
-    public Opcodes getOpcodes() {
+    @Override @Nonnull public Opcodes getOpcodes() {
         return opcodes;
     }
 

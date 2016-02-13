@@ -374,7 +374,7 @@ public class ClassProto implements TypeProto {
     }
 
     @Nonnull SparseArray<FieldReference> getInstanceFields() {
-        if (classPath.isArt) {
+        if (classPath.isArt()) {
             return artInstanceFieldsSupplier.get();
         } else {
             return dalvikInstanceFieldsSupplier.get();
@@ -548,21 +548,37 @@ public class ClassProto implements TypeProto {
                 }
             });
 
-    private static class FieldGap implements Comparable<FieldGap> {
+    private static abstract class FieldGap implements Comparable<FieldGap> {
         public final int offset;
         public final int size;
 
-        public FieldGap(int offset, int size) {
-            this.offset = offset;
-            this.size = size;
+        public static FieldGap newFieldGap(int offset, int size, int oatVersion) {
+            if (oatVersion >= 67) {
+                return new FieldGap(offset, size) {
+                    @Override public int compareTo(FieldGap o) {
+                        int result = Ints.compare(o.size, size);
+                        if (result != 0) {
+                            return result;
+                        }
+                        return Ints.compare(offset, o.offset);
+                    }
+                };
+            } else {
+                return new FieldGap(offset, size) {
+                    @Override public int compareTo(FieldGap o) {
+                        int result = Ints.compare(size, o.size);
+                        if (result != 0) {
+                            return result;
+                        }
+                        return Ints.compare(o.offset, offset);
+                    }
+                };
+            }
         }
 
-        @Override public int compareTo(@Nonnull FieldGap o) {
-            int result = Ints.compare(o.size, size);
-            if (result != 0) {
-                return result;
-            }
-            return Ints.compare(o.offset, offset);
+        private FieldGap(int offset, int size) {
+            this.offset = offset;
+            this.size = size;
         }
     }
 
@@ -630,13 +646,13 @@ public class ClassProto implements TypeProto {
                         int remaining = gapEnd - offset;
 
                         if ((remaining >= 4) && (offset % 4 == 0)) {
-                            gaps.add(new FieldGap(offset, 4));
+                            gaps.add(FieldGap.newFieldGap(offset, 4, classPath.oatVersion));
                             offset += 4;
                         } else if (remaining >= 2 && (offset % 2 == 0)) {
-                            gaps.add(new FieldGap(offset, 2));
+                            gaps.add(FieldGap.newFieldGap(offset, 2, classPath.oatVersion));
                             offset += 2;
                         } else {
-                            gaps.add(new FieldGap(offset, 1));
+                            gaps.add(FieldGap.newFieldGap(offset, 1, classPath.oatVersion));
                             offset += 1;
                         }
                     }
@@ -703,14 +719,14 @@ public class ClassProto implements TypeProto {
     private int getNextFieldOffset() {
         SparseArray<FieldReference> instanceFields = getInstanceFields();
         if (instanceFields.size() == 0) {
-            return classPath.isArt ? 0 : 8;
+            return classPath.isArt() ? 0 : 8;
         }
 
         int lastItemIndex = instanceFields.size()-1;
         int fieldOffset = instanceFields.keyAt(lastItemIndex);
         FieldReference lastField = instanceFields.valueAt(lastItemIndex);
 
-        if (classPath.isArt) {
+        if (classPath.isArt()) {
             return fieldOffset + getTypeSize(lastField.getType().charAt(0));
         } else {
             switch (lastField.getType().charAt(0)) {
