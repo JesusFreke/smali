@@ -52,6 +52,15 @@ configurations {
     compile.exclude group: 'de.jflex', module: 'jflex'
 }
 
+sourceSets {
+    main {
+        resources {
+            // This adds the generated .tokens files to the jar
+            srcDir 'build/generated-src/antlr/main'
+        }
+    }
+}
+
 idea {
     module {
         excludeDirs -= buildDir
