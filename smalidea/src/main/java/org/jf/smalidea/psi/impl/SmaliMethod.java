@@ -320,7 +320,7 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
                     throw new RuntimeException(ex);
                 }
 
-                methodAnalyzer = new MethodAnalyzer(classPath, new SmalideaMethod(SmaliMethod.this), null);
+                methodAnalyzer = new MethodAnalyzer(classPath, new SmalideaMethod(SmaliMethod.this), null, false);
             }
         }
         return methodAnalyzer;
