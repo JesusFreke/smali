@@ -97,6 +97,17 @@ if (!('idea' in gradle.startParameter.taskNames)) {
 
         sandboxDirectory "${buildDir}/sandbox"
     }
+
+    // This prints out the directories that can be used to configure a plugin sdk in IDEA, using
+    // the copy of IDEA downloaded by the org.jetbrains.intellij plugin
+    task ideaDirs() {
+        project.afterEvaluate {
+            if (intellij != null) {
+                println "IDEA Plugin jdk: ${intellij.ideaDirectory}"
+                println "sources: ${project.configurations['intellij-sources'].files[0]}"
+            }
+        }
+    }
 } else {
     // If we're running the idea task, let's make sure nothing else is being run, since
     // we have to use a special configuration for the idea task
