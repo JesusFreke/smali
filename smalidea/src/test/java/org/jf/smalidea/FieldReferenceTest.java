@@ -31,6 +31,8 @@
 
 package org.jf.smalidea;
 
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.ResolveTestCase;
@@ -116,5 +118,10 @@ public class FieldReferenceTest extends ResolveTestCase {
         Assert.assertNotNull(resolvedField.getContainingClass());
         Assert.assertEquals("blarg", resolvedField.getContainingClass().getQualifiedName());
         Assert.assertEquals("int", resolvedField.getType().getCanonicalText());
+    }
+
+    @Override
+    protected Sdk getTestProjectJdk() {
+        return JavaAwareProjectJdkTableImpl.getInstanceEx().getInternalJdk();
     }
 }

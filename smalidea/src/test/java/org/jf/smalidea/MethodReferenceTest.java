@@ -31,6 +31,8 @@
 
 package org.jf.smalidea;
 
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.ResolveTestCase;
@@ -132,5 +134,10 @@ public class MethodReferenceTest extends ResolveTestCase {
                 resolvedMethod.getParameterList().getParameters()[1].getType().getCanonicalText());
         Assert.assertNotNull(resolvedMethod.getReturnType());
         Assert.assertEquals("void", resolvedMethod.getReturnType().getCanonicalText());
+    }
+
+    @Override
+    protected Sdk getTestProjectJdk() {
+        return JavaAwareProjectJdkTableImpl.getInstanceEx().getInternalJdk();
     }
 }

@@ -31,11 +31,21 @@
 
 package org.jf.smalidea;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.LanguageLevelModuleExtension;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElementFactory;
+import com.intellij.testFramework.LightProjectDescriptor;
+import com.intellij.testFramework.fixtures.DefaultLightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliClass;
 import org.jf.smalidea.psi.impl.SmaliFile;
 import org.junit.Assert;
@@ -142,5 +152,17 @@ public class SmaliClassTest extends LightCodeInsightFixtureTestCase {
         Assert.assertTrue(smaliClass.isInheritor(exceptionClass, false));
         Assert.assertFalse(smaliClass.isInheritor(throwableClass, false));
         Assert.assertFalse(smaliClass.isInheritor(objectClass, false));
+    }
+
+    @NotNull @Override protected LightProjectDescriptor getProjectDescriptor() {
+        return new DefaultLightProjectDescriptor() {
+            public Sdk getSdk() {
+                return JavaAwareProjectJdkTableImpl.getInstanceEx().getInternalJdk();
+            }
+
+            public void configureModule(Module module, ModifiableRootModel model, ContentEntry contentEntry) {
+                model.getModuleExtension(LanguageLevelModuleExtension.class).setLanguageLevel(LanguageLevel.JDK_1_6);
+            }
+        };
     }
 }

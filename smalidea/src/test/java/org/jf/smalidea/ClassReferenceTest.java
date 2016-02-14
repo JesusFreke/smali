@@ -31,6 +31,8 @@
 
 package org.jf.smalidea;
 
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl;
 import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiReference;
@@ -101,5 +103,10 @@ public class ClassReferenceTest extends ResolveTestCase {
         SmaliClass smaliClass = (SmaliClass)reference.resolve();
         Assert.assertNotNull(smaliClass);
         Assert.assertEquals("blarg", smaliClass.getQualifiedName());
+    }
+
+    @Override
+    protected Sdk getTestProjectJdk() {
+        return JavaAwareProjectJdkTableImpl.getInstanceEx().getInternalJdk();
     }
 }
