@@ -49,6 +49,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jf.dexlib2.analysis.AnalysisException;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.MethodAnalyzer;
 import org.jf.smalidea.dexlib.SmalideaMethod;
@@ -320,7 +321,11 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
                     throw new RuntimeException(ex);
                 }
 
-                methodAnalyzer = new MethodAnalyzer(classPath, new SmalideaMethod(SmaliMethod.this), null, false);
+                try {
+                    methodAnalyzer = new MethodAnalyzer(classPath, new SmalideaMethod(SmaliMethod.this), null, false);
+                } catch (AnalysisException ex) {
+                    methodAnalyzer = null;
+                }
             }
         }
         return methodAnalyzer;
