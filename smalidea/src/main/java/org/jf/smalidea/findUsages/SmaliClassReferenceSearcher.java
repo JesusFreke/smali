@@ -78,18 +78,11 @@ public class SmaliClassReferenceSearcher extends QueryExecutorBase<PsiReference,
                     }
                 });
 
-        // TODO: is it possible to get a LocalSearchScope here? If so, how to handle it?
-        if (!(querySearchScope instanceof GlobalSearchScope)) {
-            assert false;
-            return;
-        }
-
-        PsiSearchHelper helper = PsiSearchHelper.SERVICE.getInstance(element.getProject());
-        // TODO: limit search scope to only smali files. See, e.g. AnnotatedPackagesSearcher.PackageInfoFilesOnly
-        helper.processAllFilesWithWord(smaliType, (GlobalSearchScope)querySearchScope,
-                new Processor<PsiFile>() {
+        if (querySearchScope instanceof LocalSearchScope) {
+            for (final PsiElement scopeElement : ((LocalSearchScope)querySearchScope).getScope()) {
+                ApplicationManager.getApplication().runReadAction(new Runnable() {
                     @Override
-                    public boolean process(PsiFile file) {
+                    public void run() {
                         LowLevelSearchUtil.processElementsContainingWordInElement(
                                 new TextOccurenceProcessor() {
                                     @Override public boolean execute(
@@ -97,9 +90,31 @@ public class SmaliClassReferenceSearcher extends QueryExecutorBase<PsiReference,
                                         return processor.processTextOccurrence(element, offsetInElement, consumer);
                                     }
                                 },
-                                file, stringSearcher, true, new EmptyProgressIndicator());
-                        return true;
+                                scopeElement, stringSearcher, true, new EmptyProgressIndicator());
                     }
-                }, true);
+                });
+            }
+        } else if (querySearchScope instanceof GlobalSearchScope) {
+            PsiSearchHelper helper = PsiSearchHelper.SERVICE.getInstance(element.getProject());
+            // TODO: limit search scope to only smali files. See, e.g. AnnotatedPackagesSearcher.PackageInfoFilesOnly
+            helper.processAllFilesWithWord(smaliType, (GlobalSearchScope)querySearchScope,
+                    new Processor<PsiFile>() {
+                        @Override
+                        public boolean process(PsiFile file) {
+                            LowLevelSearchUtil.processElementsContainingWordInElement(
+                                    new TextOccurenceProcessor() {
+                                        @Override public boolean execute(
+                                                @NotNull PsiElement element, int offsetInElement) {
+                                            return processor.processTextOccurrence(element, offsetInElement, consumer);
+                                        }
+                                    },
+                                    file, stringSearcher, true, new EmptyProgressIndicator());
+                            return true;
+                        }
+                    }, true);
+        } else {
+            assert false;
+            return;
+        }
     }
 }
