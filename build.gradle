@@ -33,8 +33,6 @@ apply plugin: 'idea'
 
 version = '2.1.2'
 
-def jarVersion = version
-
 if (!('release' in gradle.startParameter.taskNames)) {
     def versionSuffix
     try {
@@ -51,12 +49,7 @@ if (!('release' in gradle.startParameter.taskNames)) {
         versionSuffix = 'dev'
     }
 
-    def baseVersion = version
-    version = baseVersion + '-' + versionSuffix
-
-    // use something like module-1.2.3-dev.jar for the jar name, rather than the full
-    // module-1.2.3-001afe02-dirty.jar
-    jarVersion = baseVersion + '-dev'
+    version += "-${versionSuffix}"
 } else {
     if (System.env.JDK6_HOME == null && !JavaVersion.current().isJava6()) {
         throw new InvalidUserDataException("bzzzzzzzt. Release builds must be performed with java 6. " +
@@ -67,6 +60,10 @@ if (!('release' in gradle.startParameter.taskNames)) {
 // Note: please don't use this. This is strictly for the official releases
 // that are posted on, e.g. the bitbucket download page.
 task release() {
+}
+
+task(install) << {
+    println "Installing version: ${version}"
 }
 
 // The projects that get pushed to maven
@@ -112,10 +109,6 @@ subprojects {
                    proguard_gradle: 'net.sf.proguard:proguard-gradle:5.2.1',
                    dx: 'com.google.android.tools:dx:1.7'
          ]
-    }
-
-    jar {
-        version = jarVersion
     }
 
     repositories {

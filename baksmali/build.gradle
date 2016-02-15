@@ -51,15 +51,12 @@ dependencies {
 processResources.inputs.property('version', version)
 processResources.expand('version': version)
 
-// This is the jar that gets uploaded to maven
-jar {
-    baseName = 'maven'
-}
-
 // Build a separate jar that contains all dependencies
 task fatJar(type: Jar) {
     from sourceSets.main.output
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+    classifier = 'fat'
 
     manifest {
         attributes('Main-Class': 'org.jf.baksmali.main')
