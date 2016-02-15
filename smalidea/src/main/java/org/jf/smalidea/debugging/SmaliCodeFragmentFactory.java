@@ -33,7 +33,6 @@ package org.jf.smalidea.debugging;
 
 import com.google.common.collect.Maps;
 import com.intellij.debugger.DebuggerManagerEx;
-import com.intellij.debugger.SourcePosition;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.evaluation.*;
 import com.intellij.debugger.engine.events.DebuggerCommandImpl;
@@ -47,6 +46,7 @@ import com.intellij.psi.JavaCodeFragment;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.util.PsiMatchers;
 import com.sun.jdi.*;
 import com.sun.tools.jdi.LocalVariableImpl;
 import com.sun.tools.jdi.LocationImpl;
@@ -56,6 +56,7 @@ import org.jf.smalidea.SmaliFileType;
 import org.jf.smalidea.SmaliLanguage;
 import org.jf.smalidea.psi.impl.SmaliInstruction;
 import org.jf.smalidea.psi.impl.SmaliMethod;
+import org.jf.smalidea.util.PsiUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -89,8 +90,18 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
 
         final DebuggerContextImpl debuggerContext = DebuggerManagerEx.getInstanceEx(project).getContext();
 
-        SourcePosition position = debuggerContext.getSourcePosition();
-        SmaliInstruction currentInstruction = (SmaliInstruction)position.getElementAt();
+        SmaliInstruction currentInstruction = (SmaliInstruction)PsiUtil.searchBackward(originalContext,
+                PsiMatchers.hasClass(SmaliInstruction.class),
+                PsiMatchers.hasClass(SmaliMethod.class));
+
+        if (currentInstruction == null) {
+            currentInstruction = (SmaliInstruction)PsiUtil.searchForward(originalContext,
+                    PsiMatchers.hasClass(SmaliInstruction.class),
+                    PsiMatchers.hasClass(SmaliMethod.class));
+            if (currentInstruction == null) {
+                return originalContext;
+            }
+        }
 
         final SmaliMethod containingMethod = currentInstruction.getParentMethod();
         AnalyzedInstruction analyzedInstruction = currentInstruction.getAnalyzedInstruction();
