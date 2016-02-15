@@ -108,6 +108,10 @@ if (!('idea' in gradle.startParameter.taskNames)) {
             }
         }
     }
+
+    dependencies {
+        compile files("${System.properties['java.home']}/../lib/tools.jar")
+    }
 } else {
     // If we're running the idea task, let's make sure nothing else is being run, since
     // we have to use a special configuration for the idea task
@@ -123,7 +127,6 @@ repositories {
 
 dependencies {
     compile 'org.smali:smali:2.1.2'
-    compile files("${System.properties['java.home']}/../lib/tools.jar")
     compile 'org.antlr:antlr-runtime:3.5.2'
     compile 'com.google.code.gson:gson:2.3.1'
 
