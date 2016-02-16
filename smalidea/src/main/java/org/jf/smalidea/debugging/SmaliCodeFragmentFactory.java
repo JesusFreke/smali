@@ -31,17 +31,18 @@
 
 package org.jf.smalidea.debugging;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.debugger.DebuggerManagerEx;
-import com.intellij.debugger.engine.DebugProcessImpl;
+import com.intellij.debugger.SourcePosition;
 import com.intellij.debugger.engine.evaluation.*;
-import com.intellij.debugger.engine.events.DebuggerCommandImpl;
-import com.intellij.debugger.impl.DebuggerContextImpl;
-import com.intellij.debugger.jdi.StackFrameProxyImpl;
+import com.intellij.debugger.engine.evaluation.expression.EvaluatorBuilder;
+import com.intellij.debugger.engine.evaluation.expression.ExpressionEvaluator;
+import com.intellij.debugger.engine.jdi.StackFrameProxy;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Key;
 import com.intellij.psi.JavaCodeFragment;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiElement;
@@ -54,18 +55,28 @@ import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.RegisterType;
 import org.jf.smalidea.SmaliFileType;
 import org.jf.smalidea.SmaliLanguage;
+import org.jf.smalidea.debugging.value.LazyValue;
 import org.jf.smalidea.psi.impl.SmaliInstruction;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 import org.jf.smalidea.util.PsiUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
 
 public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
+    static final Key<List<LazyValue>> SMALI_LAZY_VALUES_KEY = Key.create("_smali_register_value_key_");
+
     @Override
     public JavaCodeFragment createCodeFragment(TextWithImports item, PsiElement context, Project project) {
-        return super.createCodeFragment(item, wrapContext(project, context), project);
+        context = wrapContext(project, context);
+        JavaCodeFragment fragment = super.createCodeFragment(item, context, project);
+        List<LazyValue> lazyValues = context.getUserData(SMALI_LAZY_VALUES_KEY);
+        if (lazyValues != null) {
+            fragment.putUserData(SMALI_LAZY_VALUES_KEY, lazyValues);
+        }
+        return fragment;
     }
 
     @Override
@@ -78,17 +89,35 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
 
     @Override
     public JavaCodeFragment createPresentationCodeFragment(TextWithImports item, PsiElement context, Project project) {
-        return super.createPresentationCodeFragment(item, wrapContext(project, context), project);
+        context = wrapContext(project, context);
+        JavaCodeFragment fragment = super.createPresentationCodeFragment(item, context, project);
+        List<LazyValue> lazyValues = context.getUserData(SMALI_LAZY_VALUES_KEY);
+        if (lazyValues != null) {
+            fragment.putUserData(SMALI_LAZY_VALUES_KEY, lazyValues);
+        }
+        return fragment;
     }
 
     @Override public LanguageFileType getFileType() {
         return SmaliFileType.INSTANCE;
     }
 
+    @Override public EvaluatorBuilder getEvaluatorBuilder() {
+        final EvaluatorBuilder builder = super.getEvaluatorBuilder();
+        return new EvaluatorBuilder() {
+
+            @Override
+            public ExpressionEvaluator build(PsiElement codeFragment, SourcePosition position)
+                    throws EvaluateException {
+                return new SmaliExpressionEvaluator(codeFragment, builder.build(codeFragment, position));
+            }
+        };
+    }
+
     private PsiElement wrapContext(final Project project, final PsiElement originalContext) {
         if (project.isDefault()) return originalContext;
 
-        final DebuggerContextImpl debuggerContext = DebuggerManagerEx.getInstanceEx(project).getContext();
+        final List<LazyValue> lazyValues = Lists.newArrayList();
 
         SmaliInstruction currentInstruction = (SmaliInstruction)PsiUtil.searchBackward(originalContext,
                 PsiMatchers.hasClass(SmaliInstruction.class),
@@ -215,29 +244,19 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
             public void visitLocalVariable(final PsiLocalVariable variable) {
                 final String name = variable.getName();
                 if (registerMap.containsKey(name)) {
-                    DebugProcessImpl process = debuggerContext.getDebugProcess();
-                    if (process == null) {
-                        return;
-                    }
-
-                    process.getManagerThread().invoke(new DebuggerCommandImpl() {
-                        @Override protected void action() throws Exception {
-                            int registerNumber = Integer.parseInt(name.substring(1));
-                            if (name.charAt(0) == 'p') {
-                                registerNumber += ApplicationManager.getApplication().runReadAction(new Computable<Integer>() {
-                                    @Override public Integer compute() {
-                                        return containingMethod.getRegisterCount() -
-                                                containingMethod.getParameterRegisterCount();
-                                    }
-                                });
+                    int registerNumber = Integer.parseInt(name.substring(1));
+                    if (name.charAt(0) == 'p') {
+                        registerNumber += ApplicationManager.getApplication().runReadAction(new Computable<Integer>() {
+                            @Override public Integer compute() {
+                                return containingMethod.getRegisterCount() -
+                                        containingMethod.getParameterRegisterCount();
                             }
-                            Value value = evaluateRegister(debuggerContext.createEvaluationContext(),
-                                    containingMethod,
-                                    registerNumber,
-                                    registerMap.get(name));
-                            variable.putUserData(CodeFragmentFactoryContextWrapper.LABEL_VARIABLE_VALUE_KEY, value);
-                        }
-                    });
+                        });
+                    }
+                    LazyValue lazyValue = LazyValue.create(containingMethod, project, registerNumber,
+                            registerMap.get(name));
+                    variable.putUserData(CodeFragmentFactoryContextWrapper.LABEL_VARIABLE_VALUE_KEY, lazyValue);
+                    lazyValues.add(lazyValue);
                 }
             }
         });
@@ -246,22 +265,21 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
 
         final PsiElement newContext = codeFragment.findElementAt(offset);
         if (newContext != null) {
+            newContext.putUserData(SMALI_LAZY_VALUES_KEY, lazyValues);
             return newContext;
         }
         return originalContext;
     }
 
-    public Value evaluateRegister(EvaluationContextImpl context, final SmaliMethod smaliMethod, final int registerNum,
-                                  final String type) throws EvaluateException {
-        final StackFrameProxyImpl frameProxy = context.getFrameProxy();
+    public static Value evaluateRegister(EvaluationContext context, final SmaliMethod smaliMethod,
+                                         final int registerNum, final String type) throws EvaluateException {
+
+        final StackFrameProxy frameProxy = context.getSuspendContext().getFrameProxy();
         if (frameProxy == null) {
             return null;
         }
 
-        // the jdi APIs don't provide any way to get the value of an arbitrary register, so we use reflection
-        // to create a LocalVariable instance for the register
-
-        VirtualMachine vm = frameProxy.getVirtualMachine().getVirtualMachine();
+        VirtualMachine vm = frameProxy.getStackFrame().virtualMachine();
         Location currentLocation = frameProxy.location();
         if (currentLocation == null) {
             return null;
@@ -279,8 +297,11 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
                     VirtualMachine.class, Method.class, Long.TYPE);
             locationConstructor.setAccessible(true);
 
-            // TODO: use frameProxy.location().method().locationOfCodeIndex() here
-            Location endLocation = locationConstructor.newInstance(vm, method, Integer.MAX_VALUE);
+            int methodSize = 0;
+            for (SmaliInstruction instruction: smaliMethod.getInstructions()) {
+                methodSize += instruction.getInstructionSize();
+            }
+            Location endLocation = method.locationOfCodeIndex((methodSize/2) - 1);
 
             LocalVariable localVariable = localVariableConstructor.newInstance(vm,
                     method,
