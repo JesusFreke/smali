@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableSet;
 import junit.framework.Assert;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.ClassPath;
+import org.jf.dexlib2.analysis.DexClassProvider;
 import org.jf.dexlib2.analysis.TestUtils;
 import org.jf.dexlib2.analysis.TypeProto;
 import org.jf.dexlib2.iface.ClassDef;
@@ -45,7 +46,6 @@ import org.junit.Test;
 import java.io.IOException;
 
 public class SuperclassChainTest {
-
 
     @Test
     public void testGetSuperclassChain() throws IOException {
@@ -57,7 +57,7 @@ public class SuperclassChainTest {
         ImmutableSet<ClassDef> classes = ImmutableSet.<ClassDef>of(
                 objectClassDef, oneClassDef, twoClassDef, threeClassDef);
 
-        ClassPath classPath = new ClassPath(new ImmutableDexFile(Opcodes.forApi(19), classes));
+        ClassPath classPath = new ClassPath(new DexClassProvider(new ImmutableDexFile(Opcodes.forApi(19), classes)));
 
         TypeProto objectClassProto = classPath.getClass("Ljava/lang/Object;");
         TypeProto oneClassProto = classPath.getClass("Ltest/one;");
@@ -88,7 +88,7 @@ public class SuperclassChainTest {
         ClassDef twoClassDef = TestUtils.makeClassDef("Ltest/two;", "Ltest/one;");
         ClassDef threeClassDef = TestUtils.makeClassDef("Ltest/three;", "Ltest/two;");
         ImmutableSet<ClassDef> classes = ImmutableSet.<ClassDef>of(twoClassDef, threeClassDef);
-        ClassPath classPath = new ClassPath(new ImmutableDexFile(Opcodes.forApi(19), classes));
+        ClassPath classPath = new ClassPath(new DexClassProvider(new ImmutableDexFile(Opcodes.forApi(19), classes)));
 
         TypeProto unknownClassProto = classPath.getUnknownClass();
         TypeProto oneClassProto = classPath.getClass("Ltest/one;");

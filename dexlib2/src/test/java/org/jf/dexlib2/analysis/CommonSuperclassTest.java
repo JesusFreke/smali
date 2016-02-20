@@ -54,7 +54,7 @@ public class CommonSuperclassTest {
     private final ClassPath classPath;
 
     public CommonSuperclassTest() throws IOException {
-        classPath = new ClassPath(new ImmutableDexFile(Opcodes.forApi(19),
+        classPath = new ClassPath(new DexClassProvider(new ImmutableDexFile(Opcodes.forApi(19),
                 ImmutableSet.of(
                         TestUtils.makeClassDef("Ljava/lang/Object;", null),
                         TestUtils.makeClassDef("Ltest/one;", "Ljava/lang/Object;"),
@@ -89,7 +89,7 @@ public class CommonSuperclassTest {
                         TestUtils.makeClassDef("Liface/classsubsub4;", "Liface/classsub4;"),
                         TestUtils.makeClassDef("Liface/classsub1234;", "Ljava/lang/Object;", "Liface/sub1;",
                                 "Liface/sub2;", "Liface/sub3;", "Liface/sub4;")
-        )));
+        ))));
     }
 
     public void superclassTest(String commonSuperclass,

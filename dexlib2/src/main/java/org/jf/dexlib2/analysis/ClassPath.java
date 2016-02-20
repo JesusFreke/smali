@@ -36,7 +36,9 @@ import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.DexFileFactory.DexFileNotFound;
 import org.jf.dexlib2.DexFileFactory.MultipleDexFilesException;
@@ -52,63 +54,41 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ClassPath {
     @Nonnull private final TypeProto unknownClass;
-    @Nonnull private HashMap<String, ClassDef> availableClasses = Maps.newHashMap();
+    @Nonnull private List<ClassProvider> classProviders;
     private final boolean checkPackagePrivateAccess;
     public final int oatVersion;
 
     public static final int NOT_ART = -1;
 
     /**
-     * Creates a new ClassPath instance that can load classes from the given dex files
+     * Creates a new ClassPath instance that can load classes from the given providers
      *
-     * @param classPath An array of DexFile objects. When loading a class, these dex files will be searched in order
+     * @param classProviders An iterable of ClassProviders. When loading a class, these providers will be searched in
+     *                       order
      */
-    public ClassPath(DexFile... classPath) throws IOException {
-        this(Lists.newArrayList(classPath), 15);
+    public ClassPath(ClassProvider... classProviders) throws IOException {
+        this(Arrays.asList(classProviders), false, NOT_ART);
     }
 
     /**
-     * Creates a new ClassPath instance that can load classes from the given dex files
+     * Creates a new ClassPath instance that can load classes from the given providers
      *
-     * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
-     * @param api API level
-     */
-    public ClassPath(@Nonnull Iterable<? extends DexFile> classPath, int api) {
-        this(Lists.newArrayList(classPath), api == 17);
-    }
-
-    /**
-     * Creates a new ClassPath instance that can load classes from the given dex files
-     *
-     * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
-     * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by
-     *                                  default
-     */
-    public ClassPath(@Nonnull Iterable<? extends DexFile> classPath, boolean checkPackagePrivateAccess) {
-        this(classPath, checkPackagePrivateAccess, NOT_ART);
-    }
-
-    /**
-     * Creates a new ClassPath instance that can load classes from the given dex files
-     *
-     * @param classPath An iterable of DexFile objects. When loading a class, these dex files will be searched in order
+     * @param classProviders An iterable of ClassProviders. When loading a class, these providers will be searched in
+     *                       order
      * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by
      *                                  default
      * @param oatVersion The applicable oat version, or NOT_ART
      */
-    public ClassPath(@Nonnull Iterable<? extends DexFile> classPath, boolean checkPackagePrivateAccess,
+    public ClassPath(@Nonnull Iterable<? extends ClassProvider> classProviders, boolean checkPackagePrivateAccess,
                      int oatVersion) {
         // add fallbacks for certain special classes that must be present
-        Iterable<DexFile> dexFiles = Iterables.concat(classPath, Lists.newArrayList(getBasicClasses()));
-
         unknownClass = new UnknownClassProto(this);
         loadedClasses.put(unknownClass.getType(), unknownClass);
         this.checkPackagePrivateAccess = checkPackagePrivateAccess;
@@ -124,30 +104,23 @@ public class ClassPath {
         loadPrimitiveType("D");
         loadPrimitiveType("L");
 
-        for (DexFile dexFile: dexFiles) {
-            for (ClassDef classDef: dexFile.getClasses()) {
-                ClassDef prev = availableClasses.get(classDef.getType());
-                if (prev == null) {
-                    availableClasses.put(classDef.getType(), classDef);
-                }
-            }
-        }
+        this.classProviders = Lists.newArrayList(classProviders);
+        this.classProviders.add(getBasicClasses());
     }
 
     private void loadPrimitiveType(String type) {
         loadedClasses.put(type, new PrimitiveProto(this, type));
     }
 
-    private static DexFile getBasicClasses() {
+    private static ClassProvider getBasicClasses() {
         // fallbacks for some special classes that we assume are present
-        return new ImmutableDexFile(Opcodes.forApi(19),
-                ImmutableSet.of(
-                        new ReflectionClassDef(Class.class),
-                        new ReflectionClassDef(Cloneable.class),
-                        new ReflectionClassDef(Object.class),
-                        new ReflectionClassDef(Serializable.class),
-                        new ReflectionClassDef(String.class),
-                        new ReflectionClassDef(Throwable.class)));
+        return new DexClassProvider(new ImmutableDexFile(Opcodes.forApi(19), ImmutableSet.of(
+                new ReflectionClassDef(Class.class),
+                new ReflectionClassDef(Cloneable.class),
+                new ReflectionClassDef(Object.class),
+                new ReflectionClassDef(Serializable.class),
+                new ReflectionClassDef(String.class),
+                new ReflectionClassDef(Throwable.class))));
     }
 
     public boolean isArt() {
@@ -173,11 +146,13 @@ public class ClassPath {
 
     @Nonnull
     public ClassDef getClassDef(String type) {
-        ClassDef ret = availableClasses.get(type);
-        if (ret == null) {
-            throw new UnresolvedClassException("Could not resolve class %s", type);
+        for (ClassProvider provider: classProviders) {
+            ClassDef classDef = provider.getClassDef(type);
+            if (classDef != null) {
+                return classDef;
+            }
         }
-        return ret;
+        throw new UnresolvedClassException("Could not resolve class %s", type);
     }
 
     @Nonnull
@@ -198,7 +173,7 @@ public class ClassPath {
     @Nonnull
     public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile,
                                           int api, boolean checkPackagePrivateAccess, boolean experimental) {
-        ArrayList<DexFile> dexFiles = Lists.newArrayList();
+        List<ClassProvider> providers = Lists.newArrayList();
 
         int oatVersion = NOT_ART;
 
@@ -213,23 +188,29 @@ public class ClassPath {
                     }
                 }
             }
-            dexFiles.addAll(classPathDexFiles);
+            for (DexFile classPathDexFile: classPathDexFiles) {
+                providers.add(new DexClassProvider(classPathDexFile));
+            }
         }
-        dexFiles.add(dexFile);
-        return new ClassPath(dexFiles, checkPackagePrivateAccess, oatVersion);
+        providers.add(new DexClassProvider(dexFile));
+        return new ClassPath(providers, checkPackagePrivateAccess, oatVersion);
     }
 
     @Nonnull
     public static ClassPath fromClassPath(Iterable<String> classPathDirs, Iterable<String> classPath, DexFile dexFile,
                                           int api, boolean checkPackagePrivateAccess, boolean experimental,
                                           int oatVersion) {
-        ArrayList<DexFile> dexFiles = Lists.newArrayList();
+        List<ClassProvider> providers = Lists.newArrayList();
 
         for (String classPathEntry: classPath) {
-            dexFiles.addAll(loadClassPathEntry(classPathDirs, classPathEntry, api, experimental));
+            List<? extends DexFile> classPathDexFiles =
+                    loadClassPathEntry(classPathDirs, classPathEntry, api, experimental);
+            for (DexFile classPathDexFile: classPathDexFiles) {
+                providers.add(new DexClassProvider(classPathDexFile));
+            }
         }
-        dexFiles.add(dexFile);
-        return new ClassPath(dexFiles, checkPackagePrivateAccess, oatVersion);
+        providers.add(new DexClassProvider(dexFile));
+        return new ClassPath(providers, checkPackagePrivateAccess, oatVersion);
     }
 
     private static final Pattern dalvikCacheOdexPattern = Pattern.compile("@([^@]+)@classes.dex$");
