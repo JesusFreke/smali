@@ -126,7 +126,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.smali:smali:2.1.2'
+    compile 'org.smali:smali:2.1.2-205bf333'
     compile 'org.antlr:antlr-runtime:3.5.2'
     compile 'com.google.code.gson:gson:2.3.1'
 

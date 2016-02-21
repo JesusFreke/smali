@@ -32,19 +32,20 @@
 package org.jf.smalidea.dexlib;
 
 import com.google.common.collect.ImmutableSet;
+import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.iface.Annotation;
-import org.jf.smalidea.psi.impl.SmaliMethodParameter;
+import org.jf.smalidea.util.NameUtils;
 import org.jf.smalidea.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
 
 public class SmalideaMethodParameter extends BaseMethodParameter {
-    private final SmaliMethodParameter psiParameter;
+    private final PsiParameter psiParameter;
 
-    public SmalideaMethodParameter(SmaliMethodParameter psiParameter) {
+    public SmalideaMethodParameter(PsiParameter psiParameter) {
         this.psiParameter = psiParameter;
     }
 
@@ -58,6 +59,6 @@ public class SmalideaMethodParameter extends BaseMethodParameter {
     }
 
     @Nonnull @Override public String getType() {
-        return psiParameter.getTypeElement().getText();
+        return NameUtils.javaToSmaliType(psiParameter.getType().getCanonicalText());
     }
 }

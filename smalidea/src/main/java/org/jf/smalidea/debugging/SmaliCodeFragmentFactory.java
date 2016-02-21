@@ -58,6 +58,7 @@ import org.jf.smalidea.SmaliLanguage;
 import org.jf.smalidea.debugging.value.LazyValue;
 import org.jf.smalidea.psi.impl.SmaliInstruction;
 import org.jf.smalidea.psi.impl.SmaliMethod;
+import org.jf.smalidea.util.NameUtils;
 import org.jf.smalidea.util.PsiUtil;
 
 import java.lang.reflect.Constructor;
@@ -225,10 +226,12 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
                 case RegisterType.UNINIT_REF:
                 case RegisterType.UNINIT_THIS:
                 case RegisterType.REFERENCE:
-                    variablesText.append("Object v").append(i).append(";\n");
-                    registerMap.put("v" + i, "Ljava/lang/Object;");
+                    String smaliType = registerType.type.getType();
+                    String javaType = NameUtils.smaliToJavaType(smaliType);
+                    variablesText.append(javaType).append(" v").append(i).append(";\n");
+                    registerMap.put("v" + i, smaliType);
                     if (parameterRegisterNumber >= 0) {
-                        variablesText.append("Object p").append(parameterRegisterNumber).append(";\n");
+                        variablesText.append(javaType).append(" p").append(parameterRegisterNumber).append(";\n");
                         registerMap.put("p" + parameterRegisterNumber, "Ljava/lang/Object;");
                     }
                     break;

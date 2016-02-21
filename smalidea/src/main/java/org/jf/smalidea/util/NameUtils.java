@@ -163,6 +163,12 @@ public class NameUtils {
                     }
                 }
                 return;
+            case 'U':
+                if (smaliType.equals("Ujava/lang/Object;")) {
+                    dest.append("java.lang.Object");
+                    return;
+                }
+                // fall through
             default:
                 throw new RuntimeException("Invalid smali type: " + smaliType);
         }

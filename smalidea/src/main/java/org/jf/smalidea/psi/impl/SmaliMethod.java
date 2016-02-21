@@ -53,6 +53,7 @@ import org.jf.dexlib2.analysis.AnalysisException;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.MethodAnalyzer;
 import org.jf.smalidea.dexlib.SmalideaMethod;
+import org.jf.smalidea.dexlib.analysis.SmalideaClassProvider;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliMethodStub;
@@ -316,7 +317,8 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
             if (!PsiTreeUtil.hasErrorElements(this)) {
                 ClassPath classPath;
                 try {
-                    classPath = new ClassPath();
+                    classPath = new ClassPath(
+                            new SmalideaClassProvider(getProject(), getContainingFile().getVirtualFile()));
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
