@@ -84,6 +84,8 @@ if (System.env.JDK7_HOME != null) {
     }
 }
 
+def sandboxDir = "${buildDir}/sandbox"
+
 // We don't want to use the org.jetbrains.intellij plugin when generating the idea project files,
 // so that idea classes aren't included as project dependencies, since they will already exist
 // in the plugin sdk defined for the project
@@ -94,7 +96,7 @@ if (!('idea' in gradle.startParameter.taskNames)) {
         version 'IC-14.1.4'
         pluginName 'smalidea'
 
-        sandboxDirectory "${buildDir}/sandbox"
+        sandboxDirectory sandboxDir
     }
 
     // This prints out the directories that can be used to configure a plugin sdk in IDEA, using
@@ -139,7 +141,7 @@ if (!('idea' in gradle.startParameter.taskNames)) {
                                   <extension name="coverage" enabled="false" merge="false" runner="idea" />
                                   <module name="smalidea" />
                                   <option name="TEST_OBJECT" value="directory" />
-                                  <option name="VM_PARAMETERS" value="-Didea.system.path=${buildDir}/sandbox/config -Didea.system.path=${buildDir}/sandbox/system-test -Didea.load.plugins.id=org.jf.smalidea" />
+                                  <option name="VM_PARAMETERS" value="-Didea.system.path=${sandboxDir}/config -Didea.system.path=${sandboxDir}/system-test -Didea.load.plugins.id=org.jf.smalidea" />
                                   <option name="WORKING_DIRECTORY" value="file://\$PROJECT_DIR\$/smalidea" />
                                   <option name="PASS_PARENT_ENVS" value="true" />
                                   <option name="TEST_SEARCH_SCOPE">
