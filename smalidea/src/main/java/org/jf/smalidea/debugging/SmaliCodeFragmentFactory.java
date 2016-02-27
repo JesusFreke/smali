@@ -246,7 +246,7 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
             @Override
             public void visitLocalVariable(final PsiLocalVariable variable) {
                 final String name = variable.getName();
-                if (registerMap.containsKey(name)) {
+                if (name != null && registerMap.containsKey(name)) {
                     int registerNumber = Integer.parseInt(name.substring(1));
                     if (name.charAt(0) == 'p') {
                         registerNumber += ApplicationManager.getApplication().runReadAction(new Computable<Integer>() {
