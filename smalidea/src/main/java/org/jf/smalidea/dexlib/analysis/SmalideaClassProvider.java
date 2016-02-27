@@ -2,7 +2,6 @@ package org.jf.smalidea.dexlib.analysis;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.impl.ResolveScopeManager;
 import org.jf.dexlib2.analysis.ClassProvider;
@@ -24,10 +23,7 @@ public class SmalideaClassProvider implements ClassProvider {
 
     @Nullable @Override public ClassDef getClassDef(String type) {
         ResolveScopeManager manager = ResolveScopeManager.getInstance(project);
-
-        JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-        PsiClass psiClass = facade.findClass(NameUtils.smaliToJavaType(type),
-                manager.getDefaultResolveScope(file));
+        PsiClass psiClass = NameUtils.resolveSmaliType(project, manager.getDefaultResolveScope(file), type);
         if (psiClass != null) {
             return new SmalideaClassDef(psiClass);
         }

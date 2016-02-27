@@ -93,11 +93,7 @@ public class SmalideaField extends BaseFieldReference implements Field {
         if (containingClass == null) {
             throw new RuntimeException("I don't know what to do here... Is this even possible?");
         }
-        String javaName = containingClass.getQualifiedName();
-        if (javaName == null) {
-            throw new RuntimeException("I don't know what to do here... Is this even possible?");
-        }
-        return NameUtils.javaToSmaliType(javaName);
+        return NameUtils.javaToSmaliType(containingClass);
     }
 
     @Nonnull @Override public String getName() {
@@ -105,8 +101,7 @@ public class SmalideaField extends BaseFieldReference implements Field {
     }
 
     @Nonnull @Override public String getType() {
-        String javaName = psiField.getType().getCanonicalText();
-        return NameUtils.javaToSmaliType(javaName);
+        return NameUtils.javaToSmaliType(psiField.getType());
     }
 
     @Nullable @Override public EncodedValue getInitialValue() {

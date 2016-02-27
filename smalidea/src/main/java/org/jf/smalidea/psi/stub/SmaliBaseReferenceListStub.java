@@ -42,26 +42,26 @@ import org.jf.smalidea.psi.impl.SmaliBaseReferenceList;
 import org.jf.smalidea.psi.impl.SmaliClassType;
 
 public abstract class SmaliBaseReferenceListStub<T extends SmaliBaseReferenceList> extends StubBase<T> {
-    @NotNull private final String[] types;
+    @NotNull private final String[] smaliTypeNames;
     @Nullable private SmaliClassType[] classTypes = null;
 
     protected SmaliBaseReferenceListStub(
-            @NotNull StubElement parent, @NotNull IStubElementType elementType, @NotNull String[] types) {
+            @NotNull StubElement parent, @NotNull IStubElementType elementType, @NotNull String[] smaliTypeNames) {
         super(parent, elementType);
-        this.types = types;
+        this.smaliTypeNames = smaliTypeNames;
     }
 
-    @NotNull public String[] getTypes() {
-        return types;
+    @NotNull public String[] getSmaliTypeNames() {
+        return smaliTypeNames;
     }
 
     @NotNull
     public SmaliClassType[] getReferencedTypes() {
         if (classTypes == null) {
-            classTypes = new SmaliClassType[types.length];
-            for (int i=0; i<types.length; i++) {
+            classTypes = new SmaliClassType[smaliTypeNames.length];
+            for (int i = 0; i< smaliTypeNames.length; i++) {
                 classTypes[i] = new SmaliClassType(
-                        new LightSmaliClassTypeElement(PsiManager.getInstance(getProject()), types[i]));
+                        new LightSmaliClassTypeElement(PsiManager.getInstance(getProject()), smaliTypeNames[i]));
             }
         }
         return classTypes;

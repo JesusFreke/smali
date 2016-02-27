@@ -63,13 +63,13 @@ public class SmaliMethodParameterElementType
     }
 
     @Override public SmaliMethodParameterStub createStub(@NotNull SmaliMethodParameter psi, StubElement parentStub) {
-        return new SmaliMethodParameterStub(parentStub, psi.getType().getCanonicalText(), psi.getName());
+        return new SmaliMethodParameterStub(parentStub, psi.getTypeElement().getSmaliName(), psi.getName());
     }
 
     @Override
     public void serialize(@NotNull SmaliMethodParameterStub stub, @NotNull StubOutputStream dataStream)
                           throws IOException {
-        dataStream.writeName(stub.getType());
+        dataStream.writeName(stub.getSmaliTypeName());
         dataStream.writeName(stub.getName());
     }
 

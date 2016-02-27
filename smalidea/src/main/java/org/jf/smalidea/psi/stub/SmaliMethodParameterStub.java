@@ -39,17 +39,17 @@ import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliMethodParameter;
 
 public class SmaliMethodParameterStub extends StubBase<SmaliMethodParameter> {
-    @NotNull private final String type;
+    @NotNull private final String smaliTypeName;
     @Nullable private final String name;
 
-    public SmaliMethodParameterStub(@NotNull StubElement parent, @NotNull String type, @Nullable String name) {
+    public SmaliMethodParameterStub(@NotNull StubElement parent, @NotNull String smaliTypeName, @Nullable String name) {
         super(parent, SmaliElementTypes.METHOD_PARAMETER);
-        this.type = type;
+        this.smaliTypeName = smaliTypeName;
         this.name = name;
     }
 
-    @NotNull public String getType() {
-        return type;
+    @NotNull public String getSmaliTypeName() {
+        return smaliTypeName;
     }
 
     @Nullable public String getName() {

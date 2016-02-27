@@ -48,6 +48,11 @@ public abstract class SmaliTypeElement extends SmaliCompositeElement implements 
         return null;
     }
 
+    @NotNull
+    public String getSmaliName() {
+        return getText();
+    }
+
     // Annotations on types are for JSR 308. Not applicable to smali.
 
     @NotNull @Override public PsiAnnotation[] getAnnotations() {

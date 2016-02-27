@@ -46,15 +46,15 @@ import org.jf.smalidea.util.NameUtils;
 public class LightSmaliClassTypeElement extends LightElement
         implements PsiTypeElement, PsiReference, PsiJavaCodeReferenceElement {
     @NotNull
-    private final String qualifiedName;
+    private final String smaliName;
 
-    public LightSmaliClassTypeElement(@NotNull PsiManager manager, @NotNull String qualifiedName) {
+    public LightSmaliClassTypeElement(@NotNull PsiManager manager, @NotNull String smaliName) {
         super(manager, SmaliLanguage.INSTANCE);
-        this.qualifiedName = qualifiedName;
+        this.smaliName = smaliName;
     }
 
     @Override public String toString() {
-        return "LightSmaliClassTypeElement:" + qualifiedName;
+        return "LightSmaliClassTypeElement:" + smaliName;
     }
 
     @NotNull @Override public PsiType getType() {
@@ -66,7 +66,7 @@ public class LightSmaliClassTypeElement extends LightElement
     }
 
     @Override public String getText() {
-        return NameUtils.javaToSmaliType(qualifiedName);
+        return smaliName;
     }
 
     @Override public PsiReference getReference() {
@@ -82,12 +82,11 @@ public class LightSmaliClassTypeElement extends LightElement
     }
 
     @Nullable @Override public PsiClass resolve() {
-        JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
-        return facade.findClass(getCanonicalText(), getResolveScope());
+        return NameUtils.resolveSmaliType(this, smaliName);
     }
 
     @NotNull @Override public String getCanonicalText() {
-        return qualifiedName;
+        return NameUtils.resolveSmaliToJavaType(this, smaliName);
     }
 
     @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {

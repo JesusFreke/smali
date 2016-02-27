@@ -59,14 +59,6 @@ public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCo
         super(SmaliElementTypes.CLASS_TYPE);
     }
 
-    /**
-     * @return the fully qualified java-style name of the class in this .class statement
-     */
-    @NotNull
-    public String getJavaType() {
-        return NameUtils.smaliToJavaType(getText());
-    }
-
     @NotNull @Override public SmaliClassType getType() {
         if (classType == null) {
             classType = new SmaliClassType(this);
@@ -95,12 +87,11 @@ public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCo
     }
 
     @Nullable @Override public PsiClass resolve() {
-        JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
-        return facade.findClass(getCanonicalText(), getResolveScope());
+        return NameUtils.resolveSmaliType(this, getText());
     }
 
     @NotNull @Override public String getCanonicalText() {
-        return NameUtils.smaliToJavaType(getText());
+        return getQualifiedName();
     }
 
     @Override public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
@@ -168,7 +159,11 @@ public class SmaliClassTypeElement extends SmaliTypeElement implements PsiJavaCo
     }
 
     @Override public String getQualifiedName() {
-        return getCanonicalText();
+        PsiClass psiClass = resolve();
+        if (psiClass != null) {
+            return psiClass.getQualifiedName();
+        }
+        return NameUtils.smaliToJavaType(getText());
     }
 
     @NotNull @Override public JavaResolveResult advancedResolve(boolean incompleteCode) {

@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliFieldStub;
+import org.jf.smalidea.util.NameUtils;
 
 public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> implements PsiField, SmaliModifierListOwner {
     public SmaliField(@NotNull SmaliFieldStub stub) {
@@ -93,9 +94,7 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
     @NotNull @Override public PsiType getType() {
         SmaliFieldStub stub = getStub();
         if (stub != null) {
-            String type = stub.getType();
-            PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
-            return factory.createTypeFromText(type, this);
+            return NameUtils.resolveSmaliToPsiType(this, stub.getSmaliTypeName());
         }
         PsiTypeElement typeElement = getTypeElement();
         if (typeElement == null) {
@@ -106,8 +105,8 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
         return getTypeElement().getType();
     }
 
-    @Nullable @Override public PsiTypeElement getTypeElement() {
-        return findChildByClass(PsiTypeElement.class);
+    @Nullable @Override public SmaliTypeElement getTypeElement() {
+        return findChildByClass(SmaliTypeElement.class);
     }
 
     @Nullable @Override public PsiExpression getInitializer() {

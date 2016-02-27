@@ -33,13 +33,13 @@ package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.psi.PsiTypeElement;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliField;
+import org.jf.smalidea.psi.impl.SmaliTypeElement;
 import org.jf.smalidea.psi.stub.SmaliFieldStub;
 
 import java.io.IOException;
@@ -65,15 +65,15 @@ public class SmaliFieldElementType extends SmaliStubElementType<SmaliFieldStub, 
 
     @Override public SmaliFieldStub createStub(@NotNull SmaliField psi, StubElement parentStub) {
         try {
-            String fieldType;
-            PsiTypeElement typeElement = psi.getTypeElement();
+            String fieldSmaliTypeName;
+            SmaliTypeElement typeElement = psi.getTypeElement();
             if (typeElement != null) {
-                fieldType = typeElement.getType().getCanonicalText();
+                fieldSmaliTypeName = typeElement.getSmaliName();
             } else {
-                fieldType = "java.lang.Object";
+                fieldSmaliTypeName = "Ljava/lang/Object;";
             }
 
-            return new SmaliFieldStub(parentStub, psi.getName(), fieldType);
+            return new SmaliFieldStub(parentStub, psi.getName(), fieldSmaliTypeName);
         } catch (IndexNotReadyException ex) {
             System.out.println(psi.getName());
             throw ex;
@@ -83,7 +83,7 @@ public class SmaliFieldElementType extends SmaliStubElementType<SmaliFieldStub, 
     @Override
     public void serialize(@NotNull SmaliFieldStub stub, @NotNull StubOutputStream dataStream) throws IOException {
         dataStream.writeName(stub.getName());
-        dataStream.writeName(stub.getType());
+        dataStream.writeName(stub.getSmaliTypeName());
     }
 
     @NotNull @Override

@@ -55,17 +55,19 @@ public class SmaliClassReferenceSearcher extends QueryExecutorBase<PsiReference,
             return;
         }
 
-        String qualifiedName = ApplicationManager.getApplication().runReadAction(
+        String smaliType = ApplicationManager.getApplication().runReadAction(
                 new Computable<String>() {
                     @Override public String compute() {
-                        return ((PsiClass)element).getQualifiedName();
+                        String qualifiedName = ((PsiClass)element).getQualifiedName();
+                        if (qualifiedName != null) {
+                            return NameUtils.javaToSmaliType((PsiClass)element);
+                        }
+                        return null;
                     }
                 });
-        if (qualifiedName == null) {
+        if (smaliType == null) {
             return;
         }
-
-        String smaliType = NameUtils.javaToSmaliType(qualifiedName);
 
         final StringSearcher stringSearcher = new StringSearcher(smaliType, true, true, false, false);
 

@@ -67,9 +67,7 @@ public class SmalideaMethod extends BaseMethodReference implements Method {
     @Nonnull @Override public String getDefiningClass() {
         PsiClass cls = psiMethod.getContainingClass();
         assert cls != null;
-        String qualifiedName = cls.getQualifiedName();
-        assert qualifiedName != null;
-        return NameUtils.javaToSmaliType(qualifiedName);
+        return NameUtils.javaToSmaliType(cls);
     }
 
     @Nonnull @Override public List<? extends MethodParameter> getParameters() {

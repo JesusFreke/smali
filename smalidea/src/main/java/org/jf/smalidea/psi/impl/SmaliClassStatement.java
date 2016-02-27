@@ -39,6 +39,7 @@ import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.leaf.SmaliClassDescriptor;
 import org.jf.smalidea.psi.stub.SmaliClassStatementStub;
+import org.jf.smalidea.util.NameUtils;
 
 public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStatementStub>
         implements SmaliModifierListOwner {
@@ -83,7 +84,9 @@ public class SmaliClassStatement extends SmaliStubBasedPsiElement<SmaliClassStat
         if (classType == null) {
             return null;
         }
-        return classType.getJavaType();
+        // Since this is a class declared in smali, we don't have to worry about handling inner classes,
+        // so we can do a pure textual translation of the class name
+        return NameUtils.smaliToJavaType(classType.getSmaliName());
     }
 
     @Nullable

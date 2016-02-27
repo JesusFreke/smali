@@ -59,6 +59,6 @@ public class SmalideaMethodParameter extends BaseMethodParameter {
     }
 
     @Nonnull @Override public String getType() {
-        return NameUtils.javaToSmaliType(psiParameter.getType().getCanonicalText());
+        return NameUtils.javaToSmaliType(psiParameter.getType());
     }
 }

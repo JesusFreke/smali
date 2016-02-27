@@ -193,7 +193,7 @@ public abstract class SmalideaInstruction implements Instruction {
                                 if (psiType == null) {
                                     return null;
                                 }
-                                return NameUtils.javaToSmaliType(psiType.getCanonicalText());
+                                return NameUtils.javaToSmaliType(psiType);
                             }
                         });
 

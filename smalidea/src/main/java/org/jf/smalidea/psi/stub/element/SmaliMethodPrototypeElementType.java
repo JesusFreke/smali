@@ -32,13 +32,13 @@
 package org.jf.smalidea.psi.stub.element;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiType;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.impl.SmaliMethodPrototype;
+import org.jf.smalidea.psi.impl.SmaliTypeElement;
 import org.jf.smalidea.psi.stub.SmaliMethodPrototypeStub;
 
 import java.io.IOException;
@@ -64,19 +64,19 @@ public class SmaliMethodPrototypeElementType
     }
 
     @Override public SmaliMethodPrototypeStub createStub(@NotNull SmaliMethodPrototype psi, StubElement parentStub) {
-        PsiType returnType = psi.getReturnType();
-        String returnTypeText = null;
+        SmaliTypeElement returnType = psi.getReturnTypeElement();
+        String returnSmaliTypeName = null;
         if (returnType != null) {
-            returnTypeText = returnType.getCanonicalText();
+            returnSmaliTypeName = returnType.getSmaliName();
         }
 
-        return new SmaliMethodPrototypeStub(parentStub, returnTypeText);
+        return new SmaliMethodPrototypeStub(parentStub, returnSmaliTypeName);
     }
 
     @Override
     public void serialize(@NotNull SmaliMethodPrototypeStub stub, @NotNull StubOutputStream dataStream)
             throws IOException {
-        dataStream.writeName(stub.getReturnType());
+        dataStream.writeName(stub.getReturnSmaliTypeName());
     }
 
     @NotNull @Override

@@ -32,10 +32,13 @@
 package org.jf.smalidea.util;
 
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.ResolveScopeManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 public class NameUtils {
@@ -50,8 +53,38 @@ public class NameUtils {
             .put("double", "D")
             .build();
 
-    @Nonnull
-    public static String javaToSmaliType(@Nonnull String javaType) {
+    @NotNull
+    public static String javaToSmaliType(@NotNull PsiType psiType) {
+        if (psiType instanceof PsiClassType) {
+            PsiClass psiClass = ((PsiClassType)psiType).resolve();
+            if (psiClass != null) {
+                return javaToSmaliType(psiClass);
+            }
+        }
+        return javaToSmaliType(psiType.getCanonicalText());
+    }
+
+    @NotNull
+    public static String javaToSmaliType(@NotNull PsiClass psiClass) {
+        String qualifiedName = psiClass.getQualifiedName();
+        if (qualifiedName == null) {
+            throw new IllegalArgumentException("This method does not support anonymous classes");
+        }
+        PsiClass parent = psiClass.getContainingClass();
+        if (parent != null) {
+            int offset = qualifiedName.lastIndexOf('.');
+            String parentName = qualifiedName.substring(0, offset);
+            assert parentName.equals(parent.getQualifiedName());
+            String className = qualifiedName.substring(offset+1, qualifiedName.length());
+            assert className.equals(psiClass.getName());
+            return javaToSmaliType(parentName + '$' + className);
+        } else {
+            return javaToSmaliType(psiClass.getQualifiedName());
+        }
+    }
+
+    @NotNull
+    public static String javaToSmaliType(@NotNull String javaType) {
         if (javaType.charAt(javaType.length()-1) == ']') {
             int dimensions = 0;
             int firstArrayChar = -1;
@@ -76,7 +109,6 @@ public class NameUtils {
         return simpleJavaToSmaliType(javaType);
     }
 
-
     private static void convertSimpleJavaToSmaliType(@NotNull String javaType, @NotNull StringBuilder dest) {
         String smaliType = javaToSmaliPrimitiveTypes.get(javaType);
         if (smaliType != null) {
@@ -95,6 +127,81 @@ public class NameUtils {
         }
     }
 
+    public static PsiClass resolveSmaliType(@NotNull Project project, @NotNull GlobalSearchScope scope,
+                                            @NotNull String smaliType) {
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+
+        String javaType = NameUtils.smaliToJavaType(smaliType);
+
+        PsiClass psiClass = facade.findClass(javaType, scope);
+        if (psiClass != null) {
+            return psiClass;
+        }
+
+        int offset = javaType.lastIndexOf('.');
+        if (offset < 0) {
+            offset = 0;
+        }
+        // find the first $ after the last .
+        offset = javaType.indexOf('$', offset+1);
+        if (offset < 0) {
+            return null;
+        }
+
+        while (offset > 0 && offset < javaType.length()-1) {
+            String left = javaType.substring(0, offset);
+            psiClass = facade.findClass(left, scope);
+            if (psiClass != null) {
+                psiClass = findInnerClass(psiClass, javaType.substring(offset+1, javaType.length()), facade, scope);
+                if (psiClass != null) {
+                    return psiClass;
+                }
+            }
+            offset = javaType.indexOf('$', offset+1);
+        }
+        return null;
+    }
+
+    @Nullable
+    public static PsiClass resolveSmaliType(@NotNull PsiElement element, @NotNull String smaliType) {
+        GlobalSearchScope scope = ResolveScopeManager.getElementResolveScope(element);
+        return resolveSmaliType(element.getProject(), scope, smaliType);
+    }
+
+    @Nullable
+    public static PsiClass findInnerClass(@NotNull PsiClass outerClass, String innerText, JavaPsiFacade facade,
+                                          GlobalSearchScope scope) {
+        int offset = innerText.indexOf('$');
+        if (offset < 0) {
+            offset = innerText.length();
+        }
+
+        while (offset > 0 && offset <= innerText.length()) {
+            String left = innerText.substring(0, offset);
+            String nextInner = outerClass.getQualifiedName() + "." + left;
+            PsiClass psiClass = facade.findClass(nextInner, scope);
+            if (psiClass != null) {
+                if (offset < innerText.length()) {
+                    psiClass = findInnerClass(psiClass, innerText.substring(offset+1, innerText.length()), facade,
+                            scope);
+                    if (psiClass != null) {
+                        return psiClass;
+                    }
+                } else {
+                    return psiClass;
+                }
+            }
+            if (offset >= innerText.length()) {
+                break;
+            }
+            offset = innerText.indexOf('$', offset+1);
+            if (offset < 0) {
+                offset = innerText.length();
+            }
+        }
+        return null;
+    }
+
     private static String simpleJavaToSmaliType(@NotNull String simpleJavaType) {
         StringBuilder sb = new StringBuilder(simpleJavaType.length() + 2);
         convertSimpleJavaToSmaliType(simpleJavaType, sb);
@@ -111,6 +218,41 @@ public class NameUtils {
             convertAndAppendNonArraySmaliTypeToJava(smaliType, sb);
             return sb.toString();
         }
+    }
+
+    @NotNull
+    public static String resolveSmaliToJavaType(@NotNull Project project, @NotNull GlobalSearchScope scope,
+                                                @NotNull String smaliType) {
+        // First, try to resolve the type and get its qualified name, so that we can make sure
+        // to use the correct name for inner classes
+        PsiClass resolvedType = resolveSmaliType(project, scope, smaliType);
+        if (resolvedType != null) {
+            String qualifiedName = resolvedType.getQualifiedName();
+            if (qualifiedName != null) {
+                return qualifiedName;
+            }
+        }
+
+        // if we can't find it, just do a textual conversion of the name
+        return smaliToJavaType(smaliType);
+    }
+
+    @NotNull
+    public static String resolveSmaliToJavaType(@NotNull PsiElement element, @NotNull String smaliType) {
+        return resolveSmaliToJavaType(element.getProject(), element.getResolveScope(), smaliType);
+    }
+
+    @NotNull
+    public static PsiType resolveSmaliToPsiType(@NotNull PsiElement element, @NotNull String smaliType) {
+        PsiClass resolvedType = resolveSmaliType(element, smaliType);
+        if (resolvedType != null) {
+            PsiElementFactory factory = JavaPsiFacade.getInstance(element.getProject()).getElementFactory();
+            return factory.createType(resolvedType);
+        }
+
+        String javaType = NameUtils.smaliToJavaType(smaliType);
+        PsiElementFactory factory = JavaPsiFacade.getInstance(element.getProject()).getElementFactory();
+        return factory.createTypeFromText(javaType, element);
     }
 
     @NotNull
@@ -162,6 +304,9 @@ public class NameUtils {
                         dest.append(c);
                     }
                 }
+                return;
+            case 'V':
+                dest.append("void");
                 return;
             case 'U':
                 if (smaliType.equals("Ujava/lang/Object;")) {

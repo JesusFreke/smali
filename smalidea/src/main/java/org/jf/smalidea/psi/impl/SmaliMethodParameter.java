@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.iface.SmaliModifierListOwner;
 import org.jf.smalidea.psi.stub.SmaliMethodParameterStub;
+import org.jf.smalidea.util.NameUtils;
 
 public class SmaliMethodParameter extends SmaliStubBasedPsiElement<SmaliMethodParameterStub>
         implements PsiParameter, SmaliModifierListOwner {
@@ -83,8 +84,7 @@ public class SmaliMethodParameter extends SmaliStubBasedPsiElement<SmaliMethodPa
     @NotNull @Override public PsiType getType() {
         SmaliMethodParameterStub stub = getStub();
         if (stub != null) {
-            String type = stub.getType();
-            return JavaPsiFacade.getInstance(getProject()).getParserFacade().createTypeFromText(type, null);
+            return NameUtils.resolveSmaliToPsiType(this, stub.getSmaliTypeName());
         }
         return getTypeElement().getType();
     }

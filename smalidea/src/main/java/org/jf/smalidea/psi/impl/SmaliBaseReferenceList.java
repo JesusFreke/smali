@@ -37,6 +37,7 @@ import com.intellij.psi.StubBasedPsiElement;
 import com.intellij.psi.stubs.IStubElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.stub.SmaliBaseReferenceListStub;
+import org.jf.smalidea.util.NameUtils;
 
 public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceListStub>
         extends SmaliStubBasedPsiElement<StubT> implements StubBasedPsiElement<StubT>, PsiReferenceList {
@@ -68,7 +69,14 @@ public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceLis
         SmaliBaseReferenceListStub stub = getStub();
 
         if (stub != null) {
-            return stub.getTypes();
+            String[] smaliNames = stub.getSmaliTypeNames();
+            String[] referenceNames = new String[smaliNames.length];
+
+            for (int i=0; i<smaliNames.length; i++) {
+                referenceNames[i] = NameUtils.resolveSmaliToJavaType(this, smaliNames[i]);
+            }
+
+            return referenceNames;
         }
 
         SmaliClassTypeElement[] references = getReferenceElements();
@@ -79,6 +87,23 @@ public abstract class SmaliBaseReferenceList<StubT extends SmaliBaseReferenceLis
             referenceNames[i] = references[i].getCanonicalText();
         }
         return referenceNames;
+    }
+
+    @NotNull public String[] getSmaliNames() {
+        SmaliBaseReferenceListStub stub = getStub();
+
+        if (stub != null) {
+            return stub.getSmaliTypeNames();
+        }
+
+        SmaliClassTypeElement[] references = getReferenceElements();
+
+        String[] smaliNames = new String[references.length];
+
+        for (int i=0; i<references.length; i++) {
+            smaliNames[i] = references[i].getSmaliName();
+        }
+        return smaliNames;
     }
 
     @Override public boolean isWritable() {

@@ -68,4 +68,105 @@ public class SmaliClassTypeElementTest extends LightCodeInsightFixtureTestCase {
         Assert.assertNotNull(resolvedClass);
         Assert.assertEquals("my.blarg", resolvedClass.getQualifiedName());
     }
+
+    public void testSimpleInnerClass() {
+        myFixture.addFileToProject("Outer.java", "" +
+                "public class Outer {" +
+                "   public static class Inner {" +
+                "   }" +
+                "}");
+
+        String text = ".class public Lsmali; " +
+                ".super LOuter$In<ref>ner;";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("smali.smali", text.replace("<ref>", ""));
+
+        SmaliClassTypeElement typeElement =
+                (SmaliClassTypeElement)file.findReferenceAt(text.indexOf("<ref>"));
+        Assert.assertNotNull(typeElement);
+        SmaliClassType type = typeElement.getType();
+
+        Assert.assertEquals("Outer.Inner", typeElement.getQualifiedName());
+        Assert.assertEquals("Outer.Inner", type.getCanonicalText());
+    }
+
+    public void testInnerClassWithPackage() {
+        myFixture.addFileToProject("my/Outer.java", "" +
+                "package my;" +
+                "public class Outer {" +
+                "   public static class Inner {" +
+                "   }" +
+                "}");
+
+        String text = ".class public Lsmali; " +
+                ".super Lmy/Outer$In<ref>ner;";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("smali.smali", text.replace("<ref>", ""));
+
+        SmaliClassTypeElement typeElement =
+                (SmaliClassTypeElement)file.findReferenceAt(text.indexOf("<ref>"));
+        Assert.assertNotNull(typeElement);
+        SmaliClassType type = typeElement.getType();
+
+        Assert.assertEquals("my.Outer.Inner", typeElement.getQualifiedName());
+        Assert.assertEquals("my.Outer.Inner", type.getCanonicalText());
+    }
+
+    public void testComplexInnerClass() {
+        myFixture.addFileToProject("my/Outer$blah.java", "" +
+                "package my;" +
+                "public class Outer$blah {" +
+                "   public static class Inner {" +
+                "   }" +
+                "   public static class Inner$blah {" +
+                "   }" +
+                "}");
+
+        String text = ".class public Lsmali; " +
+                ".super Lmy/Outer$blah$In<ref>ner$blah;";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("smali.smali", text.replace("<ref>", ""));
+
+        SmaliClassTypeElement typeElement =
+                (SmaliClassTypeElement)file.findReferenceAt(text.indexOf("<ref>"));
+        Assert.assertNotNull(typeElement);
+        SmaliClassType type = typeElement.getType();
+
+        Assert.assertEquals("my.Outer$blah.Inner$blah", typeElement.getQualifiedName());
+        Assert.assertEquals("my.Outer$blah.Inner$blah", type.getCanonicalText());
+
+        text = ".class public Lsmali2; " +
+                ".super Lmy/Outer$blah$In<ref>ner;";
+
+        file = (SmaliFile)myFixture.addFileToProject("smali2.smali", text.replace("<ref>", ""));
+
+        typeElement = (SmaliClassTypeElement)file.findReferenceAt(text.indexOf("<ref>"));
+        Assert.assertNotNull(typeElement);
+        type = typeElement.getType();
+
+        Assert.assertEquals("my.Outer$blah.Inner", typeElement.getQualifiedName());
+        Assert.assertEquals("my.Outer$blah.Inner", type.getCanonicalText());
+    }
+
+    public void testInnerClassTrailingDollar() {
+        myFixture.addFileToProject("my/Outer$blah.java", "" +
+                "package my;" +
+                "public class Outer$ {" +
+                "   public static class Inner$ {" +
+                "   }" +
+                "}");
+
+        String text = ".class public Lsmali; " +
+                ".super Lmy/Outer$$In<ref>ner$;";
+
+        SmaliFile file = (SmaliFile)myFixture.addFileToProject("smali.smali", text.replace("<ref>", ""));
+
+        SmaliClassTypeElement typeElement =
+                (SmaliClassTypeElement)file.findReferenceAt(text.indexOf("<ref>"));
+        Assert.assertNotNull(typeElement);
+        SmaliClassType type = typeElement.getType();
+
+        Assert.assertEquals("my.Outer$.Inner$", typeElement.getQualifiedName());
+        Assert.assertEquals("my.Outer$.Inner$", type.getCanonicalText());
+    }
 }

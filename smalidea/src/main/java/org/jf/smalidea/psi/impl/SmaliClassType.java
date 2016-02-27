@@ -131,16 +131,26 @@ public class SmaliClassType extends PsiClassType {
     }
 
     @Override
+    @NotNull
     public String getPresentableText() {
         return getCanonicalText();
     }
 
     @Override
+    @NotNull
     public String getCanonicalText() {
+        PsiClass psiClass = resolve();
+        if (psiClass != null) {
+            String qualifiedName = psiClass.getQualifiedName();
+            if (qualifiedName != null) {
+                return qualifiedName;
+            }
+        }
         return NameUtils.smaliToJavaType(element.getText());
     }
 
     @Override
+    @NotNull
     public String getInternalCanonicalText() {
         return getCanonicalText();
     }

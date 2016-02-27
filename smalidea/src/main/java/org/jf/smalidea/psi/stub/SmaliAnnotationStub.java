@@ -39,15 +39,15 @@ import org.jf.smalidea.psi.impl.SmaliAnnotation;
 
 public class SmaliAnnotationStub extends StubBase<SmaliAnnotation> {
     @Nullable
-    private final String annotationType;
+    private final String annotationSmaliTypeName;
 
-    public SmaliAnnotationStub(StubElement parent, @Nullable String annotationType) {
+    public SmaliAnnotationStub(StubElement parent, @Nullable String annotationSmaliTypeName) {
         super(parent, SmaliElementTypes.ANNOTATION);
-        this.annotationType = annotationType;
+        this.annotationSmaliTypeName = annotationSmaliTypeName;
     }
 
     @Nullable
-    public String getAnnotationType() {
-        return annotationType;
+    public String getAnnotationSmaliTypeName() {
+        return annotationSmaliTypeName;
     }
 }

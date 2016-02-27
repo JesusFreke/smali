@@ -57,11 +57,11 @@ public class SmaliImplementsListElementType
         return new SmaliImplementsList(node);
     }
 
-    @Override protected SmaliImplementsListStub createStub(StubElement parentStub, String[] types) {
-        return new SmaliImplementsListStub(parentStub, types);
+    @Override protected SmaliImplementsListStub createStub(StubElement parentStub, String[] smaliTypeNames) {
+        return new SmaliImplementsListStub(parentStub, smaliTypeNames);
     }
 
     @Override public SmaliImplementsListStub createStub(@NotNull SmaliImplementsList psi, StubElement parentStub) {
-        return new SmaliImplementsListStub(parentStub, psi.getReferenceNames());
+        return new SmaliImplementsListStub(parentStub, psi.getSmaliNames());
     }
 }

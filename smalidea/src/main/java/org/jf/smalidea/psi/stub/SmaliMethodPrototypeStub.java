@@ -39,14 +39,14 @@ import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliMethodPrototype;
 
 public class SmaliMethodPrototypeStub extends StubBase<SmaliMethodPrototype> {
-    @Nullable private final String returnType;
+    @Nullable private final String returnSmaliTypeName;
 
-    public SmaliMethodPrototypeStub(@NotNull StubElement parent, @Nullable String returnType) {
+    public SmaliMethodPrototypeStub(@NotNull StubElement parent, @Nullable String returnSmaliTypeName) {
         super(parent, SmaliElementTypes.METHOD_PROTOTYPE);
-        this.returnType = returnType;
+        this.returnSmaliTypeName = returnSmaliTypeName;
     }
 
-    @Nullable public String getReturnType() {
-        return returnType;
+    @Nullable public String getReturnSmaliTypeName() {
+        return returnSmaliTypeName;
     }
 }

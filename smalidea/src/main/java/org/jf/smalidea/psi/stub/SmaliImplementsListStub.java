@@ -37,7 +37,7 @@ import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.impl.SmaliImplementsList;
 
 public class SmaliImplementsListStub extends SmaliBaseReferenceListStub<SmaliImplementsList> {
-    public SmaliImplementsListStub(@NotNull StubElement parent, @NotNull String[] types) {
-        super(parent, SmaliElementTypes.IMPLEMENTS_LIST, types);
+    public SmaliImplementsListStub(@NotNull StubElement parent, @NotNull String[] smaliTypeNames) {
+        super(parent, SmaliElementTypes.IMPLEMENTS_LIST, smaliTypeNames);
     }
 }

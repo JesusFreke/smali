@@ -56,11 +56,11 @@ public class SmaliExtendsListElementType extends SmaliBaseReferenceListElementTy
         return new SmaliExtendsList(node);
     }
 
-    @Override protected SmaliExtendsListStub createStub(StubElement parentStub, String[] types) {
-        return new SmaliExtendsListStub(parentStub, types);
+    @Override protected SmaliExtendsListStub createStub(StubElement parentStub, String[] smaliTypeNames) {
+        return new SmaliExtendsListStub(parentStub, smaliTypeNames);
     }
 
     @Override public SmaliExtendsListStub createStub(@NotNull SmaliExtendsList psi, StubElement parentStub) {
-        return new SmaliExtendsListStub(parentStub, psi.getReferenceNames());
+        return new SmaliExtendsListStub(parentStub, psi.getSmaliNames());
     }
 }

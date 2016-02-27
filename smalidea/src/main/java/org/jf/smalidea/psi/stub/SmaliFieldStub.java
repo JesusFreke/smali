@@ -40,19 +40,19 @@ import org.jf.smalidea.psi.impl.SmaliField;
 
 public class SmaliFieldStub extends StubBase<SmaliField> {
     @Nullable private final String name;
-    @NotNull private final String type;
+    @NotNull private final String smaliTypeName;
 
-    public SmaliFieldStub(StubElement parent, @Nullable String name, @NotNull String type) {
+    public SmaliFieldStub(StubElement parent, @Nullable String name, @NotNull String smaliTypeName) {
         super(parent,  SmaliElementTypes.FIELD);
         this.name = name;
-        this.type = type;
+        this.smaliTypeName = smaliTypeName;
     }
 
     @Nullable public String getName() {
         return name;
     }
 
-    @NotNull public String getType() {
-        return type;
+    @NotNull public String getSmaliTypeName() {
+        return smaliTypeName;
     }
 }

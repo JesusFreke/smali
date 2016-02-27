@@ -52,7 +52,7 @@ public abstract class SmaliBaseReferenceListElementType<StubT extends SmaliBaseR
     @Override
     public void serialize(@NotNull StubT stub, @NotNull StubOutputStream dataStream)
             throws IOException {
-        String[] references = stub.getTypes();
+        String[] references = stub.getSmaliTypeNames();
         dataStream.writeVarInt(references.length);
         for (String reference: references) {
             dataStream.writeName(reference);
@@ -61,15 +61,15 @@ public abstract class SmaliBaseReferenceListElementType<StubT extends SmaliBaseR
 
     @NotNull @Override
     public StubT deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        String[] references = new String[dataStream.readVarInt()];
-        for (int i=0; i<references.length; i++) {
-            references[i] = dataStream.readName().getString();
+        String[] smaliTypeNames = new String[dataStream.readVarInt()];
+        for (int i=0; i<smaliTypeNames.length; i++) {
+            smaliTypeNames[i] = dataStream.readName().getString();
         }
 
-        return createStub(parentStub, references);
+        return createStub(parentStub, smaliTypeNames);
     }
 
-    protected abstract StubT createStub(StubElement parentStub, String[] types);
+    protected abstract StubT createStub(StubElement parentStub, String[] smaliTypeNames);
 
     @Override public void indexStub(@NotNull StubT stub, @NotNull IndexSink sink) {
     }

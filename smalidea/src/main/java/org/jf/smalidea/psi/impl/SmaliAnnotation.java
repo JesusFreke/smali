@@ -58,24 +58,32 @@ public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStu
     }
 
     @Nullable @Override public String getQualifiedName() {
+        PsiJavaCodeReferenceElement nameElement = getNameReferenceElement();
+        if (nameElement != null) {
+            return nameElement.getQualifiedName();
+        }
+        return null;
+    }
+
+    @Nullable public String getSmaliName() {
         SmaliAnnotationStub stub = getStub();
         if (stub != null) {
-            return stub.getAnnotationType();
+            return stub.getAnnotationSmaliTypeName();
         }
 
         SmaliClassTypeElement classType = findChildByClass(SmaliClassTypeElement.class);
         if (classType == null) {
             return null;
         }
-        return classType.getJavaType();
+        return classType.getSmaliName();
     }
 
     @Nullable @Override public PsiJavaCodeReferenceElement getNameReferenceElement() {
         SmaliAnnotationStub stub = getStub();
         if (stub != null) {
-            String qualifiedName = stub.getAnnotationType();
-            if (qualifiedName != null) {
-                return new LightSmaliClassTypeElement(getManager(), qualifiedName);
+            String smaliName = stub.getAnnotationSmaliTypeName();
+            if (smaliName != null) {
+                return new LightSmaliClassTypeElement(getManager(), smaliName);
             }
         }
         return findChildByClass(SmaliClassTypeElement.class);

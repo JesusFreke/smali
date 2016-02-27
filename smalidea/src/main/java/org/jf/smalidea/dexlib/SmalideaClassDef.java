@@ -97,12 +97,7 @@ public class SmalideaClassDef extends BaseTypeReference implements ClassDef {
     }
 
     @Nonnull @Override public String getType() {
-        // TODO: properly handle inner classes..
-        String javaName = psiClass.getQualifiedName();
-        if (javaName == null) {
-            throw new RuntimeException("I don't know what to do here... Is this even possible?");
-        }
-        return NameUtils.javaToSmaliType(javaName);
+        return NameUtils.javaToSmaliType(psiClass);
     }
 
     @Nullable @Override public String getSuperclass() {
@@ -110,11 +105,7 @@ public class SmalideaClassDef extends BaseTypeReference implements ClassDef {
         if (superClass == null) {
             return null;
         }
-        String javaName = superClass.getQualifiedName();
-        if (javaName == null) {
-            throw new RuntimeException("I don't know what to do here... Is this even possible?");
-        }
-        return NameUtils.javaToSmaliType(javaName);
+        return NameUtils.javaToSmaliType(superClass);
     }
 
     @Nonnull @Override public List<String> getInterfaces() {
@@ -125,11 +116,7 @@ public class SmalideaClassDef extends BaseTypeReference implements ClassDef {
         }
 
         for (PsiClass psiClass: interfaces) {
-            String javaName = psiClass.getQualifiedName();
-            if (javaName == null) {
-                throw new RuntimeException("I don't know what to do here... Is this even possible?");
-            }
-            interfaceList.add(NameUtils.javaToSmaliType(javaName));
+            interfaceList.add(NameUtils.javaToSmaliType(psiClass));
         }
 
         return interfaceList;
