@@ -37,7 +37,6 @@ buildscript {
     }
     dependencies {
         classpath 'gradle.plugin.org.jetbrains:gradle-intellij-plugin:0.0.40'
-        classpath 'org.eclipse.jgit:org.eclipse.jgit:2.0.0.201206130900-r'
     }
 }
 
@@ -118,6 +117,78 @@ if (!('idea' in gradle.startParameter.taskNames)) {
     if (gradle.startParameter.taskNames.size() > 1) {
         throw new InvalidUserDataException("The idea task must be run by itself.")
     }
+
+    project(':') {
+        idea {
+            project {
+                ipr {
+                    withXml {
+                        def node = it.asNode()
+
+                        /*node.find { it.@name == 'ProjectRootManager' }
+                                .@'project-jdk-type' = 'IDEA JDK'*/
+
+                        def componentNode = node.find { it.@name == 'ProjectRunConfigurationManager' }
+                        if (componentNode == null) {
+                            componentNode = it.node.appendNode 'component', [name: 'ProjectRunConfigurationManager']
+                        }
+
+                        if (componentNode.find { it.@name == 'All smalidea tests' } == null) {
+                            componentNode.append(new XmlParser().parseText("""
+                                <configuration default="false" name="All smalidea tests" type="JUnit" factoryName="JUnit">
+                                  <extension name="coverage" enabled="false" merge="false" runner="idea" />
+                                  <module name="smalidea" />
+                                  <option name="TEST_OBJECT" value="directory" />
+                                  <option name="VM_PARAMETERS" value="-Didea.system.path=${buildDir}/sandbox/config -Didea.system.path=${buildDir}/sandbox/system-test -Didea.load.plugins.id=org.jf.smalidea" />
+                                  <option name="WORKING_DIRECTORY" value="file://\$PROJECT_DIR\$/smalidea" />
+                                  <option name="PASS_PARENT_ENVS" value="true" />
+                                  <option name="TEST_SEARCH_SCOPE">
+                                    <value defaultName="moduleWithDependencies" />
+                                  </option>
+                                  <dir value="\$PROJECT_DIR\$/smalidea/src/test/java" />
+                                </configuration>"""))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    idea {
+        module {
+            jdkName = 'IDEA Plugin jdk'
+
+            excludeDirs -= buildDir
+            if (buildDir.exists()) {
+                excludeDirs.addAll(buildDir.listFiles())
+            }
+
+            for (sourceDir in (sourceDirs + testSourceDirs)) {
+                excludeDirs.remove(sourceDir);
+                while ((sourceDir = sourceDir.getParentFile()) != null) {
+                    excludeDirs.remove(sourceDir);
+                }
+            }
+
+            iml {
+                withXml {
+                    def node = it.node
+
+                    node.@type = 'PLUGIN_MODULE'
+
+                    def pluginUrl = 'file://$MODULE_DIR$/src/main/resources/META-INF/plugin.xml'
+
+                    def pluginNode = node.find { it.@name == 'DevKit.ModuleBuildProperties' }
+                    if (pluginNode == null) {
+                        node.appendNode 'component', [name: 'DevKit.ModuleBuildProperties',
+                                                      url : pluginUrl]
+                    } else {
+                        pluginNode.@url = pluginUrl
+                    }
+                }
+            }
+        }
+    }
 }
 
 repositories {
@@ -126,89 +197,14 @@ repositories {
 }
 
 dependencies {
-    compile 'org.smali:smali:2.1.2-205bf333'
-    compile 'org.antlr:antlr-runtime:3.5.2'
-    compile 'com.google.code.gson:gson:2.3.1'
+    compile project(':smali')
+    compile depends.antlr_runtime
+    compile depends.gson
 
-    antlr 'org.antlr:antlr:3.5.2'
+    antlr depends.antlr
 }
 
-idea {
-    project {
-        jdkName = 'IDEA Plugin jdk'
-        languageLevel 1.7
-
-        vcs = 'Git'
-
-        ipr {
-            withXml {
-                def node = it.asNode()
-
-                node.find { it.@name == 'ProjectRootManager' }
-                    .@'project-jdk-type' = 'IDEA JDK'
-
-                node.find { it.@name == 'VcsDirectoryMappings' }
-                    .mapping.@directory = '$PROJECT_DIR$/..'
-
-                def componentNode = node.find { it.@name == 'ProjectRunConfigurationManager' }
-
-                if (componentNode == null) {
-                    componentNode = it.node.appendNode 'component', [name: 'ProjectRunConfigurationManager']
-                }
-
-                if (componentNode.find { it.@name == 'All tests' } == null) {
-                    componentNode.append(new XmlParser().parseText("""
-                        <configuration default="false" name="All tests" type="JUnit" factoryName="JUnit">
-                          <extension name="coverage" enabled="false" merge="false" runner="idea" />
-                          <module name="smalidea" />
-                          <option name="TEST_OBJECT" value="directory" />
-                          <option name="VM_PARAMETERS" value="-Didea.system.path=${buildDir}/sandbox/config -Didea.system.path=${buildDir}/sandbox/system-test -Didea.load.plugins.id=org.jf.smalidea" />
-                          <option name="WORKING_DIRECTORY" value="file://\$PROJECT_DIR\$" />
-                          <option name="PASS_PARENT_ENVS" value="true" />
-                          <option name="TEST_SEARCH_SCOPE">
-                            <value defaultName="moduleWithDependencies" />
-                          </option>
-                          <dir value="\$PROJECT_DIR\$/src/test/java" />
-                        </configuration>"""))
-                }
-            }
-        }
-    }
-
-    module {
-        excludeDirs -= buildDir
-        if (buildDir.exists()) {
-            excludeDirs.addAll(buildDir.listFiles())
-        }
-
-        for (sourceDir in (sourceDirs + testSourceDirs)) {
-            excludeDirs.remove(sourceDir);
-            while ((sourceDir = sourceDir.getParentFile()) != null) {
-                excludeDirs.remove(sourceDir);
-            }
-        }
-
-        iml {
-            withXml {
-                def node = it.node
-
-                node.@type = 'PLUGIN_MODULE'
-
-                def pluginUrl = 'file://$MODULE_DIR$/src/main/resources/META-INF/plugin.xml'
-
-                def pluginNode = node.find { it.@name == 'DevKit.ModuleBuildProperties' }
-                if (pluginNode == null) {
-                    node.appendNode 'component', [name: 'DevKit.ModuleBuildProperties',
-                                                  url: pluginUrl]
-                } else {
-                    pluginNode.@url = pluginUrl
-                }
-            }
-        }
-    }
-}
-
-task extractTokens(type: org.gradle.api.tasks.Copy) {
+task extractTokens(type: org.gradle.api.tasks.Copy, dependsOn: ':smali:build') {
     def allArtifacts = configurations.default.resolvedConfiguration.resolvedArtifacts
     def smaliArtifact = allArtifacts.find { it.moduleVersion.id.name.equals('smali') }
 
@@ -230,3 +226,7 @@ ideaModule.dependsOn(generateGrammarSource)
 
 task release(dependsOn: ':buildPlugin') {
 }
+
+tasks.getByPath('idea').dependsOn(project(':').getTasksByName('idea', true).findAll({
+    it.project.name != 'smalidea'
+}))
