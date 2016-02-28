@@ -591,8 +591,11 @@ method_prototype
   : OPEN_PAREN param_list CLOSE_PAREN type_descriptor
     -> ^(I_METHOD_PROTOTYPE[$start, "I_METHOD_PROTOTYPE"] ^(I_METHOD_RETURN_TYPE type_descriptor) param_list?);
 
+param_list_or_id_primitive_type
+  : PARAM_LIST_OR_ID_PRIMITIVE_TYPE -> PRIMITIVE_TYPE[$PARAM_LIST_OR_ID_PRIMITIVE_TYPE];
+
 param_list
-  : (PARAM_LIST_OR_ID_PRIMITIVE_TYPE -> PRIMITIVE_TYPE[$PARAM_LIST_OR_ID_PRIMITIVE_TYPE])+
+  : param_list_or_id_primitive_type+
   | nonvoid_type_descriptor*;
 
 array_descriptor
