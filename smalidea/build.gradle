@@ -96,6 +96,8 @@ if (!('idea' in gradle.startParameter.taskNames)) {
         version 'IC-14.1.4'
         pluginName 'smalidea'
 
+        updateSinceUntilBuild false
+
         sandboxDirectory sandboxDir
     }
 
