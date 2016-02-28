@@ -245,13 +245,6 @@ public class main {
             return;
         }
 
-        if (options.jobs <= 0) {
-            options.jobs = Runtime.getRuntime().availableProcessors();
-            if (options.jobs > 6) {
-                options.jobs = 6;
-            }
-        }
-
         String inputDexFileName = remainingArgs[0];
 
         File dexFileFile = new File(inputDexFileName);

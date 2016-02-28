@@ -109,7 +109,7 @@ public class main {
             return;
         }
 
-        int jobs = -1;
+        int jobs = Runtime.getRuntime().availableProcessors();
         boolean allowOdex = false;
         boolean verboseErrors = false;
         boolean printTokens = false;
@@ -207,13 +207,6 @@ public class main {
                     } else if (argFile.isFile()) {
                         filesToProcess.add(argFile);
                     }
-            }
-
-            if (jobs <= 0) {
-                jobs = Runtime.getRuntime().availableProcessors();
-                if (jobs > 6) {
-                    jobs = 6;
-                }
             }
 
             boolean errors = false;
