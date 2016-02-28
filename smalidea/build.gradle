@@ -228,7 +228,7 @@ generateGrammarSource.dependsOn(extractTokens)
 
 ideaModule.dependsOn(generateGrammarSource)
 
-task release(dependsOn: ':buildPlugin') {
+task release(dependsOn: 'buildPlugin') {
 }
 
 tasks.getByPath('idea').dependsOn(project(':').getTasksByName('idea', true).findAll({
