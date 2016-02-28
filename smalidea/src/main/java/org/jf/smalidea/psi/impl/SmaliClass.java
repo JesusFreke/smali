@@ -31,6 +31,7 @@
 
 package org.jf.smalidea.psi.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.debugger.SourcePosition;
 import com.intellij.lang.ASTNode;
@@ -275,7 +276,7 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
     }
 
     @NotNull @Override public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
-        return null;
+        return ImmutableList.of();
     }
 
     @Override public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
