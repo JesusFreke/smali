@@ -149,7 +149,7 @@ public class SmaliPositionManager implements PositionManager {
         Computable<Boolean> isSmaliFile = new Computable<Boolean>() {
             @Override
             public Boolean compute() {
-                return position.getElementAt().getContainingFile() instanceof SmaliFile;
+                return position.getFile() instanceof SmaliFile;
             }
         };
 
