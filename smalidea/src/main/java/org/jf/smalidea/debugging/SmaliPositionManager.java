@@ -104,7 +104,11 @@ public class SmaliPositionManager implements PositionManager {
     private String getClassFromPosition(@NotNull final SourcePosition position) {
         return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
             @Override public String compute() {
-                return ((SmaliClass)position.getElementAt().getContainingFile().getFirstChild()).getQualifiedName();
+                SmaliClass smaliClass = ((SmaliFile)position.getElementAt().getContainingFile()).getPsiClass();
+                if (smaliClass == null) {
+                    return "";
+                }
+                return smaliClass.getQualifiedName();
             }
         });
     }

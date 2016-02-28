@@ -60,7 +60,7 @@ import java.util.Map;
 
 public class SmaliPositionManagerTest extends LightCodeInsightFixtureTestCase {
     private static final String testClass =
-            ".class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
+            "\n\n.class public Lmy/pkg/blah; .super Ljava/lang/Object;\n" +
                     ".method public getRandomParentType(I)I\n" +
                     "    .registers 4\n" +
                     "    .param p1, \"edge\"    # I\n" +
