@@ -81,7 +81,7 @@ public class GithubFeedbackTask extends Task.Backgroundable {
     }
 
     public static String sendFeedback(Map<String, String> environmentDetails) throws IOException {
-        String url = "https://api.github.com/repos/JesusFreke/smali/issues";
+        String url = "https://api.github.com/repos/JesusFreke/smalidea-issues/issues";
         String userAgent = "smalidea plugin";
 
         IdeaPluginDescriptorImpl pluginDescriptor =
