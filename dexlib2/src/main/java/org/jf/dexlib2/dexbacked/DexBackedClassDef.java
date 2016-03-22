@@ -151,7 +151,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
         if (staticFieldCount > 0) {
             DexReader reader = dexFile.readerAt(staticFieldsOffset);
 
-            final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
+            final AnnotationsDirectory annotationsDirectoryLocal = getAnnotationsDirectory();
             final int staticInitialValuesOffset =
                     dexFile.readSmallUint(classDefOffset + ClassDefItem.STATIC_VALUES_OFFSET);
             final int fieldsStartOffset = reader.getOffset();
@@ -161,7 +161,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 @Override
                 public Iterator<DexBackedField> iterator() {
                     final AnnotationsDirectory.AnnotationIterator annotationIterator =
-                            annotationsDirectory.getFieldAnnotationIterator();
+                            annotationsDirectoryLocal.getFieldAnnotationIterator();
                     final StaticInitialValueIterator staticInitialValueIterator =
                             StaticInitialValueIterator.newOrEmpty(dexFile, staticInitialValuesOffset);
 
@@ -214,7 +214,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
         if (instanceFieldCount > 0) {
             DexReader reader = dexFile.readerAt(getInstanceFieldsOffset());
 
-            final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
+            final AnnotationsDirectory annotationsDirectoryLocal = getAnnotationsDirectory();
             final int fieldsStartOffset = reader.getOffset();
 
             return new Iterable<DexBackedField>() {
@@ -222,7 +222,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 @Override
                 public Iterator<DexBackedField> iterator() {
                     final AnnotationsDirectory.AnnotationIterator annotationIterator =
-                            annotationsDirectory.getFieldAnnotationIterator();
+                            annotationsDirectoryLocal.getFieldAnnotationIterator();
 
                     return new VariableSizeLookaheadIterator<DexBackedField>(dexFile, fieldsStartOffset) {
                         private int count;
@@ -281,7 +281,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
         if (directMethodCount > 0) {
             DexReader reader = dexFile.readerAt(getDirectMethodsOffset());
 
-            final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
+            final AnnotationsDirectory annotationsDirectoryLocal = getAnnotationsDirectory();
             final int methodsStartOffset = reader.getOffset();
 
             return new Iterable<DexBackedMethod>() {
@@ -289,9 +289,9 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 @Override
                 public Iterator<DexBackedMethod> iterator() {
                     final AnnotationsDirectory.AnnotationIterator methodAnnotationIterator =
-                            annotationsDirectory.getMethodAnnotationIterator();
+                            annotationsDirectoryLocal.getMethodAnnotationIterator();
                     final AnnotationsDirectory.AnnotationIterator parameterAnnotationIterator =
-                            annotationsDirectory.getParameterAnnotationIterator();
+                            annotationsDirectoryLocal.getParameterAnnotationIterator();
 
                     return new VariableSizeLookaheadIterator<DexBackedMethod>(dexFile, methodsStartOffset) {
                         private int count;
@@ -338,14 +338,14 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
         if (virtualMethodCount > 0) {
             DexReader reader = dexFile.readerAt(getVirtualMethodsOffset());
 
-            final AnnotationsDirectory annotationsDirectory = getAnnotationsDirectory();
+            final AnnotationsDirectory annotationsDirectoryLocal = getAnnotationsDirectory();
             final int methodsStartOffset = reader.getOffset();
 
             return new Iterable<DexBackedMethod>() {
                 final AnnotationsDirectory.AnnotationIterator methodAnnotationIterator =
-                        annotationsDirectory.getMethodAnnotationIterator();
+                        annotationsDirectoryLocal.getMethodAnnotationIterator();
                 final AnnotationsDirectory.AnnotationIterator parameterAnnotationIterator =
-                        annotationsDirectory.getParameterAnnotationIterator();
+                        annotationsDirectoryLocal.getParameterAnnotationIterator();
 
                 @Nonnull
                 @Override

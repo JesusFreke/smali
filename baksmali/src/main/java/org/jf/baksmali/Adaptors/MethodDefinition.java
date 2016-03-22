@@ -472,11 +472,11 @@ public class MethodDefinition {
             analysisException.printStackTrace(System.err);
         }
 
-        List<AnalyzedInstruction> instructions = methodAnalyzer.getAnalyzedInstructions();
+        List<AnalyzedInstruction> instructionsLocal = methodAnalyzer.getAnalyzedInstructions();
 
         int currentCodeAddress = 0;
-        for (int i=0; i<instructions.size(); i++) {
-            AnalyzedInstruction instruction = instructions.get(i);
+        for (int i=0; i<instructionsLocal.size(); i++) {
+            AnalyzedInstruction instruction = instructionsLocal.get(i);
 
             MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(
                     this, currentCodeAddress, instruction.getInstruction());
@@ -489,7 +489,7 @@ public class MethodDefinition {
                                 this, currentCodeAddress, instruction.getOriginalInstruction())));
             }
 
-            if (i != instructions.size() - 1) {
+            if (i != instructionsLocal.size() - 1) {
                 methodItems.add(new BlankMethodItem(currentCodeAddress));
             }
 

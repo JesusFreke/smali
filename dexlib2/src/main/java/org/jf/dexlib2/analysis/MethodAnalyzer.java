@@ -103,16 +103,16 @@ public class MethodAnalyzer {
 
         this.method = method;
 
-        MethodImplementation methodImpl = method.getImplementation();
-        if (methodImpl == null) {
+        MethodImplementation methodImplLocal = method.getImplementation();
+        if (methodImplLocal == null) {
             throw new IllegalArgumentException("The method has no implementation");
         }
 
-        this.methodImpl = methodImpl;
+        this.methodImpl = methodImplLocal;
 
         //override AnalyzedInstruction and provide custom implementations of some of the methods, so that we don't
         //have to handle the case this special case of instruction being null, in the main class
-        startOfMethod = new AnalyzedInstruction(null, -1, methodImpl.getRegisterCount()) {
+        startOfMethod = new AnalyzedInstruction(null, -1, methodImplLocal.getRegisterCount()) {
             public boolean setsRegister() {
                 return false;
             }
@@ -142,28 +142,28 @@ public class MethodAnalyzer {
     }
 
     private void analyze() {
-        Method method = this.method;
-        MethodImplementation methodImpl = this.methodImpl;
+        Method methodLocal = this.method;
+        MethodImplementation methodImplLocal = this.methodImpl;
 
-        int totalRegisters = methodImpl.getRegisterCount();
+        int totalRegisters = methodImplLocal.getRegisterCount();
         int parameterRegisters = paramRegisterCount;
 
         int nonParameterRegisters = totalRegisters - parameterRegisters;
 
         //if this isn't a static method, determine which register is the "this" register and set the type to the
         //current class
-        if (!MethodUtil.isStatic(method)) {
+        if (!MethodUtil.isStatic(methodLocal)) {
             int thisRegister = totalRegisters - parameterRegisters;
 
             //if this is a constructor, then set the "this" register to an uninitialized reference of the current class
-            if (MethodUtil.isConstructor(method)) {
+            if (MethodUtil.isConstructor(methodLocal)) {
                 setPostRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
                         RegisterType.getRegisterType(RegisterType.UNINIT_THIS,
-                                classPath.getClass(method.getDefiningClass())));
+                                classPath.getClass(methodLocal.getDefiningClass())));
             } else {
                 setPostRegisterTypeAndPropagateChanges(startOfMethod, thisRegister,
                         RegisterType.getRegisterType(RegisterType.REFERENCE,
-                                classPath.getClass(method.getDefiningClass())));
+                                classPath.getClass(methodLocal.getDefiningClass())));
             }
 
             propagateParameterTypes(totalRegisters-parameterRegisters+1);
@@ -216,7 +216,7 @@ public class MethodAnalyzer {
                         ex.codeAddress = codeAddress;
                         ex.addContext(String.format("opcode: %s", instructionToAnalyze.instruction.getOpcode().name));
                         ex.addContext(String.format("code address: %d", codeAddress));
-                        ex.addContext(String.format("method: %s", ReferenceUtil.getReferenceString(method)));
+                        ex.addContext(String.format("method: %s", ReferenceUtil.getReferenceString(methodLocal)));
                         break;
                     }
 

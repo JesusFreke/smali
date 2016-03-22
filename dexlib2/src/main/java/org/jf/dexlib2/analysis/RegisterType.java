@@ -278,12 +278,12 @@ public class RegisterType {
 
         TypeProto mergedType = null;
         if (mergedCategory == REFERENCE) {
-            TypeProto type = this.type;
-            if (type != null) {
+            TypeProto typeLocal = this.type;
+            if (typeLocal != null) {
                 if (other.type != null) {
-                    mergedType = type.getCommonSuperclass(other.type);
+                    mergedType = typeLocal.getCommonSuperclass(other.type);
                 } else {
-                    mergedType = type;
+                    mergedType = typeLocal;
                 }
             } else {
                 mergedType = other.type;

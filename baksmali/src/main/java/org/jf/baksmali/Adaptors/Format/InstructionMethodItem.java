@@ -394,95 +394,95 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeInvokeRegisters(IndentingWriter writer) throws IOException {
-        FiveRegisterInstruction instruction = (FiveRegisterInstruction)this.instruction;
-        final int regCount = instruction.getRegisterCount();
+        FiveRegisterInstruction instructionLocal = (FiveRegisterInstruction)this.instruction;
+        final int regCount = instructionLocal.getRegisterCount();
 
         writer.write('{');
         switch (regCount) {
             case 1:
-                writeRegister(writer, instruction.getRegisterC());
+                writeRegister(writer, instructionLocal.getRegisterC());
                 break;
             case 2:
-                writeRegister(writer, instruction.getRegisterC());
+                writeRegister(writer, instructionLocal.getRegisterC());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterD());
+                writeRegister(writer, instructionLocal.getRegisterD());
                 break;
             case 3:
-                writeRegister(writer, instruction.getRegisterC());
+                writeRegister(writer, instructionLocal.getRegisterC());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterD());
+                writeRegister(writer, instructionLocal.getRegisterD());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterE());
+                writeRegister(writer, instructionLocal.getRegisterE());
                 break;
             case 4:
-                writeRegister(writer, instruction.getRegisterC());
+                writeRegister(writer, instructionLocal.getRegisterC());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterD());
+                writeRegister(writer, instructionLocal.getRegisterD());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterE());
+                writeRegister(writer, instructionLocal.getRegisterE());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterF());
+                writeRegister(writer, instructionLocal.getRegisterF());
                 break;
             case 5:
-                writeRegister(writer, instruction.getRegisterC());
+                writeRegister(writer, instructionLocal.getRegisterC());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterD());
+                writeRegister(writer, instructionLocal.getRegisterD());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterE());
+                writeRegister(writer, instructionLocal.getRegisterE());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterF());
+                writeRegister(writer, instructionLocal.getRegisterF());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterG());
+                writeRegister(writer, instructionLocal.getRegisterG());
                 break;
         }
         writer.write('}');
     }
 
     protected void writeInvoke25xRegisters(IndentingWriter writer) throws IOException {
-        OneFixedFourParameterRegisterInstruction instruction =
+        OneFixedFourParameterRegisterInstruction instructionLocal =
                 (OneFixedFourParameterRegisterInstruction)this.instruction;
-        final int parameterRegCount = instruction.getParameterRegisterCount();
+        final int parameterRegCount = instructionLocal.getParameterRegisterCount();
 
-        writeRegister(writer, instruction.getRegisterFixedC());  // fixed register always present
+        writeRegister(writer, instructionLocal.getRegisterFixedC());  // fixed register always present
 
         writer.write(", {");
         switch (parameterRegCount) {
             case 1:
-                writeRegister(writer, instruction.getRegisterParameterD());
+                writeRegister(writer, instructionLocal.getRegisterParameterD());
                 break;
             case 2:
-                writeRegister(writer, instruction.getRegisterParameterD());
+                writeRegister(writer, instructionLocal.getRegisterParameterD());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterE());
+                writeRegister(writer, instructionLocal.getRegisterParameterE());
                 break;
             case 3:
-                writeRegister(writer, instruction.getRegisterParameterD());
+                writeRegister(writer, instructionLocal.getRegisterParameterD());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterE());
+                writeRegister(writer, instructionLocal.getRegisterParameterE());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterF());
+                writeRegister(writer, instructionLocal.getRegisterParameterF());
                 break;
             case 4:
-                writeRegister(writer, instruction.getRegisterParameterD());
+                writeRegister(writer, instructionLocal.getRegisterParameterD());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterE());
+                writeRegister(writer, instructionLocal.getRegisterParameterE());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterF());
+                writeRegister(writer, instructionLocal.getRegisterParameterF());
                 writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterG());
+                writeRegister(writer, instructionLocal.getRegisterParameterG());
                 break;
         }
         writer.write('}');
     }
 
     protected void writeInvokeRangeRegisters(IndentingWriter writer) throws IOException {
-        RegisterRangeInstruction instruction = (RegisterRangeInstruction)this.instruction;
+        RegisterRangeInstruction instructionLocal = (RegisterRangeInstruction)this.instruction;
 
-        int regCount = instruction.getRegisterCount();
+        int regCount = instructionLocal.getRegisterCount();
         if (regCount == 0) {
             writer.write("{}");
         } else {
-            int startRegister = instruction.getStartRegister();
+            int startRegister = instructionLocal.getStartRegister();
             methodDef.registerFormatter.writeRegisterRange(writer, startRegister, startRegister+regCount-1);
         }
     }

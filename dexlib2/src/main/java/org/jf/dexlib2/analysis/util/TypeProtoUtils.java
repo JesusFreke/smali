@@ -64,13 +64,13 @@ public class TypeProtoUtils {
                     }
 
                     @Override public TypeProto next() {
-                        TypeProto type = this.type;
-                        if (type == null) {
+                        TypeProto typeLocal = this.type;
+                        if (typeLocal == null) {
                             throw new NoSuchElementException();
                         }
 
-                        this.type = getSuperclassAsTypeProto(type);
-                        return type;
+                        this.type = getSuperclassAsTypeProto(typeLocal);
+                        return typeLocal;
                     }
 
                     @Override public void remove() {

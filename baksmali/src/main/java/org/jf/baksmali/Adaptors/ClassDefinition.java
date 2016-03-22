@@ -64,7 +64,7 @@ public class ClassDefinition {
 
     @Nonnull
     private HashSet<String> findFieldsSetInStaticConstructor() {
-        HashSet<String> fieldsSetInStaticConstructor = new HashSet<String>();
+        HashSet<String> fieldsSetInStaticConstructorLocal = new HashSet<String>();
 
         for (Method method: classDef.getDirectMethods()) {
             if (method.getName().equals("<clinit>")) {
@@ -89,7 +89,7 @@ public class ClassDefinition {
                                 }
                                 if (fieldRef != null &&
                                         fieldRef.getDefiningClass().equals((classDef.getType()))) {
-                                    fieldsSetInStaticConstructor.add(ReferenceUtil.getShortFieldDescriptor(fieldRef));
+                                    fieldsSetInStaticConstructorLocal.add(ReferenceUtil.getShortFieldDescriptor(fieldRef));
                                 }
                                 break;
                             }
@@ -98,7 +98,7 @@ public class ClassDefinition {
                 }
             }
         }
-        return fieldsSetInStaticConstructor;
+        return fieldsSetInStaticConstructorLocal;
     }
 
     public void writeTo(IndentingWriter writer) throws IOException {

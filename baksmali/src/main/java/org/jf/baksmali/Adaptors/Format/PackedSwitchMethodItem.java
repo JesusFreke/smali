@@ -55,11 +55,11 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchPa
         targets = new ArrayList<PackedSwitchTarget>();
 
         boolean first = true;
-        int firstKey = 0;
+        int firstKeyLocal = 0;
         if (baseCodeAddress >= 0) {
             for (SwitchElement switchElement: instruction.getSwitchElements()) {
                 if (first) {
-                    firstKey = switchElement.getKey();
+                    firstKeyLocal = switchElement.getKey();
                     first = false;
                 }
                 LabelMethodItem label = methodDef.getLabelCache().internLabel(
@@ -71,13 +71,13 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchPa
             commentedOut = true;
             for (SwitchElement switchElement: instruction.getSwitchElements()) {
                 if (first) {
-                    firstKey = switchElement.getKey();
+                    firstKeyLocal = switchElement.getKey();
                     first = false;
                 }
                 targets.add(new PackedSwitchOffsetTarget(switchElement.getOffset()));
             }
         }
-        this.firstKey = firstKey;
+        this.firstKey = firstKeyLocal;
     }
 
     @Override

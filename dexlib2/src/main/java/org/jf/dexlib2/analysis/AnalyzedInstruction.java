@@ -302,9 +302,9 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
             return false;
         }
 
-        ReferenceInstruction instruction = (ReferenceInstruction)this.instruction;
+        ReferenceInstruction instructionLocal = (ReferenceInstruction)this.instruction;
 
-        Reference reference = instruction.getReference();
+        Reference reference = instructionLocal.getReference();
         if (reference instanceof MethodReference) {
             return ((MethodReference)reference).getName().equals("<init>");
         }
