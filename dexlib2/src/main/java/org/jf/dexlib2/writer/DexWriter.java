@@ -1221,8 +1221,8 @@ public abstract class DexWriter<
     }
 
     private void writeHeader(@Nonnull DexDataWriter writer, int dataOffset, int fileSize) throws IOException {
-        // always write the 035 version, there's no reason to use the 036 version for now
-        writer.write(HeaderItem.MAGIC_VALUES[0]);
+        // Write the appropriate header.
+        writer.write(HeaderItem.getMagicForApi(opcodes.api));
 
         // checksum placeholder
         writer.writeInt(0);
