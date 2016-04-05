@@ -54,9 +54,9 @@ public class ReflectionMethod extends BaseMethodReference implements Method {
     }
 
     @Nonnull @Override public List<? extends MethodParameter> getParameters() {
-        final java.lang.reflect.Method method = this.method;
+        final java.lang.reflect.Method methodLocal = this.method;
         return new AbstractList<MethodParameter>() {
-            private final Class[] parameters = method.getParameterTypes();
+            private final Class[] parameters = methodLocal.getParameterTypes();
 
             @Override public MethodParameter get(final int index) {
                 return new BaseMethodParameter() {

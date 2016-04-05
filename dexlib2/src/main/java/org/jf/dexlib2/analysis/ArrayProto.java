@@ -121,8 +121,8 @@ public class ArrayProto implements TypeProto {
                 return classPath.getClass(makeArrayType(mergedClass.getType(), dimensions));
             }
 
-            int dimensions = Math.min(this.dimensions, ((ArrayProto)other).dimensions);
-            return classPath.getClass(makeArrayType("Ljava/lang/Object;", dimensions));
+            int dimensionsLocal = Math.min(this.dimensions, ((ArrayProto)other).dimensions);
+            return classPath.getClass(makeArrayType("Ljava/lang/Object;", dimensionsLocal));
         }
 
         if (other instanceof ClassProto) {

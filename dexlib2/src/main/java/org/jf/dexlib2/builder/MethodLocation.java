@@ -111,12 +111,12 @@ public class MethodLocation {
         if (this.debugItems != null || other.labels != null) {
             // We need to keep the debug items in the same order. We add the other debug items to this list, then reassign
             // the list.
-            List<BuilderDebugItem> debugItems = getDebugItems(true);
-            for (BuilderDebugItem debugItem: debugItems) {
+            List<BuilderDebugItem> debugItemsLocal = getDebugItems(true);
+            for (BuilderDebugItem debugItem: debugItemsLocal) {
                 debugItem.location = other;
             }
-            debugItems.addAll(other.getDebugItems(false));
-            other.debugItems = debugItems;
+            debugItemsLocal.addAll(other.getDebugItems(false));
+            other.debugItems = debugItemsLocal;
             this.debugItems = null;
         }
     }

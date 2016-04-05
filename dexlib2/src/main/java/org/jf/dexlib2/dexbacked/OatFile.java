@@ -81,25 +81,25 @@ public class OatFile extends BaseDexBuffer {
             throw new InvalidOatFileException(String.format("Invalid word-size value: %x", buf[5]));
         }
 
-        OatHeader oatHeader = null;
+        OatHeader oatHeaderLocal = null;
         SymbolTable symbolTable = getSymbolTable();
         for (Symbol symbol: symbolTable.getSymbols()) {
             if (symbol.getName().equals("oatdata")) {
-                oatHeader = new OatHeader(symbol.getFileOffset());
+                oatHeaderLocal = new OatHeader(symbol.getFileOffset());
                 break;
             }
         }
 
-        if (oatHeader == null) {
+        if (oatHeaderLocal == null) {
             throw new InvalidOatFileException("Oat file has no oatdata symbol");
         }
-        this.oatHeader = oatHeader;
+        this.oatHeader = oatHeaderLocal;
 
-        if (!oatHeader.isValid()) {
+        if (!oatHeaderLocal.isValid()) {
             throw new InvalidOatFileException("Invalid oat magic value");
         }
 
-        this.opcodes = Opcodes.forArtVersion(oatHeader.getVersion());
+        this.opcodes = Opcodes.forArtVersion(oatHeaderLocal.getVersion());
     }
 
     private static void verifyMagic(byte[] buf) {

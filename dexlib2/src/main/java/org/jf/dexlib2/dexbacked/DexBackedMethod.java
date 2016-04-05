@@ -122,8 +122,8 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     @Nonnull
     @Override
     public List<? extends MethodParameter> getParameters() {
-        int parametersOffset = getParametersOffset();
-        if (parametersOffset > 0) {
+        int parametersOffsetLocal = getParametersOffset();
+        if (parametersOffsetLocal > 0) {
             final List<String> parameterTypes = getParameterTypes();
 
             return new AbstractForwardSequentialList<MethodParameter>() {
@@ -158,10 +158,10 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     @Nonnull
     @Override
     public List<String> getParameterTypes() {
-        final int parametersOffset = getParametersOffset();
-        if (parametersOffset > 0) {
-            final int parameterCount = dexFile.readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
-            final int paramListStart = parametersOffset + TypeListItem.LIST_OFFSET;
+        final int parametersOffsetLocal = getParametersOffset();
+        if (parametersOffsetLocal > 0) {
+            final int parameterCount = dexFile.readSmallUint(parametersOffsetLocal + TypeListItem.SIZE_OFFSET);
+            final int paramListStart = parametersOffsetLocal + TypeListItem.LIST_OFFSET;
             return new FixedSizeList<String>() {
                 @Nonnull
                 @Override
