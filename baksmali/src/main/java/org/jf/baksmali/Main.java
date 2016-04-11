@@ -61,6 +61,10 @@ public class Main {
         jc.addCommand("help", new HelpCommand(jc), "h");
         jc.addCommand("hlep", new HlepCommand(jc));
 
+        ListCommand listCommand = new ListCommand(jc);
+        jc.addCommand("list", listCommand, "l");
+        listCommand.registerSubCommands();
+
         jc.parse(args);
 
         if (jc.getParsedCommand() == null || main.help) {
