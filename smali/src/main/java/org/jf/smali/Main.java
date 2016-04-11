@@ -76,7 +76,7 @@ public class Main {
     }
 
     protected static void version() {
-        System.out.println("smali " + VERSION + " (http://smali.googlecode.com)");
+        System.out.println("smali " + VERSION + " (http://smali.org)");
         System.out.println("Copyright (C) 2010 Ben Gruver (JesusFreke@JesusFreke.com)");
         System.out.println("BSD license (http://www.opensource.org/licenses/bsd-license.php)");
         System.exit(0);
