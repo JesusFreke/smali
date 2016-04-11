@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-dependencies {
-    compile depends.commons_cli
-    compile depends.findbugs
-    compile depends.guava
-    compile depends.jcommander
-    testCompile depends.junit
-}
+package org.jf.util.jcommander;
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
-            }
-        }
+import com.beust.jcommander.converters.IParameterSplitter;
+
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * A JCommander parameter splitter that splits a parameter value by either commas or colons
+ */
+public class CommaColonParameterSplitter implements IParameterSplitter {
+    @Override
+    public List<String> split(String value) {
+        return Arrays.asList(value.split(":|,"));
     }
 }

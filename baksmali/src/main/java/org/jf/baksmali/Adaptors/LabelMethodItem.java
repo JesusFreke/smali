@@ -28,18 +28,18 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.baksmaliOptions;
+import org.jf.baksmali.BaksmaliOptions;
 import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public class LabelMethodItem extends MethodItem {
-    private final baksmaliOptions options;
+    private final BaksmaliOptions options;
     private final String labelPrefix;
     private int labelSequence;
 
-    public LabelMethodItem(@Nonnull baksmaliOptions options, int codeAddress, @Nonnull String labelPrefix) {
+    public LabelMethodItem(@Nonnull BaksmaliOptions options, int codeAddress, @Nonnull String labelPrefix) {
         super(codeAddress);
         this.options = options;
         this.labelPrefix = labelPrefix;
@@ -76,7 +76,7 @@ public class LabelMethodItem extends MethodItem {
     public boolean writeTo(IndentingWriter writer) throws IOException {
         writer.write(':');
         writer.write(labelPrefix);
-        if (options.useSequentialLabels) {
+        if (options.sequentialLabels) {
             writer.printUnsignedLongAsHex(labelSequence);
         } else {
             writer.printUnsignedLongAsHex(this.getLabelAddress());

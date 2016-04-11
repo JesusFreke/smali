@@ -62,8 +62,8 @@ public class ImplicitReferenceTest {
                 "return-void\n" +
                 ".end method\n";
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = true;
+        BaksmaliOptions options = new BaksmaliOptions();
+        options.implicitReferences = true;
 
         BaksmaliTestUtils.assertSmaliCompiledEquals(source, expected, options);
     }
@@ -93,8 +93,8 @@ public class ImplicitReferenceTest {
                 "    return-void\n" +
                 ".end method\n";
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = false;
+        BaksmaliOptions options = new BaksmaliOptions();
+        options.implicitReferences = false;
 
         BaksmaliTestUtils.assertSmaliCompiledEquals(source, expected, options);
     }
@@ -118,8 +118,8 @@ public class ImplicitReferenceTest {
                 ".field public static field3:Ljava/lang/reflect/Method; = I()V\n" +
                 ".field public static field4:Ljava/lang/Class; = I\n";
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = true;
+        BaksmaliOptions options = new BaksmaliOptions();
+        options.implicitReferences = true;
 
         BaksmaliTestUtils.assertSmaliCompiledEquals(source, expected, options);
     }
@@ -143,8 +143,8 @@ public class ImplicitReferenceTest {
                 ".field public static field3:Ljava/lang/reflect/Method; = LHelloWorld;->I()V\n" +
                 ".field public static field4:Ljava/lang/Class; = I\n";
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = false;
+        BaksmaliOptions options = new BaksmaliOptions();
+        options.implicitReferences = false;
 
         BaksmaliTestUtils.assertSmaliCompiledEquals(source, expected, options);
     }
@@ -174,8 +174,8 @@ public class ImplicitReferenceTest {
                 "    return-void\n" +
                 ".end method\n";
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = true;
+        BaksmaliOptions options = new BaksmaliOptions();
+        options.implicitReferences = true;
 
         BaksmaliTestUtils.assertSmaliCompiledEquals(source, expected, options);
     }
@@ -205,8 +205,8 @@ public class ImplicitReferenceTest {
                 "    return-void\n" +
                 ".end method\n";
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = false;
+        BaksmaliOptions options = new BaksmaliOptions();
+        options.implicitReferences = false;
 
         BaksmaliTestUtils.assertSmaliCompiledEquals(source, expected, options);
     }
@@ -228,8 +228,8 @@ public class ImplicitReferenceTest {
                 ".field public static field2:Ljava/lang/reflect/Field; = V:I\n" +
                 ".field public static field3:Ljava/lang/reflect/Field; = I:I\n";
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = true;
+        BaksmaliOptions options = new BaksmaliOptions();
+        options.implicitReferences = true;
 
         BaksmaliTestUtils.assertSmaliCompiledEquals(source, expected, options);
     }
@@ -251,8 +251,8 @@ public class ImplicitReferenceTest {
                 ".field public static field2:Ljava/lang/reflect/Field; = LHelloWorld;->V:I\n" +
                 ".field public static field3:Ljava/lang/reflect/Field; = LHelloWorld;->I:I\n";
 
-        baksmaliOptions options = new baksmaliOptions();
-        options.useImplicitReferences = false;
+        BaksmaliOptions options = new BaksmaliOptions();
+        options.implicitReferences = false;
 
         BaksmaliTestUtils.assertSmaliCompiledEquals(source, expected, options);
     }

@@ -35,10 +35,10 @@ import org.junit.Test;
 
 public class LambdaTest extends IdenticalRoundtripTest {
 
-    private baksmaliOptions createOptions() {
-        baksmaliOptions options = new baksmaliOptions();
+    private BaksmaliOptions createOptions() {
+        BaksmaliOptions options = new BaksmaliOptions();
         options.apiLevel = 23;  // since we need at least level 23 for lambda opcodes
-        options.experimental = true; // since these opcodes aren't implemented in runtime yet);
+        options.experimentalOpcodes = true; // since these opcodes aren't implemented in runtime yet);
         return options;
     }
 

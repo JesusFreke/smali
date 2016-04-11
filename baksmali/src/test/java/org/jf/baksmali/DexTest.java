@@ -65,7 +65,7 @@ public abstract class DexTest {
     }
 
     @Nonnull
-    protected DexBackedDexFile getInputDexFile(@Nonnull String testName, @Nonnull baksmaliOptions options) {
+    protected DexBackedDexFile getInputDexFile(@Nonnull String testName, @Nonnull BaksmaliOptions options) {
         try {
             // Load file from resources as a stream
             byte[] inputBytes = BaksmaliTestUtils.readResourceBytesFully(getInputFilename(testName));

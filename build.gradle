@@ -109,7 +109,8 @@ subprojects {
                 jflex_plugin: 'co.tomlee.gradle.plugins:gradle-jflex-plugin:0.0.2',
                 proguard_gradle: 'net.sf.proguard:proguard-gradle:5.2.1',
                 dx: 'com.google.android.tools:dx:1.7',
-                gson: 'com.google.code.gson:gson:2.3.1'
+                gson: 'com.google.code.gson:gson:2.3.1',
+                jcommander: 'com.beust:jcommander:1.48'
          ]
     }
 

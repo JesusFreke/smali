@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.baksmaliOptions;
+import org.jf.baksmali.BaksmaliOptions;
 import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
@@ -38,11 +38,11 @@ import java.io.IOException;
  * This class contains the logic used for formatting registers
  */
 public class RegisterFormatter {
-    @Nonnull public final baksmaliOptions options;
+    @Nonnull public final BaksmaliOptions options;
     public final int registerCount;
     public final int parameterRegisterCount;
 
-    public RegisterFormatter(@Nonnull baksmaliOptions options, int registerCount, int parameterRegisterCount) {
+    public RegisterFormatter(@Nonnull BaksmaliOptions options, int registerCount, int parameterRegisterCount) {
         this.options = options;
         this.registerCount = registerCount;
         this.parameterRegisterCount = parameterRegisterCount;
@@ -58,7 +58,7 @@ public class RegisterFormatter {
      * @param lastRegister the last register in the range
      */
     public void writeRegisterRange(IndentingWriter writer, int startRegister, int lastRegister) throws IOException {
-        if (!options.noParameterRegisters) {
+        if (options.parameterRegisters) {
             assert startRegister <= lastRegister;
 
             if (startRegister >= registerCount - parameterRegisterCount) {
@@ -86,7 +86,7 @@ public class RegisterFormatter {
      * @param register the register number
      */
     public void writeTo(IndentingWriter writer, int register) throws IOException {
-        if (!options.noParameterRegisters) {
+        if (options.parameterRegisters) {
             if (register >= registerCount - parameterRegisterCount) {
                 writer.write('p');
                 writer.printSignedIntAsDec((register - (registerCount - parameterRegisterCount)));

@@ -33,8 +33,89 @@ package org.jf.util;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.text.BreakIterator;
+import java.util.Iterator;
 
 public class StringWrapper {
+    /**
+     * Splits the given string into lines of maximum width maxWidth. The splitting is done using the current locale's
+     * rules for splitting lines.
+     *
+     * @param string The string to split
+     * @param maxWidth The maximum length of any line
+     * @return An iterable of Strings containing the wrapped lines
+     */
+    public static Iterable<String> wrapStringOnBreaks(@Nonnull final String string, final int maxWidth) {
+        final BreakIterator breakIterator = BreakIterator.getLineInstance();
+        breakIterator.setText(string);
+
+        return new Iterable<String>() {
+            @Override
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    private int currentLineStart = 0;
+                    private boolean nextLineSet = false;
+                    private String nextLine;
+
+                    @Override
+                    public boolean hasNext() {
+                        if (!nextLineSet) {
+                            calculateNext();
+                        }
+                        return nextLine != null;
+                    }
+
+                    private void calculateNext() {
+                        int lineEnd = currentLineStart;
+                        while (true) {
+                            lineEnd = breakIterator.following(lineEnd);
+                            if (lineEnd == BreakIterator.DONE) {
+                                lineEnd = breakIterator.last();
+                                if (lineEnd <= currentLineStart) {
+                                    nextLine = null;
+                                    nextLineSet = true;
+                                    return;
+                                }
+                                break;
+                            }
+
+                            if (lineEnd - currentLineStart > maxWidth) {
+                                lineEnd = breakIterator.preceding(lineEnd);
+                                if (lineEnd <= currentLineStart) {
+                                    lineEnd = currentLineStart + maxWidth;
+                                }
+                                break;
+                            }
+
+                            if (string.charAt(lineEnd-1) == '\n') {
+                                nextLine = string.substring(currentLineStart, lineEnd-1);
+                                nextLineSet = true;
+                                currentLineStart = lineEnd;
+                                return;
+                            }
+                        }
+                        nextLine = string.substring(currentLineStart, lineEnd);
+                        nextLineSet = true;
+                        currentLineStart = lineEnd;
+                    }
+
+                    @Override
+                    public String next() {
+                        String ret = nextLine;
+                        nextLine = null;
+                        nextLineSet = false;
+                        return ret;
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+        };
+    }
+
     /**
      * Splits the given string into lines using on any embedded newlines, and wrapping the text as needed to conform to
      * the given maximum line width.

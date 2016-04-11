@@ -28,8 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import com.google.common.collect.Lists;
-import org.jf.baksmali.baksmaliOptions;
+import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.InvalidItemIndex;
@@ -46,16 +45,16 @@ import java.io.IOException;
 import java.util.*;
 
 public class ClassDefinition {
-    @Nonnull public final baksmaliOptions options;
+    @Nonnull public final BaksmaliOptions options;
     @Nonnull public final ClassDef classDef;
     @Nonnull private final HashSet<String> fieldsSetInStaticConstructor;
 
     protected boolean validationErrors;
 
-    public ClassDefinition(@Nonnull baksmaliOptions options, @Nonnull ClassDef classDef) {
+    public ClassDefinition(@Nonnull BaksmaliOptions options, @Nonnull ClassDef classDef) {
         this.options = options;
         this.classDef = classDef;
-        fieldsSetInStaticConstructor = findFieldsSetInStaticConstructor();
+        fieldsSetInStaticConstructor = findFieldsSetInStaticConstructor(classDef);
     }
 
     public boolean hadValidationErrors() {
@@ -63,7 +62,7 @@ public class ClassDefinition {
     }
 
     @Nonnull
-    private HashSet<String> findFieldsSetInStaticConstructor() {
+    private static HashSet<String> findFieldsSetInStaticConstructor(@Nonnull ClassDef classDef) {
         HashSet<String> fieldsSetInStaticConstructor = new HashSet<String>();
 
         for (Method method: classDef.getDirectMethods()) {
@@ -166,7 +165,7 @@ public class ClassDefinition {
             writer.write("# annotations\n");
 
             String containingClass = null;
-            if (options.useImplicitReferences) {
+            if (options.implicitReferences) {
                 containingClass = classDef.getType();
             }
 

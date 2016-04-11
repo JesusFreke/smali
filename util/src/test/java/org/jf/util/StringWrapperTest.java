@@ -31,10 +31,34 @@
 
 package org.jf.util;
 
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.List;
+
 public class StringWrapperTest {
+    @Test
+    public void testWrapStringByWords() {
+        validateResult2(new String[]{"abc", "abcdef", "abcdef"},
+                "abc\nabcdefabcdef", 6);
+
+        validateResult2(new String[]{"abc", "abcdef", " ", "abcdef"},
+                "abc\nabcdef abcdef", 6);
+
+        validateResult2(new String[]{"abc", "abcde ", "fabcde", "f"},
+                "abc\nabcde fabcdef", 6);
+
+        validateResult2(new String[]{"abc def ghi ", "kjl mon pqr ", "stu vwx yz"},
+                "abc def ghi kjl mon pqr stu vwx yz", 14);
+
+        validateResult2(new String[]{"abcdefg", "hikjlmo", "npqrstu", "vwxyz"},
+                "abcdefghikjlmonpqrstuvwxyz", 7);
+
+        validateResult2(new String[]{"abc", "defhig"},
+                "abc\ndefhig", 20);
+    }
+
     @Test
     public void testWrapString() {
         validateResult(
@@ -113,6 +137,17 @@ public class StringWrapperTest {
             }
             Assert.assertTrue(i < expected.length);
             Assert.assertEquals(expected[i], actual[i]);
+        }
+    }
+
+    public static void validateResult2(String[] expected, String textToWrap, int maxWidth) {
+        List<String> result = Lists.newArrayList(StringWrapper.wrapStringOnBreaks(textToWrap, maxWidth));
+
+        Assert.assertEquals(expected.length, result.size());
+        int i;
+        for (i=0; i<result.size(); i++) {
+            Assert.assertTrue(i < expected.length);
+            Assert.assertEquals(expected[i], result.get(i));
         }
     }
 }

@@ -42,7 +42,7 @@ import org.junit.Test;
 public class FieldGapOrderTest extends DexTest {
     @Test
     public void testOldOrder() {
-        DexFile dexFile = getInputDexFile("FieldGapOrder", new baksmaliOptions());
+        DexFile dexFile = getInputDexFile("FieldGapOrder", new BaksmaliOptions());
         Assert.assertEquals(3, dexFile.getClasses().size());
 
         ClassPath classPath = new ClassPath(Lists.newArrayList(new DexClassProvider(dexFile)), false, 66);
@@ -56,7 +56,7 @@ public class FieldGapOrderTest extends DexTest {
 
     @Test
     public void testNewOrder() {
-        DexFile dexFile = getInputDexFile("FieldGapOrder", new baksmaliOptions());
+        DexFile dexFile = getInputDexFile("FieldGapOrder", new BaksmaliOptions());
         Assert.assertEquals(3, dexFile.getClasses().size());
 
         ClassPath classPath = new ClassPath(Lists.newArrayList(new DexClassProvider(dexFile)), false, 67);

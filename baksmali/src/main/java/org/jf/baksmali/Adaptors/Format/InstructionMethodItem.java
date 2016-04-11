@@ -32,7 +32,7 @@ import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.baksmali.Adaptors.MethodDefinition.InvalidSwitchPayload;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Renderers.LongRenderer;
-import org.jf.baksmali.baksmaliOptions;
+import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
@@ -67,7 +67,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     private boolean isAllowedOdex(@Nonnull Opcode opcode) {
-        baksmaliOptions options = methodDef.classDef.options;
+        BaksmaliOptions options = methodDef.classDef.options;
         if (options.allowOdex) {
             return true;
         }
@@ -104,7 +104,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 Reference reference = referenceInstruction.getReference();
 
                 String classContext = null;
-                if (methodDef.classDef.options.useImplicitReferences) {
+                if (methodDef.classDef.options.implicitReferences) {
                     classContext = methodDef.method.getDefiningClass();
                 }
 

@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
-import org.jf.baksmali.baksmaliOptions;
+import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
@@ -41,7 +41,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 public class FieldDefinition {
-    public static void writeTo(baksmaliOptions options, IndentingWriter writer, Field field,
+    public static void writeTo(BaksmaliOptions options, IndentingWriter writer, Field field,
                                boolean setInStaticConstructor) throws IOException {
         EncodedValue initialValue = field.getInitialValue();
         int accessFlags = field.getAccessFlags();
@@ -68,7 +68,7 @@ public class FieldDefinition {
             writer.write(" = ");
 
             String containingClass = null;
-            if (options.useImplicitReferences) {
+            if (options.implicitReferences) {
                 containingClass = field.getDefiningClass();
             }
 
@@ -82,7 +82,7 @@ public class FieldDefinition {
             writer.indent(4);
 
             String containingClass = null;
-            if (options.useImplicitReferences) {
+            if (options.implicitReferences) {
                 containingClass = field.getDefiningClass();
             }
 

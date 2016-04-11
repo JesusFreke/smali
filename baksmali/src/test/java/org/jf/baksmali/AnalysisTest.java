@@ -87,12 +87,12 @@ public class AnalysisTest {
 
         DexFile dexFile = DexFileFactory.loadDexFile(findResource(dexFilePath), 15, false);
 
-        baksmaliOptions options = new baksmaliOptions();
+        BaksmaliOptions options = new BaksmaliOptions();
         if (registerInfo) {
-            options.registerInfo = baksmaliOptions.ALL | baksmaliOptions.FULLMERGE;
+            options.registerInfo = BaksmaliOptions.ALL | BaksmaliOptions.FULLMERGE;
             options.classPath = new ClassPath();
         }
-        options.useImplicitReferences = false;
+        options.implicitReferences = false;
 
         for (ClassDef classDef: dexFile.getClasses()) {
             StringWriter stringWriter = new StringWriter();
