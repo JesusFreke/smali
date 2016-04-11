@@ -80,8 +80,8 @@ dependencies {
     compile project(':util')
     compile project(':dexlib2')
     compile depends.antlr_runtime
+    compile depends.jcommander
     compile depends.stringtemplate
-    compile depends.commons_cli
 
     testCompile depends.junit
 
@@ -100,7 +100,7 @@ task fatJar(type: Jar, dependsOn: jar) {
     classifier = 'fat'
 
     manifest {
-        attributes('Main-Class': 'org.jf.smali.main')
+        attributes('Main-Class': 'org.jf.smali.Main')
     }
 
     doLast {

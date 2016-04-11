@@ -53,21 +53,21 @@ public class DumpCommand implements Command {
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information for this command.")
-    public boolean help;
+    private boolean help;
 
     @Parameter(names = {"-a", "--api"},
             description = "The numeric api level of the file being disassembled.")
-    public int apiLevel = 15;
+    private int apiLevel = 15;
 
     @Parameter(names = "--experimental",
             description = "Enable experimental opcodes to be disassembled, even if they aren't necessarily " +
                     "supported in the Android runtime yet.")
-    public boolean experimentalOpcodes = false;
+    private boolean experimentalOpcodes = false;
 
     @Parameter(description = "<file> - A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
             "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
             "colon. E.g. \"something.apk:classes2.dex\"")
-    public String input;
+    private String input;
 
     public DumpCommand(@Nonnull JCommander jc) {
         this.jc = jc;

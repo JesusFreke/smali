@@ -31,13 +31,38 @@
 
 package org.jf.smali;
 
-public class SmaliOptions {
-    public int apiLevel = 15;
-    public String outputDexFile = "out.dex";
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 
-    public int jobs = Runtime.getRuntime().availableProcessors();
-    public boolean allowOdexOpcodes = false;
-    public boolean verboseErrors = false;
-    public boolean printTokens = false;
-    public boolean experimentalOpcodes = false;
+import javax.annotation.Nonnull;
+import java.util.List;
+
+@Parameters(commandDescription = "Shows usage information")
+public class HelpCommand implements Command {
+    @Nonnull private final JCommander jc;
+
+    public HelpCommand(@Nonnull JCommander jc) {
+        this.jc = jc;
+    }
+
+    @Parameter(description = "If specified, only show the usage information for the given commands")
+    private List<String> commands;
+
+    public void run() {
+        if (commands == null || commands.isEmpty()) {
+            jc.usage();
+        } else {
+            for (String cmd : commands) {
+                jc.usage(cmd);
+            }
+        }
+    }
+
+    @Parameters(hidden =  true)
+    public static class HlepCommand extends HelpCommand {
+        public HlepCommand(@Nonnull JCommander jc) {
+            super(jc);
+        }
+    }
 }

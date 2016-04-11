@@ -49,6 +49,7 @@ dependencies {
     compile project(':util')
     compile depends.findbugs
     compile depends.guava
+    compile depends.commons_cli
 
     testCompile depends.junit
 
