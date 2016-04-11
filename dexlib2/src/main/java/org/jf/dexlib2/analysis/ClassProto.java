@@ -373,7 +373,7 @@ public class ClassProto implements TypeProto {
         return -1;
     }
 
-    @Nonnull SparseArray<FieldReference> getInstanceFields() {
+    @Nonnull public SparseArray<FieldReference> getInstanceFields() {
         if (classPath.isArt()) {
             return artInstanceFieldsSupplier.get();
         } else {
@@ -759,7 +759,7 @@ public class ClassProto implements TypeProto {
         throw new ExceptionWithContext("Invalid type: %s", type);
     }
 
-    @Nonnull List<Method> getVtable() {
+    @Nonnull public List<Method> getVtable() {
         return vtableSupplier.get();
     }
 

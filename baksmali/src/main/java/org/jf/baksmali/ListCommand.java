@@ -59,6 +59,8 @@ public class ListCommand implements Command {
         subJc.addCommand("types", new ListTypesCommand(subJc), "type", "t");
         subJc.addCommand("classes", new ListClassesCommand(subJc), "class", "c");
         subJc.addCommand("dex", new ListDexCommand(subJc), "d");
+        subJc.addCommand("vtables", new ListVtablesCommand(subJc), "vtable", "v");
+        subJc.addCommand("fieldoffsets", new ListFieldOffsetsCommand(subJc), "fieldoffset", "fo");
     }
 
     @Override public void run() {
