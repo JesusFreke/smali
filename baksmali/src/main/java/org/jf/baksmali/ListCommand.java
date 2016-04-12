@@ -61,6 +61,7 @@ public class ListCommand implements Command {
         subJc.addCommand("dex", new ListDexCommand(subJc), "d");
         subJc.addCommand("vtables", new ListVtablesCommand(subJc), "vtable", "v");
         subJc.addCommand("fieldoffsets", new ListFieldOffsetsCommand(subJc), "fieldoffset", "fo");
+        subJc.addCommand("classpath", new ListClassPathCommand(subJc), "bootclasspath", "cp", "bcp");
     }
 
     @Override public void run() {
