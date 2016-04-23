@@ -33,6 +33,7 @@ package org.jf.util;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.PrintStream;
 import java.text.BreakIterator;
 import java.util.Iterator;
 
@@ -46,6 +47,7 @@ public class StringWrapper {
      * @return An iterable of Strings containing the wrapped lines
      */
     public static Iterable<String> wrapStringOnBreaks(@Nonnull final String string, final int maxWidth) {
+        // TODO: should we strip any trailing newlines?
         final BreakIterator breakIterator = BreakIterator.getLineInstance();
         breakIterator.setText(string);
 
@@ -183,5 +185,15 @@ public class StringWrapper {
         String[] newArr = new String[newLength];
         System.arraycopy(arr, 0, newArr, 0, arr.length);
         return newArr;
+    }
+
+    public static void printWrappedString(@Nonnull PrintStream stream, @Nonnull String string) {
+        printWrappedString(stream, string, ConsoleUtil.getConsoleWidth());
+    }
+
+    public static void printWrappedString(@Nonnull PrintStream stream, @Nonnull String string, int maxWidth) {
+        for (String str: wrapStringOnBreaks(string, maxWidth)) {
+            stream.println(str);
+        }
     }
 }

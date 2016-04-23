@@ -96,6 +96,10 @@ public class ListVtablesCommand extends DexInputCommand {
                     "supported in the Android runtime yet.")
     private boolean experimentalOpcodes = false;
 
+    @Parameter(names = "--classes",
+            description = "A comma separated list of classes: Only print the vtable for these classes")
+    private String classes = null;
+
     public ListVtablesCommand(@Nonnull JCommander jc) {
         this.jc = jc;
     }
@@ -121,26 +125,37 @@ public class ListVtablesCommand extends DexInputCommand {
         }
 
         try {
-            for (ClassDef classDef : dexFile.getClasses()) {
-                ClassProto classProto = (ClassProto) options.classPath.getClass(classDef);
-                List<Method> methods = classProto.getVtable();
-                String className = "Class " + classDef.getType() + " extends " + classDef.getSuperclass() + " : " + methods.size() + " methods\n";
-                System.out.write(className.getBytes());
-                for (int i = 0; i < methods.size(); i++) {
-                    Method method = methods.get(i);
-
-                    String methodString = i + ":" + method.getDefiningClass() + "->" + method.getName() + "(";
-                    for (CharSequence parameter : method.getParameterTypes()) {
-                        methodString += parameter;
-                    }
-                    methodString += ")" + method.getReturnType() + "\n";
-                    System.out.write(methodString.getBytes());
+            if (classes != null) {
+                for (String cls: classes.split(",")) {
+                    listClassVtable((ClassProto)options.classPath.getClass(cls));
                 }
-                System.out.write("\n".getBytes());
+                return;
+            }
+
+            for (ClassDef classDef : dexFile.getClasses()) {
+                listClassVtable((ClassProto)options.classPath.getClass(classDef));
             }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private void listClassVtable(ClassProto classProto) throws IOException {
+        List<Method> methods = classProto.getVtable();
+        String className = "Class " + classProto.getType() + " extends " + classProto.getSuperclass() +
+                " : " + methods.size() + " methods\n";
+        System.out.write(className.getBytes());
+        for (int i = 0; i < methods.size(); i++) {
+            Method method = methods.get(i);
+
+            String methodString = i + ":" + method.getDefiningClass() + "->" + method.getName() + "(";
+            for (CharSequence parameter : method.getParameterTypes()) {
+                methodString += parameter;
+            }
+            methodString += ")" + method.getReturnType() + "\n";
+            System.out.write(methodString.getBytes());
+        }
+        System.out.write("\n".getBytes());
     }
 
     protected BaksmaliOptions getOptions(DexFile dexFile) {
@@ -150,8 +165,8 @@ public class ListVtablesCommand extends DexInputCommand {
 
         try {
             options.classPath = ClassPath.fromClassPath(classPathDirectories,
-                    Iterables.concat(bootClassPath, classPath), dexFile, apiLevel,
-                    checkPackagePrivateAccess, experimentalOpcodes);
+                    Iterables.concat(bootClassPath, classPath), dexFile, apiLevel, checkPackagePrivateAccess,
+                    experimentalOpcodes);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);

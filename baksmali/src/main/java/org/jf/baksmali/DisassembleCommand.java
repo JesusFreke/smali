@@ -43,7 +43,6 @@ import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
-import org.jf.util.ConsoleUtil;
 import org.jf.util.StringWrapper;
 import org.jf.util.jcommander.CommaColonParameterSplitter;
 
@@ -184,10 +183,9 @@ public class DisassembleCommand extends DexInputCommand {
         }
 
         if (showDeodexWarning() && dexFile.hasOdexOpcodes()) {
-            System.err.println(StringWrapper.wrapStringOnBreaks(
-                    "Warning: You are disassembling an odex/oat file without deodexing it. " +
-                    "You won't be able to re-assemble the results unless you deodex it. See " +
-                    "\"baksmali help deodex\"", ConsoleUtil.getConsoleWidth()));
+            StringWrapper.printWrappedString(System.err,
+                    "Warning: You are disassembling an odex/oat file without deodexing it. You won't be able to " +
+                            "re-assemble the results unless you deodex it. See \"baksmali help deodex\"");
         }
 
         if (needsClassPath() && bootClassPath.isEmpty()) {
