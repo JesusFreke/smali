@@ -51,11 +51,12 @@ import org.jf.dexlib2.immutable.instruction.ImmutableInstruction35mi;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.List;
 
 public class CustomMethodInlineTableTest {
     @Test
-    public void testCustomMethodInlineTable_Virtual() {
+    public void testCustomMethodInlineTable_Virtual() throws IOException {
         List<ImmutableInstruction> instructions = Lists.newArrayList(
                 new ImmutableInstruction35mi(Opcode.EXECUTE_INLINE, 1, 0, 0, 0, 0, 0, 0),
                 new ImmutableInstruction10x(Opcode.RETURN_VOID));
@@ -69,8 +70,9 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
-                15, false);
+        ClassPath classPath = ClassPath.loadClassPath(ImmutableList.<String>of(),
+                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile, 15, false, false);
+
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
 
@@ -82,7 +84,7 @@ public class CustomMethodInlineTableTest {
     }
 
     @Test
-    public void testCustomMethodInlineTable_Static() {
+    public void testCustomMethodInlineTable_Static() throws IOException {
         List<ImmutableInstruction> instructions = Lists.newArrayList(
                 new ImmutableInstruction35mi(Opcode.EXECUTE_INLINE, 1, 0, 0, 0, 0, 0, 0),
                 new ImmutableInstruction10x(Opcode.RETURN_VOID));
@@ -96,8 +98,8 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
-                15, false);
+        ClassPath classPath = ClassPath.loadClassPath(ImmutableList.<String>of(),
+                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile, 15, false, false);
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
 
@@ -109,7 +111,7 @@ public class CustomMethodInlineTableTest {
     }
 
     @Test
-    public void testCustomMethodInlineTable_Direct() {
+    public void testCustomMethodInlineTable_Direct() throws IOException {
         List<ImmutableInstruction> instructions = Lists.newArrayList(
                 new ImmutableInstruction35mi(Opcode.EXECUTE_INLINE, 1, 0, 0, 0, 0, 0, 0),
                 new ImmutableInstruction10x(Opcode.RETURN_VOID));
@@ -123,8 +125,8 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.fromClassPath(ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile,
-                15, false);
+        ClassPath classPath = ClassPath.loadClassPath(ImmutableList.<String>of(),
+                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile, 15, false, false);
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
 

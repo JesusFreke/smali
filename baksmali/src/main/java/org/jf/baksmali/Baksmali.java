@@ -36,7 +36,6 @@ import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.List;
 import java.util.concurrent.*;
@@ -154,76 +153,5 @@ public class Baksmali {
             }
         }
         return true;
-    }
-
-    @Nonnull
-    public static List<String> getDefaultBootClassPath(int apiLevel) {
-        if (apiLevel < 9) {
-            return Lists.newArrayList(
-                    "/system/framework/core.jar",
-                    "/system/framework/ext.jar",
-                    "/system/framework/framework.jar",
-                    "/system/framework/android.policy.jar",
-                    "/system/framework/services.jar");
-        } else if (apiLevel < 12) {
-            return Lists.newArrayList(
-                    "/system/framework/core.jar",
-                    "/system/framework/bouncycastle.jar",
-                    "/system/framework/ext.jar",
-                    "/system/framework/framework.jar",
-                    "/system/framework/android.policy.jar",
-                    "/system/framework/services.jar",
-                    "/system/framework/core-junit.jar");
-        } else if (apiLevel < 14) {
-            return Lists.newArrayList(
-                    "/system/framework/core.jar",
-                    "/system/framework/apache-xml.jar",
-                    "/system/framework/bouncycastle.jar",
-                    "/system/framework/ext.jar",
-                    "/system/framework/framework.jar",
-                    "/system/framework/android.policy.jar",
-                    "/system/framework/services.jar",
-                    "/system/framework/core-junit.jar");
-        } else if (apiLevel < 16) {
-            return Lists.newArrayList(
-                    "/system/framework/core.jar",
-                    "/system/framework/core-junit.jar",
-                    "/system/framework/bouncycastle.jar",
-                    "/system/framework/ext.jar",
-                    "/system/framework/framework.jar",
-                    "/system/framework/android.policy.jar",
-                    "/system/framework/services.jar",
-                    "/system/framework/apache-xml.jar",
-                    "/system/framework/filterfw.jar");
-        } else if (apiLevel < 21) {
-            // this is correct as of api 17/4.2.2
-            return Lists.newArrayList(
-                    "/system/framework/core.jar",
-                    "/system/framework/core-junit.jar",
-                    "/system/framework/bouncycastle.jar",
-                    "/system/framework/ext.jar",
-                    "/system/framework/framework.jar",
-                    "/system/framework/telephony-common.jar",
-                    "/system/framework/mms-common.jar",
-                    "/system/framework/android.policy.jar",
-                    "/system/framework/services.jar",
-                    "/system/framework/apache-xml.jar");
-        } else { // api >= 21
-            // TODO: verify, add new ones?
-            return Lists.newArrayList(
-                    "/system/framework/core-libart.jar",
-                    "/system/framework/conscrypt.jar",
-                    "/system/framework/okhttp.jar",
-                    "/system/framework/core-junit.jar",
-                    "/system/framework/bouncycastle.jar",
-                    "/system/framework/ext.jar",
-                    "/system/framework/framework.jar",
-                    "/system/framework/telephony-common.jar",
-                    "/system/framework/voip-common.jar",
-                    "/system/framework/ims-common.jar",
-                    "/system/framework/mms-common.jar",
-                    "/system/framework/android.policy.jar",
-                    "/system/framework/apache-xml.jar");
-        }
     }
 }

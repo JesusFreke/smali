@@ -35,12 +35,12 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.validators.PositiveInteger;
-import com.google.common.collect.Iterables;
+import org.jf.dexlib2.DexFileFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
+import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.util.StringWrapper;
@@ -48,6 +48,7 @@ import org.jf.util.jcommander.CommaColonParameterSplitter;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +76,7 @@ public class DisassembleCommand extends DexInputCommand {
                     "bootclasspath files that baksmali would otherwise perform. This is analogous to Android's " +
                     "BOOTCLASSPATH environment variable.",
             splitter = CommaColonParameterSplitter.class)
-    private List<String> bootClassPath = new ArrayList<String>();
+    private List<String> bootClassPath = null;
 
     @Parameter(names = {"-c", "--classpath"},
             description = "A comma/colon separated list of additional jar/oat files to include in the classpath " +
@@ -85,7 +86,8 @@ public class DisassembleCommand extends DexInputCommand {
     private List<String> classPath = Lists.newArrayList();
 
     @Parameter(names = {"-d", "--classpath-dir"},
-            description = "baksmali will search these directories in order for any classpath entries.")
+            description = "A directory to search for classpath files. This option can be used multiple times to " +
+                    "specify multiple directories to search. They will be searched in the order they are provided.")
     private List<String> classPathDirectories = Lists.newArrayList(".");
 
     @Parameter(names = {"--code-offsets"},
@@ -170,30 +172,45 @@ public class DisassembleCommand extends DexInputCommand {
             return;
         }
 
-        if (inputList.size() > 1) {
-            System.err.println("Too many files specified");
-            jc.usage(jc.getParsedCommand());
-            return;
+        String input = inputList.get(0);
+        File dexFileFile = new File(input);
+        String dexFileEntry = null;
+        if (!dexFileFile.exists()) {
+            String filename = dexFileFile.getName();
+            int colonIndex = filename.indexOf(':');
+
+            if (colonIndex >= 0) {
+                dexFileFile = new File(dexFileFile.getParent(), filename.substring(0, colonIndex));
+                dexFileEntry = filename.substring(colonIndex + 1);
+            }
+
+            if (!dexFileFile.exists()) {
+                System.err.println("Can't find the file " + input);
+                System.exit(1);
+            }
         }
 
-        String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, apiLevel, experimentalOpcodes);
-        if (dexFile == null) {
-            return;
+        //Read in and parse the dex file
+        DexBackedDexFile dexFile = null;
+        try {
+            dexFile = DexFileFactory.loadDexFile(dexFileFile, dexFileEntry, apiLevel, experimentalOpcodes);
+        } catch (DexFileFactory.MultipleDexFilesException ex) {
+            System.err.println(String.format("%s contains multiple dex files. You must specify which one to " +
+                    "disassemble with the -e option", dexFileFile.getName()));
+            System.err.println("Valid entries include:");
+
+            for (OatFile.OatDexFile oatDexFile : ex.oatFile.getDexFiles()) {
+                System.err.println(oatDexFile.filename);
+            }
+            System.exit(1);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
 
         if (showDeodexWarning() && dexFile.hasOdexOpcodes()) {
             StringWrapper.printWrappedString(System.err,
                     "Warning: You are disassembling an odex/oat file without deodexing it. You won't be able to " +
                             "re-assemble the results unless you deodex it. See \"baksmali help deodex\"");
-        }
-
-        if (needsClassPath() && bootClassPath.isEmpty()) {
-            if (dexFile instanceof DexBackedOdexFile) {
-                bootClassPath = ((DexBackedOdexFile)dexFile).getDependencies();
-            } else {
-                bootClassPath = Baksmali.getDefaultBootClassPath(apiLevel);
-            }
         }
 
         File outputDirectoryFile = new File(outputDir);
@@ -227,13 +244,13 @@ public class DisassembleCommand extends DexInputCommand {
 
         if (needsClassPath()) {
             try {
-                options.classPath = ClassPath.fromClassPath(classPathDirectories,
-                        Iterables.concat(bootClassPath, classPath), dexFile, apiLevel,
-                        shouldCheckPackagePrivateAccess(), experimentalOpcodes);
+                options.classPath = ClassPath.loadClassPath(classPathDirectories,
+                        bootClassPath, classPath, dexFile, apiLevel, shouldCheckPackagePrivateAccess(),
+                        experimentalOpcodes);
             } catch (Exception ex) {
                 System.err.println("\n\nError occurred while loading class path files. Aborting.");
                 ex.printStackTrace(System.err);
-                return null;
+                System.exit(-1);
             }
         }
 

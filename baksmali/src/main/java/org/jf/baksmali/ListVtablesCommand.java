@@ -34,7 +34,6 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassProto;
@@ -164,9 +163,8 @@ public class ListVtablesCommand extends DexInputCommand {
         options.apiLevel = apiLevel;
 
         try {
-            options.classPath = ClassPath.fromClassPath(classPathDirectories,
-                    Iterables.concat(bootClassPath, classPath), dexFile, apiLevel, checkPackagePrivateAccess,
-                    experimentalOpcodes);
+            options.classPath = ClassPath.loadClassPath(classPathDirectories, bootClassPath, classPath, dexFile,
+                    apiLevel, checkPackagePrivateAccess, experimentalOpcodes);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);
