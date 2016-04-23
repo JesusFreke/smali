@@ -112,7 +112,7 @@ public class MethodAnalyzer {
 
         //override AnalyzedInstruction and provide custom implementations of some of the methods, so that we don't
         //have to handle the case this special case of instruction being null, in the main class
-        startOfMethod = new AnalyzedInstruction(null, -1, methodImpl.getRegisterCount()) {
+        startOfMethod = new AnalyzedInstruction(this, null, -1, methodImpl.getRegisterCount()) {
             public boolean setsRegister() {
                 return false;
             }
@@ -139,6 +139,10 @@ public class MethodAnalyzer {
         analyzedState = new BitSet(analyzedInstructions.size());
         paramRegisterCount = MethodUtil.getParameterRegisterCount(method);
         analyze();
+    }
+
+    public ClassPath getClassPath() {
+        return classPath;
     }
 
     private void analyze() {
@@ -422,7 +426,8 @@ public class MethodAnalyzer {
         int currentCodeAddress = 0;
         for (int i=0; i<instructions.size(); i++) {
             Instruction instruction = instructions.get(i);
-            analyzedInstructions.append(currentCodeAddress, new AnalyzedInstruction(instruction, i, registerCount));
+            analyzedInstructions.append(currentCodeAddress,
+                    new AnalyzedInstruction(this, instruction, i, registerCount));
             assert analyzedInstructions.indexOfKey(currentCodeAddress) == i;
             currentCodeAddress += instruction.getCodeUnits();
         }
@@ -683,12 +688,14 @@ public class MethodAnalyzer {
             case IF_GE:
             case IF_GT:
             case IF_LE:
-            case IF_EQZ:
-            case IF_NEZ:
             case IF_LTZ:
             case IF_GEZ:
             case IF_GTZ:
             case IF_LEZ:
+                return true;
+            case IF_EQZ:
+            case IF_NEZ:
+                analyzeIfEqzNez(analyzedInstruction);
                 return true;
             case AGET:
                 analyze32BitPrimitiveAget(analyzedInstruction, RegisterType.INTEGER_TYPE);
@@ -1169,53 +1176,81 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, castRegisterType);
     }
 
-    private void analyzeInstanceOf(@Nonnull AnalyzedInstruction analyzedInstruction) {
-        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, RegisterType.BOOLEAN_TYPE);
+    static boolean canNarrowAfterInstanceOf(AnalyzedInstruction analyzedInstanceOfInstruction,
+                                            AnalyzedInstruction analyzedIfInstruction, ClassPath classPath) {
+        Instruction ifInstruction = analyzedIfInstruction.instruction;
+        assert analyzedIfInstruction.instruction != null;
+        if (((Instruction21t)ifInstruction).getRegisterA() == analyzedInstanceOfInstruction.getDestinationRegister()) {
+            Reference reference = ((Instruction22c)analyzedInstanceOfInstruction.getInstruction()).getReference();
+            RegisterType registerType = RegisterType.getRegisterType(classPath, (TypeReference)reference);
 
-        int instructionIndex = analyzedInstruction.getInstructionIndex();
-        AnalyzedInstruction nextAnalyzedInstruction = analyzedInstructions.valueAt(instructionIndex + 1);
+            if (registerType.type != null && !registerType.type.isInterface()) {
+                int objectRegister = ((TwoRegisterInstruction)analyzedInstanceOfInstruction.getInstruction())
+                        .getRegisterB();
 
-        Instruction nextInstruction = nextAnalyzedInstruction.instruction;
-        if (nextInstruction.getOpcode() == Opcode.IF_EQZ || nextInstruction.getOpcode() == Opcode.IF_NEZ) {
-            if (((Instruction21t)nextInstruction).getRegisterA() == analyzedInstruction.getDestinationRegister()) {
-                Reference reference = ((Instruction22c)analyzedInstruction.getInstruction()).getReference();
-                RegisterType registerType = RegisterType.getRegisterType(classPath, (TypeReference)reference);
+                RegisterType originalType = analyzedIfInstruction.getPreInstructionRegisterType(objectRegister);
 
-                if (registerType.type != null && !registerType.type.isInterface()) {
-                    int objectRegister = ((TwoRegisterInstruction)analyzedInstruction.getInstruction()).getRegisterB();
-
-                    RegisterType existingType = nextAnalyzedInstruction.getPostInstructionRegisterType(objectRegister);
-
-                    if (existingType.type != null) {
-                        boolean override = false;
-
-                        // Only override if we're going from an interface to a class, or are going to a narrower class
-                        if (existingType.type.isInterface()) {
-                            override = true;
-                        } else {
-                            TypeProto commonSuperclass = registerType.type.getCommonSuperclass(existingType.type);
-                            // only if it's a narrowing conversion
-                            if (commonSuperclass.getType().equals(existingType.type.getType())) {
-                                override = true;
-                            }
-                        }
-
-                        if (override) {
-                            AnalyzedInstruction branchStartInstruction;
-                            if (nextInstruction.getOpcode() == Opcode.IF_EQZ) {
-                                branchStartInstruction = analyzedInstructions.valueAt(instructionIndex + 2);
-                            } else {
-                                int nextAddress = getInstructionAddress(nextAnalyzedInstruction) +
-                                        ((Instruction21t)nextInstruction).getCodeOffset();
-                                branchStartInstruction = analyzedInstructions.get(nextAddress);
-                            }
-                            overridePredecessorRegisterTypeAndPropagateChanges(branchStartInstruction,
-                                    nextAnalyzedInstruction, objectRegister, registerType);
+                if (originalType.type != null) {
+                    // Only override if we're going from an interface to a class, or are going to a narrower class
+                    if (originalType.type.isInterface()) {
+                        return true;
+                    } else {
+                        TypeProto commonSuperclass = registerType.type.getCommonSuperclass(originalType.type);
+                        // only if it's a narrowing conversion
+                        if (commonSuperclass.getType().equals(originalType.type.getType())) {
+                            return true;
                         }
                     }
                 }
             }
         }
+        return false;
+    }
+
+    /**
+     * Art uses a peephole optimization for an if-eqz or if-nez that occur immediately after an instance-of. It will
+     * narrow the type if possible, and then NOP out any corresponding check-cast instruction later on
+     *
+     * TODO: Is this still safe to do even for dalvik odexes? I think it should be..
+     */
+    private void analyzeIfEqzNez(@Nonnull AnalyzedInstruction analyzedInstruction) {
+        int instructionIndex = analyzedInstruction.getInstructionIndex();
+        if (instructionIndex > 0) {
+            AnalyzedInstruction prevAnalyzedInstruction = analyzedInstructions.valueAt(instructionIndex - 1);
+            if (prevAnalyzedInstruction.instruction != null &&
+                    prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
+                if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
+                    // Propagate the original type to the failing branch, and the new type to the successful branch
+                    int narrowingRegister = ((Instruction22c)prevAnalyzedInstruction.instruction).getRegisterB();
+                    RegisterType originalType = analyzedInstruction.getPreInstructionRegisterType(narrowingRegister);
+                    RegisterType newType = RegisterType.getRegisterType(classPath,
+                            (TypeReference)((Instruction22c)prevAnalyzedInstruction.instruction).getReference());
+
+                    AnalyzedInstruction fallthroughInstruction = analyzedInstructions.valueAt(
+                            analyzedInstruction.getInstructionIndex() + 1);
+
+                    int nextAddress = getInstructionAddress(analyzedInstruction) +
+                            ((Instruction21t)analyzedInstruction.instruction).getCodeOffset();
+                    AnalyzedInstruction branchInstruction = analyzedInstructions.get(nextAddress);
+
+                    if (analyzedInstruction.instruction.getOpcode() == Opcode.IF_EQZ) {
+                        overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
+                                narrowingRegister, newType);
+                        overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
+                                narrowingRegister, originalType);
+                    } else {
+                        overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
+                                narrowingRegister, originalType);
+                        overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
+                                narrowingRegister, newType);
+                    }
+                }
+            }
+        }
+    }
+
+    private void analyzeInstanceOf(@Nonnull AnalyzedInstruction analyzedInstruction) {
+        setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, RegisterType.BOOLEAN_TYPE);
     }
 
     private void analyzeArrayLength(@Nonnull AnalyzedInstruction analyzedInstruction) {
