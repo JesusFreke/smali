@@ -89,10 +89,10 @@ public class MethodAnalyzer {
 
     @Nullable private AnalysisException analysisException = null;
 
-    //This is a dummy instruction that occurs immediately before the first real instruction. We can initialize the
-    //register types for this instruction to the parameter types, in order to have them propagate to all of its
-    //successors, e.g. the first real instruction, the first instructions in any exception handlers covering the first
-    //instruction, etc.
+    // This is a dummy instruction that occurs immediately before the first real instruction. We can initialize the
+    // register types for this instruction to the parameter types, in order to have them propagate to all of its
+    // successors, e.g. the first real instruction, the first instructions in any exception handlers covering the first
+    // instruction, etc.
     private final AnalyzedInstruction startOfMethod;
 
     public MethodAnalyzer(@Nonnull ClassPath classPath, @Nonnull Method method,
@@ -110,27 +110,16 @@ public class MethodAnalyzer {
 
         this.methodImpl = methodImpl;
 
-        //override AnalyzedInstruction and provide custom implementations of some of the methods, so that we don't
-        //have to handle the case this special case of instruction being null, in the main class
-        startOfMethod = new AnalyzedInstruction(this, null, -1, methodImpl.getRegisterCount()) {
-            public boolean setsRegister() {
-                return false;
+        // Override AnalyzedInstruction and provide custom implementations of some of the methods, so that we don't
+        // have to handle the case this special case of instruction being null, in the main class
+        startOfMethod = new AnalyzedInstruction(this, new ImmutableInstruction10x(Opcode.NOP), -1, methodImpl.getRegisterCount()) {
+            @Override protected boolean addPredecessor(AnalyzedInstruction predecessor) {
+                throw new UnsupportedOperationException();
             }
 
-            @Override
-            public boolean setsWideRegister() {
-                return false;
-            }
-
-            @Override
-            public boolean setsRegister(int registerNumber) {
-                return false;
-            }
-
-            @Override
-            public int getDestinationRegister() {
-                assert false;
-                return -1;
+            @Override @Nonnull
+            public RegisterType getPredecessorRegisterType(@Nonnull AnalyzedInstruction predecessor, int registerNumber) {
+                throw new UnsupportedOperationException();
             }
         };
 
@@ -141,6 +130,7 @@ public class MethodAnalyzer {
         analyze();
     }
 
+    @Nonnull
     public ClassPath getClassPath() {
         return classPath;
     }
@@ -1179,7 +1169,6 @@ public class MethodAnalyzer {
     static boolean canNarrowAfterInstanceOf(AnalyzedInstruction analyzedInstanceOfInstruction,
                                             AnalyzedInstruction analyzedIfInstruction, ClassPath classPath) {
         Instruction ifInstruction = analyzedIfInstruction.instruction;
-        assert analyzedIfInstruction.instruction != null;
         if (((Instruction21t)ifInstruction).getRegisterA() == analyzedInstanceOfInstruction.getDestinationRegister()) {
             Reference reference = ((Instruction22c)analyzedInstanceOfInstruction.getInstruction()).getReference();
             RegisterType registerType = RegisterType.getRegisterType(classPath, (TypeReference)reference);
@@ -1217,8 +1206,7 @@ public class MethodAnalyzer {
         int instructionIndex = analyzedInstruction.getInstructionIndex();
         if (instructionIndex > 0) {
             AnalyzedInstruction prevAnalyzedInstruction = analyzedInstructions.valueAt(instructionIndex - 1);
-            if (prevAnalyzedInstruction.instruction != null &&
-                    prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
+            if (prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
                 if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
                     // Propagate the original type to the failing branch, and the new type to the successful branch
                     int narrowingRegister = ((Instruction22c)prevAnalyzedInstruction.instruction).getRegisterB();
@@ -1695,13 +1683,13 @@ public class MethodAnalyzer {
 
             // fieldClass is now the first accessible class found. Now. we need to make sure that the field is
             // actually valid for this class
-            resolvedField = classPath.getClass(fieldClass.getType()).getFieldByOffset(fieldOffset);
-            if (resolvedField == null) {
+            FieldReference newResolvedField = classPath.getClass(fieldClass.getType()).getFieldByOffset(fieldOffset);
+            if (newResolvedField == null) {
                 throw new ExceptionWithContext("Couldn't find accessible class while resolving field %s",
                         ReferenceUtil.getShortFieldDescriptor(resolvedField));
             }
-            resolvedField = new ImmutableFieldReference(fieldClass.getType(), resolvedField.getName(),
-                    resolvedField.getType());
+            resolvedField = new ImmutableFieldReference(fieldClass.getType(), newResolvedField.getName(),
+                    newResolvedField.getType());
         }
 
         String fieldType = resolvedField.getType();
@@ -1860,7 +1848,6 @@ public class MethodAnalyzer {
             MethodReference newResolvedMethod =
                     classPath.getClass(methodClass.getType()).getMethodByVtableIndex(methodIndex);
             if (newResolvedMethod == null) {
-                // TODO: fix NPE here
                 throw new ExceptionWithContext("Couldn't find accessible class while resolving method %s",
                         ReferenceUtil.getMethodDescriptor(resolvedMethod, true));
             }
