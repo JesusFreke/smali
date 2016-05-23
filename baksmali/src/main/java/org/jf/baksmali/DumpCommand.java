@@ -41,15 +41,19 @@ import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.util.ConsoleUtil;
+import org.jf.util.jcommander.Command;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.*;
+import java.util.List;
 
 @Parameters(commandDescription = "Prints an annotated hex dump for the given dex file")
-public class DumpCommand implements Command {
-
-    @Nonnull
-    private final JCommander jc;
+@ExtendedParameters(
+        commandName = "dump",
+        commandAliases = "du")
+public class DumpCommand extends Command {
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information for this command.")
@@ -57,6 +61,7 @@ public class DumpCommand implements Command {
 
     @Parameter(names = {"-a", "--api"},
             description = "The numeric api level of the file being disassembled.")
+    @ExtendedParameter(argumentNames = "api")
     private int apiLevel = 15;
 
     @Parameter(names = "--experimental",
@@ -67,15 +72,16 @@ public class DumpCommand implements Command {
     @Parameter(description = "<file> - A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
             "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
             "colon. E.g. \"something.apk:classes2.dex\"")
+    @ExtendedParameter(argumentNames = "file")
     private String input;
 
-    public DumpCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public DumpCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     public void run() {
         if (help || input == null || input.isEmpty()) {
-            jc.usage("dump");
+            usage();
             return;
         }
 

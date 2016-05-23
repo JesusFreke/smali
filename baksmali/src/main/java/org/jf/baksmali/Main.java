@@ -33,47 +33,71 @@ package org.jf.baksmali;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.collect.Lists;
 import org.jf.baksmali.HelpCommand.HlepCommand;
+import org.jf.util.jcommander.Command;
+import org.jf.util.jcommander.ExtendedCommands;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
-public class Main {
+@ExtendedParameters(
+        includeParametersInUsage = true,
+        commandName = "baksmali",
+        postfixDescription = "See baksmali help <command> for more information about a specific command")
+public class Main extends Command {
     public static final String VERSION = loadVersion();
 
-    @Parameter(names = {"-h", "-?", "--help"}, help = true,
+    @Parameter(names = {"--help", "-h", "-?"}, help = true,
             description = "Show usage information")
     private boolean help;
 
-    @Parameter(names = {"-v", "--version"}, help = true,
+    @Parameter(names = {"--version", "-v"}, help = true,
             description = "Print the version of baksmali and then exit")
     public boolean version;
+
+    private JCommander jc;
+
+    public Main() {
+        super(Lists.<JCommander>newArrayList());
+    }
+
+    @Override public void run() {
+    }
+
+    @Override protected JCommander getJCommander() {
+        return jc;
+    }
 
     public static void main(String[] args) {
         Main main = new Main();
 
         JCommander jc = new JCommander(main);
+        main.jc = jc;
+        jc.setProgramName("baksmali");
+        List<JCommander> commandHierarchy = main.getCommandHierarchy();
 
-        jc.addCommand("disassemble", new DisassembleCommand(jc), "dis", "d");
-        jc.addCommand("deodex", new DeodexCommand(jc), "de", "x");
-        jc.addCommand("dump", new DumpCommand(jc), "du");
-        jc.addCommand("help", new HelpCommand(jc), "h");
-        jc.addCommand("hlep", new HlepCommand(jc));
+        ExtendedCommands.addExtendedCommand(jc, new DisassembleCommand(commandHierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new DeodexCommand(commandHierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new DumpCommand(commandHierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new HelpCommand(commandHierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new HlepCommand(commandHierarchy));
 
-        ListCommand listCommand = new ListCommand(jc);
-        jc.addCommand("list", listCommand, "l");
+        ListCommand listCommand = new ListCommand(commandHierarchy);
+        ExtendedCommands.addExtendedCommand(jc, listCommand);
         listCommand.registerSubCommands();
 
         jc.parse(args);
 
-        if (jc.getParsedCommand() == null || main.help) {
-            jc.usage();
-            return;
-        }
-
         if (main.version) {
             version();
+        }
+
+        if (jc.getParsedCommand() == null || main.help) {
+            main.usage();
             return;
         }
 

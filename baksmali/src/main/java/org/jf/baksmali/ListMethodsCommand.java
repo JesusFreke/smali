@@ -34,12 +34,17 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
 import org.jf.dexlib2.ReferenceType;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 @Parameters(commandDescription = "Lists the methods in a dex file's method table.")
+@ExtendedParameters(
+        commandName = "methods",
+        commandAliases = { "method", "m" })
 public class ListMethodsCommand extends ListReferencesCommand {
-    public ListMethodsCommand(@Nonnull JCommander jc) {
-        super(jc, ReferenceType.METHOD);
+    public ListMethodsCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors, ReferenceType.METHOD);
     }
 }

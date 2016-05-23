@@ -38,37 +38,41 @@ import com.google.common.collect.Lists;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.util.ReferenceUtil;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
 @Parameters(commandDescription = "Lists the classes in a dex file.")
+@ExtendedParameters(
+        commandName = "classes",
+        commandAliases = { "class", "c" })
 public class ListClassesCommand extends DexInputCommand {
-
-    @Nonnull private final JCommander jc;
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information")
     private boolean help;
 
-    @Parameter(description = "<file> - A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
+    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
             "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
             "colon. E.g. \"something.apk:classes2.dex\"")
+    @ExtendedParameter(argumentNames = "file")
     private List<String> inputList = Lists.newArrayList();
 
-    public ListClassesCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public ListClassesCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     @Override public void run() {
         if (help || inputList == null || inputList.isEmpty()) {
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 
         if (inputList.size() > 1) {
             System.err.println("Too many files specified");
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 

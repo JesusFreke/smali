@@ -38,12 +38,18 @@ import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.iface.DexFile;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @Parameters(commandDescription = "Deodexes an odex/oat file")
+@ExtendedParameters(
+        commandName = "deodex",
+        commandAliases = { "de", "x" })
 public class DeodexCommand extends DisassembleCommand {
     @Parameter(names = "--check-package-private-access",
             description = "Use the package-private access check when calculating vtable indexes. This should " +
@@ -54,10 +60,11 @@ public class DeodexCommand extends DisassembleCommand {
             description = "Specify a file containing a custom inline method table to use. See the " +
                     "\"deodexerant\" tool in the smali github repository to dump the inline method table from a " +
                     "device that uses dalvik.")
+    @ExtendedParameter(argumentNames = "file")
     private String inlineTable;
 
-    public DeodexCommand(@Nonnull JCommander jc) {
-        super(jc);
+    public DeodexCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     @Override protected BaksmaliOptions getOptions(DexFile dexFile) {

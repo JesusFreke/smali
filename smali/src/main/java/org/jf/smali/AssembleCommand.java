@@ -35,15 +35,19 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.validators.PositiveInteger;
+import org.jf.util.jcommander.Command;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
 
 @Parameters(commandDescription = "Assembles smali files into a dex file.")
-public class AssembleCommand implements Command {
-
-    @Nonnull private final JCommander jc;
+@ExtendedParameters(
+        commandName = "assemble",
+        commandAliases = { "ass", "as", "a" })
+public class AssembleCommand extends Command {
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information for this command.")
@@ -52,14 +56,17 @@ public class AssembleCommand implements Command {
     @Parameter(names = {"-j", "--jobs"},
             description = "The number of threads to use. Defaults to the number of cores available.",
             validateWith = PositiveInteger.class)
+    @ExtendedParameter(argumentNames = "n")
     private int jobs = Runtime.getRuntime().availableProcessors();
 
     @Parameter(names = {"-a", "--api"},
             description = "The numeric api level to use while assembling.")
+    @ExtendedParameter(argumentNames = "api")
     private int apiLevel = 15;
 
     @Parameter(names = {"-o", "--output"},
-            description = "The location of the dex file to write.")
+            description = "The name/path of the dex file to write.")
+    @ExtendedParameter(argumentNames = "file")
     private String output = "out.dex";
 
     @Parameter(names = "--experimental",
@@ -75,17 +82,18 @@ public class AssembleCommand implements Command {
             description = "Allows the odex opcodes that dalvik doesn't reject to be assembled.")
     private boolean allowOdexOpcodes;
 
-    @Parameter(description = "[<file>|<dir>]+ - Assembles the given files. If a directory is specified, it will be " +
-            "recursively searched for any file with a .smali prefix")
+    @Parameter(description = "Assembles the given files. If a directory is specified, it will be " +
+            "recursively searched for any files with a .smali prefix")
+    @ExtendedParameter(argumentNames = "[<file>|<dir>]+")
     private List<String> input;
 
-    public AssembleCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public AssembleCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     @Override public void run() {
         if (help || input == null || input.isEmpty()) {
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 

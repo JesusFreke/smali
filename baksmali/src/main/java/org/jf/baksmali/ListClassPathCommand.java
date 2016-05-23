@@ -39,36 +39,41 @@ import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
+import org.jf.util.jcommander.Command;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.List;
 
 @Parameters(commandDescription = "Lists the stored classpath entries in an odex/oat file.")
-public class ListClassPathCommand implements Command {
-
-    @Nonnull private final JCommander jc;
+@ExtendedParameters(
+        commandName = "classpath",
+        commandAliases = { "bootclasspath", "cp", "bcp" })
+public class ListClassPathCommand extends Command {
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information")
     private boolean help;
 
-    @Parameter(description = "<file> - An oat/odex file")
+    @Parameter(description = "An oat/odex file")
+    @ExtendedParameter(argumentNames = "file")
     private List<String> inputList = Lists.newArrayList();
 
-    public ListClassPathCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public ListClassPathCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     @Override public void run() {
         if (help || inputList == null || inputList.isEmpty()) {
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 
         if (inputList.size() > 1) {
             System.err.println("Too many files specified");
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 

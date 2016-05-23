@@ -34,12 +34,17 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
 import org.jf.dexlib2.ReferenceType;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 @Parameters(commandDescription = "Lists the fields in a dex file's field table.")
+@ExtendedParameters(
+        commandName = "fields",
+        commandAliases = { "field", "f" })
 public class ListFieldsCommand extends ListReferencesCommand {
-    public ListFieldsCommand(@Nonnull JCommander jc) {
-        super(jc, ReferenceType.FIELD);
+    public ListFieldsCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors, ReferenceType.FIELD);
     }
 }

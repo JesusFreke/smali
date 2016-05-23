@@ -33,13 +33,22 @@ package org.jf.smali;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.collect.Lists;
 import org.jf.smali.HelpCommand.HlepCommand;
+import org.jf.util.jcommander.Command;
+import org.jf.util.jcommander.ExtendedCommands;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
-public class Main {
+@ExtendedParameters(
+        includeParametersInUsage = true,
+        commandName = "smali",
+        postfixDescription = "See smali help <command> for more information about a specific command")
+public class Main extends Command {
     public static final String VERSION = loadVersion();
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
@@ -50,24 +59,39 @@ public class Main {
             description = "Print the version of baksmali and then exit")
     public boolean version;
 
+    private JCommander jc;
+
+    @Override public void run() {
+    }
+
+    @Override protected JCommander getJCommander() {
+        return jc;
+    }
+
+    public Main() {
+        super(Lists.<JCommander>newArrayList());
+    }
+
     public static void main(String[] args) {
         Main main = new Main();
 
         JCommander jc = new JCommander(main);
+        main.jc = jc;
+        jc.setProgramName("smali");
+        List<JCommander> commandHierarchy = main.getCommandHierarchy();
 
-        jc.addCommand("assemble", new AssembleCommand(jc), "a", "as");
-        jc.addCommand("help", new HelpCommand(jc), "h");
-        jc.addCommand("hlep", new HlepCommand(jc));
+        ExtendedCommands.addExtendedCommand(jc, new AssembleCommand(commandHierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new HelpCommand(commandHierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new HlepCommand(commandHierarchy));
 
         jc.parse(args);
 
-        if (jc.getParsedCommand() == null || main.help) {
-            jc.usage();
-            return;
-        }
-
         if (main.version) {
             version();
+        }
+
+        if (jc.getParsedCommand() == null || main.help) {
+            main.usage();
             return;
         }
 

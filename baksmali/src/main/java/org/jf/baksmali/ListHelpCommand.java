@@ -29,11 +29,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smali;
+package org.jf.baksmali;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.collect.Iterables;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.jcommander.*;
 
@@ -44,25 +45,24 @@ import java.util.List;
 @ExtendedParameters(
         commandName = "help",
         commandAliases = "h")
-public class HelpCommand extends Command {
+public class ListHelpCommand extends Command {
 
     @Parameter(description = "If specified, show the detailed usage information for the given commands")
     @ExtendedParameter(argumentNames = "commands")
     private List<String> commands;
 
-    public HelpCommand(@Nonnull List<JCommander> commandAncestors) {
+    public ListHelpCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
     }
 
     public void run() {
-        JCommander parentJc = commandAncestors.get(commandAncestors.size() - 1);
-
         if (commands == null || commands.isEmpty()) {
             System.out.println(new HelpFormatter()
                     .width(ConsoleUtil.getConsoleWidth())
                     .format(commandAncestors));
         } else {
             boolean printedHelp = false;
+            JCommander parentJc = Iterables.getLast(commandAncestors);
             for (String cmd : commands) {
                 JCommander command = ExtendedCommands.getSubcommand(parentJc, cmd);
                 if (command == null) {
@@ -84,8 +84,8 @@ public class HelpCommand extends Command {
 
     @Parameters(hidden =  true)
     @ExtendedParameters(commandName = "hlep")
-    public static class HlepCommand extends HelpCommand {
-        public HlepCommand(@Nonnull List<JCommander> commandAncestors) {
+    public static class ListHlepCommand extends ListHelpCommand {
+        public ListHlepCommand(@Nonnull List<JCommander> commandAncestors) {
             super(commandAncestors);
         }
     }

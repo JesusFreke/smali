@@ -31,19 +31,26 @@
 
 package org.jf.baksmali;
 
+import com.beust.jcommander.JCommander;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
+import org.jf.util.jcommander.Command;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * This class implements common functionality for commands that need to load a dex file based on
  * command line input
  */
-public abstract class DexInputCommand implements Command {
+public abstract class DexInputCommand extends Command {
+
+    public DexInputCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
+    }
 
     /**
      * Parses a dex file input from the user and loads the given dex file.

@@ -42,6 +42,8 @@ import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.Method;
 import org.jf.util.jcommander.CommaColonParameterSplitter;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -49,9 +51,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(commandDescription = "Lists the virtual method tables for classes in a dex file.")
+@ExtendedParameters(
+        commandName = "vtables",
+        commandAliases = { "vtable", "v" })
 public class ListVtablesCommand extends DexInputCommand {
-
-    @Nonnull private final JCommander jc;
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information")
@@ -59,30 +62,35 @@ public class ListVtablesCommand extends DexInputCommand {
 
     @Parameter(names = {"-a", "--api"},
             description = "The numeric api level of the file being loaded.")
+    @ExtendedParameter(argumentNames = "api")
     public int apiLevel = 15;
 
-    @Parameter(description = "<file> - A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
+    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
             "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
             "colon. E.g. \"something.apk:classes2.dex\"")
+    @ExtendedParameter(argumentNames = "file")
     private List<String> inputList = Lists.newArrayList();
 
     @Parameter(names = {"-b", "--bootclasspath"},
-            description = "A comma/colon separated list of the bootclasspath jar/oat files to include in the " +
-                    "classpath when analyzing the dex file. This will override any automatic selection of " +
-                    "bootclasspath files that baksmali would otherwise perform. This is analogous to Android's " +
-                    "BOOTCLASSPATH environment variable.",
+            description = "A comma/colon separated list of the jar/oat files to include in the " +
+                    "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +
+                    "appropriate default. This is analogous to Android's BOOTCLASSPATH environment variable.",
             splitter = CommaColonParameterSplitter.class)
-    private List<String> bootClassPath = new ArrayList<String>();
+    @ExtendedParameter(argumentNames = "classpath")
+    private List<String> bootClassPath = null;
 
     @Parameter(names = {"-c", "--classpath"},
             description = "A comma/colon separated list of additional jar/oat files to include in the classpath " +
                     "when analyzing the dex file. These will be added to the classpath after any bootclasspath " +
                     "entries.",
             splitter = CommaColonParameterSplitter.class)
+    @ExtendedParameter(argumentNames = "classpath")
     private List<String> classPath = new ArrayList<String>();
 
     @Parameter(names = {"-d", "--classpath-dir"},
-            description = "baksmali will search these directories in order for any classpath entries.")
+            description = "A directory to search for classpath files. This option can be used multiple times to " +
+                    "specify multiple directories to search. They will be searched in the order they are provided.")
+    @ExtendedParameter(argumentNames = "dirs")
     private List<String> classPathDirectories = Lists.newArrayList(".");
 
     @Parameter(names = "--check-package-private-access",
@@ -97,21 +105,22 @@ public class ListVtablesCommand extends DexInputCommand {
 
     @Parameter(names = "--classes",
             description = "A comma separated list of classes: Only print the vtable for these classes")
+    @ExtendedParameter(argumentNames = "classes")
     private String classes = null;
 
-    public ListVtablesCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public ListVtablesCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     @Override public void run() {
         if (help || inputList == null || inputList.isEmpty()) {
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 
         if (inputList.size() > 1) {
             System.err.println("Too many files specified");
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 

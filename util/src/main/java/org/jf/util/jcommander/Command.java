@@ -29,55 +29,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.util.jcommander;
 
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.util.ReferenceUtil;
-import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.ConsoleUtil;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public abstract class ListReferencesCommand extends DexInputCommand {
+public abstract class Command {
 
-    private final int referenceType;
+    @Nonnull
+    protected final List<JCommander> commandAncestors;
 
-    @Parameter(names = {"-h", "-?", "--help"}, help = true,
-            description = "Show usage information")
-    private boolean help;
-
-    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
-            "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
-            "colon. E.g. \"something.apk:classes2.dex\"")
-    @ExtendedParameter(argumentNames = "file")
-    private List<String> inputList = Lists.newArrayList();
-
-    public ListReferencesCommand(@Nonnull List<JCommander> commandAncestors, int referenceType) {
-        super(commandAncestors);
-        this.referenceType = referenceType;
+    public Command(@Nonnull List<JCommander> commandAncestors) {
+        this.commandAncestors = commandAncestors;
     }
 
-    @Override public void run() {
-        if (help || inputList == null || inputList.isEmpty()) {
-            usage();
-            return;
-        }
-
-        if (inputList.size() > 1) {
-            System.err.println("Too many files specified");
-            usage();
-            return;
-        }
-
-        String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15, false);
-
-        for (Reference reference: dexFile.getReferences(referenceType)) {
-            System.out.println(ReferenceUtil.getReferenceString(reference));
-        }
+    public void usage() {
+        System.out.println(new HelpFormatter()
+                .width(ConsoleUtil.getConsoleWidth())
+                .format(getCommandHierarchy()));
     }
+
+    protected JCommander getJCommander() {
+        JCommander parentJc = Iterables.getLast(commandAncestors);
+        return parentJc.getCommands().get(this.getClass().getAnnotation(ExtendedParameters.class).commandName());
+    }
+
+    public List<JCommander> getCommandHierarchy() {
+        List<JCommander> commandHierarchy = Lists.newArrayList(commandAncestors);
+        commandHierarchy.add(getJCommander());
+        return commandHierarchy;
+    }
+
+    public abstract void run();
 }

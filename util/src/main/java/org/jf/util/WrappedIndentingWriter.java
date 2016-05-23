@@ -1,18 +1,18 @@
 /*
- * Copyright 2013, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
  *
- *     * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
  * copyright notice, this list of conditions and the following disclaimer
  * in the documentation and/or other materials provided with the
  * distribution.
- *     * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -31,154 +31,94 @@
 
 package org.jf.util;
 
+import com.google.common.collect.Lists;
+
 import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 
-/**
- * Writer that wraps another writer and passes width-limited and
- * optionally-prefixed output to its subordinate. When lines are
- * wrapped they are automatically indented based on the start of the
- * line.
- */
-public final class WrappedIndentingWriter extends FilterWriter {
-    /** null-ok; optional prefix for every line */
-    private final String prefix;
+public class WrappedIndentingWriter extends FilterWriter {
 
-    /** &gt; 0; the maximum output width */
-    private final int width;
-
-    /** &gt; 0; the maximum indent */
     private final int maxIndent;
+    private final int maxWidth;
 
-    /** &gt;= 0; current output column (zero-based) */
-    private int column;
+    private int currentIndent = 0;
+    private final StringBuilder line = new StringBuilder();
 
-    /** whether indent spaces are currently being collected */
-    private boolean collectingIndent;
-
-    /** &gt;= 0; current indent amount */
-    private int indent;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param out non-null; writer to send final output to
-     * @param width &gt;= 0; the maximum output width (not including
-     * <code>prefix</code>), or <code>0</code> for no maximum
-     * @param prefix non-null; the prefix for each line
-     */
-    public WrappedIndentingWriter(Writer out, int width, String prefix) {
+    public WrappedIndentingWriter(Writer out, int maxIndent, int maxWidth) {
         super(out);
-
-        if (out == null) {
-            throw new NullPointerException("out == null");
-        }
-
-        if (width < 0) {
-            throw new IllegalArgumentException("width < 0");
-        }
-
-        if (prefix == null) {
-            throw new NullPointerException("prefix == null");
-        }
-
-        this.width = (width != 0) ? width : Integer.MAX_VALUE;
-        this.maxIndent = width >> 1;
-        this.prefix = (prefix.length() == 0) ? null : prefix;
-
-        bol();
+        this.maxIndent = maxIndent;
+        this.maxWidth = maxWidth;
     }
 
-    /**
-     * Constructs a no-prefix instance.
-     *
-     * @param out non-null; writer to send final output to
-     * @param width &gt;= 0; the maximum output width (not including
-     * <code>prefix</code>), or <code>0</code> for no maximum
-     */
-    public WrappedIndentingWriter(Writer out, int width) {
-        this(out, width, "");
+    private void writeIndent() throws IOException {
+        for (int i=0; i<getIndent(); i++) {
+            write(' ');
+        }
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void write(int c) throws IOException {
-        synchronized (lock) {
-            if (collectingIndent) {
-                if (c == ' ') {
-                    indent++;
-                    if (indent >= maxIndent) {
-                        indent = maxIndent;
-                        collectingIndent = false;
-                    }
-                } else {
-                    collectingIndent = false;
-                }
+    private int getIndent() {
+        if (currentIndent < 0) {
+            return 0;
+        }
+        if (currentIndent > maxIndent) {
+            return maxIndent;
+        }
+        return currentIndent;
+    }
+
+    public void indent(int indent) {
+        currentIndent += indent;
+    }
+
+    public void deindent(int indent) {
+        currentIndent -= indent;
+    }
+
+    private void wrapLine() throws IOException {
+        List<String> wrapped = Lists.newArrayList(StringWrapper.wrapStringOnBreaks(line.toString(), maxWidth));
+        out.write(wrapped.get(0), 0, wrapped.get(0).length());
+        out.write('\n');
+
+        line.replace(0, line.length(), "");
+        writeIndent();
+        for (int i=1; i<wrapped.size(); i++) {
+            if (i > 1) {
+                write('\n');
             }
+            write(wrapped.get(i));
+        }
+    }
 
-            if ((column == width) && (c != '\n')) {
-                out.write('\n');
-                column = 0;
-                /*
-                 * Note: No else, so this should fall through to the next
-                 * if statement.
-                 */
-            }
-
-            if (column == 0) {
-                if (prefix != null) {
-                    out.write(prefix);
-                }
-
-                if (!collectingIndent) {
-                    for (int i = 0; i < indent; i++) {
-                        out.write(' ');
-                    }
-                    column = indent;
-                }
-            }
-
+    @Override public void write(int c) throws IOException {
+        if (c == '\n') {
+            out.write(line.toString());
             out.write(c);
-
-            if (c == '\n') {
-                bol();
-            } else {
-                column++;
+            line.replace(0, line.length(), "");
+            writeIndent();
+        } else {
+            line.append((char)c);
+            if (line.length() > maxWidth) {
+                wrapLine();
             }
         }
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void write(char[] cbuf, int off, int len) throws IOException {
-        synchronized (lock) {
-            while (len > 0) {
-                write(cbuf[off]);
-                off++;
-                len--;
-            }
+    @Override public void write(char[] cbuf, int off, int len) throws IOException {
+        for (int i=0; i<len; i++) {
+            write(cbuf[i+off]);
         }
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void write(String str, int off, int len) throws IOException {
-        synchronized (lock) {
-            while (len > 0) {
-                write(str.charAt(off));
-                off++;
-                len--;
-            }
+    @Override public void write(String str, int off, int len) throws IOException {
+        for (int i=0; i<len; i++) {
+            write(str.charAt(i+off));
         }
     }
 
-    /**
-     * Indicates that output is at the beginning of a line.
-     */
-    private void bol() {
-        column = 0;
-        collectingIndent = (maxIndent != 0);
-        indent = 0;
+    @Override public void flush() throws IOException {
+        out.write(line.toString());
+        line.replace(0, line.length(), "");
     }
 }

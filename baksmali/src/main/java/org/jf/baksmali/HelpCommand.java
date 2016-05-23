@@ -37,27 +37,37 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.Lists;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.StringWrapper;
+import org.jf.util.jcommander.*;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
 @Parameters(commandDescription = "Shows usage information")
-public class HelpCommand implements Command {
-    @Nonnull private final JCommander jc;
+@ExtendedParameters(
+        commandName = "help",
+        commandAliases = "h")
+public class HelpCommand extends Command {
 
-    public HelpCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public HelpCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
-    @Parameter(description = "If specified, only show the usage information for the given commands")
+    @Parameter(description = "If specified, show the detailed usage information for the given commands")
+    @ExtendedParameter(argumentNames = "commands")
     private List<String> commands = Lists.newArrayList();
 
     public void run() {
+        JCommander parentJc = commandAncestors.get(commandAncestors.size() - 1);
+
         if (commands == null || commands.isEmpty()) {
-            jc.usage();
+            System.out.println(new HelpFormatter()
+                    .width(ConsoleUtil.getConsoleWidth())
+                    .format(commandAncestors));
         } else {
+            boolean printedHelp = false;
             for (String cmd : commands) {
                 if (cmd.equals("register-info")) {
+                    printedHelp = true;
                     String registerInfoHelp = "The --register-info parameter will cause baksmali to generate " +
                             "comments before and after every instruction containing register type " +
                             "information about some subset of registers. This parameter optionally accepts a " +
@@ -80,16 +90,30 @@ public class HelpCommand implements Command {
                         System.out.println(line);
                     }
                 } else {
-                    jc.usage(cmd);
+                    JCommander command = ExtendedCommands.getSubcommand(parentJc, cmd);
+                    if (command == null) {
+                        System.err.println("No such command: " + cmd);
+                    } else {
+                        printedHelp = true;
+                        System.out.println(new HelpFormatter()
+                                .width(ConsoleUtil.getConsoleWidth())
+                                .format(((Command)command.getObjects().get(0)).getCommandHierarchy()));
+                    }
                 }
+            }
+            if (!printedHelp) {
+                System.out.println(new HelpFormatter()
+                        .width(ConsoleUtil.getConsoleWidth())
+                        .format(commandAncestors));
             }
         }
     }
 
     @Parameters(hidden =  true)
+    @ExtendedParameters(commandName = "hlep")
     public static class HlepCommand extends HelpCommand {
-        public HlepCommand(@Nonnull JCommander jc) {
-            super(jc);
+        public HlepCommand(@Nonnull List<JCommander> commandAncestors) {
+            super(commandAncestors);
         }
     }
 }

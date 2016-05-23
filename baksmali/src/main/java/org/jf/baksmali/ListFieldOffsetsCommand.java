@@ -43,6 +43,8 @@ import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.util.SparseArray;
 import org.jf.util.jcommander.CommaColonParameterSplitter;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -50,40 +52,46 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(commandDescription = "Lists the instance field offsets for classes in a dex file.")
+@ExtendedParameters(
+        commandName = "fieldoffsets",
+        commandAliases = { "fieldoffset", "fo" })
 public class ListFieldOffsetsCommand extends DexInputCommand {
-
-    @Nonnull private final JCommander jc;
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information")
     private boolean help;
 
     @Parameter(names = {"-a", "--api"},
-            description = "The numeric api level of the file being loaded.")
+            description = "The numeric api level of the file being disassembled.")
+    @ExtendedParameter(argumentNames = "api")
     private int apiLevel = 15;
 
-    @Parameter(description = "<file> - A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
+    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
             "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
             "colon. E.g. \"something.apk:classes2.dex\"")
+    @ExtendedParameter(argumentNames = "file")
     private List<String> inputList = Lists.newArrayList();
 
     @Parameter(names = {"-b", "--bootclasspath"},
-            description = "A comma/colon separated list of the bootclasspath jar/oat files to include in the " +
-                    "classpath when analyzing the dex file. This will override any automatic selection of " +
-                    "bootclasspath files that baksmali would otherwise perform. This is analogous to Android's " +
-                    "BOOTCLASSPATH environment variable.",
+            description = "A comma/colon separated list of the jar/oat files to include in the " +
+                    "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +
+                    "appropriate default. This is analogous to Android's BOOTCLASSPATH environment variable.",
             splitter = CommaColonParameterSplitter.class)
-    private List<String> bootClassPath = new ArrayList<String>();
+    @ExtendedParameter(argumentNames = "classpath")
+    private List<String> bootClassPath = null;
 
     @Parameter(names = {"-c", "--classpath"},
             description = "A comma/colon separated list of additional jar/oat files to include in the classpath " +
                     "when analyzing the dex file. These will be added to the classpath after any bootclasspath " +
                     "entries.",
             splitter = CommaColonParameterSplitter.class)
+    @ExtendedParameter(argumentNames = "classpath")
     private List<String> classPath = new ArrayList<String>();
 
     @Parameter(names = {"-d", "--classpath-dir"},
-            description = "baksmali will search these directories in order for any classpath entries.")
+            description = "A directory to search for classpath files. This option can be used multiple times to " +
+                    "specify multiple directories to search. They will be searched in the order they are provided.")
+    @ExtendedParameter(argumentNames = "dirs")
     private List<String> classPathDirectories = Lists.newArrayList(".");
 
     @Parameter(names = "--check-package-private-access",
@@ -96,19 +104,19 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
                     "supported in the Android runtime yet.")
     private boolean experimentalOpcodes = false;
 
-    public ListFieldOffsetsCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public ListFieldOffsetsCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     @Override public void run() {
         if (help || inputList == null || inputList.isEmpty()) {
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 
         if (inputList.size() > 1) {
             System.err.println("Too many files specified");
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 

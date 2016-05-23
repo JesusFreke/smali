@@ -45,6 +45,8 @@ import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.util.StringWrapper;
 import org.jf.util.jcommander.CommaColonParameterSplitter;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -53,9 +55,10 @@ import java.util.List;
 import java.util.Map;
 
 @Parameters(commandDescription = "Disassembles a dex file.")
+@ExtendedParameters(
+        commandName = "disassemble",
+        commandAliases = { "dis", "d" })
 public class DisassembleCommand extends DexInputCommand {
-
-    @Nonnull private final JCommander jc;
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information for this command.")
@@ -63,19 +66,21 @@ public class DisassembleCommand extends DexInputCommand {
 
     @Parameter(names = {"-a", "--api"},
             description = "The numeric api level of the file being disassembled.")
+    @ExtendedParameter(argumentNames = "api")
     private int apiLevel = 15;
 
     @Parameter(names = "--debug-info", arity = 1,
             description = "Whether to include debug information in the output (.local, .param, .line, etc.). Use " +
                     "--debug-info=false to disable.")
+    @ExtendedParameter(argumentNames = "boolean")
     private boolean debugInfo = true;
 
     @Parameter(names = {"-b", "--bootclasspath"},
-            description = "A comma/colon separated list of the bootclasspath jar/oat files to include in the " +
-                    "classpath when analyzing the dex file. This will override any automatic selection of " +
-                    "bootclasspath files that baksmali would otherwise perform. This is analogous to Android's " +
-                    "BOOTCLASSPATH environment variable.",
+            description = "A comma/colon separated list of the jar/oat files to include in the " +
+                    "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +
+                    "appropriate default. This is analogous to Android's BOOTCLASSPATH environment variable.",
             splitter = CommaColonParameterSplitter.class)
+    @ExtendedParameter(argumentNames = "classpath")
     private List<String> bootClassPath = null;
 
     @Parameter(names = {"-c", "--classpath"},
@@ -83,16 +88,17 @@ public class DisassembleCommand extends DexInputCommand {
                     "when analyzing the dex file. These will be added to the classpath after any bootclasspath " +
                     "entries.",
             splitter = CommaColonParameterSplitter.class)
+    @ExtendedParameter(argumentNames = "classpath")
     private List<String> classPath = Lists.newArrayList();
 
     @Parameter(names = {"-d", "--classpath-dir"},
             description = "A directory to search for classpath files. This option can be used multiple times to " +
                     "specify multiple directories to search. They will be searched in the order they are provided.")
+    @ExtendedParameter(argumentNames = "dirs")
     private List<String> classPathDirectories = Lists.newArrayList(".");
 
     @Parameter(names = {"--code-offsets"},
-            description = "Add comments to the disassembly containing the code offset within the method for each " +
-                    "instruction.")
+            description = "Add a comment before each instruction with it's code offset within the method.")
     private boolean codeOffsets = false;
 
     @Parameter(names = "--resolve-resources", arity=1,
@@ -100,11 +106,13 @@ public class DisassembleCommand extends DexInputCommand {
                     "comment with the name of the resource being referenced. The value should be a comma/colon" +
                     "separated list of prefix=file pairs. For example R=res/values/public.xml:android.R=" +
                     "$ANDROID_HOME/platforms/android-19/data/res/values/public.xml")
+    @ExtendedParameter(argumentNames = "resource spec")
     private List<String> resourceIdFiles = Lists.newArrayList();
 
     @Parameter(names = {"-j", "--jobs"},
             description = "The number of threads to use. Defaults to the number of cores available.",
             validateWith = PositiveInteger.class)
+    @ExtendedParameter(argumentNames = "n")
     private int jobs = Runtime.getRuntime().availableProcessors();
 
     @Parameter(names = {"-l", "--use-locals"},
@@ -113,7 +121,9 @@ public class DisassembleCommand extends DexInputCommand {
     private boolean localsDirective = false;
 
     @Parameter(names = "--accessor-comments", arity = 1,
-            description = "Generate helper comments for synthetic accessors. Use --accessor-comments=false to disable.")
+            description = "Generate helper comments for synthetic accessors. Use --accessor-comments=false to " +
+                    "disable.")
+    @ExtendedParameter(argumentNames = "boolean")
     private boolean accessorComments = true;
 
     @Parameter(names = "--normalize-virtual-methods",
@@ -123,17 +133,20 @@ public class DisassembleCommand extends DexInputCommand {
 
     @Parameter(names = {"-o", "--output"},
             description = "The directory to write the disassembled files to.")
+    @ExtendedParameter(argumentNames = "dir")
     private String outputDir = "out";
 
     @Parameter(names = "--parameter-registers", arity = 1,
             description = "Use the pNN syntax for registers that refer to a method parameter on method entry. Use" +
                     "--parameter-registers=false to disable.")
+    @ExtendedParameter(argumentNames = "boolean")
     private boolean parameterRegisters = true;
 
     @Parameter(names = {"-r", "--register-info"}, arity=1,
             description = "Add comments before/after each instruction with information about register types. " +
                     "The value is a comma-separated list of any of ALL, ALLPRE, ALLPOST, ARGS, DEST, MERGE and " +
                     "FULLMERGE. See \"baksmali help register-info\" for more information.")
+    @ExtendedParameter(argumentNames = "register info specifier")
     private List<String> registerInfoTypes = Lists.newArrayList();
 
     @Parameter(names = "--sequential-labels",
@@ -142,7 +155,7 @@ public class DisassembleCommand extends DexInputCommand {
     private boolean sequentialLabels = false;
 
     @Parameter(names = "--implicit-references",
-            description = "Use implicit (without the class name) method and field references for methods and " +
+            description = "Use implicit method and field references (without the class name) for methods and " +
                     "fields from the current class.")
     private boolean implicitReferences = false;
 
@@ -151,24 +164,25 @@ public class DisassembleCommand extends DexInputCommand {
                     "supported in the Android runtime yet.")
     private boolean experimentalOpcodes = false;
 
-    @Parameter(description = "<file> - A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
+    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
             "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
             "colon. E.g. \"something.apk:classes2.dex\"")
+    @ExtendedParameter(argumentNames = "file")
     private List<String> inputList = Lists.newArrayList();
 
-    public DisassembleCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public DisassembleCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     public void run() {
         if (help || inputList == null || inputList.isEmpty()) {
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 
         if (inputList.size() > 1) {
             System.err.println("Too many files specified");
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 
@@ -261,7 +275,7 @@ public class DisassembleCommand extends DexInputCommand {
                 int separatorIndex = resourceIdFileSpec.indexOf('=');
                 if (separatorIndex == -1) {
                     System.err.println(String.format("Invalid resource id spec: %s", resourceIdFileSpec));
-                    jc.usage(jc.getParsedCommand());
+                    usage();
                     System.exit(-1);
                 }
                 String prefix = resourceIdFileSpec.substring(0, separatorIndex);
@@ -308,7 +322,7 @@ public class DisassembleCommand extends DexInputCommand {
                 options.registerInfo  |= BaksmaliOptions.FULLMERGE;
             } else {
                 System.err.println(String.format("Invalid register info type: %s", registerInfoType));
-                jc.usage(jc.getParsedCommand());
+                usage();
                 System.exit(-1);
             }
 

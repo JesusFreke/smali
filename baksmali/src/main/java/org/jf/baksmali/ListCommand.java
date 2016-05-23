@@ -34,43 +34,53 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.jf.baksmali.ListHelpCommand.ListHlepCommand;
+import org.jf.util.jcommander.Command;
+import org.jf.util.jcommander.ExtendedCommands;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 @Parameters(commandDescription = "Lists various objects in a dex file.")
-public class ListCommand implements Command {
-
-    @Nonnull private final JCommander jc;
-    @Nonnull private JCommander subJc;
+@ExtendedParameters(
+        commandName = "list",
+        commandAliases = "l")
+public class ListCommand extends Command {
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information")
     private boolean help;
 
-    public ListCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public ListCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     public void registerSubCommands() {
-        subJc = jc.getCommands().get("list");
-        subJc.addCommand("strings", new ListStringsCommand(subJc), "string", "str", "s");
-        subJc.addCommand("methods", new ListMethodsCommand(subJc), "method", "m");
-        subJc.addCommand("fields", new ListFieldsCommand(subJc), "field", "f");
-        subJc.addCommand("types", new ListTypesCommand(subJc), "type", "t");
-        subJc.addCommand("classes", new ListClassesCommand(subJc), "class", "c");
-        subJc.addCommand("dex", new ListDexCommand(subJc), "d");
-        subJc.addCommand("vtables", new ListVtablesCommand(subJc), "vtable", "v");
-        subJc.addCommand("fieldoffsets", new ListFieldOffsetsCommand(subJc), "fieldoffset", "fo");
-        subJc.addCommand("classpath", new ListClassPathCommand(subJc), "bootclasspath", "cp", "bcp");
+        JCommander subJc = getJCommander();
+        List<JCommander> hierarchy = getCommandHierarchy();
+
+        ExtendedCommands.addExtendedCommand(subJc, new ListStringsCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListMethodsCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListFieldsCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListTypesCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListClassesCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListDexCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListVtablesCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListFieldOffsetsCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListClassPathCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListHelpCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(subJc, new ListHlepCommand(hierarchy));
     }
 
     @Override public void run() {
-        if (help || subJc.getParsedCommand() == null) {
-            subJc.usage();
+        JCommander jc = getJCommander();
+        if (help || jc.getParsedCommand() == null) {
+            usage();
             return;
         }
 
-        Command command = (Command)subJc.getCommands().get(subJc.getParsedCommand()).getObjects().get(0);
+        Command command = (Command)jc.getCommands().get(jc.getParsedCommand()).getObjects().get(0);
         command.run();
     }
 }

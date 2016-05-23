@@ -38,6 +38,9 @@ import com.google.common.collect.Lists;
 import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.raw.HeaderItem;
 import org.jf.dexlib2.dexbacked.raw.OdexHeaderItem;
+import org.jf.util.jcommander.Command;
+import org.jf.util.jcommander.ExtendedParameter;
+import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -48,30 +51,32 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 @Parameters(commandDescription = "Lists the dex files in an apk/oat file.")
-public class ListDexCommand implements Command {
-
-    @Nonnull private final JCommander jc;
+@ExtendedParameters(
+        commandName = "dex",
+        commandAliases = "d")
+public class ListDexCommand extends Command {
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information")
     private boolean help;
 
-    @Parameter(description = "<file> - An apk or oat file.")
+    @Parameter(description = "An apk or oat file.")
+    @ExtendedParameter(argumentNames = "file")
     private List<String> inputList = Lists.newArrayList();
 
-    public ListDexCommand(@Nonnull JCommander jc) {
-        this.jc = jc;
+    public ListDexCommand(@Nonnull List<JCommander> commandAncestors) {
+        super(commandAncestors);
     }
 
     @Override public void run() {
         if (help || inputList == null || inputList.isEmpty()) {
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 
         if (inputList.size() > 1) {
             System.err.println("Too many files specified");
-            jc.usage(jc.getParsedCommand());
+            usage();
             return;
         }
 
