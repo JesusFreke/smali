@@ -1208,8 +1208,27 @@ public class MethodAnalyzer {
             AnalyzedInstruction prevAnalyzedInstruction = analyzedInstructions.valueAt(instructionIndex - 1);
             if (prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
                 if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
+                    List<Integer> narrowingRegisters = Lists.newArrayList();
+
+                    if (instructionIndex > 1) {
+                        // If we have something like:
+                        //   move-object/from16 v0, p1
+                        //   instance-of v2, v0, Lblah;
+                        //   if-eqz v2, :target
+                        // Then we need to narrow both v0 AND p1
+                        AnalyzedInstruction prevPrevAnalyzedInstruction =
+                                analyzedInstructions.valueAt(instructionIndex - 2);
+                        Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
+                        if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
+                                opcode == Opcode.MOVE_OBJECT_FROM16) {
+                            narrowingRegisters.add(
+                                    ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction).getRegisterB());
+                        }
+                    }
+
                     // Propagate the original type to the failing branch, and the new type to the successful branch
                     int narrowingRegister = ((Instruction22c)prevAnalyzedInstruction.instruction).getRegisterB();
+                    narrowingRegisters.add(narrowingRegister);
                     RegisterType originalType = analyzedInstruction.getPreInstructionRegisterType(narrowingRegister);
                     RegisterType newType = RegisterType.getRegisterType(classPath,
                             (TypeReference)((Instruction22c)prevAnalyzedInstruction.instruction).getReference());
@@ -1221,16 +1240,18 @@ public class MethodAnalyzer {
                             ((Instruction21t)analyzedInstruction.instruction).getCodeOffset();
                     AnalyzedInstruction branchInstruction = analyzedInstructions.get(nextAddress);
 
-                    if (analyzedInstruction.instruction.getOpcode() == Opcode.IF_EQZ) {
-                        overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
-                                narrowingRegister, newType);
-                        overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
-                                narrowingRegister, originalType);
-                    } else {
-                        overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
-                                narrowingRegister, originalType);
-                        overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
-                                narrowingRegister, newType);
+                    for (int register: narrowingRegisters) {
+                        if (analyzedInstruction.instruction.getOpcode() == Opcode.IF_EQZ) {
+                            overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
+                                    register, newType);
+                            overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
+                                    register, originalType);
+                        } else {
+                            overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
+                                    register, originalType);
+                            overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
+                                    register, newType);
+                        }
                     }
                 }
             }
