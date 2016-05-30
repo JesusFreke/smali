@@ -107,8 +107,9 @@ public class DumpCommand extends Command {
         try {
             dexFile = DexFileFactory.loadDexFile(dexFileFile, dexFileEntry, apiLevel, experimentalOpcodes);
         } catch (DexFileFactory.MultipleDexFilesException ex) {
-            System.err.println(String.format("%s contains multiple dex files. You must specify which one to " +
-                    "disassemble with the -e option", dexFileFile.getName()));
+            System.err.println(String.format("%s is an oat file that contains multiple dex files. You must specify " +
+                    "which one to load. E.g. To load the \"classes2.dex\" entry from blah.apk, you should use " +
+                    "\"blah.apk:classes2.dex\"", dexFileFile));
             System.err.println("Valid entries include:");
 
             for (OatFile.OatDexFile oatDexFile: ex.oatFile.getDexFiles()) {
