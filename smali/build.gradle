@@ -30,7 +30,7 @@
  */
 
 apply plugin: 'antlr'
-apply plugin: 'jflex'
+apply plugin: 'org.xbib.gradle.plugin.jflex'
 
 buildscript {
     repositories {
@@ -46,10 +46,6 @@ configurations {
     // Remove the full antlr library that's added by the antlr plugin. We manually
     // add the smaller antlr_runtime library instead
     compile.exclude group: 'org.antlr', module: 'antlr'
-
-    // The jflex lexer doesn't have any runtime dependencies, so remove the dependency
-    // that gets added by the jflex plugin
-    compile.exclude group: 'de.jflex', module: 'jflex'
 }
 
 sourceSets {
@@ -86,7 +82,6 @@ dependencies {
     testCompile depends.junit
 
     antlr depends.antlr
-    jflex depends.jflex
 }
 
 processResources.inputs.property('version', version)
@@ -119,8 +114,8 @@ generateGrammarSource {
     outputDirectory = new File(outputDirectory, 'org/jf/smali')
 }
 
-generateJFlexSource {
-    outputDirectory = new File(outputDirectory, 'org/jf/smali')
+jflex {
+    generateDir = new File(generateDir, 'org/jf/smali')
 }
 
 uploadArchives {
