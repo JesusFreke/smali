@@ -31,7 +31,7 @@
 
 apply plugin: 'idea'
 
-version = '2.1.2'
+version = '2.1.3'
 
 if (!('release' in gradle.startParameter.taskNames)) {
     def versionSuffix
