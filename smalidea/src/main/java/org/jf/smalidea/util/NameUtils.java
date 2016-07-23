@@ -32,6 +32,7 @@
 package org.jf.smalidea.util;
 
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.ResolveScopeManager;
@@ -129,6 +130,10 @@ public class NameUtils {
 
     public static PsiClass resolveSmaliType(@NotNull Project project, @NotNull GlobalSearchScope scope,
                                             @NotNull String smaliType) {
+        if (DumbService.isDumb(project)) {
+            return null;
+        }
+
         JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
 
         String javaType = NameUtils.smaliToJavaType(smaliType);
