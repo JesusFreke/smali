@@ -35,6 +35,7 @@ import com.intellij.debugger.SourcePosition;
 import com.intellij.debugger.engine.ContextUtil;
 import com.intellij.debugger.engine.DebugProcessImpl.ResumeCommand;
 import com.intellij.debugger.engine.SuspendContextImpl;
+import com.intellij.debugger.engine.events.DebuggerCommandImpl;
 import com.intellij.debugger.impl.JvmSteppingCommandProvider;
 import com.sun.jdi.request.StepRequest;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +45,16 @@ public class SmaliSteppingCommandProvider extends JvmSteppingCommandProvider {
     @Override
     public ResumeCommand getStepOverCommand(@NotNull final SuspendContextImpl suspendContext, boolean ignoreBreakpoints,
                                             int stepSize) {
-        SourcePosition locationPosition = ContextUtil.getSourcePosition(suspendContext);
-        if (locationPosition != null && locationPosition.getFile().getLanguage() == SmaliLanguage.INSTANCE) {
+
+        final SourcePosition[] location = new SourcePosition[1];
+
+        suspendContext.getDebugProcess().getManagerThread().invokeAndWait(new DebuggerCommandImpl() {
+            @Override protected void action() throws Exception {
+                location[0] = ContextUtil.getSourcePosition(suspendContext);
+            }
+        })                                                                        ;
+
+        if (location[0] != null && location[0].getFile().getLanguage() == SmaliLanguage.INSTANCE) {
             return suspendContext.getDebugProcess().createStepOverCommand(suspendContext, ignoreBreakpoints,
                     StepRequest.STEP_MIN);
         }
