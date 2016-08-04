@@ -624,6 +624,14 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         return newToken(INSTRUCTION_FORMAT3rms_METHOD);
     }
 
+    "invoke-polymorphic" {
+        return newToken(INSTRUCTION_FORMAT45cc_METHOD);
+    }
+
+    "invoke-polymorphic/range" {
+        return newToken(INSTRUCTION_FORMAT4rcc_METHOD);
+    }
+
     "const-wide" {
         return newToken(INSTRUCTION_FORMAT51l);
     }

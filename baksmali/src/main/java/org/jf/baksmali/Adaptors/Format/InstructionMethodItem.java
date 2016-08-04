@@ -79,11 +79,20 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         return opcode.isVolatileFieldAccessor() || opcode == Opcode.THROW_VERIFICATION_ERROR;
     }
 
+    private String writeInvalidItemIndex(InvalidItemIndex ex, int type, IndentingWriter writer)
+            throws IOException {
+        writer.write("#");
+        writer.write(ex.getMessage());
+        writer.write("\n");
+        return String.format("%s@%d", ReferenceType.toString(type), ex.getInvalidIndex());
+    }
+
     @Override
     public boolean writeTo(IndentingWriter writer) throws IOException {
         Opcode opcode = instruction.getOpcode();
         String verificationErrorName = null;
         String referenceString = null;
+        String referenceString2 = null;
 
         boolean commentOutInstruction = false;
 
@@ -100,31 +109,44 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
         if (instruction instanceof ReferenceInstruction) {
             ReferenceInstruction referenceInstruction = (ReferenceInstruction)instruction;
+            String classContext = null;
+            if (methodDef.classDef.options.useImplicitReferences) {
+                classContext = methodDef.method.getDefiningClass();
+            }
+
             try {
                 Reference reference = referenceInstruction.getReference();
-
-                String classContext = null;
-                if (methodDef.classDef.options.useImplicitReferences) {
-                    classContext = methodDef.method.getDefiningClass();
-                }
-
                 referenceString = ReferenceUtil.getReferenceString(reference, classContext);
                 assert referenceString != null;
             } catch (InvalidItemIndex ex) {
-                writer.write("#");
-                writer.write(ex.getMessage());
-                writer.write("\n");
                 commentOutInstruction = true;
-
-                referenceString = String.format("%s@%d",
-                    ReferenceType.toString(referenceInstruction.getReferenceType()),
-                    ex.getInvalidIndex());
+                referenceString = writeInvalidItemIndex(ex, referenceInstruction.getReferenceType(),
+                        writer);
             } catch (ReferenceType.InvalidReferenceTypeException ex) {
                 writer.write("#invalid reference type: ");
                 writer.printSignedIntAsDec(ex.getReferenceType());
                 commentOutInstruction = true;
 
                 referenceString = "invalid_reference";
+            }
+
+            if (instruction instanceof DualReferenceInstruction) {
+                DualReferenceInstruction dualReferenceInstruction =
+                        (DualReferenceInstruction) instruction;
+                try {
+                    Reference reference2 = dualReferenceInstruction.getReference2();
+                    referenceString2 = ReferenceUtil.getReferenceString(reference2, classContext);
+                } catch (InvalidItemIndex ex) {
+                    commentOutInstruction = true;
+                    referenceString2 = writeInvalidItemIndex(ex,
+                            dualReferenceInstruction.getReferenceType2(), writer);
+                } catch (ReferenceType.InvalidReferenceTypeException ex) {
+                    writer.write("#invalid reference type: ");
+                    writer.printSignedIntAsDec(ex.getReferenceType());
+                    commentOutInstruction = true;
+
+                    referenceString2 = "invalid_reference";
+                }
             }
         }
 
@@ -354,6 +376,24 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeInvokeRangeRegisters(writer);
                 writer.write(", ");
                 writeVtableIndex(writer);
+                break;
+            case Format45cc:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeInvokeRegisters(writer);
+                writer.write(", ");
+                writer.write(referenceString);
+                writer.write(", ");
+                writer.write(referenceString2);
+                break;
+            case Format4rcc:
+                writeOpcode(writer);
+                writer.write(' ');
+                writeInvokeRangeRegisters(writer);
+                writer.write(", ");
+                writer.write(referenceString);
+                writer.write(", ");
+                writer.write(referenceString2);
                 break;
             default:
                 assert false;

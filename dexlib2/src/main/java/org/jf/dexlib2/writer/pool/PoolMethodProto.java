@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,19 +29,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.writer.pool;
 
+import org.jf.dexlib2.base.reference.BaseMethodProtoReference;
 import org.jf.dexlib2.iface.reference.MethodProtoReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 
-import javax.annotation.Nonnull;
+import java.util.List;
 
-public interface MethodSection<StringKey, TypeKey, ProtoRefKey extends MethodProtoReference,
-        MethodRefKey extends MethodReference, MethodKey>
-        extends IndexSection<MethodRefKey> {
-    @Nonnull TypeKey getDefiningClass(@Nonnull MethodRefKey key);
-    @Nonnull ProtoRefKey getPrototype(@Nonnull MethodRefKey key);
-    @Nonnull ProtoRefKey getPrototype(@Nonnull MethodKey key);
-    @Nonnull StringKey getName(@Nonnull MethodRefKey key);
-    int getMethodIndex(@Nonnull MethodKey key);
+public class PoolMethodProto extends BaseMethodProtoReference implements MethodProtoReference {
+    private final MethodReference methodReference;
+
+    public PoolMethodProto(MethodReference methodReference) {
+        this.methodReference = methodReference;
+    }
+
+    @Override
+    public List<? extends CharSequence> getParameterTypes() {
+        return methodReference.getParameterTypes();
+    }
+
+    @Override
+    public String getReturnType() {
+        return methodReference.getReturnType();
+    }
 }

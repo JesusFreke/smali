@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,19 +29,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.dexbacked.instruction;
 
-import org.jf.dexlib2.iface.reference.MethodProtoReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
+import org.jf.dexlib2.iface.instruction.formats.Instruction4rcc;
+import org.jf.dexlib2.iface.reference.Reference;
 
 import javax.annotation.Nonnull;
 
-public interface MethodSection<StringKey, TypeKey, ProtoRefKey extends MethodProtoReference,
-        MethodRefKey extends MethodReference, MethodKey>
-        extends IndexSection<MethodRefKey> {
-    @Nonnull TypeKey getDefiningClass(@Nonnull MethodRefKey key);
-    @Nonnull ProtoRefKey getPrototype(@Nonnull MethodRefKey key);
-    @Nonnull ProtoRefKey getPrototype(@Nonnull MethodKey key);
-    @Nonnull StringKey getName(@Nonnull MethodRefKey key);
-    int getMethodIndex(@Nonnull MethodKey key);
+public class DexBackedInstruction4rcc extends DexBackedInstruction implements Instruction4rcc {
+    public DexBackedInstruction4rcc(@Nonnull DexBackedDexFile dexFile,
+                                    @Nonnull Opcode opcode,
+                                    int instructionStart) {
+        super(dexFile, opcode, instructionStart);
+    }
+
+    @Override public int getRegisterCount() {
+        return dexFile.readUbyte(instructionStart + 1);
+    }
+
+    @Override
+    public int getStartRegister() {
+        return dexFile.readUshort(instructionStart + 4);
+    }
+
+    @Nonnull
+    @Override
+    public Reference getReference() {
+        return DexBackedReference.makeReference(dexFile, opcode.referenceType,
+                dexFile.readUshort(instructionStart + 2));
+    }
+
+    @Override
+    public int getReferenceType() {
+        return opcode.referenceType;
+    }
+
+    @Override
+    public Reference getReference2() {
+        return DexBackedReference.makeReference(dexFile, opcode.referenceType2,
+                dexFile.readUshort(instructionStart + 3));
+    }
+
+    @Override
+    public int getReferenceType2() {
+        return opcode.referenceType2;
+    }
 }

@@ -120,6 +120,8 @@ tokens {
   INSTRUCTION_FORMAT3rc_TYPE;
   INSTRUCTION_FORMAT3rmi_METHOD;
   INSTRUCTION_FORMAT3rms_METHOD;
+  INSTRUCTION_FORMAT45cc_METHOD;
+  INSTRUCTION_FORMAT4rcc_METHOD;
   INSTRUCTION_FORMAT51l;
   LINE_COMMENT;
   LINE_DIRECTIVE;
@@ -234,6 +236,8 @@ tokens {
   I_STATEMENT_FORMAT35c_TYPE;
   I_STATEMENT_FORMAT3rc_METHOD;
   I_STATEMENT_FORMAT3rc_TYPE;
+  I_STATEMENT_FORMAT45cc_METHOD;
+  I_STATEMENT_FORMAT4rcc_METHOD;
   I_STATEMENT_FORMAT51l;
   I_STATEMENT_ARRAY_DATA;
   I_STATEMENT_PACKED_SWITCH;
@@ -581,6 +585,8 @@ simple_name
   | INSTRUCTION_FORMAT35c_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_TYPE]
   | INSTRUCTION_FORMAT35mi_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35mi_METHOD]
   | INSTRUCTION_FORMAT35ms_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35ms_METHOD]
+  | INSTRUCTION_FORMAT45cc_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT45cc_METHOD]
+  | INSTRUCTION_FORMAT4rcc_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT4rcc_METHOD]
   | INSTRUCTION_FORMAT51l -> SIMPLE_NAME[$INSTRUCTION_FORMAT51l];
 
 member_name
@@ -849,6 +855,8 @@ instruction
   | insn_format3rc_type
   | insn_format3rmi_method
   | insn_format3rms_method
+  | insn_format45cc_method
+  | insn_format4rcc_method
   | insn_format51l
   | insn_array_data_directive
   | insn_packed_switch_directive
@@ -1105,6 +1113,16 @@ insn_format3rms_method
     {
       throwOdexedInstructionException(input, $INSTRUCTION_FORMAT3rms_METHOD.text);
     };
+
+insn_format45cc_method
+  : //e.g. invoke-polymorphic {v0..v1}, java/lang/invoke/MethodHandle;->invoke([Ljava/lang/Object;)Ljava/lang/Object;, (I)J
+    INSTRUCTION_FORMAT45cc_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA method_reference COMMA method_prototype
+    -> ^(I_STATEMENT_FORMAT45cc_METHOD[$start, "I_STATEMENT_FORMAT45cc_METHOD"] INSTRUCTION_FORMAT45cc_METHOD register_list method_reference method_prototype);
+
+insn_format4rcc_method
+  : //e.g. invoke-polymorphic/range {v0,v1}, java/lang/invoke/MethodHandle;->invoke([Ljava/lang/Object;)Ljava/lang/Object;, (I)J
+    INSTRUCTION_FORMAT4rcc_METHOD OPEN_BRACE register_range CLOSE_BRACE COMMA method_reference COMMA method_prototype
+    -> ^(I_STATEMENT_FORMAT4rcc_METHOD[$start, "I_STATEMENT_FORMAT4rcc_METHOD"] INSTRUCTION_FORMAT4rcc_METHOD register_range method_reference method_prototype);
 
 insn_format51l
   : //e.g. const-wide v0, 5000000000L

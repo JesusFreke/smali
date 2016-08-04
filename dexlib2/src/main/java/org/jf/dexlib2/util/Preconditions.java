@@ -125,7 +125,7 @@ public class Preconditions {
         return offset;
     }
 
-    public static int check35cRegisterCount(int registerCount) {
+    public static int check35cAnd45ccRegisterCount(int registerCount) {
         if (registerCount < 0 || registerCount > 5) {
             throw new IllegalArgumentException(
                     String.format("Invalid register count: %d. Must be between 0 and 5, inclusive.", registerCount));

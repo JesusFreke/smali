@@ -294,8 +294,8 @@ public enum Opcode
     
     INVOKE_VIRTUAL_QUICK(combine(allApis(0xf8), allArtVersions(0xe9)), "invoke-virtual-quick", ReferenceType.NONE,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
     INVOKE_VIRTUAL_QUICK_RANGE(combine(allApis(0xf9), allArtVersions(0xea)), "invoke-virtual-quick/range", ReferenceType.NONE,  Format.Format3rms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_SUPER_QUICK(allApis(0xfa), "invoke-super-quick", ReferenceType.NONE,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_SUPER_QUICK_RANGE(allApis(0xfb), "invoke-super-quick/range", ReferenceType.NONE,  Format.Format3rms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_SUPER_QUICK(lastApi(0xfa, 25), "invoke-super-quick", ReferenceType.NONE,  Format.Format35ms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_SUPER_QUICK_RANGE(lastApi(0xfb, 25), "invoke-super-quick/range", ReferenceType.NONE,  Format.Format3rms, Opcode.ODEX_ONLY | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
 
     IPUT_OBJECT_VOLATILE(firstApi(0xfc, 9), "iput-object-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.VOLATILE_FIELD_ACCESSOR | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     SGET_OBJECT_VOLATILE(firstApi(0xfd, 9), "sget-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.VOLATILE_FIELD_ACCESSOR | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.STATIC_FIELD_ACCESSOR),
@@ -313,7 +313,9 @@ public enum Opcode
     // TODO: do we need a capture/liberate wide?
     LIBERATE_VARIABLE(allArtVersions(0xf7), "liberate-variable", ReferenceType.STRING, Format.Format22c, Opcode.SETS_REGISTER | Opcode.EXPERIMENTAL),
     BOX_LAMBDA(allArtVersions(0xf8), "box-lambda", ReferenceType.NONE, Format.Format22x, Opcode.SETS_REGISTER | Opcode.EXPERIMENTAL),
-    UNBOX_LAMBDA(allArtVersions(0xf9), "unbox-lambda", ReferenceType.TYPE, Format.Format22c, Opcode.SETS_REGISTER | Opcode.EXPERIMENTAL);
+    UNBOX_LAMBDA(allArtVersions(0xf9), "unbox-lambda", ReferenceType.TYPE, Format.Format22c, Opcode.SETS_REGISTER | Opcode.EXPERIMENTAL),
+    INVOKE_POLYMORPHIC(firstApi(0xfa, 26), "invoke-polymorphic", ReferenceType.METHOD, ReferenceType.METHOD_PROTO, Format.Format45cc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_POLYMORPHIC_RANGE(firstApi(0xfb, 26), "invoke-polymorphic/range", ReferenceType.METHOD, ReferenceType.METHOD_PROTO, Format.Format4rcc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT);
 
     //if the instruction can throw an exception
     public static final int CAN_THROW = 0x1;
@@ -359,6 +361,7 @@ public enum Opcode
     public final int referenceType;
     public final Format format;
     public final int flags;
+    public final int referenceType2;
 
     Opcode(int opcodeValue, String opcodeName, int referenceType, Format format) {
         this(opcodeValue, opcodeName, referenceType, format, 0);
@@ -369,6 +372,11 @@ public enum Opcode
     }
 
     Opcode(List<VersionConstraint> versionConstraints, String opcodeName, int referenceType, Format format, int flags) {
+        this(versionConstraints, opcodeName, referenceType, -1, format, flags);
+    }
+
+    Opcode(List<VersionConstraint> versionConstraints, String opcodeName, int referenceType, int referenceType2,
+           Format format, int flags) {
         ImmutableRangeMap.Builder<Integer, Short> apiToValueBuilder = ImmutableRangeMap.builder();
         ImmutableRangeMap.Builder<Integer, Short> artVersionToValueBuilder = ImmutableRangeMap.builder();
 
@@ -385,6 +393,7 @@ public enum Opcode
         this.artVersionToValueMap = artVersionToValueBuilder.build();
         this.name = opcodeName;
         this.referenceType = referenceType;
+        this.referenceType2 = referenceType2;
         this.format = format;
         this.flags = flags;
     }

@@ -60,6 +60,17 @@ public final class ReferenceUtil {
         return sb.toString();
     }
 
+    public static String getMethodProtoDescriptor(MethodProtoReference methodProtoReference) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('(');
+        for (CharSequence paramType : methodProtoReference.getParameterTypes()) {
+            sb.append(paramType);
+        }
+        sb.append(')');
+        sb.append(methodProtoReference.getReturnType());
+        return sb.toString();
+    }
+
     public static void writeMethodDescriptor(Writer writer, MethodReference methodReference) throws IOException {
         writeMethodDescriptor(writer, methodReference, false);
     }
@@ -134,12 +145,16 @@ public final class ReferenceUtil {
         if (reference instanceof FieldReference) {
             FieldReference fieldReference = (FieldReference)reference;
             boolean useImplicitReference = fieldReference.getDefiningClass().equals(containingClass);
-            return getFieldDescriptor((FieldReference)reference, useImplicitReference);
+            return getFieldDescriptor(fieldReference, useImplicitReference);
         }
         if (reference instanceof MethodReference) {
             MethodReference methodReference = (MethodReference)reference;
             boolean useImplicitReference = methodReference.getDefiningClass().equals(containingClass);
-            return getMethodDescriptor((MethodReference)reference, useImplicitReference);
+            return getMethodDescriptor(methodReference, useImplicitReference);
+        }
+        if (reference instanceof MethodProtoReference) {
+            MethodProtoReference methodProtoReference = (MethodProtoReference)reference;
+            return getMethodProtoDescriptor(methodProtoReference);
         }
         return null;
     }

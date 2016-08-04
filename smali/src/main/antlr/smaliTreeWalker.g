@@ -62,6 +62,7 @@ import org.jf.dexlib2.immutable.ImmutableAnnotation;
 import org.jf.dexlib2.immutable.ImmutableAnnotationElement;
 import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
 import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
+import org.jf.dexlib2.immutable.reference.ImmutableMethodProtoReference;
 import org.jf.dexlib2.immutable.reference.ImmutableReference;
 import org.jf.dexlib2.immutable.reference.ImmutableTypeReference;
 import org.jf.dexlib2.immutable.value.*;
@@ -766,6 +767,8 @@ instruction
   | insn_format35c_type
   | insn_format3rc_method
   | insn_format3rc_type
+  | insn_format45cc_method
+  | insn_format4rcc_method
   | insn_format51l_type
   | insn_array_data_directive
   | insn_packed_switch_directive
@@ -1179,6 +1182,47 @@ insn_format3rc_type
 
       $method::methodBuilder.addInstruction(new BuilderInstruction3rc(opcode, startRegister, registerCount,
               dexBuilder.internTypeReference($nonvoid_type_descriptor.type)));
+    };
+
+insn_format45cc_method
+  : //e.g. invoke-polymorphic {v0, v1}, java/lang/invoke/MethodHandle;->invoke([Ljava/lang/Object;)Ljava/lang/Object;, (I)J
+    ^(I_STATEMENT_FORMAT45cc_METHOD INSTRUCTION_FORMAT45cc_METHOD register_list method_reference method_prototype)
+    {
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT45cc_METHOD.text);
+
+      //this depends on the fact that register_list returns a byte[5]
+      byte[] registers = $register_list.registers;
+      byte registerCount = $register_list.registerCount;
+
+      ImmutableMethodReference methodReference = $method_reference.methodReference;
+      ImmutableMethodProtoReference methodProtoReference = new ImmutableMethodProtoReference(
+              $method_prototype.parameters,
+              $method_prototype.returnType);
+
+      $method::methodBuilder.addInstruction(new BuilderInstruction45cc(opcode, registerCount, registers[0], registers[1],
+              registers[2], registers[3], registers[4],
+              dexBuilder.internMethodReference(methodReference),
+              dexBuilder.internMethodProtoReference(methodProtoReference)));
+    };
+
+insn_format4rcc_method
+  : //e.g. invoke-polymorphic {v0..v1}, java/lang/invoke/MethodHandle;->invoke([Ljava/lang/Object;)Ljava/lang/Object;, (I)J
+    ^(I_STATEMENT_FORMAT4rcc_METHOD INSTRUCTION_FORMAT4rcc_METHOD register_range method_reference method_prototype)
+    {
+      Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT4rcc_METHOD.text);
+      int startRegister = $register_range.startRegister;
+      int endRegister = $register_range.endRegister;
+
+      int registerCount = endRegister-startRegister+1;
+
+      ImmutableMethodReference methodReference = $method_reference.methodReference;
+      ImmutableMethodProtoReference methodProtoReference = new ImmutableMethodProtoReference(
+              $method_prototype.parameters,
+              $method_prototype.returnType);
+
+      $method::methodBuilder.addInstruction(new BuilderInstruction4rcc(opcode, startRegister, registerCount,
+              dexBuilder.internMethodReference(methodReference),
+              dexBuilder.internMethodProtoReference(methodProtoReference)));
     };
 
 insn_format51l_type

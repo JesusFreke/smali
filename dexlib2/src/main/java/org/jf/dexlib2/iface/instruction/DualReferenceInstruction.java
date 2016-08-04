@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.baksmali;
+package org.jf.dexlib2.iface.instruction;
 
-import org.junit.Test;
+import org.jf.dexlib2.iface.reference.Reference;
 
-public class LambdaTest extends IdenticalRoundtripTest {
+import javax.annotation.Nonnull;
 
-    private baksmaliOptions createOptions() {
-        baksmaliOptions options = new baksmaliOptions();
-        options.apiLevel = 23;  // since we need at least level 23 for lambda opcodes
-        options.experimental = true; // since these opcodes aren't implemented in runtime yet);
-        return options;
-    }
-
-    @Test
-    public void testHelloWorldLambda() {
-        runTest("HelloWorldLambda", createOptions());
-    }
+public interface DualReferenceInstruction extends ReferenceInstruction {
+    @Nonnull Reference getReference2();
+    int getReferenceType2();
 }

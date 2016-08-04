@@ -63,6 +63,8 @@ public enum Format {
     Format3rc(6),
     Format3rmi(6),
     Format3rms(6),
+    Format45cc(8),
+    Format4rcc(8),
     Format51l(10),
     ArrayPayload(-1, true),
     PackedSwitchPayload(-1, true),
