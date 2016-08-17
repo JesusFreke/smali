@@ -343,20 +343,6 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
         }
     }
 
-    public void write(@Nonnull Instruction25x instruction) {
-        try {
-            writer.write(getOpcodeValue(instruction.getOpcode()));
-            writer.write(packNibbles(
-                    instruction.getRegisterParameterG(), instruction.getParameterRegisterCount()));
-            writer.write(packNibbles(
-                    instruction.getRegisterFixedC(), instruction.getRegisterParameterD()));
-            writer.write(packNibbles(
-                    instruction.getRegisterParameterE(), instruction.getRegisterParameterF()));
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
     public void write(@Nonnull Instruction3rc instruction) {
         try {
             writer.write(getOpcodeValue(instruction.getOpcode()));

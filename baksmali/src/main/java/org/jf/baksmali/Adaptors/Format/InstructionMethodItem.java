@@ -330,11 +330,6 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeThirdRegister(writer);
                 break;
-             case Format25x:
-                writeOpcode(writer);
-                writer.write(' ');
-                writeInvoke25xRegisters(writer);  // vC, {vD, ...}
-                break;
             case Format35c:
                 writeOpcode(writer);
                 writer.write(' ');
@@ -473,43 +468,6 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writeRegister(writer, instruction.getRegisterF());
                 writer.write(", ");
                 writeRegister(writer, instruction.getRegisterG());
-                break;
-        }
-        writer.write('}');
-    }
-
-    protected void writeInvoke25xRegisters(IndentingWriter writer) throws IOException {
-        OneFixedFourParameterRegisterInstruction instruction =
-                (OneFixedFourParameterRegisterInstruction)this.instruction;
-        final int parameterRegCount = instruction.getParameterRegisterCount();
-
-        writeRegister(writer, instruction.getRegisterFixedC());  // fixed register always present
-
-        writer.write(", {");
-        switch (parameterRegCount) {
-            case 1:
-                writeRegister(writer, instruction.getRegisterParameterD());
-                break;
-            case 2:
-                writeRegister(writer, instruction.getRegisterParameterD());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterE());
-                break;
-            case 3:
-                writeRegister(writer, instruction.getRegisterParameterD());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterE());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterF());
-                break;
-            case 4:
-                writeRegister(writer, instruction.getRegisterParameterD());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterE());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterF());
-                writer.write(", ");
-                writeRegister(writer, instruction.getRegisterParameterG());
                 break;
         }
         writer.write('}');

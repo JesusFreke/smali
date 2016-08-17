@@ -51,7 +51,6 @@ public enum Format {
     Format22t(4),
     Format22x(4),
     Format23x(4),
-    Format25x(4),
     Format30t(6),
     Format31c(6),
     Format31i(6),

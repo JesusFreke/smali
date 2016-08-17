@@ -1006,9 +1006,6 @@ public abstract class DexWriter<
                     case Format23x:
                         instructionWriter.write((Instruction23x)instruction);
                         break;
-                    case Format25x:
-                        instructionWriter.write((Instruction25x)instruction);
-                        break;
                     case Format30t:
                         instructionWriter.write((Instruction30t)instruction);
                         break;
