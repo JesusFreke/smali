@@ -43,7 +43,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
 class BuilderMethodPool implements MethodSection<BuilderStringReference, BuilderTypeReference,
-        BuilderProtoReference, BuilderMethodReference, BuilderMethod>{
+        BuilderMethodProtoReference, BuilderMethodReference, BuilderMethod>{
     @Nonnull private final BuilderContext context;
     @Nonnull private final ConcurrentMap<MethodReference, BuilderMethodReference> internedItems =
             Maps.newConcurrentMap();
@@ -61,7 +61,7 @@ class BuilderMethodPool implements MethodSection<BuilderStringReference, Builder
         BuilderMethodReference dexPoolMethodReference = new BuilderMethodReference(
                 context.typePool.internType(methodReference.getDefiningClass()),
                 context.stringPool.internString(methodReference.getName()),
-                context.protoPool.internProto(methodReference));
+                context.protoPool.internMethodProto(methodReference));
         ret = internedItems.putIfAbsent(dexPoolMethodReference, dexPoolMethodReference);
         return ret==null?dexPoolMethodReference:ret;
     }
@@ -78,11 +78,11 @@ class BuilderMethodPool implements MethodSection<BuilderStringReference, Builder
     }
 
     @Nonnull @Override
-    public BuilderProtoReference getPrototype(@Nonnull BuilderMethodReference key) {
+    public BuilderMethodProtoReference getPrototype(@Nonnull BuilderMethodReference key) {
         return key.proto;
     }
 
-    @Nonnull @Override public BuilderProtoReference getPrototype(@Nonnull BuilderMethod builderMethod) {
+    @Nonnull @Override public BuilderMethodProtoReference getPrototype(@Nonnull BuilderMethod builderMethod) {
         return builderMethod.methodReference.proto;
     }
 

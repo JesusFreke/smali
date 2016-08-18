@@ -36,11 +36,14 @@ import com.google.common.primitives.Ints;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.iface.instruction.DualReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodProtoReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.util.ExceptionWithContext;
@@ -51,25 +54,29 @@ import java.util.Comparator;
 import java.util.List;
 
 public class InstructionWriter<StringRef extends StringReference, TypeRef extends TypeReference,
-        FieldRefKey extends FieldReference, MethodRefKey extends MethodReference> {
+        FieldRefKey extends FieldReference, MethodRefKey extends MethodReference,
+        ProtoRefKey extends MethodProtoReference> {
     @Nonnull private final Opcodes opcodes;
     @Nonnull private final DexDataWriter writer;
     @Nonnull private final StringSection<?, StringRef> stringSection;
     @Nonnull private final TypeSection<?, ?, TypeRef> typeSection;
     @Nonnull private final FieldSection<?, ?, FieldRefKey, ?> fieldSection;
     @Nonnull private final MethodSection<?, ?, ?, MethodRefKey, ?> methodSection;
+    @Nonnull private final ProtoSection<?, ?, ProtoRefKey, ?> protoSection;
 
-    @Nonnull static <StringRef extends StringReference, TypeRef extends TypeReference, FieldRefKey extends FieldReference, MethodRefKey extends MethodReference>
-            InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey>
+    @Nonnull static <StringRef extends StringReference, TypeRef extends TypeReference, FieldRefKey extends FieldReference,
+            MethodRefKey extends MethodReference, ProtoRefKey extends MethodProtoReference>
+            InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey, ProtoRefKey>
             makeInstructionWriter(
                 @Nonnull Opcodes opcodes,
                 @Nonnull DexDataWriter writer,
                 @Nonnull StringSection<?, StringRef> stringSection,
                 @Nonnull TypeSection<?, ?, TypeRef> typeSection,
                 @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
-                @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection) {
-        return new InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey>(
-                opcodes, writer, stringSection, typeSection, fieldSection, methodSection);
+                @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection,
+                @Nonnull ProtoSection<?, ?, ProtoRefKey, ?> protoSection) {
+        return new InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey, ProtoRefKey>(
+                opcodes, writer, stringSection, typeSection, fieldSection, methodSection, protoSection);
     }
 
     InstructionWriter(@Nonnull Opcodes opcodes,
@@ -77,13 +84,15 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
                       @Nonnull StringSection<?, StringRef> stringSection,
                       @Nonnull TypeSection<?, ?, TypeRef> typeSection,
                       @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
-                      @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection) {
+                      @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection,
+                      @Nonnull ProtoSection<?, ?, ProtoRefKey, ?> protoSection) {
         this.opcodes = opcodes;
         this.writer = writer;
         this.stringSection = stringSection;
         this.typeSection = typeSection;
         this.fieldSection = fieldSection;
         this.methodSection = methodSection;
+        this.protoSection = protoSection;
     }
 
     private short getOpcodeValue(Opcode opcode) {
@@ -334,25 +343,37 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
         }
     }
 
-    public void write(@Nonnull Instruction25x instruction) {
-        try {
-            writer.write(getOpcodeValue(instruction.getOpcode()));
-            writer.write(packNibbles(
-                    instruction.getRegisterParameterG(), instruction.getParameterRegisterCount()));
-            writer.write(packNibbles(
-                    instruction.getRegisterFixedC(), instruction.getRegisterParameterD()));
-            writer.write(packNibbles(
-                    instruction.getRegisterParameterE(), instruction.getRegisterParameterF()));
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
     public void write(@Nonnull Instruction3rc instruction) {
         try {
             writer.write(getOpcodeValue(instruction.getOpcode()));
             writer.write(instruction.getRegisterCount());
             writer.writeUshort(getReferenceIndex(instruction));
             writer.writeUshort(instruction.getStartRegister());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void write(@Nonnull Instruction45cc instruction) {
+        try {
+            writer.write(getOpcodeValue(instruction.getOpcode()));
+            writer.write(packNibbles(instruction.getRegisterG(), instruction.getRegisterCount()));
+            writer.writeUshort(getReferenceIndex(instruction));
+            writer.write(packNibbles(instruction.getRegisterC(), instruction.getRegisterD()));
+            writer.write(packNibbles(instruction.getRegisterE(), instruction.getRegisterF()));
+            writer.writeUshort(getReference2Index(instruction));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void write(@Nonnull Instruction4rcc instruction) {
+        try {
+            writer.write(getOpcodeValue(instruction.getOpcode()));
+            writer.write(instruction.getRegisterCount());
+            writer.writeUshort(getReferenceIndex(instruction));
+            writer.writeUshort(instruction.getStartRegister());
+            writer.writeUshort(getReference2Index(instruction));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -452,18 +473,29 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
     }
 
     private int getReferenceIndex(ReferenceInstruction referenceInstruction) {
-        switch (referenceInstruction.getOpcode().referenceType) {
+        return getReferenceIndex(referenceInstruction.getReferenceType(),
+                referenceInstruction.getReference());
+    }
+
+    private int getReference2Index(DualReferenceInstruction referenceInstruction) {
+        return getReferenceIndex(referenceInstruction.getReferenceType2(),
+                referenceInstruction.getReference2());
+    }
+
+    private int getReferenceIndex(int referenceType, Reference reference) {
+        switch (referenceType) {
             case ReferenceType.FIELD:
-                return fieldSection.getItemIndex((FieldRefKey)referenceInstruction.getReference());
+                return fieldSection.getItemIndex((FieldRefKey) reference);
             case ReferenceType.METHOD:
-                return methodSection.getItemIndex((MethodRefKey)referenceInstruction.getReference());
+                return methodSection.getItemIndex((MethodRefKey) reference);
             case ReferenceType.STRING:
-                return stringSection.getItemIndex((StringRef)referenceInstruction.getReference());
+                return stringSection.getItemIndex((StringRef) reference);
             case ReferenceType.TYPE:
-                return typeSection.getItemIndex((TypeRef)referenceInstruction.getReference());
+                return typeSection.getItemIndex((TypeRef) reference);
+            case ReferenceType.METHOD_PROTO:
+                return protoSection.getItemIndex((ProtoRefKey) reference);
             default:
-                throw new ExceptionWithContext("Unknown reference type: %d",
-                        referenceInstruction.getOpcode().referenceType);
+                throw new ExceptionWithContext("Unknown reference type: %d",  referenceType);
         }
     }
 }

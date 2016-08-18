@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,19 +29,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.instruction;
+package org.jf.dexlib2.immutable.reference;
 
-public interface OneFixedFourParameterRegisterInstruction extends VariableRegisterInstruction {
-    int getRegisterFixedC();
-    int getRegisterParameterD();
-    int getRegisterParameterE();
-    int getRegisterParameterF();
-    int getRegisterParameterG();
+import com.google.common.collect.ImmutableList;
+import org.jf.dexlib2.base.reference.BaseMethodProtoReference;
+import org.jf.dexlib2.iface.reference.MethodProtoReference;
+import org.jf.dexlib2.immutable.util.CharSequenceConverter;
 
-    /** Returns the count of just the parameter register counts; in range of [0, 4] */
-    int getParameterRegisterCount();
+import java.util.List;
 
-    /** Includes the total sum of both fixed and parameter register counts; at least 1 */
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public class ImmutableMethodProtoReference extends BaseMethodProtoReference implements ImmutableReference {
+    @Nonnull protected final ImmutableList<String> parameters;
+    @Nonnull protected final String returnType;
+
+    public ImmutableMethodProtoReference(@Nullable Iterable<? extends CharSequence> parameters,
+                                         @Nonnull String returnType) {
+        this.parameters = CharSequenceConverter.immutableStringList(parameters);
+        this.returnType = returnType;
+    }
+
+    @Nonnull public static ImmutableMethodProtoReference of(@Nonnull MethodProtoReference methodProtoReference) {
+        if (methodProtoReference instanceof ImmutableMethodProtoReference) {
+            return (ImmutableMethodProtoReference) methodProtoReference;
+        }
+        return new ImmutableMethodProtoReference(
+                methodProtoReference.getParameterTypes(),
+                methodProtoReference.getReturnType());
+    }
+
     @Override
-    int getRegisterCount();
+    public List<? extends CharSequence> getParameterTypes() {
+        return parameters;
+    }
+
+    @Override
+    public String getReturnType() {
+        return returnType;
+    }
 }

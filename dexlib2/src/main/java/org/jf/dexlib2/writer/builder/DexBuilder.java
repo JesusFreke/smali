@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringReference, BuilderTypeReference,
-        BuilderTypeReference, BuilderProtoReference, BuilderFieldReference, BuilderMethodReference,
+        BuilderTypeReference, BuilderMethodProtoReference, BuilderFieldReference, BuilderMethodReference,
         BuilderClassDef, BuilderAnnotation, BuilderAnnotationSet, BuilderTypeList, BuilderField, BuilderMethod,
         BuilderEncodedValue, BuilderAnnotationElement> {
 
@@ -176,6 +176,10 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
         return context.methodPool.internMethod(method);
     }
 
+    @Nonnull public BuilderMethodProtoReference internMethodProtoReference(@Nonnull MethodProtoReference methodProto) {
+        return context.protoPool.internMethodProto(methodProto);
+    }
+
     @Nonnull public BuilderReference internReference(@Nonnull Reference reference) {
         if (reference instanceof StringReference) {
             return internStringReference(((StringReference)reference).getString());
@@ -188,6 +192,9 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
         }
         if (reference instanceof FieldReference) {
             return internFieldReference((FieldReference)reference);
+        }
+        if (reference instanceof MethodProtoReference) {
+            return internMethodProtoReference((MethodProtoReference) reference);
         }
         throw new IllegalArgumentException("Could not determine type of reference");
     }

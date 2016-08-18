@@ -39,12 +39,12 @@ import javax.annotation.Nonnull;
 public class BuilderMethodReference extends BaseMethodReference implements BuilderReference {
     @Nonnull final BuilderTypeReference definingClass;
     @Nonnull final BuilderStringReference name;
-    @Nonnull final BuilderProtoReference proto;
+    @Nonnull final BuilderMethodProtoReference proto;
     int index = DexWriter.NO_INDEX;
 
     BuilderMethodReference(@Nonnull BuilderTypeReference definingClass,
                            @Nonnull BuilderStringReference name,
-                           @Nonnull BuilderProtoReference proto) {
+                           @Nonnull BuilderMethodProtoReference proto) {
         this.definingClass = definingClass;
         this.name = name;
         this.proto = proto;

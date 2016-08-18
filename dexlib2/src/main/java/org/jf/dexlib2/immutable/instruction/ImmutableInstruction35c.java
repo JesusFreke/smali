@@ -61,7 +61,7 @@ public class ImmutableInstruction35c extends ImmutableInstruction implements Ins
                                    int registerG,
                                    @Nonnull Reference reference) {
         super(opcode);
-        this.registerCount = Preconditions.check35cRegisterCount(registerCount);
+        this.registerCount = Preconditions.check35cAnd45ccRegisterCount(registerCount);
         this.registerC = (registerCount>0) ? Preconditions.checkNibbleRegister(registerC) : 0;
         this.registerD = (registerCount>1) ? Preconditions.checkNibbleRegister(registerD) : 0;
         this.registerE = (registerCount>2) ? Preconditions.checkNibbleRegister(registerE) : 0;

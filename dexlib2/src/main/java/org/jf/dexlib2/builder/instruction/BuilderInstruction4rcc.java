@@ -34,49 +34,39 @@ package org.jf.dexlib2.builder.instruction;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.builder.BuilderInstruction;
-import org.jf.dexlib2.iface.instruction.formats.Instruction35c;
+import org.jf.dexlib2.iface.instruction.formats.Instruction4rcc;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.util.Preconditions;
 
 import javax.annotation.Nonnull;
 
-public class BuilderInstruction35c extends BuilderInstruction implements Instruction35c {
-    public static final Format FORMAT = Format.Format35c;
+public class BuilderInstruction4rcc extends BuilderInstruction implements Instruction4rcc {
+    public static final Format FORMAT = Format.Format4rcc;
 
+    protected final int startRegister;
     protected final int registerCount;
-    protected final int registerC;
-    protected final int registerD;
-    protected final int registerE;
-    protected final int registerF;
-    protected final int registerG;
-    @Nonnull protected final Reference reference;
 
-    public BuilderInstruction35c(@Nonnull Opcode opcode,
-                                 int registerCount,
-                                 int registerC,
-                                 int registerD,
-                                 int registerE,
-                                 int registerF,
-                                 int registerG,
-                                 @Nonnull Reference reference) {
+    @Nonnull protected final Reference reference;
+    @Nonnull protected final Reference reference2;
+
+    public BuilderInstruction4rcc(@Nonnull Opcode opcode,
+                                  int startRegister,
+                                  int registerCount,
+                                  @Nonnull Reference reference,
+                                  @Nonnull Reference reference2) {
         super(opcode);
-        this.registerCount = Preconditions.check35cAnd45ccRegisterCount(registerCount);
-        this.registerC = (registerCount>0) ? Preconditions.checkNibbleRegister(registerC) : 0;
-        this.registerD = (registerCount>1) ? Preconditions.checkNibbleRegister(registerD) : 0;
-        this.registerE = (registerCount>2) ? Preconditions.checkNibbleRegister(registerE) : 0;
-        this.registerF = (registerCount>3) ? Preconditions.checkNibbleRegister(registerF) : 0;
-        this.registerG = (registerCount>4) ? Preconditions.checkNibbleRegister(registerG) : 0;
+        this.startRegister = Preconditions.checkShortRegister(startRegister);
+        this.registerCount = Preconditions.checkRegisterRangeCount(registerCount);
         this.reference = reference;
+        this.reference2 = reference2;
     }
 
+    @Override public int getStartRegister() { return startRegister; }
     @Override public int getRegisterCount() { return registerCount; }
-    @Override public int getRegisterC() { return registerC; }
-    @Override public int getRegisterD() { return registerD; }
-    @Override public int getRegisterE() { return registerE; }
-    @Override public int getRegisterF() { return registerF; }
-    @Override public int getRegisterG() { return registerG; }
     @Nonnull @Override public Reference getReference() { return reference; }
     @Override public int getReferenceType() { return opcode.referenceType; }
+    @Nonnull @Override public Reference getReference2() { return reference2; }
+    @Override public int getReferenceType2() { return opcode.referenceType2; }
 
     @Override public Format getFormat() { return FORMAT; }
 }
