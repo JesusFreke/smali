@@ -12,7 +12,7 @@
     ]]>
   </change-notes>
 
-  <idea-version since-build="131"/>
+  <idea-version since-build="143"/>
 
   <extensions defaultExtensionNs="com.intellij">
       <fileTypeFactory implementation="org.jf.smalidea.SmaliFileTypeFactory"/>
@@ -23,8 +23,7 @@
       <java.elementFinder implementation="org.jf.smalidea.psi.index.SmaliClassFinder"/>
       <stubIndex implementation="org.jf.smalidea.psi.index.SmaliClassNameIndex"/>
       <debugger.positionManagerFactory implementation="org.jf.smalidea.debugging.SmaliPositionManagerFactory"/>
-      <xdebugger.debuggerSupport id="SmaliDebuggerSupport" order="first,before XDebuggerSupport"
-                                 implementation="org.jf.smalidea.debugging.SmaliDebuggerSupport"/>
+      <debugger.jvmSteppingCommandProvider implementation="org.jf.smalidea.debugging.SmaliSteppingCommandProvider"/>
       <debugger.codeFragmentFactory implementation="org.jf.smalidea.debugging.SmaliCodeFragmentFactory"/>
       <stubElementTypeHolder class="org.jf.smalidea.psi.SmaliElementTypes" />
       <lang.findUsagesProvider language="smali"

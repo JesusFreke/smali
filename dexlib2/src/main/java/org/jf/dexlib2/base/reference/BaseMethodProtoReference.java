@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,19 +29,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.writer;
+package org.jf.dexlib2.base.reference;
 
+import com.google.common.collect.Ordering;
 import org.jf.dexlib2.iface.reference.MethodProtoReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.util.CharSequenceUtils;
+import org.jf.util.CollectionUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public interface MethodSection<StringKey, TypeKey, ProtoRefKey extends MethodProtoReference,
-        MethodRefKey extends MethodReference, MethodKey>
-        extends IndexSection<MethodRefKey> {
-    @Nonnull TypeKey getDefiningClass(@Nonnull MethodRefKey key);
-    @Nonnull ProtoRefKey getPrototype(@Nonnull MethodRefKey key);
-    @Nonnull ProtoRefKey getPrototype(@Nonnull MethodKey key);
-    @Nonnull StringKey getName(@Nonnull MethodRefKey key);
-    int getMethodIndex(@Nonnull MethodKey key);
+
+public abstract class BaseMethodProtoReference implements MethodProtoReference {
+    @Override
+    public int hashCode() {
+        int hashCode = getReturnType().hashCode();
+        return hashCode*31 + getParameterTypes().hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (o instanceof MethodProtoReference) {
+            MethodProtoReference other = (MethodProtoReference)o;
+            return getReturnType().equals(other.getReturnType()) &&
+                    CharSequenceUtils.listEquals(getParameterTypes(), other.getParameterTypes());
+        }
+        return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull MethodProtoReference o) {
+        int res = getReturnType().compareTo(o.getReturnType());
+        if (res != 0) return res;
+        return CollectionUtils.compareAsIterable(Ordering.usingToString(), getParameterTypes(), o.getParameterTypes());
+    }
 }

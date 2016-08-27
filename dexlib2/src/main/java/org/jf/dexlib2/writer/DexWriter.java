@@ -54,6 +54,7 @@ import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodProtoReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
@@ -84,7 +85,7 @@ import java.util.zip.Adler32;
 
 public abstract class DexWriter<
         StringKey extends CharSequence, StringRef extends StringReference, TypeKey extends CharSequence,
-        TypeRef extends TypeReference, ProtoKey extends Comparable<ProtoKey>,
+        TypeRef extends TypeReference, ProtoRefKey extends MethodProtoReference,
         FieldRefKey extends FieldReference, MethodRefKey extends MethodReference,
         ClassKey extends Comparable<? super ClassKey>,
         AnnotationKey extends Annotation, AnnotationSetKey,
@@ -125,9 +126,9 @@ public abstract class DexWriter<
 
     protected final StringSection<StringKey, StringRef> stringSection;
     protected final TypeSection<StringKey, TypeKey, TypeRef> typeSection;
-    protected final ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection;
+    protected final ProtoSection<StringKey, TypeKey, ProtoRefKey, TypeListKey> protoSection;
     protected final FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection;
-    protected final MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey, MethodKey> methodSection;
+    protected final MethodSection<StringKey, TypeKey, ProtoRefKey, MethodRefKey, MethodKey> methodSection;
     protected final ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
             EncodedValue> classSection;
     
@@ -138,9 +139,9 @@ public abstract class DexWriter<
     protected DexWriter(Opcodes opcodes,
                         StringSection<StringKey, StringRef> stringSection,
                         TypeSection<StringKey, TypeKey, TypeRef> typeSection,
-                        ProtoSection<StringKey, TypeKey, ProtoKey, TypeListKey> protoSection,
+                        ProtoSection<StringKey, TypeKey, ProtoRefKey, TypeListKey> protoSection,
                         FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection,
-                        MethodSection<StringKey, TypeKey, ProtoKey, MethodRefKey, MethodKey> methodSection,
+                        MethodSection<StringKey, TypeKey, ProtoRefKey, MethodRefKey, MethodKey> methodSection,
                         ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
                                 EncodedValue> classSection,
                         TypeListSection<TypeKey, TypeListKey> typeListSection,
@@ -347,12 +348,12 @@ public abstract class DexWriter<
         protoSectionOffset = writer.getPosition();
         int index = 0;
 
-        List<Map.Entry<? extends ProtoKey, Integer>> protoEntries = Lists.newArrayList(protoSection.getItems());
-        Collections.sort(protoEntries, DexWriter.<ProtoKey>comparableKeyComparator());
+        List<Map.Entry<? extends ProtoRefKey, Integer>> protoEntries = Lists.newArrayList(protoSection.getItems());
+        Collections.sort(protoEntries, DexWriter.<ProtoRefKey>comparableKeyComparator());
 
-        for (Map.Entry<? extends ProtoKey, Integer> entry: protoEntries) {
+        for (Map.Entry<? extends ProtoRefKey, Integer> entry: protoEntries) {
             entry.setValue(index++);
-            ProtoKey key = entry.getKey();
+            ProtoRefKey key = entry.getKey();
             writer.writeInt(stringSection.getItemIndex(protoSection.getShorty(key)));
             writer.writeInt(typeSection.getItemIndex(protoSection.getReturnType(key)));
             writer.writeInt(typeListSection.getNullableItemOffset(protoSection.getParameters(key)));
@@ -946,7 +947,7 @@ public abstract class DexWriter<
 
             InstructionWriter instructionWriter =
                     InstructionWriter.makeInstructionWriter(opcodes, writer, stringSection, typeSection, fieldSection,
-                            methodSection);
+                            methodSection, protoSection);
 
             writer.writeInt(codeUnitCount);
             for (Instruction instruction: instructions) {
@@ -1005,9 +1006,6 @@ public abstract class DexWriter<
                     case Format23x:
                         instructionWriter.write((Instruction23x)instruction);
                         break;
-                    case Format25x:
-                        instructionWriter.write((Instruction25x)instruction);
-                        break;
                     case Format30t:
                         instructionWriter.write((Instruction30t)instruction);
                         break;
@@ -1028,6 +1026,12 @@ public abstract class DexWriter<
                         break;
                     case Format3rc:
                         instructionWriter.write((Instruction3rc)instruction);
+                        break;
+                    case Format45cc:
+                        instructionWriter.write((Instruction45cc) instruction);
+                        break;
+                    case Format4rcc:
+                        instructionWriter.write((Instruction4rcc) instruction);
                         break;
                     case Format51l:
                         instructionWriter.write((Instruction51l)instruction);

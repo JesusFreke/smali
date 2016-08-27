@@ -31,7 +31,7 @@
 
 apply plugin: 'idea'
 
-version = '2.1.2'
+version = '2.1.3'
 
 if (!('release' in gradle.startParameter.taskNames)) {
     def versionSuffix
@@ -104,8 +104,7 @@ subprojects {
                 antlr_runtime: 'org.antlr:antlr-runtime:3.5.2',
                 antlr: 'org.antlr:antlr:3.5.2',
                 stringtemplate: 'org.antlr:stringtemplate:3.2.1',
-                jflex: 'de.jflex:jflex:1.4.3',
-                jflex_plugin: 'co.tomlee.gradle.plugins:gradle-jflex-plugin:0.0.2',
+                jflex_plugin: 'org.xbib.gradle.plugin:gradle-plugin-jflex:1.1.0',
                 proguard_gradle: 'net.sf.proguard:proguard-gradle:5.2.1',
                 dx: 'com.google.android.tools:dx:1.7',
                 gson: 'com.google.code.gson:gson:2.3.1',
@@ -197,5 +196,5 @@ buildscript {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.11'
+    gradleVersion = '2.14'
 }

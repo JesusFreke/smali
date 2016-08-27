@@ -102,13 +102,16 @@ public class LazyValue<T extends Value> implements Value {
     }
 
     @Nullable
-    private T getNullableValue() {
+    protected T getNullableValue(boolean allowNull) {
         if (value == null) {
             try {
                 if (evaluationContext == null) {
                     final DebuggerContextImpl debuggerContext = DebuggerManagerEx.getInstanceEx(project).getContext();
                     evaluationContext = debuggerContext.createEvaluationContext();
                     if (evaluationContext == null) {
+                        if (!allowNull) {
+                            throw new IllegalStateException("Can't create evaluation context");
+                        }
                         return null;
                     }
                 }
@@ -116,6 +119,9 @@ public class LazyValue<T extends Value> implements Value {
                 value = SmaliCodeFragmentFactory.evaluateRegister(evaluationContext, method, registerNumber, type);
                 evaluationContext = null;
             } catch (EvaluateException ex) {
+                if (!allowNull) {
+                    throw new IllegalStateException(ex);
+                }
                 return null;
             }
         }
@@ -124,7 +130,7 @@ public class LazyValue<T extends Value> implements Value {
 
     @Nonnull
     protected T getValue() {
-        T value = getNullableValue();
+        T value = getNullableValue(false);
         assert value != null;
         return value;
     }
@@ -154,7 +160,7 @@ public class LazyValue<T extends Value> implements Value {
     }
 
     @Override public boolean equals(Object obj) {
-        Value value = getNullableValue();
+        Value value = getNullableValue(true);
         if (value != null) {
             return value.equals(obj);
         }
@@ -162,7 +168,7 @@ public class LazyValue<T extends Value> implements Value {
     }
 
     @Override public int hashCode() {
-        Value value = getNullableValue();
+        Value value = getNullableValue(true);
         if (value != null) {
             return value.hashCode();
         }
@@ -170,7 +176,7 @@ public class LazyValue<T extends Value> implements Value {
     }
 
     @Override public String toString() {
-        Value value = getNullableValue();
+        Value value = getNullableValue(true);
         if (value != null) {
             return value.toString();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,51 +33,48 @@ package org.jf.dexlib2.dexbacked.instruction;
 
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.iface.instruction.formats.Instruction25x;
-import org.jf.util.NibbleUtils;
+import org.jf.dexlib2.dexbacked.reference.DexBackedReference;
+import org.jf.dexlib2.iface.instruction.formats.Instruction4rcc;
+import org.jf.dexlib2.iface.reference.Reference;
 
 import javax.annotation.Nonnull;
 
-public class DexBackedInstruction25x extends DexBackedInstruction implements Instruction25x {
-    public DexBackedInstruction25x(@Nonnull DexBackedDexFile dexFile,
-            @Nonnull Opcode opcode,
-            int instructionStart) {
+public class DexBackedInstruction4rcc extends DexBackedInstruction implements Instruction4rcc {
+    public DexBackedInstruction4rcc(@Nonnull DexBackedDexFile dexFile,
+                                    @Nonnull Opcode opcode,
+                                    int instructionStart) {
         super(dexFile, opcode, instructionStart);
     }
 
-    @Override
-    public int getRegisterCount() {
-        return getParameterRegisterCount() + 1;
+    @Override public int getRegisterCount() {
+        return dexFile.readUbyte(instructionStart + 1);
     }
 
     @Override
-    public int getParameterRegisterCount() {
-        return NibbleUtils.extractHighUnsignedNibble(dexFile.readUbyte(instructionStart + 1));
+    public int getStartRegister() {
+        return dexFile.readUshort(instructionStart + 4);
+    }
+
+    @Nonnull
+    @Override
+    public Reference getReference() {
+        return DexBackedReference.makeReference(dexFile, opcode.referenceType,
+                dexFile.readUshort(instructionStart + 2));
     }
 
     @Override
-    public int getRegisterFixedC() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.readUbyte(instructionStart + 2));
+    public int getReferenceType() {
+        return opcode.referenceType;
     }
 
     @Override
-    public int getRegisterParameterD() {
-        return NibbleUtils.extractHighUnsignedNibble(dexFile.readUbyte(instructionStart + 2));
+    public Reference getReference2() {
+        return DexBackedReference.makeReference(dexFile, opcode.referenceType2,
+                dexFile.readUshort(instructionStart + 3));
     }
 
     @Override
-    public int getRegisterParameterE() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.readUbyte(instructionStart + 3));
+    public int getReferenceType2() {
+        return opcode.referenceType2;
     }
-
-    @Override
-    public int getRegisterParameterF() {
-        return NibbleUtils.extractHighUnsignedNibble(dexFile.readUbyte(instructionStart + 3));
-    }
-
-    @Override
-    public int getRegisterParameterG() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.readUbyte(instructionStart + 1));
-    }
-
 }

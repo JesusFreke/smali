@@ -35,6 +35,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.debugger.SourcePosition;
 import com.intellij.lang.ASTNode;
+import com.intellij.navigation.ItemPresentation;
+import com.intellij.navigation.ItemPresentationProviders;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -84,6 +86,10 @@ public class SmaliClass extends SmaliStubBasedPsiElement<SmaliClassStub> impleme
             return name;
         }
         return name.substring(lastDot+1);
+    }
+
+    @Override public ItemPresentation getPresentation() {
+        return ItemPresentationProviders.getItemPresentation(this);
     }
 
     @Nullable @Override public String getQualifiedName() {

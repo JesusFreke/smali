@@ -31,6 +31,7 @@
 
 package org.jf.smalidea;
 
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl;
 import com.intellij.psi.JavaResolveResult;
@@ -64,6 +65,24 @@ public class ClassReferenceTest extends ResolveTestCase {
         Assert.assertEquals(1, resolveResults.length);
         Assert.assertNotNull(resolveResults[0].getElement());
         Assert.assertEquals("java.lang.Object", ((PsiClass)resolveResults[0].getElement()).getQualifiedName());
+    }
+
+    /**
+     * Test a reference to a java class from a smali class, while in dumb mode
+     */
+    public void testJavaReferenceFromSmaliInDumbMode() throws Exception {
+        SmaliClassTypeElement typeElement = (SmaliClassTypeElement)configureByFileText(
+                ".class public Lblah; .super L<ref>java/lang/Object;", "blah.smali");
+
+        Assert.assertNotNull(typeElement);
+        Assert.assertEquals("Object", typeElement.getName());
+
+        DumbServiceImpl.getInstance(getProject()).setDumb(true);
+
+        PsiClass psiClass = typeElement.resolve();
+        Assert.assertNull(psiClass);
+
+        DumbServiceImpl.getInstance(getProject()).setDumb(false);
     }
 
     /**
@@ -104,6 +123,8 @@ public class ClassReferenceTest extends ResolveTestCase {
         Assert.assertNotNull(smaliClass);
         Assert.assertEquals("blarg", smaliClass.getQualifiedName());
     }
+
+
 
     @Override
     protected Sdk getTestProjectJdk() {

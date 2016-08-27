@@ -32,6 +32,8 @@
 package org.jf.dexlib2.writer.builder;
 
 import com.google.common.collect.Ordering;
+import org.jf.dexlib2.base.reference.BaseMethodProtoReference;
+import org.jf.dexlib2.iface.reference.MethodProtoReference;
 import org.jf.dexlib2.writer.DexWriter;
 import org.jf.util.CharSequenceUtils;
 import org.jf.util.CollectionUtils;
@@ -40,14 +42,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class BuilderProtoReference implements BuilderProtoPool.ProtoKey, Comparable<BuilderProtoReference> {
+public class BuilderMethodProtoReference extends BaseMethodProtoReference implements
+        MethodProtoReference, BuilderReference {
     @Nonnull final BuilderStringReference shorty;
     @Nonnull final BuilderTypeList parameterTypes;
     @Nonnull final BuilderTypeReference returnType;
     int index = DexWriter.NO_INDEX;
 
-    public BuilderProtoReference(@Nonnull BuilderStringReference shorty, @Nonnull BuilderTypeList parameterTypes,
-                                 @Nonnull BuilderTypeReference returnType) {
+    public BuilderMethodProtoReference(@Nonnull BuilderStringReference shorty, @Nonnull BuilderTypeList parameterTypes,
+                                       @Nonnull BuilderTypeReference returnType) {
         this.shorty = shorty;
         this.parameterTypes = parameterTypes;
         this.returnType = returnType;
@@ -62,25 +65,12 @@ public class BuilderProtoReference implements BuilderProtoPool.ProtoKey, Compara
     }
 
     @Override
-    public int hashCode() {
-        int hashCode = getReturnType().hashCode();
-        return hashCode*31 + getParameterTypes().hashCode();
+    public int getIndex() {
+        return index;
     }
 
     @Override
-    public boolean equals(@Nullable Object o) {
-        if (o != null && o instanceof BuilderProtoReference) {
-            BuilderProtoReference other = (BuilderProtoReference)o;
-            return returnType.equals(other.returnType) &&
-                   CharSequenceUtils.listEquals(parameterTypes, other.parameterTypes);
-        }
-        return false;
-    }
-
-    @Override
-    public int compareTo(@Nonnull BuilderProtoReference o) {
-        int res = returnType.compareTo(o.returnType);
-        if (res != 0) return res;
-        return CollectionUtils.compareAsIterable(Ordering.usingToString(), parameterTypes, o.parameterTypes);
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

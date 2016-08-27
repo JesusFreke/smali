@@ -615,9 +615,6 @@ public class MutableMethodImplementation implements MethodImplementation {
             case Format23x:
                 setInstruction(location, newBuilderInstruction23x((Instruction23x) instruction));
                 return;
-            case Format25x:
-                setInstruction(location, newBuilderInstruction25x((Instruction25x) instruction));
-                return;
             case Format30t:
                 setInstruction(location, newBuilderInstruction30t(location.codeAddress,
                         codeAddressToIndex,
@@ -869,18 +866,6 @@ public class MutableMethodImplementation implements MethodImplementation {
                 instruction.getRegisterF(),
                 instruction.getRegisterG(),
                 instruction.getReference());
-    }
-
-    @Nonnull
-    private BuilderInstruction25x newBuilderInstruction25x(@Nonnull Instruction25x instruction) {
-        return new BuilderInstruction25x(
-                instruction.getOpcode(),
-                instruction.getParameterRegisterCount(),
-                instruction.getRegisterFixedC(),
-                instruction.getRegisterParameterD(),
-                instruction.getRegisterParameterE(),
-                instruction.getRegisterParameterF(),
-                instruction.getRegisterParameterG());
     }
 
     @Nonnull

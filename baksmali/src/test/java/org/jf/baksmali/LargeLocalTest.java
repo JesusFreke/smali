@@ -1,18 +1,18 @@
 /*
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
  *
- *     * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
  * copyright notice, this list of conditions and the following disclaimer
  * in the documentation and/or other materials provided with the
  * distribution.
- *     * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -29,19 +29,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.instruction;
+package org.jf.baksmali;
 
-public interface OneFixedFourParameterRegisterInstruction extends VariableRegisterInstruction {
-    int getRegisterFixedC();
-    int getRegisterParameterD();
-    int getRegisterParameterE();
-    int getRegisterParameterF();
-    int getRegisterParameterG();
+import org.junit.Test;
 
-    /** Returns the count of just the parameter register counts; in range of [0, 4] */
-    int getParameterRegisterCount();
+/**
+ * Test for a bug related to debug items that refer to a register that's outside the expected range for a method
+ */
+public class LargeLocalTest extends IdenticalRoundtripTest {
+    @Test
+    public void testLargeEndLocal() {
+        runTest("LargeEndLocal");
+    }
 
-    /** Includes the total sum of both fixed and parameter register counts; at least 1 */
-    @Override
-    int getRegisterCount();
+    @Test
+    public void testLargeRestartLocal() {
+        runTest("LargeRestartLocal");
+    }
+
+    @Test
+    public void testLargeStartLocal() {
+        runTest("LargeStartLocal");
+    }
 }

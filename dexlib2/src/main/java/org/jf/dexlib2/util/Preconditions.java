@@ -125,19 +125,10 @@ public class Preconditions {
         return offset;
     }
 
-    public static int check35cRegisterCount(int registerCount) {
+    public static int check35cAnd45ccRegisterCount(int registerCount) {
         if (registerCount < 0 || registerCount > 5) {
             throw new IllegalArgumentException(
                     String.format("Invalid register count: %d. Must be between 0 and 5, inclusive.", registerCount));
-        }
-        return registerCount;
-    }
-
-    public static int check25xParameterRegisterCount(int registerCount) {
-        if (registerCount < 0 || registerCount > 4) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid parameter register count: %d. " +
-                            "Must be between 0 and 4, inclusive.", registerCount));
         }
         return registerCount;
     }

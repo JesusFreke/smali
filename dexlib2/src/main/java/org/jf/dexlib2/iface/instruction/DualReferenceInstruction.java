@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.iface.instruction.formats;
+package org.jf.dexlib2.iface.instruction;
 
-import org.jf.dexlib2.iface.instruction.OneFixedFourParameterRegisterInstruction;
+import org.jf.dexlib2.iface.reference.Reference;
 
-public interface Instruction25x extends OneFixedFourParameterRegisterInstruction {
+import javax.annotation.Nonnull;
+
+public interface DualReferenceInstruction extends ReferenceInstruction {
+    @Nonnull Reference getReference2();
+    int getReferenceType2();
 }
