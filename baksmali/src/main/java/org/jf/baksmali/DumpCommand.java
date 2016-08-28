@@ -34,14 +34,11 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.util.ConsoleUtil;
-import org.jf.util.jcommander.Command;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
 
@@ -53,7 +50,7 @@ import java.util.List;
 @ExtendedParameters(
         commandName = "dump",
         commandAliases = "du")
-public class DumpCommand extends Command {
+public class DumpCommand extends DexInputCommand {
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information for this command.")
@@ -73,54 +70,26 @@ public class DumpCommand extends Command {
             "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
             "colon. E.g. \"something.apk:classes2.dex\"")
     @ExtendedParameter(argumentNames = "file")
-    private String input;
+    private List<String> inputList;
 
     public DumpCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
     }
 
     public void run() {
-        if (help || input == null || input.isEmpty()) {
+        if (help || inputList == null || inputList.isEmpty()) {
             usage();
             return;
         }
 
-        String inputDexPath = input;
-
-        File dexFileFile = new File(inputDexPath);
-        String dexFileEntry = null;
-        if (!dexFileFile.exists()) {
-            int colonIndex = inputDexPath.lastIndexOf(':');
-
-            if (colonIndex >= 0) {
-                dexFileFile = new File(inputDexPath.substring(0, colonIndex));
-                dexFileEntry = inputDexPath.substring(colonIndex+1);
-            }
-
-            if (!dexFileFile.exists()) {
-                System.err.println("Can't find the file " + inputDexPath);
-                System.exit(1);
-            }
+        if (inputList.size() > 1) {
+            System.err.println("Too many files specified");
+            usage();
+            return;
         }
 
-        DexBackedDexFile dexFile = null;
-        try {
-            dexFile = DexFileFactory.loadDexFile(dexFileFile, dexFileEntry, apiLevel, experimentalOpcodes);
-        } catch (DexFileFactory.MultipleDexFilesException ex) {
-            System.err.println(String.format("%s is an oat file that contains multiple dex files. You must specify " +
-                    "which one to load. E.g. To load the \"classes2.dex\" entry from blah.apk, you should use " +
-                    "\"blah.apk:classes2.dex\"", dexFileFile));
-            System.err.println("Valid entries include:");
-
-            for (OatFile.OatDexFile oatDexFile: ex.oatFile.getDexFiles()) {
-                System.err.println(oatDexFile.filename);
-            }
-            System.exit(1);
-        } catch (IOException ex) {
-            System.err.println("There was an error while reading the dex file");
-            ex.printStackTrace(System.err);
-            System.exit(-1);
-        }
+        String input = inputList.get(0);
+        DexBackedDexFile dexFile = loadDexFile(input, 15, false);
 
         try {
             dump(dexFile, System.out, apiLevel);
