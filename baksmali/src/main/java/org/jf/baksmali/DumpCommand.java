@@ -118,7 +118,7 @@ public class DumpCommand extends DexInputCommand {
             consoleWidth = 120;
         }
 
-        RawDexFile rawDexFile = new RawDexFile(Opcodes.forApi(apiLevel), dexFile);
+        RawDexFile rawDexFile = new RawDexFile(dexFile.getOpcodes(), dexFile);
         DexAnnotator annotator = new DexAnnotator(rawDexFile, consoleWidth);
         annotator.writeAnnotations(writer);
     }

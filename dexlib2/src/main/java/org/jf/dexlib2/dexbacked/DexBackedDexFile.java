@@ -93,7 +93,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     }
 
     public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
-        this(opcodes, buf.buf);
+        this(opcodes, buf.buf, buf.baseOffset);
     }
 
     public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset) {
