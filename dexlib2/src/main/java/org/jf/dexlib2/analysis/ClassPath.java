@@ -40,7 +40,6 @@ import com.google.common.collect.*;
 import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.DexFileFactory;
-import org.jf.dexlib2.DexFileFactory.MultipleDexFilesException;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.reflection.ReflectionClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
@@ -231,14 +230,16 @@ public class ClassPath {
             }
 
             File bestMatch = Collections.max(files, new ClassPathEntryComparator(entry));
-            try {
-                DexFile entryDexFile = DexFileFactory.loadDexFile(bestMatch, api, experimental);
-                classProviders.add(new DexClassProvider(entryDexFile));
+            DexFile entryDexFile = DexFileFactory.loadDexFile(bestMatch, Opcodes.forApi(api, experimental));
+            classProviders.add(new DexClassProvider(entryDexFile));
+            // TODO: DexFileFactory.loadAllDexFiles?
+            /*try {
+
             } catch (MultipleDexFilesException ex) {
                 for (DexFile entryDexFile: ex.oatFile.getDexFiles()) {
                     classProviders.add(new DexClassProvider(entryDexFile));
                 }
-            }
+            }*/
         }
 
         int oatVersion = -1;
@@ -329,12 +330,9 @@ public class ClassPath {
             } else {
                 if (name.equals(child.getName())) {
                     try {
-                        DexFileFactory.loadDexFile(child, 15);
+                        DexFileFactory.loadDexFile(child);
                     } catch (ExceptionWithContext ex) {
-                        if (!(ex instanceof MultipleDexFilesException)) {
-                            // Don't add it to the results if it can't be loaded
-                            continue;
-                        }
+                        continue;
                     }
                     result.add(child);
                 }

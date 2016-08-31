@@ -32,9 +32,10 @@
 package org.jf.baksmali;
 
 import com.beust.jcommander.JCommander;
+import com.google.common.base.Strings;
 import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.util.jcommander.Command;
 
 import javax.annotation.Nonnull;
@@ -55,65 +56,79 @@ public abstract class DexInputCommand extends Command {
     /**
      * Parses a dex file input from the user and loads the given dex file.
      *
-     * @param input The name of a dex, apk, odex or oat file. For apk or oat files with multiple dex files, the input
-     * can additionally consist of a colon followed by a specific dex entry to load.
+     * In some cases, the input file can contain multiple dex files. If this is the case, you can refer to a specific
+     * dex file with a slash, followed by the entry name, optionally in quotes.
+     *
+     * If the entry name is enclosed in quotes, then it will strip the first and last quote and look for an entry with
+     * exactly that name. Otherwise, it will perform a partial filename match against the entry to find any candidates.
+     * If there is a single matching candidate, it will be used. Otherwise, an error will be generated.
+     *
+     * For example, to refer to the "/system/framework/framework.jar:classes2.dex" entry within the
+     * "framework/arm/framework.oat" oat file, you could use any of:
+     *
+     * framework/arm/framework.oat/"/system/framework/framework.jar:classes2.dex"
+     * framework/arm/framework.oat/system/framework/framework.jar:classes2.dex
+     * framework/arm/framework.oat/framework/framework.jar:classes2.dex
+     * framework/arm/framework.oat/framework.jar:classes2.dex
+     * framework/arm/framework.oat/classes2.dex
+     *
+     * The last option is the easiest, but only works if the oat file doesn't contain another entry with the
+     * "classes2.dex" name. e.g. "/system/framework/blah.jar:classes2.dex"
+     *
+     * It's technically possible (although unlikely) for an oat file to contain 2 entries like:
+     * /system/framework/framework.jar:classes2.dex
+     * system/framework/framework.jar:classes2.dex
+     *
+     * In this case, the "framework/arm/framework.oat/system/framework/framework.jar:classes2.dex" syntax will generate
+     * an error because both entries match the partial entry name. Instead, you could use the following for the
+     * first and second entry respectively:
+     *
+     * framework/arm/framework.oat/"/system/framework/framework.jar:classes2.dex"
+     * framework/arm/framework.oat/"system/framework/framework.jar:classes2.dex"
+     *
+     * @param input The name of a dex, apk, odex or oat file/entry.
      * @param apiLevel The api level to load the dex file with
      * @param experimentalOpcodes whether experimental opcodes should be allowed
      * @return The loaded DexBackedDexFile
      */
     @Nonnull
     protected DexBackedDexFile loadDexFile(@Nonnull String input, int apiLevel, boolean experimentalOpcodes) {
-        File dexFileFile = new File(input);
-        String dexFileEntry = null;
+        File file = new File(input);
 
-        int previousIndex = input.length();
-        while (!dexFileFile.exists()) {
-            int colonIndex = input.lastIndexOf(':', previousIndex - 1);
-
-            if (colonIndex >= 0) {
-                dexFileFile = new File(input.substring(0, colonIndex));
-                dexFileEntry = input.substring(colonIndex + 1);
-                previousIndex = colonIndex;
-            } else {
-                break;
-            }
+        while (file != null && !file.exists()) {
+            file = file.getParentFile();
         }
 
-        if (!dexFileFile.exists()) {
-            System.err.println("Can't find the file " + input);
+        if (file == null || !file.exists() || file.isDirectory()) {
+            System.err.println("Can't find file: " + input);
             System.exit(1);
         }
 
-        if (!dexFileFile.exists()) {
-            int colonIndex = input.lastIndexOf(':');
-
-            if (colonIndex >= 0) {
-                dexFileFile = new File(input.substring(0, colonIndex));
-                dexFileEntry = input.substring(colonIndex + 1);
-            }
-
-            if (!dexFileFile.exists()) {
-                System.err.println("Can't find the file " + input);
-                System.exit(1);
-            }
+        File dexFile = file;
+        String dexEntry = null;
+        if (dexFile.getPath().length() < input.length()) {
+            dexEntry = input.substring(dexFile.getPath().length() + 1);
         }
 
-        try {
-            return DexFileFactory.loadDexFile(dexFileFile, dexFileEntry, apiLevel, experimentalOpcodes);
-        } catch (DexFileFactory.MultipleDexFilesException ex) {
-            System.err.println(String.format("%s is an oat file that contains multiple dex files. You must specify " +
-                    "which one to load. E.g. To load the \"core.dex\" entry from boot.oat, you should use " +
-                    "\"boot.oat:core.dex\"", dexFileFile));
-            System.err.println("Valid entries include:");
-
-            for (OatFile.OatDexFile oatDexFile : ex.oatFile.getDexFiles()) {
-                System.err.println(oatDexFile.filename);
+        if (!Strings.isNullOrEmpty(dexEntry)) {
+            boolean exactMatch = false;
+            if (dexEntry.length() > 2 && dexEntry.charAt(0) == '"' && dexEntry.charAt(dexEntry.length() - 1) == '"') {
+                dexEntry = dexEntry.substring(1, dexEntry.length() - 1);
+                exactMatch = true;
             }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
 
-        // execution can never actually reach here
-        throw new IllegalStateException();
+            try {
+                return DexFileFactory.loadDexEntry(dexFile, dexEntry, exactMatch,
+                        Opcodes.forApi(apiLevel, experimentalOpcodes));
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        } else {
+            try {
+                return DexFileFactory.loadDexFile(dexFile, Opcodes.forApi(apiLevel, experimentalOpcodes));
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 }
