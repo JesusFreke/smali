@@ -161,12 +161,6 @@ public class DisassembleCommand extends DexInputCommand {
                     "supported in the Android runtime yet.")
     private boolean experimentalOpcodes = false;
 
-    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
-            "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
-            "colon. E.g. \"something.apk:classes2.dex\"")
-    @ExtendedParameter(argumentNames = "file")
-    private List<String> inputList = Lists.newArrayList();
-
     public DisassembleCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
     }

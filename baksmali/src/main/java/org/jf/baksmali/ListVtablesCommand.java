@@ -65,12 +65,6 @@ public class ListVtablesCommand extends DexInputCommand {
     @ExtendedParameter(argumentNames = "api")
     public int apiLevel = 15;
 
-    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
-            "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
-            "colon. E.g. \"something.apk:classes2.dex\"")
-    @ExtendedParameter(argumentNames = "file")
-    private List<String> inputList = Lists.newArrayList();
-
     @Parameter(names = {"-b", "--bootclasspath"},
             description = "A comma/colon separated list of the jar/oat files to include in the " +
                     "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +

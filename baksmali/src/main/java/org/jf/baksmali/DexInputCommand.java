@@ -32,11 +32,14 @@
 package org.jf.baksmali;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.util.jcommander.Command;
+import org.jf.util.jcommander.ExtendedParameter;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -48,6 +51,12 @@ import java.util.List;
  * command line input
  */
 public abstract class DexInputCommand extends Command {
+
+    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
+            "files, you can specify the specific entry to use as if the apk/oat file was a directory. " +
+            "e.g. \"app.apk/classes2.dex\". For more information, see \"baksmali help input\".")
+    @ExtendedParameter(argumentNames = "file")
+    protected List<String> inputList = Lists.newArrayList();
 
     public DexInputCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);

@@ -34,11 +34,9 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.collect.Lists;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.util.ReferenceUtil;
-import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
@@ -53,12 +51,6 @@ public class ListClassesCommand extends DexInputCommand {
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information")
     private boolean help;
-
-    @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
-            "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
-            "colon. E.g. \"something.apk:classes2.dex\"")
-    @ExtendedParameter(argumentNames = "file")
-    private List<String> inputList = Lists.newArrayList();
 
     public ListClassesCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);

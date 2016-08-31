@@ -34,7 +34,6 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
@@ -65,12 +64,6 @@ public class DumpCommand extends DexInputCommand {
             description = "Enable experimental opcodes to be disassembled, even if they aren't necessarily " +
                     "supported in the Android runtime yet.")
     private boolean experimentalOpcodes = false;
-
-    @Parameter(description = "<file> - A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
-            "files, you can specify which dex file to disassemble by appending the name of the dex file with a " +
-            "colon. E.g. \"something.apk:classes2.dex\"")
-    @ExtendedParameter(argumentNames = "file")
-    private List<String> inputList;
 
     public DumpCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);

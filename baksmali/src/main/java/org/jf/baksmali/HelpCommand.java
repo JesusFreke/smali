@@ -89,6 +89,32 @@ public class HelpCommand extends Command {
                     for (String line : lines) {
                         System.out.println(line);
                     }
+                } else if (cmd.equals("input")) {
+                    printedHelp = true;
+                    String registerInfoHelp = "Apks and oat files can contain multiple dex files. In order to " +
+                            "specify a particular dex file, the basic syntax is to treat the apk/oat file as a directory. " +
+                            "For example, to load the \"classes2.dex\" entry from \"app.apk\", you can use " +
+                            "\"app.apk/classes2.dex\".\n" +
+                            "\n" +
+                            "For ease of use, you can also specify a partial path to the dex file to load. For " +
+                            "example, to load a entry named \"/system/framework/framework.jar:classes2.dex\" from " +
+                            "\"framework.oat\", you can use any of the following:\n" +
+                            "\"framework.oat/classes2.dex\"\n" +
+                            "\"framework.oat/framework.jar:classes2.dex\"\n" +
+                            "\"framework.oat/framework/framework.jar:classes2.dex\"\n" +
+                            "\"framework.oat/system/framework/framework.jar:classes2.dex\"\n" +
+                            "\n" +
+                            "In some rare cases, an oat file could have entries that can't be differentiated with " +
+                            "the above syntax. For example \"/blah/blah.dex\" and \"blah/blah.dex\". In this case, " +
+                            "the \"blah.oat/blah/blah.dex\" would match both entries and generate an error. To get " +
+                            "around this, you can add double quotes around the entry name to specify an exact entry " +
+                            "name. E.g. blah.oat/\"/blah/blah.dex\" or blah.oat/\"blah/blah.dex\" respectively.";
+
+                    Iterable<String> lines = StringWrapper.wrapStringOnBreaks(registerInfoHelp,
+                            ConsoleUtil.getConsoleWidth());
+                    for (String line : lines) {
+                        System.out.println(line);
+                    }
                 } else {
                     JCommander command = ExtendedCommands.getSubcommand(parentJc, cmd);
                     if (command == null) {
