@@ -32,9 +32,9 @@
 package org.jf.dexlib2;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.OatFile.NotAnOatFileException;
@@ -47,7 +47,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -239,6 +241,100 @@ public final class DexFileFactory {
     }
 
     /**
+     * Loads all dex files from the given file.
+     *
+     * If the given file is a dex or odex file, it will return an iterable with one element. If the given file is
+     * an oat file, it will return all dex files within the oat file. If the given file is a zip file, it will return
+     * all dex files matching "classes[0-9]*.dex"
+     *
+     * @param file The file to open
+     * @param opcodes The set of opcodes to use
+     * @return A DexBackedDexFile for the given file
+     * @throws IOException
+     * @throws DexFileNotFoundException If the given file does not exist
+     * @throws UnsupportedFileTypeException If the given file is not a dex, odex, zip or oat file
+     */
+    public static Iterable<? extends DexBackedDexFile> loadAllDexFiles(
+            @Nonnull File file, @Nonnull final Opcodes opcodes) throws IOException {
+        if (!file.exists()) {
+            throw new DexFileNotFoundException("%s does not exist", file.getName());
+        }
+
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(file);
+        } catch (IOException ex) {
+            // ignore and continue
+        }
+
+        if (zipFile != null) {
+            final Pattern dexPattern = Pattern.compile("classes[0-9]*.dex");
+            final ZipFile finalZipFile = zipFile;
+
+            return new Iterable<DexBackedDexFile>() {
+                @Override public Iterator<DexBackedDexFile> iterator() {
+                    final Enumeration<? extends ZipEntry> entries = finalZipFile.entries();
+                    return new AbstractIterator<DexBackedDexFile>() {
+                        @Override protected DexBackedDexFile computeNext() {
+                            while (entries.hasMoreElements()) {
+                                ZipEntry zipEntry = entries.nextElement();
+                                if (dexPattern.matcher(zipEntry.getName()).matches()) {
+                                    try {
+                                        return loadDexFromZip(finalZipFile, zipEntry, opcodes);
+                                    } catch (IOException ex) {
+                                        throw new ExceptionWithContext(ex, "Error while reading %s from %s",
+                                                zipEntry.getName(), finalZipFile.getName());
+                                    }
+                                }
+                            }
+                            endOfData();
+                            return null;
+                        }
+                    };
+                }
+            };
+        }
+
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+        try {
+            try {
+                return Lists.newArrayList(DexBackedDexFile.fromInputStream(opcodes, inputStream));
+            } catch (DexBackedDexFile.NotADexFile ex) {
+                // just eat it
+            }
+
+            try {
+                return Lists.newArrayList(DexBackedOdexFile.fromInputStream(opcodes, inputStream));
+            } catch (DexBackedOdexFile.NotAnOdexFile ex) {
+                // just eat it
+            }
+
+            // Note: DexBackedDexFile.fromInputStream and DexBackedOdexFile.fromInputStream will reset inputStream
+            // back to the same position, if they fails
+
+            OatFile oatFile = null;
+            try {
+                oatFile = OatFile.fromInputStream(inputStream);
+            } catch (NotAnOatFileException ex) {
+                // just eat it
+            }
+
+            if (oatFile != null) {
+                if (oatFile.isSupportedVersion() == OatFile.UNSUPPORTED) {
+                    throw new UnsupportedOatVersionException(oatFile);
+                }
+
+                return oatFile.getDexFiles();
+            }
+        } finally {
+            inputStream.close();
+        }
+
+        throw new UnsupportedFileTypeException("%s is not an apk, dex, odex or oat file.", file.getPath());
+
+    }
+
+    /**
      * Writes a DexFile out to disk
      *
      * @param path The path to write the dex file to
@@ -399,6 +495,20 @@ public final class DexFileFactory {
         }
     }
 
+    @Nonnull
+    private static DexBackedDexFile loadDexFromZip(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry,
+                                            @Nonnull Opcodes opcodes) throws IOException {
+        InputStream stream;
+        stream = zipFile.getInputStream(zipEntry);
+        try {
+            return DexBackedDexFile.fromInputStream(opcodes, stream);
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
+    }
+
     private static class ZipDexEntryFinder extends DexEntryFinder {
         @Nonnull private final ZipFile zipFile;
         @Nonnull private final Opcodes opcodes;
@@ -410,18 +520,11 @@ public final class DexFileFactory {
 
         @Nullable @Override protected DexBackedDexFile getEntry(@Nonnull String entry) throws IOException {
             ZipEntry zipEntry = zipFile.getEntry(entry);
-
-            InputStream stream = null;
-            try {
-                stream = zipFile.getInputStream(zipEntry);
-                return DexBackedDexFile.fromInputStream(opcodes, stream);
-            } catch (NotADexFile ex) {
+            if (zipEntry == null) {
                 return null;
-            } finally {
-                if (stream != null) {
-                    stream.close();
-                }
             }
+
+            return loadDexFromZip(zipFile, zipEntry, opcodes);
         }
 
         @Nonnull @Override protected List<String> getEntryNames() {

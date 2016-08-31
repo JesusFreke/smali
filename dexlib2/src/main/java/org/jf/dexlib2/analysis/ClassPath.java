@@ -42,6 +42,7 @@ import com.google.common.primitives.Ints;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.reflection.ReflectionClassDef;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
@@ -230,16 +231,11 @@ public class ClassPath {
             }
 
             File bestMatch = Collections.max(files, new ClassPathEntryComparator(entry));
-            DexFile entryDexFile = DexFileFactory.loadDexFile(bestMatch, Opcodes.forApi(api, experimental));
-            classProviders.add(new DexClassProvider(entryDexFile));
-            // TODO: DexFileFactory.loadAllDexFiles?
-            /*try {
-
-            } catch (MultipleDexFilesException ex) {
-                for (DexFile entryDexFile: ex.oatFile.getDexFiles()) {
-                    classProviders.add(new DexClassProvider(entryDexFile));
-                }
-            }*/
+            Iterable<? extends DexBackedDexFile> dexFiles =
+                    DexFileFactory.loadAllDexFiles(bestMatch, Opcodes.forApi(api, experimental));
+            for (DexFile loadedDexFile: dexFiles) {
+                classProviders.add(new DexClassProvider(loadedDexFile));
+            }
         }
 
         int oatVersion = -1;

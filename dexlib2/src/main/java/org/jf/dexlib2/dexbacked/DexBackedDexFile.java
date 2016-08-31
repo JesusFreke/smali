@@ -104,6 +104,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         this(opcodes, buf, 0, true);
     }
 
+    @Nonnull
     public static DexBackedDexFile fromInputStream(@Nonnull Opcodes opcodes, @Nonnull InputStream is)
             throws IOException {
         if (!is.markSupported()) {
