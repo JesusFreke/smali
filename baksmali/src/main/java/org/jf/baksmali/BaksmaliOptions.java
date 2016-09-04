@@ -57,7 +57,6 @@ public class BaksmaliOptions {
     public boolean accessorComments = true;
     public boolean allowOdex = false;
     public boolean deodex = false;
-    public boolean experimentalOpcodes = false;
     public boolean implicitReferences = false;
     public boolean normalizeVirtualMethods = false;
 

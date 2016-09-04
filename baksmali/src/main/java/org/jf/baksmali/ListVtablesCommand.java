@@ -91,7 +91,7 @@ public class ListVtablesCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15, false);
+        DexBackedDexFile dexFile = loadDexFile(input, 15);
 
         BaksmaliOptions options = getOptions(dexFile);
         if (options == null) {
@@ -140,14 +140,12 @@ public class ListVtablesCommand extends DexInputCommand {
         try {
             options.classPath = ClassPath.loadClassPath(analysisArguments.classPathDirectories,
                     analysisArguments.bootClassPath, analysisArguments.classPath, dexFile, analysisArguments.apiLevel,
-                    checkPackagePrivateArgument.checkPackagePrivateAccess, analysisArguments.experimentalOpcodes);
+                    checkPackagePrivateArgument.checkPackagePrivateAccess);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);
             return null;
         }
-
-        options.experimentalOpcodes = analysisArguments.experimentalOpcodes;
 
         return options;
     }

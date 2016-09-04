@@ -80,7 +80,7 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15, false);
+        DexBackedDexFile dexFile = loadDexFile(input, 15);
         BaksmaliOptions options = getOptions(dexFile);
 
         try {
@@ -110,14 +110,12 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
         try {
             options.classPath = ClassPath.loadClassPath(analysisArguments.classPathDirectories,
                     analysisArguments.bootClassPath, analysisArguments.classPath, dexFile, analysisArguments.apiLevel,
-                    false, analysisArguments.experimentalOpcodes);
+                    false);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);
             System.exit(-1);
         }
-
-        options.experimentalOpcodes = analysisArguments.experimentalOpcodes;
 
         return options;
     }

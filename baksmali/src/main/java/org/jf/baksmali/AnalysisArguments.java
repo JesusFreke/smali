@@ -66,11 +66,6 @@ public class AnalysisArguments {
     @ExtendedParameter(argumentNames = "dir")
     public List<String> classPathDirectories = Lists.newArrayList(".");
 
-    @Parameter(names = "--experimental",
-            description = "Enable experimental opcodes to be disassembled, even if they aren't necessarily " +
-                    "supported in the Android runtime yet.")
-    public boolean experimentalOpcodes = false;
-
     public static class CheckPackagePrivateArgument {
         @Parameter(names = {"--check-package-private-access", "--package-private", "--checkpp", "--pp"},
                 description = "Use the package-private access check when calculating vtable indexes. This should " +

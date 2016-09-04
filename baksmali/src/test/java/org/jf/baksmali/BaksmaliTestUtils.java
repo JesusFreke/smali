@@ -50,8 +50,7 @@ public class BaksmaliTestUtils {
     public static void assertSmaliCompiledEquals(String source, String expected,
                                                  BaksmaliOptions options, boolean stripComments) throws IOException,
             RecognitionException {
-        ClassDef classDef = SmaliTestUtils.compileSmali(source, options.apiLevel,
-                options.experimentalOpcodes);
+        ClassDef classDef = SmaliTestUtils.compileSmali(source, options.apiLevel);
 
         // Remove unnecessary whitespace and optionally strip all comments from smali file
         String normalizedActual = getNormalizedSmali(classDef, options, stripComments);

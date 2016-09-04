@@ -92,7 +92,7 @@ public class Smali {
         boolean errors = false;
 
         final DexBuilder dexBuilder = DexBuilder.makeDexBuilder(
-                Opcodes.forApi(options.apiLevel, options.experimentalOpcodes));
+                Opcodes.forApi(options.apiLevel));
 
         ExecutorService executor = Executors.newFixedThreadPool(options.jobs);
         List<Future<Boolean>> tasks = Lists.newArrayList();
@@ -177,7 +177,7 @@ public class Smali {
         smaliParser parser = new smaliParser(tokens);
         parser.setVerboseErrors(options.verboseErrors);
         parser.setAllowOdex(options.allowOdexOpcodes);
-        parser.setApiLevel(options.apiLevel, options.experimentalOpcodes);
+        parser.setApiLevel(options.apiLevel);
 
         smaliParser.smali_file_return result = parser.smali_file();
 
@@ -195,7 +195,7 @@ public class Smali {
         }
 
         smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
-        dexGen.setApiLevel(options.apiLevel, options.experimentalOpcodes);
+        dexGen.setApiLevel(options.apiLevel);
 
         dexGen.setVerboseErrors(options.verboseErrors);
         dexGen.setDexBuilder(dexBuilder);

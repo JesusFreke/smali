@@ -50,14 +50,14 @@ import java.io.StringReader;
 public class SmaliTestUtils {
 
     public static ClassDef compileSmali(String smaliText) throws RecognitionException, IOException {
-        return compileSmali(smaliText, 15, false);
+        return compileSmali(smaliText, 15);
     }
 
-    public static ClassDef compileSmali(String smaliText, int apiLevel, boolean experimental)
+    public static ClassDef compileSmali(String smaliText, int apiLevel)
             throws RecognitionException, IOException {
         CommonTokenStream tokens;
         LexerErrorInterface lexer;
-        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.forApi(apiLevel, experimental));
+        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.forApi(apiLevel));
 
         Reader reader = new StringReader(smaliText);
 
@@ -67,7 +67,7 @@ public class SmaliTestUtils {
         smaliParser parser = new smaliParser(tokens);
         parser.setVerboseErrors(true);
         parser.setAllowOdex(false);
-        parser.setApiLevel(apiLevel, experimental);
+        parser.setApiLevel(apiLevel);
 
         smaliParser.smali_file_return result = parser.smali_file();
 
@@ -81,7 +81,7 @@ public class SmaliTestUtils {
         treeStream.setTokenStream(tokens);
 
         smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
-        dexGen.setApiLevel(apiLevel, experimental);
+        dexGen.setApiLevel(apiLevel);
         dexGen.setVerboseErrors(true);
         dexGen.setDexBuilder(dexBuilder);
         dexGen.smali_file();
@@ -94,7 +94,7 @@ public class SmaliTestUtils {
 
         dexBuilder.writeTo(dataStore);
 
-        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(apiLevel, experimental), dataStore.getData());
+        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(apiLevel), dataStore.getData());
 
         return Iterables.getFirst(dexFile.getClasses(), null);
     }

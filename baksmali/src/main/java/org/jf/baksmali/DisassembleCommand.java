@@ -154,7 +154,7 @@ public class DisassembleCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15, false);
+        DexBackedDexFile dexFile = loadDexFile(input, 15);
 
         if (showDeodexWarning() && dexFile.hasOdexOpcodes()) {
             StringWrapper.printWrappedString(System.err,
@@ -195,8 +195,7 @@ public class DisassembleCommand extends DexInputCommand {
             try {
                 options.classPath = ClassPath.loadClassPath(analysisArguments.classPathDirectories,
                         analysisArguments.bootClassPath, analysisArguments.classPath, dexFile,
-                        analysisArguments.apiLevel, shouldCheckPackagePrivateAccess(),
-                        analysisArguments.experimentalOpcodes);
+                        analysisArguments.apiLevel, shouldCheckPackagePrivateAccess());
             } catch (Exception ex) {
                 System.err.println("\n\nError occurred while loading class path files. Aborting.");
                 ex.printStackTrace(System.err);
@@ -241,7 +240,6 @@ public class DisassembleCommand extends DexInputCommand {
         options.debugInfo = debugInfo;
         options.codeOffsets = codeOffsets;
         options.accessorComments = accessorComments;
-        options.experimentalOpcodes = analysisArguments.experimentalOpcodes;
         options.implicitReferences = implicitReferences;
         options.normalizeVirtualMethods = normalizeVirtualMethods;
 

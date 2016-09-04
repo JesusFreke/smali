@@ -330,8 +330,6 @@ public enum Opcode
     public static final int JUMBO_OPCODE = 0x200;
     //if the instruction can initialize an uninitialized object reference
     public static final int CAN_INITIALIZE_REFERENCE = 0x400;
-    //if the instruction is experimental (not potentially supported by Android runtime yet)
-    public static final int EXPERIMENTAL = 0x800;
 
     private static final int ALL_APIS = 0xFFFF0000;
 
@@ -469,10 +467,6 @@ public enum Opcode
 
     public final boolean canInitializeReference() {
         return (flags & CAN_INITIALIZE_REFERENCE) != 0;
-    }
-
-    public final boolean isExperimental() {
-        return (flags & EXPERIMENTAL) != 0;
     }
 
     private static class VersionConstraint {

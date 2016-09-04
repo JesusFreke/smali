@@ -185,11 +185,10 @@ public class ClassPath {
      *                             If null, it will attempt to use the correct defaults based on the inputs.
      * @param extraClassPathEntries Additional class path entries. The same sorts of naming mechanisms as for
      *                              bootClassPathEntries are allowed
-     * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by
-     *                                  default
      * @param dexFile The dex file that will be analyzed. It can be a dex, odex or oat file.
      * @param api The api level of the device that these dex files come from.
-     * @param experimental Whether to allow experimental opcodes
+     * @param checkPackagePrivateAccess Whether checkPackagePrivateAccess is needed, enabled for ONLY early API 17 by
+     *                                  default
      *
      * @return A ClassPath object
      */
@@ -197,7 +196,7 @@ public class ClassPath {
     public static ClassPath loadClassPath(@Nonnull Iterable<String> classPathDirs,
                                           @Nullable Iterable<String> bootClassPathEntries,
                                           @Nonnull Iterable<String> extraClassPathEntries, @Nonnull DexFile dexFile,
-                                          int api, boolean experimental, boolean checkPackagePrivateAccess)
+                                          int api, boolean checkPackagePrivateAccess)
             throws IOException {
         List<ClassProvider> classProviders = Lists.newArrayList();
         if (bootClassPathEntries == null) {
@@ -232,7 +231,7 @@ public class ClassPath {
 
             File bestMatch = Collections.max(files, new ClassPathEntryComparator(entry));
             Iterable<? extends DexBackedDexFile> dexFiles =
-                    DexFileFactory.loadAllDexFiles(bestMatch, Opcodes.forApi(api, experimental));
+                    DexFileFactory.loadAllDexFiles(bestMatch, Opcodes.forApi(api));
             for (DexFile loadedDexFile: dexFiles) {
                 classProviders.add(new DexClassProvider(loadedDexFile));
             }

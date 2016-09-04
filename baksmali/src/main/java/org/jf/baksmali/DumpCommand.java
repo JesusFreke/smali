@@ -60,11 +60,6 @@ public class DumpCommand extends DexInputCommand {
     @ExtendedParameter(argumentNames = "api")
     private int apiLevel = 15;
 
-    @Parameter(names = "--experimental",
-            description = "Enable experimental opcodes to be disassembled, even if they aren't necessarily " +
-                    "supported in the Android runtime yet.")
-    private boolean experimentalOpcodes = false;
-
     public DumpCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
     }
@@ -82,7 +77,7 @@ public class DumpCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15, false);
+        DexBackedDexFile dexFile = loadDexFile(input, 15);
 
         try {
             dump(dexFile, System.out, apiLevel);

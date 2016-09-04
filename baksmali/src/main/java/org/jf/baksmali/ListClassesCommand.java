@@ -69,7 +69,7 @@ public class ListClassesCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15, false);
+        DexBackedDexFile dexFile = loadDexFile(input, 15);
 
         for (Reference reference: dexFile.getClasses()) {
             System.out.println(ReferenceUtil.getReferenceString(reference));

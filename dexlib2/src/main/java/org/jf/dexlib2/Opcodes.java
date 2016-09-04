@@ -52,35 +52,20 @@ public class Opcodes {
 
     @Nonnull
     public static Opcodes forApi(int api) {
-        return new Opcodes(api, VersionMap.mapApiToArtVersion(api), false);
-    }
-
-    @Nonnull
-    public static Opcodes forApi(int api, boolean experimental) {
-        return new Opcodes(api, VersionMap.mapApiToArtVersion(api), experimental);
+        return new Opcodes(api, VersionMap.mapApiToArtVersion(api));
     }
 
     @Nonnull
     public static Opcodes forArtVersion(int artVersion) {
-        return forArtVersion(artVersion, false);
-    }
-
-    @Nonnull
-    public static Opcodes forArtVersion(int artVersion, boolean experimental) {
-        return new Opcodes(VersionMap.mapArtVersionToApi(artVersion), artVersion, experimental);
+        return new Opcodes(VersionMap.mapArtVersionToApi(artVersion), artVersion);
     }
 
     @Deprecated
     public Opcodes(int api) {
-        this(api, false);
+        this(api, VersionMap.mapApiToArtVersion(api));
     }
 
-    @Deprecated
-    public Opcodes(int api, boolean experimental) {
-        this(api, VersionMap.mapApiToArtVersion(api), experimental);
-    }
-
-    private Opcodes(int api, int artVersion, boolean experimental) {
+    private Opcodes(int api, int artVersion) {
         this.api = api;
         this.artVersion = artVersion;
 
@@ -104,7 +89,7 @@ public class Opcodes {
             }
 
             Short opcodeValue = versionToValueMap.get(version);
-            if (opcodeValue != null && (!opcode.isExperimental() || experimental)) {
+            if (opcodeValue != null) {
                 if (!opcode.format.isPayloadFormat) {
                     opcodesByValue[opcodeValue] = opcode;
                 }

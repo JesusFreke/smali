@@ -97,11 +97,10 @@ public abstract class DexInputCommand extends Command {
      *
      * @param input The name of a dex, apk, odex or oat file/entry.
      * @param apiLevel The api level to load the dex file with
-     * @param experimentalOpcodes whether experimental opcodes should be allowed
      * @return The loaded DexBackedDexFile
      */
     @Nonnull
-    protected DexBackedDexFile loadDexFile(@Nonnull String input, int apiLevel, boolean experimentalOpcodes) {
+    protected DexBackedDexFile loadDexFile(@Nonnull String input, int apiLevel) {
         File file = new File(input);
 
         while (file != null && !file.exists()) {
@@ -128,13 +127,13 @@ public abstract class DexInputCommand extends Command {
 
             try {
                 return DexFileFactory.loadDexEntry(dexFile, dexEntry, exactMatch,
-                        Opcodes.forApi(apiLevel, experimentalOpcodes));
+                        Opcodes.forApi(apiLevel));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
             try {
-                return DexFileFactory.loadDexFile(dexFile, Opcodes.forApi(apiLevel, experimentalOpcodes));
+                return DexFileFactory.loadDexFile(dexFile, Opcodes.forApi(apiLevel));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

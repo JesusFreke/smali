@@ -69,11 +69,6 @@ public class AssembleCommand extends Command {
     @ExtendedParameter(argumentNames = "file")
     private String output = "out.dex";
 
-    @Parameter(names = "--experimental",
-            description = "Enable experimental opcodes to be assembled, even if they aren't necessarily " +
-                    "supported in the Android runtime yet.")
-    private boolean experimentalOpcodes = false;
-
     @Parameter(names = "--verbose",
             description = "Generate verbose error messages.")
     private boolean verbose = false;
@@ -110,7 +105,6 @@ public class AssembleCommand extends Command {
         options.jobs = jobs;
         options.apiLevel = apiLevel;
         options.outputDexFile = output;
-        options.experimentalOpcodes = experimentalOpcodes;
         options.allowOdexOpcodes = allowOdexOpcodes;
         options.verboseErrors = verbose;
 
