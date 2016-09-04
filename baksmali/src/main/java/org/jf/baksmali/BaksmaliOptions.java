@@ -34,10 +34,10 @@ package org.jf.baksmali;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
+import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import javax.annotation.Nonnull;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -45,7 +45,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.jar.Attributes;
 
 public class BaksmaliOptions {
     public int apiLevel = 15;
@@ -83,24 +82,15 @@ public class BaksmaliOptions {
      *
      * @param resourceFiles A map of resource prefixes -> public.xml files
      */
-    public void loadResourceIds(Map<String, File> resourceFiles) {
-        class PublicResourceHandler extends DefaultHandler {
-
-            @Nonnull private final String prefix;
-
-            public PublicResourceHandler(@Nonnull String prefix) {
-                super();
-                this.prefix = prefix;
-            }
-        }
-
+    public void loadResourceIds(Map<String, File> resourceFiles) throws SAXException, IOException {
         for (Map.Entry<String, File> entry: resourceFiles.entrySet()) {
             try {
                 SAXParser saxp = SAXParserFactory.newInstance().newSAXParser();
                 final String prefix = entry.getKey();
                 saxp.parse(entry.getValue(), new DefaultHandler() {
-                    public void startElement(String uri, String localName, String qName, Attributes attr)
-                            throws SAXException {
+                    @Override
+                    public void startElement(String uri, String localName, String qName,
+                                             Attributes attr) throws SAXException {
                         if (qName.equals("public")) {
                             String resourceType = attr.getValue("type");
                             String resourceName = attr.getValue("name").replace('.', '_');
@@ -111,12 +101,8 @@ public class BaksmaliOptions {
                         }
                     }
                 });
-            } catch (ParserConfigurationException e) {
-                continue;
-            } catch (SAXException e) {
-                continue;
-            } catch (IOException e) {
-                continue;
+            } catch (ParserConfigurationException ex) {
+                throw new RuntimeException(ex);
             }
         }
     }

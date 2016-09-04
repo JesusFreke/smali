@@ -45,9 +45,11 @@ import org.jf.util.StringWrapper;
 import org.jf.util.jcommander.CommaColonParameterSplitter;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
+import org.xml.sax.SAXException;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -98,12 +100,13 @@ public class DisassembleCommand extends DexInputCommand {
             description = "Add a comment before each instruction with it's code offset within the method.")
     private boolean codeOffsets = false;
 
-    @Parameter(names = "--resolve-resources", arity=1,
+    @Parameter(names = {"--resolve-resources", "--rr"}, arity = 2,
             description = "This will attempt to find any resource id references within the bytecode and add a " +
-                    "comment with the name of the resource being referenced. The value should be a comma/colon" +
-                    "separated list of prefix=file pairs. For example R=res/values/public.xml:android.R=" +
-                    "$ANDROID_HOME/platforms/android-19/data/res/values/public.xml")
-    @ExtendedParameter(argumentNames = "resource spec")
+                    "comment with the name of the resource being referenced. The parameter accepts 2 values:" +
+                    "an arbitrary resource prefix and the path to a public.xml file. For example: " +
+                    "--resolve-resources android.R framework/res/values/public.xml. This option can be specified " +
+                    "multiple times to provide resources from multiple packages.")
+    @ExtendedParameter(argumentNames = {"resource prefix", "public.xml file"})
     private List<String> resourceIdFiles = Lists.newArrayList();
 
     @Parameter(names = {"-j", "--jobs"},
@@ -230,26 +233,32 @@ public class DisassembleCommand extends DexInputCommand {
         if (!resourceIdFiles.isEmpty()) {
             Map<String, File> resourceFiles = Maps.newHashMap();
 
-            for (String resourceIdFileSpec: resourceIdFiles) {
-                int separatorIndex = resourceIdFileSpec.indexOf('=');
-                if (separatorIndex == -1) {
-                    System.err.println(String.format("Invalid resource id spec: %s", resourceIdFileSpec));
-                    usage();
-                    System.exit(-1);
-                }
-                String prefix = resourceIdFileSpec.substring(0, separatorIndex);
-                String resourceIdFilePath = resourceIdFileSpec.substring(separatorIndex+1);
-                File resourceIdFile = new File(resourceIdFilePath);
+            assert (resourceIdFiles.size() % 2) == 0;
+            for (int i=0; i<resourceIdFiles.size(); i+=2) {
+                String resourcePrefix = resourceIdFiles.get(i);
+                String publicXml = resourceIdFiles.get(i+1);
 
-                if (!resourceIdFile.exists()) {
-                    System.err.println(String.format("Can't find file: %s", resourceIdFilePath));
+                File publicXmlFile = new File(publicXml);
+
+                if (!publicXmlFile.exists()) {
+                    System.err.println(String.format("Can't find file: %s", publicXmlFile));
                     System.exit(-1);
                 }
 
-                resourceFiles.put(prefix, resourceIdFile);
+                resourceFiles.put(resourcePrefix, publicXmlFile);
             }
 
-            options.loadResourceIds(resourceFiles);
+            try {
+                options.loadResourceIds(resourceFiles);
+            } catch (IOException ex) {
+                System.err.println("Error while loading resource files:");
+                ex.printStackTrace(System.err);
+                System.exit(-1);
+            } catch (SAXException ex) {
+                System.err.println("Error while loading resource files:");
+                ex.printStackTrace(System.err);
+                System.exit(-1);
+            }
         }
 
         options.parameterRegisters = parameterRegisters;
