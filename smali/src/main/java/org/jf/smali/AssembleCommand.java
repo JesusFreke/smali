@@ -78,7 +78,7 @@ public class AssembleCommand extends Command {
             description = "Generate verbose error messages.")
     private boolean verbose = false;
 
-    @Parameter(names = "--allow-odex-opcodes",
+    @Parameter(names = {"--allow-odex-opcodes", "--allow-odex", "--ao"},
             description = "Allows the odex opcodes that dalvik doesn't reject to be assembled.")
     private boolean allowOdexOpcodes;
 

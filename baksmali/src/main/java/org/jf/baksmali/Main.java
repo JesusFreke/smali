@@ -85,10 +85,7 @@ public class Main extends Command {
         ExtendedCommands.addExtendedCommand(jc, new DumpCommand(commandHierarchy));
         ExtendedCommands.addExtendedCommand(jc, new HelpCommand(commandHierarchy));
         ExtendedCommands.addExtendedCommand(jc, new HlepCommand(commandHierarchy));
-
-        ListCommand listCommand = new ListCommand(commandHierarchy);
-        ExtendedCommands.addExtendedCommand(jc, listCommand);
-        listCommand.registerSubCommands();
+        ExtendedCommands.addExtendedCommand(jc, new ListCommand(commandHierarchy));
 
         jc.parse(args);
 

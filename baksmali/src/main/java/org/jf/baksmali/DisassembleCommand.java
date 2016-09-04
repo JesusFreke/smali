@@ -42,7 +42,6 @@ import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.util.StringWrapper;
-import org.jf.util.jcommander.CommaColonParameterSplitter;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
 import org.xml.sax.SAXException;
@@ -63,40 +62,15 @@ public class DisassembleCommand extends DexInputCommand {
             description = "Show usage information for this command.")
     private boolean help;
 
-    @Parameter(names = {"-a", "--api"},
-            description = "The numeric api level of the file being disassembled.")
-    @ExtendedParameter(argumentNames = "api")
-    private int apiLevel = 15;
+    protected AnalysisArguments analysisArguments = new AnalysisArguments();
 
-    @Parameter(names = "--debug-info", arity = 1,
-            description = "Whether to include debug information in the output (.local, .param, .line, etc.). Use " +
-                    "--debug-info=false to disable.")
+    @Parameter(names = {"--debug-info", "--di"}, arity = 1,
+            description = "Whether to include debug information in the output (.local, .param, .line, etc.). True " +
+                    "by default, use --debug-info=false to disable.")
     @ExtendedParameter(argumentNames = "boolean")
     private boolean debugInfo = true;
 
-    @Parameter(names = {"-b", "--bootclasspath"},
-            description = "A comma/colon separated list of the jar/oat files to include in the " +
-                    "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +
-                    "appropriate default. This is analogous to Android's BOOTCLASSPATH environment variable.",
-            splitter = CommaColonParameterSplitter.class)
-    @ExtendedParameter(argumentNames = "classpath")
-    private List<String> bootClassPath = null;
-
-    @Parameter(names = {"-c", "--classpath"},
-            description = "A comma/colon separated list of additional jar/oat files to include in the classpath " +
-                    "when analyzing the dex file. These will be added to the classpath after any bootclasspath " +
-                    "entries.",
-            splitter = CommaColonParameterSplitter.class)
-    @ExtendedParameter(argumentNames = "classpath")
-    private List<String> classPath = Lists.newArrayList();
-
-    @Parameter(names = {"-d", "--classpath-dir"},
-            description = "A directory to search for classpath files. This option can be used multiple times to " +
-                    "specify multiple directories to search. They will be searched in the order they are provided.")
-    @ExtendedParameter(argumentNames = "dirs")
-    private List<String> classPathDirectories = Lists.newArrayList(".");
-
-    @Parameter(names = {"--code-offsets"},
+    @Parameter(names = {"--code-offsets", "--offsets", "--off"},
             description = "Add a comment before each instruction with it's code offset within the method.")
     private boolean codeOffsets = false;
 
@@ -120,13 +94,13 @@ public class DisassembleCommand extends DexInputCommand {
                     "registers instead of the .registers directive with the total number of registers.")
     private boolean localsDirective = false;
 
-    @Parameter(names = "--accessor-comments", arity = 1,
-            description = "Generate helper comments for synthetic accessors. Use --accessor-comments=false to " +
-                    "disable.")
+    @Parameter(names = {"--accessor-comments", "--ac"}, arity = 1,
+            description = "Generate helper comments for synthetic accessors. True by default, use " +
+                    "--accessor-comments=false to disable.")
     @ExtendedParameter(argumentNames = "boolean")
     private boolean accessorComments = true;
 
-    @Parameter(names = "--normalize-virtual-methods",
+    @Parameter(names = {"--normalize-virtual-methods", "--norm", "--nvm"},
             description = "Normalize virtual method references to use the base class where the method is " +
                     "originally declared.")
     private boolean normalizeVirtualMethods = false;
@@ -136,36 +110,35 @@ public class DisassembleCommand extends DexInputCommand {
     @ExtendedParameter(argumentNames = "dir")
     private String outputDir = "out";
 
-    @Parameter(names = "--parameter-registers", arity = 1,
-            description = "Use the pNN syntax for registers that refer to a method parameter on method entry. Use" +
-                    "--parameter-registers=false to disable.")
+    @Parameter(names = {"--parameter-registers", "--preg", "--pr"}, arity = 1,
+            description = "Use the pNN syntax for registers that refer to a method parameter on method entry. True " +
+                    "by default, use --parameter-registers=false to disable.")
     @ExtendedParameter(argumentNames = "boolean")
     private boolean parameterRegisters = true;
 
-    @Parameter(names = {"-r", "--register-info"}, arity=1,
+    @Parameter(names = {"-r", "--register-info"},
             description = "Add comments before/after each instruction with information about register types. " +
                     "The value is a comma-separated list of any of ALL, ALLPRE, ALLPOST, ARGS, DEST, MERGE and " +
                     "FULLMERGE. See \"baksmali help register-info\" for more information.")
     @ExtendedParameter(argumentNames = "register info specifier")
     private List<String> registerInfoTypes = Lists.newArrayList();
 
-    @Parameter(names = "--sequential-labels",
+    @Parameter(names = {"--sequential-labels", "--seq", "--sl"},
             description = "Create label names using a sequential numbering scheme per label type, rather than " +
                     "using the bytecode address.")
     private boolean sequentialLabels = false;
 
-    @Parameter(names = "--implicit-references",
+    @Parameter(names = {"--implicit-references", "--implicit", "--ir"},
             description = "Use implicit method and field references (without the class name) for methods and " +
                     "fields from the current class.")
     private boolean implicitReferences = false;
 
-    @Parameter(names = "--experimental",
-            description = "Enable experimental opcodes to be disassembled, even if they aren't necessarily " +
-                    "supported in the Android runtime yet.")
-    private boolean experimentalOpcodes = false;
-
     public DisassembleCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
+    }
+
+    @Override protected void setupCommand(JCommander jc) {
+        jc.addObject(analysisArguments);
     }
 
     public void run() {
@@ -220,9 +193,10 @@ public class DisassembleCommand extends DexInputCommand {
 
         if (needsClassPath()) {
             try {
-                options.classPath = ClassPath.loadClassPath(classPathDirectories,
-                        bootClassPath, classPath, dexFile, apiLevel, shouldCheckPackagePrivateAccess(),
-                        experimentalOpcodes);
+                options.classPath = ClassPath.loadClassPath(analysisArguments.classPathDirectories,
+                        analysisArguments.bootClassPath, analysisArguments.classPath, dexFile,
+                        analysisArguments.apiLevel, shouldCheckPackagePrivateAccess(),
+                        analysisArguments.experimentalOpcodes);
             } catch (Exception ex) {
                 System.err.println("\n\nError occurred while loading class path files. Aborting.");
                 ex.printStackTrace(System.err);
@@ -267,7 +241,7 @@ public class DisassembleCommand extends DexInputCommand {
         options.debugInfo = debugInfo;
         options.codeOffsets = codeOffsets;
         options.accessorComments = accessorComments;
-        options.experimentalOpcodes = experimentalOpcodes;
+        options.experimentalOpcodes = analysisArguments.experimentalOpcodes;
         options.implicitReferences = implicitReferences;
         options.normalizeVirtualMethods = normalizeVirtualMethods;
 

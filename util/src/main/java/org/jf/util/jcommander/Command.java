@@ -54,6 +54,9 @@ public abstract class Command {
                 .format(getCommandHierarchy()));
     }
 
+    protected void setupCommand(JCommander jc) {
+    }
+
     protected JCommander getJCommander() {
         JCommander parentJc = Iterables.getLast(commandAncestors);
         return parentJc.getCommands().get(this.getClass().getAnnotation(ExtendedParameters.class).commandName());

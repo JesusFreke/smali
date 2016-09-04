@@ -34,7 +34,6 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.collect.Lists;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassProto;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
@@ -42,13 +41,10 @@ import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.util.SparseArray;
-import org.jf.util.jcommander.CommaColonParameterSplitter;
-import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(commandDescription = "Lists the instance field offsets for classes in a dex file.")
@@ -61,40 +57,14 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
             description = "Show usage information")
     private boolean help;
 
-    @Parameter(names = {"-a", "--api"},
-            description = "The numeric api level of the file being disassembled.")
-    @ExtendedParameter(argumentNames = "api")
-    private int apiLevel = 15;
-
-    @Parameter(names = {"-b", "--bootclasspath"},
-            description = "A comma/colon separated list of the jar/oat files to include in the " +
-                    "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +
-                    "appropriate default. This is analogous to Android's BOOTCLASSPATH environment variable.",
-            splitter = CommaColonParameterSplitter.class)
-    @ExtendedParameter(argumentNames = "classpath")
-    private List<String> bootClassPath = null;
-
-    @Parameter(names = {"-c", "--classpath"},
-            description = "A comma/colon separated list of additional jar/oat files to include in the classpath " +
-                    "when analyzing the dex file. These will be added to the classpath after any bootclasspath " +
-                    "entries.",
-            splitter = CommaColonParameterSplitter.class)
-    @ExtendedParameter(argumentNames = "classpath")
-    private List<String> classPath = new ArrayList<String>();
-
-    @Parameter(names = {"-d", "--classpath-dir"},
-            description = "A directory to search for classpath files. This option can be used multiple times to " +
-                    "specify multiple directories to search. They will be searched in the order they are provided.")
-    @ExtendedParameter(argumentNames = "dirs")
-    private List<String> classPathDirectories = Lists.newArrayList(".");
-
-    @Parameter(names = "--experimental",
-            description = "Enable experimental opcodes to be disassembled, even if they aren't necessarily " +
-                    "supported in the Android runtime yet.")
-    private boolean experimentalOpcodes = false;
+    private AnalysisArguments analysisArguments = new AnalysisArguments();
 
     public ListFieldOffsetsCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
+    }
+
+    @Override protected void setupCommand(JCommander jc) {
+        jc.addObject(analysisArguments);
     }
 
     @Override public void run() {
@@ -135,18 +105,19 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
     private BaksmaliOptions getOptions(DexFile dexFile) {
         final BaksmaliOptions options = new BaksmaliOptions();
 
-        options.apiLevel = apiLevel;
+        options.apiLevel = analysisArguments.apiLevel;
 
         try {
-            options.classPath = ClassPath.loadClassPath(classPathDirectories,
-                    bootClassPath, classPath, dexFile, apiLevel, false, experimentalOpcodes);
+            options.classPath = ClassPath.loadClassPath(analysisArguments.classPathDirectories,
+                    analysisArguments.bootClassPath, analysisArguments.classPath, dexFile, analysisArguments.apiLevel,
+                    false, analysisArguments.experimentalOpcodes);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);
             System.exit(-1);
         }
 
-        options.experimentalOpcodes = experimentalOpcodes;
+        options.experimentalOpcodes = analysisArguments.experimentalOpcodes;
 
         return options;
     }

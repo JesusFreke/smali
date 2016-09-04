@@ -70,10 +70,8 @@ public class HelpCommand extends Command {
                     printedHelp = true;
                     String registerInfoHelp = "The --register-info parameter will cause baksmali to generate " +
                             "comments before and after every instruction containing register type " +
-                            "information about some subset of registers. This parameter optionally accepts a " +
-                            "comma-separated list of values specifying which registers and how much " +
-                            "information to include. If no values are specified, \"ARGS,DEST\" is used as " +
-                            "the default. Valid values include:\n" +
+                            "information about some subset of registers. This parameter accepts a comma-separated list" +
+                            "of values specifying which registers and how much information to include.\n" +
                             "    ALL: all pre- and post-instruction registers\n" +
                             "    ALLPRE: all pre-instruction registers\n" +
                             "    ALLPOST: all post-instruction registers\n" +
@@ -92,9 +90,9 @@ public class HelpCommand extends Command {
                 } else if (cmd.equals("input")) {
                     printedHelp = true;
                     String registerInfoHelp = "Apks and oat files can contain multiple dex files. In order to " +
-                            "specify a particular dex file, the basic syntax is to treat the apk/oat file as a directory. " +
-                            "For example, to load the \"classes2.dex\" entry from \"app.apk\", you can use " +
-                            "\"app.apk/classes2.dex\".\n" +
+                            "specify a particular dex file, the basic syntax is to treat the apk/oat file as a " +
+                            "directory. For example, to load the \"classes2.dex\" entry from \"app.apk\", you can " +
+                            "use \"app.apk/classes2.dex\".\n" +
                             "\n" +
                             "For ease of use, you can also specify a partial path to the dex file to load. For " +
                             "example, to load a entry named \"/system/framework/framework.jar:classes2.dex\" from " +

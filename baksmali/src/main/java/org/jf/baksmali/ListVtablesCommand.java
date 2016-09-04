@@ -34,20 +34,19 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.collect.Lists;
+import com.beust.jcommander.ParametersDelegate;
+import org.jf.baksmali.AnalysisArguments.CheckPackagePrivateArgument;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassProto;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.Method;
-import org.jf.util.jcommander.CommaColonParameterSplitter;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(commandDescription = "Lists the virtual method tables for classes in a dex file.")
@@ -60,50 +59,23 @@ public class ListVtablesCommand extends DexInputCommand {
             description = "Show usage information")
     private boolean help;
 
-    @Parameter(names = {"-a", "--api"},
-            description = "The numeric api level of the file being loaded.")
-    @ExtendedParameter(argumentNames = "api")
-    public int apiLevel = 15;
+    private AnalysisArguments analysisArguments = new AnalysisArguments();
 
-    @Parameter(names = {"-b", "--bootclasspath"},
-            description = "A comma/colon separated list of the jar/oat files to include in the " +
-                    "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +
-                    "appropriate default. This is analogous to Android's BOOTCLASSPATH environment variable.",
-            splitter = CommaColonParameterSplitter.class)
-    @ExtendedParameter(argumentNames = "classpath")
-    private List<String> bootClassPath = null;
-
-    @Parameter(names = {"-c", "--classpath"},
-            description = "A comma/colon separated list of additional jar/oat files to include in the classpath " +
-                    "when analyzing the dex file. These will be added to the classpath after any bootclasspath " +
-                    "entries.",
-            splitter = CommaColonParameterSplitter.class)
-    @ExtendedParameter(argumentNames = "classpath")
-    private List<String> classPath = new ArrayList<String>();
-
-    @Parameter(names = {"-d", "--classpath-dir"},
-            description = "A directory to search for classpath files. This option can be used multiple times to " +
-                    "specify multiple directories to search. They will be searched in the order they are provided.")
-    @ExtendedParameter(argumentNames = "dirs")
-    private List<String> classPathDirectories = Lists.newArrayList(".");
-
-    @Parameter(names = "--check-package-private-access",
-            description = "Use the package-private access check when calculating vtable indexes. This should " +
-                    "only be needed for 4.2.0 odexes. It was reverted in 4.2.1.")
-    private boolean checkPackagePrivateAccess = false;
-
-    @Parameter(names = "--experimental",
-            description = "Enable experimental opcodes to be disassembled, even if they aren't necessarily " +
-                    "supported in the Android runtime yet.")
-    private boolean experimentalOpcodes = false;
+    @ParametersDelegate
+    private CheckPackagePrivateArgument checkPackagePrivateArgument = new CheckPackagePrivateArgument();
 
     @Parameter(names = "--classes",
-            description = "A comma separated list of classes: Only print the vtable for these classes")
+            description = "A comma separated list of classes. Only print the vtable for these classes")
     @ExtendedParameter(argumentNames = "classes")
     private String classes = null;
 
     public ListVtablesCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
+    }
+
+    @Override protected void setupCommand(JCommander jc) {
+        jc.addObject(analysisArguments);
+        jc.addObject(checkPackagePrivateArgument);
     }
 
     @Override public void run() {
@@ -163,18 +135,19 @@ public class ListVtablesCommand extends DexInputCommand {
     protected BaksmaliOptions getOptions(DexFile dexFile) {
         final BaksmaliOptions options = new BaksmaliOptions();
 
-        options.apiLevel = apiLevel;
+        options.apiLevel = analysisArguments.apiLevel;
 
         try {
-            options.classPath = ClassPath.loadClassPath(classPathDirectories, bootClassPath, classPath, dexFile,
-                    apiLevel, checkPackagePrivateAccess, experimentalOpcodes);
+            options.classPath = ClassPath.loadClassPath(analysisArguments.classPathDirectories,
+                    analysisArguments.bootClassPath, analysisArguments.classPath, dexFile, analysisArguments.apiLevel,
+                    checkPackagePrivateArgument.checkPackagePrivateAccess, analysisArguments.experimentalOpcodes);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);
             return null;
         }
 
-        options.experimentalOpcodes = experimentalOpcodes;
+        options.experimentalOpcodes = analysisArguments.experimentalOpcodes;
 
         return options;
     }

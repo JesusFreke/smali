@@ -34,6 +34,7 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.jf.baksmali.AnalysisArguments.CheckPackagePrivateArgument;
 import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
@@ -51,12 +52,9 @@ import java.util.List;
         commandName = "deodex",
         commandAliases = { "de", "x" })
 public class DeodexCommand extends DisassembleCommand {
-    @Parameter(names = "--check-package-private-access",
-            description = "Use the package-private access check when calculating vtable indexes. This should " +
-                    "only be needed for 4.2.0 odexes. It was reverted in 4.2.1.")
-    private boolean checkPackagePrivateAccess = false;
+    protected CheckPackagePrivateArgument checkPackagePrivateArgument = new CheckPackagePrivateArgument();
 
-    @Parameter(names = "--inline-table",
+    @Parameter(names = {"--inline-table", "--inline", "--it"},
             description = "Specify a file containing a custom inline method table to use. See the " +
                     "\"deodexerant\" tool in the smali github repository to dump the inline method table from a " +
                     "device that uses dalvik.")
@@ -65,6 +63,10 @@ public class DeodexCommand extends DisassembleCommand {
 
     public DeodexCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
+    }
+
+    @Override protected void setupCommand(JCommander jc) {
+        jc.addObject(checkPackagePrivateArgument);
     }
 
     @Override protected BaksmaliOptions getOptions(DexFile dexFile) {
@@ -96,7 +98,7 @@ public class DeodexCommand extends DisassembleCommand {
     }
 
     @Override protected boolean shouldCheckPackagePrivateAccess() {
-        return checkPackagePrivateAccess;
+        return checkPackagePrivateArgument.checkPackagePrivateAccess;
     }
 
     @Override protected boolean needsClassPath() {

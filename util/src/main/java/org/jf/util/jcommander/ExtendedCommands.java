@@ -92,8 +92,9 @@ public class ExtendedCommands {
         return getExtendedParameters(command).postfixDescription();
     }
 
-    public static void addExtendedCommand(JCommander jc, Object command) {
+    public static void addExtendedCommand(JCommander jc, Command command) {
         jc.addCommand(commandName(command), command, commandAliases(command));
+        command.setupCommand(command.getJCommander());
     }
 
     @Nonnull

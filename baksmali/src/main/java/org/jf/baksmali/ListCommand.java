@@ -56,21 +56,20 @@ public class ListCommand extends Command {
         super(commandAncestors);
     }
 
-    public void registerSubCommands() {
-        JCommander subJc = getJCommander();
+    @Override protected void setupCommand(JCommander jc) {
         List<JCommander> hierarchy = getCommandHierarchy();
 
-        ExtendedCommands.addExtendedCommand(subJc, new ListStringsCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListMethodsCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListFieldsCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListTypesCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListClassesCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListDexCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListVtablesCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListFieldOffsetsCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListClassPathCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListHelpCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(subJc, new ListHlepCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListStringsCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListMethodsCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListFieldsCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListTypesCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListClassesCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListDexCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListVtablesCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListFieldOffsetsCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListClassPathCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListHelpCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListHlepCommand(hierarchy));
     }
 
     @Override public void run() {
