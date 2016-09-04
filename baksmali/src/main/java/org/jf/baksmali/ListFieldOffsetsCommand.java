@@ -88,11 +88,6 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
     @ExtendedParameter(argumentNames = "dirs")
     private List<String> classPathDirectories = Lists.newArrayList(".");
 
-    @Parameter(names = "--check-package-private-access",
-            description = "Use the package-private access check when calculating vtable indexes. This should " +
-                    "only be needed for 4.2.0 odexes. It was reverted in 4.2.1.")
-    private boolean checkPackagePrivateAccess = false;
-
     @Parameter(names = "--experimental",
             description = "Enable experimental opcodes to be disassembled, even if they aren't necessarily " +
                     "supported in the Android runtime yet.")
@@ -144,7 +139,7 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
 
         try {
             options.classPath = ClassPath.loadClassPath(classPathDirectories,
-                    bootClassPath, classPath, dexFile, apiLevel, checkPackagePrivateAccess, experimentalOpcodes);
+                    bootClassPath, classPath, dexFile, apiLevel, false, experimentalOpcodes);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);
