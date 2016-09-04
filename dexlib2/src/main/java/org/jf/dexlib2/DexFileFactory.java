@@ -501,7 +501,7 @@ public final class DexFileFactory {
         InputStream stream;
         stream = zipFile.getInputStream(zipEntry);
         try {
-            return DexBackedDexFile.fromInputStream(opcodes, stream);
+            return DexBackedDexFile.fromInputStream(opcodes, new BufferedInputStream(stream));
         } finally {
             if (stream != null) {
                 stream.close();
