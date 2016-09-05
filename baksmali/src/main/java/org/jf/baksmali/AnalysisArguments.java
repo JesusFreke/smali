@@ -33,7 +33,7 @@ package org.jf.baksmali;
 
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.Lists;
-import org.jf.util.jcommander.CommaColonParameterSplitter;
+import org.jf.util.jcommander.ColonParameterSplitter;
 import org.jf.util.jcommander.ExtendedParameter;
 
 import java.util.List;
@@ -45,18 +45,18 @@ public class AnalysisArguments {
     public int apiLevel = 15;
 
     @Parameter(names = {"-b", "--bootclasspath", "--bcp"},
-            description = "A comma/colon separated list of the jar/oat files to include in the " +
+            description = "A colon separated list of the jar/oat files to include in the " +
                     "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +
                     "appropriate default. This is analogous to Android's BOOTCLASSPATH environment variable.",
-            splitter = CommaColonParameterSplitter.class)
+            splitter = ColonParameterSplitter.class)
     @ExtendedParameter(argumentNames = "classpath")
     public List<String> bootClassPath = null;
 
     @Parameter(names = {"-c", "--classpath", "--cp"},
-            description = "A comma/colon separated list of additional jar/oat files to include in the classpath " +
+            description = "A colon separated list of additional jar/oat files to include in the classpath " +
                     "when analyzing the dex file. These will be added to the classpath after any bootclasspath " +
                     "entries.",
-            splitter = CommaColonParameterSplitter.class)
+            splitter = ColonParameterSplitter.class)
     @ExtendedParameter(argumentNames = "classpath")
     public List<String> classPath = Lists.newArrayList();
 
