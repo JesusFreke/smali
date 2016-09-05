@@ -67,7 +67,7 @@ public class ListVtablesCommand extends DexInputCommand {
     @Parameter(names = "--classes",
             description = "A comma separated list of classes. Only print the vtable for these classes")
     @ExtendedParameter(argumentNames = "classes")
-    private String classes = null;
+    private List<String> classes = null;
 
     public ListVtablesCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
@@ -99,8 +99,8 @@ public class ListVtablesCommand extends DexInputCommand {
         }
 
         try {
-            if (classes != null) {
-                for (String cls: classes.split(",")) {
+            if (classes != null && !classes.isEmpty()) {
+                for (String cls: classes) {
                     listClassVtable((ClassProto)options.classPath.getClass(cls));
                 }
                 return;
