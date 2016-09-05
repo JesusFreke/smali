@@ -34,6 +34,7 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import org.jf.baksmali.AnalysisArguments.CheckPackagePrivateArgument;
 import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
@@ -52,6 +53,8 @@ import java.util.List;
         commandName = "deodex",
         commandAliases = { "de", "x" })
 public class DeodexCommand extends DisassembleCommand {
+
+    @ParametersDelegate
     protected CheckPackagePrivateArgument checkPackagePrivateArgument = new CheckPackagePrivateArgument();
 
     @Parameter(names = {"--inline-table", "--inline", "--it"},
@@ -63,10 +66,6 @@ public class DeodexCommand extends DisassembleCommand {
 
     public DeodexCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
-    }
-
-    @Override protected void setupCommand(JCommander jc) {
-        jc.addObject(checkPackagePrivateArgument);
     }
 
     @Override protected BaksmaliOptions getOptions(DexFile dexFile) {

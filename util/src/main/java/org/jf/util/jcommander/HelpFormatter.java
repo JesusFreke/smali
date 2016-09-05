@@ -163,8 +163,7 @@ public class HelpFormatter {
             }
 
             if (leafJc.getMainParameter() != null) {
-                String[] argumentNames = ExtendedCommands.parameterArgumentNames(
-                        leafJc, leafJc.getMainParameter().getParameterized());
+                String[] argumentNames = ExtendedCommands.parameterArgumentNames(leafJc.getMainParameter());
                 if (argumentNames.length == 0) {
                     writer.write(" <args>");
                 } else {
@@ -200,8 +199,7 @@ public class HelpFormatter {
                             writer.write(Joiner.on(',').join(param.getParameter().names()));
                         }
                         if (getParameterArity(param) > 0) {
-                            String[] argumentNames = ExtendedCommands.parameterArgumentNames(
-                                    leafJc, param.getParameterized());
+                            String[] argumentNames = ExtendedCommands.parameterArgumentNames(param);
                             for (int i = 0; i < getParameterArity(param); i++) {
                                 writer.write(" ");
                                 if (i < argumentNames.length) {
@@ -242,8 +240,7 @@ public class HelpFormatter {
                 }
 
                 if (leafJc.getMainParameter() != null) {
-                    String[] argumentNames = ExtendedCommands.parameterArgumentNames(leafJc,
-                            leafJc.getMainParameter().getParameterized());
+                    String[] argumentNames = ExtendedCommands.parameterArgumentNames(leafJc.getMainParameter());
                     writer.write("\n");
                     writer.indent(4);
                     if (argumentNames.length > 0) {

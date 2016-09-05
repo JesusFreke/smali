@@ -34,6 +34,7 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import com.beust.jcommander.validators.PositiveInteger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -62,6 +63,7 @@ public class DisassembleCommand extends DexInputCommand {
             description = "Show usage information for this command.")
     private boolean help;
 
+    @ParametersDelegate
     protected AnalysisArguments analysisArguments = new AnalysisArguments();
 
     @Parameter(names = {"--debug-info", "--di"}, arity = 1,
@@ -135,10 +137,6 @@ public class DisassembleCommand extends DexInputCommand {
 
     public DisassembleCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
-    }
-
-    @Override protected void setupCommand(JCommander jc) {
-        jc.addObject(analysisArguments);
     }
 
     public void run() {

@@ -59,6 +59,7 @@ public class ListVtablesCommand extends DexInputCommand {
             description = "Show usage information")
     private boolean help;
 
+    @ParametersDelegate
     private AnalysisArguments analysisArguments = new AnalysisArguments();
 
     @ParametersDelegate
@@ -71,11 +72,6 @@ public class ListVtablesCommand extends DexInputCommand {
 
     public ListVtablesCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
-    }
-
-    @Override protected void setupCommand(JCommander jc) {
-        jc.addObject(analysisArguments);
-        jc.addObject(checkPackagePrivateArgument);
     }
 
     @Override public void run() {

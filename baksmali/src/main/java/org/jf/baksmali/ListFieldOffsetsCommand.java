@@ -34,6 +34,7 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassProto;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
@@ -57,14 +58,11 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
             description = "Show usage information")
     private boolean help;
 
+    @ParametersDelegate
     private AnalysisArguments analysisArguments = new AnalysisArguments();
 
     public ListFieldOffsetsCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
-    }
-
-    @Override protected void setupCommand(JCommander jc) {
-        jc.addObject(analysisArguments);
     }
 
     @Override public void run() {

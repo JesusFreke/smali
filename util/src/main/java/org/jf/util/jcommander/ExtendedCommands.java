@@ -32,6 +32,7 @@
 package org.jf.util.jcommander;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameterized;
 import com.beust.jcommander.Parameters;
 
@@ -98,10 +99,10 @@ public class ExtendedCommands {
     }
 
     @Nonnull
-    public static String[] parameterArgumentNames(JCommander jc, Parameterized parameterized) {
-        // TODO: this won't work if we're using additional objects to collect parameters
+    public static String[] parameterArgumentNames(ParameterDescription parameterDescription) {
+        Parameterized parameterized = parameterDescription.getParameterized();
 
-        Class cls = jc.getObjects().get(0).getClass();
+        Class cls = parameterDescription.getObject().getClass();
         Field field = null;
         while (cls != Object.class) {
             try {
