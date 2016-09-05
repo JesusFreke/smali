@@ -35,6 +35,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.OatFile.NotAnOatFileException;
@@ -249,10 +250,10 @@ public final class DexFileFactory {
      *
      * @param file The file to open
      * @param opcodes The set of opcodes to use
-     * @return A DexBackedDexFile for the given file
+     * @return An iterable of DexBackedDexFiles
      * @throws IOException
      * @throws DexFileNotFoundException If the given file does not exist
-     * @throws UnsupportedFileTypeException If the given file is not a dex, odex, zip or oat file
+     * @throws UnsupportedFileTypeException If the given file is not a zip or oat file
      */
     public static Iterable<? extends DexBackedDexFile> loadAllDexFiles(
             @Nonnull File file, @Nonnull final Opcodes opcodes) throws IOException {
@@ -284,6 +285,8 @@ public final class DexFileFactory {
                                     } catch (IOException ex) {
                                         throw new ExceptionWithContext(ex, "Error while reading %s from %s",
                                                 zipEntry.getName(), finalZipFile.getName());
+                                    } catch (NotADexFile ex) {
+                                        // ignore and continue
                                     }
                                 }
                             }
@@ -331,7 +334,80 @@ public final class DexFileFactory {
         }
 
         throw new UnsupportedFileTypeException("%s is not an apk, dex, odex or oat file.", file.getPath());
+    }
 
+    /**
+     * Gets all dex entries from an oat/zip file.
+     *
+     * For zip files, only entries that match classes[0-9]*.dex will be returned.
+     *
+     * @param file The file to get dex entries from
+
+     * @return A list of strings contains the dex entry names
+     * @throws IOException
+     * @throws DexFileNotFoundException If the given file does not exist
+     * @throws UnsupportedFileTypeException If the given file is not a zip or oat file
+     */
+    public static List<String> getAllDexEntries(@Nonnull File file) throws IOException {
+        if (!file.exists()) {
+            throw new DexFileNotFoundException("%s does not exist", file.getName());
+        }
+
+        List<String> entries = Lists.newArrayList();
+        Opcodes opcodes = Opcodes.forApi(15);
+
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(file);
+        } catch (IOException ex) {
+            // ignore and continue
+        }
+
+        if (zipFile != null) {
+            Pattern dexPattern = Pattern.compile("classes[0-9]*.dex");
+            Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+
+            while (zipEntries.hasMoreElements()) {
+                ZipEntry zipEntry = zipEntries.nextElement();
+                if (dexPattern.matcher(zipEntry.getName()).matches()) {
+                    try {
+                        loadDexFromZip(zipFile, zipEntry, opcodes);
+                        entries.add(zipEntry.getName());
+                    } catch (IOException ex) {
+                        throw new IOException(String.format("Error while reading %s from %s",
+                                zipEntry.getName(), zipFile.getName()), ex);
+                    }catch (NotADexFile ex) {
+                        // ignore and continue
+                    }
+                }
+            }
+            return entries;
+        }
+
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+        try {
+            OatFile oatFile = null;
+            try {
+                oatFile = OatFile.fromInputStream(inputStream);
+            } catch (NotAnOatFileException ex) {
+                // just eat it
+            }
+
+            if (oatFile != null) {
+                if (oatFile.isSupportedVersion() == OatFile.UNSUPPORTED) {
+                    throw new UnsupportedOatVersionException(oatFile);
+                }
+
+                for (OatDexFile oatDexFile: oatFile.getDexFiles()) {
+                    entries.add(oatDexFile.filename);
+                }
+                return entries;
+            }
+        } finally {
+            inputStream.close();
+        }
+
+        throw new UnsupportedFileTypeException("%s is not an apk, oat file.", file.getPath());
     }
 
     /**

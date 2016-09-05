@@ -35,20 +35,15 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Lists;
-import org.jf.dexlib2.dexbacked.OatFile;
-import org.jf.dexlib2.dexbacked.raw.HeaderItem;
-import org.jf.dexlib2.dexbacked.raw.OdexHeaderItem;
+import org.jf.dexlib2.DexFileFactory;
 import org.jf.util.jcommander.Command;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
-import java.io.*;
-import java.util.Collections;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 @Parameters(commandDescription = "Lists the dex files in an apk/oat file.")
 @ExtendedParameters(
@@ -85,53 +80,18 @@ public class ListDexCommand extends Command {
 
         if (!file.exists()) {
             System.err.println(String.format("Could not find the file: %s", input));
+            System.exit(-1);
         }
 
+        List<String> entries;
         try {
-            ZipFile zipFile = new ZipFile(input);
-
-            byte[] magic = new byte[8];
-
-            for (ZipEntry zipEntry : Collections.list(zipFile.entries())) {
-                try {
-                    InputStream inputStream = zipFile.getInputStream(zipEntry);
-
-                    int totalBytesRead = 0;
-                    while (totalBytesRead < 8) {
-                        int bytesRead = inputStream.read(magic, totalBytesRead, 8 - totalBytesRead);
-                        if (bytesRead == -1) {
-                            break;
-                        }
-                        totalBytesRead += bytesRead;
-                    }
-
-                    if (totalBytesRead == 8) {
-                        if (HeaderItem.verifyMagic(magic, 0) || OdexHeaderItem.verifyMagic(magic)) {
-                            System.out.println(zipEntry.getName());
-                        }
-                    }
-                } catch (ZipException ex) {
-                    // ignore and keep looking
-                    continue;
-                }
-            }
-        } catch (ZipException ex) {
-            // ignore
+            entries = DexFileFactory.getAllDexEntries(file);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
 
-        try {
-            InputStream inputStream = new BufferedInputStream(new FileInputStream(input));
-            OatFile oatFile = OatFile.fromInputStream(inputStream);
-
-            for (OatFile.OatDexFile oatDexFile: oatFile.getDexFiles()) {
-                System.out.println(oatDexFile.filename);
-            }
-        } catch (OatFile.NotAnOatFileException ex) {
-            // just eat it
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        for (String entry: entries) {
+            System.out.println(entry);
         }
     }
 }
