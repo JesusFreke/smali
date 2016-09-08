@@ -1166,6 +1166,18 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, castRegisterType);
     }
 
+    private static boolean isNarrowingConversion(RegisterType originalType, RegisterType newType) {
+        if (originalType.type == null || newType.type == null) {
+            return false;
+        }
+        if (originalType.type.isInterface()) {
+            return newType.type.implementsInterface(originalType.type.getType());
+        } else {
+            TypeProto commonSuperclass = newType.type.getCommonSuperclass(originalType.type);
+            return commonSuperclass.getType().equals(originalType.type.getType());
+        }
+    }
+
     static boolean canNarrowAfterInstanceOf(AnalyzedInstruction analyzedInstanceOfInstruction,
                                             AnalyzedInstruction analyzedIfInstruction, ClassPath classPath) {
         Instruction ifInstruction = analyzedIfInstruction.instruction;
@@ -1179,18 +1191,7 @@ public class MethodAnalyzer {
 
                 RegisterType originalType = analyzedIfInstruction.getPreInstructionRegisterType(objectRegister);
 
-                if (originalType.type != null) {
-                    // Only override if we're going from an interface to a class, or are going to a narrower class
-                    if (originalType.type.isInterface()) {
-                        return true;
-                    } else {
-                        TypeProto commonSuperclass = registerType.type.getCommonSuperclass(originalType.type);
-                        // only if it's a narrowing conversion
-                        if (commonSuperclass.getType().equals(originalType.type.getType())) {
-                            return true;
-                        }
-                    }
-                }
+                return isNarrowingConversion(originalType, registerType);
             }
         }
         return false;
@@ -1210,6 +1211,9 @@ public class MethodAnalyzer {
                 if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
                     List<Integer> narrowingRegisters = Lists.newArrayList();
 
+                    RegisterType newType = RegisterType.getRegisterType(classPath,
+                            (TypeReference)((Instruction22c)prevAnalyzedInstruction.instruction).getReference());
+
                     if (instructionIndex > 1) {
                         // If we have something like:
                         //   move-object/from16 v0, p1
@@ -1221,8 +1225,17 @@ public class MethodAnalyzer {
                         Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
                         if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
                                 opcode == Opcode.MOVE_OBJECT_FROM16) {
-                            narrowingRegisters.add(
-                                    ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction).getRegisterB());
+                            TwoRegisterInstruction moveInstruction =
+                                    ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction);
+                            RegisterType originalType =
+                                    prevPrevAnalyzedInstruction.getPostInstructionRegisterType(
+                                            moveInstruction.getRegisterB());
+                            if (originalType.type != null) {
+                                if (isNarrowingConversion(originalType, newType)) {
+                                    narrowingRegisters.add(
+                                            ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction).getRegisterB());
+                                }
+                            }
                         }
                     }
 
@@ -1230,8 +1243,6 @@ public class MethodAnalyzer {
                     int narrowingRegister = ((Instruction22c)prevAnalyzedInstruction.instruction).getRegisterB();
                     narrowingRegisters.add(narrowingRegister);
                     RegisterType originalType = analyzedInstruction.getPreInstructionRegisterType(narrowingRegister);
-                    RegisterType newType = RegisterType.getRegisterType(classPath,
-                            (TypeReference)((Instruction22c)prevAnalyzedInstruction.instruction).getReference());
 
                     AnalyzedInstruction fallthroughInstruction = analyzedInstructions.valueAt(
                             analyzedInstruction.getInstructionIndex() + 1);
