@@ -1697,8 +1697,8 @@ public class MethodAnalyzer {
             // actually valid for this class
             resolvedField = classPath.getClass(fieldClass.getType()).getFieldByOffset(fieldOffset);
             if (resolvedField == null) {
-                throw new ExceptionWithContext("Couldn't find accessible class while resolving field %s",
-                        ReferenceUtil.getShortFieldDescriptor(resolvedField));
+                throw new ExceptionWithContext("Couldn't find accessible class while resolving field in class %s at offset %d",
+                        fieldClass.getType(), fieldOffset);
             }
             resolvedField = new ImmutableFieldReference(fieldClass.getType(), resolvedField.getName(),
                     resolvedField.getType());
