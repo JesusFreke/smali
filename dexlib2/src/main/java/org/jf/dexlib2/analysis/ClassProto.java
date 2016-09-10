@@ -31,14 +31,16 @@
 
 package org.jf.dexlib2.analysis;
 
-import com.google.common.base.*;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.*;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
-import org.jf.dexlib2.iface.ClassDef;
-import org.jf.dexlib2.iface.Field;
-import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.base.reference.BaseMethodReference;
+import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.immutable.ImmutableMethod;
@@ -50,6 +52,7 @@ import org.jf.util.SparseArray;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * A class "prototype". This contains things like the interfaces, the superclass, the vtable and the instance fields
@@ -120,11 +123,18 @@ public class ClassProto implements TypeProto {
      */
     @Nonnull
     protected LinkedHashMap<String, ClassDef> getInterfaces() {
-        return interfacesSupplier.get();
+        if (!classPath.isArt() || classPath.oatVersion < 72) {
+            return preDefaultMethodInterfaceSupplier.get();
+        } else {
+            return postDefaultMethodInterfaceSupplier.get();
+        }
     }
 
+    /**
+     * This calculates the interfaces in the order required for vtable generation for dalvik and pre-default method ART
+     */
     @Nonnull
-    private final Supplier<LinkedHashMap<String, ClassDef>> interfacesSupplier =
+    private final Supplier<LinkedHashMap<String, ClassDef>> preDefaultMethodInterfaceSupplier =
             Suppliers.memoize(new Supplier<LinkedHashMap<String, ClassDef>>() {
                 @Override public LinkedHashMap<String, ClassDef> get() {
                     Set<String> unresolvedInterfaces = new HashSet<String>(0);
@@ -146,7 +156,8 @@ public class ClassProto implements TypeProto {
                                 ClassProto interfaceProto = (ClassProto) classPath.getClass(interfaceType);
                                 for (String superInterface: interfaceProto.getInterfaces().keySet()) {
                                     if (!interfaces.containsKey(superInterface)) {
-                                        interfaces.put(superInterface, interfaceProto.getInterfaces().get(superInterface));
+                                        interfaces.put(superInterface,
+                                                interfaceProto.getInterfaces().get(superInterface));
                                     }
                                 }
                                 if (!interfaceProto.interfacesFullyResolved) {
@@ -183,6 +194,60 @@ public class ClassProto implements TypeProto {
                         }
                     } catch (UnresolvedClassException ex) {
                         unresolvedInterfaces.add(superclass);
+                        interfacesFullyResolved = false;
+                    }
+
+                    if (unresolvedInterfaces.size() > 0) {
+                        ClassProto.this.unresolvedInterfaces = unresolvedInterfaces;
+                    }
+
+                    return interfaces;
+                }
+            });
+
+    /**
+     * This calculates the interfaces in the order required for vtable generation for post-default method ART
+     */
+    @Nonnull
+    private final Supplier<LinkedHashMap<String, ClassDef>> postDefaultMethodInterfaceSupplier =
+            Suppliers.memoize(new Supplier<LinkedHashMap<String, ClassDef>>() {
+                @Override public LinkedHashMap<String, ClassDef> get() {
+                    Set<String> unresolvedInterfaces = new HashSet<String>(0);
+                    LinkedHashMap<String, ClassDef> interfaces = Maps.newLinkedHashMap();
+
+                    String superclass = getSuperclass();
+                    if (superclass != null) {
+                        ClassProto superclassProto = (ClassProto) classPath.getClass(superclass);
+                        for (String superclassInterface: superclassProto.getInterfaces().keySet()) {
+                            interfaces.put(superclassInterface, null);
+                        }
+                        if (!superclassProto.interfacesFullyResolved) {
+                            unresolvedInterfaces.addAll(superclassProto.getUnresolvedInterfaces());
+                            interfacesFullyResolved = false;
+                        }
+                    }
+
+                    try {
+                        for (String interfaceType: getClassDef().getInterfaces()) {
+                            if (!interfaces.containsKey(interfaceType)) {
+                                ClassProto interfaceProto = (ClassProto)classPath.getClass(interfaceType);
+                                for (Entry<String, ClassDef> entry: interfaceProto.getInterfaces().entrySet()) {
+                                    if (!interfaces.containsKey(entry.getKey())) {
+                                        interfaces.put(entry.getKey(), entry.getValue());
+                                    }
+                                }
+                                try {
+                                    ClassDef interfaceDef = classPath.getClassDef(interfaceType);
+                                    interfaces.put(interfaceType, interfaceDef);
+                                } catch (UnresolvedClassException ex) {
+                                    interfaces.put(interfaceType, null);
+                                    unresolvedInterfaces.add(interfaceType);
+                                    interfacesFullyResolved = false;
+                                }
+                            }
+                        }
+                    } catch (UnresolvedClassException ex) {
+                        unresolvedInterfaces.add(type);
                         interfacesFullyResolved = false;
                     }
 
@@ -376,7 +441,10 @@ public class ClassProto implements TypeProto {
     }
 
     public int findMethodIndexInVtable(@Nonnull MethodReference method) {
-        List<Method> vtable = getVtable();
+        return findMethodIndexInVtable(getVtable(), method);
+    }
+
+    private int findMethodIndexInVtable(@Nonnull List<Method> vtable, MethodReference method) {
         for (int i=0; i<vtable.size(); i++) {
             Method candidate = vtable.get(i);
             if (MethodUtil.methodSignaturesMatch(candidate, method)) {
@@ -776,11 +844,15 @@ public class ClassProto implements TypeProto {
     }
 
     @Nonnull public List<Method> getVtable() {
-        return vtableSupplier.get();
+        if (!classPath.isArt() || classPath.oatVersion < 72) {
+            return preDefaultMethodVtableSupplier.get();
+        } else {
+            return postDefaultMethodVtableSupplier.get();
+        }
     }
 
     //TODO: check the case when we have a package private method that overrides an interface method
-    @Nonnull private final Supplier<List<Method>> vtableSupplier = Suppliers.memoize(new Supplier<List<Method>>() {
+    @Nonnull private final Supplier<List<Method>> preDefaultMethodVtableSupplier = Suppliers.memoize(new Supplier<List<Method>>() {
         @Override public List<Method> get() {
             List<Method> vtable = Lists.newArrayList();
 
@@ -809,11 +881,12 @@ public class ClassProto implements TypeProto {
             //iterate over the virtual methods in the current class, and only add them when we don't already have the
             //method (i.e. if it was implemented by the superclass)
             if (!isInterface()) {
-                addToVtable(getClassDef().getVirtualMethods(), vtable, true);
+                addToVtable(getClassDef().getVirtualMethods(), vtable, true, true);
 
-                // assume that interface method is implemented in the current class, when adding it to vtable
-                // otherwise it looks like that method is invoked on an interface, which fails Dalvik's optimization checks
-                for (ClassDef interfaceDef: getDirectInterfaces()) {
+                // We use the current class for any vtable method references that we add, rather than the interface, so
+                // we don't end up trying to call invoke-virtual using an interface, which will fail verification
+                Iterable<ClassDef> interfaces = getDirectInterfaces();
+                for (ClassDef interfaceDef: interfaces) {
                     List<Method> interfaceMethods = Lists.newArrayList();
                     for (Method interfaceMethod: interfaceDef.getVirtualMethods()) {
                         ImmutableMethod method = new ImmutableMethod(
@@ -831,30 +904,120 @@ public class ClassProto implements TypeProto {
             }
             return vtable;
         }
+    });
 
-        private void addToVtable(@Nonnull Iterable<? extends Method> localMethods,
-                                 @Nonnull List<Method> vtable, boolean replaceExisting) {
-            List<? extends Method> methods = Lists.newArrayList(localMethods);
-            Collections.sort(methods);
+    @Nonnull private final Supplier<List<Method>> postDefaultMethodVtableSupplier = Suppliers.memoize(new Supplier<List<Method>>() {
+        @Override public List<Method> get() {
+            List<Method> vtable = Lists.newArrayList();
 
-            outer: for (Method virtualMethod: methods) {
-                for (int i=0; i<vtable.size(); i++) {
-                    Method superMethod = vtable.get(i);
-                    if (MethodUtil.methodSignaturesMatch(superMethod, virtualMethod)) {
-                        if (!classPath.shouldCheckPackagePrivateAccess() ||
-                                AnalyzedMethodUtil.canAccess(ClassProto.this, superMethod, true, false, false)) {
-                            if (replaceExisting) {
-                                vtable.set(i, virtualMethod);
+            //copy the virtual methods from the superclass
+            String superclassType;
+            try {
+                superclassType = getSuperclass();
+            } catch (UnresolvedClassException ex) {
+                vtable.addAll(((ClassProto)classPath.getClass("Ljava/lang/Object;")).getVtable());
+                vtableFullyResolved = false;
+                return vtable;
+            }
+
+            if (superclassType != null) {
+                ClassProto superclass = (ClassProto) classPath.getClass(superclassType);
+                vtable.addAll(superclass.getVtable());
+
+                // if the superclass's vtable wasn't fully resolved, then we can't know where the new methods added by this
+                // class should start, so we just propagate what we can from the parent and hope for the best.
+                if (!superclass.vtableFullyResolved) {
+                    vtableFullyResolved = false;
+                    return vtable;
+                }
+            }
+
+            //iterate over the virtual methods in the current class, and only add them when we don't already have the
+            //method (i.e. if it was implemented by the superclass)
+            if (!isInterface()) {
+                addToVtable(getClassDef().getVirtualMethods(), vtable, true, true);
+
+                Iterable<ClassDef> interfaces = Lists.reverse(Lists.newArrayList(getDirectInterfaces()));
+
+                List<Method> defaultMethods = Lists.newArrayList();
+                List<Method> defaultConflictMethods = Lists.newArrayList();
+                List<Method> mirandaMethods = Lists.newArrayList();
+
+                for (ClassDef interfaceDef: interfaces) {
+                    for (Method interfaceMethod : interfaceDef.getVirtualMethods()) {
+                        int methodIndex = findMethodIndexInVtable(vtable, interfaceMethod);
+
+                        if (methodIndex < 0) {
+                            int defaultMethodIndex = findMethodIndexInVtable(defaultMethods, interfaceMethod);
+
+                            if (defaultMethodIndex >= 0) {
+                                if (!AccessFlags.ABSTRACT.isSet(interfaceMethod.getAccessFlags())) {
+                                    ClassProto existingInterface = (ClassProto)classPath.getClass(
+                                            defaultMethods.get(defaultMethodIndex).getDefiningClass());
+                                    if (!existingInterface.implementsInterface(interfaceMethod.getDefiningClass())) {
+                                        Method removedMethod = defaultMethods.remove(defaultMethodIndex);
+                                        defaultConflictMethods.add(removedMethod);
+                                    }
+                                }
+                                continue;
                             }
-                            continue outer;
+
+                            int defaultConflictMethodIndex = findMethodIndexInVtable(
+                                    defaultConflictMethods, interfaceMethod);
+                            if (defaultConflictMethodIndex >= 0) {
+                                // There's already a matching method in the conflict list, we don't need to do
+                                // anything else
+                                continue;
+                            }
+
+                            int mirandaMethodIndex = findMethodIndexInVtable(mirandaMethods, interfaceMethod);
+
+                            if (mirandaMethodIndex >= 0) {
+                                if (!AccessFlags.ABSTRACT.isSet(interfaceMethod.getAccessFlags())) {
+                                    mirandaMethods.remove(mirandaMethodIndex);
+                                    defaultMethods.add(interfaceMethod);
+                                }
+                            }
+
+                            if (!AccessFlags.ABSTRACT.isSet(interfaceMethod.getAccessFlags())) {
+                                defaultMethods.add(interfaceMethod);
+                            } else {
+                                mirandaMethods.add(interfaceMethod);
+                            }
+
                         }
                     }
                 }
+
+                addToVtable(defaultMethods, vtable, false, false);
+                addToVtable(defaultConflictMethods, vtable, false, false);
+                addToVtable(mirandaMethods, vtable, false, false);
+            }
+            return vtable;
+        }
+    });
+
+    private void addToVtable(@Nonnull Iterable<? extends Method> localMethods,
+                             @Nonnull List<Method> vtable, boolean replaceExisting, boolean sort) {
+        if (sort) {
+            ArrayList<Method> methods = Lists.newArrayList(localMethods);
+            Collections.sort(methods);
+            localMethods = methods;
+        }
+
+        for (Method virtualMethod: localMethods) {
+            int vtableIndex = findMethodIndexInVtable(vtable, virtualMethod);
+
+            if (vtableIndex >= 0) {
+                if (replaceExisting) {
+                    vtable.set(vtableIndex, virtualMethod);
+                }
+            } else {
                 // we didn't find an equivalent method, so add it as a new entry
                 vtable.add(virtualMethod);
             }
         }
-    });
+    }
 
     private static byte getFieldType(@Nonnull FieldReference field) {
         switch (field.getType().charAt(0)) {
