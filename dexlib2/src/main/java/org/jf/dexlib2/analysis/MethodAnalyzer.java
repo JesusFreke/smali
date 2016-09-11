@@ -1206,7 +1206,10 @@ public class MethodAnalyzer {
     private void analyzeIfEqzNez(@Nonnull AnalyzedInstruction analyzedInstruction) {
         int instructionIndex = analyzedInstruction.getInstructionIndex();
         if (instructionIndex > 0) {
-            AnalyzedInstruction prevAnalyzedInstruction = analyzedInstructions.valueAt(instructionIndex - 1);
+            if (analyzedInstruction.getPredecessorCount() != 1) {
+                return;
+            }
+            AnalyzedInstruction prevAnalyzedInstruction = analyzedInstruction.getPredecessors().first();
             if (prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
                 if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
                     List<Integer> narrowingRegisters = Lists.newArrayList();
