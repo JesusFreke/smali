@@ -103,6 +103,7 @@ public class ListClassPathCommand extends Command {
             for (String entry: odexFile.getDependencies()) {
                 System.out.println(entry);
             }
+            return;
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         } catch (DexBackedOdexFile.NotAnOdexFile ex) {
