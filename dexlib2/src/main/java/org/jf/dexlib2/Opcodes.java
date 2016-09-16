@@ -92,9 +92,9 @@ public class Opcodes {
 
         int version;
         if (isArt()) {
-            version = artVersion;
+            version = this.artVersion;
         } else {
-            version = api;
+            version = this.api;
         }
 
         for (Opcode opcode: Opcode.values()) {

@@ -35,6 +35,12 @@ public class VersionMap {
     public static final int NO_VERSION = -1;
 
     public static int mapArtVersionToApi(int artVersion) {
+        // NOTE: Art version 87 and api level 26 do not correspond to any
+        // particular android release and represent the current (as of
+        // October 2016) state of aosp/master.
+        if (artVersion >= 87) {
+            return 26;
+        }
         if (artVersion >= 79) {
             return 24;
         }
@@ -62,10 +68,15 @@ public class VersionMap {
             case 23:
                 return 64;
             case 24:
+            case 25:
                 return 79;
         }
-        if (api > 24) {
-            return 79;
+
+        // NOTE: Art version 87 and api level 26 do not correspond to any
+        // particular android release and represent the current (as of
+        // October 2016) state of aosp/master.
+        if (api > 25) {
+            return 87;
         }
         return NO_VERSION;
     }

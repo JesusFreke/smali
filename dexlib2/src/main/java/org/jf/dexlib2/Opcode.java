@@ -305,8 +305,8 @@ public enum Opcode
     SPARSE_SWITCH_PAYLOAD(0x200, "sparse-switch-payload", ReferenceType.NONE, Format.SparseSwitchPayload, 0),
     ARRAY_PAYLOAD(0x300, "array-payload", ReferenceType.NONE, Format.ArrayPayload, 0),
 
-    INVOKE_POLYMORPHIC(firstApi(0xfa, 26), "invoke-polymorphic", ReferenceType.METHOD, ReferenceType.METHOD_PROTO, Format.Format45cc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_POLYMORPHIC_RANGE(firstApi(0xfb, 26), "invoke-polymorphic/range", ReferenceType.METHOD, ReferenceType.METHOD_PROTO, Format.Format4rcc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT);
+    INVOKE_POLYMORPHIC(firstArtVersion(0xfa, 87), "invoke-polymorphic", ReferenceType.METHOD, ReferenceType.METHOD_PROTO, Format.Format45cc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+    INVOKE_POLYMORPHIC_RANGE(firstArtVersion(0xfb, 87), "invoke-polymorphic/range", ReferenceType.METHOD, ReferenceType.METHOD_PROTO, Format.Format4rcc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT);
 
     //if the instruction can throw an exception
     public static final int CAN_THROW = 0x1;
