@@ -8,6 +8,7 @@ d7cbf8a6629942e7bd315ffae7e1c77b082f3e11 - 60
  - return-void-barrier -> return-void-no-barrier
 1412dfa4adcd511902e510fa0c948b168ab5840c - 61 (re-commit of f3251d12)
 9d6bf69ad3012a9d843268fdd5325b6719b6d5f2 - 62
+- classpath list was added
 0de1133ba600f299b3d67938f650720d9f859eb2 - 63
 07785bb98dc8bbe192970e0f4c2cafd338a8dc68 - 64
 fa2c054b28d4b540c1b3651401a7a091282a015f - 65
@@ -27,8 +28,8 @@ fab6788358dfb64e5c370611ddbbbffab0ed0553 - 67
 d9786b0e5be23ea0258405165098b4216579209c - 73
 - fast class lookup table
 a4f1220c1518074db18ca1044e9201492975750b - 74
-- bootclasspath list was added
 625a64aad13905d8a2454bf3cc0e874487b110d5 - 75
+- bootclasspath list was added
 - class offsets moved out to a separate table
 919f5536182890d2e03f59b961acf8f7c836ff61 - 74 (revert of 625a64aa)
 9bdf108885a27ba05fae8501725649574d7c491b - 75 (re-commit of 625a64aa)
