@@ -39,8 +39,9 @@ import com.google.common.collect.*;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
-import org.jf.dexlib2.base.reference.BaseMethodReference;
-import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.Field;
+import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.immutable.ImmutableMethod;
@@ -505,9 +506,7 @@ public class ClassProto implements TypeProto {
                     ClassProto superclass = null;
                     if (superclassType != null) {
                         superclass = (ClassProto) classPath.getClass(superclassType);
-                        if (superclass != null) {
-                            startFieldOffset = superclass.getNextFieldOffset();
-                        }
+                        startFieldOffset = superclass.getNextFieldOffset();
                     }
 
                     int fieldIndexMod;
@@ -595,13 +594,11 @@ public class ClassProto implements TypeProto {
 
                         //add padding to align the wide fields, if needed
                         if (fieldTypes[i] == WIDE && !gotDouble) {
-                            if (!gotDouble) {
-                                if (fieldOffset % 8 != 0) {
-                                    assert fieldOffset % 8 == 4;
-                                    fieldOffset += 4;
-                                }
-                                gotDouble = true;
+                            if (fieldOffset % 8 != 0) {
+                                assert fieldOffset % 8 == 4;
+                                fieldOffset += 4;
                             }
+                            gotDouble = true;
                         }
 
                         instanceFields.append(fieldOffset, field);
@@ -639,7 +636,7 @@ public class ClassProto implements TypeProto {
         public static FieldGap newFieldGap(int offset, int size, int oatVersion) {
             if (oatVersion >= 67) {
                 return new FieldGap(offset, size) {
-                    @Override public int compareTo(FieldGap o) {
+                    @Override public int compareTo(@Nonnull FieldGap o) {
                         int result = Ints.compare(o.size, size);
                         if (result != 0) {
                             return result;
@@ -649,7 +646,7 @@ public class ClassProto implements TypeProto {
                 };
             } else {
                 return new FieldGap(offset, size) {
-                    @Override public int compareTo(FieldGap o) {
+                    @Override public int compareTo(@Nonnull FieldGap o) {
                         int result = Ints.compare(size, o.size);
                         if (result != 0) {
                             return result;
@@ -899,7 +896,7 @@ public class ClassProto implements TypeProto {
                                 interfaceMethod.getImplementation());
                         interfaceMethods.add(method);
                     }
-                    addToVtable(interfaceMethods, vtable, false);
+                    addToVtable(interfaceMethods, vtable, false, true);
                 }
             }
             return vtable;

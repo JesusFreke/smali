@@ -202,9 +202,6 @@ public class ClassPath {
         if (bootClassPathEntries == null) {
             bootClassPathEntries = getDefaultDeviceBootClassPath(dexFile, api);
         }
-        if (extraClassPathEntries == null) {
-            extraClassPathEntries = ImmutableList.of();
-        }
         for (String entry: Iterables.concat(bootClassPathEntries, extraClassPathEntries)) {
             List<File> files = Lists.newArrayList();
 
