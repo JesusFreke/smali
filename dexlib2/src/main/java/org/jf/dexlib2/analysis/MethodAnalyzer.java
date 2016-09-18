@@ -1185,13 +1185,17 @@ public class MethodAnalyzer {
             Reference reference = ((Instruction22c)analyzedInstanceOfInstruction.getInstruction()).getReference();
             RegisterType registerType = RegisterType.getRegisterType(classPath, (TypeReference)reference);
 
-            if (registerType.type != null && !registerType.type.isInterface()) {
-                int objectRegister = ((TwoRegisterInstruction)analyzedInstanceOfInstruction.getInstruction())
-                        .getRegisterB();
+            try {
+                if (registerType.type != null && !registerType.type.isInterface()) {
+                    int objectRegister = ((TwoRegisterInstruction)analyzedInstanceOfInstruction.getInstruction())
+                            .getRegisterB();
 
-                RegisterType originalType = analyzedIfInstruction.getPreInstructionRegisterType(objectRegister);
+                    RegisterType originalType = analyzedIfInstruction.getPreInstructionRegisterType(objectRegister);
 
-                return isNarrowingConversion(originalType, registerType);
+                    return isNarrowingConversion(originalType, registerType);
+                }
+            } catch (UnresolvedClassException ex) {
+                return false;
             }
         }
         return false;
