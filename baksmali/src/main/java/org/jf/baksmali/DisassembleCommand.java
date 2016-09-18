@@ -151,7 +151,7 @@ public class DisassembleCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15);
+        DexBackedDexFile dexFile = loadDexFile(input, analysisArguments.apiLevel);
 
         if (showDeodexWarning() && dexFile.hasOdexOpcodes()) {
             StringWrapper.printWrappedString(System.err,
