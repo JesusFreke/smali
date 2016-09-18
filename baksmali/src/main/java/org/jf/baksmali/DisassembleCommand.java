@@ -38,7 +38,6 @@ import com.beust.jcommander.ParametersDelegate;
 import com.beust.jcommander.validators.PositiveInteger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
@@ -191,9 +190,8 @@ public class DisassembleCommand extends DexInputCommand {
 
         if (needsClassPath()) {
             try {
-                options.classPath = ClassPath.loadClassPath(analysisArguments.classPathDirectories,
-                        analysisArguments.bootClassPath, analysisArguments.classPath, dexFile,
-                        analysisArguments.apiLevel, shouldCheckPackagePrivateAccess());
+                options.classPath = analysisArguments.loadClassPathForDexFile(dexFile,
+                        shouldCheckPackagePrivateAccess());
             } catch (Exception ex) {
                 System.err.println("\n\nError occurred while loading class path files. Aborting.");
                 ex.printStackTrace(System.err);

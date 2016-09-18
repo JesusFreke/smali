@@ -33,9 +33,13 @@ package org.jf.baksmali;
 
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.Lists;
+import org.jf.dexlib2.analysis.ClassPath;
+import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.jcommander.ColonParameterSplitter;
 import org.jf.util.jcommander.ExtendedParameter;
 
+import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.List;
 
 public class AnalysisArguments {
@@ -45,17 +49,17 @@ public class AnalysisArguments {
     public int apiLevel = 15;
 
     @Parameter(names = {"-b", "--bootclasspath", "--bcp"},
-            description = "A colon separated list of the jar/oat files to include in the " +
-                    "bootclasspath when analyzing the dex file. If not specified, baksmali will attempt to choose an " +
-                    "appropriate default. This is analogous to Android's BOOTCLASSPATH environment variable.",
+            description = "A colon separated list of the files to include in the bootclasspath when analyzing the dex " +
+                    "file. If not specified, baksmali will attempt to choose an " +
+                    "appropriate default. When analyzing oat files, this can simply be the path to the device's " +
+                    "boot.oat file. See baksmali help classpath for more information.",
             splitter = ColonParameterSplitter.class)
     @ExtendedParameter(argumentNames = "classpath")
     public List<String> bootClassPath = null;
 
     @Parameter(names = {"-c", "--classpath", "--cp"},
-            description = "A colon separated list of additional jar/oat files to include in the classpath " +
-                    "when analyzing the dex file. These will be added to the classpath after any bootclasspath " +
-                    "entries.",
+            description = "A colon separated list of additional files to include in the classpath when analyzing the " +
+                    "dex file. These will be added to the classpath after any bootclasspath entries.",
             splitter = ColonParameterSplitter.class)
     @ExtendedParameter(argumentNames = "classpath")
     public List<String> classPath = Lists.newArrayList();
@@ -71,5 +75,11 @@ public class AnalysisArguments {
                 description = "Use the package-private access check when calculating vtable indexes. This should " +
                         "only be needed for 4.2.0 odexes. It was reverted in 4.2.1.")
         public boolean checkPackagePrivateAccess = false;
+    }
+
+    public ClassPath loadClassPathForDexFile(@Nonnull DexFile dexFile, boolean checkPackagePrivateAccess)
+            throws IOException {
+        return ClassPath.loadClassPath(classPathDirectories, bootClassPath, classPath, dexFile, apiLevel,
+                checkPackagePrivateAccess);
     }
 }

@@ -35,7 +35,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
-import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassProto;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.ClassDef;
@@ -106,9 +105,7 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
         options.apiLevel = analysisArguments.apiLevel;
 
         try {
-            options.classPath = ClassPath.loadClassPath(analysisArguments.classPathDirectories,
-                    analysisArguments.bootClassPath, analysisArguments.classPath, dexFile, analysisArguments.apiLevel,
-                    false);
+            options.classPath = analysisArguments.loadClassPathForDexFile(dexFile, false);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);
