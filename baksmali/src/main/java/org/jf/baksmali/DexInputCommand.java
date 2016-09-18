@@ -112,10 +112,9 @@ public abstract class DexInputCommand extends Command {
             System.exit(1);
         }
 
-        File dexFile = file;
         String dexEntry = null;
-        if (dexFile.getPath().length() < input.length()) {
-            dexEntry = input.substring(dexFile.getPath().length() + 1);
+        if (file.getPath().length() < input.length()) {
+            dexEntry = input.substring(file.getPath().length() + 1);
         }
 
         if (!Strings.isNullOrEmpty(dexEntry)) {
@@ -126,14 +125,13 @@ public abstract class DexInputCommand extends Command {
             }
 
             try {
-                return DexFileFactory.loadDexEntry(dexFile, dexEntry, exactMatch,
-                        Opcodes.forApi(apiLevel));
+                return DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, Opcodes.forApi(apiLevel));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
             try {
-                return DexFileFactory.loadDexFile(dexFile, Opcodes.forApi(apiLevel));
+                return DexFileFactory.loadDexFile(file, Opcodes.forApi(apiLevel));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
