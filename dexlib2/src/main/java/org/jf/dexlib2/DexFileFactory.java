@@ -32,7 +32,7 @@
 package org.jf.dexlib2;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
@@ -40,18 +40,16 @@ import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.OatFile.NotAnOatFileException;
 import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
+import org.jf.dexlib2.dexbacked.ZipDexContainer;
 import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.iface.MultiDexContainer;
 import org.jf.dexlib2.writer.pool.DexPool;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
-import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public final class DexFileFactory {
@@ -100,10 +98,12 @@ public final class DexFileFactory {
         }
 
         if (zipFile != null) {
+            ZipDexContainer container = new ZipDexContainer(zipFile, opcodes);
             try {
-                return new ZipDexEntryFinder(zipFile, opcodes).findEntry("classes.dex", true);
+                return new DexEntryFinder(file.getPath(), container)
+                        .findEntry("classes.dex", true);
             } finally {
-                zipFile.close();
+                container.close();
             }
         }
 
@@ -205,10 +205,11 @@ public final class DexFileFactory {
         }
 
         if (zipFile != null) {
+            ZipDexContainer container = new ZipDexContainer(zipFile, opcodes);
             try {
-                return new ZipDexEntryFinder(zipFile, opcodes).findEntry(dexEntry, exactMatch);
+                return new DexEntryFinder(file.getPath(), container).findEntry(dexEntry, exactMatch);
             } finally {
-                zipFile.close();
+                container.close();
             }
         }
 
@@ -232,7 +233,7 @@ public final class DexFileFactory {
                     throw new DexFileNotFoundException("Oat file %s contains no dex files", file.getName());
                 }
 
-                return new OatDexEntryFinder(file.getPath(), oatFile).findEntry(dexEntry, exactMatch);
+                return new DexEntryFinder(file.getPath(), oatFile).findEntry(dexEntry, exactMatch);
             }
         } finally {
             inputStream.close();
@@ -242,20 +243,18 @@ public final class DexFileFactory {
     }
 
     /**
-     * Loads all dex files from the given file.
+     * Loads a file containing 1 or more dex files
      *
-     * If the given file is a dex or odex file, it will return an iterable with one element. If the given file is
-     * an oat file, it will return all dex files within the oat file. If the given file is a zip file, it will return
-     * all dex files matching "classes[0-9]*.dex"
+     * If the given file is a dex or odex file, it will return a MultiDexContainer containing that single entry.
+     * Otherwise, for an oat or zip file, it will return an OatFile or ZipDexContainer respectively.
      *
      * @param file The file to open
      * @param opcodes The set of opcodes to use
-     * @return An iterable of DexBackedDexFiles
-     * @throws IOException
+     * @return A MultiDexContainer
      * @throws DexFileNotFoundException If the given file does not exist
-     * @throws UnsupportedFileTypeException If the given file is not a zip or oat file
+     * @throws UnsupportedFileTypeException If the given file is not a valid dex/zip/odex/oat file
      */
-    public static Iterable<? extends DexBackedDexFile> loadAllDexFiles(
+    public static MultiDexContainer<? extends DexBackedDexFile> loadDexContainer(
             @Nonnull File file, @Nonnull final Opcodes opcodes) throws IOException {
         if (!file.exists()) {
             throw new DexFileNotFoundException("%s does not exist", file.getName());
@@ -269,45 +268,21 @@ public final class DexFileFactory {
         }
 
         if (zipFile != null) {
-            final Pattern dexPattern = Pattern.compile("classes[0-9]*.dex");
-            final ZipFile finalZipFile = zipFile;
-
-            return new Iterable<DexBackedDexFile>() {
-                @Override public Iterator<DexBackedDexFile> iterator() {
-                    final Enumeration<? extends ZipEntry> entries = finalZipFile.entries();
-                    return new AbstractIterator<DexBackedDexFile>() {
-                        @Override protected DexBackedDexFile computeNext() {
-                            while (entries.hasMoreElements()) {
-                                ZipEntry zipEntry = entries.nextElement();
-                                if (dexPattern.matcher(zipEntry.getName()).matches()) {
-                                    try {
-                                        return loadDexFromZip(finalZipFile, zipEntry, opcodes);
-                                    } catch (IOException ex) {
-                                        throw new ExceptionWithContext(ex, "Error while reading %s from %s",
-                                                zipEntry.getName(), finalZipFile.getName());
-                                    } catch (NotADexFile ex) {
-                                        // ignore and continue
-                                    }
-                                }
-                            }
-                            endOfData();
-                            return null;
-                        }
-                    };
-                }
-            };
+            return new ZipDexContainer(zipFile, opcodes);
         }
 
         InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
         try {
             try {
-                return Lists.newArrayList(DexBackedDexFile.fromInputStream(opcodes, inputStream));
+                DexBackedDexFile dexFile = DexBackedDexFile.fromInputStream(opcodes, inputStream);
+                return new SingletonMultiDexContainer(file.getPath(), dexFile);
             } catch (DexBackedDexFile.NotADexFile ex) {
                 // just eat it
             }
 
             try {
-                return Lists.newArrayList(DexBackedOdexFile.fromInputStream(opcodes, inputStream));
+                DexBackedOdexFile odexFile = DexBackedOdexFile.fromInputStream(opcodes, inputStream);
+                return new SingletonMultiDexContainer(file.getPath(), odexFile);
             } catch (DexBackedOdexFile.NotAnOdexFile ex) {
                 // just eat it
             }
@@ -323,11 +298,11 @@ public final class DexFileFactory {
             }
 
             if (oatFile != null) {
+                // TODO: we should support loading earlier oat files, just not deodexing them
                 if (oatFile.isSupportedVersion() == OatFile.UNSUPPORTED) {
                     throw new UnsupportedOatVersionException(oatFile);
                 }
-
-                return oatFile.getDexFiles();
+                return oatFile;
             }
         } finally {
             inputStream.close();
@@ -337,85 +312,10 @@ public final class DexFileFactory {
     }
 
     /**
-     * Gets all dex entries from an oat/zip file.
-     *
-     * For zip files, only entries that match classes[0-9]*.dex will be returned.
-     *
-     * @param file The file to get dex entries from
-
-     * @return A list of strings contains the dex entry names
-     * @throws IOException
-     * @throws DexFileNotFoundException If the given file does not exist
-     * @throws UnsupportedFileTypeException If the given file is not a zip or oat file
-     */
-    public static List<String> getAllDexEntries(@Nonnull File file) throws IOException {
-        if (!file.exists()) {
-            throw new DexFileNotFoundException("%s does not exist", file.getName());
-        }
-
-        List<String> entries = Lists.newArrayList();
-        Opcodes opcodes = Opcodes.forApi(15);
-
-        ZipFile zipFile = null;
-        try {
-            zipFile = new ZipFile(file);
-        } catch (IOException ex) {
-            // ignore and continue
-        }
-
-        if (zipFile != null) {
-            Pattern dexPattern = Pattern.compile("classes[0-9]*.dex");
-            Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
-
-            while (zipEntries.hasMoreElements()) {
-                ZipEntry zipEntry = zipEntries.nextElement();
-                if (dexPattern.matcher(zipEntry.getName()).matches()) {
-                    try {
-                        loadDexFromZip(zipFile, zipEntry, opcodes);
-                        entries.add(zipEntry.getName());
-                    } catch (IOException ex) {
-                        throw new IOException(String.format("Error while reading %s from %s",
-                                zipEntry.getName(), zipFile.getName()), ex);
-                    }catch (NotADexFile ex) {
-                        // ignore and continue
-                    }
-                }
-            }
-            return entries;
-        }
-
-        InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-        try {
-            OatFile oatFile = null;
-            try {
-                oatFile = OatFile.fromInputStream(inputStream);
-            } catch (NotAnOatFileException ex) {
-                // just eat it
-            }
-
-            if (oatFile != null) {
-                if (oatFile.isSupportedVersion() == OatFile.UNSUPPORTED) {
-                    throw new UnsupportedOatVersionException(oatFile);
-                }
-
-                for (OatDexFile oatDexFile: oatFile.getDexFiles()) {
-                    entries.add(oatDexFile.filename);
-                }
-                return entries;
-            }
-        } finally {
-            inputStream.close();
-        }
-
-        throw new UnsupportedFileTypeException("%s is not an apk, oat file.", file.getPath());
-    }
-
-    /**
      * Writes a DexFile out to disk
      *
      * @param path The path to write the dex file to
-     * @param dexFile a Dexfile to write
-     * @throws IOException
+     * @param dexFile a DexFile to write
      */
     public static void writeDexFile(@Nonnull String path, @Nonnull DexFile dexFile) throws IOException {
         DexPool.writeTo(path, dexFile);
@@ -496,29 +396,28 @@ public final class DexFileFactory {
         return firstTargetChar == ':' || firstTargetChar == '/' || precedingChar == ':' || precedingChar == '/';
     }
 
-    protected abstract static class DexEntryFinder {
-        @Nullable
-        protected abstract DexBackedDexFile getEntry(@Nonnull String entry) throws IOException;
+    protected static class DexEntryFinder {
+        private final String filename;
+        private final MultiDexContainer<? extends DexBackedDexFile> dexContainer;
 
-        @Nonnull
-        protected abstract List<String> getEntryNames();
-
-        @Nonnull
-        protected abstract String getFilename();
+        public DexEntryFinder(@Nonnull String filename,
+                              @Nonnull MultiDexContainer<? extends DexBackedDexFile> dexContainer) {
+            this.filename = filename;
+            this.dexContainer = dexContainer;
+        }
 
         @Nonnull
         public DexBackedDexFile findEntry(@Nonnull String targetEntry, boolean exactMatch) throws IOException {
             if (exactMatch) {
-                DexBackedDexFile dexFile = getEntry(targetEntry);
-                if (dexFile == null) {
-                    if (getEntryNames().contains(targetEntry)) {
-                        throw new UnsupportedFileTypeException("Entry %s in %s is not a dex file", targetEntry,
-                                getFilename());
-                    } else {
-                        throw new DexFileNotFoundException("Could not find %s in %s.", targetEntry, getFilename());
+                try {
+                    DexBackedDexFile dexFile = dexContainer.getEntry(targetEntry);
+                    if (dexFile == null) {
+                        throw new DexFileNotFoundException("Could not find entry %s in %s.", targetEntry, filename);
                     }
+                    return dexFile;
+                } catch (NotADexFile ex) {
+                    throw new UnsupportedFileTypeException("Entry %s in %s is not a dex file", targetEntry, filename);
                 }
-                return dexFile;
             }
 
             // find all full and partial matches
@@ -526,130 +425,67 @@ public final class DexFileFactory {
             List<DexBackedDexFile> fullEntries = Lists.newArrayList();
             List<String> partialMatches = Lists.newArrayList();
             List<DexBackedDexFile> partialEntries = Lists.newArrayList();
-            for (String entry: getEntryNames()) {
+            for (String entry: dexContainer.getDexEntryNames()) {
                 if (fullEntryMatch(entry, targetEntry)) {
                     // We want to grab all full matches, regardless of whether they're actually a dex file.
                     fullMatches.add(entry);
-                    fullEntries.add(getEntry(entry));
+                    fullEntries.add(dexContainer.getEntry(entry));
                 } else if (partialEntryMatch(entry, targetEntry)) {
-                    DexBackedDexFile dexFile = getEntry(entry);
-                    // We only want to grab a partial match if it is actually a dex file.
-                    if (dexFile != null) {
-                        partialMatches.add(entry);
-                        partialEntries.add(dexFile);
-                    }
+                    partialMatches.add(entry);
+                    partialEntries.add(dexContainer.getEntry(entry));
                 }
             }
 
             // full matches always take priority
             if (fullEntries.size() == 1) {
-                DexBackedDexFile dexFile = fullEntries.get(0);
-                if (dexFile == null) {
+                try {
+                    DexBackedDexFile dexFile = fullEntries.get(0);
+                    assert dexFile != null;
+                    return dexFile;
+                } catch (NotADexFile ex) {
                     throw new UnsupportedFileTypeException("Entry %s in %s is not a dex file",
-                            fullMatches.get(0), getFilename());
+                            fullMatches.get(0), filename);
                 }
-                return dexFile;
             }
             if (fullEntries.size() > 1) {
                 // This should be quite rare. This would only happen if an oat file has two entries that differ
                 // only by an initial path separator. e.g. "/blah/blah.dex" and "blah/blah.dex"
                 throw new MultipleMatchingDexEntriesException(String.format(
-                        "Multiple entries in %s match %s: %s", getFilename(), targetEntry,
+                        "Multiple entries in %s match %s: %s", filename, targetEntry,
                         Joiner.on(", ").join(fullMatches)));
             }
 
             if (partialEntries.size() == 0) {
                 throw new DexFileNotFoundException("Could not find a dex entry in %s matching %s",
-                        getFilename(), targetEntry);
+                        filename, targetEntry);
             }
             if (partialEntries.size() > 1) {
                 throw new MultipleMatchingDexEntriesException(String.format(
-                        "Multiple dex entries in %s match %s: %s", getFilename(), targetEntry,
+                        "Multiple dex entries in %s match %s: %s", filename, targetEntry,
                         Joiner.on(", ").join(partialMatches)));
             }
             return partialEntries.get(0);
         }
     }
 
-    @Nonnull
-    private static DexBackedDexFile loadDexFromZip(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry,
-                                            @Nonnull Opcodes opcodes) throws IOException {
-        InputStream stream;
-        stream = zipFile.getInputStream(zipEntry);
-        try {
-            return DexBackedDexFile.fromInputStream(opcodes, new BufferedInputStream(stream));
-        } finally {
-            if (stream != null) {
-                stream.close();
-            }
-        }
-    }
+    private static class SingletonMultiDexContainer implements MultiDexContainer<DexBackedDexFile> {
+        private final String entryName;
+        private final DexBackedDexFile dexFile;
 
-    private static class ZipDexEntryFinder extends DexEntryFinder {
-        @Nonnull private final ZipFile zipFile;
-        @Nonnull private final Opcodes opcodes;
-
-        public ZipDexEntryFinder(@Nonnull ZipFile zipFile, @Nonnull Opcodes opcodes) {
-            this.zipFile = zipFile;
-            this.opcodes = opcodes;
+        public SingletonMultiDexContainer(@Nonnull String entryName, @Nonnull DexBackedDexFile dexFile) {
+            this.entryName = entryName;
+            this.dexFile = dexFile;
         }
 
-        @Nullable @Override protected DexBackedDexFile getEntry(@Nonnull String entry) throws IOException {
-            ZipEntry zipEntry = zipFile.getEntry(entry);
-            if (zipEntry == null) {
-                return null;
-            }
-
-            return loadDexFromZip(zipFile, zipEntry, opcodes);
+        @Nonnull @Override public List<String> getDexEntryNames() throws IOException {
+            return ImmutableList.of(entryName);
         }
 
-        @Nonnull @Override protected List<String> getEntryNames() {
-            List<String> entries = Lists.newArrayList();
-            Enumeration<? extends ZipEntry> entriesEnumeration = zipFile.entries();
-
-            while (entriesEnumeration.hasMoreElements()) {
-                ZipEntry entry = entriesEnumeration.nextElement();
-                entries.add(entry.getName());
-            }
-
-            return entries;
-        }
-
-        @Nonnull @Override protected String getFilename() {
-            return zipFile.getName();
-        }
-    }
-
-    private static class OatDexEntryFinder extends DexEntryFinder {
-        @Nonnull private final String fileName;
-        @Nonnull private final OatFile oatFile;
-
-        public OatDexEntryFinder(@Nonnull String fileName, @Nonnull OatFile oatFile) {
-            this.fileName = fileName;
-            this.oatFile = oatFile;
-        }
-
-        @Nullable @Override protected DexBackedDexFile getEntry(@Nonnull String entry) throws IOException {
-            for (OatDexFile dexFile: oatFile.getDexFiles()) {
-                if (dexFile.filename.equals(entry)) {
-                    return dexFile;
-                }
+        @Nullable @Override public DexBackedDexFile getEntry(@Nonnull String entryName) throws IOException {
+            if (entryName.equals(this.entryName)) {
+                return dexFile;
             }
             return null;
-        }
-
-        @Nonnull @Override protected List<String> getEntryNames() {
-            List<String> entries = Lists.newArrayList();
-
-            for (OatDexFile oatDexFile: oatFile.getDexFiles()) {
-                entries.add(oatDexFile.filename);
-            }
-
-            return entries;
-        }
-
-        @Nonnull @Override protected String getFilename() {
-            return fileName;
         }
     }
 }

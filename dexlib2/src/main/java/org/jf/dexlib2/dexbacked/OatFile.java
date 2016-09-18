@@ -31,11 +31,15 @@
 
 package org.jf.dexlib2.dexbacked;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
 import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.dexbacked.OatFile.SymbolTable.Symbol;
 import org.jf.dexlib2.dexbacked.raw.HeaderItem;
+import org.jf.dexlib2.iface.MultiDexContainer;
 import org.jf.util.AbstractForwardSequentialList;
 
 import javax.annotation.Nonnull;
@@ -49,7 +53,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class OatFile extends BaseDexBuffer {
+public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFile> {
     private static final byte[] ELF_MAGIC = new byte[] { 0x7f, 'E', 'L', 'F' };
     private static final byte[] OAT_MAGIC = new byte[] { 'o', 'a', 't', '\n' };
     private static final int MIN_ELF_HEADER_SIZE = 52;
@@ -171,54 +175,44 @@ public class OatFile extends BaseDexBuffer {
             }
 
             @Nonnull @Override public Iterator<OatDexFile> iterator() {
-                return new Iterator<OatDexFile>() {
-                    int index = 0;
-                    int offset = oatHeader.getDexListStart();
-
-                    @Override public boolean hasNext() {
-                        return index < size();
+                return Iterators.transform(new DexEntryIterator(), new Function<DexEntry, OatDexFile>() {
+                    @Nullable @Override public OatDexFile apply(DexEntry dexEntry) {
+                        return dexEntry.getDexFile();
                     }
-
-                    @Override public OatDexFile next() {
-                        int filenameLength = readSmallUint(offset);
-                        offset += 4;
-
-                        // TODO: what is the correct character encoding?
-                        String filename = new String(buf, offset, filenameLength, Charset.forName("US-ASCII"));
-                        offset += filenameLength;
-
-                        offset += 4; // checksum
-
-                        int dexOffset = readSmallUint(offset) + oatHeader.headerOffset;
-                        offset += 4;
-
-
-                        if (getOatVersion() >= 75) {
-                            offset += 4; // offset to class offsets table
-                        }
-                        if (getOatVersion() >= 73) {
-                            offset += 4; // lookup table offset
-                        }
-                        if (getOatVersion() < 75) {
-                            // prior to 75, the class offsets are included here directly
-                            int classCount = readSmallUint(dexOffset + HeaderItem.CLASS_COUNT_OFFSET);
-                            offset += 4 * classCount;
-                        }
-
-                        index++;
-
-                        return new OatDexFile(dexOffset, filename);
-                    }
-
-                    @Override public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
+                });
             }
         };
     }
 
-    public class OatDexFile extends DexBackedDexFile {
+    @Nonnull @Override public List<String> getDexEntryNames() throws IOException {
+        return new AbstractForwardSequentialList<String>() {
+            @Override public int size() {
+                return oatHeader.getDexFileCount();
+            }
+
+            @Nonnull @Override public Iterator<String> iterator() {
+                return Iterators.transform(new DexEntryIterator(), new Function<DexEntry, String>() {
+                    @Nullable @Override public String apply(DexEntry dexEntry) {
+                        return dexEntry.entryName;
+                    }
+                });
+            }
+        };
+    }
+
+    @Nullable @Override public OatDexFile getEntry(@Nonnull String entryName) throws IOException {
+        DexEntryIterator iterator = new DexEntryIterator();
+        while (iterator.hasNext()) {
+            DexEntry entry = iterator.next();
+
+            if (entry.entryName.equals(entryName)) {
+                return entry.getDexFile();
+            }
+        }
+        return null;
+    }
+
+    public class OatDexFile extends DexBackedDexFile implements MultiDexContainer.MultiDexFile {
         @Nonnull public final String filename;
 
         public OatDexFile(int offset, @Nonnull String filename) {
@@ -226,8 +220,12 @@ public class OatFile extends BaseDexBuffer {
             this.filename = filename;
         }
 
-        public int getOatVersion() {
-            return OatFile.this.getOatVersion();
+        @Nonnull @Override public String getEntryName() {
+            return filename;
+        }
+
+        @Nonnull @Override public MultiDexContainer getContainer() {
+            return OatFile.this;
         }
 
         public OatFile getOatFile() {
@@ -540,7 +538,64 @@ public class OatFile extends BaseDexBuffer {
 
             return new String(buf, start, end-start, Charset.forName("US-ASCII"));
         }
+    }
 
+    private class DexEntry {
+        public final String entryName;
+        public final int dexOffset;
+
+        public DexEntry(String entryName, int dexOffset) {
+            this.entryName = entryName;
+            this.dexOffset = dexOffset;
+        }
+
+        public OatDexFile getDexFile() {
+            return new OatDexFile(dexOffset, entryName);
+        }
+    }
+
+    private class DexEntryIterator implements Iterator<DexEntry> {
+        int index = 0;
+        int offset = oatHeader.getDexListStart();
+
+        @Override public boolean hasNext() {
+            return index < oatHeader.getDexFileCount();
+        }
+
+        @Override public DexEntry next() {
+            int filenameLength = readSmallUint(offset);
+            offset += 4;
+
+            // TODO: what is the correct character encoding?
+            String filename = new String(buf, offset, filenameLength, Charset.forName("US-ASCII"));
+            offset += filenameLength;
+
+            offset += 4; // checksum
+
+            int dexOffset = readSmallUint(offset) + oatHeader.headerOffset;
+            offset += 4;
+
+
+            if (getOatVersion() >= 75) {
+                offset += 4; // offset to class offsets table
+            }
+            if (getOatVersion() >= 73) {
+                offset += 4; // lookup table offset
+            }
+            if (getOatVersion() < 75) {
+                // prior to 75, the class offsets are included here directly
+                int classCount = readSmallUint(dexOffset + HeaderItem.CLASS_COUNT_OFFSET);
+                offset += 4 * classCount;
+            }
+
+            index++;
+
+            return new DexEntry(filename, dexOffset);
+        }
+
+        @Override public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     public static class InvalidOatFileException extends RuntimeException {
@@ -552,4 +607,5 @@ public class OatFile extends BaseDexBuffer {
     public static class NotAnOatFileException extends RuntimeException {
         public NotAnOatFileException() {}
     }
+
 }

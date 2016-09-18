@@ -47,16 +47,6 @@ public class PathUtil {
         return new File(getRelativeFileInternal(baseFile.getCanonicalFile(), fileToRelativize.getCanonicalFile()));
     }
 
-    public static String getRelativePath(String basePath, String pathToRelativize) throws IOException {
-        File baseFile = new File(basePath);
-        if (baseFile.isFile()) {
-            baseFile = baseFile.getParentFile();
-        }
-
-        return getRelativeFileInternal(baseFile.getCanonicalFile(),
-                new File(pathToRelativize).getCanonicalFile());
-    }
-
     static String getRelativeFileInternal(File canonicalBaseFile, File canonicalFileToRelativize) {
         List<String> basePath = getPathComponents(canonicalBaseFile);
         List<String> pathToRelativize = getPathComponents(canonicalFileToRelativize);
@@ -108,7 +98,7 @@ public class PathUtil {
         return sb.toString();
     }
 
-    public static List<String> getPathComponents(File file) {
+    private static List<String> getPathComponents(File file) {
         ArrayList<String> path = new ArrayList<String>();
 
         while (file != null) {

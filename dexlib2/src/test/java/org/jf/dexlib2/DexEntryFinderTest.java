@@ -33,12 +33,13 @@ package org.jf.dexlib2;
 
 import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.Lists;
-import org.jf.dexlib2.DexEntryFinderTest.TestDexFileFactory.TestDexEntryFinder;
 import org.jf.dexlib2.DexFileFactory.DexEntryFinder;
 import org.jf.dexlib2.DexFileFactory.DexFileNotFoundException;
 import org.jf.dexlib2.DexFileFactory.MultipleMatchingDexEntriesException;
 import org.jf.dexlib2.DexFileFactory.UnsupportedFileTypeException;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
+import org.jf.dexlib2.iface.MultiDexContainer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,11 +48,11 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static org.mockito.Mockito.mock;
 
 public class DexEntryFinderTest {
-
 
     @Test
     public void testNormalStuff() throws Exception {
@@ -60,7 +61,7 @@ public class DexEntryFinderTest {
         entries.put("/system/framework/framework.jar", dexFile1);
         DexBackedDexFile dexFile2 = mock(DexBackedDexFile.class);
         entries.put("/system/framework/framework.jar:classes2.dex", dexFile2);
-        TestDexEntryFinder testFinder = new TestDexEntryFinder("blah.oat", entries);
+        DexEntryFinder testFinder = new DexEntryFinder("blah.oat", new TestMultiDexContainer(entries));
 
         Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true));
 
@@ -109,7 +110,7 @@ public class DexEntryFinderTest {
         entries.put("/system/framework/framework.jar", dexFile1);
         DexBackedDexFile dexFile2 = mock(DexBackedDexFile.class);
         entries.put("system/framework/framework.jar", dexFile2);
-        TestDexEntryFinder testFinder = new TestDexEntryFinder("blah.oat", entries);
+        DexEntryFinder testFinder = new DexEntryFinder("blah.oat", new TestMultiDexContainer(entries));
 
         Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true));
         Assert.assertEquals(dexFile2, testFinder.findEntry("system/framework/framework.jar", true));
@@ -130,7 +131,7 @@ public class DexEntryFinderTest {
         entries.put("/system/framework/framework.jar", dexFile1);
         DexBackedDexFile dexFile2 = mock(DexBackedDexFile.class);
         entries.put("/framework/framework.jar", dexFile2);
-        TestDexEntryFinder testFinder = new TestDexEntryFinder("blah.oat", entries);
+        DexEntryFinder testFinder = new DexEntryFinder("blah.oat", new TestMultiDexContainer(entries));
 
         Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true));
         Assert.assertEquals(dexFile2, testFinder.findEntry("/framework/framework.jar", true));
@@ -148,13 +149,13 @@ public class DexEntryFinderTest {
         DexBackedDexFile dexFile1 = mock(DexBackedDexFile.class);
         entries.put("classes.dex", dexFile1);
         entries.put("/blah/classes.dex", null);
-        TestDexEntryFinder testFinder = new TestDexEntryFinder("blah.oat", entries);
+        DexEntryFinder testFinder = new DexEntryFinder("blah.oat", new TestMultiDexContainer(entries));
 
         Assert.assertEquals(dexFile1, testFinder.findEntry("classes.dex", true));
         Assert.assertEquals(dexFile1, testFinder.findEntry("classes.dex", false));
 
         assertUnsupportedFileType(testFinder, "/blah/classes.dex", true);
-        assertUnsupportedFileType(testFinder, "/blah/classes.dex", false);
+        assertDexFileNotFound(testFinder, "/blah/classes.dex", false);
     }
 
     private void assertEntryNotFound(DexEntryFinder finder, String entry, boolean exactMatch) throws IOException {
@@ -184,27 +185,43 @@ public class DexEntryFinderTest {
         }
     }
 
-    public static class TestDexFileFactory {
-        public static class TestDexEntryFinder extends DexEntryFinder {
-            @Nonnull private final String fileName;
-            @Nonnull private final Map<String, DexBackedDexFile> entries;
+    private void assertDexFileNotFound(DexEntryFinder finder, String entry, boolean exactMatch) throws IOException {
+        try {
+            finder.findEntry(entry, exactMatch);
+            Assert.fail();
+        } catch (DexFileNotFoundException ex) {
+            // expected exception
+        }
+    }
 
-            public TestDexEntryFinder(@Nonnull String fileName, @Nonnull Map<String, DexBackedDexFile> entries) {
-                this.fileName = fileName;
-                this.entries = entries;
+    public static class TestMultiDexContainer implements MultiDexContainer<DexBackedDexFile> {
+        @Nonnull private final Map<String, DexBackedDexFile> entries;
+
+        public TestMultiDexContainer(@Nonnull Map<String, DexBackedDexFile> entries) {
+            this.entries = entries;
+        }
+
+        @Nonnull @Override public List<String> getDexEntryNames() throws IOException {
+            List<String> entryNames = Lists.newArrayList();
+
+            for (Entry<String, DexBackedDexFile> entry: entries.entrySet()) {
+                if (entry.getValue() != null) {
+                    entryNames.add(entry.getKey());
+                }
             }
 
-            @Nullable @Override protected DexBackedDexFile getEntry(@Nonnull String entry) throws IOException {
-                return entries.get(entry);
-            }
+            return entryNames;
+        }
 
-            @Nonnull @Override protected List<String> getEntryNames() {
-                return Lists.newArrayList(entries.keySet());
+        @Nullable @Override public DexBackedDexFile getEntry(@Nonnull String entryName) throws IOException {
+            if (entries.containsKey(entryName)) {
+                DexBackedDexFile entry = entries.get(entryName);
+                if (entry == null) {
+                    throw new NotADexFile();
+                }
+                return entry;
             }
-
-            @Nonnull @Override protected String getFilename() {
-                return fileName;
-            }
+            return null;
         }
     }
 }

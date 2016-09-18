@@ -36,6 +36,9 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.iface.MultiDexContainer;
 import org.jf.util.jcommander.Command;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
@@ -85,7 +88,9 @@ public class ListDexCommand extends Command {
 
         List<String> entries;
         try {
-            entries = DexFileFactory.getAllDexEntries(file);
+            MultiDexContainer<? extends DexBackedDexFile> container =
+                    DexFileFactory.loadDexContainer(file, Opcodes.forApi(15));
+            entries = container.getDexEntryNames();
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

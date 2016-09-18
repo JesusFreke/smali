@@ -113,6 +113,67 @@ public class HelpCommand extends Command {
                     for (String line : lines) {
                         System.out.println(line);
                     }
+                } else if (cmd.equals("classpath")) {
+                    printedHelp = true;
+                    String registerInfoHelp = "When deodexing odex/oat files or when using the --register-info " +
+                            "option, baksmali needs to load all classes from the framework files on the device " +
+                            "in order to fully understand the class hierarchy. There are several options that " +
+                            "control how baksmali finds and loads the classpath entries.\n" +
+                            "\n"+
+                            "L+ devices (ART):\n" +
+                            "When deodexing or disassembling a file from an L+ device using ART, you generally " +
+                            "just need to specify the path to the boot.oat file via the --bootclasspath/-b " +
+                            "parameter. On pre-N devices, the boot.oat file is self-contained and no other files are " +
+                            "needed. In N, boot.oat was split into multiple files. In this case, the other " +
+                            "files should be in the same directory as the boot.oat file, but you still only need to " +
+                            "specify the boot.oat file in the --bootclasspath/-b option. The other files will be " +
+                            "automatically loaded from the same directory.\n" +
+                            "\n" +
+                            "Pre-L devices (dalvik):\n" +
+                            "When deodexing odex files from a pre-L device using dalvik, you " +
+                            "generally just need to specify the path to a directory containing the framework files " +
+                            "from the device via the --classpath-dir/-d option. odex files contain a list of " +
+                            "framework files they depend on and baksmali will search for these dependencies in the " +
+                            "directory that you specify.\n" +
+                            "\n" +
+                            "Dex files don't contain a list of dependencies like odex files, so when disassembling a " +
+                            "dex file using the --register-info option, and using the framework files from a " +
+                            "pre-L device, baksmali will attempt to use a reasonable default list of classpath files " +
+                            "based on the api level set via the -a option. If this default list is incorrect, you " +
+                            "can override the classpath using the --bootclasspath/-b option. This option accepts a " +
+                            "colon separated list of classpath entries. Each entry can be specified in a few " +
+                            "different ways.\n" +
+                            " - A simple filename like \"framework.jar\"\n" +
+                            " - A device path like \"/system/framework/framework.jar\"\n" +
+                            " - A local relative or absolute path like \"/tmp/framework/framework.jar\"\n" +
+                            "When using the first or second formats, you should also specify the directory " +
+                            "containing the framework files via the --classpath-dir/-d option. When using the third " +
+                            "format, this option is not needed.\n" +
+                            "It's worth noting that the second format matches the format used by Android for the " +
+                            "BOOTCLASSPATH environment variable, so you can simply grab the value of that variable " +
+                            "from the device and use it as-is.\n" +
+                            "\n" +
+                            "Examples:\n" +
+                            "  For an M device:\n" +
+                            "    adb pull /system/framework/arm/boot.oat /tmp/boot.oat\n" +
+                            "    baksmali deodex blah.oat -b /tmp/boot.oat\n" +
+                            "  For an N+ device:\n" +
+                            "    adb pull /system/framework/arm /tmp/framework\n" +
+                            "    baksmali deodex blah.oat -b /tmp/framework/boot.oat\n" +
+                            "  For a pre-L device:\n" +
+                            "    adb pull /system/framework /tmp/framework\n" +
+                            "    baksmali deodex blah.odex -d /tmp/framework\n" +
+                            "  Using the BOOTCLASSPATH on a pre-L device:\n" +
+                            "    adb pull /system/framework /tmp/framework\n" +
+                            "    export BOOTCLASSPATH=`adb shell \"echo \\\\$BOOTCLASPATH\"`\n" +
+                            "    baksmali disassemble --register-info ARGS,DEST blah.apk -b $BOOTCLASSPATH -d " +
+                            "/tmp/framework";
+
+                    Iterable<String> lines = StringWrapper.wrapStringOnBreaks(registerInfoHelp,
+                            ConsoleUtil.getConsoleWidth());
+                    for (String line : lines) {
+                        System.out.println(line);
+                    }
                 } else {
                     JCommander command = ExtendedCommands.getSubcommand(parentJc, cmd);
                     if (command == null) {

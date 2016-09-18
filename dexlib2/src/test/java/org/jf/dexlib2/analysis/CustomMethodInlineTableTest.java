@@ -70,8 +70,9 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.loadClassPath(ImmutableList.<String>of(),
-                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile, 15, false);
+        ClassPathResolver resolver = new ClassPathResolver(ImmutableList.<String>of(),
+                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);
+        ClassPath classPath = new ClassPath(resolver.getResolvedClassProviders(), false, ClassPath.NOT_ART);
 
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
@@ -98,8 +99,10 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.loadClassPath(ImmutableList.<String>of(),
-                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile, 15, false);
+        ClassPathResolver resolver = new ClassPathResolver(ImmutableList.<String>of(),
+                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);
+        ClassPath classPath = new ClassPath(resolver.getResolvedClassProviders(), false, ClassPath.NOT_ART);
+
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
 
@@ -125,8 +128,10 @@ public class CustomMethodInlineTableTest {
 
         DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
 
-        ClassPath classPath = ClassPath.loadClassPath(ImmutableList.<String>of(),
-                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile, 15, false);
+        ClassPathResolver resolver = new ClassPathResolver(ImmutableList.<String>of(),
+                ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);
+        ClassPath classPath = new ClassPath(resolver.getResolvedClassProviders(), false, ClassPath.NOT_ART);
+
         InlineMethodResolver inlineMethodResolver = new CustomInlineMethodResolver(classPath, "Lblah;->blah()V");
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, inlineMethodResolver, false);
 

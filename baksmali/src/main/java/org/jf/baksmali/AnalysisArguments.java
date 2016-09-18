@@ -34,13 +34,18 @@ package org.jf.baksmali;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.analysis.ClassPath;
+import org.jf.dexlib2.analysis.ClassPathResolver;
+import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.jcommander.ColonParameterSplitter;
 import org.jf.util.jcommander.ExtendedParameter;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static org.jf.dexlib2.analysis.ClassPath.NOT_ART;
 
 public class AnalysisArguments {
     @Parameter(names = {"-a", "--api"},
@@ -68,7 +73,7 @@ public class AnalysisArguments {
             description = "A directory to search for classpath files. This option can be used multiple times to " +
                     "specify multiple directories to search. They will be searched in the order they are provided.")
     @ExtendedParameter(argumentNames = "dir")
-    public List<String> classPathDirectories = Lists.newArrayList(".");
+    public List<String> classPathDirectories = null;
 
     public static class CheckPackagePrivateArgument {
         @Parameter(names = {"--check-package-private-access", "--package-private", "--checkpp", "--pp"},
@@ -77,9 +82,37 @@ public class AnalysisArguments {
         public boolean checkPackagePrivateAccess = false;
     }
 
+    @Nonnull
     public ClassPath loadClassPathForDexFile(@Nonnull DexFile dexFile, boolean checkPackagePrivateAccess)
             throws IOException {
-        return ClassPath.loadClassPath(classPathDirectories, bootClassPath, classPath, dexFile, apiLevel,
-                checkPackagePrivateAccess);
+        ClassPathResolver resolver;
+
+        List<String> filteredClassPathDirectories = Lists.newArrayList();
+        if (classPathDirectories != null) {
+            for (String dir: classPathDirectories) {
+                File file = new File(dir);
+                if (!file.exists()) {
+                    System.err.println(String.format("Warning: directory %s does not exist. Ignoring.", dir));
+                } else if (!file.isDirectory()) {
+                    System.err.println(String.format("Warning: %s is not a directory. Ignoring.", dir));
+                } else {
+                    filteredClassPathDirectories.add(dir);
+                }
+            }
+        }
+
+        if (bootClassPath == null) {
+            // TODO: we should be able to get the api from the Opcodes object associated with the dexFile..
+            // except that the oat version -> api mapping doesn't fully work yet
+            resolver = new ClassPathResolver(filteredClassPathDirectories, classPath, dexFile, apiLevel);
+        } else {
+            resolver = new ClassPathResolver(filteredClassPathDirectories, bootClassPath, classPath, dexFile);
+        }
+
+        int oatVersion = NOT_ART;
+        if (dexFile instanceof OatDexFile) {
+            oatVersion = ((OatDexFile)dexFile).getOatFile().getOatVersion();
+        }
+        return new ClassPath(resolver.getResolvedClassProviders(), checkPackagePrivateAccess, oatVersion);
     }
 }

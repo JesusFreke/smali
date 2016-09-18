@@ -69,7 +69,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int classCount;
     private final int classStartOffset;
 
-    private DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
+    protected DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
         super(buf, offset);
 
         this.opcodes = opcodes;
@@ -157,7 +157,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         };
     }
 
-    private static void verifyMagicAndByteOrder(@Nonnull byte[] buf, int offset) {
+    protected static void verifyMagicAndByteOrder(@Nonnull byte[] buf, int offset) {
         if (!HeaderItem.verifyMagic(buf, offset)) {
             StringBuilder sb = new StringBuilder("Invalid magic value:");
             for (int i=0; i<8; i++) {
