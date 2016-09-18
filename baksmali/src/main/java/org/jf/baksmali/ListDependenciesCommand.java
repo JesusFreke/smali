@@ -47,11 +47,11 @@ import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.List;
 
-@Parameters(commandDescription = "Lists the stored classpath entries in an odex/oat file.")
+@Parameters(commandDescription = "Lists the stored dependencies in an odex/oat file.")
 @ExtendedParameters(
-        commandName = "classpath",
-        commandAliases = { "bootclasspath", "cp", "bcp" })
-public class ListClassPathCommand extends Command {
+        commandName = "dependencies",
+        commandAliases = { "deps", "dep" })
+public class ListDependenciesCommand extends Command {
 
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information")
@@ -61,7 +61,7 @@ public class ListClassPathCommand extends Command {
     @ExtendedParameter(argumentNames = "file")
     private List<String> inputList = Lists.newArrayList();
 
-    public ListClassPathCommand(@Nonnull List<JCommander> commandAncestors) {
+    public ListDependenciesCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
     }
 

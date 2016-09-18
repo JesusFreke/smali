@@ -67,7 +67,7 @@ public class ListCommand extends Command {
         ExtendedCommands.addExtendedCommand(jc, new ListDexCommand(hierarchy));
         ExtendedCommands.addExtendedCommand(jc, new ListVtablesCommand(hierarchy));
         ExtendedCommands.addExtendedCommand(jc, new ListFieldOffsetsCommand(hierarchy));
-        ExtendedCommands.addExtendedCommand(jc, new ListClassPathCommand(hierarchy));
+        ExtendedCommands.addExtendedCommand(jc, new ListDependenciesCommand(hierarchy));
         ExtendedCommands.addExtendedCommand(jc, new ListHelpCommand(hierarchy));
         ExtendedCommands.addExtendedCommand(jc, new ListHlepCommand(hierarchy));
     }
