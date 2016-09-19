@@ -79,8 +79,9 @@ public class AnalysisArguments {
 
     public static class CheckPackagePrivateArgument {
         @Parameter(names = {"--check-package-private-access", "--package-private", "--checkpp", "--pp"},
-                description = "Use the package-private access check when calculating vtable indexes. This should " +
-                        "only be needed for 4.2.0 odexes. It was reverted in 4.2.1.")
+                description = "Use the package-private access check when calculating vtable indexes. This is enabled " +
+                        "by default for oat files. For odex files, this is only needed for odexes from 4.2.0. It " +
+                        "was reverted in 4.2.1.")
         public boolean checkPackagePrivateAccess = false;
     }
 
@@ -88,6 +89,10 @@ public class AnalysisArguments {
     public ClassPath loadClassPathForDexFile(@Nonnull DexFile dexFile, boolean checkPackagePrivateAccess)
             throws IOException {
         ClassPathResolver resolver;
+
+        if (dexFile instanceof OatDexFile) {
+            checkPackagePrivateAccess = true;
+        }
 
         List<String> filteredClassPathDirectories = Lists.newArrayList();
         if (classPathDirectories != null) {
