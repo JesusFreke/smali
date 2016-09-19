@@ -39,12 +39,10 @@ import com.google.common.collect.*;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
-import org.jf.dexlib2.iface.ClassDef;
-import org.jf.dexlib2.iface.Field;
-import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.base.reference.BaseMethodReference;
+import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.immutable.ImmutableMethod;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.util.AlignmentUtils;
 import org.jf.util.ExceptionWithContext;
@@ -886,15 +884,7 @@ public class ClassProto implements TypeProto {
                 for (ClassDef interfaceDef: interfaces) {
                     List<Method> interfaceMethods = Lists.newArrayList();
                     for (Method interfaceMethod: interfaceDef.getVirtualMethods()) {
-                        ImmutableMethod method = new ImmutableMethod(
-                                type,
-                                interfaceMethod.getName(),
-                                interfaceMethod.getParameters(),
-                                interfaceMethod.getReturnType(),
-                                interfaceMethod.getAccessFlags(),
-                                interfaceMethod.getAnnotations(),
-                                interfaceMethod.getImplementation());
-                        interfaceMethods.add(method);
+                        interfaceMethods.add(new ReparentedMethod(interfaceMethod, type));
                     }
                     addToVtable(interfaceMethods, vtable, false, true);
                 }
@@ -921,8 +911,8 @@ public class ClassProto implements TypeProto {
                 ClassProto superclass = (ClassProto) classPath.getClass(superclassType);
                 vtable.addAll(superclass.getVtable());
 
-                // if the superclass's vtable wasn't fully resolved, then we can't know where the new methods added by this
-                // class should start, so we just propagate what we can from the parent and hope for the best.
+                // if the superclass's vtable wasn't fully resolved, then we can't know where the new methods added by
+                // this class should start, so we just propagate what we can from the parent and hope for the best.
                 if (!superclass.vtableFullyResolved) {
                     vtableFullyResolved = false;
                     return vtable;
@@ -971,17 +961,16 @@ public class ClassProto implements TypeProto {
 
                             if (mirandaMethodIndex >= 0) {
                                 if (!AccessFlags.ABSTRACT.isSet(interfaceMethod.getAccessFlags())) {
-                                    mirandaMethods.remove(mirandaMethodIndex);
-                                    defaultMethods.add(interfaceMethod);
+                                    Method removedMethod = mirandaMethods.remove(mirandaMethodIndex);
+                                    defaultMethods.add(removedMethod);
                                 }
                             }
 
                             if (!AccessFlags.ABSTRACT.isSet(interfaceMethod.getAccessFlags())) {
-                                defaultMethods.add(interfaceMethod);
+                                defaultMethods.add(new ReparentedMethod(interfaceMethod, type));
                             } else {
-                                mirandaMethods.add(interfaceMethod);
+                                mirandaMethods.add(new ReparentedMethod(interfaceMethod, type));
                             }
-
                         }
                     }
                 }
@@ -1026,6 +1015,48 @@ public class ClassProto implements TypeProto {
                 return 1; //WIDE
             default:
                 return 2; //OTHER
+        }
+    }
+
+    static class ReparentedMethod extends BaseMethodReference implements Method {
+        private final Method method;
+        private final String definingClass;
+
+        public ReparentedMethod(Method method, String definingClass) {
+            this.method = method;
+            this.definingClass = definingClass;
+        }
+
+        @Nonnull @Override public String getDefiningClass() {
+            return definingClass;
+        }
+
+        @Nonnull @Override public String getName() {
+            return method.getName();
+        }
+
+        @Nonnull @Override public List<? extends CharSequence> getParameterTypes() {
+            return method.getParameterTypes();
+        }
+
+        @Nonnull @Override public String getReturnType() {
+            return method.getReturnType();
+        }
+
+        @Nonnull @Override public List<? extends MethodParameter> getParameters() {
+            return method.getParameters();
+        }
+
+        @Override public int getAccessFlags() {
+            return method.getAccessFlags();
+        }
+
+        @Nonnull @Override public Set<? extends Annotation> getAnnotations() {
+            return method.getAnnotations();
+        }
+
+        @Nullable @Override public MethodImplementation getImplementation() {
+            return method.getImplementation();
         }
     }
 }
