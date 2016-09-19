@@ -1760,41 +1760,9 @@ public class MethodAnalyzer {
             targetMethod = (MethodReference)instruction.getReference();
         }
 
-        TypeProto typeProto = classPath.getClass(targetMethod.getDefiningClass());
-        int methodIndex;
-        try {
-            methodIndex = typeProto.findMethodIndexInVtable(targetMethod);
-        } catch (UnresolvedClassException ex) {
-            return true;
-        }
+        MethodReference replacementMethod = normalizeMethodReference(targetMethod);
 
-        if (methodIndex < 0) {
-            return true;
-        }
-
-        Method replacementMethod = typeProto.getMethodByVtableIndex(methodIndex);
-        assert replacementMethod != null;
-        while (true) {
-            String superType = typeProto.getSuperclass();
-            if (superType == null) {
-                break;
-            }
-            typeProto = classPath.getClass(superType);
-            Method resolvedMethod = typeProto.getMethodByVtableIndex(methodIndex);
-            if (resolvedMethod == null) {
-                break;
-            }
-
-            if (!resolvedMethod.equals(replacementMethod)) {
-                if (!AnalyzedMethodUtil.canAccess(typeProto, replacementMethod, true, true, true)) {
-                    continue;
-                }
-
-                replacementMethod = resolvedMethod;
-            }
-        }
-
-        if (replacementMethod.equals(method)) {
+        if (replacementMethod == null || replacementMethod.equals(targetMethod)) {
             return true;
         }
 
@@ -1893,6 +1861,14 @@ public class MethodAnalyzer {
             resolvedMethod = newResolvedMethod;
             resolvedMethod = new ImmutableMethodReference(methodClass.getType(), resolvedMethod.getName(),
                     resolvedMethod.getParameterTypes(), resolvedMethod.getReturnType());
+
+        }
+
+        if (normalizeVirtualMethods) {
+            MethodReference replacementMethod = normalizeMethodReference(resolvedMethod);
+            if (replacementMethod != null) {
+                resolvedMethod = replacementMethod;
+            }
         }
 
         Instruction deodexedInstruction;
@@ -1992,5 +1968,45 @@ public class MethodAnalyzer {
             throw new AnalysisException(String.format("v%d cannot be used as the first register in a wide register" +
                     "pair because it is the last register.", registerNumber));
         }
+    }
+
+    @Nullable
+    private MethodReference normalizeMethodReference(@Nonnull MethodReference methodRef) {
+        TypeProto typeProto = classPath.getClass(methodRef.getDefiningClass());
+        int methodIndex;
+        try {
+            methodIndex = typeProto.findMethodIndexInVtable(methodRef);
+        } catch (UnresolvedClassException ex) {
+            return null;
+        }
+
+        if (methodIndex < 0) {
+            return null;
+        }
+
+        ClassProto thisClass = (ClassProto)classPath.getClass(method.getDefiningClass());
+
+        Method replacementMethod = typeProto.getMethodByVtableIndex(methodIndex);
+        assert replacementMethod != null;
+        while (true) {
+            String superType = typeProto.getSuperclass();
+            if (superType == null) {
+                break;
+            }
+            typeProto = classPath.getClass(superType);
+            Method resolvedMethod = typeProto.getMethodByVtableIndex(methodIndex);
+            if (resolvedMethod == null) {
+                break;
+            }
+
+            if (!resolvedMethod.equals(replacementMethod)) {
+                if (!AnalyzedMethodUtil.canAccess(thisClass, resolvedMethod, false, false, true)) {
+                    continue;
+                }
+
+                replacementMethod = resolvedMethod;
+            }
+        }
+        return replacementMethod;
     }
 }

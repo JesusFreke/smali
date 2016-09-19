@@ -172,7 +172,6 @@ public class DisassembleCommand extends DexInputCommand {
          }
     }
 
-
     protected boolean needsClassPath() {
         return !registerInfoTypes.isEmpty() || normalizeVirtualMethods;
     }
