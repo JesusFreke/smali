@@ -308,60 +308,63 @@ public class main {
 
     private static boolean assembleSmaliFile(File smaliFile, DexBuilder dexBuilder, SmaliOptions options)
             throws Exception {
-        CommonTokenStream tokens;
+        FileInputStream fis = null;
 
-        LexerErrorInterface lexer;
+        try {
+            fis = new FileInputStream(smaliFile);
+            InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
 
-        FileInputStream fis = new FileInputStream(smaliFile);
-        InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
+            LexerErrorInterface lexer = new smaliFlexLexer(reader);
+            ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
+            CommonTokenStream tokens = new CommonTokenStream((TokenSource)lexer);
 
-        lexer = new smaliFlexLexer(reader);
-        ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
-        tokens = new CommonTokenStream((TokenSource)lexer);
+            if (options.printTokens) {
+                tokens.getTokens();
 
-        if (options.printTokens) {
-            tokens.getTokens();
+                for (int i=0; i<tokens.size(); i++) {
+                    Token token = tokens.get(i);
+                    if (token.getChannel() == smaliParser.HIDDEN) {
+                        continue;
+                    }
 
-            for (int i=0; i<tokens.size(); i++) {
-                Token token = tokens.get(i);
-                if (token.getChannel() == smaliParser.HIDDEN) {
-                    continue;
+                    System.out.println(smaliParser.tokenNames[token.getType()] + ": " + token.getText());
                 }
 
-                System.out.println(smaliParser.tokenNames[token.getType()] + ": " + token.getText());
+                System.out.flush();
             }
 
-            System.out.flush();
+            smaliParser parser = new smaliParser(tokens);
+            parser.setVerboseErrors(options.verboseErrors);
+            parser.setAllowOdex(options.allowOdex);
+            parser.setApiLevel(options.apiLevel, options.experimental);
+
+            smaliParser.smali_file_return result = parser.smali_file();
+
+            if (parser.getNumberOfSyntaxErrors() > 0 || lexer.getNumberOfSyntaxErrors() > 0) {
+                return false;
+            }
+
+            CommonTree t = result.getTree();
+
+            CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
+            treeStream.setTokenStream(tokens);
+
+            if (options.printTokens) {
+                System.out.println(t.toStringTree());
+            }
+
+            smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
+            dexGen.setApiLevel(options.apiLevel, options.experimental);
+
+            dexGen.setVerboseErrors(options.verboseErrors);
+            dexGen.setDexBuilder(dexBuilder);
+            dexGen.smali_file();
+            return dexGen.getNumberOfSyntaxErrors() == 0;
+        } finally {
+            if (fis != null) {
+                fis.close();
+            }
         }
-
-        smaliParser parser = new smaliParser(tokens);
-        parser.setVerboseErrors(options.verboseErrors);
-        parser.setAllowOdex(options.allowOdex);
-        parser.setApiLevel(options.apiLevel, options.experimental);
-
-        smaliParser.smali_file_return result = parser.smali_file();
-
-        if (parser.getNumberOfSyntaxErrors() > 0 || lexer.getNumberOfSyntaxErrors() > 0) {
-            return false;
-        }
-
-        CommonTree t = result.getTree();
-
-        CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
-        treeStream.setTokenStream(tokens);
-
-        if (options.printTokens) {
-            System.out.println(t.toStringTree());
-        }
-
-        smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
-        dexGen.setApiLevel(options.apiLevel, options.experimental);
-
-        dexGen.setVerboseErrors(options.verboseErrors);
-        dexGen.setDexBuilder(dexBuilder);
-        dexGen.smali_file();
-
-        return dexGen.getNumberOfSyntaxErrors() == 0;
     }
 
 
