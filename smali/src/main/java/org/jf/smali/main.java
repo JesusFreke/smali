@@ -308,18 +308,15 @@ public class main {
 
     private static boolean assembleSmaliFile(File smaliFile, DexBuilder dexBuilder, SmaliOptions options)
             throws Exception {
-        CommonTokenStream tokens = null;
-        LexerErrorInterface lexer = null;
         FileInputStream fis = null;
-        boolean ret = true;
         
-        try{
+        try {
             fis = new FileInputStream(smaliFile);
             InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
     
-            lexer = new smaliFlexLexer(reader);
+            LexerErrorInterface lexer = new smaliFlexLexer(reader);
             ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
-            tokens = new CommonTokenStream((TokenSource)lexer);
+            CommonTokenStream tokens = new CommonTokenStream((TokenSource)lexer);
     
             if (options.printTokens) {
                 tokens.getTokens();
@@ -362,13 +359,12 @@ public class main {
             dexGen.setVerboseErrors(options.verboseErrors);
             dexGen.setDexBuilder(dexBuilder);
             dexGen.smali_file();
-            ret = dexGen.getNumberOfSyntaxErrors() == 0;
-        }finally{
-            if(fis != null){
+            return dexGen.getNumberOfSyntaxErrors() == 0;
+        } finally {
+            if (fis != null) {
                 fis.close();
             }
         }
-        return ret;
     }
 
 
