@@ -31,8 +31,33 @@
 
 package org.jf.dexlib2.analysis.reflection.util;
 
+import com.beust.jcommander.internal.Maps;
+
+import java.util.Map;
+
 public class ReflectionUtils {
+
+    private static final Map<String, String> privitiveMap = Maps.newHashMap(
+            "boolean", "Z",
+            "int", "I",
+            "long", "J",
+            "double", "D",
+            "void", "V",
+            "float", "F",
+            "char", "C",
+            "short", "S",
+            "byte", "B"
+    );
+
     public static String javaToDexName(String javaName) {
+        if (javaName.charAt(0) == '[') {
+            return javaName.replace('.', '/');
+        }
+
+        if (privitiveMap.containsKey(javaName)) {
+            return privitiveMap.get(javaName);
+        }
+
         javaName = javaName.replace('.', '/');
         if (javaName.length() > 1 && javaName.charAt(javaName.length()-1) != ';') {
             javaName = 'L' + javaName + ';';
