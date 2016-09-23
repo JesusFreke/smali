@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -219,7 +220,7 @@ public class ClassProto implements TypeProto {
 
         if (!interfacesFullyResolved) {
             throw new UnresolvedClassException("Interfaces for class %s not fully resolved: %s", getType(),
-                    String.join(",", getUnresolvedInterfaces()));
+                    Joiner.on(',').join(getUnresolvedInterfaces()));
         }
 
         return directInterfaces;
