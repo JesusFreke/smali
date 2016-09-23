@@ -930,6 +930,8 @@ public class ClassProto implements TypeProto {
                 List<Method> defaultConflictMethods = Lists.newArrayList();
                 List<Method> mirandaMethods = Lists.newArrayList();
 
+                final HashMap<MethodReference, Integer> methodOrder = Maps.newHashMap();
+
                 for (ClassDef interfaceDef: interfaces) {
                     for (Method interfaceMethod : interfaceDef.getVirtualMethods()) {
                         int methodIndex = findMethodIndexInVtable(vtable, interfaceMethod);
@@ -967,14 +969,28 @@ public class ClassProto implements TypeProto {
                             }
 
                             if (!AccessFlags.ABSTRACT.isSet(interfaceMethod.getAccessFlags())) {
-                                defaultMethods.add(new ReparentedMethod(interfaceMethod, type));
+                                defaultMethods.add(interfaceMethod);
+                                methodOrder.put(interfaceMethod, methodOrder.size());
                             } else {
-                                mirandaMethods.add(new ReparentedMethod(interfaceMethod, type));
+                                mirandaMethods.add(interfaceMethod);
+                                methodOrder.put(interfaceMethod, methodOrder.size());
                             }
                         }
                     }
                 }
 
+                Comparator<MethodReference> comparator = new Comparator<MethodReference>() {
+                    @Override public int compare(MethodReference o1, MethodReference o2) {
+                        return Ints.compare(methodOrder.get(o1), methodOrder.get(o2));
+                    }
+                };
+
+                // The methods should be in the same order within each list as they were iterated over.
+                // They can be misordered if, e.g. a method was originally added to the default list, but then moved
+                // to the conflict list.
+                Collections.sort(defaultMethods, comparator);
+                Collections.sort(defaultConflictMethods, comparator);
+                Collections.sort(mirandaMethods, comparator);
                 addToVtable(defaultMethods, vtable, false, false);
                 addToVtable(defaultConflictMethods, vtable, false, false);
                 addToVtable(mirandaMethods, vtable, false, false);
