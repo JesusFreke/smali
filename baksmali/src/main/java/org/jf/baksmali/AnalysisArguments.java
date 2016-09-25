@@ -122,7 +122,7 @@ public class AnalysisArguments {
 
         int oatVersion = NOT_ART;
         if (dexFile instanceof OatDexFile) {
-            oatVersion = ((OatDexFile)dexFile).getOatFile().getOatVersion();
+            oatVersion = ((OatDexFile)dexFile).getContainer().getOatVersion();
         }
         return new ClassPath(resolver.getResolvedClassProviders(), checkPackagePrivateAccess, oatVersion);
     }

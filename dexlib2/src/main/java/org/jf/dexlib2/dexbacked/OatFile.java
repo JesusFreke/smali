@@ -224,11 +224,7 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
             return filename;
         }
 
-        @Nonnull @Override public MultiDexContainer getContainer() {
-            return OatFile.this;
-        }
-
-        public OatFile getOatFile() {
+        @Nonnull @Override public OatFile getContainer() {
             return OatFile.this;
         }
 
