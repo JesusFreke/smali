@@ -68,6 +68,12 @@ public class ListVtablesCommand extends DexInputCommand {
     @ExtendedParameter(argumentNames = "classes")
     private List<String> classes = null;
 
+    @Parameter(names = "--override-oat-version",
+            description = "Uses a classpath for the given oat version, regardless of the actual oat version. This " +
+                    "can be used, e.g. to list vtables from a dex file, as if they were in an oat file of the given " +
+                    "version.")
+    private int oatVersion = 0;
+
     public ListVtablesCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
     }
@@ -139,7 +145,7 @@ public class ListVtablesCommand extends DexInputCommand {
 
         try {
             options.classPath = analysisArguments.loadClassPathForDexFile(inputFile.getAbsoluteFile().getParentFile(),
-                    dexFile, checkPackagePrivateArgument.checkPackagePrivateAccess);
+                    dexFile, checkPackagePrivateArgument.checkPackagePrivateAccess, oatVersion);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);

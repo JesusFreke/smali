@@ -46,8 +46,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static org.jf.dexlib2.analysis.ClassPath.NOT_ART;
-
 public class AnalysisArguments {
     @Parameter(names = {"-a", "--api"},
             description = "The numeric api level of the file being disassembled.")
@@ -87,7 +85,13 @@ public class AnalysisArguments {
 
     @Nonnull
     public ClassPath loadClassPathForDexFile(@Nonnull File dexFileDir, @Nonnull DexFile dexFile,
-                                             boolean checkPackagePrivateAccess)
+                                             boolean checkPackagePrivateAccess) throws IOException {
+        return loadClassPathForDexFile(dexFileDir, dexFile, checkPackagePrivateAccess, 0);
+    }
+
+    @Nonnull
+    public ClassPath loadClassPathForDexFile(@Nonnull File dexFileDir, @Nonnull DexFile dexFile,
+                                             boolean checkPackagePrivateAccess, int oatVersion)
             throws IOException {
         ClassPathResolver resolver;
 
@@ -125,8 +129,7 @@ public class AnalysisArguments {
             resolver = new ClassPathResolver(filteredClassPathDirectories, bootClassPath, classPath, dexFile);
         }
 
-        int oatVersion = NOT_ART;
-        if (dexFile instanceof OatDexFile) {
+        if (oatVersion == 0 && dexFile instanceof OatDexFile) {
             oatVersion = ((OatDexFile)dexFile).getContainer().getOatVersion();
         }
         return new ClassPath(resolver.getResolvedClassProviders(), checkPackagePrivateAccess, oatVersion);
