@@ -36,10 +36,9 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import org.jf.baksmali.AnalysisArguments.CheckPackagePrivateArgument;
+import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.analysis.ClassProto;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.ClassDef;
-import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.Method;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
@@ -86,9 +85,9 @@ public class ListVtablesCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15);
+        loadDexFile(input, 15);
 
-        BaksmaliOptions options = getOptions(dexFile);
+        BaksmaliOptions options = getOptions();
         if (options == null) {
             return;
         }
@@ -127,14 +126,18 @@ public class ListVtablesCommand extends DexInputCommand {
         System.out.write("\n".getBytes());
     }
 
-    protected BaksmaliOptions getOptions(DexFile dexFile) {
+    protected BaksmaliOptions getOptions() {
+        if (dexFile == null) {
+            throw new IllegalStateException("You must call loadDexFile first");
+        }
+
         final BaksmaliOptions options = new BaksmaliOptions();
 
         options.apiLevel = analysisArguments.apiLevel;
 
         try {
-            options.classPath = analysisArguments.loadClassPathForDexFile(dexFile,
-                    checkPackagePrivateArgument.checkPackagePrivateAccess);
+            options.classPath = analysisArguments.loadClassPathForDexFile(inputFile.getAbsoluteFile().getParentFile(),
+                    dexFile, checkPackagePrivateArgument.checkPackagePrivateAccess);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);

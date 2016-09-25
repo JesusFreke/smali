@@ -38,8 +38,6 @@ import com.beust.jcommander.ParametersDelegate;
 import com.beust.jcommander.validators.PositiveInteger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.util.StringWrapper;
 import org.jf.util.jcommander.ExtendedParameter;
@@ -151,7 +149,7 @@ public class DisassembleCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, analysisArguments.apiLevel);
+        loadDexFile(input, 15);
 
         if (showDeodexWarning() && dexFile.hasOdexOpcodes()) {
             StringWrapper.printWrappedString(System.err,
@@ -167,9 +165,13 @@ public class DisassembleCommand extends DexInputCommand {
             }
         }
 
-         if (!Baksmali.disassembleDexFile(dexFile, outputDirectoryFile, jobs, getOptions(dexFile))) {
-             System.exit(-1);
-         }
+        if (analysisArguments.classPathDirectories == null || analysisArguments.classPathDirectories.isEmpty()) {
+            analysisArguments.classPathDirectories = Lists.newArrayList(new File(input).getParent());
+        }
+
+        if (!Baksmali.disassembleDexFile(dexFile, outputDirectoryFile, jobs, getOptions())) {
+            System.exit(-1);
+        }
     }
 
     protected boolean needsClassPath() {
@@ -184,13 +186,17 @@ public class DisassembleCommand extends DexInputCommand {
         return true;
     }
 
-    protected BaksmaliOptions getOptions(DexFile dexFile) {
+    protected BaksmaliOptions getOptions() {
+        if (dexFile == null) {
+            throw new IllegalStateException("You must call loadDexFile first");
+        }
+
         final BaksmaliOptions options = new BaksmaliOptions();
 
         if (needsClassPath()) {
             try {
-                options.classPath = analysisArguments.loadClassPathForDexFile(dexFile,
-                        shouldCheckPackagePrivateAccess());
+                options.classPath = analysisArguments.loadClassPathForDexFile(
+                        inputFile.getAbsoluteFile().getParentFile(), dexFile, shouldCheckPackagePrivateAccess());
             } catch (Exception ex) {
                 System.err.println("\n\nError occurred while loading class path files. Aborting.");
                 ex.printStackTrace(System.err);

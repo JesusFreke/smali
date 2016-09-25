@@ -86,12 +86,17 @@ public class AnalysisArguments {
     }
 
     @Nonnull
-    public ClassPath loadClassPathForDexFile(@Nonnull DexFile dexFile, boolean checkPackagePrivateAccess)
+    public ClassPath loadClassPathForDexFile(@Nonnull File dexFileDir, @Nonnull DexFile dexFile,
+                                             boolean checkPackagePrivateAccess)
             throws IOException {
         ClassPathResolver resolver;
 
         if (dexFile instanceof OatDexFile) {
             checkPackagePrivateAccess = true;
+        }
+
+        if (classPathDirectories == null || classPathDirectories.size() == 0) {
+            classPathDirectories = Lists.newArrayList(dexFileDir.getPath());
         }
 
         List<String> filteredClassPathDirectories = Lists.newArrayList();

@@ -58,6 +58,10 @@ public abstract class DexInputCommand extends Command {
     @ExtendedParameter(argumentNames = "file")
     protected List<String> inputList = Lists.newArrayList();
 
+    protected File inputFile;
+    protected String inputEntry;
+    protected DexBackedDexFile dexFile;
+
     public DexInputCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
     }
@@ -97,10 +101,9 @@ public abstract class DexInputCommand extends Command {
      *
      * @param input The name of a dex, apk, odex or oat file/entry.
      * @param apiLevel The api level to load the dex file with
-     * @return The loaded DexBackedDexFile
      */
     @Nonnull
-    protected DexBackedDexFile loadDexFile(@Nonnull String input, int apiLevel) {
+    protected void loadDexFile(@Nonnull String input, int apiLevel) {
         File file = new File(input);
 
         while (file != null && !file.exists()) {
@@ -111,6 +114,8 @@ public abstract class DexInputCommand extends Command {
             System.err.println("Can't find file: " + input);
             System.exit(1);
         }
+
+        inputFile = file;
 
         String dexEntry = null;
         if (file.getPath().length() < input.length()) {
@@ -124,14 +129,16 @@ public abstract class DexInputCommand extends Command {
                 exactMatch = true;
             }
 
+            inputEntry = dexEntry;
+
             try {
-                return DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, Opcodes.forApi(apiLevel));
+                dexFile = DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, Opcodes.forApi(apiLevel));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
             try {
-                return DexFileFactory.loadDexFile(file, Opcodes.forApi(apiLevel));
+                dexFile = DexFileFactory.loadDexFile(file, Opcodes.forApi(apiLevel));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

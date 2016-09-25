@@ -77,7 +77,7 @@ public class DumpCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15);
+        loadDexFile(input, 15);
 
         try {
             dump(dexFile, System.out, apiLevel);

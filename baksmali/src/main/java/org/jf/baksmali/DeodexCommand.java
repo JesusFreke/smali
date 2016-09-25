@@ -39,7 +39,6 @@ import org.jf.baksmali.AnalysisArguments.CheckPackagePrivateArgument;
 import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
-import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
 
@@ -68,8 +67,8 @@ public class DeodexCommand extends DisassembleCommand {
         super(commandAncestors);
     }
 
-    @Override protected BaksmaliOptions getOptions(DexFile dexFile) {
-        BaksmaliOptions options = super.getOptions(dexFile);
+    @Override protected BaksmaliOptions getOptions() {
+        BaksmaliOptions options = super.getOptions();
 
         options.deodex = true;
 

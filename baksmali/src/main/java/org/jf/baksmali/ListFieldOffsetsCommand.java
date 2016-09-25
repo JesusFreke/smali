@@ -36,9 +36,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import org.jf.dexlib2.analysis.ClassProto;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.iface.ClassDef;
-import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.util.SparseArray;
 import org.jf.util.jcommander.ExtendedParameters;
@@ -77,8 +75,8 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        DexBackedDexFile dexFile = loadDexFile(input, 15);
-        BaksmaliOptions options = getOptions(dexFile);
+        loadDexFile(input, 15);
+        BaksmaliOptions options = getOptions();
 
         try {
             for (ClassDef classDef: dexFile.getClasses()) {
@@ -99,13 +97,18 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
     }
 
     @Nonnull
-    private BaksmaliOptions getOptions(DexFile dexFile) {
+    private BaksmaliOptions getOptions() {
+        if (dexFile == null) {
+            throw new IllegalStateException("You must call loadDexFile first");
+        }
+
         final BaksmaliOptions options = new BaksmaliOptions();
 
         options.apiLevel = analysisArguments.apiLevel;
 
         try {
-            options.classPath = analysisArguments.loadClassPathForDexFile(dexFile, false);
+            options.classPath = analysisArguments.loadClassPathForDexFile(
+                    inputFile.getAbsoluteFile().getParentFile(), dexFile, false);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);
