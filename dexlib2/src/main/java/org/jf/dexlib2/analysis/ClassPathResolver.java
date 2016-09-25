@@ -41,6 +41,7 @@ import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
+import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.MultiDexContainer;
 import org.jf.dexlib2.iface.MultiDexContainer.MultiDexFile;
@@ -106,8 +107,7 @@ public class ClassPathResolver {
     }
 
     private ClassPathResolver(@Nonnull List<String> bootClassPathDirs, @Nullable List<String> bootClassPathEntries,
-                              @Nonnull List<String> extraClassPathEntries,
-                             @Nonnull DexFile dexFile, int apiLevel)
+                              @Nonnull List<String> extraClassPathEntries, @Nonnull DexFile dexFile, int apiLevel)
             throws IOException {
         this.classPathDirs = bootClassPathDirs;
         opcodes = dexFile.getOpcodes();
@@ -116,7 +116,7 @@ public class ClassPathResolver {
             bootClassPathEntries = getDefaultBootClassPath(dexFile, apiLevel);
         }
 
-        for (String entry: bootClassPathEntries) {
+        for (String entry : bootClassPathEntries) {
             try {
                 loadLocalOrDeviceBootClassPathEntry(entry);
             } catch (NoDexException ex) {
@@ -311,6 +311,16 @@ public class ClassPathResolver {
     @Nonnull
     private static List<String> getDefaultBootClassPath(@Nonnull DexFile dexFile, int apiLevel) {
         if (dexFile instanceof OatFile.OatDexFile) {
+            List<String> bcp = ((OatDexFile)dexFile).getContainer().getBootClassPath();
+            if (!bcp.isEmpty()) {
+                for (int i=0; i<bcp.size(); i++) {
+                    String entry = bcp.get(i);
+                    if (entry.endsWith(".art")) {
+                        bcp.set(i, entry.substring(0, entry.length() - 4) + ".oat");
+                    }
+                }
+                return bcp;
+            }
             return Lists.newArrayList("boot.oat");
         }
 
