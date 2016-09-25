@@ -58,5 +58,5 @@ public abstract class BaseStringReference implements StringReference {
     @Override public int length() { return getString().length(); }
     @Override public char charAt(int index) { return getString().charAt(index); }
     @Override public CharSequence subSequence(int start, int end) { return getString().subSequence(start, end); }
-    @Override public String toString() { return getString(); }
+    @Override @Nonnull public String toString() { return getString(); }
 }
