@@ -934,9 +934,14 @@ public class ClassProto implements TypeProto {
 
                 for (ClassDef interfaceDef: interfaces) {
                     for (Method interfaceMethod : interfaceDef.getVirtualMethods()) {
-                        int methodIndex = findMethodIndexInVtable(vtable, interfaceMethod);
 
-                        if (methodIndex < 0) {
+                        int vtableIndex = findMethodIndexInVtable(vtable, interfaceMethod);
+
+                        if (vtableIndex >= 0) {
+                            if (interfaceMethodOverrides(interfaceMethod, vtable.get(vtableIndex))) {
+                                vtable.set(vtableIndex, interfaceMethod);
+                            }
+                        } else {
                             int defaultMethodIndex = findMethodIndexInVtable(defaultMethods, interfaceMethod);
 
                             if (defaultMethodIndex >= 0) {
@@ -963,9 +968,17 @@ public class ClassProto implements TypeProto {
 
                             if (mirandaMethodIndex >= 0) {
                                 if (!AccessFlags.ABSTRACT.isSet(interfaceMethod.getAccessFlags())) {
-                                    Method removedMethod = mirandaMethods.remove(mirandaMethodIndex);
-                                    defaultMethods.add(removedMethod);
+
+                                    ClassProto existingInterface = (ClassProto)classPath.getClass(
+                                            mirandaMethods.get(mirandaMethodIndex).getDefiningClass());
+                                    if (!existingInterface.implementsInterface(interfaceMethod.getDefiningClass())) {
+                                        Method oldMethod = mirandaMethods.remove(mirandaMethodIndex);
+                                        int methodOrderValue = methodOrder.get(oldMethod);
+                                        methodOrder.put(interfaceMethod, methodOrderValue);
+                                        defaultMethods.add(interfaceMethod);
+                                    }
                                 }
+                                continue;
                             }
 
                             if (!AccessFlags.ABSTRACT.isSet(interfaceMethod.getAccessFlags())) {
@@ -1031,6 +1044,26 @@ public class ClassProto implements TypeProto {
                 return 1; //WIDE
             default:
                 return 2; //OTHER
+        }
+    }
+
+    /**
+     * Checks if the interface method overrides the virtual or interface method2
+     * @param method A Method from an interface
+     * @param method2 A Method from an interface or a class
+     * @return true if the interface method overrides the virtual or interface method2
+     */
+    private boolean interfaceMethodOverrides(@Nonnull Method method, @Nonnull Method method2) {
+        ClassProto classProto = (ClassProto)classPath.getClass(method2.getDefiningClass());
+
+        if (classProto.isInterface()) {
+            ClassProto targetClassProto = (ClassProto)classPath.getClass(method.getDefiningClass());
+            if (targetClassProto.implementsInterface(method2.getDefiningClass())) {
+                return true;
+            }
+            return false;
+        } else {
+            return false;
         }
     }
 
