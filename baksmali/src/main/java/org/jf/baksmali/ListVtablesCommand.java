@@ -101,7 +101,9 @@ public class ListVtablesCommand extends DexInputCommand {
             }
 
             for (ClassDef classDef : dexFile.getClasses()) {
-                listClassVtable((ClassProto)options.classPath.getClass(classDef));
+                if (!AccessFlags.INTERFACE.isSet(classDef.getAccessFlags())) {
+                    listClassVtable((ClassProto)options.classPath.getClass(classDef));
+                }
             }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
