@@ -56,39 +56,26 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
         EncodedValue, AnnotationElement> {
 
-    @Nonnull
-    public static DexPool makeDexPool() {
+    @Nonnull public static DexPool makeDexPool() {
         return makeDexPool(Opcodes.forApi(20));
     }
 
     @Deprecated
-    @Nonnull
-    public static DexPool makeDexPool(int api) {
+    @Nonnull public static DexPool makeDexPool(int api) {
         return makeDexPool(Opcodes.forApi(api));
     }
 
-    @Nonnull
-    public static DexPool makeDexPool(@Nonnull Opcodes opcodes) {
-        StringPool stringPool = new StringPool();
-        TypePool typePool = new TypePool(stringPool);
-        FieldPool fieldPool = new FieldPool(stringPool, typePool);
-        TypeListPool typeListPool = new TypeListPool(typePool);
-        ProtoPool protoPool = new ProtoPool(stringPool, typePool, typeListPool);
-        MethodPool methodPool = new MethodPool(stringPool, typePool, protoPool);
-        AnnotationPool annotationPool = new AnnotationPool(stringPool, typePool, fieldPool, methodPool);
-        AnnotationSetPool annotationSetPool = new AnnotationSetPool(annotationPool);
-        ClassPool classPool = new ClassPool(stringPool, typePool, fieldPool, methodPool, annotationSetPool,
-                typeListPool);
-
-        return new DexPool(opcodes, stringPool, typePool, protoPool, fieldPool, methodPool, classPool, typeListPool,
-                annotationPool, annotationSetPool);
+    @Nonnull public static DexPool makeDexPool(@Nonnull Opcodes opcodes) {
+        return new DexPool(opcodes);
     }
 
-    private DexPool(Opcodes opcodes, StringPool stringPool, TypePool typePool, ProtoPool protoPool, FieldPool fieldPool,
-                    MethodPool methodPool, ClassPool classPool, TypeListPool typeListPool,
-                    AnnotationPool annotationPool, AnnotationSetPool annotationSetPool) {
-        super(opcodes, stringPool, typePool, protoPool, fieldPool, methodPool,
-                classPool, typeListPool, annotationPool, annotationSetPool);
+    protected DexPool(@Nonnull Opcodes opcodes) {
+        this(opcodes, new PoolContext());
+    }
+
+    private DexPool(@Nonnull Opcodes opcodes, @Nonnull PoolContext context) {
+        super(opcodes, context.stringPool, context.typePool, context.protoPool, context.fieldPool, context.methodPool,
+                context.classPool, context.typeListPool, context.annotationPool, context.annotationSetPool);
     }
 
     public static void writeTo(@Nonnull DexDataStore dataStore, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
