@@ -79,20 +79,25 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
                 context.classPool, context.typeListPool, context.annotationPool, context.annotationSetPool);
     }
 
+    public static void writeTo(@Nonnull String path, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
+        writeTo(new FileDataStore(new File(path)), input);
+    }
+
     public static void writeTo(@Nonnull DexDataStore dataStore, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
         DexPool dexPool = makeDexPool();
-        for (ClassDef classDef: input.getClasses()) {
-            ((ClassPool)dexPool.classSection).intern(classDef);
-        }
+        dexPool.internClassDefs(input.getClasses());
         dexPool.writeTo(dataStore);
     }
 
-    public static void writeTo(@Nonnull String path, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
-        DexPool dexPool = makeDexPool();
-        for (ClassDef classDef: input.getClasses()) {
-            ((ClassPool)dexPool.classSection).intern(classDef);
+    public void internClassDef(@Nonnull ClassDef classDef) {
+        ((ClassPool) classSection).intern(classDef);
+    }
+
+    public void internClassDefs(@Nonnull Iterable<? extends ClassDef> classDefs) {
+        ClassPool classPool = (ClassPool) classSection;
+        for (ClassDef classDef: classDefs) {
+            classPool.intern(classDef);
         }
-        dexPool.writeTo(new FileDataStore(new File(path)));
     }
 
     @Override protected void writeEncodedValue(@Nonnull InternalEncodedValueWriter writer,
