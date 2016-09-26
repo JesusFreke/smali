@@ -84,7 +84,7 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
     }
 
     public static void writeTo(@Nonnull DexDataStore dataStore, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
-        DexPool dexPool = makeDexPool();
+        DexPool dexPool = makeDexPool(input.getOpcodes());
         dexPool.internClassDefs(input.getClasses());
         dexPool.writeTo(dataStore);
     }
