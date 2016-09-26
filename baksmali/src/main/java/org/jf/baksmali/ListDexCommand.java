@@ -89,7 +89,7 @@ public class ListDexCommand extends Command {
         List<String> entries;
         try {
             MultiDexContainer<? extends DexBackedDexFile> container =
-                    DexFileFactory.loadDexContainer(file, Opcodes.forApi(15));
+                    DexFileFactory.loadDexContainer(file, Opcodes.getDefault());
             entries = container.getDexEntryNames();
         } catch (IOException ex) {
             throw new RuntimeException(ex);

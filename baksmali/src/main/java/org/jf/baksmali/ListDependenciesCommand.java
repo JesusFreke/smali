@@ -99,7 +99,7 @@ public class ListDependenciesCommand extends Command {
         }
 
         try {
-            DexBackedOdexFile odexFile = DexBackedOdexFile.fromInputStream(Opcodes.forApi(15), inputStream);
+            DexBackedOdexFile odexFile = DexBackedOdexFile.fromInputStream(Opcodes.getDefault(), inputStream);
             for (String entry: odexFile.getDependencies()) {
                 System.out.println(entry);
             }

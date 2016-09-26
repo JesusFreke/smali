@@ -68,7 +68,7 @@ public class CustomMethodInlineTableTest {
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, null, ImmutableList.of(method));
 
-        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), ImmutableList.of(classDef));
 
         ClassPathResolver resolver = new ClassPathResolver(ImmutableList.<String>of(),
                 ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);
@@ -97,7 +97,7 @@ public class CustomMethodInlineTableTest {
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, ImmutableList.of(method), null);
 
-        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), ImmutableList.of(classDef));
 
         ClassPathResolver resolver = new ClassPathResolver(ImmutableList.<String>of(),
                 ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);
@@ -126,7 +126,7 @@ public class CustomMethodInlineTableTest {
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, ImmutableList.of(method), null);
 
-        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), ImmutableList.of(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), ImmutableList.of(classDef));
 
         ClassPathResolver resolver = new ClassPathResolver(ImmutableList.<String>of(),
                 ImmutableList.<String>of(), ImmutableList.<String>of(), dexFile);

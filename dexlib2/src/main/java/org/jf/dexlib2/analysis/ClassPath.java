@@ -104,7 +104,7 @@ public class ClassPath {
 
     private static ClassProvider getBasicClasses() {
         // fallbacks for some special classes that we assume are present
-        return new DexClassProvider(new ImmutableDexFile(Opcodes.forApi(19), ImmutableSet.of(
+        return new DexClassProvider(new ImmutableDexFile(Opcodes.getDefault(), ImmutableSet.of(
                 new ReflectionClassDef(Class.class),
                 new ReflectionClassDef(Cloneable.class),
                 new ReflectionClassDef(Object.class),

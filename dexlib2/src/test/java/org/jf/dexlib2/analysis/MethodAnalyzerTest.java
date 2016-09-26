@@ -76,7 +76,7 @@ public class MethodAnalyzerTest {
                 AccessFlags.PUBLIC.getValue(), null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
-        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(15), Collections.singletonList(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), Collections.singletonList(classDef));
 
         ClassPath classPath = new ClassPath(new DexClassProvider(dexFile));
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, null, false);
@@ -107,7 +107,7 @@ public class MethodAnalyzerTest {
                 AccessFlags.PUBLIC.getValue(), null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
-        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(15), Collections.singletonList(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), Collections.singletonList(classDef));
 
         ClassPath classPath = new ClassPath(new DexClassProvider(dexFile));
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, null, false);
@@ -139,7 +139,7 @@ public class MethodAnalyzerTest {
                 AccessFlags.PUBLIC.getValue(), null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
-        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(15), Collections.singletonList(classDef));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), Collections.singletonList(classDef));
 
         ClassPath classPath = new ClassPath(new DexClassProvider(dexFile));
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, null, false);

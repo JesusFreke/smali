@@ -53,19 +53,10 @@ import java.util.List;
 import java.util.zip.ZipFile;
 
 public final class DexFileFactory {
-    @Nonnull
-    public static DexBackedDexFile loadDexFile(@Nonnull String path) throws IOException {
-        return loadDexFile(new File(path), Opcodes.forApi(15));
-    }
 
     @Nonnull
     public static DexBackedDexFile loadDexFile(@Nonnull String path, @Nonnull Opcodes opcodes) throws IOException {
         return loadDexFile(new File(path), opcodes);
-    }
-
-    @Nonnull
-    public static DexBackedDexFile loadDexFile(@Nonnull File file) throws IOException {
-        return loadDexFile(file, Opcodes.forApi(15));
     }
 
     /**

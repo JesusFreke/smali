@@ -60,9 +60,13 @@ public class Opcodes {
         return new Opcodes(VersionMap.mapArtVersionToApi(artVersion), artVersion);
     }
 
-    @Deprecated
-    public Opcodes(int api) {
-        this(api, VersionMap.mapApiToArtVersion(api));
+    /**
+     * @return a default Opcodes instance for when the exact Opcodes to use doesn't matter or isn't known
+     */
+    @Nonnull
+    public static Opcodes getDefault() {
+        // The last pre-art api
+        return forApi(20);
     }
 
     private Opcodes(int api, int artVersion) {
