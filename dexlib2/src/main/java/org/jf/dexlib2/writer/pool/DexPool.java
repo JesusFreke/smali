@@ -56,6 +56,7 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
         EncodedValue, AnnotationElement> {
 
+    @Deprecated
     @Nonnull public static DexPool makeDexPool() {
         return makeDexPool(Opcodes.forApi(20));
     }
