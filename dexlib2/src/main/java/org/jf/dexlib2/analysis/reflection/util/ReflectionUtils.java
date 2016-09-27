@@ -31,37 +31,43 @@
 
 package org.jf.dexlib2.analysis.reflection.util;
 
-import com.beust.jcommander.internal.Maps;
-
-import java.util.Map;
+import com.google.common.collect.ImmutableBiMap;
 
 public class ReflectionUtils {
 
-    private static final Map<String, String> privitiveMap = Maps.newHashMap(
-            "boolean", "Z",
-            "int", "I",
-            "long", "J",
-            "double", "D",
-            "void", "V",
-            "float", "F",
-            "char", "C",
-            "short", "S",
-            "byte", "B"
-    );
+    private static ImmutableBiMap<String, String> primitiveMap = ImmutableBiMap.<String, String>builder()
+            .put("boolean", "Z")
+            .put("int", "I")
+            .put("long", "J")
+            .put("double", "D")
+            .put("void", "V")
+            .put("float", "F")
+            .put("char", "C")
+            .put("short", "S")
+            .put("byte", "B")
+            .build();
 
     public static String javaToDexName(String javaName) {
         if (javaName.charAt(0) == '[') {
             return javaName.replace('.', '/');
         }
 
-        if (privitiveMap.containsKey(javaName)) {
-            return privitiveMap.get(javaName);
+        if (primitiveMap.containsKey(javaName)) {
+            return primitiveMap.get(javaName);
         }
 
-        javaName = javaName.replace('.', '/');
-        if (javaName.length() > 1 && javaName.charAt(javaName.length()-1) != ';') {
-            javaName = 'L' + javaName + ';';
+        return 'L' + javaName.replace('.', '/') + ';';
+    }
+
+    public static String dexToJavaName(String dexName) {
+        if (dexName.charAt(0) == '[') {
+            return dexName.replace('/', '.');
         }
-        return javaName;
+
+        if (primitiveMap.inverse().containsKey(dexName)) {
+            return primitiveMap.inverse().get(dexName);
+        }
+
+        return dexName.replace('/', '.').substring(1, dexName.length()-2);
     }
 }
