@@ -34,6 +34,7 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
@@ -77,7 +78,7 @@ public class DumpCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        loadDexFile(input, 15);
+        loadDexFile(input, Opcodes.getDefault());
 
         try {
             dump(dexFile, System.out, apiLevel);

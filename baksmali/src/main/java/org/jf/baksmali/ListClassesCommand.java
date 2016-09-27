@@ -34,8 +34,8 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.util.ReferenceUtil;
+import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.iface.ClassDef;
 import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
@@ -68,10 +68,10 @@ public class ListClassesCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        loadDexFile(input, 15);
+        loadDexFile(input, Opcodes.getDefault());
 
-        for (Reference reference: dexFile.getClasses()) {
-            System.out.println(ReferenceUtil.getReferenceString(reference));
+        for (ClassDef classDef: dexFile.getClasses()) {
+            System.out.println(classDef.getType());
         }
     }
 }

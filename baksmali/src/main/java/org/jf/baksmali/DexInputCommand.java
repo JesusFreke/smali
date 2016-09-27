@@ -100,10 +100,9 @@ public abstract class DexInputCommand extends Command {
      * framework/arm/framework.oat/"system/framework/framework.jar:classes2.dex"
      *
      * @param input The name of a dex, apk, odex or oat file/entry.
-     * @param apiLevel The api level to load the dex file with
+     * @param opcodes The set of opcodes to load the dex file with.
      */
-    @Nonnull
-    protected void loadDexFile(@Nonnull String input, int apiLevel) {
+    protected void loadDexFile(@Nonnull String input, Opcodes opcodes) {
         File file = new File(input);
 
         while (file != null && !file.exists()) {
@@ -132,13 +131,13 @@ public abstract class DexInputCommand extends Command {
             inputEntry = dexEntry;
 
             try {
-                dexFile = DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, Opcodes.forApi(apiLevel));
+                dexFile = DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, opcodes);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
             try {
-                dexFile = DexFileFactory.loadDexFile(file, Opcodes.forApi(apiLevel));
+                dexFile = DexFileFactory.loadDexFile(file, opcodes);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

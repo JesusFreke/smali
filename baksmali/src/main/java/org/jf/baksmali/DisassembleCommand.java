@@ -38,6 +38,7 @@ import com.beust.jcommander.ParametersDelegate;
 import com.beust.jcommander.validators.PositiveInteger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.util.StringWrapper;
 import org.jf.util.jcommander.ExtendedParameter;
@@ -149,7 +150,7 @@ public class DisassembleCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        loadDexFile(input, 15);
+        loadDexFile(input, Opcodes.getDefault());
 
         if (showDeodexWarning() && dexFile.hasOdexOpcodes()) {
             StringWrapper.printWrappedString(System.err,

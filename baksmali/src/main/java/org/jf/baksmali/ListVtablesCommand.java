@@ -37,6 +37,7 @@ import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import org.jf.baksmali.AnalysisArguments.CheckPackagePrivateArgument;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.ClassProto;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Method;
@@ -91,7 +92,7 @@ public class ListVtablesCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        loadDexFile(input, 15);
+        loadDexFile(input, Opcodes.getDefault());
 
         BaksmaliOptions options = getOptions();
         if (options == null) {
