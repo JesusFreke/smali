@@ -166,6 +166,7 @@ public class ClassProto implements TypeProto {
                             }
                         }
                     } catch (UnresolvedClassException ex) {
+                        interfaces.put(type, null);
                         unresolvedInterfaces.add(type);
                         interfacesFullyResolved = false;
                     }
@@ -230,10 +231,20 @@ public class ClassProto implements TypeProto {
                         for (String interfaceType: getClassDef().getInterfaces()) {
                             if (!interfaces.containsKey(interfaceType)) {
                                 ClassProto interfaceProto = (ClassProto)classPath.getClass(interfaceType);
-                                for (Entry<String, ClassDef> entry: interfaceProto.getInterfaces().entrySet()) {
-                                    if (!interfaces.containsKey(entry.getKey())) {
-                                        interfaces.put(entry.getKey(), entry.getValue());
+                                try {
+                                    for (Entry<String, ClassDef> entry: interfaceProto.getInterfaces().entrySet()) {
+                                        if (!interfaces.containsKey(entry.getKey())) {
+                                            interfaces.put(entry.getKey(), entry.getValue());
+                                        }
                                     }
+                                } catch (UnresolvedClassException ex) {
+                                    interfaces.put(interfaceType, null);
+                                    unresolvedInterfaces.add(interfaceType);
+                                    interfacesFullyResolved = false;
+                                }
+                                if (!interfaceProto.interfacesFullyResolved) {
+                                    unresolvedInterfaces.addAll(interfaceProto.getUnresolvedInterfaces());
+                                    interfacesFullyResolved = false;
                                 }
                                 try {
                                     ClassDef interfaceDef = classPath.getClassDef(interfaceType);
@@ -246,6 +257,7 @@ public class ClassProto implements TypeProto {
                             }
                         }
                     } catch (UnresolvedClassException ex) {
+                        interfaces.put(type, null);
                         unresolvedInterfaces.add(type);
                         interfacesFullyResolved = false;
                     }
