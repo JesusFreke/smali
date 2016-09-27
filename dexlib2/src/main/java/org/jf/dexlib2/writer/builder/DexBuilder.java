@@ -60,21 +60,22 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
 
     @Nonnull private final BuilderContext context;
 
+    @Deprecated
     @Nonnull public static DexBuilder makeDexBuilder() {
-        BuilderContext context = new BuilderContext();
-        return new DexBuilder(Opcodes.forApi(20), context);
+        return new DexBuilder(Opcodes.forApi(20));
     }
 
     @Deprecated
-    @Nonnull
-    public static DexBuilder makeDexBuilder(int api) {
-        BuilderContext context = new BuilderContext();
-        return new DexBuilder(Opcodes.forApi(api), context);
+    @Nonnull public static DexBuilder makeDexBuilder(int api) {
+        return new DexBuilder(Opcodes.forApi(api));
     }
 
     @Nonnull public static DexBuilder makeDexBuilder(@Nonnull Opcodes opcodes) {
-        BuilderContext context = new BuilderContext();
-        return new DexBuilder(opcodes, context);
+        return new DexBuilder(opcodes);
+    }
+
+    protected DexBuilder(@Nonnull Opcodes opcodes) {
+        this(opcodes, new BuilderContext());
     }
 
     private DexBuilder(@Nonnull Opcodes opcodes, @Nonnull BuilderContext context) {

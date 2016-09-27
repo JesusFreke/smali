@@ -56,55 +56,48 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
         EncodedValue, AnnotationElement> {
 
-    @Nonnull
-    public static DexPool makeDexPool() {
+    @Deprecated
+    @Nonnull public static DexPool makeDexPool() {
         return makeDexPool(Opcodes.forApi(20));
     }
 
     @Deprecated
-    @Nonnull
-    public static DexPool makeDexPool(int api) {
+    @Nonnull public static DexPool makeDexPool(int api) {
         return makeDexPool(Opcodes.forApi(api));
     }
 
-    @Nonnull
-    public static DexPool makeDexPool(@Nonnull Opcodes opcodes) {
-        StringPool stringPool = new StringPool();
-        TypePool typePool = new TypePool(stringPool);
-        FieldPool fieldPool = new FieldPool(stringPool, typePool);
-        TypeListPool typeListPool = new TypeListPool(typePool);
-        ProtoPool protoPool = new ProtoPool(stringPool, typePool, typeListPool);
-        MethodPool methodPool = new MethodPool(stringPool, typePool, protoPool);
-        AnnotationPool annotationPool = new AnnotationPool(stringPool, typePool, fieldPool, methodPool);
-        AnnotationSetPool annotationSetPool = new AnnotationSetPool(annotationPool);
-        ClassPool classPool = new ClassPool(stringPool, typePool, fieldPool, methodPool, annotationSetPool,
-                typeListPool);
-
-        return new DexPool(opcodes, stringPool, typePool, protoPool, fieldPool, methodPool, classPool, typeListPool,
-                annotationPool, annotationSetPool);
+    @Nonnull public static DexPool makeDexPool(@Nonnull Opcodes opcodes) {
+        return new DexPool(opcodes);
     }
 
-    private DexPool(Opcodes opcodes, StringPool stringPool, TypePool typePool, ProtoPool protoPool, FieldPool fieldPool,
-                    MethodPool methodPool, ClassPool classPool, TypeListPool typeListPool,
-                    AnnotationPool annotationPool, AnnotationSetPool annotationSetPool) {
-        super(opcodes, stringPool, typePool, protoPool, fieldPool, methodPool,
-                classPool, typeListPool, annotationPool, annotationSetPool);
+    protected DexPool(@Nonnull Opcodes opcodes) {
+        this(opcodes, new PoolContext());
     }
 
-    public static void writeTo(@Nonnull DexDataStore dataStore, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
-        DexPool dexPool = makeDexPool();
-        for (ClassDef classDef: input.getClasses()) {
-            ((ClassPool)dexPool.classSection).intern(classDef);
-        }
-        dexPool.writeTo(dataStore);
+    private DexPool(@Nonnull Opcodes opcodes, @Nonnull PoolContext context) {
+        super(opcodes, context.stringPool, context.typePool, context.protoPool, context.fieldPool, context.methodPool,
+                context.classPool, context.typeListPool, context.annotationPool, context.annotationSetPool);
     }
 
     public static void writeTo(@Nonnull String path, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
-        DexPool dexPool = makeDexPool();
-        for (ClassDef classDef: input.getClasses()) {
-            ((ClassPool)dexPool.classSection).intern(classDef);
+        writeTo(new FileDataStore(new File(path)), input);
+    }
+
+    public static void writeTo(@Nonnull DexDataStore dataStore, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
+        DexPool dexPool = makeDexPool(input.getOpcodes());
+        dexPool.internClassDefs(input.getClasses());
+        dexPool.writeTo(dataStore);
+    }
+
+    public void internClassDef(@Nonnull ClassDef classDef) {
+        ((ClassPool) classSection).intern(classDef);
+    }
+
+    public void internClassDefs(@Nonnull Iterable<? extends ClassDef> classDefs) {
+        ClassPool classPool = (ClassPool) classSection;
+        for (ClassDef classDef: classDefs) {
+            classPool.intern(classDef);
         }
-        dexPool.writeTo(new FileDataStore(new File(path)));
     }
 
     @Override protected void writeEncodedValue(@Nonnull InternalEncodedValueWriter writer,
