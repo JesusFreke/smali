@@ -58,7 +58,7 @@ public final class DexFileFactory {
     @Nonnull
     public static DexBackedDexFile loadDexFile(@Nonnull String path, int api, boolean experimental)
             throws IOException {
-        return loadDexFile(new File(path), "classes.dex", Opcodes.forApi(api, experimental));
+        return loadDexFile(new File(path), null, Opcodes.forApi(api, experimental));
     }
 
     @Nonnull
