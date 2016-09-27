@@ -97,6 +97,14 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         dexPool.writeTo(new FileDataStore(new File(path)));
     }
 
+    /**
+     * Interns a class into this DexPool
+     * @param classDef The class to intern
+     */
+    public void internClass(ClassDef classDef) {
+        ((ClassPool)classSection).intern(classDef);
+    }
+
     @Override protected void writeEncodedValue(@Nonnull InternalEncodedValueWriter writer,
                                                @Nonnull EncodedValue encodedValue) throws IOException {
         switch (encodedValue.getValueType()) {
@@ -155,7 +163,7 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         }
     }
 
-    public static void internEncodedValue(@Nonnull EncodedValue encodedValue,
+    static void internEncodedValue(@Nonnull EncodedValue encodedValue,
                                           @Nonnull StringPool stringPool,
                                           @Nonnull TypePool typePool,
                                           @Nonnull FieldPool fieldPool,
