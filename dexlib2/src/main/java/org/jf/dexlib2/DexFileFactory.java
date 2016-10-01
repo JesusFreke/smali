@@ -41,6 +41,7 @@ import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.OatFile.NotAnOatFileException;
 import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.dexbacked.ZipDexContainer;
+import org.jf.dexlib2.dexbacked.ZipDexContainer.NotAZipFileException;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.MultiDexContainer;
 import org.jf.dexlib2.writer.pool.DexPool;
@@ -50,7 +51,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.List;
-import java.util.zip.ZipFile;
 
 public final class DexFileFactory {
 
@@ -81,21 +81,12 @@ public final class DexFileFactory {
             throw new DexFileNotFoundException("%s does not exist", file.getName());
         }
 
-        ZipFile zipFile = null;
-        try {
-            zipFile = new ZipFile(file);
-        } catch (IOException ex) {
-            // ignore and continue
-        }
 
-        if (zipFile != null) {
-            ZipDexContainer container = new ZipDexContainer(zipFile, opcodes);
-            try {
-                return new DexEntryFinder(file.getPath(), container)
-                        .findEntry("classes.dex", true);
-            } finally {
-                container.close();
-            }
+        try {
+            ZipDexContainer container = new ZipDexContainer(file, opcodes);
+            return new DexEntryFinder(file.getPath(), container).findEntry("classes.dex", true);
+        } catch (NotAZipFileException ex) {
+            // eat it and continue
         }
 
         InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
@@ -188,20 +179,11 @@ public final class DexFileFactory {
             throw new DexFileNotFoundException("Container file %s does not exist", file.getName());
         }
 
-        ZipFile zipFile = null;
         try {
-            zipFile = new ZipFile(file);
-        } catch (IOException ex) {
-            // ignore and continue
-        }
-
-        if (zipFile != null) {
-            ZipDexContainer container = new ZipDexContainer(zipFile, opcodes);
-            try {
-                return new DexEntryFinder(file.getPath(), container).findEntry(dexEntry, exactMatch);
-            } finally {
-                container.close();
-            }
+            ZipDexContainer container = new ZipDexContainer(file, opcodes);
+            return new DexEntryFinder(file.getPath(), container).findEntry(dexEntry, exactMatch);
+        } catch (NotAZipFileException ex) {
+            // eat it and continue
         }
 
         InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
@@ -251,15 +233,9 @@ public final class DexFileFactory {
             throw new DexFileNotFoundException("%s does not exist", file.getName());
         }
 
-        ZipFile zipFile = null;
-        try {
-            zipFile = new ZipFile(file);
-        } catch (IOException ex) {
-            // ignore and continue
-        }
-
-        if (zipFile != null) {
-            return new ZipDexContainer(zipFile, opcodes);
+        ZipDexContainer zipDexContainer = new ZipDexContainer(file, opcodes);
+        if (zipDexContainer.isZipFile()) {
+            return zipDexContainer;
         }
 
         InputStream inputStream = new BufferedInputStream(new FileInputStream(file));

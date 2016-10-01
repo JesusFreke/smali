@@ -40,8 +40,8 @@ import org.jf.dexlib2.iface.MultiDexContainer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -54,19 +54,19 @@ import static org.jf.dexlib2.dexbacked.DexBackedDexFile.verifyMagicAndByteOrder;
 /**
  * Represents a zip file that contains dex files (i.e. an apk or jar file)
  */
-public class ZipDexContainer implements MultiDexContainer<ZipDexFile>, Closeable {
+public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
 
-    private final ZipFile zipFile;
+    private final File zipFilePath;
     private final Opcodes opcodes;
 
     /**
      * Constructs a new ZipDexContainer for the given zip file
      *
-     * @param zipFile A Zip
+     * @param zipFilePath The path to the zip file
      * @param opcodes The Opcodes instance to use when loading dex files from this container
      */
-    public ZipDexContainer(@Nonnull ZipFile zipFile, @Nonnull Opcodes opcodes) {
-        this.zipFile = zipFile;
+    public ZipDexContainer(@Nonnull File zipFilePath, @Nonnull Opcodes opcodes) {
+        this.zipFilePath = zipFilePath;
         this.opcodes = opcodes;
     }
 
@@ -77,19 +77,24 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile>, Closeable
      */
     @Nonnull @Override public List<String> getDexEntryNames() throws IOException {
         List<String> entryNames = Lists.newArrayList();
-        Enumeration<? extends ZipEntry> entriesEnumeration = zipFile.entries();
+        ZipFile zipFile = getZipFile();
+        try {
+            Enumeration<? extends ZipEntry> entriesEnumeration = zipFile.entries();
 
-        while (entriesEnumeration.hasMoreElements()) {
-            ZipEntry entry = entriesEnumeration.nextElement();
+            while (entriesEnumeration.hasMoreElements()) {
+                ZipEntry entry = entriesEnumeration.nextElement();
 
-            if (!isDex(entry)) {
-                continue;
+                if (!isDex(zipFile, entry)) {
+                    continue;
+                }
+
+                entryNames.add(entry.getName());
             }
 
-            entryNames.add(entry.getName());
+            return entryNames;
+        } finally {
+            zipFile.close();
         }
-
-        return entryNames;
     }
 
     /**
@@ -100,16 +105,28 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile>, Closeable
      * @throws NotADexFile If the entry isn't a dex file
      */
     @Nullable @Override public ZipDexFile getEntry(@Nonnull String entryName) throws IOException {
-        ZipEntry entry = zipFile.getEntry(entryName);
-        if (entry == null) {
-            return null;
-        }
+        ZipFile zipFile = getZipFile();
+        try {
+            ZipEntry entry = zipFile.getEntry(entryName);
+            if (entry == null) {
+                return null;
+            }
 
-        return loadEntry(entry);
+            return loadEntry(zipFile, entry);
+        } finally {
+            zipFile.close();
+        }
     }
 
-    @Override public void close() throws IOException {
-        zipFile.close();
+    public boolean isZipFile() {
+        try {
+            getZipFile();
+            return true;
+        } catch (IOException ex) {
+            return false;
+        } catch (NotAZipFileException ex) {
+            return false;
+        }
     }
 
     public class ZipDexFile extends DexBackedDexFile implements MultiDexContainer.MultiDexFile {
@@ -130,7 +147,7 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile>, Closeable
         }
     }
 
-    private boolean isDex(@Nonnull ZipEntry zipEntry) throws IOException {
+    private boolean isDex(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
         InputStream inputStream = zipFile.getInputStream(zipEntry);
         try {
             inputStream.mark(44);
@@ -138,7 +155,7 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile>, Closeable
             try {
                 ByteStreams.readFully(inputStream, partialHeader);
             } catch (EOFException ex) {
-                throw new NotADexFile("File is too short");
+                return false;
             }
 
             try {
@@ -152,9 +169,16 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile>, Closeable
         }
     }
 
+    private ZipFile getZipFile() throws IOException {
+        try {
+            return new ZipFile(zipFilePath);
+        } catch (IOException ex) {
+            throw new NotAZipFileException();
+        }
+    }
+
     @Nonnull
-    private ZipDexFile loadEntry(@Nonnull ZipEntry zipEntry)
-            throws IOException {
+    private ZipDexFile loadEntry(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
         InputStream inputStream = zipFile.getInputStream(zipEntry);
         try {
             byte[] buf = ByteStreams.toByteArray(inputStream);
@@ -162,5 +186,8 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile>, Closeable
         } finally {
             inputStream.close();
         }
+    }
+
+    public static class NotAZipFileException extends RuntimeException {
     }
 }
