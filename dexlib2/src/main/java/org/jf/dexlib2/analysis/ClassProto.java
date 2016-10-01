@@ -866,7 +866,7 @@ public class ClassProto implements TypeProto {
     @Nonnull public List<Method> getVtable() {
         if (!classPath.isArt() || classPath.oatVersion < 72) {
             return preDefaultMethodVtableSupplier.get();
-        } else if (classPath.oatVersion < 79) {
+        } else if (classPath.oatVersion < 87) {
             return buggyPostDefaultMethodVtableSupplier.get();
         } else {
             return postDefaultMethodVtableSupplier.get();
@@ -964,13 +964,9 @@ public class ClassProto implements TypeProto {
 
                 final HashMap<MethodReference, Integer> methodOrder = Maps.newHashMap();
 
-
-
                 for (int i=interfaces.size()-1; i>=0; i--) {
                     String interfaceType = interfaces.get(i);
                     ClassDef interfaceDef = classPath.getClassDef(interfaceType);
-
-
 
                     for (Method interfaceMethod : interfaceDef.getVirtualMethods()) {
 
