@@ -167,7 +167,7 @@ public class DisassembleCommand extends DexInputCommand {
         }
 
         if (analysisArguments.classPathDirectories == null || analysisArguments.classPathDirectories.isEmpty()) {
-            analysisArguments.classPathDirectories = Lists.newArrayList(new File(input).getParent());
+            analysisArguments.classPathDirectories = Lists.newArrayList(inputFile.getAbsoluteFile().getParent());
         }
 
         if (!Baksmali.disassembleDexFile(dexFile, outputDirectoryFile, jobs, getOptions())) {
