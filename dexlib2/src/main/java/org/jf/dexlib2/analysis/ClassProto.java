@@ -1068,7 +1068,6 @@ public class ClassProto implements TypeProto {
                 Collections.sort(defaultMethods, comparator);
                 Collections.sort(defaultConflictMethods, comparator);
 
-                // TODO: need to reparent these interface methods at some point. Can we reparent them when adding to the vtable?
                 vtable.addAll(mirandaMethods);
                 vtable.addAll(defaultMethods);
                 vtable.addAll(defaultConflictMethods);

@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.instruction.formats.*;
@@ -1834,7 +1835,9 @@ public class MethodAnalyzer {
         // no need to check class access for invoke-super. A class can obviously access its superclass.
         ClassDef thisClass = classPath.getClassDef(method.getDefiningClass());
 
-        if (!isSuper && !TypeUtils.canAccessClass(
+        if (classPath.getClass(resolvedMethod.getDefiningClass()).isInterface()) {
+            resolvedMethod = new ReparentedMethodReference(resolvedMethod, objectRegisterTypeProto.getType());
+        } else if (!isSuper && !TypeUtils.canAccessClass(
                 thisClass.getType(), classPath.getClassDef(resolvedMethod.getDefiningClass()))) {
 
             // the class is not accessible. So we start looking at objectRegisterTypeProto (which may be different
@@ -2008,5 +2011,31 @@ public class MethodAnalyzer {
             }
         }
         return replacementMethod;
+    }
+
+    private static class ReparentedMethodReference extends BaseMethodReference {
+        private final MethodReference baseReference;
+        private final String definingClass;
+
+        public ReparentedMethodReference(MethodReference baseReference, String definingClass) {
+            this.baseReference = baseReference;
+            this.definingClass = definingClass;
+        }
+
+        @Override @Nonnull public String getName() {
+            return baseReference.getName();
+        }
+
+        @Override @Nonnull public List<? extends CharSequence> getParameterTypes() {
+            return baseReference.getParameterTypes();
+        }
+
+        @Override @Nonnull public String getReturnType() {
+            return baseReference.getReturnType();
+        }
+
+        @Nonnull @Override public String getDefiningClass() {
+            return definingClass;
+        }
     }
 }
