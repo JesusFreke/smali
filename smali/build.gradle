@@ -141,7 +141,7 @@ task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
     dontobfuscate
     dontoptimize
 
-    keep 'public class org.jf.smali.main { public static void main(java.lang.String[]); }'
+    keep 'public class org.jf.smali.Main { public static void main(java.lang.String[]); }'
     keepclassmembers 'enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
 
     dontwarn 'com.google.common.**'
