@@ -35,16 +35,38 @@ public class VersionMap {
     public static final int NO_VERSION = -1;
 
     public static int mapArtVersionToApi(int artVersion) {
-        // TODO: implement this
-        return 20;
+        if (artVersion >= 79) {
+            return 24;
+        }
+        if (artVersion >= 64) {
+            return 23;
+        }
+        if (artVersion >= 45) {
+            return 22;
+        }
+        if (artVersion >= 39) {
+            return 21;
+        }
+        return 19;
     }
 
     public static int mapApiToArtVersion(int api) {
-        // TODO: implement this
-        if (api < 20) {
-            return NO_VERSION;
-        } else {
-            return 56;
+        switch (api) {
+            case 19:
+            case 20:
+                return 7;
+            case 21:
+                return 39;
+            case 22:
+                return 45;
+            case 23:
+                return 64;
+            case 24:
+                return 79;
         }
+        if (api > 24) {
+            return 79;
+        }
+        return NO_VERSION;
     }
 }

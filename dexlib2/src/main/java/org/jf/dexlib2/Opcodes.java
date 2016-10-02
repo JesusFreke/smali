@@ -39,6 +39,10 @@ import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.HashMap;
 
+import static org.jf.dexlib2.VersionMap.NO_VERSION;
+import static org.jf.dexlib2.VersionMap.mapApiToArtVersion;
+import static org.jf.dexlib2.VersionMap.mapArtVersionToApi;
+
 public class Opcodes {
 
     /**
@@ -52,12 +56,12 @@ public class Opcodes {
 
     @Nonnull
     public static Opcodes forApi(int api) {
-        return new Opcodes(api, VersionMap.mapApiToArtVersion(api));
+        return new Opcodes(api, NO_VERSION);
     }
 
     @Nonnull
     public static Opcodes forArtVersion(int artVersion) {
-        return new Opcodes(VersionMap.mapArtVersionToApi(artVersion), artVersion);
+        return new Opcodes(NO_VERSION, artVersion);
     }
 
     /**
@@ -70,8 +74,18 @@ public class Opcodes {
     }
 
     private Opcodes(int api, int artVersion) {
-        this.api = api;
-        this.artVersion = artVersion;
+
+
+        if (api >= 21) {
+            this.api = api;
+            this.artVersion = mapApiToArtVersion(api);
+        } else if (artVersion >= 0 && artVersion < 39) {
+            this.api = mapArtVersionToApi(artVersion);
+            this.artVersion = artVersion;
+        } else {
+            this.api = api;
+            this.artVersion = artVersion;
+        }
 
         opcodeValues = new EnumMap<Opcode, Short>(Opcode.class);
         opcodesByName = Maps.newHashMap();
@@ -131,6 +145,6 @@ public class Opcodes {
     }
 
     public boolean isArt() {
-        return artVersion != VersionMap.NO_VERSION;
+        return artVersion != NO_VERSION;
     }
 }
