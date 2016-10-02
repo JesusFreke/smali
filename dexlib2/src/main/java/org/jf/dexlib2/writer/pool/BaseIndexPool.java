@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.writer.pool;
 
-import com.google.common.collect.Maps;
 import org.jf.dexlib2.writer.IndexSection;
 import org.jf.util.ExceptionWithContext;
 
@@ -39,9 +38,7 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
 
-public abstract class BaseIndexPool<Key> implements IndexSection<Key> {
-    @Nonnull protected final Map<Key, Integer> internedItems = Maps.newHashMap();
-
+public abstract class BaseIndexPool<Key> extends BasePool<Key, Integer> implements IndexSection<Key> {
     @Nonnull @Override public Collection<? extends Map.Entry<? extends Key, Integer>> getItems() {
         return internedItems.entrySet();
     }

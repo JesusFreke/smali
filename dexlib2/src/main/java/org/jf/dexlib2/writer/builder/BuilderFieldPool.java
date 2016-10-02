@@ -104,4 +104,8 @@ public class BuilderFieldPool
             }
         };
     }
+
+    @Override public int getItemCount() {
+        return internedItems.size();
+    }
 }

@@ -1,18 +1,18 @@
 /*
- * Copyright 2013, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
  *
- *     * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
  * copyright notice, this list of conditions and the following disclaimer
  * in the documentation and/or other materials provided with the
  * distribution.
- *     * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -31,27 +31,7 @@
 
 package org.jf.dexlib2.writer.pool;
 
-import org.jf.dexlib2.writer.OffsetSection;
-import org.jf.util.ExceptionWithContext;
-
-import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Map;
-
-public abstract class BaseOffsetPool<Key> extends BasePool<Key, Integer> implements OffsetSection<Key> {
-    @Nonnull @Override public Collection<? extends Map.Entry<? extends Key, Integer>> getItems() {
-        return internedItems.entrySet();
-    }
-
-    @Override public int getItemOffset(@Nonnull Key key) {
-        Integer offset = internedItems.get(key);
-        if (offset == null) {
-            throw new ExceptionWithContext("Item not found.: %s", getItemString(key));
-        }
-        return offset;
-    }
-
-    @Nonnull protected String getItemString(@Nonnull Key key) {
-        return key.toString();
-    }
+public interface Markable {
+    void mark();
+    void reset();
 }

@@ -192,12 +192,12 @@ public abstract class DexWriter<
 
     private int getDataSectionOffset() {
         return HeaderItem.ITEM_SIZE +
-                stringSection.getItems().size() * StringIdItem.ITEM_SIZE +
-                typeSection.getItems().size() * TypeIdItem.ITEM_SIZE +
-                protoSection.getItems().size() * ProtoIdItem.ITEM_SIZE +
-                fieldSection.getItems().size() * FieldIdItem.ITEM_SIZE +
-                methodSection.getItems().size() * MethodIdItem.ITEM_SIZE +
-                classSection.getItems().size() * ClassDefItem.ITEM_SIZE;
+                stringSection.getItemCount() * StringIdItem.ITEM_SIZE +
+                typeSection.getItemCount() * TypeIdItem.ITEM_SIZE +
+                protoSection.getItemCount() * ProtoIdItem.ITEM_SIZE +
+                fieldSection.getItemCount() * FieldIdItem.ITEM_SIZE +
+                methodSection.getItemCount() * MethodIdItem.ITEM_SIZE +
+                classSection.getItemCount() * ClassDefItem.ITEM_SIZE;
     }
 
     @Nonnull
@@ -225,6 +225,22 @@ public abstract class DexWriter<
             classReferences.add(typeReference.getKey().toString());
         }
         return classReferences;
+    }
+
+    /**
+     * Checks whether any of the size-sensitive constant pools have overflowed.
+     *
+     * This checks whether the type, method, field pools are larger than 64k entries.
+     *
+     * Note that even if this returns true, it may still be possible to successfully write the dex file, if the
+     * overflowed items are not referenced anywhere that uses a 16-bit index
+     *
+     * @return true if any of the size-sensitive constant pools have overflowed
+     */
+    public boolean hasOverflowed() {
+        return methodSection.getItemCount() > (1 << 16) ||
+                typeSection.getItemCount() > (1 << 16) ||
+                fieldSection.getItemCount() > (1 << 16);
     }
 
     public void writeTo(@Nonnull DexDataStore dest) throws IOException {

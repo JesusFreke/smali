@@ -443,4 +443,8 @@ public class BuilderClassPool implements ClassSection<BuilderStringReference, Bu
             }
         };
     }
+
+    @Override public int getItemCount() {
+        return internedItems.size();
+    }
 }

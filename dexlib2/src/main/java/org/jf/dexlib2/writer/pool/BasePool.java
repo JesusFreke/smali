@@ -1,18 +1,18 @@
 /*
- * Copyright 2013, Google Inc.
+ * Copyright 2016, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
  *
- *     * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
  * copyright notice, this list of conditions and the following disclaimer
  * in the documentation and/or other materials provided with the
  * distribution.
- *     * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -31,27 +31,40 @@
 
 package org.jf.dexlib2.writer.pool;
 
-import org.jf.dexlib2.writer.OffsetSection;
-import org.jf.util.ExceptionWithContext;
+import com.google.common.collect.Maps;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 
-public abstract class BaseOffsetPool<Key> extends BasePool<Key, Integer> implements OffsetSection<Key> {
-    @Nonnull @Override public Collection<? extends Map.Entry<? extends Key, Integer>> getItems() {
-        return internedItems.entrySet();
+public class BasePool<Key, Value> implements Markable {
+    @Nonnull protected final Map<Key, Value> internedItems = Maps.newLinkedHashMap();
+    private int markedItemCount = -1;
+
+    public void mark() {
+        markedItemCount = internedItems.size();
     }
 
-    @Override public int getItemOffset(@Nonnull Key key) {
-        Integer offset = internedItems.get(key);
-        if (offset == null) {
-            throw new ExceptionWithContext("Item not found.: %s", getItemString(key));
+    public void reset() {
+        if (markedItemCount < 0) {
+            throw new IllegalStateException("mark() must be called before calling reset()");
         }
-        return offset;
+
+        if (markedItemCount == internedItems.size()) {
+            return;
+        }
+
+        Iterator<Key> keys = internedItems.keySet().iterator();
+        for (int i=0; i<markedItemCount; i++) {
+            keys.next();
+        }
+        while (keys.hasNext()) {
+            keys.next();
+            keys.remove();
+        }
     }
 
-    @Nonnull protected String getItemString(@Nonnull Key key) {
-        return key.toString();
+    public int getItemCount() {
+        return internedItems.size();
     }
 }

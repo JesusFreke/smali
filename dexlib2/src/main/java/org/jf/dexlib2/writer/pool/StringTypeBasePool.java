@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.writer.pool;
 
-import com.google.common.collect.Maps;
 import org.jf.dexlib2.writer.DexWriter;
 import org.jf.dexlib2.writer.NullableIndexSection;
 import org.jf.util.ExceptionWithContext;
@@ -41,9 +40,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-public abstract class StringTypeBasePool implements NullableIndexSection<CharSequence> {
-    @Nonnull protected final Map<String, Integer> internedItems = Maps.newHashMap();
-
+public abstract class StringTypeBasePool extends BasePool<String, Integer>
+        implements NullableIndexSection<CharSequence>, Markable {
     @Nonnull @Override public Collection<Map.Entry<String, Integer>> getItems() {
         return internedItems.entrySet();
     }

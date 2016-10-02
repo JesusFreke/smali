@@ -103,4 +103,8 @@ class BuilderProtoPool
             }
         };
     }
+
+    @Override public int getItemCount() {
+        return internedItems.size();
+    }
 }
