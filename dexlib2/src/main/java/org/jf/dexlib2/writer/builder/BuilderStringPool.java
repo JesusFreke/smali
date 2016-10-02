@@ -86,4 +86,8 @@ class BuilderStringPool implements StringSection<BuilderStringReference, Builder
             }
         };
     }
+
+    @Override public int getItemCount() {
+        return internedItems.size();
+    }
 }

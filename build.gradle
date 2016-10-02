@@ -101,14 +101,15 @@ subprojects {
                 guava: 'com.google.guava:guava:18.0',
                 findbugs: 'com.google.code.findbugs:jsr305:1.3.9',
                 junit: 'junit:junit:4.6',
+                mockito: 'org.mockito:mockito-core:1.+',
                 antlr_runtime: 'org.antlr:antlr-runtime:3.5.2',
                 antlr: 'org.antlr:antlr:3.5.2',
                 stringtemplate: 'org.antlr:stringtemplate:3.2.1',
-                commons_cli: 'commons-cli:commons-cli:1.2',
                 jflex_plugin: 'org.xbib.gradle.plugin:gradle-plugin-jflex:1.1.0',
                 proguard_gradle: 'net.sf.proguard:proguard-gradle:5.2.1',
                 dx: 'com.google.android.tools:dx:1.7',
-                gson: 'com.google.code.gson:gson:2.3.1'
+                gson: 'com.google.code.gson:gson:2.3.1',
+                jcommander: 'com.beust:jcommander:1.48'
          ]
     }
 

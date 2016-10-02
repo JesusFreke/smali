@@ -28,7 +28,7 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.baksmaliOptions;
+import org.jf.baksmali.BaksmaliOptions;
 import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
@@ -42,7 +42,7 @@ public class CatchMethodItem extends MethodItem {
     private final LabelMethodItem tryEndLabel;
     private final LabelMethodItem handlerLabel;
 
-    public CatchMethodItem(@Nonnull baksmaliOptions options, @Nonnull MethodDefinition.LabelCache labelCache,
+    public CatchMethodItem(@Nonnull BaksmaliOptions options, @Nonnull MethodDefinition.LabelCache labelCache,
                            int codeAddress, @Nullable String exceptionType, int startAddress, int endAddress,
                            int handlerAddress) {
         super(codeAddress);

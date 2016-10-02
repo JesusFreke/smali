@@ -112,6 +112,10 @@ class BuilderMethodPool implements MethodSection<BuilderStringReference, Builder
         };
     }
 
+    @Override public int getItemCount() {
+        return internedItems.size();
+    }
+
     private static class MethodKey extends BaseMethodReference implements MethodReference {
         @Nonnull private final String definingClass;
         @Nonnull private final String name;

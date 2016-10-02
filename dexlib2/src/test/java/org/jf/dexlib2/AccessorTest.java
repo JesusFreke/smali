@@ -79,7 +79,7 @@ public class AccessorTest {
     public void testAccessors() throws IOException {
         URL url = AccessorTest.class.getClassLoader().getResource("accessorTest.dex");
         Assert.assertNotNull(url);
-        DexFile f = DexFileFactory.loadDexFile(url.getFile(), 15, false);
+        DexFile f = DexFileFactory.loadDexFile(url.getFile(), Opcodes.getDefault());
 
         SyntheticAccessorResolver sar = new SyntheticAccessorResolver(f.getOpcodes(), f.getClasses());
 

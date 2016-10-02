@@ -32,8 +32,10 @@
 package org.jf.dexlib2.analysis;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import junit.framework.Assert;
 import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.immutable.ImmutableDexFile;
 import org.junit.Test;
 
@@ -51,55 +53,64 @@ public class CommonSuperclassTest {
     //     fivetwothree
     //   fivethree
 
-    private final ClassPath classPath;
+    private final ClassPath oldClassPath;
+    private final ClassPath newClassPath;
+
 
     public CommonSuperclassTest() throws IOException {
-        classPath = new ClassPath(new DexClassProvider(new ImmutableDexFile(Opcodes.forApi(19),
-                ImmutableSet.of(
-                        TestUtils.makeClassDef("Ljava/lang/Object;", null),
-                        TestUtils.makeClassDef("Ltest/one;", "Ljava/lang/Object;"),
-                        TestUtils.makeClassDef("Ltest/two;", "Ljava/lang/Object;"),
-                        TestUtils.makeClassDef("Ltest/onetwo;", "Ltest/one;"),
-                        TestUtils.makeClassDef("Ltest/onetwothree;", "Ltest/onetwo;"),
-                        TestUtils.makeClassDef("Ltest/onethree;", "Ltest/one;"),
-                        TestUtils.makeClassDef("Ltest/fivetwo;", "Ltest/five;"),
-                        TestUtils.makeClassDef("Ltest/fivetwothree;", "Ltest/fivetwo;"),
-                        TestUtils.makeClassDef("Ltest/fivethree;", "Ltest/five;"),
-                        TestUtils.makeInterfaceDef("Ljava/lang/Cloneable;"),
-                        TestUtils.makeInterfaceDef("Ljava/io/Serializable;"),
+        ImmutableSet<ClassDef> classes = ImmutableSet.of(
+                TestUtils.makeClassDef("Ljava/lang/Object;", null),
+                TestUtils.makeClassDef("Ltest/one;", "Ljava/lang/Object;"),
+                TestUtils.makeClassDef("Ltest/two;", "Ljava/lang/Object;"),
+                TestUtils.makeClassDef("Ltest/onetwo;", "Ltest/one;"),
+                TestUtils.makeClassDef("Ltest/onetwothree;", "Ltest/onetwo;"),
+                TestUtils.makeClassDef("Ltest/onethree;", "Ltest/one;"),
+                TestUtils.makeClassDef("Ltest/fivetwo;", "Ltest/five;"),
+                TestUtils.makeClassDef("Ltest/fivetwothree;", "Ltest/fivetwo;"),
+                TestUtils.makeClassDef("Ltest/fivethree;", "Ltest/five;"),
+                TestUtils.makeInterfaceDef("Ljava/lang/Cloneable;"),
+                TestUtils.makeInterfaceDef("Ljava/io/Serializable;"),
 
-                        // basic class and interface
-                        TestUtils.makeClassDef("Liface/classiface1;", "Ljava/lang/Object;", "Liface/iface1;"),
-                        TestUtils.makeInterfaceDef("Liface/iface1;"),
+                // basic class and interface
+                TestUtils.makeClassDef("Liface/classiface1;", "Ljava/lang/Object;", "Liface/iface1;"),
+                TestUtils.makeInterfaceDef("Liface/iface1;"),
 
-                        // a more complex interface tree
-                        TestUtils.makeInterfaceDef("Liface/base1;"),
-                        // implements undefined interface
-                        TestUtils.makeInterfaceDef("Liface/sub1;", "Liface/base1;", "Liface/base2;"),
-                        // this implements sub1, so that its interfaces can't be fully resolved either
-                        TestUtils.makeInterfaceDef("Liface/sub2;", "Liface/base1;", "Liface/sub1;"),
-                        TestUtils.makeInterfaceDef("Liface/sub3;", "Liface/base1;"),
-                        TestUtils.makeInterfaceDef("Liface/sub4;", "Liface/base1;", "Liface/sub3;"),
-                        TestUtils.makeClassDef("Liface/classsub1;", "Ljava/lang/Object;", "Liface/sub1;"),
-                        TestUtils.makeClassDef("Liface/classsub2;", "Ljava/lang/Object;", "Liface/sub2;"),
-                        TestUtils.makeClassDef("Liface/classsub3;", "Ljava/lang/Object;", "Liface/sub3;",
-                                "Liface/base;"),
-                        TestUtils.makeClassDef("Liface/classsub4;", "Ljava/lang/Object;", "Liface/sub3;",
-                                "Liface/sub4;"),
-                        TestUtils.makeClassDef("Liface/classsubsub4;", "Liface/classsub4;"),
-                        TestUtils.makeClassDef("Liface/classsub1234;", "Ljava/lang/Object;", "Liface/sub1;",
-                                "Liface/sub2;", "Liface/sub3;", "Liface/sub4;")
-        ))));
+                // a more complex interface tree
+                TestUtils.makeInterfaceDef("Liface/base1;"),
+                // implements undefined interface
+                TestUtils.makeInterfaceDef("Liface/sub1;", "Liface/base1;", "Liface/base2;"),
+                // this implements sub1, so that its interfaces can't be fully resolved either
+                TestUtils.makeInterfaceDef("Liface/sub2;", "Liface/base1;", "Liface/sub1;"),
+                TestUtils.makeInterfaceDef("Liface/sub3;", "Liface/base1;"),
+                TestUtils.makeInterfaceDef("Liface/sub4;", "Liface/base1;", "Liface/sub3;"),
+                TestUtils.makeClassDef("Liface/classsub1;", "Ljava/lang/Object;", "Liface/sub1;"),
+                TestUtils.makeClassDef("Liface/classsub2;", "Ljava/lang/Object;", "Liface/sub2;"),
+                TestUtils.makeClassDef("Liface/classsub3;", "Ljava/lang/Object;", "Liface/sub3;",
+                        "Liface/base;"),
+                TestUtils.makeClassDef("Liface/classsub4;", "Ljava/lang/Object;", "Liface/sub3;",
+                        "Liface/sub4;"),
+                TestUtils.makeClassDef("Liface/classsubsub4;", "Liface/classsub4;"),
+                TestUtils.makeClassDef("Liface/classsub1234;", "Ljava/lang/Object;", "Liface/sub1;",
+                        "Liface/sub2;", "Liface/sub3;", "Liface/sub4;"));
+
+        oldClassPath = new ClassPath(new DexClassProvider(new ImmutableDexFile(Opcodes.getDefault(), classes)));
+        newClassPath = new ClassPath(Lists.newArrayList(new DexClassProvider(
+                new ImmutableDexFile(Opcodes.forArtVersion(72), classes))), true, 72);
     }
 
-    public void superclassTest(String commonSuperclass,
-                                      String type1, String type2) {
+    public void superclassTest(ClassPath classPath, String commonSuperclass,
+                               String type1, String type2) {
         TypeProto commonSuperclassProto = classPath.getClass(commonSuperclass);
         TypeProto type1Proto = classPath.getClass(type1);
         TypeProto type2Proto = classPath.getClass(type2);
 
         Assert.assertSame(commonSuperclassProto, type1Proto.getCommonSuperclass(type2Proto));
         Assert.assertSame(commonSuperclassProto, type2Proto.getCommonSuperclass(type1Proto));
+    }
+
+    public void superclassTest(String commonSuperclass, String type1, String type2) {
+        superclassTest(oldClassPath, commonSuperclass, type1, type2);
+        superclassTest(newClassPath, commonSuperclass, type1, type2);
     }
 
     @Test
@@ -131,7 +142,11 @@ public class CommonSuperclassTest {
         // same value, but different object
         Assert.assertEquals(
                 onetwo,
-                classPath.getClass(onetwo).getCommonSuperclass(new ClassProto(classPath, onetwo)).getType());
+                oldClassPath.getClass(onetwo).getCommonSuperclass(new ClassProto(oldClassPath, onetwo)).getType());
+
+        Assert.assertEquals(
+                onetwo,
+                newClassPath.getClass(onetwo).getCommonSuperclass(new ClassProto(newClassPath, onetwo)).getType());
 
         // other object is superclass
         superclassTest(object, object, one);

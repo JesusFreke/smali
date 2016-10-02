@@ -41,8 +41,8 @@ buildscript {
 dependencies {
     compile project(':util')
     compile project(':dexlib2')
-    compile depends.commons_cli
     compile depends.guava
+    compile depends.jcommander
 
     testCompile depends.junit
     testCompile project(':smali')
@@ -59,7 +59,7 @@ task fatJar(type: Jar) {
     classifier = 'fat'
 
     manifest {
-        attributes('Main-Class': 'org.jf.baksmali.main')
+        attributes('Main-Class': 'org.jf.baksmali.Main')
     }
 
     doLast {
@@ -92,7 +92,7 @@ task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
     dontobfuscate
     dontoptimize
 
-    keep 'public class org.jf.baksmali.main { public static void main(java.lang.String[]); }'
+    keep 'public class org.jf.baksmali.Main { public static void main(java.lang.String[]); }'
     keepclassmembers 'enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
 
     dontwarn 'com.google.common.**'
@@ -100,3 +100,17 @@ task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
 }
 
 tasks.getByPath(':release').dependsOn(proguard)
+
+task fastbuild(dependsOn: build) {
+}
+
+task fb(dependsOn: fastbuild) {
+}
+
+tasks.getByPath('javadoc').onlyIf({
+    !gradle.taskGraph.hasTask(fastbuild)
+})
+
+tasks.getByPath('test').onlyIf({
+    !gradle.taskGraph.hasTask(fastbuild)
+})

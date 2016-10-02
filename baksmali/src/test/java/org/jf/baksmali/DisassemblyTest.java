@@ -57,10 +57,10 @@ public class DisassemblyTest extends DexTest {
     }
 
     protected void runTest(@Nonnull String testName) {
-        runTest(testName, new baksmaliOptions());
+        runTest(testName, new BaksmaliOptions());
     }
 
-    protected void runTest(@Nonnull String testName, @Nonnull baksmaliOptions options) {
+    protected void runTest(@Nonnull String testName, @Nonnull BaksmaliOptions options) {
         try {
             DexBackedDexFile inputDex = getInputDexFile(testName, options);
             Assert.assertEquals(1, inputDex.getClassCount());

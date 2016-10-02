@@ -31,19 +31,35 @@
 
 package org.jf.baksmali;
 
-import com.google.common.collect.Lists;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
-import javax.annotation.Nullable;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class baksmaliOptions {
+public class BaksmaliOptions {
+    public int apiLevel = 15;
+
+    public boolean parameterRegisters = true;
+    public boolean localsDirective = false;
+    public boolean sequentialLabels = false;
+    public boolean debugInfo = true;
+    public boolean codeOffsets = false;
+    public boolean accessorComments = true;
+    public boolean allowOdex = false;
+    public boolean deodex = false;
+    public boolean implicitReferences = false;
+    public boolean normalizeVirtualMethods = false;
+
     // register info values
     public static final int ALL = 1;
     public static final int ALLPRE = 2;
@@ -53,56 +69,40 @@ public class baksmaliOptions {
     public static final int MERGE = 32;
     public static final int FULLMERGE = 64;
 
-    public int apiLevel = 15;
-    public String outputDirectory = "out";
-    @Nullable public String dexEntry = null;
-    public List<String> bootClassPathDirs = Lists.newArrayList();
-
-    public List<String> bootClassPathEntries = Lists.newArrayList();
-    public List<String> extraClassPathEntries = Lists.newArrayList();
-
-    public Map<String,String> resourceIdFileEntries = new HashMap<String,String>();
-    public Map<Integer,String> resourceIds = new HashMap<Integer,String>();
-
-    public boolean noParameterRegisters = false;
-    public boolean useLocalsDirective = false;
-    public boolean useSequentialLabels = false;
-    public boolean outputDebugInfo = true;
-    public boolean addCodeOffsets = false;
-    public boolean noAccessorComments = false;
-    public boolean allowOdex = false;
-    public boolean deodex = false;
-    public boolean experimental = false;
-    public boolean ignoreErrors = false;
-    public boolean checkPackagePrivateAccess = false;
-    public boolean useImplicitReferences = false;
-    public boolean normalizeVirtualMethods = false;
-    public File customInlineDefinitions = null;
-    public InlineMethodResolver inlineResolver = null;
     public int registerInfo = 0;
-    public ClassPath classPath = null;
-    public int jobs = Runtime.getRuntime().availableProcessors();
-    public boolean disassemble = true;
-    public boolean dump = false;
-    public String dumpFileName = null;
 
+    public Map<Integer,String> resourceIds = new HashMap<Integer,String>();
+    public InlineMethodResolver inlineResolver = null;
+    public ClassPath classPath = null;
     public SyntheticAccessorResolver syntheticAccessorResolver = null;
 
-    public void setBootClassPath(String bootClassPath) {
-        bootClassPathEntries = Lists.newArrayList(bootClassPath.split(":"));
-    }
-
-    public void addExtraClassPath(String extraClassPath) {
-        if (extraClassPath.startsWith(":")) {
-            extraClassPath = extraClassPath.substring(1);
-        }
-        extraClassPathEntries.addAll(Arrays.asList(extraClassPath.split(":")));
-    }
-
-    public void setResourceIdFiles(String resourceIdFiles) {
-        for (String resourceIdFile: resourceIdFiles.split(":")) {
-            String[] entry = resourceIdFile.split("=");
-            resourceIdFileEntries.put(entry[1], entry[0]);
+    /**
+     * Load the resource ids from a set of public.xml files.
+     *
+     * @param resourceFiles A map of resource prefixes -> public.xml files
+     */
+    public void loadResourceIds(Map<String, File> resourceFiles) throws SAXException, IOException {
+        for (Map.Entry<String, File> entry: resourceFiles.entrySet()) {
+            try {
+                SAXParser saxp = SAXParserFactory.newInstance().newSAXParser();
+                final String prefix = entry.getKey();
+                saxp.parse(entry.getValue(), new DefaultHandler() {
+                    @Override
+                    public void startElement(String uri, String localName, String qName,
+                                             Attributes attr) throws SAXException {
+                        if (qName.equals("public")) {
+                            String resourceType = attr.getValue("type");
+                            String resourceName = attr.getValue("name").replace('.', '_');
+                            Integer resourceId = Integer.decode(attr.getValue("id"));
+                            String qualifiedResourceName =
+                                    String.format("%s.%s.%s", prefix, resourceType, resourceName);
+                            resourceIds.put(resourceId, qualifiedResourceName);
+                        }
+                    }
+                });
+            } catch (ParserConfigurationException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 }

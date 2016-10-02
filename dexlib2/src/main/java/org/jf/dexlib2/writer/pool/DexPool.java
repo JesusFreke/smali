@@ -56,16 +56,11 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
         EncodedValue, AnnotationElement> {
 
-    @Nonnull
-    public static DexPool makeDexPool() {
-        return makeDexPool(Opcodes.forApi(20));
-    }
-
-    @Deprecated
-    @Nonnull
-    public static DexPool makeDexPool(int api) {
-        return makeDexPool(Opcodes.forApi(api));
-    }
+    private final Markable[] sections = new Markable[] {
+            (Markable)stringSection, (Markable)typeSection, (Markable)protoSection, (Markable)fieldSection,
+            (Markable)methodSection, (Markable)classSection, (Markable)typeListSection, (Markable)annotationSection,
+            (Markable)annotationSetSection
+    };
 
     @Nonnull
     public static DexPool makeDexPool(@Nonnull Opcodes opcodes) {
@@ -84,27 +79,58 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
                 annotationPool, annotationSetPool);
     }
 
-    private DexPool(Opcodes opcodes, StringPool stringPool, TypePool typePool, ProtoPool protoPool, FieldPool fieldPool,
-                    MethodPool methodPool, ClassPool classPool, TypeListPool typeListPool,
-                    AnnotationPool annotationPool, AnnotationSetPool annotationSetPool) {
+    protected DexPool(Opcodes opcodes, StringPool stringPool, TypePool typePool, ProtoPool protoPool,
+                      FieldPool fieldPool, MethodPool methodPool, ClassPool classPool, TypeListPool typeListPool,
+                      AnnotationPool annotationPool, AnnotationSetPool annotationSetPool) {
         super(opcodes, stringPool, typePool, protoPool, fieldPool, methodPool,
                 classPool, typeListPool, annotationPool, annotationSetPool);
     }
 
-    public static void writeTo(@Nonnull DexDataStore dataStore, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
-        DexPool dexPool = makeDexPool();
+    public static void writeTo(@Nonnull DexDataStore dataStore, @Nonnull org.jf.dexlib2.iface.DexFile input)
+            throws IOException {
+        DexPool dexPool = makeDexPool(input.getOpcodes());
         for (ClassDef classDef: input.getClasses()) {
-            ((ClassPool)dexPool.classSection).intern(classDef);
+            dexPool.internClass(classDef);
         }
         dexPool.writeTo(dataStore);
     }
 
     public static void writeTo(@Nonnull String path, @Nonnull org.jf.dexlib2.iface.DexFile input) throws IOException {
-        DexPool dexPool = makeDexPool();
+        DexPool dexPool = makeDexPool(input.getOpcodes());
         for (ClassDef classDef: input.getClasses()) {
-            ((ClassPool)dexPool.classSection).intern(classDef);
+            dexPool.internClass(classDef);
         }
         dexPool.writeTo(new FileDataStore(new File(path)));
+    }
+
+    /**
+     * Interns a class into this DexPool
+     * @param classDef The class to intern
+     */
+    public void internClass(ClassDef classDef) {
+        ((ClassPool)classSection).intern(classDef);
+    }
+
+    /**
+     * Creates a marked state that can be returned to by calling reset()
+     *
+     * This is useful to rollback the last added class if it causes a method/field/type overflow
+     */
+    public void mark() {
+        for (Markable section: sections) {
+            section.mark();
+        }
+    }
+
+    /**
+     * Resets to the last marked state
+     *
+     * This is useful to rollback the last added class if it causes a method/field/type overflow
+     */
+    public void reset() {
+        for (Markable section: sections) {
+            section.reset();
+        }
     }
 
     @Override protected void writeEncodedValue(@Nonnull InternalEncodedValueWriter writer,
@@ -165,7 +191,7 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         }
     }
 
-    public static void internEncodedValue(@Nonnull EncodedValue encodedValue,
+    static void internEncodedValue(@Nonnull EncodedValue encodedValue,
                                           @Nonnull StringPool stringPool,
                                           @Nonnull TypePool typePool,
                                           @Nonnull FieldPool fieldPool,

@@ -30,9 +30,9 @@
  */
 
 dependencies {
-    compile depends.commons_cli
     compile depends.findbugs
     compile depends.guava
+    compile depends.jcommander
     testCompile depends.junit
 }
 

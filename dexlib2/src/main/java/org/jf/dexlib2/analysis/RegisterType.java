@@ -235,7 +235,7 @@ public class RegisterType {
             case '[':
                 return getRegisterType(REFERENCE, classPath.getClass(type));
             default:
-                throw new ExceptionWithContext("Invalid type: " + type);
+                throw new AnalysisException("Invalid type: " + type);
         }
     }
 

@@ -36,6 +36,7 @@ import com.google.common.io.Resources;
 import junit.framework.Assert;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
@@ -85,14 +86,14 @@ public class AnalysisTest {
     public void runTest(String test, boolean registerInfo) throws IOException, URISyntaxException {
         String dexFilePath = String.format("%s%sclasses.dex", test, File.separatorChar);
 
-        DexFile dexFile = DexFileFactory.loadDexFile(findResource(dexFilePath), 15, false);
+        DexFile dexFile = DexFileFactory.loadDexFile(findResource(dexFilePath), Opcodes.getDefault());
 
-        baksmaliOptions options = new baksmaliOptions();
+        BaksmaliOptions options = new BaksmaliOptions();
         if (registerInfo) {
-            options.registerInfo = baksmaliOptions.ALL | baksmaliOptions.FULLMERGE;
+            options.registerInfo = BaksmaliOptions.ALL | BaksmaliOptions.FULLMERGE;
             options.classPath = new ClassPath();
         }
-        options.useImplicitReferences = false;
+        options.implicitReferences = false;
 
         for (ClassDef classDef: dexFile.getClasses()) {
             StringWriter stringWriter = new StringWriter();

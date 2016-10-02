@@ -33,9 +33,15 @@ package org.jf.dexlib2.dexbacked;
 
 import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.dexbacked.raw.*;
+import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedStringReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedTypeReference;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -43,6 +49,8 @@ import javax.annotation.Nullable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.AbstractList;
+import java.util.List;
 import java.util.Set;
 
 public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
@@ -61,7 +69,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int classCount;
     private final int classStartOffset;
 
-    private DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
+    protected DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
         super(buf, offset);
 
         this.opcodes = opcodes;
@@ -85,7 +93,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     }
 
     public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
-        this(opcodes, buf.buf);
+        this(opcodes, buf.buf, buf.baseOffset);
     }
 
     public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset) {
@@ -96,6 +104,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         this(opcodes, buf, 0, true);
     }
 
+    @Nonnull
     public static DexBackedDexFile fromInputStream(@Nonnull Opcodes opcodes, @Nonnull InputStream is)
             throws IOException {
         if (!is.markSupported()) {
@@ -148,7 +157,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         };
     }
 
-    private static void verifyMagicAndByteOrder(@Nonnull byte[] buf, int offset) {
+    protected static void verifyMagicAndByteOrder(@Nonnull byte[] buf, int offset) {
         if (!HeaderItem.verifyMagic(buf, offset)) {
             StringBuilder sb = new StringBuilder("Invalid magic value:");
             for (int i=0; i<8; i++) {
@@ -263,6 +272,81 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
             return null;
         }
         return getType(typeIndex);
+    }
+
+    public List<DexBackedStringReference> getStrings() {
+        return new AbstractList<DexBackedStringReference>() {
+            @Override public DexBackedStringReference get(int index) {
+                if (index < 0 || index >= getStringCount()) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return new DexBackedStringReference(DexBackedDexFile.this, index);
+            }
+
+            @Override public int size() {
+                return getStringCount();
+            }
+        };
+    }
+
+    public List<DexBackedTypeReference> getTypes() {
+        return new AbstractList<DexBackedTypeReference>() {
+            @Override public DexBackedTypeReference get(int index) {
+                if (index < 0 || index >= getTypeCount()) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return new DexBackedTypeReference(DexBackedDexFile.this, index);
+            }
+
+            @Override public int size() {
+                return getTypeCount();
+            }
+        };
+    }
+
+    public List<DexBackedMethodReference> getMethods() {
+        return new AbstractList<DexBackedMethodReference>() {
+            @Override public DexBackedMethodReference get(int index) {
+                if (index < 0 || index >= getMethodCount()) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return new DexBackedMethodReference(DexBackedDexFile.this, index);
+            }
+
+            @Override public int size() {
+                return getMethodCount();
+            }
+        };
+    }
+
+    public List<DexBackedFieldReference> getFields() {
+        return new AbstractList<DexBackedFieldReference>() {
+            @Override public DexBackedFieldReference get(int index) {
+                if (index < 0 || index >= getFieldCount()) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return new DexBackedFieldReference(DexBackedDexFile.this, index);
+            }
+
+            @Override public int size() {
+                return getFieldCount();
+            }
+        };
+    }
+
+    public List<? extends Reference> getReferences(int referenceType) {
+        switch (referenceType) {
+            case ReferenceType.STRING:
+                return getStrings();
+            case ReferenceType.TYPE:
+                return getTypes();
+            case ReferenceType.METHOD:
+                return getMethods();
+            case ReferenceType.FIELD:
+                return getFields();
+            default:
+                throw new IllegalArgumentException(String.format("Invalid reference type: %d", referenceType));
+        }
     }
 
     @Override

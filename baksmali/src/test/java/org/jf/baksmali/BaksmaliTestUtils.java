@@ -48,10 +48,9 @@ import java.io.StringWriter;
 
 public class BaksmaliTestUtils {
     public static void assertSmaliCompiledEquals(String source, String expected,
-            baksmaliOptions options, boolean stripComments) throws IOException,
+                                                 BaksmaliOptions options, boolean stripComments) throws IOException,
             RecognitionException {
-        ClassDef classDef = SmaliTestUtils.compileSmali(source, options.apiLevel,
-                options.experimental);
+        ClassDef classDef = SmaliTestUtils.compileSmali(source, options.apiLevel);
 
         // Remove unnecessary whitespace and optionally strip all comments from smali file
         String normalizedActual = getNormalizedSmali(classDef, options, stripComments);
@@ -62,13 +61,13 @@ public class BaksmaliTestUtils {
     }
 
     public static void assertSmaliCompiledEquals(String source, String expected,
-            baksmaliOptions options) throws IOException, RecognitionException {
+            BaksmaliOptions options) throws IOException, RecognitionException {
         assertSmaliCompiledEquals(source, expected, options, false);
     }
 
     public static void assertSmaliCompiledEquals(String source, String expected)
             throws IOException, RecognitionException {
-        baksmaliOptions options = new baksmaliOptions();
+        BaksmaliOptions options = new BaksmaliOptions();
         assertSmaliCompiledEquals(source, expected, options);
     }
 
@@ -81,7 +80,7 @@ public class BaksmaliTestUtils {
     }
 
     @Nonnull
-    public static String getNormalizedSmali(@Nonnull ClassDef classDef, @Nonnull baksmaliOptions options,
+    public static String getNormalizedSmali(@Nonnull ClassDef classDef, @Nonnull BaksmaliOptions options,
                                             boolean stripComments)
             throws IOException {
         StringWriter stringWriter = new StringWriter();

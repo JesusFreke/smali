@@ -33,6 +33,7 @@ package org.jf.dexlib2.base.reference;
 
 import com.google.common.collect.Ordering;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.CharSequenceUtils;
 import org.jf.util.CollectionUtils;
 
@@ -69,5 +70,9 @@ public abstract class BaseMethodReference implements MethodReference {
         res = getReturnType().compareTo(o.getReturnType());
         if (res != 0) return res;
         return CollectionUtils.compareAsIterable(Ordering.usingToString(), getParameterTypes(), o.getParameterTypes());
+    }
+
+    @Override public String toString() {
+        return ReferenceUtil.getMethodDescriptor(this);
     }
 }

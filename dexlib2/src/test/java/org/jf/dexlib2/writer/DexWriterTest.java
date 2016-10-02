@@ -72,12 +72,12 @@ public class DexWriterTest {
         MemoryDataStore dataStore = new MemoryDataStore();
 
         try {
-            DexPool.writeTo(dataStore, new ImmutableDexFile(Opcodes.forApi(19), ImmutableSet.of(classDef)));
+            DexPool.writeTo(dataStore, new ImmutableDexFile(Opcodes.getDefault(), ImmutableSet.of(classDef)));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
 
-        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(15), dataStore.getData());
+        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.getDefault(), dataStore.getData());
         ClassDef dbClassDef = Iterables.getFirst(dexFile.getClasses(), null);
         Assert.assertNotNull(dbClassDef);
         Annotation dbAnnotation = Iterables.getFirst(dbClassDef.getAnnotations(), null);
@@ -112,12 +112,12 @@ public class DexWriterTest {
         MemoryDataStore dataStore = new MemoryDataStore();
 
         try {
-            DexPool.writeTo(dataStore, new ImmutableDexFile(Opcodes.forApi(19), ImmutableSet.of(classDef)));
+            DexPool.writeTo(dataStore, new ImmutableDexFile(Opcodes.getDefault(), ImmutableSet.of(classDef)));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
 
-        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(15), dataStore.getData());
+        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.getDefault(), dataStore.getData());
         ClassDef dbClassDef = Iterables.getFirst(dexFile.getClasses(), null);
         Assert.assertNotNull(dbClassDef);
         Annotation dbAnnotation = Iterables.getFirst(dbClassDef.getAnnotations(), null);

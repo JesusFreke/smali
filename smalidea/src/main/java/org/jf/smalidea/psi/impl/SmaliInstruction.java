@@ -76,7 +76,7 @@ public class SmaliInstruction extends SmaliCompositeElement {
             assert instructionNode != null;
 
             // TODO: put a project level Opcodes instance with the appropriate api level somewhere
-            opcode = new Opcodes(15, false).getOpcodeByName(instructionNode.getText());
+            opcode = Opcodes.getDefault().getOpcodeByName(instructionNode.getText());
             if (opcode == null) {
                 if (instructionNode.getText().equals(".packed-switch")) {
                     return Opcode.PACKED_SWITCH_PAYLOAD;

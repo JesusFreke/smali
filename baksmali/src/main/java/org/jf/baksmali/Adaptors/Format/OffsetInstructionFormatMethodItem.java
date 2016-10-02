@@ -30,7 +30,7 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.LabelMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.baksmali.baksmaliOptions;
+import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;
 import org.jf.util.IndentingWriter;
@@ -41,7 +41,7 @@ import java.io.IOException;
 public class OffsetInstructionFormatMethodItem extends InstructionMethodItem<OffsetInstruction> {
     protected LabelMethodItem label;
 
-    public OffsetInstructionFormatMethodItem(@Nonnull baksmaliOptions options, @Nonnull MethodDefinition methodDef,
+    public OffsetInstructionFormatMethodItem(@Nonnull BaksmaliOptions options, @Nonnull MethodDefinition methodDef,
                                              int codeAddress, OffsetInstruction instruction) {
         super(methodDef, codeAddress, instruction);
 

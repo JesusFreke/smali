@@ -36,6 +36,6 @@ import org.junit.Test;
 public class InterfaceOrderTest extends IdenticalRoundtripTest {
     @Test
     public void testInterfaceOrder() {
-        runTest("InterfaceOrder", new baksmaliOptions());
+        runTest("InterfaceOrder", new BaksmaliOptions());
     }
 }

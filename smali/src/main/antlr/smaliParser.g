@@ -263,8 +263,8 @@ import org.jf.dexlib2.Opcodes;
       this.allowOdex = allowOdex;
   }
 
-  public void setApiLevel(int apiLevel, boolean experimental) {
-      this.opcodes = new Opcodes(apiLevel, experimental);
+  public void setApiLevel(int apiLevel) {
+      this.opcodes = Opcodes.forApi(apiLevel);
       this.apiLevel = apiLevel;
   }
 

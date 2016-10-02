@@ -39,6 +39,10 @@ import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.HashMap;
 
+import static org.jf.dexlib2.VersionMap.NO_VERSION;
+import static org.jf.dexlib2.VersionMap.mapApiToArtVersion;
+import static org.jf.dexlib2.VersionMap.mapArtVersionToApi;
+
 public class Opcodes {
 
     /**
@@ -52,37 +56,36 @@ public class Opcodes {
 
     @Nonnull
     public static Opcodes forApi(int api) {
-        return new Opcodes(api, VersionMap.mapApiToArtVersion(api), false);
-    }
-
-    @Nonnull
-    public static Opcodes forApi(int api, boolean experimental) {
-        return new Opcodes(api, VersionMap.mapApiToArtVersion(api), experimental);
+        return new Opcodes(api, NO_VERSION);
     }
 
     @Nonnull
     public static Opcodes forArtVersion(int artVersion) {
-        return forArtVersion(artVersion, false);
+        return new Opcodes(NO_VERSION, artVersion);
     }
 
+    /**
+     * @return a default Opcodes instance for when the exact Opcodes to use doesn't matter or isn't known
+     */
     @Nonnull
-    public static Opcodes forArtVersion(int artVersion, boolean experimental) {
-        return new Opcodes(VersionMap.mapArtVersionToApi(artVersion), artVersion, experimental);
+    public static Opcodes getDefault() {
+        // The last pre-art api
+        return forApi(20);
     }
 
-    @Deprecated
-    public Opcodes(int api) {
-        this(api, false);
-    }
+    private Opcodes(int api, int artVersion) {
 
-    @Deprecated
-    public Opcodes(int api, boolean experimental) {
-        this(api, VersionMap.mapApiToArtVersion(api), experimental);
-    }
 
-    private Opcodes(int api, int artVersion, boolean experimental) {
-        this.api = api;
-        this.artVersion = artVersion;
+        if (api >= 21) {
+            this.api = api;
+            this.artVersion = mapApiToArtVersion(api);
+        } else if (artVersion >= 0 && artVersion < 39) {
+            this.api = mapArtVersionToApi(artVersion);
+            this.artVersion = artVersion;
+        } else {
+            this.api = api;
+            this.artVersion = artVersion;
+        }
 
         opcodeValues = new EnumMap<Opcode, Short>(Opcode.class);
         opcodesByName = Maps.newHashMap();
@@ -104,7 +107,7 @@ public class Opcodes {
             }
 
             Short opcodeValue = versionToValueMap.get(version);
-            if (opcodeValue != null && (!opcode.isExperimental() || experimental)) {
+            if (opcodeValue != null) {
                 if (!opcode.format.isPayloadFormat) {
                     opcodesByValue[opcodeValue] = opcode;
                 }
@@ -142,6 +145,6 @@ public class Opcodes {
     }
 
     public boolean isArt() {
-        return artVersion != VersionMap.NO_VERSION;
+        return artVersion != NO_VERSION;
     }
 }

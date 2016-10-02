@@ -36,17 +36,7 @@ public class SmaliOptions {
     public String outputDexFile = "out.dex";
 
     public int jobs = Runtime.getRuntime().availableProcessors();
-    public boolean allowOdex = false;
+    public boolean allowOdexOpcodes = false;
     public boolean verboseErrors = false;
     public boolean printTokens = false;
-    public boolean experimental = false;
-
-    public boolean listMethods = false;
-    public String methodListFilename = null;
-
-    public boolean listFields = false;
-    public String fieldListFilename = null;
-
-    public boolean listTypes = false;
-    public String typeListFilename = null;
 }

@@ -51,6 +51,7 @@ dependencies {
     compile depends.guava
 
     testCompile depends.junit
+    testCompile depends.mockito
 
     accessorTestGenerator project('accessorTestGenerator')
 

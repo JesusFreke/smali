@@ -62,7 +62,7 @@ import java.util.List;
 public class JumboStringConversionTest {
     @Test
     public void testJumboStringConversion() throws IOException {
-        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.forApi(15));
+        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.getDefault());
 
         MethodImplementationBuilder methodBuilder = new MethodImplementationBuilder(1);
         for (int i=0; i<66000; i++) {
@@ -92,7 +92,7 @@ public class JumboStringConversionTest {
         MemoryDataStore dexStore = new MemoryDataStore();
         dexBuilder.writeTo(dexStore);
 
-        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(15), dexStore.getData());
+        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.getDefault(), dexStore.getData());
 
         ClassDef classDef = Iterables.getFirst(dexFile.getClasses(), null);
         Assert.assertNotNull(classDef);
@@ -122,7 +122,7 @@ public class JumboStringConversionTest {
 
     @Test
     public void testJumboStringConversion_NonMethodBuilder() throws IOException {
-        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.forApi(15));
+        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.getDefault());
 
         final List<Instruction> instructions = Lists.newArrayList();
         for (int i=0; i<66000; i++) {
@@ -189,7 +189,7 @@ public class JumboStringConversionTest {
         MemoryDataStore dexStore = new MemoryDataStore();
         dexBuilder.writeTo(dexStore);
 
-        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(15), dexStore.getData());
+        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.getDefault(), dexStore.getData());
 
         ClassDef classDef = Iterables.getFirst(dexFile.getClasses(), null);
         Assert.assertNotNull(classDef);

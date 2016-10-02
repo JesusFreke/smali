@@ -32,6 +32,7 @@
 package org.jf.dexlib2.base.reference;
 
 import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.util.ReferenceUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,5 +64,9 @@ public abstract class BaseFieldReference implements FieldReference {
         res = getName().compareTo(o.getName());
         if (res != 0) return res;
         return getType().compareTo(o.getType());
+    }
+
+    @Override public String toString() {
+        return ReferenceUtil.getFieldDescriptor(this);
     }
 }

@@ -92,4 +92,8 @@ class BuilderTypePool implements TypeSection<BuilderStringReference, BuilderType
             }
         };
     }
+
+    @Override public int getItemCount() {
+        return internedItems.size();
+    }
 }

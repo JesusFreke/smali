@@ -45,18 +45,6 @@ public class ImmutableDexFile implements DexFile {
     @Nonnull protected final ImmutableSet<? extends ImmutableClassDef> classes;
     @Nonnull private final Opcodes opcodes;
 
-    @Deprecated
-    public ImmutableDexFile(@Nullable Collection<? extends ClassDef> classes) {
-        this.classes = ImmutableClassDef.immutableSetOf(classes);
-        this.opcodes = Opcodes.forApi(19);
-    }
-
-    @Deprecated
-    public ImmutableDexFile(@Nullable ImmutableSet<? extends ImmutableClassDef> classes) {
-        this.classes = ImmutableUtils.nullToEmptySet(classes);
-        this.opcodes = Opcodes.forApi(19);
-    }
-
     public ImmutableDexFile(@Nonnull Opcodes opcodes, @Nullable Collection<? extends ClassDef> classes) {
         this.classes = ImmutableClassDef.immutableSetOf(classes);
         this.opcodes = opcodes;
