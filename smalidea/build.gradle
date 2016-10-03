@@ -34,15 +34,20 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        maven {
+            url 'http://dl.bintray.com/jetbrains/intellij-plugin-service'
+        }
+
     }
     dependencies {
-        classpath 'gradle.plugin.org.jetbrains:gradle-intellij-plugin:0.0.40'
+        classpath "gradle.plugin.org.jetbrains:gradle-intellij-plugin:0.1.10"
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'antlr'
+
 
 version = '0.03'
 
@@ -86,10 +91,8 @@ if (System.env.JDK7_HOME != null) {
 
 def sandboxDir = "${buildDir}/sandbox"
 
-// We don't want to use the org.jetbrains.intellij plugin when generating the idea project files,
-// so that idea classes aren't included as project dependencies, since they will already exist
-// in the plugin sdk defined for the project
 if (!('idea' in gradle.startParameter.taskNames)) {
+
     apply plugin: 'org.jetbrains.intellij'
 
     intellij {
@@ -106,8 +109,8 @@ if (!('idea' in gradle.startParameter.taskNames)) {
     task ideaDirs() {
         project.afterEvaluate {
             if (intellij != null) {
-                println "IDEA Plugin jdk: ${intellij.ideaDirectory}"
-                println "sources: ${project.configurations['intellij-sources'].files[0]}"
+                println "IDEA Plugin jdk: ${intellij.ideaDependency.classes}"
+                println "sources: ${intellij.ideaDependency.getSources()}"
             }
         }
     }
@@ -115,13 +118,8 @@ if (!('idea' in gradle.startParameter.taskNames)) {
     dependencies {
         compile files("${System.properties['java.home']}/../lib/tools.jar")
     }
-} else {
-    // If we're running the idea task, let's make sure nothing else is being run, since
-    // we have to use a special configuration for the idea task
-    if (gradle.startParameter.taskNames.size() > 1) {
-        throw new InvalidUserDataException("The idea task must be run by itself.")
-    }
 
+} else {
     project(':') {
         idea {
             project {
@@ -209,13 +207,15 @@ dependencies {
 }
 
 task extractTokens(type: org.gradle.api.tasks.Copy, dependsOn: ':smali:build') {
-    def allArtifacts = configurations.default.resolvedConfiguration.resolvedArtifacts
-    def smaliArtifact = allArtifacts.find { it.moduleVersion.id.name.equals('smali') }
+    project.afterEvaluate {
+        def allArtifacts = configurations.default.resolvedConfiguration.resolvedArtifacts
+        def smaliArtifact = allArtifacts.find { it.moduleVersion.id.name.equals('smali') }
 
-    from(zipTree(smaliArtifact.file)) {
-        include '**/*.tokens'
+        from(zipTree(smaliArtifact.file)) {
+            include '**/*.tokens'
+        }
+        into "${buildDir}/tokens"
     }
-    into "${buildDir}/tokens"
 }
 
 generateGrammarSource {
@@ -225,7 +225,6 @@ generateGrammarSource {
     outputDirectory(file("${buildDir}/generated-src/antlr/main/org/jf/smalidea"))
 }
 generateGrammarSource.dependsOn(extractTokens)
-
 ideaModule.dependsOn(generateGrammarSource)
 
 task release(dependsOn: 'buildPlugin') {
