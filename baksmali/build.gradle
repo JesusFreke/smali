@@ -94,6 +94,7 @@ task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
 
     keep 'public class org.jf.baksmali.Main { public static void main(java.lang.String[]); }'
     keep 'public class org.jf.util.jcommander.ColonParameterSplitter'
+    keep 'class com.beust.jcommander.** { *; }'
     keepclassmembers 'enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
 
     dontwarn 'com.google.common.**'
