@@ -70,6 +70,10 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
         this.opcodes = opcodes;
     }
 
+    @Nonnull @Override public Opcodes getOpcodes() {
+        return opcodes;
+    }
+
     /**
      * Gets a list of the names of dex files in this zip file.
      *

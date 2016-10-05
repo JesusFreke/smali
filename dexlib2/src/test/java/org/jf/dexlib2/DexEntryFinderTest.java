@@ -223,5 +223,9 @@ public class DexEntryFinderTest {
             }
             return null;
         }
+
+        @Nonnull @Override public Opcodes getOpcodes() {
+            return Opcodes.getDefault();
+        }
     }
 }

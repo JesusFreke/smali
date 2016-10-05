@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.iface;
 
+import org.jf.dexlib2.Opcodes;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -52,6 +54,11 @@ public interface MultiDexContainer<T extends DexFile> {
      * @return A DexFile, or null if no entry with that name is found
      */
     @Nullable T getEntry(@Nonnull String entryName) throws IOException;
+
+    /**
+     * @return the Opcodes instance associated with this MultiDexContainer
+     */
+    @Nonnull Opcodes getOpcodes();
 
     /**
      * This class represents a dex file that is contained in a MultiDexContainer
