@@ -151,7 +151,7 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
         }
     }
 
-    private boolean isDex(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
+    protected boolean isDex(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
         InputStream inputStream = zipFile.getInputStream(zipEntry);
         try {
             inputStream.mark(44);
@@ -173,7 +173,7 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
         }
     }
 
-    private ZipFile getZipFile() throws IOException {
+    protected ZipFile getZipFile() throws IOException {
         try {
             return new ZipFile(zipFilePath);
         } catch (IOException ex) {
@@ -182,7 +182,7 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
     }
 
     @Nonnull
-    private ZipDexFile loadEntry(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
+    protected ZipDexFile loadEntry(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
         InputStream inputStream = zipFile.getInputStream(zipEntry);
         try {
             byte[] buf = ByteStreams.toByteArray(inputStream);
