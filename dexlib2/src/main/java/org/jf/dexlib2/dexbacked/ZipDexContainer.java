@@ -123,13 +123,22 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
     }
 
     public boolean isZipFile() {
+        ZipFile zipFile = null;
         try {
-            getZipFile();
+            zipFile = getZipFile();
             return true;
         } catch (IOException ex) {
             return false;
         } catch (NotAZipFileException ex) {
             return false;
+        } finally {
+            if(zipFile != null) {
+                try {
+                    zipFile.close();
+                } catch (IOException ex) {
+                    // just eat it
+                }
+            }
         }
     }
 
