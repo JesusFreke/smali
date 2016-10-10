@@ -122,14 +122,18 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
         }
     }
 
-    public boolean isZipFile() {
+    public boolean isZipFile() throws IOException {
+    	ZipFile zipFile = null;
         try {
-            getZipFile();
+            zipFile = getZipFile();
             return true;
         } catch (IOException ex) {
             return false;
         } catch (NotAZipFileException ex) {
             return false;
+        } finally {
+        	if(zipFile != null)
+        		zipFile.close();
         }
     }
 
