@@ -36,10 +36,8 @@ import org.jf.dexlib2.dexbacked.BaseDexBuffer;
 public class OdexHeaderItem {
     public static final int ITEM_SIZE = 40;
 
-    public static final byte[][] MAGIC_VALUES= new byte[][] {
-            new byte[] {0x64, 0x65, 0x79, 0x0A, 0x30, 0x33, 0x35, 0x00}, // "dey\n035\0"
-            new byte[] {0x64, 0x65, 0x79, 0x0A, 0x30, 0x33, 0x36, 0x00}  // "dey\n036\0"
-    };
+    private static final byte[] MAGIC_VALUE = new byte[] { 0x64, 0x65, 0x79, 0x0A, 0x00, 0x00, 0x00, 0x00 };
+    private static final int[] SUPPORTED_ODEX_VERSIONS = new int[] { 35, 36 };
 
     public static final int MAGIC_OFFSET = 0;
     public static final int MAGIC_LENGTH = 8;
@@ -51,31 +49,66 @@ public class OdexHeaderItem {
     public static final int AUX_LENGTH_OFFSET = 28;
     public static final int FLAGS_OFFSET = 32;
 
-    public static int getVersion(byte[] magic) {
-        if (magic.length < 8) {
-            return 0;
+    /**
+     * Verifies the magic value at the beginning of an odex file
+     *
+     * @param buf A byte array containing at least the first 8 bytes of an odex file
+     * @param offset The offset within the buffer to the beginning of the odex header
+     * @return True if the magic value is valid
+     */
+    public static boolean verifyMagic(byte[] buf, int offset) {
+        if (buf.length - offset < 8) {
+            return false;
         }
 
-        boolean matches = true;
-        for (int i=0; i<MAGIC_VALUES.length; i++) {
-            byte[] expected = MAGIC_VALUES[i];
-            matches = true;
-            for (int j=0; j<8; j++) {
-                if (magic[j] != expected[j]) {
-                    matches = false;
-                    break;
-                }
-            }
-            if (matches) {
-                return i==0?35:36;
+        for (int i=0; i<4; i++) {
+            if (buf[offset + i] != MAGIC_VALUE[i]) {
+                return false;
             }
         }
-        return 0;
+        for (int i=4; i<7; i++) {
+            if (buf[offset + i] < '0' ||
+                    buf[offset + i] > '9') {
+                return false;
+            }
+        }
+        if (buf[offset + 7] != MAGIC_VALUE[7]) {
+            return false;
+        }
+
+        return true;
     }
 
-    public static boolean verifyMagic(byte[] buf) {
-        // verifies the magic value
-        return getVersion(buf) != 0;
+    /**
+     * Gets the dex version from an odex header
+     *
+     * @param buf A byte array containing at least the first 7 bytes of an odex file
+     * @param offset The offset within the buffer to the beginning of the odex header
+     * @return The odex version if the header is valid or -1 if the header is invalid
+     */
+    public static int getVersion(byte[] buf, int offset) {
+        if (!verifyMagic(buf, offset)) {
+            return -1;
+        }
+
+        return getVersionUnchecked(buf, offset);
+    }
+
+    private static int getVersionUnchecked(byte[] buf, int offset) {
+        int version = (buf[offset + 4] - '0') * 100;
+        version += (buf[offset + 5] - '0') * 10;
+        version += buf[offset + 6] - '0';
+
+        return version;
+    }
+
+    public static boolean isSupportedOdexVersion(int version) {
+        for (int i=0; i<SUPPORTED_ODEX_VERSIONS.length; i++) {
+            if (SUPPORTED_ODEX_VERSIONS[i] == version) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int getDexOffset(byte[] buf) {

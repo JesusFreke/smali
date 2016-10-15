@@ -42,14 +42,8 @@ import javax.annotation.Nullable;
 public class HeaderItem {
     public static final int ITEM_SIZE = 0x70;
 
-    /**
-     * The magic numbers for dex files.
-     *
-     * They are: "dex\n035\0" and "dex\n037\0".
-     */
-    public static final byte[][] MAGIC_VALUES= new byte[][] {
-            new byte[]{0x64, 0x65, 0x78, 0x0a, 0x30, 0x33, 0x35, 0x00},
-            new byte[]{0x64, 0x65, 0x78, 0x0a, 0x30, 0x33, 0x37, 0x00}};
+    private static final byte[] MAGIC_VALUE = new byte[] { 0x64, 0x65, 0x78, 0x0a, 0x00, 0x00, 0x00, 0x00 };
+    private static final int[] SUPPORTED_DEX_VERSIONS = new int[] { 35, 37 };
 
     public static final int LITTLE_ENDIAN_TAG = 0x12345678;
     public static final int BIG_ENDIAN_TAG = 0x78563412;
@@ -230,48 +224,97 @@ public class HeaderItem {
         return "Invalid";
     }
 
-
     /**
-     * Get the higest magic number supported by Android for this api level.
+     * Get the highest magic number supported by Android for this api level.
      * @return The dex file magic number
      */
     public static byte[] getMagicForApi(int api) {
         if (api < 24) {
             // Prior to Android N we only support dex version 035.
-            return HeaderItem.MAGIC_VALUES[0];
+            return getMagicForDexVersion(35);
         } else {
             // On android N and later we support dex version 037.
-            return HeaderItem.MAGIC_VALUES[1];
+            return getMagicForDexVersion(37);
         }
     }
 
-    private static int getVersion(byte[] buf, int offset) {
-        if (buf.length - offset < 8) {
-            return 0;
+    public static byte[] getMagicForDexVersion(int dexVersion) {
+        byte[] magic = MAGIC_VALUE.clone();
+
+        if (dexVersion < 0 || dexVersion > 999) {
+            throw new IllegalArgumentException("dexVersion must be within [0, 999]");
         }
 
-        boolean matches = true;
-        for (int i=0; i<MAGIC_VALUES.length; i++) {
-            byte[] expected = MAGIC_VALUES[i];
-            matches = true;
-            for (int j=0; j<8; j++) {
-                if (buf[offset + j] != expected[j]) {
-                    matches = false;
-                    break;
-                }
-            }
-            if (matches) {
-                return i==0?35:37;
-            }
+        for (int i=6; i>=4; i--) {
+            int digit = dexVersion % 10;
+            magic[i] = (byte)('0' + digit);
+            dexVersion /= 10;
         }
-        return 0;
+
+        return magic;
     }
 
+    /**
+     * Verifies the magic value at the beginning of a dex file
+     *
+     * @param buf A byte array containing at least the first 8 bytes of a dex file
+     * @param offset The offset within the buffer to the beginning of the dex header
+     * @return True if the magic value is valid
+     */
     public static boolean verifyMagic(byte[] buf, int offset) {
-        // verifies the magic value
-        return getVersion(buf, offset) != 0;
+        if (buf.length - offset < 8) {
+            return false;
+        }
+
+        for (int i=0; i<4; i++) {
+            if (buf[offset + i] != MAGIC_VALUE[i]) {
+                return false;
+            }
+        }
+        for (int i=4; i<7; i++) {
+            if (buf[offset + i] < '0' ||
+                    buf[offset + i] > '9') {
+                return false;
+            }
+        }
+        if (buf[offset + 7] != MAGIC_VALUE[7]) {
+            return false;
+        }
+
+        return true;
     }
 
+    /**
+     * Gets the dex version from a dex header
+     *
+     * @param buf A byte array containing at least the first 7 bytes of a dex file
+     * @param offset The offset within the buffer to the beginning of the dex header
+     * @return The dex version if the header is valid or -1 if the header is invalid
+     */
+    public static int getVersion(byte[] buf, int offset) {
+        if (!verifyMagic(buf, offset)) {
+            return -1;
+        }
+
+        return getVersionUnchecked(buf, offset);
+    }
+
+    private static int getVersionUnchecked(byte[] buf, int offset) {
+        int version = (buf[offset + 4] - '0') * 100;
+        version += (buf[offset + 5] - '0') * 10;
+        version += buf[offset + 6] - '0';
+
+        return version;
+    }
+
+    public static boolean isSupportedDexVersion(int version) {
+        for (int i=0; i<SUPPORTED_DEX_VERSIONS.length; i++) {
+            if (SUPPORTED_DEX_VERSIONS[i] == version) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static int getEndian(byte[] buf, int offset) {
         BaseDexBuffer bdb = new BaseDexBuffer(buf);

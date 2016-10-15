@@ -35,9 +35,9 @@ import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.raw.OdexHeaderItem;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
+import org.jf.dexlib2.util.DexUtil;
 
 import javax.annotation.Nonnull;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -48,7 +48,6 @@ public class DexBackedOdexFile extends DexBackedDexFile {
     private static final int DEPENDENCY_START_OFFSET = 16;
 
     private final byte[] odexBuf;
-
 
     public DexBackedOdexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] odexBuf, byte[] dexBuf) {
         super(opcodes, dexBuf);
@@ -64,7 +63,7 @@ public class DexBackedOdexFile extends DexBackedDexFile {
         return true;
     }
 
-    public List<String> getDependencies() {
+    @Nonnull public List<String> getDependencies() {
         final int dexOffset = OdexHeaderItem.getDexOffset(odexBuf);
         final int dependencyOffset = OdexHeaderItem.getDependenciesOffset(odexBuf) - dexOffset;
 
@@ -85,22 +84,9 @@ public class DexBackedOdexFile extends DexBackedDexFile {
         };
     }
 
-    public static DexBackedOdexFile fromInputStream(@Nonnull Opcodes opcodes, @Nonnull InputStream is)
+    @Nonnull public static DexBackedOdexFile fromInputStream(@Nonnull Opcodes opcodes, @Nonnull InputStream is)
             throws IOException {
-        if (!is.markSupported()) {
-            throw new IllegalArgumentException("InputStream must support mark");
-        }
-        is.mark(8);
-        byte[] partialHeader = new byte[8];
-        try {
-            ByteStreams.readFully(is, partialHeader);
-        } catch (EOFException ex) {
-            throw new NotADexFile("File is too short");
-        } finally {
-            is.reset();
-        }
-
-        verifyMagic(partialHeader);
+        DexUtil.verifyOdexHeader(is);
 
         is.reset();
         byte[] odexBuf = new byte[OdexHeaderItem.ITEM_SIZE];
@@ -115,18 +101,8 @@ public class DexBackedOdexFile extends DexBackedDexFile {
         return new DexBackedOdexFile(opcodes, odexBuf, dexBuf);
     }
 
-    private static void verifyMagic(byte[] buf) {
-        if (!OdexHeaderItem.verifyMagic(buf)) {
-            StringBuilder sb = new StringBuilder("Invalid magic value:");
-            for (int i=0; i<8; i++) {
-                sb.append(String.format(" %02x", buf[i]));
-            }
-            throw new NotAnOdexFile(sb.toString());
-        }
-    }
-
     public int getOdexVersion() {
-        return OdexHeaderItem.getVersion(odexBuf);
+        return OdexHeaderItem.getVersion(odexBuf, 0);
     }
 
     public static class NotAnOdexFile extends RuntimeException {
