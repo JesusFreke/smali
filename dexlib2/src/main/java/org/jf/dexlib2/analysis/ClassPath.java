@@ -60,11 +60,21 @@ public class ClassPath {
     /**
      * Creates a new ClassPath instance that can load classes from the given providers
      *
-     * @param classProviders An iterable of ClassProviders. When loading a class, these providers will be searched in
-     *                       order
+     * @param classProviders A varargs array of ClassProviders. When loading a class, these providers will be searched
+     *                       in order
      */
     public ClassPath(ClassProvider... classProviders) throws IOException {
         this(Arrays.asList(classProviders), false, NOT_ART);
+    }
+
+    /**
+     * Creates a new ClassPath instance that can load classes from the given providers
+     *
+     * @param classProviders An iterable of ClassProviders. When loading a class, these providers will be searched in
+     *                       order
+     */
+    public ClassPath(Iterable<ClassProvider> classProviders) throws IOException {
+        this(classProviders, false, NOT_ART);
     }
 
     /**
