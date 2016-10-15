@@ -41,14 +41,13 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
-class BuilderAnnotationPool implements AnnotationSection<BuilderStringReference, BuilderTypeReference,
-        BuilderAnnotation, BuilderAnnotationElement, BuilderEncodedValue> {
-    @Nonnull private final BuilderContext context;
+class BuilderAnnotationPool extends BaseBuilderPool implements AnnotationSection<BuilderStringReference,
+        BuilderTypeReference, BuilderAnnotation, BuilderAnnotationElement, BuilderEncodedValue> {
     @Nonnull private final ConcurrentMap<Annotation, BuilderAnnotation> internedItems =
             Maps.newConcurrentMap();
 
-    BuilderAnnotationPool(@Nonnull BuilderContext context) {
-        this.context = context;
+    public BuilderAnnotationPool(@Nonnull DexBuilder dexBuilder) {
+        super(dexBuilder);
     }
 
     @Nonnull public BuilderAnnotation internAnnotation(@Nonnull Annotation annotation) {
@@ -59,8 +58,8 @@ class BuilderAnnotationPool implements AnnotationSection<BuilderStringReference,
 
         BuilderAnnotation dexBuilderAnnotation = new BuilderAnnotation(
                 annotation.getVisibility(),
-                context.typePool.internType(annotation.getType()),
-                context.internAnnotationElements(annotation.getElements()));
+                dexBuilder.typeSection.internType(annotation.getType()),
+                dexBuilder.internAnnotationElements(annotation.getElements()));
         ret = internedItems.putIfAbsent(dexBuilderAnnotation, dexBuilderAnnotation);
         return ret==null?dexBuilderAnnotation:ret;
     }

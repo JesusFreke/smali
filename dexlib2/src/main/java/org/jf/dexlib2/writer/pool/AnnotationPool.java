@@ -41,26 +41,18 @@ import java.util.Collection;
 
 public class AnnotationPool extends BaseOffsetPool<Annotation>
         implements AnnotationSection<CharSequence, CharSequence, Annotation, AnnotationElement, EncodedValue> {
-    @Nonnull StringPool stringPool;
-    @Nonnull TypePool typePool;
-    @Nonnull FieldPool fieldPool;
-    @Nonnull MethodPool methodPool;
 
-    public AnnotationPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool,
-                          @Nonnull FieldPool fieldPool, @Nonnull MethodPool methodPool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
-        this.fieldPool = fieldPool;
-        this.methodPool = methodPool;
+    public AnnotationPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
     }
 
     public void intern(@Nonnull Annotation annotation) {
         Integer prev = internedItems.put(annotation, 0);
         if (prev == null) {
-            typePool.intern(annotation.getType());
+            dexPool.typeSection.intern(annotation.getType());
             for (AnnotationElement element: annotation.getElements()) {
-                stringPool.intern(element.getName());
-                DexPool.internEncodedValue(element.getValue(), stringPool, typePool, fieldPool, methodPool);
+                dexPool.stringSection.intern(element.getName());
+                dexPool.internEncodedValue(element.getValue());
             }
         }
     }

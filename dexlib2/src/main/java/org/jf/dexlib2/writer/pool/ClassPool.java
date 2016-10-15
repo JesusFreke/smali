@@ -61,25 +61,9 @@ import java.util.Map.Entry;
 public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSection<CharSequence, CharSequence,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, PoolClassDef, Field, PoolMethod,
         Set<? extends Annotation>, EncodedValue> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
-    @Nonnull private final FieldPool fieldPool;
-    @Nonnull private final MethodPool methodPool;
-    @Nonnull private final AnnotationSetPool annotationSetPool;
-    @Nonnull private final TypeListPool typeListPool;
 
-    public ClassPool(@Nonnull StringPool stringPool,
-                     @Nonnull TypePool typePool,
-                     @Nonnull FieldPool fieldPool,
-                     @Nonnull MethodPool methodPool,
-                     @Nonnull AnnotationSetPool annotationSetPool,
-                     @Nonnull TypeListPool typeListPool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
-        this.fieldPool = fieldPool;
-        this.methodPool = methodPool;
-        this.annotationSetPool = annotationSetPool;
-        this.typeListPool = typeListPool;
+    public ClassPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
     }
 
     public void intern(@Nonnull ClassDef classDef) {
@@ -90,10 +74,10 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
             throw new ExceptionWithContext("Class %s has already been interned", poolClassDef.getType());
         }
 
-        typePool.intern(poolClassDef.getType());
-        typePool.internNullable(poolClassDef.getSuperclass());
-        typeListPool.intern(poolClassDef.getInterfaces());
-        stringPool.internNullable(poolClassDef.getSourceFile());
+        dexPool.typeSection.intern(poolClassDef.getType());
+        dexPool.typeSection.internNullable(poolClassDef.getSuperclass());
+        dexPool.typeListSection.intern(poolClassDef.getInterfaces());
+        dexPool.stringSection.internNullable(poolClassDef.getSourceFile());
 
         HashSet<String> fields = new HashSet<String>();
         for (Field field: poolClassDef.getFields()) {
@@ -102,14 +86,14 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
                 throw new ExceptionWithContext("Multiple definitions for field %s->%s",
                         poolClassDef.getType(), fieldDescriptor);
             }
-            fieldPool.intern(field);
+            dexPool.fieldSection.intern(field);
 
             EncodedValue initialValue = field.getInitialValue();
             if (initialValue != null) {
-                DexPool.internEncodedValue(initialValue, stringPool, typePool, fieldPool, methodPool);
+                dexPool.internEncodedValue(initialValue);
             }
 
-            annotationSetPool.intern(field.getAnnotations());
+            dexPool.annotationSetSection.intern(field.getAnnotations());
         }
 
         HashSet<String> methods = new HashSet<String>();
@@ -119,17 +103,17 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
                 throw new ExceptionWithContext("Multiple definitions for method %s->%s",
                         poolClassDef.getType(), methodDescriptor);
             }
-            methodPool.intern(method);
+            dexPool.methodSection.intern(method);
             internCode(method);
             internDebug(method);
-            annotationSetPool.intern(method.getAnnotations());
+            dexPool.annotationSetSection.intern(method.getAnnotations());
 
             for (MethodParameter parameter: method.getParameters()) {
-                annotationSetPool.intern(parameter.getAnnotations());
+                dexPool.annotationSetSection.intern(parameter.getAnnotations());
             }
         }
 
-        annotationSetPool.intern(poolClassDef.getAnnotations());
+        dexPool.annotationSetSection.intern(poolClassDef.getAnnotations());
     }
 
     private void internCode(@Nonnull Method method) {
@@ -144,16 +128,16 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
                     Reference reference = ((ReferenceInstruction)instruction).getReference();
                     switch (instruction.getOpcode().referenceType) {
                         case ReferenceType.STRING:
-                            stringPool.intern((StringReference)reference);
+                            dexPool.stringSection.intern((StringReference)reference);
                             break;
                         case ReferenceType.TYPE:
-                            typePool.intern((TypeReference)reference);
+                            dexPool.typeSection.intern((TypeReference)reference);
                             break;
                         case ReferenceType.FIELD:
-                            fieldPool.intern((FieldReference) reference);
+                            dexPool.fieldSection.intern((FieldReference) reference);
                             break;
                         case ReferenceType.METHOD:
-                            methodPool.intern((MethodReference)reference);
+                            dexPool.methodSection.intern((MethodReference)reference);
                             break;
                         default:
                             throw new ExceptionWithContext("Unrecognized reference type: %d",
@@ -170,7 +154,7 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
 
             for (TryBlock<? extends ExceptionHandler> tryBlock: methodImpl.getTryBlocks()) {
                 for (ExceptionHandler handler: tryBlock.getExceptionHandlers()) {
-                    typePool.internNullable(handler.getExceptionType());
+                    dexPool.typeSection.internNullable(handler.getExceptionType());
                 }
             }
         }
@@ -180,7 +164,7 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
         for (MethodParameter param: method.getParameters()) {
             String paramName = param.getName();
             if (paramName != null) {
-                stringPool.intern(paramName);
+                dexPool.stringSection.intern(paramName);
             }
         }
 
@@ -190,12 +174,12 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
                 switch (debugItem.getDebugItemType()) {
                     case DebugItemType.START_LOCAL:
                         StartLocal startLocal = (StartLocal)debugItem;
-                        stringPool.internNullable(startLocal.getName());
-                        typePool.internNullable(startLocal.getType());
-                        stringPool.internNullable(startLocal.getSignature());
+                        dexPool.stringSection.internNullable(startLocal.getName());
+                        dexPool.typeSection.internNullable(startLocal.getType());
+                        dexPool.stringSection.internNullable(startLocal.getSignature());
                         break;
                     case DebugItemType.SET_SOURCE_FILE:
-                        stringPool.internNullable(((SetSourceFile) debugItem).getSourceFile());
+                        dexPool.stringSection.internNullable(((SetSourceFile) debugItem).getSourceFile());
                         break;
                 }
             }

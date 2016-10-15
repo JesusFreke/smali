@@ -60,12 +60,14 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
-public class BuilderClassPool implements ClassSection<BuilderStringReference, BuilderTypeReference, BuilderTypeList,
-        BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet, BuilderEncodedValue> {
+public class BuilderClassPool extends BaseBuilderPool implements ClassSection<BuilderStringReference,
+        BuilderTypeReference, BuilderTypeList, BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet,
+        BuilderEncodedValue> {
     @Nonnull private final ConcurrentMap<String, BuilderClassDef> internedItems =
             Maps.newConcurrentMap();
 
-    BuilderClassPool() {
+    public BuilderClassPool(@Nonnull DexBuilder dexBuilder) {
+        super(dexBuilder);
     }
 
     @Nonnull BuilderClassDef internClass(@Nonnull BuilderClassDef classDef) {

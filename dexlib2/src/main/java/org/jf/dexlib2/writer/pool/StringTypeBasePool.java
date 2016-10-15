@@ -42,6 +42,11 @@ import java.util.Map;
 
 public abstract class StringTypeBasePool extends BasePool<String, Integer>
         implements NullableIndexSection<CharSequence>, Markable {
+
+    public StringTypeBasePool(@Nonnull DexPool dexPool) {
+        super(dexPool);
+    }
+
     @Nonnull @Override public Collection<Map.Entry<String, Integer>> getItems() {
         return internedItems.entrySet();
     }

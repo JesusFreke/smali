@@ -45,13 +45,12 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
-class BuilderTypeListPool implements TypeListSection<BuilderTypeReference, BuilderTypeList> {
-    @Nonnull private final BuilderContext context;
+class BuilderTypeListPool extends BaseBuilderPool implements TypeListSection<BuilderTypeReference, BuilderTypeList> {
     @Nonnull private final ConcurrentMap<List<? extends CharSequence>, BuilderTypeList> internedItems =
             Maps.newConcurrentMap();
 
-    BuilderTypeListPool(@Nonnull BuilderContext context) {
-        this.context = context;
+    public BuilderTypeListPool(@Nonnull DexBuilder dexBuilder) {
+        super(dexBuilder);
     }
 
     @Nonnull public BuilderTypeList internTypeList(@Nullable List<? extends CharSequence> types) {
@@ -67,7 +66,7 @@ class BuilderTypeListPool implements TypeListSection<BuilderTypeReference, Build
         BuilderTypeList typeList = new BuilderTypeList(
                 ImmutableList.copyOf(Iterables.transform(types, new Function<CharSequence, BuilderTypeReference>() {
                     @Nonnull @Override public BuilderTypeReference apply(CharSequence input) {
-                        return context.typePool.internType(input.toString());
+                        return dexBuilder.typeSection.internType(input.toString());
                     }
                 })));
 

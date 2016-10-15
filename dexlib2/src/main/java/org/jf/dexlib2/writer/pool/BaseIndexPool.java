@@ -39,6 +39,11 @@ import java.util.Collection;
 import java.util.Map;
 
 public abstract class BaseIndexPool<Key> extends BasePool<Key, Integer> implements IndexSection<Key> {
+
+    public BaseIndexPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
+    }
+
     @Nonnull @Override public Collection<? extends Map.Entry<? extends Key, Integer>> getItems() {
         return internedItems.entrySet();
     }

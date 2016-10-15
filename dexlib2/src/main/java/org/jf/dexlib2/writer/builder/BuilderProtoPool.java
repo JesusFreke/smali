@@ -44,14 +44,13 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
-class BuilderProtoPool
+class BuilderProtoPool extends BaseBuilderPool
         implements ProtoSection<BuilderStringReference, BuilderTypeReference, BuilderMethodProtoReference, BuilderTypeList> {
-    @Nonnull private final BuilderContext context;
     @Nonnull private final ConcurrentMap<MethodProtoReference, BuilderMethodProtoReference> internedItems =
             Maps.newConcurrentMap();
 
-    BuilderProtoPool(@Nonnull BuilderContext context) {
-        this.context = context;
+    public BuilderProtoPool(@Nonnull DexBuilder dexBuilder) {
+        super(dexBuilder);
     }
 
     @Nonnull public BuilderMethodProtoReference internMethodProto(@Nonnull MethodProtoReference methodProto) {
@@ -61,10 +60,10 @@ class BuilderProtoPool
         }
 
         BuilderMethodProtoReference protoReference = new BuilderMethodProtoReference(
-                context.stringPool.internString(MethodUtil.getShorty(
+                dexBuilder.stringSection.internString(MethodUtil.getShorty(
                         methodProto.getParameterTypes(), methodProto.getReturnType())),
-                context.typeListPool.internTypeList(methodProto.getParameterTypes()),
-                context.typePool.internType(methodProto.getReturnType()));
+                dexBuilder.typeListSection.internTypeList(methodProto.getParameterTypes()),
+                dexBuilder.typeSection.internType(methodProto.getReturnType()));
         ret = internedItems.putIfAbsent(protoReference, protoReference);
         return ret==null?protoReference:ret;
     }

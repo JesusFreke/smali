@@ -43,23 +43,17 @@ import java.util.List;
 public class ProtoPool extends BaseIndexPool<MethodProtoReference>
         implements ProtoSection<CharSequence, CharSequence, MethodProtoReference,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
-    @Nonnull private final TypeListPool typeListPool;
 
-    public ProtoPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool,
-                     @Nonnull TypeListPool typeListPool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
-        this.typeListPool = typeListPool;
+    public ProtoPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
     }
 
     public void intern(@Nonnull MethodProtoReference reference) {
         Integer prev = internedItems.put(reference, 0);
         if (prev == null) {
-            stringPool.intern(getShorty(reference));
-            typePool.intern(reference.getReturnType());
-            typeListPool.intern(reference.getParameterTypes());
+            dexPool.stringSection.intern(getShorty(reference));
+            dexPool.typeSection.intern(reference.getReturnType());
+            dexPool.typeListSection.intern(reference.getParameterTypes());
         }
     }
 

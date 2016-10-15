@@ -38,8 +38,13 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class BasePool<Key, Value> implements Markable {
+    @Nonnull protected final DexPool dexPool;
     @Nonnull protected final Map<Key, Value> internedItems = Maps.newLinkedHashMap();
     private int markedItemCount = -1;
+
+    public BasePool(@Nonnull DexPool dexPool) {
+        this.dexPool = dexPool;
+    }
 
     public void mark() {
         markedItemCount = internedItems.size();

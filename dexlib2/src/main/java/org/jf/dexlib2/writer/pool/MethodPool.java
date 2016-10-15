@@ -39,23 +39,17 @@ import javax.annotation.Nonnull;
 
 public class MethodPool extends BaseIndexPool<MethodReference>
         implements MethodSection<CharSequence, CharSequence, MethodProtoReference, MethodReference, PoolMethod> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
-    @Nonnull private final ProtoPool protoPool;
 
-    public MethodPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool,
-                      @Nonnull ProtoPool protoPool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
-        this.protoPool = protoPool;
+    public MethodPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
     }
 
     public void intern(@Nonnull MethodReference method) {
         Integer prev = internedItems.put(method, 0);
         if (prev == null) {
-            typePool.intern(method.getDefiningClass());
-            protoPool.intern(new PoolMethodProto(method));
-            stringPool.intern(method.getName());
+            dexPool.typeSection.intern(method.getDefiningClass());
+            dexPool.protoSection.intern(new PoolMethodProto(method));
+            dexPool.stringSection.intern(method.getName());
         }
     }
 

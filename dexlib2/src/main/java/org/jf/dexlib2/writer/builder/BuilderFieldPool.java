@@ -41,14 +41,13 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
-public class BuilderFieldPool
+public class BuilderFieldPool extends BaseBuilderPool
         implements FieldSection<BuilderStringReference, BuilderTypeReference, BuilderFieldReference, BuilderField> {
-    @Nonnull private final BuilderContext context;
     @Nonnull private final ConcurrentMap<FieldReference, BuilderFieldReference> internedItems =
             Maps.newConcurrentMap();
 
-    BuilderFieldPool(@Nonnull BuilderContext context) {
-        this.context = context;
+    public BuilderFieldPool(@Nonnull DexBuilder dexBuilder) {
+        super(dexBuilder);
     }
 
     @Nonnull BuilderFieldReference internField(@Nonnull String definingClass, String name, String type) {
@@ -63,9 +62,9 @@ public class BuilderFieldPool
         }
 
         BuilderFieldReference dexPoolFieldReference = new BuilderFieldReference(
-                context.typePool.internType(fieldReference.getDefiningClass()),
-                context.stringPool.internString(fieldReference.getName()),
-                context.typePool.internType(fieldReference.getType()));
+                dexBuilder.typeSection.internType(fieldReference.getDefiningClass()),
+                dexBuilder.stringSection.internString(fieldReference.getName()),
+                dexBuilder.typeSection.internType(fieldReference.getType()));
         ret = internedItems.putIfAbsent(dexPoolFieldReference, dexPoolFieldReference);
         return ret==null?dexPoolFieldReference:ret;
     }

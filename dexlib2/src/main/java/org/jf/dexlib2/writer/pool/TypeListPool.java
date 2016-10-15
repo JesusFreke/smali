@@ -43,10 +43,10 @@ import java.util.Iterator;
 
 public class TypeListPool extends BaseNullableOffsetPool<Key<? extends Collection<? extends CharSequence>>>
         implements TypeListSection<CharSequence, Key<? extends Collection<? extends CharSequence>>> {
-    @Nonnull private final TypePool typePool;
 
-    public TypeListPool(@Nonnull TypePool typePool) {
-        this.typePool = typePool;
+
+    public TypeListPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
     }
 
     public void intern(@Nonnull Collection<? extends CharSequence> types) {
@@ -55,7 +55,7 @@ public class TypeListPool extends BaseNullableOffsetPool<Key<? extends Collectio
             Integer prev = internedItems.put(key, 0);
             if (prev == null) {
                 for (CharSequence type: types) {
-                    typePool.intern(type);
+                    dexPool.typeSection.intern(type);
                 }
             }
         }

@@ -39,17 +39,17 @@ import javax.annotation.Nullable;
 
 public class TypePool extends StringTypeBasePool
         implements TypeSection<CharSequence, CharSequence, TypeReference> {
-    @Nonnull private final StringPool stringPool;
 
-    public TypePool(@Nonnull StringPool stringPool) {
-        this.stringPool = stringPool;
+
+    public TypePool(@Nonnull DexPool dexPool) {
+        super(dexPool);
     }
 
     public void intern(@Nonnull CharSequence type) {
         String typeString = type.toString();
         Integer prev = internedItems.put(typeString, 0);
         if (prev == null) {
-            stringPool.intern(typeString);
+            dexPool.stringSection.intern(typeString);
         }
     }
 

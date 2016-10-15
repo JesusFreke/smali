@@ -42,14 +42,13 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
-class BuilderMethodPool implements MethodSection<BuilderStringReference, BuilderTypeReference,
+class BuilderMethodPool extends BaseBuilderPool implements MethodSection<BuilderStringReference, BuilderTypeReference,
         BuilderMethodProtoReference, BuilderMethodReference, BuilderMethod>{
-    @Nonnull private final BuilderContext context;
     @Nonnull private final ConcurrentMap<MethodReference, BuilderMethodReference> internedItems =
             Maps.newConcurrentMap();
 
-    BuilderMethodPool(@Nonnull BuilderContext context) {
-        this.context = context;
+    public BuilderMethodPool(@Nonnull DexBuilder dexBuilder) {
+        super(dexBuilder);
     }
 
     @Nonnull public BuilderMethodReference internMethod(@Nonnull MethodReference methodReference) {
@@ -59,9 +58,9 @@ class BuilderMethodPool implements MethodSection<BuilderStringReference, Builder
         }
 
         BuilderMethodReference dexPoolMethodReference = new BuilderMethodReference(
-                context.typePool.internType(methodReference.getDefiningClass()),
-                context.stringPool.internString(methodReference.getName()),
-                context.protoPool.internMethodProto(methodReference));
+                dexBuilder.typeSection.internType(methodReference.getDefiningClass()),
+                dexBuilder.stringSection.internString(methodReference.getName()),
+                dexBuilder.protoSection.internMethodProto(methodReference));
         ret = internedItems.putIfAbsent(dexPoolMethodReference, dexPoolMethodReference);
         return ret==null?dexPoolMethodReference:ret;
     }

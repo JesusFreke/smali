@@ -46,13 +46,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-class BuilderAnnotationSetPool implements AnnotationSetSection<BuilderAnnotation, BuilderAnnotationSet> {
-    @Nonnull private final BuilderContext context;
+class BuilderAnnotationSetPool extends BaseBuilderPool
+        implements AnnotationSetSection<BuilderAnnotation, BuilderAnnotationSet> {
     @Nonnull private final ConcurrentMap<Set<? extends Annotation>, BuilderAnnotationSet> internedItems =
             Maps.newConcurrentMap();
 
-    BuilderAnnotationSetPool(@Nonnull BuilderContext context) {
-        this.context = context;
+    public BuilderAnnotationSetPool(@Nonnull DexBuilder dexBuilder) {
+        super(dexBuilder);
     }
 
     @Nonnull public BuilderAnnotationSet internAnnotationSet(@Nullable Set<? extends Annotation> annotations) {
@@ -69,7 +69,7 @@ class BuilderAnnotationSetPool implements AnnotationSetSection<BuilderAnnotation
                 ImmutableSet.copyOf(Iterators.transform(annotations.iterator(),
                         new Function<Annotation, BuilderAnnotation>() {
                             @Nullable @Override public BuilderAnnotation apply(Annotation input) {
-                                return context.annotationPool.internAnnotation(input);
+                                return dexBuilder.annotationSection.internAnnotation(input);
                             }
                         })));
 

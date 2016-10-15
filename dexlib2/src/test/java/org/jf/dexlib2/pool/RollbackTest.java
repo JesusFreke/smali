@@ -78,7 +78,7 @@ public class RollbackTest {
         RawDexFile dexFile1;
         {
             MemoryDataStore dataStore = new MemoryDataStore();
-            DexPool dexPool = DexPool.makeDexPool(Opcodes.getDefault());
+            DexPool dexPool = new DexPool(Opcodes.getDefault());
             dexPool.internClass(class1);
             dexPool.mark();
             dexPool.internClass(class2);
@@ -90,7 +90,7 @@ public class RollbackTest {
         RawDexFile dexFile2;
         {
             MemoryDataStore dataStore = new MemoryDataStore();
-            DexPool dexPool = DexPool.makeDexPool(Opcodes.getDefault());
+            DexPool dexPool = new DexPool(Opcodes.getDefault());
             dexPool.internClass(class1);
             dexPool.writeTo(dataStore);
             dexFile2 = new RawDexFile(Opcodes.getDefault(), dataStore.getData());
