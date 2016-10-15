@@ -39,6 +39,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class StringPool extends StringTypeBasePool implements StringSection<CharSequence, StringReference> {
+
+    public StringPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
+    }
+
     public void intern(@Nonnull CharSequence string) {
         internedItems.put(string.toString(), 0);
     }

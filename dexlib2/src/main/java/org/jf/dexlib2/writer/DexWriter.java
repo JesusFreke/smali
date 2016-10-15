@@ -53,11 +53,7 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodProtoReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.StringReference;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.util.InstructionUtil;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.util.ReferenceUtil;
@@ -92,7 +88,18 @@ public abstract class DexWriter<
         TypeListKey,
         FieldKey, MethodKey,
         EncodedValue,
-        AnnotationElement extends org.jf.dexlib2.iface.AnnotationElement> {
+        AnnotationElement extends org.jf.dexlib2.iface.AnnotationElement,
+        StringSectionType extends StringSection<StringKey, StringRef>,
+        TypeSectionType extends TypeSection<StringKey, TypeKey, TypeRef>,
+        ProtoSectionType extends ProtoSection<StringKey, TypeKey, ProtoRefKey, TypeListKey>,
+        FieldSectionType extends FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey>,
+        MethodSectionType extends MethodSection<StringKey, TypeKey, ProtoRefKey, MethodRefKey, MethodKey>,
+        ClassSectionType extends ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey,
+                AnnotationSetKey, EncodedValue>,
+        TypeListSectionType extends TypeListSection<TypeKey, TypeListKey>,
+        AnnotationSectionType extends AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement,
+                EncodedValue>,
+        AnnotationSetSectionType extends AnnotationSetSection<AnnotationKey, AnnotationSetKey>> {
     public static final int NO_INDEX = -1;
     public static final int NO_OFFSET = 0;
 
@@ -124,42 +131,33 @@ public abstract class DexWriter<
     protected int numCodeItemItems = 0;
     protected int numClassDataItems = 0;
 
-    protected final StringSection<StringKey, StringRef> stringSection;
-    protected final TypeSection<StringKey, TypeKey, TypeRef> typeSection;
-    protected final ProtoSection<StringKey, TypeKey, ProtoRefKey, TypeListKey> protoSection;
-    protected final FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection;
-    protected final MethodSection<StringKey, TypeKey, ProtoRefKey, MethodRefKey, MethodKey> methodSection;
-    protected final ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
-            EncodedValue> classSection;
+    public final StringSectionType stringSection;
+    public final TypeSectionType typeSection;
+    public final ProtoSectionType protoSection;
+    public final FieldSectionType fieldSection;
+    public final MethodSectionType methodSection;
+    public final ClassSectionType classSection;
     
-    protected final TypeListSection<TypeKey, TypeListKey> typeListSection;
-    protected final AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement, EncodedValue> annotationSection;
-    protected final AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection;
+    public final TypeListSectionType typeListSection;
+    public final AnnotationSectionType annotationSection;
+    public final AnnotationSetSectionType annotationSetSection;
 
-    protected DexWriter(Opcodes opcodes,
-                        StringSection<StringKey, StringRef> stringSection,
-                        TypeSection<StringKey, TypeKey, TypeRef> typeSection,
-                        ProtoSection<StringKey, TypeKey, ProtoRefKey, TypeListKey> protoSection,
-                        FieldSection<StringKey, TypeKey, FieldRefKey, FieldKey> fieldSection,
-                        MethodSection<StringKey, TypeKey, ProtoRefKey, MethodRefKey, MethodKey> methodSection,
-                        ClassSection<StringKey, TypeKey, TypeListKey, ClassKey, FieldKey, MethodKey, AnnotationSetKey,
-                                EncodedValue> classSection,
-                        TypeListSection<TypeKey, TypeListKey> typeListSection,
-                        AnnotationSection<StringKey, TypeKey, AnnotationKey, AnnotationElement,
-                                EncodedValue> annotationSection,
-                        AnnotationSetSection<AnnotationKey, AnnotationSetKey> annotationSetSection) {
+    protected DexWriter(Opcodes opcodes) {
         this.opcodes = opcodes;
 
-        this.stringSection = stringSection;
-        this.typeSection = typeSection;
-        this.protoSection = protoSection;
-        this.fieldSection = fieldSection;
-        this.methodSection = methodSection;
-        this.classSection = classSection;
-        this.typeListSection = typeListSection;
-        this.annotationSection = annotationSection;
-        this.annotationSetSection = annotationSetSection;
+        SectionProvider sectionProvider = getSectionProvider();
+        this.stringSection = sectionProvider.getStringSection();
+        this.typeSection = sectionProvider.getTypeSection();
+        this.protoSection = sectionProvider.getProtoSection();
+        this.fieldSection = sectionProvider.getFieldSection();
+        this.methodSection = sectionProvider.getMethodSection();
+        this.classSection = sectionProvider.getClassSection();
+        this.typeListSection = sectionProvider.getTypeListSection();
+        this.annotationSection = sectionProvider.getAnnotationSection();
+        this.annotationSetSection = sectionProvider.getAnnotationSetSection();
     }
+
+    @Nonnull protected abstract SectionProvider getSectionProvider();
 
     protected abstract void writeEncodedValue(@Nonnull InternalEncodedValueWriter writer,
                                               @Nonnull EncodedValue encodedValue) throws IOException;
@@ -1289,5 +1287,17 @@ public abstract class DexWriter<
         // which is triggered by NO_OFFSET in parameter annotation list.
         // (https://code.google.com/p/android/issues/detail?id=35304)
         return (opcodes.api < 17);
+    }
+
+    public abstract class SectionProvider {
+        @Nonnull public abstract StringSectionType getStringSection();
+        @Nonnull public abstract TypeSectionType getTypeSection();
+        @Nonnull public abstract ProtoSectionType getProtoSection();
+        @Nonnull public abstract FieldSectionType getFieldSection();
+        @Nonnull public abstract MethodSectionType getMethodSection();
+        @Nonnull public abstract ClassSectionType getClassSection();
+        @Nonnull public abstract TypeListSectionType getTypeListSection();
+        @Nonnull public abstract AnnotationSectionType getAnnotationSection();
+        @Nonnull public abstract AnnotationSetSectionType getAnnotationSetSection();
     }
 }

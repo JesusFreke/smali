@@ -62,7 +62,7 @@ import java.util.List;
 public class JumboStringConversionTest {
     @Test
     public void testJumboStringConversion() throws IOException {
-        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.getDefault());
+        DexBuilder dexBuilder = new DexBuilder(Opcodes.getDefault());
 
         MethodImplementationBuilder methodBuilder = new MethodImplementationBuilder(1);
         for (int i=0; i<66000; i++) {
@@ -122,7 +122,7 @@ public class JumboStringConversionTest {
 
     @Test
     public void testJumboStringConversion_NonMethodBuilder() throws IOException {
-        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.getDefault());
+        DexBuilder dexBuilder = new DexBuilder(Opcodes.getDefault());
 
         final List<Instruction> instructions = Lists.newArrayList();
         for (int i=0; i<66000; i++) {

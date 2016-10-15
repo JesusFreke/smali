@@ -39,20 +39,17 @@ import javax.annotation.Nonnull;
 
 public class FieldPool extends BaseIndexPool<FieldReference>
         implements FieldSection<CharSequence, CharSequence, FieldReference, Field> {
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
 
-    public FieldPool(@Nonnull StringPool stringPool, @Nonnull TypePool typePool) {
-        this.stringPool = stringPool;
-        this.typePool = typePool;
+    public FieldPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
     }
 
     public void intern(@Nonnull FieldReference field) {
         Integer prev = internedItems.put(field, 0);
         if (prev == null) {
-            typePool.intern(field.getDefiningClass());
-            stringPool.intern(field.getName());
-            typePool.intern(field.getType());
+            dexPool.typeSection.intern(field.getDefiningClass());
+            dexPool.stringSection.intern(field.getName());
+            dexPool.typeSection.intern(field.getType());
         }
     }
 

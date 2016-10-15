@@ -39,6 +39,11 @@ import java.util.Collection;
 import java.util.Map;
 
 public abstract class BaseOffsetPool<Key> extends BasePool<Key, Integer> implements OffsetSection<Key> {
+
+    public BaseOffsetPool(@Nonnull DexPool dexPool) {
+        super(dexPool);
+    }
+
     @Nonnull @Override public Collection<? extends Map.Entry<? extends Key, Integer>> getItems() {
         return internedItems.entrySet();
     }

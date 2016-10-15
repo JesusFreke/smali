@@ -57,7 +57,7 @@ public class SmaliTestUtils {
             throws RecognitionException, IOException {
         CommonTokenStream tokens;
         LexerErrorInterface lexer;
-        DexBuilder dexBuilder = DexBuilder.makeDexBuilder(Opcodes.forApi(apiLevel));
+        DexBuilder dexBuilder = new DexBuilder(Opcodes.forApi(apiLevel));
 
         Reader reader = new StringReader(smaliText);
 
