@@ -36,12 +36,20 @@ import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ClassFileNameHandler;
 import org.jf.util.IndentingWriter;
 
+import javax.annotation.Nullable;
 import java.io.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 
 public class Baksmali {
     public static boolean disassembleDexFile(DexFile dexFile, File outputDir, int jobs, final BaksmaliOptions options) {
+        return disassembleDexFile(dexFile, outputDir, jobs, options, null);
+    }
+
+    public static boolean disassembleDexFile(DexFile dexFile, File outputDir, int jobs, final BaksmaliOptions options,
+                                             @Nullable List<String> classes) {
 
         //sort the classes, so that if we're on a case-insensitive file system and need to handle classes with file
         //name collisions, then we'll use the same name for each class, if the dex file goes through multiple
@@ -54,7 +62,15 @@ public class Baksmali {
         ExecutorService executor = Executors.newFixedThreadPool(jobs);
         List<Future<Boolean>> tasks = Lists.newArrayList();
 
+        Set<String> classSet = null;
+        if (classes != null) {
+            classSet = new HashSet<String>(classes);
+        }
+
         for (final ClassDef classDef: classDefs) {
+            if (classSet != null && !classSet.contains(classDef.getType())) {
+                continue;
+            }
             tasks.add(executor.submit(new Callable<Boolean>() {
                 @Override public Boolean call() throws Exception {
                     return disassembleClass(classDef, fileNameHandler, options);

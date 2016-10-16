@@ -133,6 +133,11 @@ public class DisassembleCommand extends DexInputCommand {
                     "fields from the current class.")
     private boolean implicitReferences = false;
 
+    @Parameter(names = "--classes",
+            description = "A comma separated list of classes. Only disassemble these classes")
+    @ExtendedParameter(argumentNames = "classes")
+    private List<String> classes = null;
+
     public DisassembleCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
     }
@@ -170,7 +175,7 @@ public class DisassembleCommand extends DexInputCommand {
             analysisArguments.classPathDirectories = Lists.newArrayList(inputFile.getAbsoluteFile().getParent());
         }
 
-        if (!Baksmali.disassembleDexFile(dexFile, outputDirectoryFile, jobs, getOptions())) {
+        if (!Baksmali.disassembleDexFile(dexFile, outputDirectoryFile, jobs, getOptions(), classes)) {
             System.exit(-1);
         }
     }
