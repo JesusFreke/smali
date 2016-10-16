@@ -43,6 +43,7 @@ import org.jf.dexlib2.util.DexUtil.UnsupportedFile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -161,7 +162,7 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
     }
 
     protected boolean isDex(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
-        InputStream inputStream = zipFile.getInputStream(zipEntry);
+        InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(zipEntry));
         try {
             DexUtil.verifyDexHeader(inputStream);
         } catch (NotADexFile ex) {
