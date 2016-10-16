@@ -1216,34 +1216,56 @@ public class MethodAnalyzer {
             }
             AnalyzedInstruction prevAnalyzedInstruction = analyzedInstruction.getPredecessors().first();
             if (prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
+                Instruction22c instanceOfInstruction = (Instruction22c)prevAnalyzedInstruction.instruction;
                 if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
                     List<Integer> narrowingRegisters = Lists.newArrayList();
 
                     RegisterType newType = RegisterType.getRegisterType(classPath,
-                            (TypeReference)((Instruction22c)prevAnalyzedInstruction.instruction).getReference());
+                            (TypeReference)instanceOfInstruction.getReference());
 
                     if (instructionIndex > 1) {
                         // If we have something like:
                         //   move-object/from16 v0, p1
                         //   instance-of v2, v0, Lblah;
                         //   if-eqz v2, :target
-                        // Then we need to narrow both v0 AND p1
-                        AnalyzedInstruction prevPrevAnalyzedInstruction =
-                                analyzedInstructions.valueAt(instructionIndex - 2);
-                        Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
-                        if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
-                                opcode == Opcode.MOVE_OBJECT_FROM16) {
-                            TwoRegisterInstruction moveInstruction =
-                                    ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction);
-                            RegisterType originalType =
-                                    prevPrevAnalyzedInstruction.getPostInstructionRegisterType(
-                                            moveInstruction.getRegisterB());
-                            if (originalType.type != null) {
-                                if (isNarrowingConversion(originalType, newType)) {
-                                    narrowingRegisters.add(
-                                            ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction).getRegisterB());
+                        // Then we need to narrow both v0 AND p1, but only if all predecessors of instance-of are a
+                        // move-object for the same registers
+
+                        int additionalNarrowingRegister = -1;
+                        for (AnalyzedInstruction prevPrevAnalyzedInstruction: prevAnalyzedInstruction.predecessors) {
+                            Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
+                            if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
+                                    opcode == Opcode.MOVE_OBJECT_FROM16) {
+                                TwoRegisterInstruction moveInstruction =
+                                        ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction);
+                                RegisterType originalType =
+                                        prevPrevAnalyzedInstruction.getPostInstructionRegisterType(
+                                                moveInstruction.getRegisterB());
+                                if (moveInstruction.getRegisterA() != instanceOfInstruction.getRegisterB()) {
+                                    additionalNarrowingRegister = -1;
+                                    break;
                                 }
+                                if (originalType.type == null) {
+                                    additionalNarrowingRegister = -1;
+                                    break;
+                                }
+                                if (isNarrowingConversion(originalType, newType)) {
+                                    if (additionalNarrowingRegister != -1) {
+                                        if (additionalNarrowingRegister != moveInstruction.getRegisterB()) {
+                                            additionalNarrowingRegister = -1;
+                                            break;
+                                        }
+                                    } else {
+                                        additionalNarrowingRegister = moveInstruction.getRegisterB();
+                                    }
+                                }
+                            } else {
+                                additionalNarrowingRegister = -1;
+                                break;
                             }
+                        }
+                        if (additionalNarrowingRegister != -1) {
+                            narrowingRegisters.add(additionalNarrowingRegister);
                         }
                     }
 
