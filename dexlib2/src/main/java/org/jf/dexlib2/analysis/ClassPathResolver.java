@@ -432,7 +432,7 @@ public class ClassPathResolver {
                     "/system/framework/mms-common.jar",
                     "/system/framework/android.policy.jar",
                     "/system/framework/apache-xml.jar");
-        } else /*if (apiLevel <= 23)*/ {
+        } else if (apiLevel <= 23) {
             return Lists.newArrayList(
                     "/system/framework/core-libart.jar",
                     "/system/framework/conscrypt.jar",
@@ -446,7 +446,21 @@ public class ClassPathResolver {
                     "/system/framework/ims-common.jar",
                     "/system/framework/apache-xml.jar",
                     "/system/framework/org.apache.http.legacy.boot.jar");
+        } else /*if (apiLevel <= 24)*/ {
+            return Lists.newArrayList(
+                    "/system/framework/core-oj.jar",
+                    "/system/framework/core-libart.jar",
+                    "/system/framework/conscrypt.jar",
+                    "/system/framework/okhttp.jar",
+                    "/system/framework/core-junit.jar",
+                    "/system/framework/bouncycastle.jar",
+                    "/system/framework/ext.jar",
+                    "/system/framework/framework.jar",
+                    "/system/framework/telephony-common.jar",
+                    "/system/framework/voip-common.jar",
+                    "/system/framework/ims-common.jar",
+                    "/system/framework/apache-xml.jar",
+                    "/system/framework/org.apache.http.legacy.boot.jar");
         }
-        // TODO: update for N
     }
 }
