@@ -201,7 +201,6 @@ public class ClassPathResolver {
         for (String directory: classPathDirs) {
             File directoryFile = new File(directory);
             if (!directoryFile.exists()) {
-                // TODO: print a warning in the baksmali frontend before we get here
                 continue;
             }
 
