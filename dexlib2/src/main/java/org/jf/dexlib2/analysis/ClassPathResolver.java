@@ -133,7 +133,18 @@ public class ClassPathResolver {
                     throw new ResolveException(ex);
                 }
             } catch (NotFoundException ex) {
-                throw new ResolveException(ex);
+                if (entry.endsWith(".odex")) {
+                    String jarEntry = entry.substring(0, entry.length() - 5) + ".jar";
+                    try {
+                        loadLocalOrDeviceBootClassPathEntry(jarEntry);
+                        } catch (NoDexException ex2) {
+                        throw new ResolveException("Neither %s nor %s contain a dex file", entry, jarEntry);
+                    } catch (NotFoundException ex2) {
+                        throw new ResolveException(ex);
+                    }
+                } else {
+                    throw new ResolveException(ex);
+                }
             }
         }
 
