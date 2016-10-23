@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.writer.builder;
 
-import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.*;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
@@ -81,14 +80,10 @@ public class BuilderClassDef extends BaseTypeReference implements ClassDef {
         this.interfaces = interfaces;
         this.sourceFile = sourceFile;
         this.annotations = annotations;
-        this.staticFields = ImmutableSortedSet.copyOf(
-                (Iterable<? extends BuilderField>)Iterables.filter(fields, FieldUtil.FIELD_IS_STATIC));
-        this.instanceFields = ImmutableSortedSet.copyOf(
-                (Iterable<? extends BuilderField>)Iterables.filter(fields, FieldUtil.FIELD_IS_INSTANCE));
-        this.directMethods = ImmutableSortedSet.copyOf(
-                (Iterable<? extends BuilderMethod>)Iterables.filter(methods, MethodUtil.METHOD_IS_DIRECT));
-        this.virtualMethods = ImmutableSortedSet.copyOf(
-                (Iterable<? extends BuilderMethod>)Iterables.filter(methods, MethodUtil.METHOD_IS_VIRTUAL));
+        this.staticFields = ImmutableSortedSet.copyOf(Iterables.filter(fields, FieldUtil.FIELD_IS_STATIC));
+        this.instanceFields = ImmutableSortedSet.copyOf(Iterables.filter(fields, FieldUtil.FIELD_IS_INSTANCE));
+        this.directMethods = ImmutableSortedSet.copyOf(Iterables.filter(methods, MethodUtil.METHOD_IS_DIRECT));
+        this.virtualMethods = ImmutableSortedSet.copyOf(Iterables.filter(methods, MethodUtil.METHOD_IS_VIRTUAL));
     }
 
     @Nonnull @Override public String getType() { return type.getType(); }
