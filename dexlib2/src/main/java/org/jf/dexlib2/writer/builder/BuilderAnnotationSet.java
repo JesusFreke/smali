@@ -39,7 +39,7 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
 
-class BuilderAnnotationSet extends AbstractSet<BuilderAnnotation> {
+public class BuilderAnnotationSet extends AbstractSet<BuilderAnnotation> {
     public static final BuilderAnnotationSet EMPTY =
             new BuilderAnnotationSet(ImmutableSet.<BuilderAnnotation>of());
 
