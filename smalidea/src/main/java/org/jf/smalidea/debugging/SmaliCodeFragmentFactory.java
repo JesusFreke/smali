@@ -61,6 +61,7 @@ import org.jf.smalidea.psi.impl.SmaliMethod;
 import org.jf.smalidea.util.NameUtils;
 import org.jf.smalidea.util.PsiUtil;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -274,6 +275,7 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
         return originalContext;
     }
 
+    @Nullable
     public static Value evaluateRegister(EvaluationContext context, final SmaliMethod smaliMethod,
                                          final int registerNum, final String type) throws EvaluateException {
 
@@ -308,12 +310,21 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
             for (SmaliInstruction instruction: smaliMethod.getInstructions()) {
                 methodSize += instruction.getInstructionSize();
             }
-            Location endLocation = method.locationOfCodeIndex((methodSize/2) - 1);
+            Location endLocation = null;
+            for (int endCodeIndex = (methodSize/2) - 1; endCodeIndex >= 0; endCodeIndex--) {
+                endLocation = method.locationOfCodeIndex(endCodeIndex);
+                if (endLocation != null) {
+                    break;
+                }
+            }
+            if (endLocation == null) {
+                return null;
+            }
 
             LocalVariable localVariable = localVariableConstructor.newInstance(vm,
                     method,
                     mapRegister(frameProxy.getStackFrame().virtualMachine(), smaliMethod, registerNum),
-                    method.locationOfCodeIndex(0),
+                    method.location(),
                     endLocation,
                     String.format("v%d", registerNum), type, null);
 
