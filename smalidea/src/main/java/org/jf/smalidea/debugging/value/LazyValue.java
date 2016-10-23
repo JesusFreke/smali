@@ -48,10 +48,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class LazyValue<T extends Value> implements Value {
-    private final int registerNumber;
-    private final Project project;
-    private final SmaliMethod method;
-    private final String type;
+    protected final int registerNumber;
+    protected final Project project;
+    protected final SmaliMethod method;
+    protected final String type;
 
     private EvaluationContext evaluationContext;
     private Value value;

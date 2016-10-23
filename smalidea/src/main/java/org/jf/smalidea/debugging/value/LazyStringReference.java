@@ -32,6 +32,8 @@
 package org.jf.smalidea.debugging.value;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiSubstitutor;
+import com.sun.jdi.ObjectReference;
 import com.sun.jdi.StringReference;
 import org.jf.smalidea.psi.impl.SmaliMethod;
 
@@ -41,6 +43,11 @@ public class LazyStringReference extends LazyObjectReference<StringReference> im
     }
 
     public String value() {
+        ObjectReference objectReference = getValue();
+        if (!(objectReference instanceof StringReference)) {
+            throw new IllegalStateException(String.format("Expecting type String, but got %s. method=%s, register=%d",
+                    objectReference.type().name(), this.method.getSignature(PsiSubstitutor.EMPTY), registerNumber));
+        }
         return getValue().value();
     }
 }
