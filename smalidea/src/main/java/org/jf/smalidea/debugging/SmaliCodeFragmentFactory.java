@@ -277,6 +277,10 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
     public static Value evaluateRegister(EvaluationContext context, final SmaliMethod smaliMethod,
                                          final int registerNum, final String type) throws EvaluateException {
 
+        if (registerNum >= smaliMethod.getRegisterCount()) {
+            return null;
+        }
+
         final StackFrameProxy frameProxy = context.getSuspendContext().getFrameProxy();
         if (frameProxy == null) {
             return null;
