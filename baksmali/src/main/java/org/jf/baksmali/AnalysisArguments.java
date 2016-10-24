@@ -49,11 +49,6 @@ import java.util.List;
 import static org.jf.dexlib2.analysis.ClassPath.NOT_ART;
 
 public class AnalysisArguments {
-    @Parameter(names = {"-a", "--api"},
-            description = "The numeric api level of the file being disassembled.")
-    @ExtendedParameter(argumentNames = "api")
-    public int apiLevel = 15;
-
     @Parameter(names = {"-b", "--bootclasspath", "--bcp"},
             description = "A colon separated list of the files to include in the bootclasspath when analyzing the " +
                     "dex file. If not specified, baksmali will attempt to choose an " +
@@ -131,7 +126,7 @@ public class AnalysisArguments {
         if (bootClassPath == null) {
             // TODO: we should be able to get the api from the Opcodes object associated with the dexFile..
             // except that the oat version -> api mapping doesn't fully work yet
-            resolver = new ClassPathResolver(filteredClassPathDirectories, classPath, dexFile, apiLevel);
+            resolver = new ClassPathResolver(filteredClassPathDirectories, classPath, dexFile);
         }  else if (bootClassPath.size() == 1 && bootClassPath.get(0).length() == 0) {
             // --bootclasspath "" is a special case, denoting that no bootclasspath should be used
             resolver = new ClassPathResolver(

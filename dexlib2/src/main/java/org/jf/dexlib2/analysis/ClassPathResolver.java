@@ -82,7 +82,7 @@ public class ClassPathResolver {
     public ClassPathResolver(@Nonnull List<String> bootClassPathDirs, @Nonnull List<String> bootClassPathEntries,
                              @Nonnull List<String> extraClassPathEntries, @Nonnull DexFile dexFile)
             throws IOException {
-        this(bootClassPathDirs, bootClassPathEntries, extraClassPathEntries, dexFile, dexFile.getOpcodes().api);
+        this(bootClassPathDirs, bootClassPathEntries, extraClassPathEntries, dexFile, true);
     }
 
     /**
@@ -92,7 +92,6 @@ public class ClassPathResolver {
      * @param extraClassPathEntries A list of additional classpath entries to load. Can be empty. All entries must be
      *                              local paths. Device paths are not supported.
      * @param dexFile The dex file that the classpath will be used to analyze
-     * @param apiLevel The api level of the device. This is used to select an appropriate set of boot classpath entries.
      * @throws IOException If any IOException occurs
      * @throws ResolveException If any classpath entries cannot be loaded for some reason
      *
@@ -101,19 +100,19 @@ public class ClassPathResolver {
      *                             classpath entries will be loaded
      */
     public ClassPathResolver(@Nonnull List<String> bootClassPathDirs, @Nonnull List<String> extraClassPathEntries,
-                             @Nonnull DexFile dexFile, int apiLevel)
+                             @Nonnull DexFile dexFile)
             throws IOException {
-        this(bootClassPathDirs, null, extraClassPathEntries, dexFile, apiLevel);
+        this(bootClassPathDirs, null, extraClassPathEntries, dexFile, true);
     }
 
     private ClassPathResolver(@Nonnull List<String> bootClassPathDirs, @Nullable List<String> bootClassPathEntries,
-                              @Nonnull List<String> extraClassPathEntries, @Nonnull DexFile dexFile, int apiLevel)
+                              @Nonnull List<String> extraClassPathEntries, @Nonnull DexFile dexFile, boolean unused)
             throws IOException {
         this.classPathDirs = bootClassPathDirs;
         opcodes = dexFile.getOpcodes();
 
         if (bootClassPathEntries == null) {
-            bootClassPathEntries = getDefaultBootClassPath(dexFile, apiLevel);
+            bootClassPathEntries = getDefaultBootClassPath(dexFile, opcodes.api);
         }
 
         for (String entry : bootClassPathEntries) {

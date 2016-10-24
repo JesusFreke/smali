@@ -34,12 +34,10 @@ package org.jf.baksmali;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.util.ConsoleUtil;
-import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
 
 import javax.annotation.Nonnull;
@@ -55,11 +53,6 @@ public class DumpCommand extends DexInputCommand {
     @Parameter(names = {"-h", "-?", "--help"}, help = true,
             description = "Show usage information for this command.")
     private boolean help;
-
-    @Parameter(names = {"-a", "--api"},
-            description = "The numeric api level of the file being disassembled.")
-    @ExtendedParameter(argumentNames = "api")
-    private int apiLevel = 15;
 
     public DumpCommand(@Nonnull List<JCommander> commandAncestors) {
         super(commandAncestors);
@@ -78,10 +71,10 @@ public class DumpCommand extends DexInputCommand {
         }
 
         String input = inputList.get(0);
-        loadDexFile(input, Opcodes.getDefault());
+        loadDexFile(input);
 
         try {
-            dump(dexFile, System.out, apiLevel);
+            dump(dexFile, System.out);
         } catch (IOException ex) {
             System.err.println("There was an error while dumping the dex file");
             ex.printStackTrace(System.err);
@@ -94,11 +87,10 @@ public class DumpCommand extends DexInputCommand {
      * @param dexFile The dex file to dump
      * @param output An OutputStream to write the annotated hex dump to. The caller is responsible for closing this
      *               when needed.
-     * @param apiLevel The api level to use when dumping the dex file
      *
      * @throws IOException
      */
-    public static void dump(@Nonnull DexBackedDexFile dexFile, @Nonnull OutputStream output, int apiLevel)
+    public static void dump(@Nonnull DexBackedDexFile dexFile, @Nonnull OutputStream output)
             throws IOException {
         Writer writer = new BufferedWriter(new OutputStreamWriter(output));
 

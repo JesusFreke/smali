@@ -52,6 +52,11 @@ import java.util.List;
  */
 public abstract class DexInputCommand extends Command {
 
+    @Parameter(names = {"-a", "--api"},
+            description = "The numeric api level of the file being disassembled.")
+    @ExtendedParameter(argumentNames = "api")
+    public int apiLevel = 15;
+
     @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
             "files, you can specify the specific entry to use as if the apk/oat file was a directory. " +
             "e.g. \"app.apk/classes2.dex\". For more information, see \"baksmali help input\".")
@@ -100,9 +105,8 @@ public abstract class DexInputCommand extends Command {
      * framework/arm/framework.oat/"system/framework/framework.jar:classes2.dex"
      *
      * @param input The name of a dex, apk, odex or oat file/entry.
-     * @param opcodes The set of opcodes to load the dex file with.
      */
-    protected void loadDexFile(@Nonnull String input, Opcodes opcodes) {
+    protected void loadDexFile(@Nonnull String input) {
         File file = new File(input);
 
         while (file != null && !file.exists()) {
@@ -131,13 +135,13 @@ public abstract class DexInputCommand extends Command {
             inputEntry = dexEntry;
 
             try {
-                dexFile = DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, opcodes);
+                dexFile = DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, Opcodes.forApi(apiLevel));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
             try {
-                dexFile = DexFileFactory.loadDexFile(file, opcodes);
+                dexFile = DexFileFactory.loadDexFile(file, Opcodes.forApi(apiLevel));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

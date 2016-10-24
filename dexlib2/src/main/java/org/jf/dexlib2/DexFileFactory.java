@@ -81,7 +81,6 @@ public final class DexFileFactory {
             throw new DexFileNotFoundException("%s does not exist", file.getName());
         }
 
-
         try {
             ZipDexContainer container = new ZipDexContainer(file, opcodes);
             return new DexEntryFinder(file.getPath(), container).findEntry("classes.dex", true);
