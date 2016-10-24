@@ -84,7 +84,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
                         // Does the instruction extend past the end of the method?
                         int offset = reader.getOffset();
                         if (offset > endOffset || offset < 0) {
-                            throw new ExceptionWithContext("The last instruction in the method is truncated");
+                            throw new ExceptionWithContext("The last instruction in method %s is truncated", method);
                         }
                         return instruction;
                     }
