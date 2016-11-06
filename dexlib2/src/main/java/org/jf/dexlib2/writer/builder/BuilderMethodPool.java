@@ -71,6 +71,10 @@ class BuilderMethodPool extends BaseBuilderPool implements MethodSection<Builder
         return internMethod(new MethodKey(definingClass, name, parameters, returnType));
     }
 
+    @Nonnull @Override public BuilderMethodReference getMethodReference(@Nonnull BuilderMethod builderMethod) {
+        return builderMethod.methodReference;
+    }
+
     @Nonnull @Override
     public BuilderTypeReference getDefiningClass(@Nonnull BuilderMethodReference key) {
         return key.definingClass; 

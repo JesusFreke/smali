@@ -33,6 +33,7 @@ package org.jf.dexlib2.builder;
 
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 
@@ -48,9 +49,16 @@ public abstract class BuilderOffsetInstruction extends BuilderInstruction implem
 
     @Override public int getCodeOffset() {
         int codeOffset = internalGetCodeOffset();
-        if ((this.getCodeUnits() == 1 && (codeOffset < Byte.MIN_VALUE || codeOffset > Byte.MAX_VALUE)) ||
-            (this.getCodeUnits() == 2 && (codeOffset < Short.MIN_VALUE || codeOffset > Short.MAX_VALUE))) {
-            throw new IllegalStateException("Target is out of range");
+        if (this.getCodeUnits() == 1) {
+            if (codeOffset < Byte.MIN_VALUE || codeOffset > Byte.MAX_VALUE) {
+                throw new ExceptionWithContext("Invalid instruction offset: %d. " +
+                        "Offset must be in [-128, 127]", codeOffset);
+            }
+        } else if (this.getCodeUnits() == 2) {
+            if (codeOffset < Short.MIN_VALUE || codeOffset > Short.MAX_VALUE) {
+                throw new ExceptionWithContext("Invalid instruction offset: %d. " +
+                        "Offset must be in [-32768, 32767]", codeOffset);
+            }
         }
         return codeOffset;
     }

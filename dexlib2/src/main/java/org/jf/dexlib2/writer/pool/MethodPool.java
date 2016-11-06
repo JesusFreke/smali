@@ -53,6 +53,10 @@ public class MethodPool extends BaseIndexPool<MethodReference>
         }
     }
 
+    @Nonnull @Override public MethodReference getMethodReference(@Nonnull PoolMethod poolMethod) {
+        return poolMethod;
+    }
+
     @Nonnull @Override public CharSequence getDefiningClass(@Nonnull MethodReference methodReference) {
         return methodReference.getDefiningClass();
     }

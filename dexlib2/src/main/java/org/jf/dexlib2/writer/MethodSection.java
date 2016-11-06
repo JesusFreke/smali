@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 public interface MethodSection<StringKey, TypeKey, ProtoRefKey extends MethodProtoReference,
         MethodRefKey extends MethodReference, MethodKey>
         extends IndexSection<MethodRefKey> {
+    @Nonnull MethodRefKey getMethodReference(@Nonnull MethodKey key);
     @Nonnull TypeKey getDefiningClass(@Nonnull MethodRefKey key);
     @Nonnull ProtoRefKey getPrototype(@Nonnull MethodRefKey key);
     @Nonnull ProtoRefKey getPrototype(@Nonnull MethodKey key);

@@ -815,7 +815,14 @@ public abstract class DexWriter<
 
                 int debugItemOffset = writeDebugItem(offsetWriter, debugWriter,
                         classSection.getParameterNames(methodKey), debugItems);
-                int codeItemOffset = writeCodeItem(codeWriter, ehBuf, methodKey, tryBlocks, instructions, debugItemOffset);
+                int codeItemOffset;
+                try {
+                    codeItemOffset = writeCodeItem(
+                            codeWriter, ehBuf, methodKey, tryBlocks, instructions, debugItemOffset);
+                } catch (RuntimeException ex) {
+                    throw new ExceptionWithContext(ex, "Exception occurred while writing code_item for method %s",
+                            methodSection.getMethodReference(methodKey));
+                }
 
                 if (codeItemOffset != -1) {
                     codeOffsets.add(new CodeItemOffset<MethodKey>(methodKey, codeItemOffset));
@@ -964,105 +971,111 @@ public abstract class DexWriter<
                             methodSection, protoSection);
 
             writer.writeInt(codeUnitCount);
+            int codeOffset = 0;
             for (Instruction instruction: instructions) {
-                switch (instruction.getOpcode().format) {
-                    case Format10t:
-                        instructionWriter.write((Instruction10t)instruction);
-                        break;
-                    case Format10x:
-                        instructionWriter.write((Instruction10x)instruction);
-                        break;
-                    case Format11n:
-                        instructionWriter.write((Instruction11n)instruction);
-                        break;
-                    case Format11x:
-                        instructionWriter.write((Instruction11x)instruction);
-                        break;
-                    case Format12x:
-                        instructionWriter.write((Instruction12x)instruction);
-                        break;
-                    case Format20bc:
-                        instructionWriter.write((Instruction20bc)instruction);
-                        break;
-                    case Format20t:
-                        instructionWriter.write((Instruction20t)instruction);
-                        break;
-                    case Format21c:
-                        instructionWriter.write((Instruction21c)instruction);
-                        break;
-                    case Format21ih:
-                        instructionWriter.write((Instruction21ih)instruction);
-                        break;
-                    case Format21lh:
-                        instructionWriter.write((Instruction21lh)instruction);
-                        break;
-                    case Format21s:
-                        instructionWriter.write((Instruction21s)instruction);
-                        break;
-                    case Format21t:
-                        instructionWriter.write((Instruction21t)instruction);
-                        break;
-                    case Format22b:
-                        instructionWriter.write((Instruction22b)instruction);
-                        break;
-                    case Format22c:
-                        instructionWriter.write((Instruction22c)instruction);
-                        break;
-                    case Format22s:
-                        instructionWriter.write((Instruction22s)instruction);
-                        break;
-                    case Format22t:
-                        instructionWriter.write((Instruction22t)instruction);
-                        break;
-                    case Format22x:
-                        instructionWriter.write((Instruction22x)instruction);
-                        break;
-                    case Format23x:
-                        instructionWriter.write((Instruction23x)instruction);
-                        break;
-                    case Format30t:
-                        instructionWriter.write((Instruction30t)instruction);
-                        break;
-                    case Format31c:
-                        instructionWriter.write((Instruction31c)instruction);
-                        break;
-                    case Format31i:
-                        instructionWriter.write((Instruction31i)instruction);
-                        break;
-                    case Format31t:
-                        instructionWriter.write((Instruction31t)instruction);
-                        break;
-                    case Format32x:
-                        instructionWriter.write((Instruction32x)instruction);
-                        break;
-                    case Format35c:
-                        instructionWriter.write((Instruction35c)instruction);
-                        break;
-                    case Format3rc:
-                        instructionWriter.write((Instruction3rc)instruction);
-                        break;
-                    case Format45cc:
-                        instructionWriter.write((Instruction45cc) instruction);
-                        break;
-                    case Format4rcc:
-                        instructionWriter.write((Instruction4rcc) instruction);
-                        break;
-                    case Format51l:
-                        instructionWriter.write((Instruction51l)instruction);
-                        break;
-                    case ArrayPayload:
-                        instructionWriter.write((ArrayPayload)instruction);
-                        break;
-                    case PackedSwitchPayload:
-                        instructionWriter.write((PackedSwitchPayload)instruction);
-                        break;
-                    case SparseSwitchPayload:
-                        instructionWriter.write((SparseSwitchPayload)instruction);
-                        break;
-                    default:
-                        throw new ExceptionWithContext("Unsupported instruction format: %s",
-                                instruction.getOpcode().format);
+                try {
+                    switch (instruction.getOpcode().format) {
+                        case Format10t:
+                            instructionWriter.write((Instruction10t)instruction);
+                            break;
+                        case Format10x:
+                            instructionWriter.write((Instruction10x)instruction);
+                            break;
+                        case Format11n:
+                            instructionWriter.write((Instruction11n)instruction);
+                            break;
+                        case Format11x:
+                            instructionWriter.write((Instruction11x)instruction);
+                            break;
+                        case Format12x:
+                            instructionWriter.write((Instruction12x)instruction);
+                            break;
+                        case Format20bc:
+                            instructionWriter.write((Instruction20bc)instruction);
+                            break;
+                        case Format20t:
+                            instructionWriter.write((Instruction20t)instruction);
+                            break;
+                        case Format21c:
+                            instructionWriter.write((Instruction21c)instruction);
+                            break;
+                        case Format21ih:
+                            instructionWriter.write((Instruction21ih)instruction);
+                            break;
+                        case Format21lh:
+                            instructionWriter.write((Instruction21lh)instruction);
+                            break;
+                        case Format21s:
+                            instructionWriter.write((Instruction21s)instruction);
+                            break;
+                        case Format21t:
+                            instructionWriter.write((Instruction21t)instruction);
+                            break;
+                        case Format22b:
+                            instructionWriter.write((Instruction22b)instruction);
+                            break;
+                        case Format22c:
+                            instructionWriter.write((Instruction22c)instruction);
+                            break;
+                        case Format22s:
+                            instructionWriter.write((Instruction22s)instruction);
+                            break;
+                        case Format22t:
+                            instructionWriter.write((Instruction22t)instruction);
+                            break;
+                        case Format22x:
+                            instructionWriter.write((Instruction22x)instruction);
+                            break;
+                        case Format23x:
+                            instructionWriter.write((Instruction23x)instruction);
+                            break;
+                        case Format30t:
+                            instructionWriter.write((Instruction30t)instruction);
+                            break;
+                        case Format31c:
+                            instructionWriter.write((Instruction31c)instruction);
+                            break;
+                        case Format31i:
+                            instructionWriter.write((Instruction31i)instruction);
+                            break;
+                        case Format31t:
+                            instructionWriter.write((Instruction31t)instruction);
+                            break;
+                        case Format32x:
+                            instructionWriter.write((Instruction32x)instruction);
+                            break;
+                        case Format35c:
+                            instructionWriter.write((Instruction35c)instruction);
+                            break;
+                        case Format3rc:
+                            instructionWriter.write((Instruction3rc)instruction);
+                            break;
+                        case Format45cc:
+                            instructionWriter.write((Instruction45cc)instruction);
+                            break;
+                        case Format4rcc:
+                            instructionWriter.write((Instruction4rcc)instruction);
+                            break;
+                        case Format51l:
+                            instructionWriter.write((Instruction51l)instruction);
+                            break;
+                        case ArrayPayload:
+                            instructionWriter.write((ArrayPayload)instruction);
+                            break;
+                        case PackedSwitchPayload:
+                            instructionWriter.write((PackedSwitchPayload)instruction);
+                            break;
+                        case SparseSwitchPayload:
+                            instructionWriter.write((SparseSwitchPayload)instruction);
+                            break;
+                        default:
+                            throw new ExceptionWithContext("Unsupported instruction format: %s",
+                                    instruction.getOpcode().format);
+                    }
+                } catch (RuntimeException ex) {
+                    throw new ExceptionWithContext(ex, "Error while writing instruction at code offset 0x%x", codeOffset);
                 }
+                codeOffset += instruction.getCodeUnits();
             }
 
             if (tryBlocks.size() > 0) {
