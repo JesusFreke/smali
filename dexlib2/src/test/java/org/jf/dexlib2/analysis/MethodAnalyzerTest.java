@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.analysis;
 
+import com.google.common.collect.Lists;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.Opcodes;
@@ -55,10 +56,12 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import static org.jf.dexlib2.Opcodes.forArtVersion;
+
 public class MethodAnalyzerTest {
 
     @Test
-    public void testInstanceOfNarrowingEqz() throws IOException {
+    public void testInstanceOfNarrowingEqz_art() throws IOException {
         MethodImplementationBuilder builder = new MethodImplementationBuilder(2);
 
         builder.addInstruction(new BuilderInstruction22c(Opcode.INSTANCE_OF, 0, 1,
@@ -76,9 +79,9 @@ public class MethodAnalyzerTest {
                 AccessFlags.PUBLIC.getValue(), null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
-        DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), Collections.singletonList(classDef));
+        DexFile dexFile = new ImmutableDexFile(forArtVersion(56), Collections.singletonList(classDef));
 
-        ClassPath classPath = new ClassPath(new DexClassProvider(dexFile));
+        ClassPath classPath = new ClassPath(Lists.newArrayList(new DexClassProvider(dexFile)), true, 56);
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, null, false);
 
         List<AnalyzedInstruction> analyzedInstructions = methodAnalyzer.getAnalyzedInstructions();
@@ -89,7 +92,70 @@ public class MethodAnalyzerTest {
     }
 
     @Test
-    public void testInstanceOfNarrowingNez() throws IOException {
+    public void testInstanceOfNarrowingEqz_dalvik() throws IOException {
+        MethodImplementationBuilder builder = new MethodImplementationBuilder(2);
+
+        builder.addInstruction(new BuilderInstruction22c(Opcode.INSTANCE_OF, 0, 1,
+                new ImmutableTypeReference("Lmain;")));
+        builder.addInstruction(new BuilderInstruction21t(Opcode.IF_EQZ, 0, builder.getLabel("not_instance_of")));
+        builder.addInstruction(new BuilderInstruction10x(Opcode.RETURN_VOID));
+
+        builder.addLabel("not_instance_of");
+        builder.addInstruction(new BuilderInstruction10x(Opcode.RETURN_VOID));
+
+        MethodImplementation methodImplementation = builder.getMethodImplementation();
+
+        Method method = new ImmutableMethod("Lmain;", "narrowing",
+                Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
+                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+        ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
+                null, null, null, Collections.singletonList(method));
+        DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), Collections.singletonList(classDef));
+
+        ClassPath classPath = new ClassPath(new DexClassProvider(dexFile));
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, null, false);
+
+        List<AnalyzedInstruction> analyzedInstructions = methodAnalyzer.getAnalyzedInstructions();
+        Assert.assertEquals("Ljava/lang/Object;",
+                analyzedInstructions.get(2).getPreInstructionRegisterType(1).type.getType());
+
+        Assert.assertEquals("Ljava/lang/Object;",
+                analyzedInstructions.get(3).getPreInstructionRegisterType(1).type.getType());
+    }
+
+    @Test
+    public void testInstanceOfNarrowingNez_art() throws IOException {
+        MethodImplementationBuilder builder = new MethodImplementationBuilder(2);
+
+        builder.addInstruction(new BuilderInstruction22c(Opcode.INSTANCE_OF, 0, 1,
+                new ImmutableTypeReference("Lmain;")));
+        builder.addInstruction(new BuilderInstruction21t(Opcode.IF_NEZ, 0, builder.getLabel("instance_of")));
+        builder.addInstruction(new BuilderInstruction10x(Opcode.RETURN_VOID));
+
+        builder.addLabel("instance_of");
+        builder.addInstruction(new BuilderInstruction10x(Opcode.RETURN_VOID));
+
+        MethodImplementation methodImplementation = builder.getMethodImplementation();
+
+        Method method = new ImmutableMethod("Lmain;", "narrowing",
+                Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
+                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+        ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
+                null, null, null, Collections.singletonList(method));
+        DexFile dexFile = new ImmutableDexFile(forArtVersion(56), Collections.singletonList(classDef));
+
+        ClassPath classPath = new ClassPath(Lists.newArrayList(new DexClassProvider(dexFile)), true, 56);
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, null, false);
+
+        List<AnalyzedInstruction> analyzedInstructions = methodAnalyzer.getAnalyzedInstructions();
+        Assert.assertEquals("Ljava/lang/Object;",
+                analyzedInstructions.get(2).getPreInstructionRegisterType(1).type.getType());
+
+        Assert.assertEquals("Lmain;", analyzedInstructions.get(3).getPreInstructionRegisterType(1).type.getType());
+    }
+
+    @Test
+    public void testInstanceOfNarrowingNez_dalvik() throws IOException {
         MethodImplementationBuilder builder = new MethodImplementationBuilder(2);
 
         builder.addInstruction(new BuilderInstruction22c(Opcode.INSTANCE_OF, 0, 1,
@@ -116,11 +182,47 @@ public class MethodAnalyzerTest {
         Assert.assertEquals("Ljava/lang/Object;",
                 analyzedInstructions.get(2).getPreInstructionRegisterType(1).type.getType());
 
-        Assert.assertEquals("Lmain;", analyzedInstructions.get(3).getPreInstructionRegisterType(1).type.getType());
+        Assert.assertEquals("Ljava/lang/Object;",
+                analyzedInstructions.get(3).getPreInstructionRegisterType(1).type.getType());
     }
 
     @Test
-    public void testInstanceOfNarrowingAfterMove() throws IOException {
+    public void testInstanceOfNarrowingAfterMove_art() throws IOException {
+        MethodImplementationBuilder builder = new MethodImplementationBuilder(3);
+
+        builder.addInstruction(new BuilderInstruction12x(Opcode.MOVE_OBJECT, 1, 2));
+        builder.addInstruction(new BuilderInstruction22c(Opcode.INSTANCE_OF, 0, 1,
+                new ImmutableTypeReference("Lmain;")));
+        builder.addInstruction(new BuilderInstruction21t(Opcode.IF_EQZ, 0, builder.getLabel("not_instance_of")));
+        builder.addInstruction(new BuilderInstruction10x(Opcode.RETURN_VOID));
+
+        builder.addLabel("not_instance_of");
+        builder.addInstruction(new BuilderInstruction10x(Opcode.RETURN_VOID));
+
+        MethodImplementation methodImplementation = builder.getMethodImplementation();
+
+        Method method = new ImmutableMethod("Lmain;", "narrowing",
+                Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
+                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+        ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
+                null, null, null, Collections.singletonList(method));
+        DexFile dexFile = new ImmutableDexFile(forArtVersion(56), Collections.singletonList(classDef));
+
+        ClassPath classPath = new ClassPath(Lists.newArrayList(new DexClassProvider(dexFile)), true, 56);
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, null, false);
+
+        List<AnalyzedInstruction> analyzedInstructions = methodAnalyzer.getAnalyzedInstructions();
+        Assert.assertEquals("Lmain;", analyzedInstructions.get(3).getPreInstructionRegisterType(1).type.getType());
+        Assert.assertEquals("Lmain;", analyzedInstructions.get(3).getPreInstructionRegisterType(2).type.getType());
+
+        Assert.assertEquals("Ljava/lang/Object;",
+                analyzedInstructions.get(4).getPreInstructionRegisterType(1).type.getType());
+        Assert.assertEquals("Ljava/lang/Object;",
+                analyzedInstructions.get(4).getPreInstructionRegisterType(2).type.getType());
+    }
+
+    @Test
+    public void testInstanceOfNarrowingAfterMove_dalvik() throws IOException {
         MethodImplementationBuilder builder = new MethodImplementationBuilder(3);
 
         builder.addInstruction(new BuilderInstruction12x(Opcode.MOVE_OBJECT, 1, 2));
@@ -145,8 +247,10 @@ public class MethodAnalyzerTest {
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer(classPath, method, null, false);
 
         List<AnalyzedInstruction> analyzedInstructions = methodAnalyzer.getAnalyzedInstructions();
-        Assert.assertEquals("Lmain;", analyzedInstructions.get(3).getPreInstructionRegisterType(1).type.getType());
-        Assert.assertEquals("Lmain;", analyzedInstructions.get(3).getPreInstructionRegisterType(2).type.getType());
+        Assert.assertEquals("Ljava/lang/Object;",
+                analyzedInstructions.get(3).getPreInstructionRegisterType(1).type.getType());
+        Assert.assertEquals("Ljava/lang/Object;",
+                analyzedInstructions.get(3).getPreInstructionRegisterType(2).type.getType());
 
         Assert.assertEquals("Ljava/lang/Object;",
                 analyzedInstructions.get(4).getPreInstructionRegisterType(1).type.getType());

@@ -1181,6 +1181,10 @@ public class MethodAnalyzer {
 
     static boolean canNarrowAfterInstanceOf(AnalyzedInstruction analyzedInstanceOfInstruction,
                                             AnalyzedInstruction analyzedIfInstruction, ClassPath classPath) {
+        if (!classPath.isArt()) {
+            return false;
+        }
+
         Instruction ifInstruction = analyzedIfInstruction.instruction;
         if (((Instruction21t)ifInstruction).getRegisterA() == analyzedInstanceOfInstruction.getDestinationRegister()) {
             Reference reference = ((Instruction22c)analyzedInstanceOfInstruction.getInstruction()).getReference();
@@ -1205,93 +1209,93 @@ public class MethodAnalyzer {
     /**
      * Art uses a peephole optimization for an if-eqz or if-nez that occur immediately after an instance-of. It will
      * narrow the type if possible, and then NOP out any corresponding check-cast instruction later on
-     *
-     * TODO: Is this still safe to do even for dalvik odexes? I think it should be..
      */
     private void analyzeIfEqzNez(@Nonnull AnalyzedInstruction analyzedInstruction) {
-        int instructionIndex = analyzedInstruction.getInstructionIndex();
-        if (instructionIndex > 0) {
-            if (analyzedInstruction.getPredecessorCount() != 1) {
-                return;
-            }
-            AnalyzedInstruction prevAnalyzedInstruction = analyzedInstruction.getPredecessors().first();
-            if (prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
-                Instruction22c instanceOfInstruction = (Instruction22c)prevAnalyzedInstruction.instruction;
-                if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
-                    List<Integer> narrowingRegisters = Lists.newArrayList();
+        if (classPath.isArt()) {
+            int instructionIndex = analyzedInstruction.getInstructionIndex();
+            if (instructionIndex > 0) {
+                if (analyzedInstruction.getPredecessorCount() != 1) {
+                    return;
+                }
+                AnalyzedInstruction prevAnalyzedInstruction = analyzedInstruction.getPredecessors().first();
+                if (prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
+                    Instruction22c instanceOfInstruction = (Instruction22c)prevAnalyzedInstruction.instruction;
+                    if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
+                        List<Integer> narrowingRegisters = Lists.newArrayList();
 
-                    RegisterType newType = RegisterType.getRegisterType(classPath,
-                            (TypeReference)instanceOfInstruction.getReference());
+                        RegisterType newType = RegisterType.getRegisterType(classPath,
+                                (TypeReference)instanceOfInstruction.getReference());
 
-                    if (instructionIndex > 1) {
-                        // If we have something like:
-                        //   move-object/from16 v0, p1
-                        //   instance-of v2, v0, Lblah;
-                        //   if-eqz v2, :target
-                        // Then we need to narrow both v0 AND p1, but only if all predecessors of instance-of are a
-                        // move-object for the same registers
+                        if (instructionIndex > 1) {
+                            // If we have something like:
+                            //   move-object/from16 v0, p1
+                            //   instance-of v2, v0, Lblah;
+                            //   if-eqz v2, :target
+                            // Then we need to narrow both v0 AND p1, but only if all predecessors of instance-of are a
+                            // move-object for the same registers
 
-                        int additionalNarrowingRegister = -1;
-                        for (AnalyzedInstruction prevPrevAnalyzedInstruction: prevAnalyzedInstruction.predecessors) {
-                            Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
-                            if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
-                                    opcode == Opcode.MOVE_OBJECT_FROM16) {
-                                TwoRegisterInstruction moveInstruction =
-                                        ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction);
-                                RegisterType originalType =
-                                        prevPrevAnalyzedInstruction.getPostInstructionRegisterType(
-                                                moveInstruction.getRegisterB());
-                                if (moveInstruction.getRegisterA() != instanceOfInstruction.getRegisterB()) {
-                                    additionalNarrowingRegister = -1;
-                                    break;
-                                }
-                                if (originalType.type == null) {
-                                    additionalNarrowingRegister = -1;
-                                    break;
-                                }
-                                if (isNarrowingConversion(originalType, newType)) {
-                                    if (additionalNarrowingRegister != -1) {
-                                        if (additionalNarrowingRegister != moveInstruction.getRegisterB()) {
-                                            additionalNarrowingRegister = -1;
-                                            break;
-                                        }
-                                    } else {
-                                        additionalNarrowingRegister = moveInstruction.getRegisterB();
+                            int additionalNarrowingRegister = -1;
+                            for (AnalyzedInstruction prevPrevAnalyzedInstruction : prevAnalyzedInstruction.predecessors) {
+                                Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
+                                if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
+                                        opcode == Opcode.MOVE_OBJECT_FROM16) {
+                                    TwoRegisterInstruction moveInstruction =
+                                            ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction);
+                                    RegisterType originalType =
+                                            prevPrevAnalyzedInstruction.getPostInstructionRegisterType(
+                                                    moveInstruction.getRegisterB());
+                                    if (moveInstruction.getRegisterA() != instanceOfInstruction.getRegisterB()) {
+                                        additionalNarrowingRegister = -1;
+                                        break;
                                     }
+                                    if (originalType.type == null) {
+                                        additionalNarrowingRegister = -1;
+                                        break;
+                                    }
+                                    if (isNarrowingConversion(originalType, newType)) {
+                                        if (additionalNarrowingRegister != -1) {
+                                            if (additionalNarrowingRegister != moveInstruction.getRegisterB()) {
+                                                additionalNarrowingRegister = -1;
+                                                break;
+                                            }
+                                        } else {
+                                            additionalNarrowingRegister = moveInstruction.getRegisterB();
+                                        }
+                                    }
+                                } else {
+                                    additionalNarrowingRegister = -1;
+                                    break;
                                 }
-                            } else {
-                                additionalNarrowingRegister = -1;
-                                break;
+                            }
+                            if (additionalNarrowingRegister != -1) {
+                                narrowingRegisters.add(additionalNarrowingRegister);
                             }
                         }
-                        if (additionalNarrowingRegister != -1) {
-                            narrowingRegisters.add(additionalNarrowingRegister);
-                        }
-                    }
 
-                    // Propagate the original type to the failing branch, and the new type to the successful branch
-                    int narrowingRegister = ((Instruction22c)prevAnalyzedInstruction.instruction).getRegisterB();
-                    narrowingRegisters.add(narrowingRegister);
-                    RegisterType originalType = analyzedInstruction.getPreInstructionRegisterType(narrowingRegister);
+                        // Propagate the original type to the failing branch, and the new type to the successful branch
+                        int narrowingRegister = ((Instruction22c)prevAnalyzedInstruction.instruction).getRegisterB();
+                        narrowingRegisters.add(narrowingRegister);
+                        RegisterType originalType = analyzedInstruction.getPreInstructionRegisterType(narrowingRegister);
 
-                    AnalyzedInstruction fallthroughInstruction = analyzedInstructions.valueAt(
-                            analyzedInstruction.getInstructionIndex() + 1);
+                        AnalyzedInstruction fallthroughInstruction = analyzedInstructions.valueAt(
+                                analyzedInstruction.getInstructionIndex() + 1);
 
-                    int nextAddress = getInstructionAddress(analyzedInstruction) +
-                            ((Instruction21t)analyzedInstruction.instruction).getCodeOffset();
-                    AnalyzedInstruction branchInstruction = analyzedInstructions.get(nextAddress);
+                        int nextAddress = getInstructionAddress(analyzedInstruction) +
+                                ((Instruction21t)analyzedInstruction.instruction).getCodeOffset();
+                        AnalyzedInstruction branchInstruction = analyzedInstructions.get(nextAddress);
 
-                    for (int register: narrowingRegisters) {
-                        if (analyzedInstruction.instruction.getOpcode() == Opcode.IF_EQZ) {
-                            overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
-                                    register, newType);
-                            overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
-                                    register, originalType);
-                        } else {
-                            overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
-                                    register, originalType);
-                            overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
-                                    register, newType);
+                        for (int register : narrowingRegisters) {
+                            if (analyzedInstruction.instruction.getOpcode() == Opcode.IF_EQZ) {
+                                overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
+                                        register, newType);
+                                overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
+                                        register, originalType);
+                            } else {
+                                overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
+                                        register, originalType);
+                                overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
+                                        register, newType);
+                            }
                         }
                     }
                 }
