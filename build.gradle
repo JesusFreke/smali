@@ -98,10 +98,10 @@ subprojects {
 
     ext {
         depends = [
-                guava: 'com.google.guava:guava:18.0',
-                findbugs: 'com.google.code.findbugs:jsr305:1.3.9',
-                junit: 'junit:junit:4.6',
-                mockito: 'org.mockito:mockito-core:1.10.19',
+                guava: 'com.google.guava:guava:19.0',
+                findbugs: 'com.google.code.findbugs:jsr305:3.0.1',
+                junit: 'junit:junit:4.12',
+                mockito: 'org.mockito:mockito-core:2.2.11',
                 antlr_runtime: 'org.antlr:antlr-runtime:3.5.2',
                 antlr: 'org.antlr:antlr:3.5.2',
                 stringtemplate: 'org.antlr:stringtemplate:3.2.1',
@@ -109,7 +109,7 @@ subprojects {
                 proguard_gradle: 'net.sf.proguard:proguard-gradle:5.2.1',
                 dx: 'com.google.android.tools:dx:1.7',
                 gson: 'com.google.code.gson:gson:2.3.1',
-                jcommander: 'com.beust:jcommander:1.48'
+                jcommander: 'com.beust:jcommander:1.58'
          ]
     }
 
