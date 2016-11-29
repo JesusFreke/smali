@@ -98,7 +98,7 @@ subprojects {
 
     ext {
         depends = [
-                guava: 'com.google.guava:guava:19.0',
+                guava: 'com.google.guava:guava:20.0',
                 findbugs: 'com.google.code.findbugs:jsr305:3.0.1',
                 junit: 'junit:junit:4.12',
                 mockito: 'org.mockito:mockito-core:2.2.11',
