@@ -259,7 +259,10 @@ public class SmaliMethod extends SmaliStubBasedPsiElement<SmaliMethodStub>
     }
 
     @Nullable @Override public SmaliClass getContainingClass() {
-        PsiElement parent = getStubOrPsiParent();
+        //by chenjingxiong@gmail.com
+        //for IDEA-U since 2016.2
+        PsiElement parent = getParent();
+        //PsiElement parent = getStubOrPsiParent();
         if (parent instanceof SmaliClass) {
             return (SmaliClass) parent;
         }
