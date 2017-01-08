@@ -374,7 +374,8 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
             if (previousInstruction != null &&
                     previousInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF &&
                     registerNumber == ((Instruction22c)previousInstruction.instruction).getRegisterB() &&
-                    MethodAnalyzer.canNarrowAfterInstanceOf(previousInstruction, this, methodAnalyzer.getClassPath())) {
+                    MethodAnalyzer.canPropogateTypeAfterInstanceOf(
+                            previousInstruction, this, methodAnalyzer.getClassPath())) {
                 return true;
             }
         }

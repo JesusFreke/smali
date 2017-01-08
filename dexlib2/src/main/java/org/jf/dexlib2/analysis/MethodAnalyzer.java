@@ -1167,20 +1167,26 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, castRegisterType);
     }
 
-    private static boolean isNarrowingConversion(RegisterType originalType, RegisterType newType) {
+    private static boolean isNotWideningConversion(RegisterType originalType, RegisterType newType) {
         if (originalType.type == null || newType.type == null) {
-            return false;
+            return true;
         }
         if (originalType.type.isInterface()) {
             return newType.type.implementsInterface(originalType.type.getType());
         } else {
             TypeProto commonSuperclass = newType.type.getCommonSuperclass(originalType.type);
-            return commonSuperclass.getType().equals(originalType.type.getType());
+            if (commonSuperclass.getType().equals(originalType.type.getType())) {
+                return true;
         }
+            if (commonSuperclass.getType().equals(newType.type.getType())) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    static boolean canNarrowAfterInstanceOf(AnalyzedInstruction analyzedInstanceOfInstruction,
-                                            AnalyzedInstruction analyzedIfInstruction, ClassPath classPath) {
+    static boolean canPropogateTypeAfterInstanceOf(AnalyzedInstruction analyzedInstanceOfInstruction,
+                                                   AnalyzedInstruction analyzedIfInstruction, ClassPath classPath) {
         if (!classPath.isArt()) {
             return false;
         }
@@ -1197,7 +1203,7 @@ public class MethodAnalyzer {
 
                     RegisterType originalType = analyzedIfInstruction.getPreInstructionRegisterType(objectRegister);
 
-                    return isNarrowingConversion(originalType, registerType);
+                    return isNotWideningConversion(originalType, registerType);
                 }
             } catch (UnresolvedClassException ex) {
                 return false;
@@ -1220,7 +1226,7 @@ public class MethodAnalyzer {
                 AnalyzedInstruction prevAnalyzedInstruction = analyzedInstruction.getPredecessors().first();
                 if (prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
                     Instruction22c instanceOfInstruction = (Instruction22c)prevAnalyzedInstruction.instruction;
-                    if (canNarrowAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
+                    if (canPropogateTypeAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
                         List<Integer> narrowingRegisters = Lists.newArrayList();
 
                         RegisterType newType = RegisterType.getRegisterType(classPath,
@@ -1252,7 +1258,7 @@ public class MethodAnalyzer {
                                         additionalNarrowingRegister = -1;
                                         break;
                                     }
-                                    if (isNarrowingConversion(originalType, newType)) {
+                                    if (isNotWideningConversion(originalType, newType)) {
                                         if (additionalNarrowingRegister != -1) {
                                             if (additionalNarrowingRegister != moveInstruction.getRegisterB()) {
                                                 additionalNarrowingRegister = -1;
