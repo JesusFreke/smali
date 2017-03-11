@@ -232,7 +232,7 @@ public class ClassPathResolver {
         List<String> entryNames = container.getDexEntryNames();
 
         if (entryNames.size() == 0) {
-            throw new NoDexException("%s contains no dex file");
+            throw new NoDexException("%s contains no dex file", entryFile);
         }
 
         loadedFiles.add(entryFile);
