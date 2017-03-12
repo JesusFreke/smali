@@ -32,12 +32,14 @@
 package org.jf.dexlib2.analysis;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.instruction.formats.Instruction22c;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -312,7 +314,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
         return false;
     }
 
-    protected boolean isInvokeInit() {
+    public boolean isInvokeInit() {
         if (!instruction.getOpcode().canInitializeReference()) {
             return false;
         }
@@ -327,23 +329,26 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
         return false;
     }
 
-    public boolean setsRegister() {
-        return instruction.getOpcode().setsRegister();
-    }
-
-    public boolean setsWideRegister() {
-        return instruction.getOpcode().setsWideRegister();
-    }
-
+    /**
+     * Determines if this instruction sets the given register, or alters its type
+     *
+     * @param registerNumber The register to check
+     * @return true if this instruction sets the given register or alters its type
+     */
     public boolean setsRegister(int registerNumber) {
-        //When constructing a new object, the register type will be an uninitialized reference after the new-instance
-        //instruction, but becomes an initialized reference once the <init> method is called. So even though invoke
-        //instructions don't normally change any registers, calling an <init> method will change the type of its
-        //object register. If the uninitialized reference has been copied to other registers, they will be initialized
-        //as well, so we need to check for that too
+        // This method could be implemented by calling getSetRegisters and checking if registerNumber is in the result
+        // However, this is a frequently called method, and this is a more efficient implementation, because it doesn't
+        // allocate a new list, and it can potentially exit earlier
+
         if (isInvokeInit()) {
+            // When constructing a new object, the register type will be an uninitialized reference after the
+            // new-instance instruction, but becomes an initialized reference once the <init> method is called. So even
+            // though invoke instructions don't normally change any registers, calling an <init> method will change the
+            // type of its object register. If the uninitialized reference has been copied to other registers, they will
+            // be initialized as well, so we need to check for that too
             int destinationRegister;
             if (instruction instanceof FiveRegisterInstruction) {
+                assert ((FiveRegisterInstruction)instruction).getRegisterCount() > 0;
                 destinationRegister = ((FiveRegisterInstruction)instruction).getRegisterC();
             } else {
                 assert instruction instanceof RegisterRangeInstruction;
@@ -352,35 +357,107 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
                 destinationRegister = rangeInstruction.getStartRegister();
             }
 
+            RegisterType preInstructionDestRegisterType = getPreInstructionRegisterType(destinationRegister);
+            if (preInstructionDestRegisterType.category == RegisterType.UNKNOWN) {
+                // We never let an uninitialized reference propagate past an invoke-init if the object register type is
+                // unknown This is because the uninitialized reference may be an alias to the reference being
+                // initialized, but we can't know that until the object register's type is known
+                RegisterType preInstructionRegisterType = getPreInstructionRegisterType(registerNumber);
+                if (preInstructionRegisterType.category == RegisterType.UNINIT_REF ||
+                        preInstructionRegisterType.category == RegisterType.UNINIT_THIS) {
+                    return true;
+                }
+            }
+
+            if (preInstructionDestRegisterType.category != RegisterType.UNINIT_REF &&
+                    preInstructionDestRegisterType.category != RegisterType.UNINIT_THIS) {
+                return false;
+            }
+
             if (registerNumber == destinationRegister) {
                 return true;
             }
-            RegisterType preInstructionDestRegisterType = getPreInstructionRegisterType(registerNumber);
-            if (preInstructionDestRegisterType.category != RegisterType.UNINIT_REF &&
-                preInstructionDestRegisterType.category != RegisterType.UNINIT_THIS) {
 
-                return false;
-            }
             //check if the uninit ref has been copied to another register
-            if (getPreInstructionRegisterType(registerNumber).equals(preInstructionDestRegisterType)) {
-                return true;
-            }
-            return false;
+            return preInstructionDestRegisterType.equals(getPreInstructionRegisterType(registerNumber));
         }
 
-        if (getPredecessorCount() == 1 && (instruction.getOpcode() == Opcode.IF_EQZ ||
-                instruction.getOpcode() == Opcode.IF_NEZ)) {
-            AnalyzedInstruction previousInstruction = getPreviousInstruction();
-            if (previousInstruction != null &&
-                    previousInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF &&
-                    registerNumber == ((Instruction22c)previousInstruction.instruction).getRegisterB() &&
-                    MethodAnalyzer.canPropogateTypeAfterInstanceOf(
-                            previousInstruction, this, methodAnalyzer.getClassPath())) {
-                return true;
+        // On art, the optimizer will often nop out a check-cast instruction after an instance-of instruction.
+        // Normally, check-cast is where the register type actually changes.
+        // In order to correctly handle this case, we have to propagate the narrowed register type to the appropriate
+        // branch of the following if-eqz/if-nez
+        if (instructionIndex > 0 &&
+                methodAnalyzer.getClassPath().isArt() &&
+                getPredecessorCount() == 1 &&
+                (instruction.getOpcode() == Opcode.IF_EQZ || instruction.getOpcode() == Opcode.IF_NEZ)) {
+
+            AnalyzedInstruction prevInstruction = predecessors.first();
+            if (prevInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF &&
+                    MethodAnalyzer.canPropagateTypeAfterInstanceOf(
+                            prevInstruction, this, methodAnalyzer.getClassPath())) {
+                Instruction22c instanceOfInstruction = (Instruction22c)prevInstruction.instruction;
+
+                if (registerNumber == instanceOfInstruction.getRegisterB()) {
+                    return true;
+                }
+
+                // Additionally, there may be a move instruction just before the instance-of, in order to put the value
+                // into a register that is addressable by the instance-of. In this case, we also need to propagate the
+                // new register type for the original register that the value was moved from.
+                // In some cases, the instance-of may have multiple predecessors. In this case, we should only do the
+                // propagation if all predecessors are move-object instructions for the same source register
+                // TODO: do we need to do some sort of additional check that these multiple move-object predecessors actually refer to the same value?
+                if (instructionIndex > 1) {
+                    int originalSourceRegister = -1;
+
+                    RegisterType newType = null;
+
+                    for (AnalyzedInstruction prevPrevAnalyzedInstruction : prevInstruction.predecessors) {
+                        Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
+                        if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
+                                opcode == Opcode.MOVE_OBJECT_FROM16) {
+                            TwoRegisterInstruction moveInstruction =
+                                    ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction);
+                            RegisterType originalType =
+                                    prevPrevAnalyzedInstruction.getPostInstructionRegisterType(
+                                            moveInstruction.getRegisterB());
+                            if (moveInstruction.getRegisterA() != instanceOfInstruction.getRegisterB()) {
+                                originalSourceRegister = -1;
+                                break;
+                            }
+                            if (originalType.type == null) {
+                                originalSourceRegister = -1;
+                                break;
+                            }
+
+                            if (newType == null) {
+                                newType = RegisterType.getRegisterType(methodAnalyzer.getClassPath(),
+                                        (TypeReference)instanceOfInstruction.getReference());
+                            }
+
+                            if (MethodAnalyzer.isNotWideningConversion(originalType, newType)) {
+                                if (originalSourceRegister != -1) {
+                                    if (originalSourceRegister != moveInstruction.getRegisterB()) {
+                                        originalSourceRegister = -1;
+                                        break;
+                                    }
+                                } else {
+                                    originalSourceRegister = moveInstruction.getRegisterB();
+                                }
+                            }
+                        } else {
+                            originalSourceRegister = -1;
+                            break;
+                        }
+                    }
+                    if (originalSourceRegister != -1 && registerNumber == originalSourceRegister) {
+                        return true;
+                    }
+                }
             }
         }
 
-        if (!setsRegister()) {
+        if (!instruction.getOpcode().setsRegister()) {
             return false;
         }
         int destinationRegister = getDestinationRegister();
@@ -388,20 +465,151 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
         if (registerNumber == destinationRegister) {
             return true;
         }
-        if (setsWideRegister() && registerNumber == (destinationRegister + 1)) {
+        if (instruction.getOpcode().setsWideRegister() && registerNumber == (destinationRegister + 1)) {
             return true;
         }
         return false;
     }
 
-    @Nullable
-    private AnalyzedInstruction getPreviousInstruction() {
-        for (AnalyzedInstruction predecessor: predecessors) {
-            if (predecessor.getInstructionIndex() == getInstructionIndex() - 1) {
-                return predecessor;
+    public List<Integer> getSetRegisters() {
+        List<Integer> setRegisters = Lists.newArrayList();
+
+        if (instruction.getOpcode().setsRegister()) {
+            setRegisters.add(getDestinationRegister());
+        }
+        if (instruction.getOpcode().setsWideRegister()) {
+            setRegisters.add(getDestinationRegister() + 1);
+        }
+
+        if (isInvokeInit()) {
+            //When constructing a new object, the register type will be an uninitialized reference after the new-instance
+            //instruction, but becomes an initialized reference once the <init> method is called. So even though invoke
+            //instructions don't normally change any registers, calling an <init> method will change the type of its
+            //object register. If the uninitialized reference has been copied to other registers, they will be initialized
+            //as well, so we need to check for that too
+
+            int destinationRegister;
+            if (instruction instanceof FiveRegisterInstruction) {
+                destinationRegister = ((FiveRegisterInstruction)instruction).getRegisterC();
+                assert ((FiveRegisterInstruction)instruction).getRegisterCount() > 0;
+            } else {
+                assert instruction instanceof RegisterRangeInstruction;
+                RegisterRangeInstruction rangeInstruction = (RegisterRangeInstruction)instruction;
+                assert rangeInstruction.getRegisterCount() > 0;
+                destinationRegister = rangeInstruction.getStartRegister();
+            }
+
+            RegisterType preInstructionDestRegisterType = getPreInstructionRegisterType(destinationRegister);
+            if (preInstructionDestRegisterType.category == RegisterType.UNINIT_REF ||
+                    preInstructionDestRegisterType.category == RegisterType.UNINIT_THIS) {
+                setRegisters.add(destinationRegister);
+
+                RegisterType objectRegisterType = preRegisterMap[destinationRegister];
+                for (int i = 0; i < preRegisterMap.length; i++) {
+                    if (i == destinationRegister) {
+                        continue;
+                    }
+
+                    RegisterType preInstructionRegisterType = preRegisterMap[i];
+
+                    if (preInstructionRegisterType.equals(objectRegisterType)) {
+                        setRegisters.add(i);
+                    } else if (preInstructionRegisterType.category == RegisterType.UNINIT_REF ||
+                            preInstructionRegisterType.category == RegisterType.UNINIT_THIS) {
+                        RegisterType postInstructionRegisterType = postRegisterMap[i];
+                        if (postInstructionRegisterType.category == RegisterType.UNKNOWN) {
+                            setRegisters.add(i);
+                        }
+                    }
+                }
+            } else if (preInstructionDestRegisterType.category == RegisterType.UNKNOWN) {
+                // We never let an uninitialized reference propagate past an invoke-init if the object register type is
+                // unknown This is because the uninitialized reference may be an alias to the reference being
+                // initialized, but we can't know that until the object register's type is known
+
+                for (int i = 0; i < preRegisterMap.length; i++) {
+                    RegisterType registerType = preRegisterMap[i];
+                    if (registerType.category == RegisterType.UNINIT_REF ||
+                            registerType.category == RegisterType.UNINIT_THIS) {
+                        setRegisters.add(i);
+                    }
+                }
             }
         }
-        return null;
+
+        // On art, the optimizer will often nop out a check-cast instruction after an instance-of instruction.
+        // Normally, check-cast is where the register type actually changes.
+        // In order to correctly handle this case, we have to propagate the narrowed register type to the appropriate
+        // branch of the following if-eqz/if-nez
+        if (instructionIndex > 0 &&
+                methodAnalyzer.getClassPath().isArt() &&
+                getPredecessorCount() == 1 &&
+                (instruction.getOpcode() == Opcode.IF_EQZ || instruction.getOpcode() == Opcode.IF_NEZ)) {
+
+            AnalyzedInstruction prevInstruction = predecessors.first();
+            if (prevInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF &&
+                    MethodAnalyzer.canPropagateTypeAfterInstanceOf(
+                            prevInstruction, this, methodAnalyzer.getClassPath())) {
+                Instruction22c instanceOfInstruction = (Instruction22c)prevInstruction.instruction;
+                setRegisters.add(instanceOfInstruction.getRegisterB());
+
+                // Additionally, there may be a move instruction just before the instance-of, in order to put the value
+                // into a register that is addressable by the instance-of. In this case, we also need to propagate the
+                // new register type for the original register that the value was moved from.
+                // In some cases, the instance-of may have multiple predecessors. In this case, we should only do the
+                // propagation if all predecessors are move-object instructions for the same source register
+                // TODO: do we need to do some sort of additional check that these multiple move-object predecessors actually refer to the same value?
+                if (instructionIndex > 1) {
+                    int originalSourceRegister = -1;
+
+                    RegisterType newType = null;
+
+                    for (AnalyzedInstruction prevPrevAnalyzedInstruction : prevInstruction.predecessors) {
+                        Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
+                        if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
+                                opcode == Opcode.MOVE_OBJECT_FROM16) {
+                            TwoRegisterInstruction moveInstruction =
+                                    ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction);
+                            RegisterType originalType =
+                                    prevPrevAnalyzedInstruction.getPostInstructionRegisterType(
+                                            moveInstruction.getRegisterB());
+                            if (moveInstruction.getRegisterA() != instanceOfInstruction.getRegisterB()) {
+                                originalSourceRegister = -1;
+                                break;
+                            }
+                            if (originalType.type == null) {
+                                originalSourceRegister = -1;
+                                break;
+                            }
+
+                            if (newType == null) {
+                                newType = RegisterType.getRegisterType(methodAnalyzer.getClassPath(),
+                                        (TypeReference)instanceOfInstruction.getReference());
+                            }
+
+                            if (MethodAnalyzer.isNotWideningConversion(originalType, newType)) {
+                                if (originalSourceRegister != -1) {
+                                    if (originalSourceRegister != moveInstruction.getRegisterB()) {
+                                        originalSourceRegister = -1;
+                                        break;
+                                    }
+                                } else {
+                                    originalSourceRegister = moveInstruction.getRegisterB();
+                                }
+                            }
+                        } else {
+                            originalSourceRegister = -1;
+                            break;
+                        }
+                    }
+                    if (originalSourceRegister != -1) {
+                        setRegisters.add(originalSourceRegister);
+                    }
+                }
+            }
+        }
+
+        return setRegisters;
     }
 
     public int getDestinationRegister() {

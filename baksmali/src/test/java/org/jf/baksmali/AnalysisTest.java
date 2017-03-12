@@ -38,6 +38,7 @@ import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.ClassPath;
+import org.jf.dexlib2.analysis.ClassProvider;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.IndentingWriter;
@@ -50,6 +51,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class AnalysisTest {
 
@@ -69,6 +71,11 @@ public class AnalysisTest {
     }
 
     @Test
+    public void InstanceOfTest() throws IOException, URISyntaxException {
+        runTest("InstanceOfTest", true, true);
+    }
+
+    @Test
     public void MultipleStartInstructionsTest() throws IOException, URISyntaxException {
         runTest("MultipleStartInstructionsTest", true);
     }
@@ -84,6 +91,10 @@ public class AnalysisTest {
     }
 
     public void runTest(String test, boolean registerInfo) throws IOException, URISyntaxException {
+        runTest(test, registerInfo, false);
+    }
+
+    public void runTest(String test, boolean registerInfo, boolean isArt) throws IOException, URISyntaxException {
         String dexFilePath = String.format("%s%sclasses.dex", test, File.separatorChar);
 
         DexFile dexFile = DexFileFactory.loadDexFile(findResource(dexFilePath), Opcodes.getDefault());
@@ -91,7 +102,11 @@ public class AnalysisTest {
         BaksmaliOptions options = new BaksmaliOptions();
         if (registerInfo) {
             options.registerInfo = BaksmaliOptions.ALL | BaksmaliOptions.FULLMERGE;
-            options.classPath = new ClassPath();
+            if (isArt) {
+                options.classPath = new ClassPath(new ArrayList<ClassProvider>(), true, 56);
+            } else {
+                options.classPath = new ClassPath();
+            }
         }
         options.implicitReferences = false;
 

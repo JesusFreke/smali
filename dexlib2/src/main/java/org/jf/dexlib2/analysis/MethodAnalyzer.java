@@ -353,6 +353,7 @@ public class MethodAnalyzer {
     private void overridePredecessorRegisterTypeAndPropagateChanges(
             @Nonnull AnalyzedInstruction analyzedInstruction, @Nonnull AnalyzedInstruction predecessor,
             int registerNumber, @Nonnull RegisterType registerType) {
+
         BitSet changedInstructions = new BitSet(analyzedInstructions.size());
 
         if (!analyzedInstruction.overridePredecessorRegisterType(
@@ -371,6 +372,28 @@ public class MethodAnalyzer {
             checkWidePair(registerNumber, analyzedInstruction);
             overridePredecessorRegisterTypeAndPropagateChanges(analyzedInstruction, predecessor, registerNumber + 1,
                     RegisterType.DOUBLE_HI_TYPE);
+        }
+    }
+
+    private void initializeRefAndPropagateChanges(@Nonnull AnalyzedInstruction analyzedInstruction,
+                                                  int registerNumber, @Nonnull RegisterType registerType) {
+
+        BitSet changedInstructions = new BitSet(analyzedInstructions.size());
+
+        if (!analyzedInstruction.setPostRegisterType(registerNumber, registerType)) {
+            return;
+        }
+
+        propagateRegisterToSuccessors(analyzedInstruction, registerNumber, changedInstructions, false);
+
+        propagateChanges(changedInstructions, registerNumber, false);
+
+        if (registerType.category == RegisterType.LONG_LO) {
+            checkWidePair(registerNumber, analyzedInstruction);
+            setPostRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber+1, RegisterType.LONG_HI_TYPE);
+        } else if (registerType.category == RegisterType.DOUBLE_LO) {
+            checkWidePair(registerNumber, analyzedInstruction);
+            setPostRegisterTypeAndPropagateChanges(analyzedInstruction, registerNumber+1, RegisterType.DOUBLE_HI_TYPE);
         }
     }
 
@@ -1167,7 +1190,7 @@ public class MethodAnalyzer {
         setDestinationRegisterTypeAndPropagateChanges(analyzedInstruction, castRegisterType);
     }
 
-    private static boolean isNotWideningConversion(RegisterType originalType, RegisterType newType) {
+    public static boolean isNotWideningConversion(RegisterType originalType, RegisterType newType) {
         if (originalType.type == null || newType.type == null) {
             return true;
         }
@@ -1185,7 +1208,7 @@ public class MethodAnalyzer {
         return true;
     }
 
-    static boolean canPropogateTypeAfterInstanceOf(AnalyzedInstruction analyzedInstanceOfInstruction,
+    static boolean canPropagateTypeAfterInstanceOf(AnalyzedInstruction analyzedInstanceOfInstruction,
                                                    AnalyzedInstruction analyzedIfInstruction, ClassPath classPath) {
         if (!classPath.isArt()) {
             return false;
@@ -1225,83 +1248,32 @@ public class MethodAnalyzer {
                 }
                 AnalyzedInstruction prevAnalyzedInstruction = analyzedInstruction.getPredecessors().first();
                 if (prevAnalyzedInstruction.instruction.getOpcode() == Opcode.INSTANCE_OF) {
+
+                    AnalyzedInstruction fallthroughInstruction = analyzedInstructions.valueAt(
+                            analyzedInstruction.getInstructionIndex() + 1);
+
+                    int nextAddress = getInstructionAddress(analyzedInstruction) +
+                            ((Instruction21t)analyzedInstruction.instruction).getCodeOffset();
+                    AnalyzedInstruction branchInstruction = analyzedInstructions.get(nextAddress);
+
+                    int narrowingRegister = ((Instruction22c)prevAnalyzedInstruction.instruction).getRegisterB();
+                    RegisterType originalType = analyzedInstruction.getPreInstructionRegisterType(narrowingRegister);
+
                     Instruction22c instanceOfInstruction = (Instruction22c)prevAnalyzedInstruction.instruction;
-                    if (canPropogateTypeAfterInstanceOf(prevAnalyzedInstruction, analyzedInstruction, classPath)) {
-                        List<Integer> narrowingRegisters = Lists.newArrayList();
+                    RegisterType newType = RegisterType.getRegisterType(classPath,
+                            (TypeReference)instanceOfInstruction.getReference());
 
-                        RegisterType newType = RegisterType.getRegisterType(classPath,
-                                (TypeReference)instanceOfInstruction.getReference());
-
-                        if (instructionIndex > 1) {
-                            // If we have something like:
-                            //   move-object/from16 v0, p1
-                            //   instance-of v2, v0, Lblah;
-                            //   if-eqz v2, :target
-                            // Then we need to narrow both v0 AND p1, but only if all predecessors of instance-of are a
-                            // move-object for the same registers
-
-                            int additionalNarrowingRegister = -1;
-                            for (AnalyzedInstruction prevPrevAnalyzedInstruction : prevAnalyzedInstruction.predecessors) {
-                                Opcode opcode = prevPrevAnalyzedInstruction.instruction.getOpcode();
-                                if (opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_16 ||
-                                        opcode == Opcode.MOVE_OBJECT_FROM16) {
-                                    TwoRegisterInstruction moveInstruction =
-                                            ((TwoRegisterInstruction)prevPrevAnalyzedInstruction.instruction);
-                                    RegisterType originalType =
-                                            prevPrevAnalyzedInstruction.getPostInstructionRegisterType(
-                                                    moveInstruction.getRegisterB());
-                                    if (moveInstruction.getRegisterA() != instanceOfInstruction.getRegisterB()) {
-                                        additionalNarrowingRegister = -1;
-                                        break;
-                                    }
-                                    if (originalType.type == null) {
-                                        additionalNarrowingRegister = -1;
-                                        break;
-                                    }
-                                    if (isNotWideningConversion(originalType, newType)) {
-                                        if (additionalNarrowingRegister != -1) {
-                                            if (additionalNarrowingRegister != moveInstruction.getRegisterB()) {
-                                                additionalNarrowingRegister = -1;
-                                                break;
-                                            }
-                                        } else {
-                                            additionalNarrowingRegister = moveInstruction.getRegisterB();
-                                        }
-                                    }
-                                } else {
-                                    additionalNarrowingRegister = -1;
-                                    break;
-                                }
-                            }
-                            if (additionalNarrowingRegister != -1) {
-                                narrowingRegisters.add(additionalNarrowingRegister);
-                            }
-                        }
-
-                        // Propagate the original type to the failing branch, and the new type to the successful branch
-                        int narrowingRegister = ((Instruction22c)prevAnalyzedInstruction.instruction).getRegisterB();
-                        narrowingRegisters.add(narrowingRegister);
-                        RegisterType originalType = analyzedInstruction.getPreInstructionRegisterType(narrowingRegister);
-
-                        AnalyzedInstruction fallthroughInstruction = analyzedInstructions.valueAt(
-                                analyzedInstruction.getInstructionIndex() + 1);
-
-                        int nextAddress = getInstructionAddress(analyzedInstruction) +
-                                ((Instruction21t)analyzedInstruction.instruction).getCodeOffset();
-                        AnalyzedInstruction branchInstruction = analyzedInstructions.get(nextAddress);
-
-                        for (int register : narrowingRegisters) {
-                            if (analyzedInstruction.instruction.getOpcode() == Opcode.IF_EQZ) {
-                                overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
-                                        register, newType);
-                                overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
-                                        register, originalType);
-                            } else {
-                                overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction, analyzedInstruction,
-                                        register, originalType);
-                                overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
-                                        register, newType);
-                            }
+                    for (int register : analyzedInstruction.getSetRegisters()) {
+                        if (analyzedInstruction.instruction.getOpcode() == Opcode.IF_EQZ) {
+                            overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction,
+                                    analyzedInstruction, register, newType);
+                            overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
+                                    register, originalType);
+                        } else {
+                            overridePredecessorRegisterTypeAndPropagateChanges(fallthroughInstruction,
+                                    analyzedInstruction, register, originalType);
+                            overridePredecessorRegisterTypeAndPropagateChanges(branchInstruction, analyzedInstruction,
+                                    register, newType);
                         }
                     }
                 }
@@ -1440,44 +1412,32 @@ public class MethodAnalyzer {
     }
 
     private void analyzeInvokeDirectCommon(@Nonnull AnalyzedInstruction analyzedInstruction, int objectRegister) {
-        //the only time that an invoke instruction changes a register type is when using invoke-direct on a
-        //constructor (<init>) method, which changes the uninitialized reference (and any register that the same
-        //uninit reference has been copied to) to an initialized reference
+        // This handles the case of invoking a constructor on an uninitialized reference. This propagates the
+        // initialized type for the object register, and also any known aliased registers.
+        //
+        // In some cases, unrelated uninitialized references may not have been propagated past this instruction. This
+        // happens when propagating those types and the type of object register of this instruction isn't known yet.
+        // In this case, we can't determine if the uninitialized reference being propagated in an alias of the object
+        // register, so we don't stop propagation.
+        //
+        // We check for any of these unpropagated uninitialized references here and propagate them.
+        if (analyzedInstruction.isInvokeInit()) {
+            RegisterType uninitRef = analyzedInstruction.getPreInstructionRegisterType(objectRegister);
+            if (uninitRef.category != RegisterType.UNINIT_REF && uninitRef.category != RegisterType.UNINIT_THIS) {
+                assert analyzedInstruction.getSetRegisters().isEmpty();
+                return;
+            }
 
-        ReferenceInstruction instruction = (ReferenceInstruction)analyzedInstruction.instruction;
+            RegisterType initRef = RegisterType.getRegisterType(RegisterType.REFERENCE, uninitRef.type);
 
-        MethodReference methodReference = (MethodReference)instruction.getReference();
+            for (int register: analyzedInstruction.getSetRegisters()) {
+                RegisterType registerType = analyzedInstruction.getPreInstructionRegisterType(register);
 
-        if (!methodReference.getName().equals("<init>")) {
-            return;
-        }
-
-        RegisterType objectRegisterType = analyzedInstruction.getPreInstructionRegisterType(objectRegister);
-
-        if (objectRegisterType.category != RegisterType.UNINIT_REF &&
-                objectRegisterType.category != RegisterType.UNINIT_THIS) {
-            return;
-        }
-
-        setPostRegisterTypeAndPropagateChanges(analyzedInstruction, objectRegister,
-                RegisterType.getRegisterType(RegisterType.REFERENCE, objectRegisterType.type));
-
-        for (int i=0; i<analyzedInstruction.postRegisterMap.length; i++) {
-            RegisterType postInstructionRegisterType = analyzedInstruction.postRegisterMap[i];
-            if (postInstructionRegisterType.category == RegisterType.UNKNOWN) {
-                RegisterType preInstructionRegisterType =
-                        analyzedInstruction.getPreInstructionRegisterType(i);
-
-                if (preInstructionRegisterType.category == RegisterType.UNINIT_REF ||
-                        preInstructionRegisterType.category == RegisterType.UNINIT_THIS) {
-                    RegisterType registerType;
-                    if (preInstructionRegisterType.equals(objectRegisterType)) {
-                        registerType = analyzedInstruction.postRegisterMap[objectRegister];
-                    } else {
-                        registerType = preInstructionRegisterType;
-                    }
-
-                    setPostRegisterTypeAndPropagateChanges(analyzedInstruction, i, registerType);
+                if (registerType == uninitRef) {
+                    setPostRegisterTypeAndPropagateChanges(analyzedInstruction, register, initRef);
+                } else {
+                    // This is unrelated uninitialized reference. propagate it as-is
+                    setPostRegisterTypeAndPropagateChanges(analyzedInstruction, register, registerType);
                 }
             }
         }
