@@ -38,6 +38,7 @@ import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.requests.ClassPrepareRequestor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
@@ -69,7 +70,7 @@ public class SmaliPositionManager implements PositionManager {
             SmaliClass smaliClass = classes.iterator().next();
 
             // TODO: make an index for this?
-            for (SmaliMethod smaliMethod: smaliClass.getMethods()) {
+            for (SmaliMethod smaliMethod : smaliClass.getMethods()) {
                 if (smaliMethod.getName().equals(methodName) &&
                         smaliMethod.getMethodPrototype().getText().equals(methodSignature)) {
                     return smaliMethod.getSourcePositionForCodeOffset(codeIndex * 2);
@@ -87,12 +88,19 @@ public class SmaliPositionManager implements PositionManager {
         }
 
         return getSourcePosition(location.declaringType().name(), location.method().name(),
-                location.method().signature(), (int)location.codeIndex());
+                location.method().signature(), (int) location.codeIndex());
     }
 
-    @Override @NotNull
+    @Override
+    @NotNull
     public List<ReferenceType> getAllClasses(@NotNull SourcePosition classPosition) throws NoDataException {
-        if (!(classPosition.getElementAt().getContainingFile() instanceof SmaliFile)) {
+        PsiFile classFile = ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
+            @Override
+            public PsiFile compute() {
+                return classPosition.getElementAt().getContainingFile();
+            }
+        });
+        if (!(classFile instanceof SmaliFile)) {
             throw NoDataException.INSTANCE;
         }
 
@@ -103,8 +111,9 @@ public class SmaliPositionManager implements PositionManager {
     @NotNull
     private String getClassFromPosition(@NotNull final SourcePosition position) {
         return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-            @Override public String compute() {
-                SmaliClass smaliClass = ((SmaliFile)position.getElementAt().getContainingFile()).getPsiClass();
+            @Override
+            public String compute() {
+                SmaliClass smaliClass = ((SmaliFile) position.getElementAt().getContainingFile()).getPsiClass();
                 if (smaliClass == null) {
                     return "";
                 }
@@ -113,10 +122,17 @@ public class SmaliPositionManager implements PositionManager {
         });
     }
 
-    @Override @NotNull
+    @Override
+    @NotNull
     public List<Location> locationsOfLine(@NotNull final ReferenceType type,
                                           @NotNull final SourcePosition position) throws NoDataException {
-        if (!(position.getElementAt().getContainingFile() instanceof SmaliFile)) {
+        PsiFile classFile = ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
+            @Override
+            public PsiFile compute() {
+                return position.getElementAt().getContainingFile();
+            }
+        });
+        if (!(classFile instanceof SmaliFile)) {
             throw NoDataException.INSTANCE;
         }
 
