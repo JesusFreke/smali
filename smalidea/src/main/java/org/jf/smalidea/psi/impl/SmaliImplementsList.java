@@ -33,6 +33,7 @@ package org.jf.smalidea.psi.impl;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jf.smalidea.psi.SmaliElementTypes;
 import org.jf.smalidea.psi.stub.SmaliImplementsListStub;
@@ -56,7 +57,11 @@ public class SmaliImplementsList extends SmaliBaseReferenceList<SmaliImplementsL
     }
 
     @NotNull private SmaliClassTypeElement[] getImplementsElements() {
-        SmaliClass smaliClass = (SmaliClass)getStubOrPsiParent();
+        //by chenjingxiong@gmail.com
+        //for IDEA-U since 2016.2
+        SmaliClass smaliClass = (SmaliClass) getParent();
+
+        //SmaliClass smaliClass = (SmaliClass)getStubOrPsiParent();
         assert smaliClass != null;
 
         SmaliImplementsStatement[] implementsStatements = smaliClass.getImplementsStatements();
