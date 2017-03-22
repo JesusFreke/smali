@@ -96,7 +96,7 @@ if (!('idea' in gradle.startParameter.taskNames)) {
     apply plugin: 'org.jetbrains.intellij'
 
     intellij {
-        version 'IC-15.0.6'
+        version 'IC-2016.3.5'
         pluginName 'smalidea'
 
         updateSinceUntilBuild false
