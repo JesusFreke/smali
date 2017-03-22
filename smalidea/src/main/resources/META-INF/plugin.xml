@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.jf.smalidea</id>
   <name>Smalidea</name>
-  <version>0.02</version>
+  <version>0.04</version>
   <vendor email="jesusfreke@jesusfreke.com" url="http://smali.org">JesusFreke</vendor>
 
   <description><![CDATA[
