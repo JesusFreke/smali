@@ -106,7 +106,7 @@ public class SmaliAnnotation extends SmaliStubBasedPsiElement<SmaliAnnotationStu
     }
 
     @Nullable @Override public PsiAnnotationOwner getOwner() {
-        return (PsiAnnotationOwner)getStubOrPsiParent();
+        return (PsiAnnotationOwner)getParentByStub();
     }
 
     @Nullable @Override public PsiMetaData getMetaData() {

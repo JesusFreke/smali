@@ -88,7 +88,7 @@ public class SmaliField extends SmaliStubBasedPsiElement<SmaliFieldStub> impleme
     }
 
     @Nullable @Override public PsiClass getContainingClass() {
-        return (PsiClass)getStubOrPsiParent();
+        return (PsiClass)getParentByStub();
     }
 
     @NotNull @Override public PsiType getType() {

@@ -56,7 +56,7 @@ public class SmaliImplementsList extends SmaliBaseReferenceList<SmaliImplementsL
     }
 
     @NotNull private SmaliClassTypeElement[] getImplementsElements() {
-        SmaliClass smaliClass = (SmaliClass)getStubOrPsiParent();
+        SmaliClass smaliClass = (SmaliClass)getParentByStub();
         assert smaliClass != null;
 
         SmaliImplementsStatement[] implementsStatements = smaliClass.getImplementsStatements();
