@@ -31,6 +31,7 @@
 
 package org.jf.smalidea.psi.index;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -40,9 +41,16 @@ import org.jf.smalidea.psi.impl.SmaliClass;
 import java.util.Collection;
 
 public class SmaliClassFinder extends PsiElementFinder {
+
+    private final Project project;
+
+    public SmaliClassFinder(Project project) {
+        this.project = project;
+    }
+
     @Override
     public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-        Collection<SmaliClass> classes = SmaliClassNameIndex.INSTANCE.get(qualifiedName, scope.getProject(), scope);
+        Collection<SmaliClass> classes = SmaliClassNameIndex.INSTANCE.get(qualifiedName, project, scope);
         if (classes != null && classes.size() == 1) {
             return classes.iterator().next();
         }
