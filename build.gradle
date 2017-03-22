@@ -32,8 +32,13 @@
 apply plugin: 'idea'
 
 version = '2.2b4'
+def jcommanderVersion = ''
 
 if (!('release' in gradle.startParameter.taskNames)) {
+    // we compile against 1.48 normally, to match what's in AOSP, but switch to a newer version
+    // for release, because it has some fixes required when running on Android
+    jcommanderVersion = 'com.beust:jcommander:1.48'
+
     def versionSuffix
     try {
         def git = org.eclipse.jgit.api.Git.open(file('.'))
@@ -51,6 +56,8 @@ if (!('release' in gradle.startParameter.taskNames)) {
 
     version += "-${versionSuffix}"
 } else {
+    jcommanderVersion = 'com.beust:jcommander:1.64'
+
     if (System.env.JDK6_HOME == null && !JavaVersion.current().isJava6()) {
         throw new InvalidUserDataException("bzzzzzzzt. Release builds must be performed with java 6. " +
                 "Either run gradle with java 6, or define the JDK6_HOME environment variable.")
@@ -109,8 +116,8 @@ subprojects {
                 proguard_gradle: 'net.sf.proguard:proguard-gradle:5.2.1',
                 dx: 'com.google.android.tools:dx:1.7',
                 gson: 'com.google.code.gson:gson:2.3.1',
-                jcommander: 'com.beust:jcommander:1.48'
-         ]
+                jcommander: jcommanderVersion
+        ]
     }
 
     repositories {
