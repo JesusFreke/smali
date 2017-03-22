@@ -38,6 +38,7 @@ import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.requests.ClassPrepareRequestor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
@@ -60,10 +61,16 @@ public class SmaliPositionManager implements PositionManager {
         this.debugProcess = debugProcess;
     }
 
-    public SourcePosition getSourcePosition(String declaringType, String methodName, String methodSignature,
+    public SourcePosition getSourcePosition(final String declaringType, String methodName, String methodSignature,
                                             int codeIndex) throws NoDataException {
-        Collection<SmaliClass> classes = SmaliClassNameIndex.INSTANCE.get(declaringType,
-                debugProcess.getProject(), GlobalSearchScope.projectScope(debugProcess.getProject()));
+
+        Collection<SmaliClass> classes = ApplicationManager.getApplication().runReadAction(
+                new Computable<Collection<SmaliClass>>() {
+                    @Override public Collection<SmaliClass> compute() {
+                        return SmaliClassNameIndex.INSTANCE.get(declaringType, debugProcess.getProject(),
+                                GlobalSearchScope.projectScope(debugProcess.getProject()));
+                    }
+                });
 
         if (classes.size() > 0) {
             SmaliClass smaliClass = classes.iterator().next();
@@ -116,7 +123,13 @@ public class SmaliPositionManager implements PositionManager {
     @Override @NotNull
     public List<Location> locationsOfLine(@NotNull final ReferenceType type,
                                           @NotNull final SourcePosition position) throws NoDataException {
-        if (!(position.getElementAt().getContainingFile() instanceof SmaliFile)) {
+        PsiFile containingFile = ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
+            @Override public PsiFile compute() {
+                return position.getElementAt().getContainingFile();
+            }
+        });
+
+        if (!(containingFile instanceof SmaliFile)) {
             throw NoDataException.INSTANCE;
         }
 
@@ -125,6 +138,8 @@ public class SmaliPositionManager implements PositionManager {
         ApplicationManager.getApplication().runReadAction(new Runnable() {
             @Override
             public void run() {
+
+
                 String typeName = type.name();
                 Collection<SmaliClass> classes = SmaliClassNameIndex.INSTANCE.get(typeName, debugProcess.getProject(),
                         GlobalSearchScope.projectScope(debugProcess.getProject()));
