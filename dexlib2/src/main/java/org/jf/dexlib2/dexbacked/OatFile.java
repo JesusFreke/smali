@@ -70,8 +70,13 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
     private final boolean is64bit;
     @Nonnull private final OatHeader oatHeader;
     @Nonnull private final Opcodes opcodes;
+    @Nullable private final VdexProvider vdexProvider;
 
     public OatFile(@Nonnull byte[] buf) {
+        this(buf, null);
+    }
+
+    public OatFile(@Nonnull byte[] buf, @Nullable VdexProvider vdexProvider) {
         super(buf);
 
         if (buf.length < MIN_ELF_HEADER_SIZE) {
@@ -107,6 +112,7 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
         }
 
         this.opcodes = Opcodes.forArtVersion(oatHeader.getVersion());
+        this.vdexProvider = vdexProvider;
     }
 
     private static void verifyMagic(byte[] buf) {
@@ -117,7 +123,11 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
         }
     }
 
-    public static OatFile fromInputStream(@Nonnull InputStream is)
+    public static OatFile fromInputStream(@Nonnull InputStream is) throws IOException {
+        return fromInputStream(is, null);
+    }
+
+    public static OatFile fromInputStream(@Nonnull InputStream is, @Nullable VdexProvider vdexProvider)
             throws IOException {
         if (!is.markSupported()) {
             throw new IllegalArgumentException("InputStream must support mark");
@@ -137,7 +147,7 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
         is.reset();
 
         byte[] buf = ByteStreams.toByteArray(is);
-        return new OatFile(buf);
+        return new OatFile(buf, vdexProvider);
     }
 
     public int getOatVersion() {
@@ -219,8 +229,8 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
     public class OatDexFile extends DexBackedDexFile implements MultiDexContainer.MultiDexFile {
         @Nonnull public final String filename;
 
-        public OatDexFile(int offset, @Nonnull String filename) {
-            super(opcodes, OatFile.this.buf, offset);
+        public OatDexFile(byte[] buf, int offset, @Nonnull String filename) {
+            super(opcodes, buf, offset);
             this.filename = filename;
         }
 
@@ -542,15 +552,18 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
 
     private class DexEntry {
         public final String entryName;
+        public final byte[] buf;
         public final int dexOffset;
 
-        public DexEntry(String entryName, int dexOffset) {
+
+        public DexEntry(String entryName, byte[] buf, int dexOffset) {
             this.entryName = entryName;
+            this.buf = buf;
             this.dexOffset = dexOffset;
         }
 
         public OatDexFile getDexFile() {
-            return new OatDexFile(dexOffset, entryName);
+            return new OatDexFile(buf, dexOffset, entryName);
         }
     }
 
@@ -572,9 +585,8 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
 
             offset += 4; // checksum
 
-            int dexOffset = readSmallUint(offset) + oatHeader.headerOffset;
+            int dexOffset = readSmallUint(offset);
             offset += 4;
-
 
             if (getOatVersion() >= 75) {
                 offset += 4; // offset to class offsets table
@@ -590,7 +602,15 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
 
             index++;
 
-            return new DexEntry(filename, dexOffset);
+            byte[] buf;
+            if (getOatVersion() >= 87 && vdexProvider != null && vdexProvider.getVdex() != null) {
+                buf = vdexProvider.getVdex();
+            } else {
+                buf = OatFile.this.buf;
+                offset += oatHeader.headerOffset;
+            }
+
+            return new DexEntry(filename, buf, dexOffset);
         }
 
         @Override public void remove() {
@@ -608,4 +628,8 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
         public NotAnOatFileException() {}
     }
 
+    public interface VdexProvider {
+        @Nullable
+        byte[] getVdex();
+    }
 }

@@ -34,12 +34,15 @@ package org.jf.dexlib2;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.OatFile.NotAnOatFileException;
 import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
+import org.jf.dexlib2.dexbacked.OatFile.VdexProvider;
 import org.jf.dexlib2.dexbacked.ZipDexContainer;
 import org.jf.dexlib2.dexbacked.ZipDexContainer.NotAZipFileException;
 import org.jf.dexlib2.iface.DexFile;
@@ -107,7 +110,7 @@ public final class DexFileFactory {
 
             OatFile oatFile = null;
             try {
-                oatFile = OatFile.fromInputStream(inputStream);
+                oatFile = OatFile.fromInputStream(inputStream, new FilenameVdexProvider(file));
             } catch (NotAnOatFileException ex) {
                 // just eat it
             }
@@ -189,7 +192,7 @@ public final class DexFileFactory {
         try {
             OatFile oatFile = null;
             try {
-                oatFile = OatFile.fromInputStream(inputStream);
+                oatFile = OatFile.fromInputStream(inputStream, new FilenameVdexProvider(file));
             } catch (NotAnOatFileException ex) {
                 // just eat it
             }
@@ -258,7 +261,7 @@ public final class DexFileFactory {
 
             OatFile oatFile = null;
             try {
-                oatFile = OatFile.fromInputStream(inputStream);
+                oatFile = OatFile.fromInputStream(inputStream, new FilenameVdexProvider(file));
             } catch (NotAnOatFileException ex) {
                 // just eat it
             }
@@ -456,6 +459,37 @@ public final class DexFileFactory {
 
         @Nonnull @Override public Opcodes getOpcodes() {
             return dexFile.getOpcodes();
+        }
+    }
+
+    public static class FilenameVdexProvider implements VdexProvider {
+        private final File vdexFile;
+
+        @Nullable
+        private byte[] buf = null;
+        private boolean loadedVdex = false;
+
+        public FilenameVdexProvider(File oatFile) {
+            File oatParent = oatFile.getAbsoluteFile().getParentFile();
+            String baseName = Files.getNameWithoutExtension(oatFile.getAbsolutePath());
+            vdexFile = new File(oatParent, baseName + ".vdex");
+        }
+
+        @Nullable @Override public byte[] getVdex() {
+            if (!loadedVdex) {
+                if (vdexFile.exists()) {
+                    try {
+                        buf = ByteStreams.toByteArray(new FileInputStream(vdexFile));
+                    } catch (FileNotFoundException e) {
+                        buf = null;
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                loadedVdex = true;
+            }
+
+            return buf;
         }
     }
 }

@@ -1,0 +1,8 @@
+7b49e6cade09bc65b3b5f22d45fc9d0a7184e4f2 - 0 - introduction of vdex files
+5d5a36bddbc008cd52a3207aa2b31177c47f9a49 - 0 - verifier deps
+4acefd33064d37b41ca55c3c9355345a20e5f9c2 - 0 - quickening info
+f54e5df37cb42d9a83fc54b375da5ef335d604a9 - 1 - dex file count + dex location checksum
+7498105ec7497bae2ba9f1a697da9efa0c979654 - 2 - verify profile
+3eba863e41d531340392d9ec64e17963ac898d81 - 3
+97fa9928c07d3e0ee631235e9619fb0f8949ed7a - 4
+6e54f78c7c1e01c1a91a458c6e51cca1c7d13ad4 - 5
