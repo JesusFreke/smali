@@ -588,6 +588,14 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
             int dexOffset = readSmallUint(offset);
             offset += 4;
 
+            byte[] buf;
+            if (getOatVersion() >= 87 && vdexProvider != null && vdexProvider.getVdex() != null) {
+                buf = vdexProvider.getVdex();
+            } else {
+                buf = OatFile.this.buf;
+                dexOffset += oatHeader.headerOffset;
+            }
+
             if (getOatVersion() >= 75) {
                 offset += 4; // offset to class offsets table
             }
@@ -601,14 +609,6 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
             }
 
             index++;
-
-            byte[] buf;
-            if (getOatVersion() >= 87 && vdexProvider != null && vdexProvider.getVdex() != null) {
-                buf = vdexProvider.getVdex();
-            } else {
-                buf = OatFile.this.buf;
-                offset += oatHeader.headerOffset;
-            }
 
             return new DexEntry(filename, buf, dexOffset);
         }
