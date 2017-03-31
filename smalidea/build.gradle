@@ -49,7 +49,7 @@ apply plugin: 'idea'
 apply plugin: 'antlr'
 
 
-version = '0.04'
+version = '0.05'
 
 if (!('release' in gradle.startParameter.taskNames)) {
     def versionSuffix
