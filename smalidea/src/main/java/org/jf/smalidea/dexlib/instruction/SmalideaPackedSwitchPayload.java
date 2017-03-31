@@ -86,7 +86,7 @@ public class SmalideaPackedSwitchPayload extends SmalideaInstruction implements 
                         return 0;
                     }
 
-                    return label.getOffset() - baseOffset;
+                    return (label.getOffset() - baseOffset) / 2;
                 }
             });
         }
