@@ -88,8 +88,39 @@ public class BaseDexReader<T extends BaseDexBuffer> {
         return result;
     }
 
+    public int peekSleb128Size() {
+        int end = dexBuf.baseOffset + offset;
+        int currentByteValue;
+        int result;
+        byte[] buf = dexBuf.buf;
+
+        result = buf[end++] & 0xff;
+        if (result > 0x7f) {
+            currentByteValue = buf[end++] & 0xff;
+            if (currentByteValue > 0x7f) {
+                currentByteValue = buf[end++] & 0xff;
+                if (currentByteValue > 0x7f) {
+                    currentByteValue = buf[end++] & 0xff;
+                    if (currentByteValue > 0x7f) {
+                        currentByteValue = buf[end++] & 0xff;
+                        if (currentByteValue > 0x7f) {
+                            throw new ExceptionWithContext(
+                                "Invalid sleb128 integer encountered at offset 0x%x", offset);
+                        }
+                    }
+                }
+            }
+        }
+
+        return end - (dexBuf.baseOffset + offset);
+    }
+
     public int readSmallUleb128() {
         return readUleb128(false);
+    }
+
+    public int peekSmallUleb128Size() {
+        return peekUleb128Size(false);
     }
 
     private int readUleb128(boolean allowLarge) {
@@ -132,6 +163,43 @@ public class BaseDexReader<T extends BaseDexBuffer> {
         offset = end - dexBuf.baseOffset;
         return result;
     }
+
+    private int peekUleb128Size(boolean allowLarge) {
+        int end = dexBuf.baseOffset + offset;
+        int currentByteValue;
+        int result;
+        byte[] buf = dexBuf.buf;
+
+        result = buf[end++] & 0xff;
+        if (result > 0x7f) {
+            currentByteValue = buf[end++] & 0xff;
+            if (currentByteValue > 0x7f) {
+                currentByteValue = buf[end++] & 0xff;
+                if (currentByteValue > 0x7f) {
+                    currentByteValue = buf[end++] & 0xff;
+                    if (currentByteValue > 0x7f) {
+                        currentByteValue = buf[end++];
+
+                        // MSB shouldn't be set on last byte
+                        if (currentByteValue < 0) {
+                            throw new ExceptionWithContext(
+                                "Invalid uleb128 integer encountered at offset 0x%x", offset);
+                        } else if ((currentByteValue & 0xf) > 0x07) {
+                            if (!allowLarge) {
+                                // for non-large uleb128s, we assume most significant bit of the result will not be
+                                // set, so that it can fit into a signed integer without wrapping
+                                throw new ExceptionWithContext(
+                                    "Encountered valid uleb128 that is out of range at offset 0x%x", offset);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return end - (dexBuf.baseOffset + offset);
+    }
+
 
     /**
      * Reads a "large" uleb128. That is, one that may legitimately be greater than a signed int.
@@ -181,6 +249,35 @@ public class BaseDexReader<T extends BaseDexBuffer> {
 
         offset = end - dexBuf.baseOffset;
         return result;
+    }
+
+    public int peekBigUleb128Size() {
+        int end = dexBuf.baseOffset + offset;
+        int currentByteValue;
+        int result;
+        byte[] buf = dexBuf.buf;
+
+        result = buf[end++] & 0xff;
+        if (result > 0x7f) {
+            currentByteValue = buf[end++] & 0xff;
+            if (currentByteValue > 0x7f) {
+                currentByteValue = buf[end++] & 0xff;
+                if (currentByteValue > 0x7f) {
+                    currentByteValue = buf[end++] & 0xff;
+                    if (currentByteValue > 0x7f) {
+                        currentByteValue = buf[end++];
+
+                        // MSB shouldn't be set on last byte
+                        if (currentByteValue < 0) {
+                            throw new ExceptionWithContext(
+                                "Invalid uleb128 integer encountered at offset 0x%x", offset);
+                        }
+                    }
+                }
+            }
+        }
+
+        return end - (dexBuf.baseOffset + offset);
     }
 
     public void skipUleb128() {
@@ -515,5 +612,12 @@ public class BaseDexReader<T extends BaseDexBuffer> {
                 dexBuf.buf, dexBuf.baseOffset + offset, utf16Length, ret);
         offset += ret[0];
         return value;
+    }
+
+    public int peekStringLength(int utf16Length) {
+        int[] ret = new int[1];
+        Utf8Utils.utf8BytesWithUtf16LengthToString(
+            dexBuf.buf, dexBuf.baseOffset + offset, utf16Length, ret);
+        return ret[0];
     }
 }

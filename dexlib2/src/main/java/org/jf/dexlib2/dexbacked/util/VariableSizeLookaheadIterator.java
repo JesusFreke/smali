@@ -59,4 +59,8 @@ public abstract class VariableSizeLookaheadIterator<T> extends AbstractIterator<
     protected T computeNext() {
         return readNextItem(reader);
     }
+
+    public final int getReaderOffset() {
+        return reader.getOffset();
+    }
 }

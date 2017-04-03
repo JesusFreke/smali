@@ -59,6 +59,13 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
      */
     @Nonnull public abstract Iterator<String> getParameterNames(@Nullable DexReader reader);
 
+    /**
+     * Calculate and return the private size of debuginfo.
+     *
+     * @return size in bytes
+     */
+    public abstract int getSize();
+
     public static DebugInfo newOrEmpty(@Nonnull DexBackedDexFile dexFile, int debugInfoOffset,
                                        @Nonnull DexBackedMethodImplementation methodImpl) {
         if (debugInfoOffset == 0) {
@@ -77,6 +84,11 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
 
         @Nonnull @Override public Iterator<String> getParameterNames(@Nullable DexReader reader) {
             return ImmutableSet.<String>of().iterator();
+        }
+
+        @Override
+        public int getSize() {
+            return 0;
         }
     }
 
@@ -278,6 +290,15 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
                     return dexFile.getOptionalString(reader.readSmallUleb128() - 1);
                 }
             };
+        }
+
+        @Override
+        public int getSize() {
+            Iterator<DebugItem> iter = iterator();
+            while(iter.hasNext()) {
+                iter.next();
+            }
+            return ((VariableSizeLookaheadIterator) iter).getReaderOffset() - debugInfoOffset;
         }
     }
 }

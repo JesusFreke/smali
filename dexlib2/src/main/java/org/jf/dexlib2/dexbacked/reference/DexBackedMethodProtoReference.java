@@ -74,4 +74,20 @@ public class DexBackedMethodProtoReference extends BaseMethodProtoReference {
     public String getReturnType() {
         return dexFile.getType(dexFile.readSmallUint(protoIdItemOffset + ProtoIdItem.RETURN_TYPE_OFFSET));
     }
+
+    /**
+     * Calculate and return the private size of a method proto.
+     *
+     * Calculated as: shorty_idx + return_type_idx + parameters_off + type_list size
+     *
+     * @return size in bytes
+     */
+    public int getSize() {
+        int size = ProtoIdItem.ITEM_SIZE; //3 * uint
+        List<String> parameters = getParameterTypes();
+        if (!parameters.isEmpty()) {
+            size += 4 + parameters.size() * 2; //uint + size * ushort for type_idxs
+        }
+        return size;
+    }
 }

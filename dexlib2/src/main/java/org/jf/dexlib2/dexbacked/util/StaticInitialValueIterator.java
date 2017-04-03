@@ -43,10 +43,12 @@ public abstract class StaticInitialValueIterator {
     public static final StaticInitialValueIterator EMPTY = new StaticInitialValueIterator() {
         @Nullable @Override public EncodedValue getNextOrNull() { return null; }
         @Override public void skipNext() {}
+        @Override public int getReaderOffset() { return 0; }
     };
 
     @Nullable public abstract EncodedValue getNextOrNull();
     public abstract void skipNext();
+    public abstract int getReaderOffset();
 
     @Nonnull
     public static StaticInitialValueIterator newOrEmpty(@Nonnull DexBackedDexFile dexFile, int offset) {
@@ -80,6 +82,10 @@ public abstract class StaticInitialValueIterator {
                 index++;
                 DexBackedEncodedValue.skipFrom(reader);
             }
+        }
+
+        public int getReaderOffset() {
+            return reader.getOffset();
         }
     }
 }

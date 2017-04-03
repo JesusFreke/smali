@@ -63,4 +63,15 @@ public class DexBackedFieldReference extends BaseFieldReference {
     public String getType() {
         return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + FieldIdItem.TYPE_OFFSET));
     }
+
+    /**
+     * Calculate and return the private size of a field reference.
+     *
+     * Calculated as: class_idx + type_idx + name_idx
+     *
+     * @return size in bytes
+     */
+    public int getSize() {
+        return FieldIdItem.ITEM_SIZE;
+    }
 }

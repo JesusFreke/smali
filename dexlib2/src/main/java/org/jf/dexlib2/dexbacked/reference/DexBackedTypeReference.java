@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked.reference;
 
 import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.TypeIdItem;
 
 import javax.annotation.Nonnull;
 
@@ -48,5 +49,17 @@ public class DexBackedTypeReference extends BaseTypeReference {
 
     @Nonnull public String getType() {
         return dexFile.getType(typeIndex);
+    }
+
+
+    /**
+     * Calculate and return the private size of a type reference.
+     *
+     * Calculated as: descriptor_idx
+     *
+     * @return size in bytes
+     */
+    public int getSize() {
+        return TypeIdItem.ITEM_SIZE; //uint for descriptor_idx
     }
 }

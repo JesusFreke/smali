@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
+import org.jf.dexlib2.dexbacked.raw.TypeIdItem;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
@@ -433,5 +434,67 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
         DexBackedMethod.skipMethods(reader, directMethodCount);
         virtualMethodsOffset = reader.getOffset();
         return virtualMethodsOffset;
+    }
+
+    /**
+     * Calculate and return the private size of a class definition.
+     *
+     * Calculated as: class_def_item size + type_id size + interfaces type_list +
+     * annotations_directory_item overhead + class_data_item + static values overhead +
+     * methods size + fields size
+     *
+     * @return size in bytes
+     */
+    public int getSize() {
+        int size = 8 * 4; //class_def_item has 8 uint fields in dex files
+        size += TypeIdItem.ITEM_SIZE; //type_ids size
+
+        //add interface list size if any
+        int interfacesLength = getInterfaces().size();
+        if (interfacesLength > 0) {
+            //add size of the type_list
+            size += 4; //uint for size
+            size += interfacesLength * 2; //ushort per type_item
+        }
+
+        //annotations directory size if it exists
+        AnnotationsDirectory directory = getAnnotationsDirectory();
+        if (!AnnotationsDirectory.EMPTY.equals(directory)) {
+            size += 4 * 4; //4 uints in annotations_directory_item
+            Set<? extends DexBackedAnnotation> classAnnotations = directory.getClassAnnotations();
+            if (!classAnnotations.isEmpty()) {
+                size += 4; //uint for size
+                size += classAnnotations.size() * 4; //uint per annotation_off
+                //TODO: should we add annotation_item size? what if it's shared?
+            }
+        }
+
+        //static values and/or metadata
+        int staticInitialValuesOffset =
+            dexFile.readSmallUint(classDefOffset + ClassDefItem.STATIC_VALUES_OFFSET);
+        if (staticInitialValuesOffset != 0) {
+            DexReader reader = dexFile.readerAt(staticInitialValuesOffset);
+            size += reader.peekSmallUleb128Size(); //encoded_array size field
+        }
+
+        //class_data_item
+        int classDataOffset = dexFile.readSmallUint(classDefOffset + ClassDefItem.CLASS_DATA_OFFSET);
+        if (classDataOffset > 0) {
+            DexReader reader = dexFile.readerAt(classDataOffset);
+            reader.readSmallUleb128(); //staticFieldCount
+            reader.readSmallUleb128(); //instanceFieldCount
+            reader.readSmallUleb128(); //directMethodCount
+            reader.readSmallUleb128(); //virtualMethodCount
+            size += reader.getOffset() - classDataOffset;
+        }
+
+        for (DexBackedField dexBackedField : getFields()) {
+            size += dexBackedField.getSize();
+        }
+
+        for (DexBackedMethod dexBackedMethod : getMethods()) {
+            size += dexBackedMethod.getSize();
+        }
+        return size;
     }
 }

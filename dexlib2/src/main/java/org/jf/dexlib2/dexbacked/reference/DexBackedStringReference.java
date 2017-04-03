@@ -33,6 +33,8 @@ package org.jf.dexlib2.dexbacked.reference;
 
 import org.jf.dexlib2.base.reference.BaseStringReference;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexReader;
+import org.jf.dexlib2.dexbacked.raw.StringIdItem;
 
 import javax.annotation.Nonnull;
 
@@ -49,5 +51,26 @@ public class DexBackedStringReference extends BaseStringReference {
     @Nonnull
     public String getString() {
         return dexFile.getString(stringIndex);
+    }
+
+
+    /**
+     * Calculate and return the private size of a string reference.
+     *
+     * Calculated as: string_data_off + string_data_item size
+     *
+     * @return size in bytes
+     */
+    public int getSize() {
+        int size = StringIdItem.ITEM_SIZE; //uint for string_data_off
+        //add the string data length:
+        int stringOffset = dexFile.getStringIdItemOffset(stringIndex);
+        int stringDataOffset = dexFile.readSmallUint(stringOffset);
+        DexReader reader = dexFile.readerAt(stringDataOffset);
+        size += reader.peekSmallUleb128Size();
+        int utf16Length = reader.readSmallUleb128();
+        //and string data itself:
+        size += reader.peekStringLength(utf16Length);
+        return size;
     }
 }

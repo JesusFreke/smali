@@ -257,11 +257,20 @@ public class BaseDexReaderSleb128Test {
         BaseDexReader reader = dexBuf.readerAt(0);
         Assert.assertEquals(expectedValue, reader.readSleb128());
         Assert.assertEquals(expectedLength, reader.getOffset());
+
+        reader = dexBuf.readerAt(0);
+        Assert.assertEquals(expectedLength, reader.peekSleb128Size());
     }
 
     private void performFailureTest(byte[] buf) {
         BaseDexBuffer dexBuf = new BaseDexBuffer(buf);
         BaseDexReader reader = dexBuf.readerAt(0);
+        try {
+            reader.peekSleb128Size();
+            Assert.fail();
+        } catch (ExceptionWithContext ex) {
+            // expected exception
+        }
         try {
             reader.readSleb128();
             Assert.fail();
