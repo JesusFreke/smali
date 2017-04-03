@@ -33,8 +33,10 @@ package org.jf.dexlib2.dexbacked;
 
 import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.dexbacked.raw.FieldIdItem;
+import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
+import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
@@ -52,6 +54,8 @@ public class DexBackedField extends BaseFieldReference implements Field {
     public final int annotationSetOffset;
 
     public final int fieldIndex;
+    private final int startOffset;
+    private final int initialValueOffset;
 
     private int fieldIdItemOffset;
 
@@ -65,11 +69,13 @@ public class DexBackedField extends BaseFieldReference implements Field {
 
         // large values may be used for the index delta, which cause the cumulative index to overflow upon
         // addition, effectively allowing out of order entries.
+        startOffset = reader.getOffset();
         int fieldIndexDiff = reader.readLargeUleb128();
         this.fieldIndex = fieldIndexDiff + previousFieldIndex;
         this.accessFlags = reader.readSmallUleb128();
 
         this.annotationSetOffset = annotationIterator.seekTo(fieldIndex);
+        initialValueOffset = staticInitialValueIterator.getReaderOffset();
         this.initialValue = staticInitialValueIterator.getNextOrNull();
     }
 
@@ -82,11 +88,13 @@ public class DexBackedField extends BaseFieldReference implements Field {
 
         // large values may be used for the index delta, which cause the cumulative index to overflow upon
         // addition, effectively allowing out of order entries.
+        startOffset = reader.getOffset();
         int fieldIndexDiff = reader.readLargeUleb128();
         this.fieldIndex = fieldIndexDiff + previousFieldIndex;
         this.accessFlags = reader.readSmallUleb128();
 
         this.annotationSetOffset = annotationIterator.seekTo(fieldIndex);
+        initialValueOffset = 0;
         this.initialValue = null;
     }
 
@@ -130,5 +138,39 @@ public class DexBackedField extends BaseFieldReference implements Field {
             fieldIdItemOffset = dexFile.getFieldIdItemOffset(fieldIndex);
         }
         return fieldIdItemOffset;
+    }
+
+    /**
+     * Calculate and return the private size of a field definition.
+     *
+     * Calculated as: field_idx_diff + access_flags + annotations overhead +
+     * initial value size + field reference size
+     *
+     * @return size in bytes
+     */
+    public int getSize() {
+        int size = 0;
+        DexReader reader = dexFile.readerAt(startOffset);
+        reader.readLargeUleb128(); //field_idx_diff
+        reader.readSmallUleb128(); //access_flags
+        size += reader.getOffset() - startOffset;
+
+        Set<? extends DexBackedAnnotation> annotations = getAnnotations();
+        if (!annotations.isEmpty()) {
+            size += 2 * 4; //2 * uint overhead from field_annotation
+        }
+
+        if (initialValueOffset > 0) {
+            reader.setOffset(initialValueOffset);
+            if (initialValue != null) {
+                DexBackedEncodedValue.skipFrom(reader);
+                size += reader.getOffset() - initialValueOffset;
+            }
+        }
+
+        DexBackedFieldReference fieldRef = new DexBackedFieldReference(dexFile, fieldIndex);
+        size += fieldRef.getSize();
+
+        return size;
     }
 }

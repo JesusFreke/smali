@@ -37,11 +37,13 @@ import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.raw.MethodIdItem;
 import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
 import org.jf.dexlib2.dexbacked.raw.TypeListItem;
+import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.ParameterIterator;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.util.AbstractForwardSequentialList;
 
@@ -62,6 +64,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     private final int methodAnnotationSetOffset;
 
     public final int methodIndex;
+    private final int startOffset;
 
     private int methodIdItemOffset;
     private int protoIdItemOffset;
@@ -72,6 +75,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
                            int previousMethodIndex) {
         this.dexFile = reader.dexBuf;
         this.classDef = classDef;
+        startOffset = reader.getOffset();
 
         // large values may be used for the index delta, which cause the cumulative index to overflow upon
         // addition, effectively allowing out of order entries.
@@ -91,6 +95,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
                            @Nonnull AnnotationsDirectory.AnnotationIterator paramaterAnnotationIterator) {
         this.dexFile = reader.dexBuf;
         this.classDef = classDef;
+        startOffset = reader.getOffset();
 
         // large values may be used for the index delta, which cause the cumulative index to overflow upon
         // addition, effectively allowing out of order entries.
@@ -223,5 +228,33 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
             reader.skipUleb128();
             reader.skipUleb128();
         }
+    }
+
+    /**
+     * Calculate and return the private size of a method definition.
+     *
+     * Calculated as: method_idx_diff + access_flags + code_off +
+     * implementation size + reference size
+     *
+     * @return size in bytes
+     */
+    public int getSize() {
+        int size = 0;
+
+        DexReader reader = dexFile.readerAt(startOffset);
+        reader.readLargeUleb128(); //method_idx_diff
+        reader.readSmallUleb128(); //access_flags
+        reader.readSmallUleb128(); //code_off
+        size += reader.getOffset() - startOffset;
+
+        DexBackedMethodImplementation impl = getImplementation();
+        if (impl != null) {
+            size += impl.getSize();
+        }
+
+        DexBackedMethodReference methodRef = new DexBackedMethodReference(dexFile, methodIndex);
+        size += methodRef.getSize();
+
+        return size;
     }
 }
