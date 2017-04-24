@@ -160,8 +160,11 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     public int getSize() {
         int debugSize = getDebugInfo().getSize();
 
+        //set last offset just before bytecode instructions (after insns_size)
+        int lastOffset = codeOffset + CodeItem.INSTRUCTION_START_OFFSET;
+
         //set code_item ending offset to the end of instructions list (insns_size * ushort)
-        int lastOffset = dexFile.readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET) * 2;
+        lastOffset += dexFile.readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET) * 2;
 
         //read any exception handlers and move code_item offset to the end
         for (DexBackedTryBlock tryBlock: getTryBlocks()) {
