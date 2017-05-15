@@ -132,6 +132,10 @@ public class DisassembleCommand extends DexInputCommand {
                     "fields from the current class.")
     private boolean implicitReferences = false;
 
+    @Parameter(names = "--allow-odex-opcodes",
+            description = "Allows odex opcodes to be disassembled, even if the result won't be able to be reassembled.")
+    private boolean allowOdex = false;
+
     @Parameter(names = "--classes",
             description = "A comma separated list of classes. Only disassemble these classes")
     @ExtendedParameter(argumentNames = "classes")
@@ -280,6 +284,10 @@ public class DisassembleCommand extends DexInputCommand {
         if (accessorComments) {
             options.syntheticAccessorResolver = new SyntheticAccessorResolver(dexFile.getOpcodes(),
                     dexFile.getClasses());
+        }
+
+        if (allowOdex) {
+            options.allowOdex = true;
         }
 
         return options;
