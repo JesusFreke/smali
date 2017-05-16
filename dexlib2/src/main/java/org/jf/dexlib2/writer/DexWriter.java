@@ -1017,6 +1017,9 @@ public abstract class DexWriter<
                         case Format22c:
                             instructionWriter.write((Instruction22c)instruction);
                             break;
+                        case Format22cs:
+                            instructionWriter.write((Instruction22cs)instruction);
+                            break;
                         case Format22s:
                             instructionWriter.write((Instruction22s)instruction);
                             break;
@@ -1047,8 +1050,20 @@ public abstract class DexWriter<
                         case Format35c:
                             instructionWriter.write((Instruction35c)instruction);
                             break;
+                        case Format35mi:
+                            instructionWriter.write((Instruction35mi)instruction);
+                            break;
+                        case Format35ms:
+                            instructionWriter.write((Instruction35ms)instruction);
+                            break;
                         case Format3rc:
                             instructionWriter.write((Instruction3rc)instruction);
+                            break;
+                        case Format3rmi:
+                            instructionWriter.write((Instruction3rmi)instruction);
+                            break;
+                        case Format3rms:
+                            instructionWriter.write((Instruction3rms)instruction);
                             break;
                         case Format45cc:
                             instructionWriter.write((Instruction45cc)instruction);

@@ -239,6 +239,16 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
         }
     }
 
+    public void write(@Nonnull Instruction22cs instruction) {
+        try {
+            writer.write(getOpcodeValue(instruction.getOpcode()));
+            writer.write(packNibbles(instruction.getRegisterA(), instruction.getRegisterB()));
+            writer.writeUshort(instruction.getFieldOffset());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     public void write(@Nonnull Instruction22s instruction) {
         try {
             writer.write(getOpcodeValue(instruction.getOpcode()));
@@ -343,11 +353,58 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
         }
     }
 
+    public void write(@Nonnull Instruction35mi instruction) {
+        try {
+            writer.write(getOpcodeValue(instruction.getOpcode()));
+            writer.write(packNibbles(instruction.getRegisterG(), instruction.getRegisterCount()));
+            writer.writeUshort(instruction.getInlineIndex());
+            writer.write(packNibbles(instruction.getRegisterC(), instruction.getRegisterD()));
+            writer.write(packNibbles(instruction.getRegisterE(), instruction.getRegisterF()));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void write(@Nonnull Instruction35ms instruction) {
+        try {
+            writer.write(getOpcodeValue(instruction.getOpcode()));
+            writer.write(packNibbles(instruction.getRegisterG(), instruction.getRegisterCount()));
+            writer.writeUshort(instruction.getVtableIndex());
+            writer.write(packNibbles(instruction.getRegisterC(), instruction.getRegisterD()));
+            writer.write(packNibbles(instruction.getRegisterE(), instruction.getRegisterF()));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     public void write(@Nonnull Instruction3rc instruction) {
         try {
             writer.write(getOpcodeValue(instruction.getOpcode()));
             writer.write(instruction.getRegisterCount());
             writer.writeUshort(getReferenceIndex(instruction));
+            writer.writeUshort(instruction.getStartRegister());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void write(@Nonnull Instruction3rmi instruction) {
+        try {
+            writer.write(getOpcodeValue(instruction.getOpcode()));
+            writer.write(instruction.getRegisterCount());
+            writer.writeUshort(instruction.getInlineIndex());
+            writer.writeUshort(instruction.getStartRegister());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+
+    public void write(@Nonnull Instruction3rms instruction) {
+        try {
+            writer.write(getOpcodeValue(instruction.getOpcode()));
+            writer.write(instruction.getRegisterCount());
+            writer.writeUshort(instruction.getVtableIndex());
             writer.writeUshort(instruction.getStartRegister());
         } catch (IOException ex) {
             throw new RuntimeException(ex);
