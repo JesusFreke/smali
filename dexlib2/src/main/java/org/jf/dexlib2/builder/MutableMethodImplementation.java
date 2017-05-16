@@ -601,6 +601,9 @@ public class MutableMethodImplementation implements MethodImplementation {
             case Format22c:
                 setInstruction(location, newBuilderInstruction22c((Instruction22c) instruction));
                 return;
+            case Format22cs:
+                setInstruction(location, newBuilderInstruction22cs((Instruction22cs) instruction));
+                return;
             case Format22s:
                 setInstruction(location, newBuilderInstruction22s((Instruction22s) instruction));
                 return;
@@ -636,8 +639,20 @@ public class MutableMethodImplementation implements MethodImplementation {
             case Format35c:
                 setInstruction(location, newBuilderInstruction35c((Instruction35c) instruction));
                 return;
+            case Format35mi:
+                setInstruction(location, newBuilderInstruction35mi((Instruction35mi) instruction));
+                return;
+            case Format35ms:
+                setInstruction(location, newBuilderInstruction35ms((Instruction35ms) instruction));
+                return;
             case Format3rc:
                 setInstruction(location, newBuilderInstruction3rc((Instruction3rc)instruction));
+                return;
+            case Format3rmi:
+                setInstruction(location, newBuilderInstruction3rmi((Instruction3rmi)instruction));
+                return;
+            case Format3rms:
+                setInstruction(location, newBuilderInstruction3rms((Instruction3rms)instruction));
                 return;
             case Format51l:
                 setInstruction(location, newBuilderInstruction51l((Instruction51l)instruction));
@@ -771,6 +786,15 @@ public class MutableMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull
+    private BuilderInstruction22cs newBuilderInstruction22cs(@Nonnull Instruction22cs instruction) {
+        return new BuilderInstruction22cs(
+                instruction.getOpcode(),
+                instruction.getRegisterA(),
+                instruction.getRegisterB(),
+                instruction.getFieldOffset());
+    }
+
+    @Nonnull
     private BuilderInstruction22s newBuilderInstruction22s(@Nonnull Instruction22s instruction) {
         return new BuilderInstruction22s(
                 instruction.getOpcode(),
@@ -869,12 +893,56 @@ public class MutableMethodImplementation implements MethodImplementation {
     }
 
     @Nonnull
+    private BuilderInstruction35mi newBuilderInstruction35mi(@Nonnull Instruction35mi instruction) {
+        return new BuilderInstruction35mi(
+                instruction.getOpcode(),
+                instruction.getRegisterCount(),
+                instruction.getRegisterC(),
+                instruction.getRegisterD(),
+                instruction.getRegisterE(),
+                instruction.getRegisterF(),
+                instruction.getRegisterG(),
+                instruction.getInlineIndex());
+    }
+
+    @Nonnull
+    private BuilderInstruction35ms newBuilderInstruction35ms(@Nonnull Instruction35ms instruction) {
+        return new BuilderInstruction35ms(
+                instruction.getOpcode(),
+                instruction.getRegisterCount(),
+                instruction.getRegisterC(),
+                instruction.getRegisterD(),
+                instruction.getRegisterE(),
+                instruction.getRegisterF(),
+                instruction.getRegisterG(),
+                instruction.getVtableIndex());
+    }
+
+    @Nonnull
     private BuilderInstruction3rc newBuilderInstruction3rc(@Nonnull Instruction3rc instruction) {
         return new BuilderInstruction3rc(
                 instruction.getOpcode(),
                 instruction.getStartRegister(),
                 instruction.getRegisterCount(),
                 instruction.getReference());
+    }
+
+    @Nonnull
+    private BuilderInstruction3rmi newBuilderInstruction3rmi(@Nonnull Instruction3rmi instruction) {
+        return new BuilderInstruction3rmi(
+                instruction.getOpcode(),
+                instruction.getStartRegister(),
+                instruction.getRegisterCount(),
+                instruction.getInlineIndex());
+    }
+
+    @Nonnull
+    private BuilderInstruction3rms newBuilderInstruction3rms(@Nonnull Instruction3rms instruction) {
+        return new BuilderInstruction3rms(
+                instruction.getOpcode(),
+                instruction.getStartRegister(),
+                instruction.getRegisterCount(),
+                instruction.getVtableIndex());
     }
 
     @Nonnull
