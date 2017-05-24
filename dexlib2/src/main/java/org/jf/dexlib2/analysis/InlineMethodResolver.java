@@ -55,6 +55,8 @@ public abstract class InlineMethodResolver {
             return new InlineMethodResolver_version35();
         } else if (odexVersion == 36) {
             return new InlineMethodResolver_version36();
+	} else if (odexVersion == 100) {
+            return new InlineMethodResolver_version36();
         } else {
             throw new RuntimeException(String.format("odex version %d is not supported yet", odexVersion));
         }

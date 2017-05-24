@@ -37,7 +37,7 @@ public class OdexHeaderItem {
     public static final int ITEM_SIZE = 40;
 
     private static final byte[] MAGIC_VALUE = new byte[] { 0x64, 0x65, 0x79, 0x0A, 0x00, 0x00, 0x00, 0x00 };
-    private static final int[] SUPPORTED_ODEX_VERSIONS = new int[] { 35, 36 };
+    private static final int[] SUPPORTED_ODEX_VERSIONS = new int[] { 35, 36, 100 };
 
     public static final int MAGIC_OFFSET = 0;
     public static final int MAGIC_LENGTH = 8;
