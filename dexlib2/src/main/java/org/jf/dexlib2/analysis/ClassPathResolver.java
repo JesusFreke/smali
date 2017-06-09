@@ -195,7 +195,7 @@ public class ClassPathResolver {
         // It's not a local path, so let's try to resolve it as a device path, relative to one of the provided
         // directories
         List<String> pathComponents = splitDevicePath(entry);
-        Joiner pathJoiner = Joiner.on(File.pathSeparatorChar);
+        Joiner pathJoiner = Joiner.on(";");
 
         for (String directory: classPathDirs) {
             File directoryFile = new File(directory);
