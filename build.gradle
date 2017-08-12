@@ -64,7 +64,7 @@ if (!('release' in gradle.startParameter.taskNames)) {
 task release() {
 }
 
-task(install) << {
+task(install).doLast {
     println "Installing version: ${version}"
 }
 
