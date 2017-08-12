@@ -43,7 +43,8 @@ public class HeaderItem {
     public static final int ITEM_SIZE = 0x70;
 
     private static final byte[] MAGIC_VALUE = new byte[] { 0x64, 0x65, 0x78, 0x0a, 0x00, 0x00, 0x00, 0x00 };
-    private static final int[] SUPPORTED_DEX_VERSIONS = new int[] { 35, 37 };
+    private static final int[] SUPPORTED_DEX_VERSIONS     = new int[] { 35, 37 };
+    private static final int[] CORRESPONDING_HIGHEST_APIS = new int[] { 23, 25 };
 
     public static final int LITTLE_ENDIAN_TAG = 0x12345678;
     public static final int BIG_ENDIAN_TAG = 0x78563412;
@@ -225,17 +226,36 @@ public class HeaderItem {
     }
 
     /**
+     * Get the highest dex file version supported by Android for this api level.
+     * @return The dex file version number
+     */
+    public static int getDexVersionForApi(int api) {
+        return mapVersion(CORRESPONDING_HIGHEST_APIS, SUPPORTED_DEX_VERSIONS, api);
+    }
+
+    /**
+     * Get the highest api level supported by Android for this dex file version.
+     * @return The api level number
+     */
+    public static int getApiForDexVersion(int dexVersion) {
+        return mapVersion(SUPPORTED_DEX_VERSIONS, CORRESPONDING_HIGHEST_APIS, dexVersion);
+    }
+
+    private static int mapVersion(int[] source, int[] target, int version) {
+        int lastIndex = source.length - 1;
+        for (int i=0;; i++) {
+            if (i == lastIndex || version <= source[i]) {
+                return target[i];
+            }
+        }
+    }
+
+    /**
      * Get the highest magic number supported by Android for this api level.
      * @return The dex file magic number
      */
     public static byte[] getMagicForApi(int api) {
-        if (api < 24) {
-            // Prior to Android N we only support dex version 035.
-            return getMagicForDexVersion(35);
-        } else {
-            // On android N and later we support dex version 037.
-            return getMagicForDexVersion(37);
-        }
+        return getMagicForDexVersion(getDexVersionForApi(api));
     }
 
     public static byte[] getMagicForDexVersion(int dexVersion) {
