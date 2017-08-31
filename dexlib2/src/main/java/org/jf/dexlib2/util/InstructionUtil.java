@@ -38,5 +38,9 @@ public final class InstructionUtil {
         return opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE;
     }
 
+    public static boolean isInvokePolymorphic(Opcode opcode) {
+        return opcode == Opcode.INVOKE_POLYMORPHIC || opcode == Opcode.INVOKE_POLYMORPHIC_RANGE;
+    }
+
     private InstructionUtil() {}
 }
