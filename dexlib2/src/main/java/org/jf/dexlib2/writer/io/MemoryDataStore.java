@@ -25,7 +25,7 @@ public class MemoryDataStore implements DexDataStore {
         return new OutputStream() {
             private int position = offset;
             @Override public void write(int b) throws IOException {
-                growBufferIfNeeded(position);
+                growBufferIfNeeded(position + 1);
                 buf[position++] = (byte)b;
             }
 
@@ -43,11 +43,11 @@ public class MemoryDataStore implements DexDataStore {
         };
     }
 
-    private void growBufferIfNeeded(int index) {
-        if (index < buf.length) {
+    private void growBufferIfNeeded(int minSize) {
+        if (minSize <= buf.length) {
             return;
         }
-        buf = Arrays.copyOf(buf, (int)((index + 1) * 1.2));
+        buf = Arrays.copyOf(buf, (int)(minSize * 1.2));
     }
 
     @Nonnull @Override public InputStream readAt(final int offset) {
