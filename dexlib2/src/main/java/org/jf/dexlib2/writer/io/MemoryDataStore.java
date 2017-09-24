@@ -26,6 +26,10 @@ public class MemoryDataStore implements DexDataStore {
         return size;
     }
 
+    public byte[] getData() {
+        return Arrays.copyOf(buf, size);
+    }
+
     @Nonnull @Override public OutputStream outputAt(final int offset) {
         return new OutputStream() {
             private int position = offset;
