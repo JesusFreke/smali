@@ -84,7 +84,7 @@ public class RollbackTest {
             dexPool.internClass(class2);
             dexPool.reset();
             dexPool.writeTo(dataStore);
-            dexFile1 = new RawDexFile(Opcodes.getDefault(), dataStore.getData());
+            dexFile1 = new RawDexFile(Opcodes.getDefault(), dataStore.getBuffer());
         }
 
         RawDexFile dexFile2;
@@ -93,7 +93,7 @@ public class RollbackTest {
             DexPool dexPool = new DexPool(Opcodes.getDefault());
             dexPool.internClass(class1);
             dexPool.writeTo(dataStore);
-            dexFile2 = new RawDexFile(Opcodes.getDefault(), dataStore.getData());
+            dexFile2 = new RawDexFile(Opcodes.getDefault(), dataStore.getBuffer());
         }
 
         List<MapItem> mapItems1 = dexFile1.getMapItems();

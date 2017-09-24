@@ -18,7 +18,7 @@ public class MemoryDataStore implements DexDataStore {
         buf = new byte[initialCapacity];
     }
 
-    public byte[] getData() {
+    public byte[] getBuffer() {
         return buf;
     }
 
