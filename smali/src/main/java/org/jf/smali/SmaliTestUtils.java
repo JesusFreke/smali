@@ -94,7 +94,7 @@ public class SmaliTestUtils {
 
         dexBuilder.writeTo(dataStore);
 
-        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(apiLevel), dataStore.getData());
+        DexBackedDexFile dexFile = new DexBackedDexFile(Opcodes.forApi(apiLevel), dataStore.getBuffer());
 
         return Iterables.getFirst(dexFile.getClasses(), null);
     }
