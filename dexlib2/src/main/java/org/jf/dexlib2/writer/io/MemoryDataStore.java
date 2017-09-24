@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 public class MemoryDataStore implements DexDataStore {
-    private byte[] buf;
+    protected byte[] buf;
 
     public MemoryDataStore() {
         this(1024 * 1024);
@@ -43,7 +43,7 @@ public class MemoryDataStore implements DexDataStore {
         };
     }
 
-    private void growBufferIfNeeded(int minSize) {
+    protected void growBufferIfNeeded(int minSize) {
         if (minSize <= buf.length) {
             return;
         }
