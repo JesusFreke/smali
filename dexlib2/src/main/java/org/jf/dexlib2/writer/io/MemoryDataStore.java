@@ -82,7 +82,7 @@ public class MemoryDataStore implements DexDataStore {
                     }
                     return 0;
                 }
-                System.arraycopy(buf, position, b, 0, readLength);
+                System.arraycopy(buf, position, b, off, readLength);
                 position += readLength;
                 return readLength;
             }
