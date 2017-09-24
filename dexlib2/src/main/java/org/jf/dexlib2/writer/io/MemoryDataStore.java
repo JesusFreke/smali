@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 public class MemoryDataStore implements DexDataStore {
     protected byte[] buf;
+    protected int size = 0;
 
     public MemoryDataStore() {
         this(1024 * 1024);
@@ -19,6 +20,10 @@ public class MemoryDataStore implements DexDataStore {
 
     public byte[] getData() {
         return buf;
+    }
+
+    public int getSize() {
+        return size;
     }
 
     @Nonnull @Override public OutputStream outputAt(final int offset) {
@@ -44,10 +49,12 @@ public class MemoryDataStore implements DexDataStore {
     }
 
     protected void growBufferIfNeeded(int minSize) {
-        if (minSize <= buf.length) {
-            return;
+        if (minSize > size) {
+            if (minSize > buf.length) {
+                buf = Arrays.copyOf(buf, (int)(minSize * 1.2));
+            }
+            size = minSize;
         }
-        buf = Arrays.copyOf(buf, (int)(minSize * 1.2));
     }
 
     @Nonnull @Override public InputStream readAt(final int offset) {
@@ -55,16 +62,16 @@ public class MemoryDataStore implements DexDataStore {
             private int position = offset;
 
             @Override public int read() throws IOException {
-                if (position >= buf.length) {
+                if (position >= size) {
                     return -1;
                 }
                 return buf[position++];
             }
 
             @Override public int read(byte[] b) throws IOException {
-                int readLength = Math.min(b.length, buf.length - position);
+                int readLength = Math.min(b.length, size - position);
                 if (readLength <= 0) {
-                    if (position >= buf.length) {
+                    if (position >= size) {
                         return -1;
                     }
                     return 0;
@@ -75,9 +82,9 @@ public class MemoryDataStore implements DexDataStore {
             }
 
             @Override public int read(byte[] b, int off, int len) throws IOException {
-                int readLength = Math.min(len, buf.length - position);
+                int readLength = Math.min(len, size - position);
                 if (readLength <= 0) {
-                    if (position >= buf.length) {
+                    if (position >= size) {
                         return -1;
                     }
                     return 0;
@@ -88,13 +95,13 @@ public class MemoryDataStore implements DexDataStore {
             }
 
             @Override public long skip(long n) throws IOException {
-                int skipLength = (int)Math.min(n, buf.length - position);
+                int skipLength = (int)Math.min(n, size - position);
                 position += skipLength;
                 return skipLength;
             }
 
             @Override public int available() throws IOException {
-                return buf.length - position;
+                return size - position;
             }
         };
     }
