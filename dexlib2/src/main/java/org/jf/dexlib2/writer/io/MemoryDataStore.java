@@ -31,6 +31,7 @@ public class MemoryDataStore implements DexDataStore {
     }
 
     @Nonnull @Override public OutputStream outputAt(final int offset) {
+        if (offset < 0) throw new IllegalArgumentException();
         return new OutputStream() {
             private int position = offset;
             @Override public void write(int b) throws IOException {
@@ -68,6 +69,7 @@ public class MemoryDataStore implements DexDataStore {
     }
 
     @Nonnull @Override public InputStream readAt(final int offset) {
+        if (offset < 0) throw new IllegalArgumentException();
         return new InputStream() {
             private int position = offset;
             private int mark = offset;
