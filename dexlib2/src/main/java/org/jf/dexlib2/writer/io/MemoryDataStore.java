@@ -11,7 +11,7 @@ public class MemoryDataStore implements DexDataStore {
     private int size = 0;
 
     public MemoryDataStore() {
-        this(1024 * 1024);
+        this(0);
     }
 
     public MemoryDataStore(int initialCapacity) {
@@ -65,7 +65,8 @@ public class MemoryDataStore implements DexDataStore {
     }
 
     protected int getNewBufferSize(int currentSize, int newMinSize) {
-        return newMinSize + (newMinSize >> 2);
+        final int MIN_GROWTH_STEP = 256 * 1024;
+        return Math.max(newMinSize + (newMinSize >> 2), currentSize + MIN_GROWTH_STEP);
     }
 
     @Nonnull @Override public InputStream readAt(final int offset) {
