@@ -7,8 +7,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 public class MemoryDataStore implements DexDataStore {
-    protected byte[] buf;
-    protected int size = 0;
+    private byte[] buf;
+    private int size = 0;
 
     public MemoryDataStore() {
         this(1024 * 1024);
@@ -52,13 +52,19 @@ public class MemoryDataStore implements DexDataStore {
         };
     }
 
-    protected void growBufferIfNeeded(int minSize) {
+    private void growBufferIfNeeded(int minSize) {
         if (minSize > size) {
             if (minSize > buf.length) {
-                buf = Arrays.copyOf(buf, (int)(minSize * 1.2));
+                int newSize = getNewBufferSize(buf.length, minSize);
+                if (newSize < minSize) throw new IndexOutOfBoundsException();
+                buf = Arrays.copyOf(buf, newSize);
             }
             size = minSize;
         }
+    }
+
+    protected int getNewBufferSize(int currentSize, int newMinSize) {
+        return (int)(newMinSize * 1.2);
     }
 
     @Nonnull @Override public InputStream readAt(final int offset) {
