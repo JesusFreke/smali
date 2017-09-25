@@ -65,7 +65,7 @@ public class MemoryDataStore implements DexDataStore {
     }
 
     protected int getNewBufferSize(int currentSize, int newMinSize) {
-        return (int)(newMinSize * 1.2);
+        return newMinSize + (newMinSize >> 2);
     }
 
     @Nonnull @Override public InputStream readAt(final int offset) {
