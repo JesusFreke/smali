@@ -105,13 +105,13 @@ public class MemoryDataStore implements DexDataStore {
             }
 
             @Override public long skip(long n) throws IOException {
-                int skipLength = (int)Math.min(n, size - position);
+                int skipLength = (int)Math.max(0, Math.min(n, size - position));
                 position += skipLength;
                 return skipLength;
             }
 
             @Override public int available() throws IOException {
-                return size - position;
+                return Math.max(0, size - position);
             }
         };
     }
