@@ -70,6 +70,7 @@ public class MemoryDataStore implements DexDataStore {
     @Nonnull @Override public InputStream readAt(final int offset) {
         return new InputStream() {
             private int position = offset;
+            private int mark = offset;
 
             @Override public int read() throws IOException {
                 if (position >= size) {
@@ -112,6 +113,18 @@ public class MemoryDataStore implements DexDataStore {
 
             @Override public int available() throws IOException {
                 return Math.max(0, size - position);
+            }
+
+            @Override public void mark(int i) {
+                mark = position;
+            }
+
+            @Override public void reset() throws IOException {
+                position = mark;
+            }
+
+            @Override public boolean markSupported() {
+                return true;
             }
         };
     }
