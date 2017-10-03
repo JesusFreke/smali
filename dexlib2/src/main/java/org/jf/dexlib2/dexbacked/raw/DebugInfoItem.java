@@ -52,8 +52,8 @@ public class DebugInfoItem {
             public void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
                 DexReader reader = dexFile.readerAt(out.getCursor());
 
-                int lineStart = reader.readSmallUleb128();
-                out.annotateTo(reader.getOffset(), "line_start = %d", lineStart);
+                int lineStart = reader.readBigUleb128();
+                out.annotateTo(reader.getOffset(), "line_start = %d", lineStart & 0xFFFFFFFFL);
 
                 int parametersSize = reader.readSmallUleb128();
                 out.annotateTo(reader.getOffset(), "parameters_size = %d", parametersSize);
