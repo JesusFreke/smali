@@ -127,7 +127,7 @@ public class DexDataWriter extends BufferedOutputStream {
     }
 
     public static void writeUleb128(OutputStream out, int value) throws IOException {
-        while (value > 0x7f) {
+        while ((value & 0xffffffffL) > 0x7f) {
             out.write((value & 0x7f) | 0x80);
             value >>>= 7;
         }
