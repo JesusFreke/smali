@@ -31,7 +31,7 @@
 
 apply plugin: 'idea'
 
-version = '2.2.1'
+version = '2.2.2'
 def jcommanderVersion = ''
 
 if (!('release' in gradle.startParameter.taskNames)) {
