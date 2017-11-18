@@ -278,8 +278,12 @@ public class SmaliCodeFragmentFactory extends DefaultCodeFragmentFactory {
     @Nullable
     public static Value evaluateRegister(EvaluationContext context, final SmaliMethod smaliMethod,
                                          final int registerNum, final String type) throws EvaluateException {
-
-        if (registerNum >= smaliMethod.getRegisterCount()) {
+        int registerCount = ApplicationManager.getApplication().runReadAction(new Computable<Integer>() {
+            @Override public Integer compute() {
+                return smaliMethod.getRegisterCount();
+            }
+        });
+        if (registerNum >= registerCount) {
             return null;
         }
 
