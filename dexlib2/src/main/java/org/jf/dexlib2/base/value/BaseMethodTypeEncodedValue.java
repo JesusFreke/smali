@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2018, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2;
+package org.jf.dexlib2.base.value;
 
-public final class ValueType {
-    public static final int BYTE = 0x00;
-    public static final int SHORT = 0x02;
-    public static final int CHAR = 0x03;
-    public static final int INT = 0x04;
-    public static final int LONG = 0x06;
-    public static final int FLOAT = 0x10;
-    public static final int DOUBLE = 0x11;
-    public static final int METHOD_TYPE = 0x15;
-    public static final int METHOD_HANDLE = 0x16;
-    public static final int STRING = 0x17;
-    public static final int TYPE = 0x18;
-    public static final int FIELD = 0x19;
-    public static final int METHOD = 0x1a;
-    public static final int ENUM = 0x1b;
-    public static final int ARRAY = 0x1c;
-    public static final int ANNOTATION = 0x1d;
-    public static final int NULL = 0x1e;
-    public static final int BOOLEAN = 0x1f;
+import com.google.common.primitives.Ints;
+import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.iface.value.MethodTypeEncodedValue;
 
-    private ValueType() {}
+import javax.annotation.Nonnull;
+
+public abstract class BaseMethodTypeEncodedValue implements MethodTypeEncodedValue {
+    @Override
+    public int hashCode() {
+        return getValue().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof MethodTypeEncodedValue) {
+            return getValue().equals(((MethodTypeEncodedValue) o).getValue());
+        }
+        return false;
+    }
+
+    @Override
+    public int compareTo(@Nonnull EncodedValue o) {
+        int res = Ints.compare(getValueType(), o.getValueType());
+        if (res != 0) return res;
+        return getValue().compareTo(((MethodTypeEncodedValue) o).getValue());
+    }
+
+    @Override
+    public int getValueType() {
+        return ValueType.METHOD_TYPE;
+    }
 }
