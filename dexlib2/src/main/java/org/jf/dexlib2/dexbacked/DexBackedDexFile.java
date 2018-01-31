@@ -39,6 +39,7 @@ import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
 import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
 import org.jf.dexlib2.dexbacked.reference.DexBackedStringReference;
 import org.jf.dexlib2.dexbacked.reference.DexBackedTypeReference;
+import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.reference.Reference;
@@ -68,6 +69,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int methodStartOffset;
     private final int classCount;
     private final int classStartOffset;
+    private final int mapOffset;
 
     protected DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
         super(buf, offset);
@@ -90,6 +92,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         methodStartOffset = readSmallUint(HeaderItem.METHOD_START_OFFSET);
         classCount = readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
         classStartOffset = readSmallUint(HeaderItem.CLASS_START_OFFSET);
+        mapOffset = readSmallUint(HeaderItem.MAP_OFFSET);
     }
 
     public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
@@ -321,6 +324,32 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     @Nonnull
     public DexReader readerAt(int offset) {
         return new DexReader(this, offset);
+    }
+
+    public List<MapItem> getMapItems() {
+        final int mapSize = readSmallUint(mapOffset);
+
+        return new FixedSizeList<MapItem>() {
+            @Override
+            public MapItem readItem(int index) {
+                int mapItemOffset = mapOffset + 4 + index * MapItem.ITEM_SIZE;
+                return new MapItem(DexBackedDexFile.this, mapItemOffset);
+            }
+
+            @Override public int size() {
+                return mapSize;
+            }
+        };
+    }
+
+    @Nullable
+    public MapItem getMapItemForSection(int itemType) {
+        for (MapItem mapItem: getMapItems()) {
+            if (mapItem.getType() == itemType) {
+                return mapItem;
+            }
+        }
+        return null;
     }
 
     public static class NotADexFile extends RuntimeException {

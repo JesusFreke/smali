@@ -34,15 +34,12 @@ package org.jf.dexlib2.dexbacked.raw;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.BaseDexBuffer;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.List;
 
 public class RawDexFile extends DexBackedDexFile {
     @Nonnull public final HeaderItem headerItem;
@@ -60,37 +57,6 @@ public class RawDexFile extends DexBackedDexFile {
     @Nonnull
     public byte[] readByteRange(int start, int length) {
         return Arrays.copyOfRange(getBuf(), getBaseOffset() + start, getBaseOffset() + start + length);
-    }
-
-    public int getMapOffset() {
-        return headerItem.getMapOffset();
-    }
-
-    @Nullable
-    public MapItem getMapItemForSection(int itemType) {
-        for (MapItem mapItem: getMapItems()) {
-            if (mapItem.getType() == itemType) {
-                return mapItem;
-            }
-        }
-        return null;
-    }
-
-    public List<MapItem> getMapItems() {
-        final int mapOffset = getMapOffset();
-        final int mapSize = readSmallUint(mapOffset);
-
-        return new FixedSizeList<MapItem>() {
-            @Override
-            public MapItem readItem(int index) {
-                int mapItemOffset = mapOffset + 4 + index * MapItem.ITEM_SIZE;
-                return new MapItem(RawDexFile.this, mapItemOffset);
-            }
-
-            @Override public int size() {
-                return mapSize;
-            }
-        };
     }
 
     public void writeAnnotations(@Nonnull Writer out, @Nonnull AnnotatedBytes annotatedBytes) throws IOException {
