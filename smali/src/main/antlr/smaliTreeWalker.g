@@ -1314,19 +1314,19 @@ subannotation returns[String annotationType, List<AnnotationElement> elements]
       $elements = elements;
     };
 
-field_literal returns[FieldReference value]
+field_literal returns[ImmutableFieldReference value]
   : ^(I_ENCODED_FIELD field_reference)
     {
       $value = $field_reference.fieldReference;
     };
 
-method_literal returns[MethodReference value]
+method_literal returns[ImmutableMethodReference value]
   : ^(I_ENCODED_METHOD method_reference)
     {
       $value = $method_reference.methodReference;
     };
 
-enum_literal returns[FieldReference value]
+enum_literal returns[ImmutableFieldReference value]
   : ^(I_ENCODED_ENUM field_reference)
     {
       $value = $field_reference.fieldReference;
