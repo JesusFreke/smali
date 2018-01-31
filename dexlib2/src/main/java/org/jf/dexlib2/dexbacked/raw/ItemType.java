@@ -41,6 +41,8 @@ public class ItemType {
     public static final int FIELD_ID_ITEM = 0x0004;
     public static final int METHOD_ID_ITEM = 0x0005;
     public static final int CLASS_DEF_ITEM = 0x0006;
+    public static final int CALL_SITE_ID_ITEM = 0x0007;
+    public static final int METHOD_HANDLE_ITEM = 0x0008;
     public static final int MAP_LIST = 0x1000;
     public static final int TYPE_LIST = 0x1001;
     public static final int ANNOTATION_SET_REF_LIST = 0x1002;
@@ -63,6 +65,8 @@ public class ItemType {
             case FIELD_ID_ITEM: return "field_id_item";
             case METHOD_ID_ITEM: return "method_id_item";
             case CLASS_DEF_ITEM: return "class_def_item";
+            case CALL_SITE_ID_ITEM: return "call_site_id_item";
+            case METHOD_HANDLE_ITEM: return "method_handle_item";
             case MAP_LIST: return "map_list";
             case TYPE_LIST: return "type_list";
             case ANNOTATION_SET_REF_LIST: return "annotation_set_ref_list";

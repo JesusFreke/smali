@@ -101,6 +101,12 @@ public abstract class DexBackedEncodedValue {
                 case ValueType.BOOLEAN:
                     Preconditions.checkValueArg(valueArg, 1);
                     return ImmutableBooleanEncodedValue.forBoolean(valueArg == 1);
+                case ValueType.METHOD_HANDLE:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new DexBackedMethodHandleEncodedValue(reader, valueArg);
+                case ValueType.METHOD_TYPE:
+                    Preconditions.checkValueArg(valueArg, 3);
+                    return new DexBackedMethodTypeEncodedValue(reader, valueArg);
                 default:
                     throw new ExceptionWithContext("Invalid encoded_value type: 0x%x", valueType);
             }
@@ -131,6 +137,8 @@ public abstract class DexBackedEncodedValue {
                 case ValueType.FIELD:
                 case ValueType.METHOD:
                 case ValueType.ENUM:
+                case ValueType.METHOD_HANDLE:
+                case ValueType.METHOD_TYPE:
                     int valueArg = b >>> 5;
                     reader.moveRelative(valueArg+1);
                     break;

@@ -189,6 +189,22 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         return classStartOffset + classIndex*ClassDefItem.ITEM_SIZE;
     }
 
+    public int getCallSiteIdItemOffset(int callSiteIndex) {
+        MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
+        if (mapItem == null || callSiteIndex >= mapItem.getItemCount()) {
+            throw new InvalidItemIndex(callSiteIndex, "Call site index out of bounds: %d", callSiteIndex);
+        }
+        return mapItem.getOffset() + callSiteIndex * CallSiteIdItem.ITEM_SIZE;
+    }
+
+    public int getMethodHandleItemOffset(int methodHandleIndex) {
+        MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
+        if (mapItem == null || methodHandleIndex >= mapItem.getItemCount()) {
+            throw new InvalidItemIndex(methodHandleIndex , "Method handle index out of bounds: %d", methodHandleIndex);
+        }
+        return mapItem.getOffset() + methodHandleIndex * MethodHandleItem.ITEM_SIZE;
+    }
+
     public int getClassCount() {
         return classCount;
     }
@@ -211,6 +227,22 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
 
     public int getMethodCount() {
         return methodCount;
+    }
+
+    public int getCallSiteCount() {
+        MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
+        if (mapItem == null) {
+            return 0;
+        }
+        return mapItem.getItemCount();
+    }
+
+    public int getMethodHandleCount() {
+        MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
+        if (mapItem == null) {
+            return 0;
+        }
+        return mapItem.getItemCount();
     }
 
     @Nonnull
