@@ -44,11 +44,13 @@ public abstract class EncodedArrayItemIterator {
         @Nullable @Override public EncodedValue getNextOrNull() { return null; }
         @Override public void skipNext() {}
         @Override public int getReaderOffset() { return 0; }
+        @Override public int getItemCount() { return 0; }
     };
 
     @Nullable public abstract EncodedValue getNextOrNull();
     public abstract void skipNext();
     public abstract int getReaderOffset();
+    public abstract int getItemCount();
 
     @Nonnull
     public static EncodedArrayItemIterator newOrEmpty(@Nonnull DexBackedDexFile dexFile, int offset) {
@@ -77,6 +79,7 @@ public abstract class EncodedArrayItemIterator {
             return null;
         }
 
+        @Override
         public void skipNext() {
             if (index < size) {
                 index++;
@@ -84,8 +87,14 @@ public abstract class EncodedArrayItemIterator {
             }
         }
 
+        @Override
         public int getReaderOffset() {
             return reader.getOffset();
+        }
+
+        @Override
+        public int getItemCount() {
+            return size;
         }
     }
 }
