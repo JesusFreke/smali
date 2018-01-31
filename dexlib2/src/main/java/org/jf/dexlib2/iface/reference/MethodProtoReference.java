@@ -69,9 +69,9 @@ public interface MethodProtoReference extends Reference, Comparable<MethodProtoR
     @Override int hashCode();
 
     /**
-     * Compares this MethodTypeReference to another MethodProtoReference for equality.
+     * Compares this MethodProtoReference to another MethodProtoReference for equality.
      *
-     * This MethodTypeReference is equal to another MethodProtoReference if all of it's "fields" are equal. That is, if
+     * This MethodProtoReference is equal to another MethodProtoReference if all of it's "fields" are equal. That is, if
      * the return values of getReturnType() and getParameterTypes() are all equal.
      *
      * Equality for getParameters() should be tested by comparing the string representation of each element. I.e.
@@ -83,7 +83,7 @@ public interface MethodProtoReference extends Reference, Comparable<MethodProtoR
     @Override boolean equals(@Nullable Object o);
 
     /**
-     * Compare this MethodTypeReference to another MethodProtoReference.
+     * Compare this MethodProtoReference to another MethodProtoReference.
      *
      * The comparison is based on the comparison of the return values of getReturnType() and getParameters(),
      * in that order. getParameters() should be compared using the semantics of
