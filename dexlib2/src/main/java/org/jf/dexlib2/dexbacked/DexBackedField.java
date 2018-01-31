@@ -35,7 +35,7 @@ import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.dexbacked.raw.FieldIdItem;
 import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
-import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
+import org.jf.dexlib2.dexbacked.util.EncodedArrayItemIterator;
 import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
@@ -62,7 +62,7 @@ public class DexBackedField extends BaseFieldReference implements Field {
     public DexBackedField(@Nonnull DexReader reader,
                           @Nonnull DexBackedClassDef classDef,
                           int previousFieldIndex,
-                          @Nonnull StaticInitialValueIterator staticInitialValueIterator,
+                          @Nonnull EncodedArrayItemIterator staticInitialValueIterator,
                           @Nonnull AnnotationsDirectory.AnnotationIterator annotationIterator) {
         this.dexFile = reader.dexBuf;
         this.classDef = classDef;

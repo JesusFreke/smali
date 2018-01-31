@@ -39,8 +39,8 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class StaticInitialValueIterator {
-    public static final StaticInitialValueIterator EMPTY = new StaticInitialValueIterator() {
+public abstract class EncodedArrayItemIterator {
+    public static final EncodedArrayItemIterator EMPTY = new EncodedArrayItemIterator() {
         @Nullable @Override public EncodedValue getNextOrNull() { return null; }
         @Override public void skipNext() {}
         @Override public int getReaderOffset() { return 0; }
@@ -51,19 +51,19 @@ public abstract class StaticInitialValueIterator {
     public abstract int getReaderOffset();
 
     @Nonnull
-    public static StaticInitialValueIterator newOrEmpty(@Nonnull DexBackedDexFile dexFile, int offset) {
+    public static EncodedArrayItemIterator newOrEmpty(@Nonnull DexBackedDexFile dexFile, int offset) {
         if (offset == 0) {
             return EMPTY;
         }
-        return new StaticInitialValueIteratorImpl(dexFile, offset);
+        return new EncodedArrayItemIteratorImpl(dexFile, offset);
     }
 
-    private static class StaticInitialValueIteratorImpl extends StaticInitialValueIterator {
+    private static class EncodedArrayItemIteratorImpl extends EncodedArrayItemIterator {
         @Nonnull private final DexReader reader;
         private final int size;
         private int index = 0;
 
-        public StaticInitialValueIteratorImpl(@Nonnull DexBackedDexFile dexFile, int offset) {
+        public EncodedArrayItemIteratorImpl(@Nonnull DexBackedDexFile dexFile, int offset) {
             this.reader = dexFile.readerAt(offset);
             this.size = reader.readSmallUleb128();
         }

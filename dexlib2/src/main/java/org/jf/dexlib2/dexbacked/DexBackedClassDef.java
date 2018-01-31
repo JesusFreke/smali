@@ -38,8 +38,7 @@ import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
 import org.jf.dexlib2.dexbacked.raw.TypeIdItem;
 import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
-import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
-import org.jf.dexlib2.dexbacked.util.StaticInitialValueIterator;
+import org.jf.dexlib2.dexbacked.util.EncodedArrayItemIterator;
 import org.jf.dexlib2.dexbacked.util.VariableSizeLookaheadIterator;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.reference.FieldReference;
@@ -163,8 +162,8 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 public Iterator<DexBackedField> iterator() {
                     final AnnotationsDirectory.AnnotationIterator annotationIterator =
                             annotationsDirectory.getFieldAnnotationIterator();
-                    final StaticInitialValueIterator staticInitialValueIterator =
-                            StaticInitialValueIterator.newOrEmpty(dexFile, staticInitialValuesOffset);
+                    final EncodedArrayItemIterator staticInitialValueIterator =
+                            EncodedArrayItemIterator.newOrEmpty(dexFile, staticInitialValuesOffset);
 
                     return new VariableSizeLookaheadIterator<DexBackedField>(dexFile, fieldsStartOffset) {
                         private int count;
