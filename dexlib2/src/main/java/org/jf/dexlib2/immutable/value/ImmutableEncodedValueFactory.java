@@ -77,6 +77,10 @@ public class ImmutableEncodedValueFactory {
                 return ImmutableNullEncodedValue.INSTANCE;
             case ValueType.BOOLEAN:
                 return ImmutableBooleanEncodedValue.of((BooleanEncodedValue)encodedValue);
+            case ValueType.METHOD_HANDLE:
+                return ImmutableMethodHandleEncodedValue.of((MethodHandleEncodedValue) encodedValue);
+            case ValueType.METHOD_TYPE:
+                return ImmutableMethodTypeEncodedValue.of((MethodTypeEncodedValue) encodedValue);
             default:
                 Preconditions.checkArgument(false);
                 return null;

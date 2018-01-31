@@ -55,6 +55,12 @@ public class ImmutableReferenceFactory {
         if (reference instanceof MethodProtoReference) {
             return ImmutableMethodProtoReference.of((MethodProtoReference) reference);
         }
+        if (reference instanceof CallSiteReference) {
+            return ImmutableCallSiteReference.of((CallSiteReference) reference);
+        }
+        if (reference instanceof MethodHandleReference) {
+            return ImmutableMethodHandleReference.of((MethodHandleReference) reference);
+        }
         throw new ExceptionWithContext("Invalid reference type");
     }
 
@@ -71,6 +77,10 @@ public class ImmutableReferenceFactory {
                 return ImmutableMethodReference.of((MethodReference)reference);
             case ReferenceType.METHOD_PROTO:
                 return ImmutableMethodProtoReference.of((MethodProtoReference)reference);
+            case ReferenceType.CALL_SITE:
+                return ImmutableCallSiteReference.of((CallSiteReference) reference);
+            case ReferenceType.METHOD_HANDLE:
+                return ImmutableMethodHandleReference.of((MethodHandleReference) reference);
         }
         throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
     }
