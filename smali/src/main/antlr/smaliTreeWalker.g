@@ -1282,9 +1282,7 @@ annotations returns[Set<Annotation> annotations]
         }
     })*)
     {
-      if (annotationMap.size() > 0) {
         $annotations = ImmutableSet.copyOf(annotationMap.values());
-      }
     };
 
 annotation returns[Annotation annotation]
