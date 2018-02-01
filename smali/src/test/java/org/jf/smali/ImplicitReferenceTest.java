@@ -29,7 +29,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.smali;import com.google.common.collect.Lists;
+package org.jf.smali;
+
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import junit.framework.Assert;
 import org.antlr.runtime.RecognitionException;
@@ -47,7 +49,6 @@ import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.value.FieldEncodedValue;
 import org.jf.dexlib2.iface.value.MethodEncodedValue;
 import org.jf.dexlib2.iface.value.TypeEncodedValue;
-import org.jf.smali.SmaliTestUtils;
 import org.junit.Test;
 
 import java.io.IOException;

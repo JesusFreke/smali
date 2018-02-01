@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ClassSection<StringKey extends CharSequence, TypeKey extends CharSequence, TypeListKey, ClassKey,
-        FieldKey, MethodKey, AnnotationSetKey, EncodedValue> extends IndexSection<ClassKey> {
+        FieldKey, MethodKey, AnnotationSetKey, EncodedArrayKey> extends IndexSection<ClassKey> {
     @Nonnull Collection<? extends ClassKey> getSortedClasses();
 
     @Nullable Map.Entry<? extends ClassKey, Integer> getClassEntryByType(@Nullable TypeKey key);
@@ -55,7 +55,7 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
     @Nullable TypeKey getSuperclass(@Nonnull ClassKey key);
     @Nullable TypeListKey getInterfaces(@Nonnull ClassKey key);
     @Nullable StringKey getSourceFile(@Nonnull ClassKey key);
-    @Nullable Collection<? extends EncodedValue> getStaticInitializers(@Nonnull ClassKey key);
+    @Nullable EncodedArrayKey getStaticInitializers(@Nonnull ClassKey key);
 
     @Nonnull Collection<? extends FieldKey> getSortedStaticFields(@Nonnull ClassKey key);
     @Nonnull Collection<? extends FieldKey> getSortedInstanceFields(@Nonnull ClassKey key);
@@ -80,9 +80,6 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
     @Nonnull List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks(@Nonnull MethodKey key);
     @Nullable TypeKey getExceptionType(@Nonnull ExceptionHandler handler);
     @Nonnull MutableMethodImplementation makeMutableMethodImplementation(@Nonnull MethodKey key);
-
-    void setEncodedArrayOffset(@Nonnull ClassKey key, int offset);
-    int getEncodedArrayOffset(@Nonnull ClassKey key);
 
     void setAnnotationDirectoryOffset(@Nonnull ClassKey key, int offset);
     int getAnnotationDirectoryOffset(@Nonnull ClassKey key);

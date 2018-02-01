@@ -35,9 +35,9 @@ import com.google.common.base.Functions;
 import com.google.common.collect.*;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.iface.ClassDef;
-import org.jf.dexlib2.util.FieldUtil;
 import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.writer.DexWriter;
+import org.jf.dexlib2.writer.builder.BuilderEncodedValues.BuilderArrayEncodedValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -54,9 +54,9 @@ public class BuilderClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull final SortedSet<BuilderField> instanceFields;
     @Nonnull final SortedSet<BuilderMethod> directMethods;
     @Nonnull final SortedSet<BuilderMethod> virtualMethods;
+    @Nullable final BuilderArrayEncodedValue staticInitializers;
 
     int classDefIndex = DexWriter.NO_INDEX;
-    int encodedArrayOffset = DexWriter.NO_OFFSET;
     int annotationDirectoryOffset = DexWriter.NO_OFFSET;
 
     BuilderClassDef(@Nonnull BuilderTypeReference type,
@@ -65,13 +65,18 @@ public class BuilderClassDef extends BaseTypeReference implements ClassDef {
                     @Nonnull BuilderTypeList interfaces,
                     @Nullable BuilderStringReference sourceFile,
                     @Nonnull BuilderAnnotationSet annotations,
-                    @Nullable Iterable<? extends BuilderField> fields,
-                    @Nullable Iterable<? extends BuilderMethod> methods) {
-        if (fields == null) {
-            fields = ImmutableList.of();
-        }
+                    @Nullable SortedSet<BuilderField> staticFields,
+                    @Nullable SortedSet<BuilderField> instanceFields,
+                    @Nullable Iterable<? extends BuilderMethod> methods,
+                    @Nullable BuilderArrayEncodedValue staticInitializers) {
         if (methods == null) {
             methods = ImmutableList.of();
+        }
+        if (staticFields == null) {
+            staticFields = ImmutableSortedSet.of();
+        }
+        if (instanceFields == null) {
+            instanceFields = ImmutableSortedSet.of();
         }
 
         this.type = type;
@@ -80,10 +85,11 @@ public class BuilderClassDef extends BaseTypeReference implements ClassDef {
         this.interfaces = interfaces;
         this.sourceFile = sourceFile;
         this.annotations = annotations;
-        this.staticFields = ImmutableSortedSet.copyOf(Iterables.filter(fields, FieldUtil.FIELD_IS_STATIC));
-        this.instanceFields = ImmutableSortedSet.copyOf(Iterables.filter(fields, FieldUtil.FIELD_IS_INSTANCE));
+        this.staticFields = staticFields;
+        this.instanceFields = instanceFields;
         this.directMethods = ImmutableSortedSet.copyOf(Iterables.filter(methods, MethodUtil.METHOD_IS_DIRECT));
         this.virtualMethods = ImmutableSortedSet.copyOf(Iterables.filter(methods, MethodUtil.METHOD_IS_VIRTUAL));
+        this.staticInitializers = staticInitializers;
     }
 
     @Nonnull @Override public String getType() { return type.getType(); }

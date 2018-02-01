@@ -34,6 +34,7 @@ package org.jf.dexlib2.writer.builder;
 import org.jf.dexlib2.base.value.*;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.*;
+import org.jf.dexlib2.writer.DexWriter;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
@@ -66,6 +67,7 @@ public abstract class BuilderEncodedValues {
 
     public static class BuilderArrayEncodedValue extends BaseArrayEncodedValue implements BuilderEncodedValue {
         @Nonnull final List<? extends BuilderEncodedValue> elements;
+        int offset = DexWriter.NO_OFFSET;
 
         BuilderArrayEncodedValue(@Nonnull List<? extends BuilderEncodedValue> elements) {
             this.elements = elements;

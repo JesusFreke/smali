@@ -48,21 +48,24 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.util.EncodedValueUtils;
 import org.jf.dexlib2.writer.ClassSection;
 import org.jf.dexlib2.writer.DebugWriter;
+import org.jf.dexlib2.writer.builder.BuilderEncodedValues.BuilderArrayEncodedValue;
 import org.jf.dexlib2.writer.builder.BuilderEncodedValues.BuilderEncodedValue;
 import org.jf.util.AbstractForwardSequentialList;
-import org.jf.util.CollectionUtils;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
 public class BuilderClassPool extends BaseBuilderPool implements ClassSection<BuilderStringReference,
         BuilderTypeReference, BuilderTypeList, BuilderClassDef, BuilderField, BuilderMethod, BuilderAnnotationSet,
-        BuilderEncodedValue> {
+        BuilderArrayEncodedValue> {
     @Nonnull private final ConcurrentMap<String, BuilderClassDef> internedItems =
             Maps.newConcurrentMap();
 
@@ -153,24 +156,8 @@ public class BuilderClassPool extends BaseBuilderPool implements ClassSection<Bu
             };
 
     @Nullable @Override
-    public Collection<? extends BuilderEncodedValue> getStaticInitializers(@Nonnull BuilderClassDef classDef) {
-        final SortedSet<BuilderField> sortedStaticFields = classDef.getStaticFields();
-
-        final int lastIndex = CollectionUtils.lastIndexOf(sortedStaticFields, HAS_INITIALIZER);
-        if (lastIndex > -1) {
-            return new AbstractCollection<BuilderEncodedValue>() {
-                @Nonnull @Override public Iterator<BuilderEncodedValue> iterator() {
-                    return FluentIterable.from(sortedStaticFields)
-                            .limit(lastIndex+1)
-                            .transform(GET_INITIAL_VALUE).iterator();
-                }
-
-                @Override public int size() {
-                    return lastIndex+1;
-                }
-            };
-        }
-        return null;
+    public BuilderArrayEncodedValue getStaticInitializers(@Nonnull BuilderClassDef classDef) {
+        return classDef.staticInitializers;
     }
 
     @Nonnull @Override
@@ -323,14 +310,6 @@ public class BuilderClassPool extends BaseBuilderPool implements ClassSection<Bu
             return (MutableMethodImplementation)impl;
         }
         return new MutableMethodImplementation(impl);
-    }
-
-    @Override public void setEncodedArrayOffset(@Nonnull BuilderClassDef builderClassDef, int offset) {
-        builderClassDef.encodedArrayOffset = offset;
-    }
-
-    @Override public int getEncodedArrayOffset(@Nonnull BuilderClassDef builderClassDef) {
-        return builderClassDef.encodedArrayOffset;
     }
 
     @Override public void setAnnotationDirectoryOffset(@Nonnull BuilderClassDef builderClassDef, int offset) {

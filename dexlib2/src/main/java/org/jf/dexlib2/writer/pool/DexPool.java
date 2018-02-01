@@ -54,8 +54,8 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         MethodProtoReference, FieldReference, MethodReference, PoolClassDef,
         Annotation, Set<? extends Annotation>,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
-        EncodedValue, AnnotationElement, StringPool, TypePool, ProtoPool, FieldPool, MethodPool, ClassPool,
-        TypeListPool, AnnotationPool, AnnotationSetPool> {
+        ArrayEncodedValue, EncodedValue, AnnotationElement, StringPool, TypePool, ProtoPool, FieldPool, MethodPool,
+        ClassPool, TypeListPool, AnnotationPool, AnnotationSetPool, EncodedArrayPool> {
 
     private final Markable[] sections = new Markable[] {
             stringSection, typeSection, protoSection, fieldSection, methodSection, classSection, typeListSection,
@@ -243,6 +243,10 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
 
         @Nonnull @Override public AnnotationSetPool getAnnotationSetSection() {
             return new AnnotationSetPool(DexPool.this);
+        }
+
+        @Nonnull @Override public EncodedArrayPool getEncodedArraySection() {
+            return new EncodedArrayPool(DexPool.this);
         }
     }
 }
