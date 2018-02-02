@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2018, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.dexbacked.reference;
+package org.jf.dexlib2.writer.pool;
 
-import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.util.ExceptionWithContext;
+import org.jf.dexlib2.iface.reference.CallSiteReference;
+import org.jf.dexlib2.iface.value.ArrayEncodedValue;
+import org.jf.dexlib2.writer.CallSiteSection;
+import org.jf.dexlib2.writer.util.CallSiteUtil;
 
 import javax.annotation.Nonnull;
 
-public abstract class DexBackedReference {
-    public static Reference makeReference(@Nonnull DexBackedDexFile dexFile, int referenceType, int referenceIndex) {
-        switch (referenceType) {
-            case ReferenceType.STRING:
-                return new DexBackedStringReference(dexFile, referenceIndex);
-            case ReferenceType.TYPE:
-                return new DexBackedTypeReference(dexFile, referenceIndex);
-            case ReferenceType.METHOD:
-                return new DexBackedMethodReference(dexFile, referenceIndex);
-            case ReferenceType.FIELD:
-                return new DexBackedFieldReference(dexFile, referenceIndex);
-            case ReferenceType.METHOD_PROTO:
-                return new DexBackedMethodProtoReference(dexFile, referenceIndex);
-            case ReferenceType.CALL_SITE:
-                return new DexBackedCallSiteReference(dexFile, referenceIndex);
-            default:
-                throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
+public class CallSitePool extends BaseIndexPool<CallSiteReference>
+        implements CallSiteSection<CallSiteReference, ArrayEncodedValue> {
+
+    public CallSitePool(@Nonnull DexPool dexPool) {
+        super(dexPool);
+    }
+
+    public void intern(CallSiteReference callSiteReference) {
+        Integer prev = internedItems.put(callSiteReference, 0);
+        if (prev == null) {
+            dexPool.encodedArraySection.intern(getEncodedCallSite(callSiteReference));
         }
+    }
+
+    @Override
+    public ArrayEncodedValue getEncodedCallSite(CallSiteReference callSiteReference) {
+        return CallSiteUtil.getEncodedCallSite(callSiteReference);
     }
 }

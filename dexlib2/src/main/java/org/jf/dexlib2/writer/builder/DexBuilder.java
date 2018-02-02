@@ -56,10 +56,11 @@ import java.util.Set;
 
 public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringReference, BuilderTypeReference,
         BuilderTypeReference, BuilderMethodProtoReference, BuilderFieldReference, BuilderMethodReference,
-        BuilderClassDef, BuilderAnnotation, BuilderAnnotationSet, BuilderTypeList, BuilderField, BuilderMethod,
-        BuilderArrayEncodedValue, BuilderEncodedValue, BuilderAnnotationElement, BuilderStringPool, BuilderTypePool,
-        BuilderProtoPool, BuilderFieldPool, BuilderMethodPool, BuilderClassPool, BuilderTypeListPool,
-        BuilderAnnotationPool, BuilderAnnotationSetPool, BuilderEncodedArrayPool> {
+        BuilderClassDef, BuilderCallSiteReference, BuilderMethodHandleReference, BuilderAnnotation, BuilderAnnotationSet, BuilderTypeList,
+        BuilderField, BuilderMethod, BuilderArrayEncodedValue, BuilderEncodedValue, BuilderAnnotationElement,
+        BuilderStringPool, BuilderTypePool, BuilderProtoPool, BuilderFieldPool, BuilderMethodPool, BuilderClassPool,
+        BuilderCallSitePool, BuilderMethodHandlePool, BuilderTypeListPool, BuilderAnnotationPool,
+        BuilderAnnotationSetPool, BuilderEncodedArrayPool> {
 
     public DexBuilder(@Nonnull Opcodes opcodes) {
         super(opcodes);
@@ -145,6 +146,14 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
                 internedStaticInitializers));
     }
 
+    public BuilderCallSiteReference internCallSite(@Nonnull CallSiteReference callSiteReference) {
+        return callSiteSection.internCallSite(callSiteReference);
+    }
+
+    public BuilderMethodHandleReference internMethodHandle(@Nonnull MethodHandleReference methodHandleReference) {
+        return methodHandleSection.internMethodHandle(methodHandleReference);
+    }
+
     @Nonnull public BuilderStringReference internStringReference(@Nonnull String string) {
         return stringSection.internString(string);
     }
@@ -194,6 +203,12 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
         }
         if (reference instanceof MethodProtoReference) {
             return internMethodProtoReference((MethodProtoReference) reference);
+        }
+        if (reference instanceof CallSiteReference) {
+            return internCallSite((CallSiteReference) reference);
+        }
+        if (reference instanceof MethodHandleReference) {
+            return internMethodHandle((MethodHandleReference) reference);
         }
         throw new IllegalArgumentException("Could not determine type of reference");
     }
@@ -271,6 +286,12 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
             case ValueType.TYPE:
                 writer.writeType(((BuilderTypeEncodedValue)encodedValue).typeReference);
                 break;
+            case ValueType.METHOD_TYPE:
+                writer.writeMethodType(((BuilderMethodTypeEncodedValue) encodedValue).methodProtoReference);
+                break;
+            case ValueType.METHOD_HANDLE:
+                writer.writeMethodHandle(((BuilderMethodHandleEncodedValue) encodedValue).methodHandleReference);
+                break;
             default:
                 throw new ExceptionWithContext("Unrecognized value type: %d", encodedValue.getValueType());
         }
@@ -335,6 +356,10 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
                 return internStringEncodedValue((StringEncodedValue)encodedValue);
             case ValueType.TYPE:
                 return internTypeEncodedValue((TypeEncodedValue)encodedValue);
+            case ValueType.METHOD_TYPE:
+                return internMethodTypeEncodedValue((MethodTypeEncodedValue) encodedValue);
+            case ValueType.METHOD_HANDLE:
+                return internMethodHandleEncodedValue((MethodHandleEncodedValue) encodedValue);
             default:
                 throw new ExceptionWithContext("Unexpected encoded value type: %d", encodedValue.getValueType());
         }
@@ -377,6 +402,16 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
         return new BuilderTypeEncodedValue(typeSection.internType(type.getValue()));
     }
 
+    @Nonnull private BuilderMethodTypeEncodedValue internMethodTypeEncodedValue(
+            @Nonnull MethodTypeEncodedValue methodType) {
+        return new BuilderMethodTypeEncodedValue(protoSection.internMethodProto(methodType.getValue()));
+    }
+
+    @Nonnull private BuilderMethodHandleEncodedValue internMethodHandleEncodedValue(
+            @Nonnull MethodHandleEncodedValue methodHandle) {
+        return new BuilderMethodHandleEncodedValue(methodHandleSection.internMethodHandle(methodHandle.getValue()));
+    }
+
     protected class DexBuilderSectionProvider extends SectionProvider {
         @Nonnull @Override public BuilderStringPool getStringSection() {
             return new BuilderStringPool();
@@ -400,6 +435,14 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
 
         @Nonnull @Override public BuilderClassPool getClassSection() {
             return new BuilderClassPool(DexBuilder.this);
+        }
+
+        @Nonnull @Override public BuilderCallSitePool getCallSiteSection() {
+            return new BuilderCallSitePool(DexBuilder.this);
+        }
+
+        @Nonnull @Override public BuilderMethodHandlePool getMethodHandleSection() {
+            return new BuilderMethodHandlePool(DexBuilder.this);
         }
 
         @Nonnull @Override public BuilderTypeListPool getTypeListSection() {

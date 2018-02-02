@@ -241,4 +241,26 @@ public abstract class BuilderEncodedValues {
             return typeReference.getType();
         }
     }
+
+    public static class BuilderMethodTypeEncodedValue extends BaseMethodTypeEncodedValue
+            implements BuilderEncodedValue {
+        @Nonnull final BuilderMethodProtoReference methodProtoReference;
+
+        public BuilderMethodTypeEncodedValue(@Nonnull BuilderMethodProtoReference methodProtoReference) {
+            this.methodProtoReference = methodProtoReference;
+        }
+
+        @Nonnull @Override public BuilderMethodProtoReference getValue() { return methodProtoReference; }
+    }
+
+    public static class BuilderMethodHandleEncodedValue extends BaseMethodHandleEncodedValue
+            implements BuilderEncodedValue {
+        @Nonnull final BuilderMethodHandleReference methodHandleReference;
+
+        public BuilderMethodHandleEncodedValue(@Nonnull BuilderMethodHandleReference methodHandleReference) {
+            this.methodHandleReference = methodHandleReference;
+        }
+
+        @Nonnull @Override public BuilderMethodHandleReference getValue() { return methodHandleReference; }
+    }
 }

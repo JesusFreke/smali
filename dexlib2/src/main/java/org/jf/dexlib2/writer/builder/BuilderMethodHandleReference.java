@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2018, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.dexbacked.reference;
+package org.jf.dexlib2.writer.builder;
 
-import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.util.ExceptionWithContext;
+import org.jf.dexlib2.base.reference.BaseMethodHandleReference;
 
 import javax.annotation.Nonnull;
 
-public abstract class DexBackedReference {
-    public static Reference makeReference(@Nonnull DexBackedDexFile dexFile, int referenceType, int referenceIndex) {
-        switch (referenceType) {
-            case ReferenceType.STRING:
-                return new DexBackedStringReference(dexFile, referenceIndex);
-            case ReferenceType.TYPE:
-                return new DexBackedTypeReference(dexFile, referenceIndex);
-            case ReferenceType.METHOD:
-                return new DexBackedMethodReference(dexFile, referenceIndex);
-            case ReferenceType.FIELD:
-                return new DexBackedFieldReference(dexFile, referenceIndex);
-            case ReferenceType.METHOD_PROTO:
-                return new DexBackedMethodProtoReference(dexFile, referenceIndex);
-            case ReferenceType.CALL_SITE:
-                return new DexBackedCallSiteReference(dexFile, referenceIndex);
-            default:
-                throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
-        }
+import static org.jf.dexlib2.writer.DexWriter.NO_INDEX;
+
+public class BuilderMethodHandleReference extends BaseMethodHandleReference implements BuilderReference {
+    final int methodHandleType;
+    @Nonnull final BuilderReference memberReference;
+    int index = NO_INDEX;
+
+    public BuilderMethodHandleReference(int methodHandleType, @Nonnull BuilderReference memberReference) {
+        this.methodHandleType = methodHandleType;
+        this.memberReference = memberReference;
+    }
+
+    @Override public int getMethodHandleType() {
+        return methodHandleType;
+    }
+
+    @Nonnull @Override public BuilderReference getMemberReference() {
+        return memberReference;
+    }
+
+    @Override public int getIndex() {
+        return index;
+    }
+
+    @Override public void setIndex(int index) {
+        this.index = index;
     }
 }

@@ -52,10 +52,10 @@ import java.util.Set;
 
 public class DexPool extends DexWriter<CharSequence, StringReference, CharSequence, TypeReference,
         MethodProtoReference, FieldReference, MethodReference, PoolClassDef,
-        Annotation, Set<? extends Annotation>,
+        CallSiteReference, MethodHandleReference, Annotation, Set<? extends Annotation>,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, Field, PoolMethod,
         ArrayEncodedValue, EncodedValue, AnnotationElement, StringPool, TypePool, ProtoPool, FieldPool, MethodPool,
-        ClassPool, TypeListPool, AnnotationPool, AnnotationSetPool, EncodedArrayPool> {
+        ClassPool, CallSitePool, MethodHandlePool, TypeListPool, AnnotationPool, AnnotationSetPool, EncodedArrayPool> {
 
     private final Markable[] sections = new Markable[] {
             stringSection, typeSection, protoSection, fieldSection, methodSection, classSection, typeListSection,
@@ -170,6 +170,12 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
             case ValueType.TYPE:
                 writer.writeType(((TypeEncodedValue)encodedValue).getValue());
                 break;
+            case ValueType.METHOD_TYPE:
+                writer.writeMethodType(((MethodTypeEncodedValue) encodedValue).getValue());
+                break;
+            case ValueType.METHOD_HANDLE:
+                writer.writeMethodHandle(((MethodHandleEncodedValue) encodedValue).getValue());
+                break;
             default:
                 throw new ExceptionWithContext("Unrecognized value type: %d", encodedValue.getValueType());
         }
@@ -205,6 +211,12 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
             case ValueType.METHOD:
                 methodSection.intern(((MethodEncodedValue)encodedValue).getValue());
                 break;
+            case ValueType.METHOD_HANDLE:
+                methodHandleSection.intern(((MethodHandleEncodedValue)encodedValue).getValue());
+                break;
+            case ValueType.METHOD_TYPE:
+                protoSection.intern(((MethodTypeEncodedValue)encodedValue).getValue());
+                break;
         }
     }
 
@@ -231,6 +243,14 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
 
         @Nonnull @Override public ClassPool getClassSection() {
             return new ClassPool(DexPool.this);
+        }
+
+        @Nonnull @Override public CallSitePool getCallSiteSection() {
+            return new CallSitePool(DexPool.this);
+        }
+
+        @Nonnull @Override public MethodHandlePool getMethodHandleSection() {
+            return new MethodHandlePool(DexPool.this);
         }
 
         @Nonnull @Override public TypeListPool getTypeListSection() {

@@ -35,6 +35,7 @@ import com.google.common.collect.Ordering;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.base.BaseAnnotationElement;
 import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodHandleReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.annotation.Nonnull;
@@ -43,12 +44,14 @@ import java.util.Collection;
 
 public abstract class EncodedValueWriter<StringKey, TypeKey, FieldRefKey extends FieldReference,
         MethodRefKey extends MethodReference, AnnotationElement extends org.jf.dexlib2.iface.AnnotationElement,
-        EncodedValue> {
+        ProtoRefKey, MethodHandleKey extends MethodHandleReference, EncodedValue> {
     @Nonnull private final DexDataWriter writer;
     @Nonnull private final StringSection<StringKey, ?> stringSection;
     @Nonnull private final TypeSection<?, TypeKey, ?> typeSection;
     @Nonnull private final FieldSection<?, ?, FieldRefKey, ?> fieldSection;
     @Nonnull private final MethodSection<?, ?, ?, MethodRefKey, ?> methodSection;
+    @Nonnull private final ProtoSection<?, ?, ProtoRefKey, ?> protoSection;
+    @Nonnull private final MethodHandleSection<MethodHandleKey, ?, ?> methodHandleSection;
     @Nonnull private final AnnotationSection<StringKey, TypeKey, ?, AnnotationElement, EncodedValue> annotationSection;
 
     public EncodedValueWriter(
@@ -57,12 +60,16 @@ public abstract class EncodedValueWriter<StringKey, TypeKey, FieldRefKey extends
             @Nonnull TypeSection<?, TypeKey, ?> typeSection,
             @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
             @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection,
+            ProtoSection<?, ?, ProtoRefKey, ?> protoSection,
+            MethodHandleSection<MethodHandleKey, ?, ?> methodHandleSection,
             @Nonnull AnnotationSection<StringKey, TypeKey, ?, AnnotationElement, EncodedValue> annotationSection) {
         this.writer = writer;
         this.stringSection = stringSection;
         this.typeSection = typeSection;
         this.fieldSection = fieldSection;
         this.methodSection = methodSection;
+        this.protoSection = protoSection;
+        this.methodHandleSection = methodHandleSection;
         this.annotationSection = annotationSection;
     }
 
@@ -145,5 +152,13 @@ public abstract class EncodedValueWriter<StringKey, TypeKey, FieldRefKey extends
 
     public void writeType(@Nonnull TypeKey value) throws IOException {
         writer.writeEncodedUint(ValueType.TYPE, typeSection.getItemIndex(value));
+    }
+
+    public void writeMethodType(@Nonnull ProtoRefKey value) throws IOException {
+        writer.writeEncodedUint(ValueType.METHOD_TYPE, protoSection.getItemIndex(value));
+    }
+
+    public void writeMethodHandle(@Nonnull MethodHandleKey value) throws IOException {
+        writer.writeEncodedUint(ValueType.METHOD_HANDLE, methodHandleSection.getItemIndex(value));
     }
 }

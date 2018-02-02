@@ -146,6 +146,9 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
                         case ReferenceType.METHOD:
                             dexPool.methodSection.intern((MethodReference)reference);
                             break;
+                        case ReferenceType.CALL_SITE:
+                            dexPool.callSiteSection.intern((CallSiteReference) reference);
+                            break;
                         default:
                             throw new ExceptionWithContext("Unrecognized reference type: %d",
                                     instruction.getOpcode().referenceType);

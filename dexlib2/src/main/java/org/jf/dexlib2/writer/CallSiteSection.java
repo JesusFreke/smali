@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2018, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.dexlib2.dexbacked.reference;
+package org.jf.dexlib2.writer;
 
-import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.util.ExceptionWithContext;
+import org.jf.dexlib2.iface.reference.CallSiteReference;
 
-import javax.annotation.Nonnull;
-
-public abstract class DexBackedReference {
-    public static Reference makeReference(@Nonnull DexBackedDexFile dexFile, int referenceType, int referenceIndex) {
-        switch (referenceType) {
-            case ReferenceType.STRING:
-                return new DexBackedStringReference(dexFile, referenceIndex);
-            case ReferenceType.TYPE:
-                return new DexBackedTypeReference(dexFile, referenceIndex);
-            case ReferenceType.METHOD:
-                return new DexBackedMethodReference(dexFile, referenceIndex);
-            case ReferenceType.FIELD:
-                return new DexBackedFieldReference(dexFile, referenceIndex);
-            case ReferenceType.METHOD_PROTO:
-                return new DexBackedMethodProtoReference(dexFile, referenceIndex);
-            case ReferenceType.CALL_SITE:
-                return new DexBackedCallSiteReference(dexFile, referenceIndex);
-            default:
-                throw new ExceptionWithContext("Invalid reference type: %d", referenceType);
-        }
-    }
+public interface CallSiteSection<CallSiteKey extends CallSiteReference, EncodedArrayKey>
+        extends IndexSection<CallSiteKey> {
+    EncodedArrayKey getEncodedCallSite(CallSiteKey callSiteReference);
 }
