@@ -72,7 +72,7 @@ public class SmaliTestUtils {
         smaliParser.smali_file_return result = parser.smali_file();
 
         if(parser.getNumberOfSyntaxErrors() > 0 || lexer.getNumberOfSyntaxErrors() > 0) {
-            throw new RuntimeException("Error occured while compiling text");
+            throw new RuntimeException("Error occurred while compiling text");
         }
 
         CommonTree t = result.getTree();
@@ -87,7 +87,7 @@ public class SmaliTestUtils {
         dexGen.smali_file();
 
         if (dexGen.getNumberOfSyntaxErrors() > 0) {
-            throw new RuntimeException("Error occured while compiling text");
+            throw new RuntimeException("Error occurred while compiling text");
         }
 
         MemoryDataStore dataStore = new MemoryDataStore();
