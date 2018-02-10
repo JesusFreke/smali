@@ -48,7 +48,7 @@ public interface MethodHandleReference extends Reference, Comparable<MethodHandl
     /**
      * Gets the member that is being referenced by this method handle.
      *
-     * For INVOKE_STATIC and INVOKE_INSTANCE method handle types, this should be a MethodReference.
+     * For STATIC_INVOKE and INSTANCE_INVOKE method handle types, this should be a MethodReference.
      * For the other method handle types, this should be a FieldReference.
      *
      * @return A MethodReference or FieldReference, depending on the method handle type

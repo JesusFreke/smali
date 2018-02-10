@@ -66,8 +66,8 @@ public class DexBackedMethodHandleReference extends BaseMethodHandleReference {
             case MethodHandleType.STATIC_GET:
             case MethodHandleType.STATIC_PUT:
                 return new DexBackedFieldReference(dexFile, memberIndex);
-            case MethodHandleType.INVOKE_INSTANCE:
-            case MethodHandleType.INVOKE_STATIC:
+            case MethodHandleType.INSTANCE_INVOKE:
+            case MethodHandleType.STATIC_INVOKE:
                 return new DexBackedMethodReference(dexFile, memberIndex);
             default:
                 throw new ExceptionWithContext("Invalid method handle type: %d", getMethodHandleType());

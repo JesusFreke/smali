@@ -31,35 +31,56 @@
 
 package org.jf.dexlib2;
 
+import com.google.common.collect.Maps;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 
 public class MethodHandleType {
     public static final int STATIC_PUT = 0;
     public static final int STATIC_GET = 1;
     public static final int INSTANCE_PUT = 2;
     public static final int INSTANCE_GET = 3;
-    public static final int INVOKE_STATIC = 4;
-    public static final int INVOKE_INSTANCE = 5;
+    public static final int STATIC_INVOKE = 4;
+    public static final int INSTANCE_INVOKE = 5;
+
+    private static final Map<String, Integer> methodHandleTypeNames = Maps.newHashMap();
+
+    static {
+        methodHandleTypeNames.put("static-put", STATIC_PUT);
+        methodHandleTypeNames.put("static-get", STATIC_GET);
+        methodHandleTypeNames.put("instance-put", INSTANCE_PUT);
+        methodHandleTypeNames.put("instance-get", INSTANCE_GET);
+        methodHandleTypeNames.put("static-invoke", STATIC_INVOKE);
+        methodHandleTypeNames.put("instance-invoke", INSTANCE_INVOKE);
+    }
 
     @Nonnull public static String toString(int methodHandleType) {
         switch (methodHandleType) {
             case STATIC_PUT:
-                return "static_put";
+                return "static-put";
             case STATIC_GET:
-                return "static_get";
+                return "static-get";
             case INSTANCE_PUT:
-                return "instance_put";
+                return "instance-put";
             case INSTANCE_GET:
-                return "instance_get";
-            case INVOKE_STATIC:
-                return "invoke_static";
-            case INVOKE_INSTANCE:
-                return "invoke_instance";
+                return "instance-get";
+            case STATIC_INVOKE:
+                return "static-invoke";
+            case INSTANCE_INVOKE:
+                return "instance-invoke";
             default:
                 throw new InvalidMethodHandleTypeException(methodHandleType);
         }
+    }
+
+    public static int getMethodHandleType(String methodHandleType) {
+        Integer ret = methodHandleTypeNames.get(methodHandleType);
+        if (ret == null) {
+            throw new ExceptionWithContext("Invalid method handle type: %s", methodHandleType);
+        }
+        return ret;
     }
 
     public static class InvalidMethodHandleTypeException extends ExceptionWithContext {

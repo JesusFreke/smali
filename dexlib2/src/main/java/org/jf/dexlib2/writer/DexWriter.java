@@ -588,8 +588,8 @@ public abstract class DexWriter<
                     memberIndex = fieldSection.getItemIndex(
                             methodHandleSection.getFieldReference(methodHandleReference));
                     break;
-                case MethodHandleType.INVOKE_INSTANCE:
-                case MethodHandleType.INVOKE_STATIC:
+                case MethodHandleType.INSTANCE_INVOKE:
+                case MethodHandleType.STATIC_INVOKE:
                     memberIndex = methodSection.getItemIndex(
                             methodHandleSection.getMethodReference(methodHandleReference));
                     break;

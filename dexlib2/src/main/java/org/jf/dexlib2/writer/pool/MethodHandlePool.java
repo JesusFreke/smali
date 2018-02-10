@@ -56,8 +56,8 @@ public class MethodHandlePool extends BaseIndexPool<MethodHandleReference>
                 case MethodHandleType.STATIC_PUT:
                     dexPool.fieldSection.intern((FieldReference) methodHandleReference.getMemberReference());
                     break;
-                case MethodHandleType.INVOKE_INSTANCE:
-                case MethodHandleType.INVOKE_STATIC:
+                case MethodHandleType.INSTANCE_INVOKE:
+                case MethodHandleType.STATIC_INVOKE:
                     dexPool.methodSection.intern((MethodReference) methodHandleReference.getMemberReference());
                     break;
                 default:

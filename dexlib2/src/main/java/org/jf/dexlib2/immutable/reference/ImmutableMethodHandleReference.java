@@ -71,8 +71,8 @@ public class ImmutableMethodHandleReference extends BaseMethodHandleReference im
                 memberReference = ImmutableFieldReference.of(
                         (FieldReference) methodHandleReference.getMemberReference());
                 break;
-            case MethodHandleType.INVOKE_INSTANCE:
-            case MethodHandleType.INVOKE_STATIC:
+            case MethodHandleType.INSTANCE_INVOKE:
+            case MethodHandleType.STATIC_INVOKE:
                 memberReference = ImmutableMethodReference.of(
                         (MethodReference) methodHandleReference.getMemberReference());
                 break;

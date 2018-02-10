@@ -68,8 +68,8 @@ public class BuilderMethodHandlePool extends BaseBuilderPool
                 memberReference = dexBuilder.internFieldReference(
                         (FieldReference) methodHandleReference.getMemberReference());
                 break;
-            case MethodHandleType.INVOKE_INSTANCE:
-            case MethodHandleType.INVOKE_STATIC:
+            case MethodHandleType.INSTANCE_INVOKE:
+            case MethodHandleType.STATIC_INVOKE:
                 memberReference = dexBuilder.internMethodReference(
                         (MethodReference) methodHandleReference.getMemberReference());
                 break;
