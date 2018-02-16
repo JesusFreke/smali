@@ -465,11 +465,12 @@ method returns[BuilderMethod ret]
             methodImplementation);
   };
 
-method_prototype returns[List<String> parameters, String returnType]
+method_prototype returns[ImmutableMethodProtoReference proto]
   : ^(I_METHOD_PROTOTYPE ^(I_METHOD_RETURN_TYPE type_descriptor) method_type_list)
   {
-    $returnType = $type_descriptor.type;
-    $parameters = $method_type_list.types;
+    String returnType = $type_descriptor.type;
+    List<String> parameters = $method_type_list.types;
+    $proto = new ImmutableMethodProtoReference(parameters, returnType);
   };
 
 method_name_and_prototype returns[String name, List<SmaliMethodParameter> parameters, String returnType]
@@ -479,14 +480,14 @@ method_name_and_prototype returns[String name, List<SmaliMethodParameter> parame
     $parameters = Lists.newArrayList();
 
     int paramRegister = 0;
-    for (String type: $method_prototype.parameters) {
-        $parameters.add(new SmaliMethodParameter(paramRegister++, type));
+    for (CharSequence type: $method_prototype.proto.getParameterTypes()) {
+        $parameters.add(new SmaliMethodParameter(paramRegister++, type.toString()));
         char c = type.charAt(0);
         if (c == 'D' || c == 'J') {
             paramRegister++;
         }
     }
-    $returnType = $method_prototype.returnType;
+    $returnType = $method_prototype.proto.getReturnType();
   };
 
 method_type_list returns[List<String> types]
@@ -512,7 +513,7 @@ method_reference returns[ImmutableMethodReference methodReference]
         type = $reference_type_descriptor.type;
     }
     $methodReference = new ImmutableMethodReference(type, $SIMPLE_NAME.text,
-             $method_prototype.parameters, $method_prototype.returnType);
+             $method_prototype.proto.getParameterTypes(), $method_prototype.proto.getReturnType());
   };
 
 field_reference returns[ImmutableFieldReference fieldReference]
@@ -1122,14 +1123,11 @@ insn_format45cc_method
       byte registerCount = $register_list.registerCount;
 
       ImmutableMethodReference methodReference = $method_reference.methodReference;
-      ImmutableMethodProtoReference methodProtoReference = new ImmutableMethodProtoReference(
-              $method_prototype.parameters,
-              $method_prototype.returnType);
 
       $method::methodBuilder.addInstruction(new BuilderInstruction45cc(opcode, registerCount, registers[0], registers[1],
               registers[2], registers[3], registers[4],
               dexBuilder.internMethodReference(methodReference),
-              dexBuilder.internMethodProtoReference(methodProtoReference)));
+              dexBuilder.internMethodProtoReference($method_prototype.proto)));
     };
 
 insn_format4rcc_method
@@ -1143,13 +1141,10 @@ insn_format4rcc_method
       int registerCount = endRegister-startRegister+1;
 
       ImmutableMethodReference methodReference = $method_reference.methodReference;
-      ImmutableMethodProtoReference methodProtoReference = new ImmutableMethodProtoReference(
-              $method_prototype.parameters,
-              $method_prototype.returnType);
 
       $method::methodBuilder.addInstruction(new BuilderInstruction4rcc(opcode, startRegister, registerCount,
               dexBuilder.internMethodReference(methodReference),
-              dexBuilder.internMethodProtoReference(methodProtoReference)));
+              dexBuilder.internMethodProtoReference($method_prototype.proto)));
     };
 
 insn_format51l_type
