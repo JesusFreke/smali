@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.*;
 
 public class Smali {
@@ -73,7 +74,7 @@ public class Smali {
      * @return true if assembly completed with no errors, or false if errors were encountered
      */
     public static boolean assemble(final SmaliOptions options, List<String> input) throws IOException {
-        LinkedHashSet<File> filesToProcessSet = new LinkedHashSet<File>();
+        TreeSet<File> filesToProcessSet = new TreeSet<File>();
 
         for (String fileToProcess: input) {
             File argFile = new File(fileToProcess);
