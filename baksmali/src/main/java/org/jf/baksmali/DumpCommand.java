@@ -94,13 +94,17 @@ public class DumpCommand extends DexInputCommand {
             throws IOException {
         Writer writer = new BufferedWriter(new OutputStreamWriter(output));
 
-        int consoleWidth = ConsoleUtil.getConsoleWidth();
-        if (consoleWidth <= 0) {
-            consoleWidth = 120;
-        }
+        try {
+            int consoleWidth = ConsoleUtil.getConsoleWidth();
+            if (consoleWidth <= 0) {
+                consoleWidth = 120;
+            }
 
-        RawDexFile rawDexFile = new RawDexFile(dexFile.getOpcodes(), dexFile);
-        DexAnnotator annotator = new DexAnnotator(rawDexFile, consoleWidth);
-        annotator.writeAnnotations(writer);
+            RawDexFile rawDexFile = new RawDexFile(dexFile.getOpcodes(), dexFile);
+            DexAnnotator annotator = new DexAnnotator(rawDexFile, consoleWidth);
+            annotator.writeAnnotations(writer);
+        } finally {
+            writer.close();
+        }
     }
 }
