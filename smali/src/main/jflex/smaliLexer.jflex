@@ -408,6 +408,14 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     "vtable@0x" {HexDigit}+ { return newToken(VTABLE_INDEX); }
     "field@0x" {HexDigit}+ { return newToken(FIELD_OFFSET); }
 
+    "instance-get" | "instance-put" | "static-get" | "static-put" {
+        return newToken(METHOD_HANDLE_TYPE_FIELD);
+    }
+
+    "instance-invoke" | "static-invoke" {
+        return newToken(METHOD_HANDLE_TYPE_METHOD);
+    }
+
     # [^\r\n]* { return newToken(LINE_COMMENT, true); }
 }
 
@@ -567,6 +575,10 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         return newToken(INSTRUCTION_FORMAT32x);
     }
 
+    "invoke-custom" {
+        return newToken(INSTRUCTION_FORMAT35c_CALL_SITE);
+    }
+
     "invoke-virtual" | "invoke-super" | "invoke-direct" | "invoke-static" | "invoke-interface" {
         return newToken(INSTRUCTION_FORMAT35c_METHOD);
     }
@@ -585,6 +597,10 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
 
     "invoke-virtual-quick" | "invoke-super-quick" {
         return newToken(INSTRUCTION_FORMAT35ms_METHOD);
+    }
+
+    "invoke-custom/range" {
+        return newToken(INSTRUCTION_FORMAT3rc_CALL_SITE);
     }
 
     "invoke-virtual/range" | "invoke-super/range" | "invoke-direct/range" | "invoke-static/range" |
@@ -668,6 +684,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     "}" { return newToken(CLOSE_BRACE); }
     "(" { return newToken(OPEN_PAREN); }
     ")" { return newToken(CLOSE_PAREN); }
+    "@" { return newToken(AT); }
     [\r\n\t ]+ { return newToken(WHITE_SPACE, true); }
     <<EOF>> { return newToken(EOF); }
 }

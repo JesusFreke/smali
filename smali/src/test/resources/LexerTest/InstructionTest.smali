@@ -209,6 +209,7 @@ sparse-switch
 move/16
 move-wide/16
 move-object/16
+invoke-custom
 invoke-virtual
 invoke-super
 invoke-direct
@@ -221,6 +222,7 @@ throw-verification-error
 execute-inline
 invoke-virtual-quick
 invoke-super-quick
+invoke-custom/range
 invoke-virtual/range
 invoke-super/range
 invoke-direct/range

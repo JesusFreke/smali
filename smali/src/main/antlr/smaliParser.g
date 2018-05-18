@@ -41,6 +41,7 @@ tokens {
   ARRAY_DATA_DIRECTIVE;
   ARRAY_TYPE_PREFIX;
   ARROW;
+  AT;
   BOOL_LITERAL;
   BYTE_LITERAL;
   CATCH_DIRECTIVE;
@@ -106,11 +107,13 @@ tokens {
   INSTRUCTION_FORMAT31i_OR_ID;
   INSTRUCTION_FORMAT31t;
   INSTRUCTION_FORMAT32x;
+  INSTRUCTION_FORMAT35c_CALL_SITE;
   INSTRUCTION_FORMAT35c_METHOD;
   INSTRUCTION_FORMAT35c_METHOD_ODEX;
   INSTRUCTION_FORMAT35c_TYPE;
   INSTRUCTION_FORMAT35mi_METHOD;
   INSTRUCTION_FORMAT35ms_METHOD;
+  INSTRUCTION_FORMAT3rc_CALL_SITE;
   INSTRUCTION_FORMAT3rc_METHOD;
   INSTRUCTION_FORMAT3rc_METHOD_ODEX;
   INSTRUCTION_FORMAT3rc_TYPE;
@@ -125,6 +128,8 @@ tokens {
   LOCALS_DIRECTIVE;
   LONG_LITERAL;
   METHOD_DIRECTIVE;
+  METHOD_HANDLE_TYPE_FIELD;
+  METHOD_HANDLE_TYPE_METHOD;
   MEMBER_NAME;
   NEGATIVE_INTEGER_LITERAL;
   NULL_LITERAL;
@@ -176,6 +181,7 @@ tokens {
   I_ANNOTATION;
   I_ANNOTATION_ELEMENT;
   I_SUBANNOTATION;
+  I_ENCODED_METHOD_HANDLE;
   I_ENCODED_FIELD;
   I_ENCODED_METHOD;
   I_ENCODED_ENUM;
@@ -224,8 +230,10 @@ tokens {
   I_STATEMENT_FORMAT31i;
   I_STATEMENT_FORMAT31t;
   I_STATEMENT_FORMAT32x;
+  I_STATEMENT_FORMAT35c_CALL_SITE;
   I_STATEMENT_FORMAT35c_METHOD;
   I_STATEMENT_FORMAT35c_TYPE;
+  I_STATEMENT_FORMAT3rc_CALL_SITE;
   I_STATEMENT_FORMAT3rc_METHOD;
   I_STATEMENT_FORMAT3rc_TYPE;
   I_STATEMENT_FORMAT45cc_METHOD;
@@ -236,12 +244,13 @@ tokens {
   I_STATEMENT_SPARSE_SWITCH;
   I_REGISTER_RANGE;
   I_REGISTER_LIST;
+  I_CALL_SITE_EXTRA_ARGUMENTS;
+  I_CALL_SITE_REFERENCE;
 }
 
 @header {
 package org.jf.smali;
 
-import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.Opcodes;
 }
@@ -549,6 +558,8 @@ simple_name
   | PRIMITIVE_TYPE -> SIMPLE_NAME[$PRIMITIVE_TYPE]
   | VOID_TYPE -> SIMPLE_NAME[$VOID_TYPE]
   | ANNOTATION_VISIBILITY -> SIMPLE_NAME[$ANNOTATION_VISIBILITY]
+  | METHOD_HANDLE_TYPE_FIELD
+  | METHOD_HANDLE_TYPE_METHOD
   | INSTRUCTION_FORMAT10t -> SIMPLE_NAME[$INSTRUCTION_FORMAT10t]
   | INSTRUCTION_FORMAT10x -> SIMPLE_NAME[$INSTRUCTION_FORMAT10x]
   | INSTRUCTION_FORMAT10x_ODEX -> SIMPLE_NAME[$INSTRUCTION_FORMAT10x_ODEX]
@@ -568,6 +579,7 @@ simple_name
   | INSTRUCTION_FORMAT23x -> SIMPLE_NAME[$INSTRUCTION_FORMAT23x]
   | INSTRUCTION_FORMAT31i_OR_ID -> SIMPLE_NAME[$INSTRUCTION_FORMAT31i_OR_ID]
   | INSTRUCTION_FORMAT31t -> SIMPLE_NAME[$INSTRUCTION_FORMAT31t]
+  | INSTRUCTION_FORMAT35c_CALL_SITE -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_CALL_SITE]
   | INSTRUCTION_FORMAT35c_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_METHOD]
   | INSTRUCTION_FORMAT35c_METHOD_ODEX -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_METHOD_ODEX]
   | INSTRUCTION_FORMAT35c_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_TYPE]
@@ -636,7 +648,9 @@ literal
   | array_literal
   | subannotation
   | type_field_method_literal
-  | enum_literal;
+  | enum_literal
+  | method_handle_literal
+  | method_prototype;
 
 parsed_integer_literal returns[int value]
   : integer_literal { $value = LiteralTools.parseInt($integer_literal.text); };
@@ -698,6 +712,19 @@ type_field_method_literal
     )
   | PRIMITIVE_TYPE
   | VOID_TYPE;
+
+call_site_reference
+  : simple_name OPEN_PAREN STRING_LITERAL COMMA method_prototype (COMMA literal)* CLOSE_PAREN AT method_reference
+    -> ^(I_CALL_SITE_REFERENCE simple_name STRING_LITERAL method_prototype ^(I_CALL_SITE_EXTRA_ARGUMENTS literal*)
+         method_reference);
+
+method_handle_reference
+  : METHOD_HANDLE_TYPE_FIELD AT field_reference -> METHOD_HANDLE_TYPE_FIELD field_reference
+  | METHOD_HANDLE_TYPE_METHOD AT method_reference -> METHOD_HANDLE_TYPE_METHOD method_reference;
+
+method_handle_literal
+  : method_handle_reference
+  -> ^(I_ENCODED_METHOD_HANDLE method_handle_reference);
 
 method_reference
   : (reference_type_descriptor ARROW)? member_name method_prototype
@@ -796,8 +823,6 @@ instruction_format31i
   : INSTRUCTION_FORMAT31i
   | INSTRUCTION_FORMAT31i_OR_ID -> INSTRUCTION_FORMAT31i[$INSTRUCTION_FORMAT31i_OR_ID];
 
-
-
 instruction
   : insn_format10t
   | insn_format10x
@@ -829,11 +854,13 @@ instruction
   | insn_format31i
   | insn_format31t
   | insn_format32x
+  | insn_format35c_call_site
   | insn_format35c_method
   | insn_format35c_type
   | insn_format35c_method_odex
   | insn_format35mi_method
   | insn_format35ms_method
+  | insn_format3rc_call_site
   | insn_format3rc_method
   | insn_format3rc_method_odex
   | insn_format3rc_type
@@ -1016,6 +1043,12 @@ insn_format32x
     INSTRUCTION_FORMAT32x REGISTER COMMA REGISTER
     -> ^(I_STATEMENT_FORMAT32x[$start, "I_STATEMENT_FORMAT32x"] INSTRUCTION_FORMAT32x REGISTER REGISTER);
 
+insn_format35c_call_site
+  : //e.g. invoke-custom {v0, v1}, call_site_name
+    // OR invoke-custom {v0, v1}, {"doSomething", (LCustom;Ljava/lang/String;)Ljava/lang/String;, "just testing"}, BootstrapLinker;->normalLink(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    INSTRUCTION_FORMAT35c_CALL_SITE OPEN_BRACE register_list CLOSE_BRACE COMMA call_site_reference
+    -> ^(I_STATEMENT_FORMAT35c_CALL_SITE[$start, "I_STATEMENT_FORMAT35c_CALL_SITE"] INSTRUCTION_FORMAT35c_CALL_SITE register_list call_site_reference);
+
 insn_format35c_method
   : //e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
     INSTRUCTION_FORMAT35c_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA method_reference
@@ -1046,6 +1079,12 @@ insn_format35ms_method
     {
       throwOdexedInstructionException(input, $INSTRUCTION_FORMAT35ms_METHOD.text);
     };
+
+insn_format3rc_call_site
+  : //e.g. invoke-custom/range {v0 .. v1}, call_site_name
+    // OR invoke-custom/range {v0 .. v1}, {"doSomething", (LCustom;Ljava/lang/String;)Ljava/lang/String;, "just testing"}, BootstrapLinker;->normalLink(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    INSTRUCTION_FORMAT3rc_CALL_SITE OPEN_BRACE register_range CLOSE_BRACE COMMA call_site_reference
+    -> ^(I_STATEMENT_FORMAT3rc_CALL_SITE[$start, "I_STATEMENT_FORMAT3rc_CALL_SITE"] INSTRUCTION_FORMAT3rc_CALL_SITE register_range call_site_reference);
 
 insn_format3rc_method
   : //e.g. invoke-virtual/range {v25..v26}, java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
