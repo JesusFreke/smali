@@ -60,7 +60,9 @@ import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.ImmutableAnnotation;
 import org.jf.dexlib2.immutable.ImmutableAnnotationElement;
+import org.jf.dexlib2.immutable.reference.ImmutableCallSiteReference;
 import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
+import org.jf.dexlib2.immutable.reference.ImmutableMethodHandleReference;
 import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
 import org.jf.dexlib2.immutable.reference.ImmutableMethodProtoReference;
 import org.jf.dexlib2.immutable.reference.ImmutableReference;
@@ -80,6 +82,7 @@ import java.util.*;
   private int apiLevel = 15;
   private Opcodes opcodes = Opcodes.forApi(apiLevel);
   private DexBuilder dexBuilder;
+  private int callSiteNameIndex = 0;
 
   public void setDexBuilder(DexBuilder dexBuilder) {
       this.dexBuilder = dexBuilder;
@@ -269,7 +272,7 @@ field_initial_value returns[EncodedValue encodedValue]
   : ^(I_FIELD_INITIAL_VALUE literal) {$encodedValue = $literal.encodedValue;}
   | /*epsilon*/;
 
-literal returns[EncodedValue encodedValue]
+literal returns[ImmutableEncodedValue encodedValue]
   : integer_literal { $encodedValue = new ImmutableIntEncodedValue($integer_literal.value); }
   | long_literal { $encodedValue = new ImmutableLongEncodedValue($long_literal.value); }
   | short_literal { $encodedValue = new ImmutableShortEncodedValue($short_literal.value); }
@@ -285,7 +288,9 @@ literal returns[EncodedValue encodedValue]
   | subannotation { $encodedValue = new ImmutableAnnotationEncodedValue($subannotation.annotationType, $subannotation.elements); }
   | field_literal { $encodedValue = new ImmutableFieldEncodedValue($field_literal.value); }
   | method_literal { $encodedValue = new ImmutableMethodEncodedValue($method_literal.value); }
-  | enum_literal { $encodedValue = new ImmutableEnumEncodedValue($enum_literal.value); };
+  | enum_literal { $encodedValue = new ImmutableEnumEncodedValue($enum_literal.value); }
+  | method_handle_literal { $encodedValue = new ImmutableMethodHandleEncodedValue($method_handle_literal.value); }
+  | method_prototype { $encodedValue = new ImmutableMethodTypeEncodedValue($method_prototype.proto); };
 
 //everything but string
 fixed_64bit_literal_number returns[Number value]
@@ -502,6 +507,40 @@ method_type_list returns[List<String> types]
       }
     )*;
 
+call_site_reference returns[ImmutableCallSiteReference callSiteReference]
+  :
+  ^(I_CALL_SITE_REFERENCE call_site_name=SIMPLE_NAME method_name=string_literal method_prototype
+        call_site_extra_arguments method_reference)
+    {
+        String callSiteName = $call_site_name.text;
+        ImmutableMethodHandleReference methodHandleReference =
+            new ImmutableMethodHandleReference(MethodHandleType.STATIC_INVOKE,
+                $method_reference.methodReference);
+        $callSiteReference = new ImmutableCallSiteReference(
+            callSiteName, methodHandleReference, $method_name.value, $method_prototype.proto,
+            $call_site_extra_arguments.extraArguments);
+    };
+
+method_handle_type returns[int methodHandleType]
+  : METHOD_HANDLE_TYPE_FIELD | METHOD_HANDLE_TYPE_METHOD {
+    $methodHandleType = MethodHandleType.getMethodHandleType($text);
+  };
+
+method_handle_reference returns[ImmutableMethodHandleReference methodHandle]
+  : method_handle_type (field_reference | method_reference) {
+    ImmutableReference reference;
+    if ($field_reference.text != null) {
+        reference = $field_reference.fieldReference;
+    } else {
+        reference = $method_reference.methodReference;
+    }
+    $methodHandle = new ImmutableMethodHandleReference($method_handle_type.methodHandleType, reference);
+  };
+
+method_handle_literal returns[ImmutableMethodHandleReference value]
+  : (I_ENCODED_METHOD_HANDLE method_handle_reference) {
+    $value = $method_handle_reference.methodHandle;
+  };
 
 method_reference returns[ImmutableMethodReference methodReference]
   : reference_type_descriptor? SIMPLE_NAME method_prototype
@@ -654,6 +693,10 @@ source
       $method::methodBuilder.addSetSourceFile(dexBuilder.internNullableStringReference($string_literal.value));
     };
 
+call_site_extra_arguments returns[List<ImmutableEncodedValue> extraArguments]
+  : { $extraArguments = Lists.newArrayList(); }
+  ^(I_CALL_SITE_EXTRA_ARGUMENTS (literal { $extraArguments.add($literal.encodedValue); })*);
+
 ordered_method_items
   : ^(I_ORDERED_METHOD_ITEMS (label_def | instruction | debug_directive)*);
 
@@ -744,8 +787,10 @@ instruction
   | insn_format31i
   | insn_format31t
   | insn_format32x
+  | insn_format35c_call_site
   | insn_format35c_method
   | insn_format35c_type
+  | insn_format3rc_call_site
   | insn_format3rc_method
   | insn_format3rc_type
   | insn_format45cc_method
@@ -1052,6 +1097,23 @@ insn_format32x
       $method::methodBuilder.addInstruction(new BuilderInstruction32x(opcode, regA, regB));
     };
 
+insn_format35c_call_site
+  : //e.g. invoke-custom {v0, v1}, call_site_name
+    // OR invoke-custom {v0, v1}, {"doSomething", (LCustom;Ljava/lang/String;)Ljava/lang/String;, "just testing"}, BootstrapLinker;->normalLink(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    ^(I_STATEMENT_FORMAT35c_CALL_SITE INSTRUCTION_FORMAT35c_CALL_SITE register_list call_site_reference)
+    {
+        Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT35c_CALL_SITE.text);
+
+        //this depends on the fact that register_list returns a byte[5]
+        byte[] registers = $register_list.registers;
+        byte registerCount = $register_list.registerCount;
+
+        ImmutableCallSiteReference callSiteReference = $call_site_reference.callSiteReference;
+
+        $method::methodBuilder.addInstruction(new BuilderInstruction35c(opcode, registerCount, registers[0],
+                registers[1], registers[2], registers[3], registers[4], dexBuilder.internCallSite(callSiteReference)));
+    };
+
 insn_format35c_method
   : //e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
     ^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list method_reference)
@@ -1080,6 +1142,23 @@ insn_format35c_type
 
       $method::methodBuilder.addInstruction(new BuilderInstruction35c(opcode, registerCount, registers[0], registers[1],
               registers[2], registers[3], registers[4], dexBuilder.internTypeReference($nonvoid_type_descriptor.type)));
+    };
+
+insn_format3rc_call_site
+  : //e.g. invoke-custom/range {v0 .. v1}, call_site_name
+    // OR invoke-custom/range {v0 .. v1}, {"doSomething", (LCustom;Ljava/lang/String;)Ljava/lang/String;, "just testing"}, BootstrapLinker;->normalLink(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    ^(I_STATEMENT_FORMAT3rc_CALL_SITE INSTRUCTION_FORMAT3rc_CALL_SITE register_range call_site_reference)
+    {
+        Opcode opcode = opcodes.getOpcodeByName($INSTRUCTION_FORMAT3rc_CALL_SITE.text);
+        int startRegister = $register_range.startRegister;
+        int endRegister = $register_range.endRegister;
+
+        int registerCount = endRegister - startRegister + 1;
+
+        ImmutableCallSiteReference callSiteReference = $call_site_reference.callSiteReference;
+
+        $method::methodBuilder.addInstruction(new BuilderInstruction3rc(opcode, startRegister, registerCount,
+                dexBuilder.internCallSite(callSiteReference)));
     };
 
 insn_format3rc_method
