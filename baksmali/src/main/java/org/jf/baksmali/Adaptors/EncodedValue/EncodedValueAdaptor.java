@@ -30,6 +30,7 @@ package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Renderers.*;
+import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.dexlib2.util.ReferenceUtil;
@@ -107,6 +108,17 @@ public abstract class EncodedValueAdaptor {
                 return;
             case ValueType.TYPE:
                 writer.write(((TypeEncodedValue)encodedValue).getValue());
+                return;
+            case ValueType.METHOD_TYPE:
+                ReferenceFormatter.writeReference(writer, ReferenceType.METHOD_PROTO,
+                        ((MethodTypeEncodedValue)encodedValue).getValue());
+                return;
+            case ValueType.METHOD_HANDLE:
+                ReferenceFormatter.writeReference(writer, ReferenceType.METHOD_HANDLE,
+                        ((MethodHandleEncodedValue)encodedValue).getValue());
+                return;
+            default:
+                throw new IllegalArgumentException("Unknown encoded value type: " + encodedValue.getValueType());
         }
     }
 }

@@ -28,8 +28,11 @@
 
 package org.jf.baksmali.Adaptors;
 
+import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
+import org.jf.dexlib2.MethodHandleType;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.IndentingWriter;
 import org.jf.util.StringUtils;
@@ -41,6 +44,26 @@ public class ReferenceFormatter {
         writer.write('"');
         StringUtils.writeEscapedString(writer, item);
         writer.write('"');
+    }
+
+    public static void writeCallSiteReference(IndentingWriter writer, CallSiteReference callSite) throws IOException {
+        writer.write(callSite.getName());
+        writer.write('(');
+        writer.write('"');
+        StringUtils.writeEscapedString(writer, callSite.getMethodName());
+        writer.write("\", ");
+        writeReference(writer, ReferenceType.METHOD_PROTO, callSite.getMethodProto());
+
+        for (EncodedValue encodedValue : callSite.getExtraArguments()) {
+            writer.write(", ");
+            EncodedValueAdaptor.writeTo(writer, encodedValue, null);
+        }
+        writer.write(")@");
+        MethodHandleReference methodHandle = callSite.getMethodHandle();
+        if (methodHandle.getMethodHandleType() != MethodHandleType.STATIC_INVOKE) {
+            throw new IllegalArgumentException("The linker method handle for a call site must be of type static-invoke");
+        }
+        writeReference(writer, ReferenceType.METHOD, callSite.getMethodHandle().getMemberReference());
     }
 
     public static void writeReference(IndentingWriter writer, int referenceType,
@@ -57,6 +80,17 @@ public class ReferenceFormatter {
                 return;
             case ReferenceType.FIELD:
                 ReferenceUtil.writeFieldDescriptor(writer, (FieldReference)reference);
+                return;
+            case ReferenceType.METHOD_PROTO:
+                ReferenceUtil.writeMethodProtoDescriptor(writer, (MethodProtoReference)reference);
+                return;
+            case ReferenceType.METHOD_HANDLE:
+                ReferenceUtil.writeMethodHandle(writer, (MethodHandleReference)reference);
+                return;
+            case ReferenceType.CALL_SITE:
+                // We can't use ReferenceUtil.writeCallSite here, because it doesn't write encoded values out in the
+                // exact format we need here.
+                writeCallSiteReference(writer, (CallSiteReference)reference);
                 return;
             default:
                 throw new IllegalStateException("Unknown reference type");
