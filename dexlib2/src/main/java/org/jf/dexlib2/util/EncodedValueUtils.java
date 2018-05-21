@@ -32,7 +32,13 @@
 package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.value.*;
+import org.jf.util.StringUtils;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Set;
 
 public final class EncodedValueUtils {
     public static boolean isDefaultValue(EncodedValue encodedValue) {
@@ -57,6 +63,100 @@ public final class EncodedValueUtils {
                 return ((ShortEncodedValue)encodedValue).getValue() == 0;
         }
         return false;
+    }
+
+    public static void writeEncodedValue(Writer writer, EncodedValue encodedValue) throws IOException {
+        switch (encodedValue.getValueType()) {
+            case ValueType.BOOLEAN:
+                writer.write(Boolean.toString(((BooleanEncodedValue) encodedValue).getValue()));
+                break;
+            case ValueType.BYTE:
+                writer.write(Byte.toString(((ByteEncodedValue)encodedValue).getValue()));
+                break;
+            case ValueType.CHAR:
+                writer.write(Integer.toString(((CharEncodedValue)encodedValue).getValue()));
+                break;
+            case ValueType.SHORT:
+                writer.write(Short.toString(((ShortEncodedValue)encodedValue).getValue()));
+                break;
+            case ValueType.INT:
+                writer.write(Integer.toString(((IntEncodedValue)encodedValue).getValue()));
+                break;
+            case ValueType.LONG:
+                writer.write(Long.toString(((LongEncodedValue)encodedValue).getValue()));
+                break;
+            case ValueType.FLOAT:
+                writer.write(Float.toString(((FloatEncodedValue)encodedValue).getValue()));
+                break;
+            case ValueType.DOUBLE:
+                writer.write(Double.toString(((DoubleEncodedValue)encodedValue).getValue()));
+                break;
+            case ValueType.ANNOTATION:
+                writeAnnotation(writer, (AnnotationEncodedValue)encodedValue);
+                break;
+            case ValueType.ARRAY:
+                writeArray(writer, (ArrayEncodedValue)encodedValue);
+                break;
+            case ValueType.STRING:
+                writer.write('"');
+                StringUtils.writeEscapedString(writer, ((StringEncodedValue)encodedValue).getValue());
+                writer.write('"');
+                break;
+            case ValueType.FIELD:
+                ReferenceUtil.writeFieldDescriptor(writer, ((FieldEncodedValue)encodedValue).getValue());
+                break;
+            case ValueType.ENUM:
+                ReferenceUtil.writeFieldDescriptor(writer, ((EnumEncodedValue)encodedValue).getValue());
+                break;
+            case ValueType.METHOD:
+                ReferenceUtil.writeMethodDescriptor(writer, ((MethodEncodedValue)encodedValue).getValue());
+                break;
+            case ValueType.TYPE:
+                writer.write(((TypeEncodedValue)encodedValue).getValue());
+                break;
+            case ValueType.METHOD_TYPE:
+                ReferenceUtil.writeMethodProtoDescriptor(writer, ((MethodTypeEncodedValue)encodedValue).getValue());
+                break;
+            case ValueType.METHOD_HANDLE:
+                ReferenceUtil.writeMethodHandle(writer, ((MethodHandleEncodedValue)encodedValue).getValue());
+                break;
+            case ValueType.NULL:
+                writer.write("null");
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown encoded value type");
+        }
+    }
+
+    private static void writeAnnotation(Writer writer, AnnotationEncodedValue annotation) throws IOException {
+        writer.write("Annotation[");
+        writer.write(annotation.getType());
+
+        Set<? extends AnnotationElement> elements = annotation.getElements();
+        for (AnnotationElement element: elements) {
+            writer.write(", ");
+            writer.write(element.getName());
+            writer.write('=');
+            writeEncodedValue(writer, element.getValue());
+        }
+
+        writer.write(']');
+    }
+
+    private static void writeArray(Writer writer, ArrayEncodedValue array) throws IOException {
+        writer.write("Array[");
+
+        boolean first = true;
+        for (EncodedValue element: array.getValue()) {
+            if (first) {
+                first = false;
+            } else {
+                writer.write(", ");
+            }
+            writeEncodedValue(writer, element);
+        }
+
+        writer.write(']');
     }
 
     private EncodedValueUtils() {}
