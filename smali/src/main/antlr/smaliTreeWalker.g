@@ -769,6 +769,8 @@ instruction
   | insn_format20bc
   | insn_format20t
   | insn_format21c_field
+  | insn_format21c_method_handle
+  | insn_format21c_method_type
   | insn_format21c_string
   | insn_format21c_type
   | insn_format21ih
@@ -886,6 +888,32 @@ insn_format21c_field
 
       $method::methodBuilder.addInstruction(new BuilderInstruction21c(opcode, regA,
               dexBuilder.internFieldReference(fieldReference)));
+    };
+
+insn_format21c_method_handle
+  : //e.g. const-method-handle v0, static-invoke@Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+    ^(I_STATEMENT_FORMAT21c_METHOD_HANDLE inst=(INSTRUCTION_FORMAT21c_METHOD_HANDLE) REGISTER method_handle_reference)
+    {
+      Opcode opcode = opcodes.getOpcodeByName($inst.text);
+      short regA = parseRegister_byte($REGISTER.text);
+
+      ImmutableMethodHandleReference methodHandleReference = $method_handle_reference.methodHandle;
+
+      $method::methodBuilder.addInstruction(new BuilderInstruction21c(opcode, regA,
+              dexBuilder.internMethodHandle(methodHandleReference)));
+    };
+
+insn_format21c_method_type
+  : //e.g. const-method-type v0, (ILjava/lang/String;)Ljava/lang/String;
+    ^(I_STATEMENT_FORMAT21c_METHOD_TYPE inst=(INSTRUCTION_FORMAT21c_METHOD_TYPE) REGISTER method_prototype)
+    {
+        Opcode opcode = opcodes.getOpcodeByName($inst.text);
+        short regA = parseRegister_byte($REGISTER.text);
+
+        ImmutableMethodProtoReference methodProtoReference = $method_prototype.proto;
+
+        $method::methodBuilder.addInstruction(new BuilderInstruction21c(opcode, regA,
+                dexBuilder.internMethodProtoReference(methodProtoReference)));
     };
 
 insn_format21c_string
