@@ -214,6 +214,8 @@ tokens {
   I_STATEMENT_FORMAT21c_TYPE;
   I_STATEMENT_FORMAT21c_FIELD;
   I_STATEMENT_FORMAT21c_STRING;
+  I_STATEMENT_FORMAT21c_METHOD_HANDLE;
+  I_STATEMENT_FORMAT21c_METHOD_TYPE;
   I_STATEMENT_FORMAT21ih;
   I_STATEMENT_FORMAT21lh;
   I_STATEMENT_FORMAT21s;
@@ -567,6 +569,8 @@ simple_name
   | INSTRUCTION_FORMAT12x_OR_ID -> SIMPLE_NAME[$INSTRUCTION_FORMAT12x_OR_ID]
   | INSTRUCTION_FORMAT21c_FIELD -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_FIELD]
   | INSTRUCTION_FORMAT21c_FIELD_ODEX -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_FIELD_ODEX]
+  | INSTRUCTION_FORMAT21c_METHOD_HANDLE -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_METHOD_HANDLE]
+  | INSTRUCTION_FORMAT21c_METHOD_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_METHOD_TYPE]
   | INSTRUCTION_FORMAT21c_STRING -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_STRING]
   | INSTRUCTION_FORMAT21c_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT21c_TYPE]
   | INSTRUCTION_FORMAT21t -> SIMPLE_NAME[$INSTRUCTION_FORMAT21t]
@@ -834,6 +838,8 @@ instruction
   | insn_format20t
   | insn_format21c_field
   | insn_format21c_field_odex
+  | insn_format21c_method_handle
+  | insn_format21c_method_type
   | insn_format21c_string
   | insn_format21c_type
   | insn_format21ih
@@ -935,6 +941,18 @@ insn_format21c_field_odex
       }
     }
     -> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER field_reference);
+
+insn_format21c_method_handle
+  : //e.g. const-method-handle v0, static-invoke@Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+    INSTRUCTION_FORMAT21c_METHOD_HANDLE REGISTER COMMA method_handle_reference
+    -> ^(I_STATEMENT_FORMAT21c_METHOD_HANDLE[$start, "I_STATEMENT_FORMAT21c_METHOD_HANDLE"]
+            INSTRUCTION_FORMAT21c_METHOD_HANDLE REGISTER method_handle_reference);
+
+insn_format21c_method_type
+    : //e.g. const-method-type v0, (ILjava/lang/String;)Ljava/lang/String;
+    INSTRUCTION_FORMAT21c_METHOD_TYPE REGISTER COMMA method_prototype
+    -> ^(I_STATEMENT_FORMAT21c_METHOD_TYPE[$start, "I_STATEMENT_FORMAT21c_METHOD_TYPE"]
+            INSTRUCTION_FORMAT21c_METHOD_TYPE REGISTER method_prototype);
 
 insn_format21c_string
   : //e.g. const-string v1, "Hello World!"

@@ -85,6 +85,8 @@ const-string
 check-cast
 new-instance
 const-class
+const-method-handle
+const-method-type
 const/high16
 const-wide/high16
 const/16

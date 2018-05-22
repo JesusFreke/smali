@@ -484,6 +484,14 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         return newToken(INSTRUCTION_FORMAT21c_TYPE);
     }
 
+    "const-method-handle" {
+        return newToken(INSTRUCTION_FORMAT21c_METHOD_HANDLE);
+    }
+
+    "const-method-type" {
+        return newToken(INSTRUCTION_FORMAT21c_METHOD_TYPE);
+    }
+
     "const/high16" {
         return newToken(INSTRUCTION_FORMAT21ih);
     }
