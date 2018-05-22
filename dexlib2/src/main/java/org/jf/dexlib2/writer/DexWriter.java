@@ -1036,7 +1036,7 @@ public abstract class DexWriter<
 
             InstructionWriter instructionWriter =
                     InstructionWriter.makeInstructionWriter(opcodes, writer, stringSection, typeSection, fieldSection,
-                            methodSection, protoSection, callSiteSection);
+                            methodSection, protoSection, methodHandleSection, callSiteSection);
 
             writer.writeInt(codeUnitCount);
             int codeOffset = 0;

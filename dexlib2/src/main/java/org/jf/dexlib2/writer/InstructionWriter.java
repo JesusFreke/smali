@@ -50,7 +50,8 @@ import java.util.List;
 
 public class InstructionWriter<StringRef extends StringReference, TypeRef extends TypeReference,
         FieldRefKey extends FieldReference, MethodRefKey extends MethodReference,
-        ProtoRefKey extends MethodProtoReference, CallSiteKey extends CallSiteReference> {
+        ProtoRefKey extends MethodProtoReference, MethodHandleKey extends MethodHandleReference,
+        CallSiteKey extends CallSiteReference> {
     @Nonnull private final Opcodes opcodes;
     @Nonnull private final DexDataWriter writer;
     @Nonnull private final StringSection<?, StringRef> stringSection;
@@ -58,12 +59,14 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
     @Nonnull private final FieldSection<?, ?, FieldRefKey, ?> fieldSection;
     @Nonnull private final MethodSection<?, ?, ?, MethodRefKey, ?> methodSection;
     @Nonnull private final ProtoSection<?, ?, ProtoRefKey, ?> protoSection;
+    @Nonnull private final MethodHandleSection<MethodHandleKey, ?, ?> methodHandleSection;
     @Nonnull private final CallSiteSection<CallSiteKey, ?> callSiteSection;
 
     @Nonnull static <StringRef extends StringReference, TypeRef extends TypeReference,
             FieldRefKey extends FieldReference, MethodRefKey extends MethodReference,
-            ProtoRefKey extends MethodProtoReference, CallSiteKey extends CallSiteReference>
-            InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey, ProtoRefKey, CallSiteKey>
+            ProtoRefKey extends MethodProtoReference, MethodHandleKey extends MethodHandleReference,
+            CallSiteKey extends CallSiteReference>
+            InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey, ProtoRefKey, MethodHandleKey, CallSiteKey>
             makeInstructionWriter(
                 @Nonnull Opcodes opcodes,
                 @Nonnull DexDataWriter writer,
@@ -72,9 +75,12 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
                 @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
                 @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection,
                 @Nonnull ProtoSection<?, ?, ProtoRefKey, ?> protoSection,
+                @Nonnull MethodHandleSection<MethodHandleKey, ?, ?> methodHandleSection,
                 @Nonnull CallSiteSection<CallSiteKey, ?> callSiteSection) {
-        return new InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey, ProtoRefKey, CallSiteKey>(
-                opcodes, writer, stringSection, typeSection, fieldSection, methodSection, protoSection, callSiteSection);
+        return new InstructionWriter<
+                StringRef, TypeRef, FieldRefKey, MethodRefKey, ProtoRefKey, MethodHandleKey,CallSiteKey>(
+                        opcodes, writer, stringSection, typeSection, fieldSection, methodSection, protoSection,
+                        methodHandleSection, callSiteSection);
     }
 
     InstructionWriter(@Nonnull Opcodes opcodes,
@@ -84,6 +90,7 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
                       @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
                       @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection,
                       @Nonnull ProtoSection<?, ?, ProtoRefKey, ?> protoSection,
+                      @Nonnull MethodHandleSection<MethodHandleKey, ?, ?> methodHandleSection,
                       @Nonnull CallSiteSection<CallSiteKey, ?> callSiteSection) {
         this.opcodes = opcodes;
         this.writer = writer;
@@ -92,6 +99,7 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
         this.fieldSection = fieldSection;
         this.methodSection = methodSection;
         this.protoSection = protoSection;
+        this.methodHandleSection = methodHandleSection;
         this.callSiteSection = callSiteSection;
     }
 
@@ -551,6 +559,8 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
                 return typeSection.getItemIndex((TypeRef) reference);
             case ReferenceType.METHOD_PROTO:
                 return protoSection.getItemIndex((ProtoRefKey) reference);
+            case ReferenceType.METHOD_HANDLE:
+                return methodHandleSection.getItemIndex((MethodHandleKey) reference);
             case ReferenceType.CALL_SITE:
                 return callSiteSection.getItemIndex((CallSiteKey) reference);
             default:

@@ -51,6 +51,8 @@ public abstract class DexBackedReference {
                 return new DexBackedFieldReference(dexFile, referenceIndex);
             case ReferenceType.METHOD_PROTO:
                 return new DexBackedMethodProtoReference(dexFile, referenceIndex);
+            case ReferenceType.METHOD_HANDLE:
+                return new DexBackedMethodHandleReference(dexFile, referenceIndex);
             case ReferenceType.CALL_SITE:
                 return new DexBackedCallSiteReference(dexFile, referenceIndex);
             default:

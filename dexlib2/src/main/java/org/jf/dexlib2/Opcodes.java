@@ -50,7 +50,7 @@ public class Opcodes {
      */
     public final int api;
     public final int artVersion;
-    @Nonnull private final Opcode[] opcodesByValue = new Opcode[255];
+    @Nonnull private final Opcode[] opcodesByValue = new Opcode[256];
     @Nonnull private final EnumMap<Opcode, Short> opcodeValues;
     @Nonnull private final HashMap<String, Opcode> opcodesByName;
 
@@ -79,8 +79,6 @@ public class Opcodes {
     }
 
     private Opcodes(int api, int artVersion) {
-
-
         if (api >= 21) {
             this.api = api;
             this.artVersion = mapApiToArtVersion(api);

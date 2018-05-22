@@ -299,7 +299,7 @@ public enum Opcode
 
     IPUT_OBJECT_VOLATILE(firstApi(0xfc, 9), "iput-object-volatile", ReferenceType.FIELD, Format.Format22c, Opcode.ODEX_ONLY | Opcode.VOLATILE_FIELD_ACCESSOR | Opcode.CAN_THROW | Opcode.CAN_CONTINUE),
     SGET_OBJECT_VOLATILE(firstApi(0xfd, 9), "sget-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.VOLATILE_FIELD_ACCESSOR | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER | Opcode.STATIC_FIELD_ACCESSOR),
-    SPUT_OBJECT_VOLATILE(firstApi(0xfe, 9), "sput-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.VOLATILE_FIELD_ACCESSOR | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.STATIC_FIELD_ACCESSOR),
+    SPUT_OBJECT_VOLATILE(betweenApi(0xfe, 9, 19), "sput-object-volatile", ReferenceType.FIELD, Format.Format21c, Opcode.ODEX_ONLY | Opcode.VOLATILE_FIELD_ACCESSOR | Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.STATIC_FIELD_ACCESSOR),
 
     PACKED_SWITCH_PAYLOAD(0x100, "packed-switch-payload", ReferenceType.NONE, Format.PackedSwitchPayload, 0),
     SPARSE_SWITCH_PAYLOAD(0x200, "sparse-switch-payload", ReferenceType.NONE, Format.SparseSwitchPayload, 0),
@@ -309,7 +309,10 @@ public enum Opcode
     INVOKE_POLYMORPHIC_RANGE(firstArtVersion(0xfb, 87), "invoke-polymorphic/range", ReferenceType.METHOD, ReferenceType.METHOD_PROTO, Format.Format4rcc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
 
     INVOKE_CUSTOM(firstArtVersion(0xfc, 111), "invoke-custom", ReferenceType.CALL_SITE, Format.Format35c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
-    INVOKE_CUSTOM_RANGE(firstArtVersion(0xfd, 111), "invoke-custom/range", ReferenceType.CALL_SITE, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT);
+    INVOKE_CUSTOM_RANGE(firstArtVersion(0xfd, 111), "invoke-custom/range", ReferenceType.CALL_SITE, Format.Format3rc, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_RESULT),
+
+    CONST_METHOD_HANDLE(firstArtVersion(0xfe, 134), "const-method-handle", ReferenceType.METHOD_HANDLE, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER),
+    CONST_METHOD_TYPE(firstArtVersion(0xff, 134), "const-method-type", ReferenceType.METHOD_PROTO, Format.Format21c, Opcode.CAN_THROW | Opcode.CAN_CONTINUE | Opcode.SETS_REGISTER);
 
     //if the instruction can throw an exception
     public static final int CAN_THROW = 0x1;
@@ -396,6 +399,11 @@ public enum Opcode
 
     private static List<VersionConstraint> lastApi(int opcodeValue, int api) {
         return Lists.newArrayList(new VersionConstraint(Range.atMost(api), Range.openClosed(0, 0), opcodeValue));
+    }
+
+    private static List<VersionConstraint> betweenApi(int opcodeValue, int minApi, int maxApi) {
+        return Lists.newArrayList(new VersionConstraint(Range.closed(minApi, maxApi), Range.openClosed(0, 0),
+                opcodeValue));
     }
 
     private static List<VersionConstraint> firstArtVersion(int opcodeValue, int artVersion) {

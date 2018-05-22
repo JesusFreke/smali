@@ -44,10 +44,20 @@ public class VersionMap {
         if (dexVersion == 38) {
             return 27;
         }
+        if (dexVersion == 39) {
+            return 28;
+        }
         throw new RuntimeException("Unsupported dex version " + dexVersion);
     }
 
     public static int mapArtVersionToApi(int artVersion) {
+        // 144 is the current version in the master branch of AOSP as of 2018-05-22
+        if (artVersion >= 144) {
+            return 28;
+        }
+        if (artVersion >= 131) {
+            return 27;
+        }
         if (artVersion >= 124) {
             return 26;
         }
@@ -82,6 +92,11 @@ public class VersionMap {
                 return 79;
             case 26:
                 return 124;
+            case 27:
+                return 131;
+            case 28:
+                // 144 is the current version in the master branch of AOSP as of 2018-05-22
+                return 144;
         }
 
         // NOTE: Art version 143 and api level 27 do not correspond to any
