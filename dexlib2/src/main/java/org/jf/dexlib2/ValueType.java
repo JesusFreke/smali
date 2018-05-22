@@ -52,4 +52,47 @@ public final class ValueType {
     public static final int BOOLEAN = 0x1f;
 
     private ValueType() {}
+
+    public static String getValueTypeName(int valueType) {
+        switch (valueType) {
+            case BYTE:
+                return "byte";
+            case SHORT:
+                return "short";
+            case CHAR:
+                return "char";
+            case INT:
+                return "int";
+            case LONG:
+                return "long";
+            case FLOAT:
+                return "float";
+            case DOUBLE:
+                return "double";
+            case METHOD_TYPE:
+                return "method_type";
+            case METHOD_HANDLE:
+                return "method_handle";
+            case STRING:
+                return "string";
+            case TYPE:
+                return "type";
+            case FIELD:
+                return "field";
+            case METHOD:
+                return "method";
+            case ENUM:
+                return "enum";
+            case ARRAY:
+                return "array";
+            case ANNOTATION:
+                return "annotation";
+            case NULL:
+                return "null";
+            case BOOLEAN:
+                return "boolean";
+            default:
+                throw new IllegalArgumentException("Unknown encoded value type: " + valueType);
+        }
+    }
 }

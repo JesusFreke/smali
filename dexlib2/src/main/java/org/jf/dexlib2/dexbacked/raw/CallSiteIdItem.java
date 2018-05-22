@@ -31,6 +31,42 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import org.jf.dexlib2.dexbacked.DexReader;
+import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
+import org.jf.dexlib2.dexbacked.value.DexBackedArrayEncodedValue;
+import org.jf.dexlib2.util.AnnotatedBytes;
+import org.jf.dexlib2.util.EncodedValueUtils;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.StringWriter;
+
 public class CallSiteIdItem {
     public static final int ITEM_SIZE = 4;
+
+    @Nonnull
+    public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
+        return new SectionAnnotator(annotator, mapItem) {
+            @Nonnull @Override public String getItemName() {
+                return "call_site_id_item";
+            }
+
+            @Override
+            protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
+                int callSiteOffset = dexFile.readSmallUint(out.getCursor());
+
+                StringWriter writer = new StringWriter();
+                try {
+                    EncodedValueUtils.writeEncodedValue(writer,
+                            new DexBackedArrayEncodedValue(new DexReader(dexFile, callSiteOffset)));
+                } catch (IOException ex) {
+                    // Shouldn't get an IOException from a StringWriter..
+                    throw new RuntimeException(ex);
+                }
+
+                out.annotate(4, "call_site_id_item[0x%x] = %s", callSiteOffset, writer.toString());
+            }
+        };
+    }
 }

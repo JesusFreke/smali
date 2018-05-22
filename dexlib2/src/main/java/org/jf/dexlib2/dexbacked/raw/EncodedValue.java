@@ -31,11 +31,15 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.dexbacked.DexReader;
+import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
 import org.jf.dexlib2.util.AnnotatedBytes;
-import org.jf.util.ExceptionWithContext;
+import org.jf.dexlib2.util.EncodedValueUtils;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.StringWriter;
 
 public class EncodedValue {
     public static void annotateEncodedValue(@Nonnull AnnotatedBytes out, @Nonnull DexReader reader) {
@@ -45,84 +49,42 @@ public class EncodedValue {
         int valueType = valueArgType & 0x1f;
 
         switch (valueType) {
-            case 0x00:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: byte", valueArg, valueType);
-                int intValue = reader.readByte();
-                out.annotate(1, "value = 0x%x", intValue);
+            case ValueType.BYTE:
+            case ValueType.SHORT:
+            case ValueType.CHAR:
+            case ValueType.INT:
+            case ValueType.LONG:
+            case ValueType.FLOAT:
+            case ValueType.DOUBLE:
+            case ValueType.METHOD_TYPE:
+            case ValueType.METHOD_HANDLE:
+            case ValueType.STRING:
+            case ValueType.TYPE:
+            case ValueType.FIELD:
+            case ValueType.METHOD:
+            case ValueType.ENUM:
+                out.annotate(1, "valueArg = %d, valueType = 0x%x: %s", valueArg, valueType,
+                        ValueType.getValueTypeName(valueType));
+                reader.setOffset(reader.getOffset() - 1);
+                out.annotate(valueArg + 1, "value = %s", asString(reader));
                 break;
-            case 0x02:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: short", valueArg, valueType);
-                intValue = reader.readSizedInt(valueArg+1);
-                out.annotate(valueArg + 1, "value = 0x%x", intValue);
-                break;
-            case 0x03:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: char", valueArg, valueType);
-                intValue = reader.readSizedSmallUint(valueArg+1);
-                out.annotate(valueArg+1, "value = 0x%x", intValue);
-                break;
-            case 0x04:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: int", valueArg, valueType);
-                intValue = reader.readSizedInt(valueArg+1);
-                out.annotate(valueArg+1, "value = 0x%x", intValue);
-                break;
-            case 0x06:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: long", valueArg, valueType);
-                long longValue = reader.readSizedLong(valueArg+1);
-                out.annotate(valueArg+1, "value = 0x%x", longValue);
-                break;
-            case 0x10:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: float", valueArg, valueType);
-                float floatValue = Float.intBitsToFloat(reader.readSizedRightExtendedInt(valueArg + 1));
-                out.annotate(valueArg+1, "value = %f", floatValue);
-                break;
-            case 0x11:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: double", valueArg, valueType);
-                double doubleValue = Double.longBitsToDouble(reader.readSizedRightExtendedLong(valueArg + 1));
-                out.annotate(valueArg+1, "value = %f", doubleValue);
-                break;
-            case 0x17:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: string", valueArg, valueType);
-                int stringIndex = reader.readSizedSmallUint(valueArg + 1);
-                out.annotate(valueArg+1, "value = %s",
-                        StringIdItem.getReferenceAnnotation(reader.dexBuf, stringIndex, true));
-                break;
-            case 0x18:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: type", valueArg, valueType);
-                int typeIndex = reader.readSizedSmallUint(valueArg+1);
-                out.annotate(valueArg+1, "value = %s", TypeIdItem.getReferenceAnnotation(reader.dexBuf, typeIndex));
-                break;
-            case 0x19:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: field", valueArg, valueType);
-                int fieldIndex = reader.readSizedSmallUint(valueArg+1);
-                out.annotate(valueArg+1, "value = %s", FieldIdItem.getReferenceAnnotation(reader.dexBuf, fieldIndex));
-                break;
-            case 0x1a:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: method", valueArg, valueType);
-                int methodIndex = reader.readSizedSmallUint(valueArg+1);
-                out.annotate(valueArg+1, "value = %s", MethodIdItem.getReferenceAnnotation(reader.dexBuf, methodIndex));
-                break;
-            case 0x1b:
-                out.annotate(1, "valueArg = %d, valueType = 0x%x: enum", valueArg, valueType);
-                fieldIndex = reader.readSizedSmallUint(valueArg+1);
-                out.annotate(valueArg+1, "value = %s", FieldIdItem.getReferenceAnnotation(reader.dexBuf, fieldIndex));
-                break;
-            case 0x1c:
+            case ValueType.ARRAY:
                 out.annotate(1, "valueArg = %d, valueType = 0x%x: array", valueArg, valueType);
                 annotateEncodedArray(out, reader);
                 break;
-            case 0x1d:
+            case ValueType.ANNOTATION:
                 out.annotate(1, "valueArg = %d, valueType = 0x%x: annotation", valueArg, valueType);
                 annotateEncodedAnnotation(out, reader);
                 break;
-            case 0x1e:
+            case ValueType.NULL:
                 out.annotate(1, "valueArg = %d, valueType = 0x%x: null", valueArg, valueType);
                 break;
-            case 0x1f:
+            case ValueType.BOOLEAN:
                 out.annotate(1, "valueArg = %d, valueType = 0x%x: boolean, value=%s", valueArg, valueType, valueArg==1);
                 break;
             default:
-                throw new ExceptionWithContext("Invalid encoded value type 0x%x at offset 0x%x", valueType,
-                        out.getCursor());
+                throw new IllegalArgumentException(String.format("Invalid encoded value type 0x%x at offset 0x%x", valueType,
+                        reader.getOffset()));
         }
     }
 
@@ -162,6 +124,74 @@ public class EncodedValue {
             annotateEncodedValue(out, reader);
 
             out.deindent();
+        }
+    }
+
+    public static String asString(@Nonnull DexReader reader) {
+        int valueArgType = reader.readUbyte();
+
+        int valueArg = valueArgType >>> 5;
+        int valueType = valueArgType & 0x1f;
+
+        switch (valueType) {
+            case ValueType.BYTE:
+                int intValue = reader.readByte();
+                return String.format("0x%x", intValue);
+            case ValueType.SHORT:
+                intValue = reader.readSizedInt(valueArg+1);
+                return String.format("0x%x", intValue);
+            case ValueType.CHAR:
+                intValue = reader.readSizedSmallUint(valueArg+1);
+                return String.format("0x%x", intValue);
+            case ValueType.INT:
+                intValue = reader.readSizedInt(valueArg+1);
+                return String.format("0x%x", intValue);
+            case ValueType.LONG:
+                long longValue = reader.readSizedLong(valueArg+1);
+                return String.format("0x%x", longValue);
+            case ValueType.FLOAT:
+                float floatValue = Float.intBitsToFloat(reader.readSizedRightExtendedInt(valueArg + 1));
+                return String.format("%f", floatValue);
+            case ValueType.DOUBLE:
+                double doubleValue = Double.longBitsToDouble(reader.readSizedRightExtendedLong(valueArg + 1));
+                return String.format("%f", doubleValue);
+            case ValueType.METHOD_TYPE:
+                int protoIndex = reader.readSizedSmallUint(valueArg + 1);
+                return ProtoIdItem.getReferenceAnnotation(reader.dexBuf, protoIndex);
+            case ValueType.STRING:
+                int stringIndex = reader.readSizedSmallUint(valueArg + 1);
+                return StringIdItem.getReferenceAnnotation(reader.dexBuf, stringIndex, true);
+            case ValueType.TYPE:
+                int typeIndex = reader.readSizedSmallUint(valueArg+1);
+                return TypeIdItem.getReferenceAnnotation(reader.dexBuf, typeIndex);
+            case ValueType.FIELD:
+                int fieldIndex = reader.readSizedSmallUint(valueArg+1);
+                return FieldIdItem.getReferenceAnnotation(reader.dexBuf, fieldIndex);
+            case ValueType.METHOD:
+                int methodIndex = reader.readSizedSmallUint(valueArg+1);
+                return MethodIdItem.getReferenceAnnotation(reader.dexBuf, methodIndex);
+            case ValueType.ENUM:
+                fieldIndex = reader.readSizedSmallUint(valueArg+1);
+                return FieldIdItem.getReferenceAnnotation(reader.dexBuf, fieldIndex);
+            case ValueType.ARRAY:
+            case ValueType.ANNOTATION:
+            case ValueType.METHOD_HANDLE:
+                StringWriter writer = new StringWriter();
+                reader.setOffset(reader.getOffset() - 1);
+                try {
+                    EncodedValueUtils.writeEncodedValue(writer, DexBackedEncodedValue.readFrom(reader));
+                } catch (IOException ex) {
+                    // Shouldn't happen with a StringWriter...
+                    throw new RuntimeException(ex);
+                }
+                return writer.toString();
+            case ValueType.NULL:
+                return "null";
+            case ValueType.BOOLEAN:
+                return Boolean.toString(valueArg == 1);
+            default:
+                throw new IllegalArgumentException(String.format("Invalid encoded value type 0x%x at offset 0x%x",
+                        valueType, reader.getOffset()));
         }
     }
 }

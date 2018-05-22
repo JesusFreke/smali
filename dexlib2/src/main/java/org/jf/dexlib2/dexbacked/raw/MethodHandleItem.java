@@ -31,9 +31,47 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import org.jf.dexlib2.MethodHandleType;
+import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
+import org.jf.dexlib2.util.AnnotatedBytes;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class MethodHandleItem {
     public static final int ITEM_SIZE = 8;
 
     public static final int METHOD_HANDLE_TYPE_OFFSET = 0;
     public static final int MEMBER_ID_OFFSET = 4;
+
+    @Nonnull
+    public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
+        return new SectionAnnotator(annotator, mapItem) {
+            @Nonnull @Override public String getItemName() {
+                return "method_handle_item";
+            }
+
+            @Override
+            protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
+                int methodHandleType = dexFile.readUshort(out.getCursor());
+                out.annotate(2, "type = %s", MethodHandleType.toString(methodHandleType));
+                out.annotate(2, "unused");
+
+                int fieldOrMethodId = dexFile.readUshort(out.getCursor());
+                String fieldOrMethodDescriptor;
+                if (methodHandleType == MethodHandleType.STATIC_INVOKE ||
+                        methodHandleType == MethodHandleType.INSTANCE_INVOKE) {
+                    fieldOrMethodDescriptor = MethodIdItem.getReferenceAnnotation(dexFile, fieldOrMethodId);
+                } else {
+                    fieldOrMethodDescriptor = FieldIdItem.getReferenceAnnotation(dexFile, fieldOrMethodId);
+                }
+
+                out.annotate(2, "field_or_method_id = %s", fieldOrMethodDescriptor);
+                out.annotate(2, "unused");
+            }
+        };
+    }
+
+
+
 }

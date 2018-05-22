@@ -61,6 +61,8 @@ public class DexAnnotator extends AnnotatedBytes {
                 ItemType.PROTO_ID_ITEM,
                 ItemType.FIELD_ID_ITEM,
                 ItemType.METHOD_ID_ITEM,
+                ItemType.CALL_SITE_ID_ITEM,
+                ItemType.METHOD_HANDLE_ITEM,
 
                 // these need to be ordered like this, so the item identities can be propagated
                 ItemType.CLASS_DEF_ITEM,
@@ -142,6 +144,12 @@ public class DexAnnotator extends AnnotatedBytes {
                     break;
                 case ItemType.ANNOTATION_DIRECTORY_ITEM:
                     annotators.put(mapItem.getType(), AnnotationDirectoryItem.makeAnnotator(this, mapItem));
+                    break;
+                case ItemType.CALL_SITE_ID_ITEM:
+                    annotators.put(mapItem.getType(), CallSiteIdItem.makeAnnotator(this, mapItem));
+                    break;
+                case ItemType.METHOD_HANDLE_ITEM:
+                    annotators.put(mapItem.getType(), MethodHandleItem.makeAnnotator(this, mapItem));
                     break;
                 default:
                     throw new RuntimeException(String.format("Unrecognized item type: 0x%x", mapItem.getType()));
