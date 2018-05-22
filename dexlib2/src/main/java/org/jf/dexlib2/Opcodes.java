@@ -64,6 +64,11 @@ public class Opcodes {
         return new Opcodes(NO_VERSION, artVersion);
     }
 
+    @Nonnull
+    public static Opcodes forDexVersion(int dexVersion) {
+        return new Opcodes(VersionMap.mapDexVersionToApi(dexVersion) , NO_VERSION);
+    }
+
     /**
      * @return a default Opcodes instance for when the exact Opcodes to use doesn't matter or isn't known
      */

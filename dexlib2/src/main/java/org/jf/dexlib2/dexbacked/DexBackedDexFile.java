@@ -71,13 +71,20 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int classStartOffset;
     private final int mapOffset;
 
-    protected DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
+    protected DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
         super(buf, offset);
 
-        this.opcodes = opcodes;
-
+        int dexVersion;
         if (verifyMagic) {
-            DexUtil.verifyDexHeader(buf, offset);
+            dexVersion = DexUtil.verifyDexHeader(buf, offset);
+        } else {
+            dexVersion = HeaderItem.getVersion(buf, offset);
+        }
+
+        if (opcodes == null) {
+            this.opcodes = Opcodes.forDexVersion(dexVersion);
+        } else {
+            this.opcodes = opcodes;
         }
 
         stringCount = readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
@@ -95,20 +102,20 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         mapOffset = readSmallUint(HeaderItem.MAP_OFFSET);
     }
 
-    public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
+    public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
         this(opcodes, buf.buf, buf.baseOffset);
     }
 
-    public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, int offset) {
+    public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull byte[] buf, int offset) {
         this(opcodes, buf, offset, false);
     }
 
-    public DexBackedDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf) {
+    public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull byte[] buf) {
         this(opcodes, buf, 0, true);
     }
 
     @Nonnull
-    public static DexBackedDexFile fromInputStream(@Nonnull Opcodes opcodes, @Nonnull InputStream is)
+    public static DexBackedDexFile fromInputStream(@Nullable Opcodes opcodes, @Nonnull InputStream is)
             throws IOException {
         DexUtil.verifyDexHeader(is);
 

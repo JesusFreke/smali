@@ -34,6 +34,19 @@ package org.jf.dexlib2;
 public class VersionMap {
     public static final int NO_VERSION = -1;
 
+    public static int mapDexVersionToApi(int dexVersion) {
+        if (dexVersion == 35) {
+            return 23;
+        }
+        if (dexVersion == 37) {
+            return 25;
+        }
+        if (dexVersion == 38) {
+            return 27;
+        }
+        throw new RuntimeException("Unsupported dex version " + dexVersion);
+    }
+
     public static int mapArtVersionToApi(int artVersion) {
         if (artVersion >= 124) {
             return 26;

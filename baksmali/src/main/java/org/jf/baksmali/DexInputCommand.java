@@ -55,7 +55,7 @@ public abstract class DexInputCommand extends Command {
     @Parameter(names = {"-a", "--api"},
             description = "The numeric api level of the file being disassembled.")
     @ExtendedParameter(argumentNames = "api")
-    public int apiLevel = 15;
+    public int apiLevel = -1;
 
     @Parameter(description = "A dex/apk/oat/odex file. For apk or oat files that contain multiple dex " +
             "files, you can specify the specific entry to use as if the apk/oat file was a directory. " +
@@ -125,6 +125,11 @@ public abstract class DexInputCommand extends Command {
             dexEntry = input.substring(file.getPath().length() + 1);
         }
 
+        Opcodes opcodes = null;
+        if (apiLevel != -1) {
+            opcodes = Opcodes.forApi(apiLevel);
+        }
+
         if (!Strings.isNullOrEmpty(dexEntry)) {
             boolean exactMatch = false;
             if (dexEntry.length() > 2 && dexEntry.charAt(0) == '"' && dexEntry.charAt(dexEntry.length() - 1) == '"') {
@@ -135,13 +140,13 @@ public abstract class DexInputCommand extends Command {
             inputEntry = dexEntry;
 
             try {
-                dexFile = DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, Opcodes.forApi(apiLevel));
+                dexFile = DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, opcodes);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
             try {
-                dexFile = DexFileFactory.loadDexFile(file, Opcodes.forApi(apiLevel));
+                dexFile = DexFileFactory.loadDexFile(file, opcodes);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

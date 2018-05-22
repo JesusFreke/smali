@@ -177,10 +177,6 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
         return Arrays.asList(bcp.split(":"));
     }
 
-    @Nonnull @Override public Opcodes getOpcodes() {
-        return opcodes;
-    }
-
     @Nonnull
     public List<OatDexFile> getDexFiles() {
         return new AbstractForwardSequentialList<OatDexFile>() {

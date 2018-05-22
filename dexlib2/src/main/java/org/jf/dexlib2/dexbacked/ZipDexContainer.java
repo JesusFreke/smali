@@ -58,21 +58,16 @@ import java.util.zip.ZipFile;
 public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
 
     private final File zipFilePath;
-    private final Opcodes opcodes;
+    @Nullable private final Opcodes opcodes;
 
     /**
      * Constructs a new ZipDexContainer for the given zip file
      *
      * @param zipFilePath The path to the zip file
-     * @param opcodes The Opcodes instance to use when loading dex files from this container
      */
-    public ZipDexContainer(@Nonnull File zipFilePath, @Nonnull Opcodes opcodes) {
+    public ZipDexContainer(@Nonnull File zipFilePath, @Nullable Opcodes opcodes) {
         this.zipFilePath = zipFilePath;
         this.opcodes = opcodes;
-    }
-
-    @Nonnull @Override public Opcodes getOpcodes() {
-        return opcodes;
     }
 
     /**
@@ -147,7 +142,7 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
 
         private final String entryName;
 
-        protected ZipDexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] buf, @Nonnull String entryName) {
+        protected ZipDexFile(@Nullable Opcodes opcodes, @Nonnull byte[] buf, @Nonnull String entryName) {
             super(opcodes, buf, 0);
             this.entryName = entryName;
         }
