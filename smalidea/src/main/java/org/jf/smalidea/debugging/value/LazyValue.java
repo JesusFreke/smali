@@ -35,6 +35,7 @@ import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContext;
+import com.intellij.debugger.engine.events.DebuggerCommandImpl;
 import com.intellij.debugger.impl.DebuggerContextImpl;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
 import com.intellij.openapi.project.Project;
@@ -140,6 +141,8 @@ public class LazyValue<T extends Value> implements Value {
         return getValue().type();
     }
 
+    VirtualMachine result;
+
     @Override
     public VirtualMachine virtualMachine() {
         if (evaluationContext != null) {
@@ -149,7 +152,15 @@ public class LazyValue<T extends Value> implements Value {
             final DebuggerContextImpl debuggerContext = DebuggerManagerEx.getInstanceEx(project).getContext();
             final DebugProcessImpl process = debuggerContext.getDebugProcess();
             if (process != null) {
-                return process.getVirtualMachineProxy().getVirtualMachine();
+                result = null;
+                debuggerContext.getSuspendContext().getDebugProcess().getManagerThread().invokeAndWait(new DebuggerCommandImpl() {
+                    @Override
+                    protected void action() throws Exception {
+                        result = process.getVirtualMachineProxy().getVirtualMachine();
+                    }
+                });
+
+                return result;
             }
         }
         return null;
