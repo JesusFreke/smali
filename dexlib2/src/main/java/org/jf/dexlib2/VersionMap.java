@@ -77,6 +77,10 @@ public class VersionMap {
     }
 
     public static int mapApiToArtVersion(int api) {
+        if (api < 19) {
+            return NO_VERSION;
+        }
+
         switch (api) {
             case 19:
             case 20:
@@ -94,17 +98,9 @@ public class VersionMap {
                 return 124;
             case 27:
                 return 131;
-            case 28:
+            default:
                 // 144 is the current version in the master branch of AOSP as of 2018-05-22
                 return 144;
         }
-
-        // NOTE: Art version 143 and api level 27 do not correspond to any
-        // particular android release and represent the current (as of
-        // May 2018) state of aosp/master.
-        if (api > 26) {
-            return 143;
-        }
-        return NO_VERSION;
     }
 }
