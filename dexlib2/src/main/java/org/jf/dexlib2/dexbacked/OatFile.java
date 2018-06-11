@@ -245,9 +245,15 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
 
     private class OatHeader {
         private final int headerOffset;
+        private final int keyValueStoreOffset;
 
         public OatHeader(int offset) {
             this.headerOffset = offset;
+            if (getVersion() >= 127) {
+                this.keyValueStoreOffset = 19 * 4;
+            } else {
+                this.keyValueStoreOffset = 18 * 4;
+            }
         }
 
         public boolean isValid() {
@@ -278,7 +284,7 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
             if (getVersion() < MIN_OAT_VERSION) {
                 throw new IllegalStateException("Unsupported oat version");
             }
-            int fieldOffset = 17 * 4;
+            int fieldOffset = keyValueStoreOffset - 4;
             return readSmallUint(headerOffset + fieldOffset);
         }
 
@@ -286,14 +292,14 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
             if (getVersion() < MIN_OAT_VERSION) {
                 throw new IllegalStateException("Unsupported oat version");
             }
-            return 18*4 + getKeyValueStoreSize();
+            return keyValueStoreOffset + getKeyValueStoreSize();
         }
 
         @Nullable
         public String getKeyValue(@Nonnull String key) {
             int size = getKeyValueStoreSize();
 
-            int offset = headerOffset + 18 * 4;
+            int offset = headerOffset + keyValueStoreOffset;
             int endOffset = offset + size;
 
             while (offset < endOffset) {
@@ -324,7 +330,11 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
         }
 
         public int getDexListStart() {
-            return headerOffset + getHeaderSize();
+            if (getVersion() >= 127) {
+                return headerOffset + readSmallUint(headerOffset + (6 * 4));
+            } else {
+                return headerOffset + getHeaderSize();
+            }
         }
     }
 
@@ -597,6 +607,12 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
             }
             if (getOatVersion() >= 73) {
                 offset += 4; // lookup table offset
+            }
+            if (getOatVersion() >= 131) {
+                offset += 4; // dex sections layout offset
+            }
+            if (getOatVersion() >= 127) {
+                offset += 4; // method bss mapping offset
             }
             if (getOatVersion() < 75) {
                 // prior to 75, the class offsets are included here directly

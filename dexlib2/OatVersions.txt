@@ -88,3 +88,29 @@ bfb80d25eaeb7a604d5dd25a370e3869e96a33ab - 114
 f44d36c8423f81cbb5e9f55d8813e26ffa1a7f3b - 115 (115 again. heck if I know what's going on)
 cbcedbf9382bc773713cd3552ed96f417bf1daeb - 116
 051071718085ce807a2e7c55278a8d723e238e86 - 116
+1595815c2a914a78df7dfb6f0082f47d4e82bb36 - 117
+f4f2daafb38c9c07ea74044a0fb89a2a19288b7a - 118
+6bc7774426cc0b6bbab5566fa62b3c509455e583 - 119
+88d329a698ba186aeb1f1ef8794355512ada84a9 - 120
+612ff540cd3329935351f05923358cf29b9c9b44 - 121
+c83dd7bfde2171c879efb92a31a363505385ffb9 - 122
+eee1c0ec2b08a6be642b329dc2fe885391127da3 - 123
+f977691961b5a49a074a535fcb29a5ad4a318974 - 124
+2665bc8159698429f20a08f814e63c434910d608 - 124
+88abba2b0cb0151d89e16da3e64025878dc2f142 - 125
+99cdddaf8e5bc6b31d0eb375755ec4071a9fb527 - 125
+c137cb03a90b9fd5a7d0ec7dd9b250db82ca88ef - 126
+0eb882bfc5d260e8014c26adfda11602065aa5d8 - 127
+    - The oat_dex_files_offset field is added to the OatHeader class in art/runtime/oat.h.
+    - The method_bss_mapping field is added to the OatDexFile class in art/runtime/oat_file.h.
+7b0648aa7cb4b7a58e73bf353e031dfe4553d9d7 - 128
+0cb172874481f736c6b7c491dd621166cc25561b - 129
+a308a327884920cbb1e3e62964c4b5a01c29af8c - 130 (changed kMultiDexSeparator from ':' to '!')
+4147fcc43c2ee019a06e55384985e3eaf82dcb8c - 131
+75c5ed6e75f70002db5fa7c609137c04dd2bdf40 - 131
+    - The dex_layout_sections field is added to OatDexFile class in art/runtime/oat_file.h.
+    - They did some kind of rebase or something so this commit is not in the master branch anymore.
+    - Only indication is that they cherry picked some things from this commit for oat 132.
+120aa286ab6adf3e76a31bc61fb4e583e5158d71 - 132
+    - The commit containing cherry picked changes from commit 75c5ed6e.
+    - No other noteable changes to the Oat format.
