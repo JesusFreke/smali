@@ -98,11 +98,9 @@ public class VersionMap {
                 return 124;
             case 27:
                 return 131;
-            case 28:
+            default:
                 // 144 is the current version in the master branch of AOSP as of 2018-05-22
                 return 144;
         }
-
-        return 143;
     }
 }
