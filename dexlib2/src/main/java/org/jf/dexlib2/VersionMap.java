@@ -51,13 +51,13 @@ public class VersionMap {
     }
 
     public static int mapApiToDexVersion(int api) {
-        if (api < 24) {
+        if (api <= 23) {
             return 35;
         }
-        if (api < 26) {
+        if (api <= 25) {
             return 37;
         }
-        if (api < 28) {
+        if (api <= 27) {
             return 38;
         }
         return 39;
