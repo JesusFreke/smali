@@ -66,7 +66,11 @@ public class Opcodes {
 
     @Nonnull
     public static Opcodes forDexVersion(int dexVersion) {
-        return new Opcodes(VersionMap.mapDexVersionToApi(dexVersion) , NO_VERSION);
+        int api = VersionMap.mapDexVersionToApi(dexVersion);
+        if (api == NO_VERSION) {
+            throw new RuntimeException("Unsupported dex version " + dexVersion);
+        }
+        return new Opcodes(api, NO_VERSION);
     }
 
     /**
