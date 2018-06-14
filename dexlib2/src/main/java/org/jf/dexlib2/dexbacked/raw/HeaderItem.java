@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import org.jf.dexlib2.VersionMap;
 import org.jf.dexlib2.dexbacked.BaseDexBuffer;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
@@ -229,17 +230,7 @@ public class HeaderItem {
      * @return The dex file magic number
      */
     public static byte[] getMagicForApi(int api) {
-        if (api < 24) {
-            // Prior to Android N we only support dex version 035.
-            return getMagicForDexVersion(35);
-        } if (api < 26) {
-            // On android N and later we support dex version 037.
-            return getMagicForDexVersion(37);
-        } else if (api < 28) {
-            return getMagicForDexVersion(38);
-        } else {
-            return getMagicForDexVersion(39);
-        }
+        return getMagicForDexVersion(VersionMap.mapApiToDexVersion(api));
     }
 
     public static byte[] getMagicForDexVersion(int dexVersion) {

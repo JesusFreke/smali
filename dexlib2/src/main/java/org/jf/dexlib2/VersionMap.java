@@ -50,6 +50,19 @@ public class VersionMap {
         throw new RuntimeException("Unsupported dex version " + dexVersion);
     }
 
+    public static int mapApiToDexVersion(int api) {
+        if (api < 24) {
+            return 35;
+        }
+        if (api < 26) {
+            return 37;
+        }
+        if (api < 28) {
+            return 38;
+        }
+        return 39;
+    }
+
     public static int mapArtVersionToApi(int artVersion) {
         // 144 is the current version in the master branch of AOSP as of 2018-05-22
         if (artVersion >= 144) {
