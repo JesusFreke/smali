@@ -302,12 +302,7 @@ public class HeaderItem {
     }
 
     public static boolean isSupportedDexVersion(int version) {
-        try {
-            VersionMap.mapDexVersionToApi(version);
-            return true;
-        } catch (RuntimeException e) {
-            return false;
-        }
+        return VersionMap.mapDexVersionToApi(version) != VersionMap.NO_VERSION;
     }
 
     public static int getEndian(byte[] buf, int offset) {

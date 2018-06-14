@@ -47,7 +47,7 @@ public class VersionMap {
         if (dexVersion == 39) {
             return 28;
         }
-        throw new RuntimeException("Unsupported dex version " + dexVersion);
+        return NO_VERSION;
     }
 
     public static int mapApiToDexVersion(int api) {
