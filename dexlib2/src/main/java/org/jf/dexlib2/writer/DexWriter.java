@@ -138,6 +138,10 @@ public abstract class DexWriter<
     protected int numCodeItemItems = 0;
     protected int numClassDataItems = 0;
 
+    // The sections defined here must be kept in sync with these section arrays:
+    // - DexWriter.overflowableSections
+    // - DexPool.sections
+
     public final StringSectionType stringSection;
     public final TypeSectionType typeSection;
     public final ProtoSectionType protoSection;
