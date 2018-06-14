@@ -31,10 +31,10 @@
 
 package org.jf.dexlib2.analysis;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.DexFileFactory.UnsupportedFileTypeException;
 import org.jf.dexlib2.Opcodes;
