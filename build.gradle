@@ -69,7 +69,7 @@ task(install).doLast {
 }
 
 // The projects that get pushed to maven
-def maven_release_projects = ['smali', 'baksmali', 'dexlib2', 'util']
+def maven_release_projects = ['smali', 'baksmali', 'dexlib2', 'util', 'util-jcommander']
 
 subprojects {
     apply plugin: 'java'

@@ -40,6 +40,7 @@ buildscript {
 
 dependencies {
     compile project(':util')
+    compile project(':util-jcommander')
     compile project(':dexlib2')
     compile depends.guava
     compile depends.jcommander

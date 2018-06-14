@@ -74,6 +74,7 @@ idea {
 
 dependencies {
     compile project(':util')
+    compile project(':util-jcommander')
     compile project(':dexlib2')
     compile depends.antlr_runtime
     compile depends.jcommander

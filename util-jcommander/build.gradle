@@ -30,17 +30,19 @@
  */
 
 dependencies {
+    compile project(':util')
     compile depends.findbugs
     compile depends.guava
+    compile depends.jcommander
     testCompile depends.junit
 }
 
 uploadArchives {
     repositories.mavenDeployer {
         pom.project {
-            description 'This library contains random utilities used by smali/baksmali/dexlib2'
+            description 'This library contains JCommander utilities used by smali/baksmali'
             scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/util'
+                url 'https://github.com/JesusFreke/smali/tree/master/util-jcommander'
             }
         }
     }
