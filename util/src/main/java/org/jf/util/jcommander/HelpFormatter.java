@@ -34,9 +34,9 @@ package org.jf.util.jcommander;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameters;
-import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.jf.util.WrappedIndentingWriter;
 
 import javax.annotation.Nonnull;
