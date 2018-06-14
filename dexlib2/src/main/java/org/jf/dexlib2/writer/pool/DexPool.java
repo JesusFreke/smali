@@ -58,8 +58,8 @@ public class DexPool extends DexWriter<CharSequence, StringReference, CharSequen
         ClassPool, CallSitePool, MethodHandlePool, TypeListPool, AnnotationPool, AnnotationSetPool, EncodedArrayPool> {
 
     private final Markable[] sections = new Markable[] {
-            stringSection, typeSection, protoSection, fieldSection, methodSection, classSection, typeListSection,
-            annotationSection, annotationSetSection
+            stringSection, typeSection, protoSection, fieldSection, methodSection, classSection, callSiteSection,
+            methodHandleSection, typeListSection, annotationSection, annotationSetSection, encodedArraySection
     };
 
     public DexPool(Opcodes opcodes) {
