@@ -35,19 +35,18 @@ public class VersionMap {
     public static final int NO_VERSION = -1;
 
     public static int mapDexVersionToApi(int dexVersion) {
-        if (dexVersion == 35) {
-            return 23;
+        switch (dexVersion) {
+            case 35:
+                return 23;
+            case 37:
+                return 25;
+            case 38:
+                return 27;
+            case 39:
+                return 28;
+            default:
+                return NO_VERSION;
         }
-        if (dexVersion == 37) {
-            return 25;
-        }
-        if (dexVersion == 38) {
-            return 27;
-        }
-        if (dexVersion == 39) {
-            return 28;
-        }
-        return NO_VERSION;
     }
 
     public static int mapApiToDexVersion(int api) {
