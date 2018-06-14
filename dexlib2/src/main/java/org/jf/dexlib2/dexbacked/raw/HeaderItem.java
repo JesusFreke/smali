@@ -44,7 +44,6 @@ public class HeaderItem {
     public static final int ITEM_SIZE = 0x70;
 
     private static final byte[] MAGIC_VALUE = new byte[] { 0x64, 0x65, 0x78, 0x0a, 0x00, 0x00, 0x00, 0x00 };
-    private static final int[] SUPPORTED_DEX_VERSIONS = new int[] { 35, 37, 38, 39 };
 
     public static final int LITTLE_ENDIAN_TAG = 0x12345678;
     public static final int BIG_ENDIAN_TAG = 0x78563412;
@@ -303,12 +302,12 @@ public class HeaderItem {
     }
 
     public static boolean isSupportedDexVersion(int version) {
-        for (int i=0; i<SUPPORTED_DEX_VERSIONS.length; i++) {
-            if (SUPPORTED_DEX_VERSIONS[i] == version) {
-                return true;
-            }
+        try {
+            VersionMap.mapDexVersionToApi(version);
+            return true;
+        } catch (RuntimeException e) {
+            return false;
         }
-        return false;
     }
 
     public static int getEndian(byte[] buf, int offset) {
