@@ -34,11 +34,7 @@ package org.jf.dexlib2.analysis;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.DexFileFactory.UnsupportedFileTypeException;
-import org.jf.dexlib2.Opcodes;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
@@ -51,14 +47,11 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 public class ClassPathResolver {
     private final Iterable<String> classPathDirs;
-    private final Opcodes opcodes;
 
-    private final Set<File> loadedFiles = Sets.newHashSet();
-    private final List<ClassProvider> classProviders = Lists.newArrayList();
+    private final PathEntryLoader pathEntryLoader;
 
     /**
      * Constructs a new ClassPathResolver using a specified list of bootclasspath entries
@@ -109,21 +102,21 @@ public class ClassPathResolver {
                               @Nonnull List<String> extraClassPathEntries, @Nonnull DexFile dexFile, boolean unused)
             throws IOException {
         this.classPathDirs = bootClassPathDirs;
-        opcodes = dexFile.getOpcodes();
+        this.pathEntryLoader = new PathEntryLoader(dexFile.getOpcodes());
 
         if (bootClassPathEntries == null) {
-            bootClassPathEntries = getDefaultBootClassPath(dexFile, opcodes.api);
+            bootClassPathEntries = getDefaultBootClassPath(dexFile, dexFile.getOpcodes().api);
         }
 
         for (String entry : bootClassPathEntries) {
             try {
                 loadLocalOrDeviceBootClassPathEntry(entry);
-            } catch (NoDexException ex) {
+            } catch (PathEntryLoader.NoDexException ex) {
                 if (entry.endsWith(".jar")) {
                     String odexEntry = entry.substring(0, entry.length() - 4) + ".odex";
                     try {
                         loadLocalOrDeviceBootClassPathEntry(odexEntry);
-                    } catch (NoDexException ex2) {
+                    } catch (PathEntryLoader.NoDexException ex2) {
                         throw new ResolveException("Neither %s nor %s contain a dex file", entry, odexEntry);
                     } catch (NotFoundException ex2) {
                         throw new ResolveException(ex);
@@ -136,7 +129,7 @@ public class ClassPathResolver {
                     String jarEntry = entry.substring(0, entry.length() - 5) + ".jar";
                     try {
                         loadLocalOrDeviceBootClassPathEntry(jarEntry);
-                        } catch (NoDexException ex2) {
+                        } catch (PathEntryLoader.NoDexException ex2) {
                         throw new ResolveException("Neither %s nor %s contain a dex file", entry, jarEntry);
                     } catch (NotFoundException ex2) {
                         throw new ResolveException(ex);
@@ -152,7 +145,7 @@ public class ClassPathResolver {
             // bootClassPathDirs
             try {
                 loadLocalClassPathEntry(entry);
-            } catch (NoDexException ex) {
+            } catch (PathEntryLoader.NoDexException ex) {
                 throw new ResolveException(ex);
             }
         }
@@ -160,23 +153,23 @@ public class ClassPathResolver {
         if (dexFile instanceof MultiDexContainer.MultiDexFile) {
             MultiDexContainer<? extends MultiDexFile> container = ((MultiDexFile)dexFile).getContainer();
             for (String entry: container.getDexEntryNames()) {
-                classProviders.add(new DexClassProvider(container.getEntry(entry)));
+                pathEntryLoader.getClassProviders().add(new DexClassProvider(container.getEntry(entry)));
             }
         } else {
-            classProviders.add(new DexClassProvider(dexFile));
+            pathEntryLoader.getClassProviders().add(new DexClassProvider(dexFile));
         }
     }
 
     @Nonnull
     public List<ClassProvider> getResolvedClassProviders() {
-        return classProviders;
+        return pathEntryLoader.getResolvedClassProviders();
     }
 
-    private boolean loadLocalClassPathEntry(@Nonnull String entry) throws NoDexException, IOException {
+    private boolean loadLocalClassPathEntry(@Nonnull String entry) throws PathEntryLoader.NoDexException, IOException {
         File entryFile = new File(entry);
         if (entryFile.exists() && entryFile.isFile()) {
             try {
-                loadEntry(entryFile, true);
+                pathEntryLoader.loadEntry(entryFile, true);
                 return true;
             } catch (UnsupportedFileTypeException ex) {
                 throw new ResolveException(ex, "Couldn't load classpath entry %s", entry);
@@ -186,7 +179,7 @@ public class ClassPathResolver {
     }
 
     private void loadLocalOrDeviceBootClassPathEntry(@Nonnull String entry)
-            throws IOException, NoDexException, NotFoundException {
+            throws IOException, PathEntryLoader.NoDexException, NotFoundException {
         // first, see if the entry is a valid local path
         if (loadLocalClassPathEntry(entry)) {
             return;
@@ -207,7 +200,7 @@ public class ClassPathResolver {
                 String partialPath = pathJoiner.join(pathComponents.subList(i, pathComponents.size()));
                 File entryFile = new File(directoryFile, partialPath);
                 if (entryFile.exists() && entryFile.isFile()) {
-                    loadEntry(entryFile, true);
+                    pathEntryLoader.loadEntry(entryFile, true);
                     return;
                 }
             }
@@ -216,83 +209,13 @@ public class ClassPathResolver {
         throw new NotFoundException("Could not find classpath entry %s", entry);
     }
 
-    private void loadEntry(@Nonnull File entryFile, boolean loadOatDependencies)
-            throws IOException, NoDexException {
-        if (loadedFiles.contains(entryFile)) {
-            return;
-        }
-
-        MultiDexContainer<? extends DexBackedDexFile> container;
-        try {
-            container = DexFileFactory.loadDexContainer(entryFile, opcodes);
-        } catch (UnsupportedFileTypeException ex) {
-            throw new ResolveException(ex);
-        }
-
-        List<String> entryNames = container.getDexEntryNames();
-
-        if (entryNames.size() == 0) {
-            throw new NoDexException("%s contains no dex file", entryFile);
-        }
-
-        loadedFiles.add(entryFile);
-
-        for (String entryName: entryNames) {
-            classProviders.add(new DexClassProvider(container.getEntry(entryName)));
-        }
-
-        if (loadOatDependencies && container instanceof OatFile) {
-            List<String> oatDependencies = ((OatFile)container).getBootClassPath();
-            if (!oatDependencies.isEmpty()) {
-                try {
-                    loadOatDependencies(entryFile.getParentFile(), oatDependencies);
-                } catch (NotFoundException ex) {
-                    throw new ResolveException(ex, "Error while loading oat file %s", entryFile);
-                } catch (NoDexException ex) {
-                    throw new ResolveException(ex, "Error while loading dependencies for oat file %s", entryFile);
-                }
-            }
-        }
-    }
-
     @Nonnull
     private static List<String> splitDevicePath(@Nonnull String path) {
         return Lists.newArrayList(Splitter.on('/').split(path));
     }
 
-    private void loadOatDependencies(@Nonnull File directory, @Nonnull List<String> oatDependencies)
-            throws IOException, NoDexException, NotFoundException {
-        // We assume that all oat dependencies are located in the same directory as the oat file
-        for (String oatDependency: oatDependencies) {
-            String oatDependencyName = getFilenameForOatDependency(oatDependency);
-            File file = new File(directory, oatDependencyName);
-            if (!file.exists()) {
-                throw new NotFoundException("Cannot find dependency %s in %s", oatDependencyName, directory);
-            }
-
-            loadEntry(file, false);
-        }
-    }
-
-    @Nonnull
-    private String getFilenameForOatDependency(String oatDependency) {
-        int index = oatDependency.lastIndexOf('/');
-
-        String dependencyLeaf = oatDependency.substring(index+1);
-        if (dependencyLeaf.endsWith(".art")) {
-            return dependencyLeaf.substring(0, dependencyLeaf.length() - 4) + ".oat";
-        }
-        return dependencyLeaf;
-    }
-
-    private static class NotFoundException extends Exception {
+    static class NotFoundException extends Exception {
         public NotFoundException(String message, Object... formatArgs) {
-            super(String.format(message, formatArgs));
-        }
-    }
-    
-    private static class NoDexException extends Exception {
-        public NoDexException(String message, Object... formatArgs) {
             super(String.format(message, formatArgs));
         }
     }
@@ -320,17 +243,8 @@ public class ClassPathResolver {
     @Nonnull
     private static List<String> getDefaultBootClassPath(@Nonnull DexFile dexFile, int apiLevel) {
         if (dexFile instanceof OatFile.OatDexFile) {
-            List<String> bcp = ((OatDexFile)dexFile).getContainer().getBootClassPath();
-            if (!bcp.isEmpty()) {
-                for (int i=0; i<bcp.size(); i++) {
-                    String entry = bcp.get(i);
-                    if (entry.endsWith(".art")) {
-                        bcp.set(i, entry.substring(0, entry.length() - 4) + ".oat");
-                    }
-                }
-                return bcp;
-            }
-            return Lists.newArrayList("boot.oat");
+            return bootClassPathForOat((OatDexFile) dexFile);
+
         }
 
         if (dexFile instanceof DexBackedOdexFile) {
@@ -461,5 +375,24 @@ public class ClassPathResolver {
                     "/system/framework/apache-xml.jar",
                     "/system/framework/org.apache.http.legacy.boot.jar");
         }
+    }
+
+    private static List<String> bootClassPathForOat(@Nonnull OatDexFile dexFile) {
+        List<String> bcp = dexFile.getContainer().getBootClassPath();
+        if(bcp.isEmpty()) {
+            return Lists.newArrayList("boot.oat");
+        } else {
+            return replaceElementsSuffix(bcp, ".art", ".oat");
+        }
+    }
+
+    private static List<String> replaceElementsSuffix(List<String> bcp, String originalSuffix, String newSuffix) {
+        for (int i=0; i<bcp.size(); i++) {
+            String entry = bcp.get(i);
+            if (entry.endsWith(originalSuffix)) {
+                bcp.set(i, entry.substring(0, entry.length() - originalSuffix.length()) + newSuffix);
+            }
+        }
+        return bcp;
     }
 }
