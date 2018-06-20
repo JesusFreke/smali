@@ -32,12 +32,9 @@
 package org.jf.dexlib2.builder;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-public class Label {
-    @Nullable MethodLocation location;
-
-    Label() {
+public class Label extends ItemWithLocation {
+    Label(){
     }
 
     Label(MethodLocation location) {
@@ -54,9 +51,5 @@ public class Label {
             throw new IllegalStateException("Cannot get the location of a label that hasn't been placed yet.");
         }
         return location;
-    }
-
-    public boolean isPlaced() {
-        return location != null;
     }
 }
