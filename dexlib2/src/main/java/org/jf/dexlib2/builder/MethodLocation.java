@@ -75,22 +75,42 @@ public class MethodLocation {
     }
 
     @Nonnull
-    private List<Label> getLabels(boolean mutable) {
+    private List<Label> getMutableLabels() {
         if (labels == null) {
-            if (mutable) {
-                labels = new ArrayList<Label>(1);
-                return labels;
-            }
+            labels = new ArrayList<>(1);
+        }
+        return labels;
+    }
+    
+    @Nonnull
+    private List<Label> getImmutableLabels() {
+        if (labels == null) {
             return ImmutableList.of();
         }
         return labels;
     }
 
     @Nonnull
+    private List<BuilderDebugItem> getMutableDebugItems() {
+        if (debugItems == null) {
+            debugItems = new ArrayList<>(1);
+        }
+        return debugItems;
+    }
+
+    @Nonnull
+    private List<BuilderDebugItem> getImmutableDebugItems() {
+        if (debugItems == null) {
+            return ImmutableList.of();
+        }
+        return debugItems;
+    }
+
+    @Nonnull
     private List<BuilderDebugItem> getDebugItems(boolean mutable) {
         if (debugItems == null) {
             if (mutable) {
-                debugItems = new ArrayList<BuilderDebugItem>(1);
+                debugItems = new ArrayList<>(1);
                 return debugItems;
             }
             return ImmutableList.of();
@@ -100,8 +120,8 @@ public class MethodLocation {
 
     void mergeInto(@Nonnull MethodLocation other) {
         if (this.labels != null || other.labels != null) {
-            List<Label> otherLabels = other.getLabels(true);
-            for (Label label: this.getLabels(false)) {
+            List<Label> otherLabels = other.getMutableLabels();
+            for (Label label: this.getImmutableLabels()) {
                 label.location = other;
                 otherLabels.add(label);
             }
@@ -111,11 +131,11 @@ public class MethodLocation {
         if (this.debugItems != null || other.labels != null) {
             // We need to keep the debug items in the same order. We add the other debug items to this list, then reassign
             // the list.
-            List<BuilderDebugItem> debugItems = getDebugItems(true);
+            List<BuilderDebugItem> debugItems = getMutableDebugItems();
             for (BuilderDebugItem debugItem: debugItems) {
                 debugItem.location = other;
             }
-            debugItems.addAll(other.getDebugItems(false));
+            debugItems.addAll(other.getImmutableDebugItems());
             other.debugItems = debugItems;
             this.debugItems = null;
         }
@@ -126,7 +146,7 @@ public class MethodLocation {
         return new AbstractSet<Label>() {
             @Nonnull
             @Override public Iterator<Label> iterator() {
-                final Iterator<Label> it = getLabels(false).iterator();
+                final Iterator<Label> it = getImmutableLabels().iterator();
 
                 return new Iterator<Label>() {
                     private @Nullable Label currentLabel = null;
@@ -150,7 +170,7 @@ public class MethodLocation {
             }
 
             @Override public int size() {
-                return getLabels(false).size();
+                return getImmutableLabels().size();
             }
 
             @Override public boolean add(@Nonnull Label label) {
@@ -159,7 +179,7 @@ public class MethodLocation {
                             "it from its current location first.");
                 }
                 label.location = MethodLocation.this;
-                getLabels(true).add(label);
+                getMutableLabels().add(label);
                 return true;
             }
         };
@@ -168,7 +188,7 @@ public class MethodLocation {
     @Nonnull
     public Label addNewLabel() {
         Label label = new Label(this);
-        getLabels(true).add(label);
+        getMutableLabels().add(label);
         return label;
     }
 
@@ -177,7 +197,7 @@ public class MethodLocation {
         return new AbstractSet<BuilderDebugItem>() {
             @Nonnull
             @Override public Iterator<BuilderDebugItem> iterator() {
-                final Iterator<BuilderDebugItem> it = getDebugItems(false).iterator();
+                final Iterator<BuilderDebugItem> it = getImmutableDebugItems().iterator();
 
                 return new Iterator<BuilderDebugItem>() {
                     private @Nullable BuilderDebugItem currentDebugItem = null;
@@ -201,7 +221,7 @@ public class MethodLocation {
             }
 
             @Override public int size() {
-                return getDebugItems(false).size();
+                return getImmutableDebugItems().size();
             }
 
             @Override public boolean add(@Nonnull BuilderDebugItem debugItem) {
@@ -210,7 +230,7 @@ public class MethodLocation {
                             "method. You must remove it from its current location first.");
                 }
                 debugItem.location = MethodLocation.this;
-                getDebugItems(true).add(debugItem);
+                getMutableDebugItems().add(debugItem);
                 return true;
             }
         };
