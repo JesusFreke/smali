@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.builder;
 
-import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.builder.debug.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.reference.StringReference;
@@ -46,16 +45,13 @@ public class MethodLocation {
     int codeAddress;
     int index;
 
-    // We end up creating and keeping around a *lot* of MethodLocation objects
-    // when building a new dex file, so it's worth the trouble of lazily creating
-    // the labels and debugItems lists only when they are needed
-
+    private final LocatedItems<Label> labels;
     @Nullable
-    private List<Label> labels = null;
-    @Nullable
-    private List<BuilderDebugItem> debugItems = null;
+    private final LocatedItems<BuilderDebugItem> debugItems;
 
     MethodLocation(@Nullable BuilderInstruction instruction, int codeAddress, int index) {
+        this.debugItems = new LocatedDebugItems();
+        this.labels = new LocatedLabels();
         this.instruction = instruction;
         this.codeAddress = codeAddress;
         this.index = index;
@@ -74,166 +70,26 @@ public class MethodLocation {
         return index;
     }
 
-    @Nonnull
-    private List<Label> getMutableLabels() {
-        if (labels == null) {
-            labels = new ArrayList<>(1);
-        }
-        return labels;
-    }
-    
-    @Nonnull
-    private List<Label> getImmutableLabels() {
-        if (labels == null) {
-            return ImmutableList.of();
-        }
-        return labels;
-    }
-
-    @Nonnull
-    private List<BuilderDebugItem> getMutableDebugItems() {
-        if (debugItems == null) {
-            debugItems = new ArrayList<>(1);
-        }
-        return debugItems;
-    }
-
-    @Nonnull
-    private List<BuilderDebugItem> getImmutableDebugItems() {
-        if (debugItems == null) {
-            return ImmutableList.of();
-        }
-        return debugItems;
-    }
-
-    @Nonnull
-    private List<BuilderDebugItem> getDebugItems(boolean mutable) {
-        if (debugItems == null) {
-            if (mutable) {
-                debugItems = new ArrayList<>(1);
-                return debugItems;
-            }
-            return ImmutableList.of();
-        }
-        return debugItems;
-    }
-
     void mergeInto(@Nonnull MethodLocation other) {
-        if (this.labels != null || other.labels != null) {
-            List<Label> otherLabels = other.getMutableLabels();
-            for (Label label: this.getImmutableLabels()) {
-                label.location = other;
-                otherLabels.add(label);
-            }
-            this.labels = null;
-        }
-
-        if (this.debugItems != null || other.labels != null) {
-            // We need to keep the debug items in the same order. We add the other debug items to this list, then reassign
-            // the list.
-            List<BuilderDebugItem> debugItems = getMutableDebugItems();
-            for (BuilderDebugItem debugItem: debugItems) {
-                debugItem.location = other;
-            }
-            debugItems.addAll(other.getImmutableDebugItems());
-            other.debugItems = debugItems;
-            this.debugItems = null;
-        }
+        labels.mergeItemsInto(other, other.labels);
+        debugItems.mergeItemsInto(other, other.debugItems);
     }
 
     @Nonnull
     public Set<Label> getLabels() {
-        return new AbstractSet<Label>() {
-            @Nonnull
-            @Override public Iterator<Label> iterator() {
-                final Iterator<Label> it = getImmutableLabels().iterator();
-
-                return new Iterator<Label>() {
-                    private @Nullable Label currentLabel = null;
-
-                    @Override public boolean hasNext() {
-                        return it.hasNext();
-                    }
-
-                    @Override public Label next() {
-                        currentLabel = it.next();
-                        return currentLabel;
-                    }
-
-                    @Override public void remove() {
-                        if (currentLabel != null) {
-                            currentLabel.location = null;
-                        }
-                        it.remove();
-                    }
-                };
-            }
-
-            @Override public int size() {
-                return getImmutableLabels().size();
-            }
-
-            @Override public boolean add(@Nonnull Label label) {
-                if (label.isPlaced()) {
-                    throw new IllegalArgumentException("Cannot add a label that is already placed. You must remove " +
-                            "it from its current location first.");
-                }
-                label.location = MethodLocation.this;
-                getMutableLabels().add(label);
-                return true;
-            }
-        };
+        return labels.getModifiableItems(MethodLocation.this);
     }
 
     @Nonnull
     public Label addNewLabel() {
-        Label label = new Label(this);
-        getMutableLabels().add(label);
-        return label;
+        Label newLabel = new Label();
+        getLabels().add(newLabel);
+        return newLabel;
     }
 
     @Nonnull
     public Set<BuilderDebugItem> getDebugItems() {
-        return new AbstractSet<BuilderDebugItem>() {
-            @Nonnull
-            @Override public Iterator<BuilderDebugItem> iterator() {
-                final Iterator<BuilderDebugItem> it = getImmutableDebugItems().iterator();
-
-                return new Iterator<BuilderDebugItem>() {
-                    private @Nullable BuilderDebugItem currentDebugItem = null;
-
-                    @Override public boolean hasNext() {
-                        return it.hasNext();
-                    }
-
-                    @Override public BuilderDebugItem next() {
-                        currentDebugItem = it.next();
-                        return currentDebugItem;
-                    }
-
-                    @Override public void remove() {
-                        if (currentDebugItem != null) {
-                            currentDebugItem.location = null;
-                        }
-                        it.remove();
-                    }
-                };
-            }
-
-            @Override public int size() {
-                return getImmutableDebugItems().size();
-            }
-
-            @Override public boolean add(@Nonnull BuilderDebugItem debugItem) {
-                if (debugItem.location != null) {
-                    throw new IllegalArgumentException("Cannot add a debug item that has already been added to a " +
-                            "method. You must remove it from its current location first.");
-                }
-                debugItem.location = MethodLocation.this;
-                getMutableDebugItems().add(debugItem);
-                return true;
-            }
-        };
+        return debugItems.getModifiableItems(MethodLocation.this);
     }
 
     public void addLineNumber(int lineNumber) {
