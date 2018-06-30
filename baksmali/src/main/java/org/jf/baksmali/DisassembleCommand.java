@@ -39,6 +39,7 @@ import com.beust.jcommander.validators.PositiveInteger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
+import org.jf.util.ConsoleUtil;
 import org.jf.util.StringWrapper;
 import org.jf.util.jcommander.ExtendedParameter;
 import org.jf.util.jcommander.ExtendedParameters;
@@ -163,7 +164,8 @@ public class DisassembleCommand extends DexInputCommand {
         if (showDeodexWarning() && dexFile.hasOdexOpcodes()) {
             StringWrapper.printWrappedString(System.err,
                     "Warning: You are disassembling an odex/oat file without deodexing it. You won't be able to " +
-                            "re-assemble the results unless you deodex it. See \"baksmali help deodex\"");
+                            "re-assemble the results unless you deodex it. See \"baksmali help deodex\"",
+                    ConsoleUtil.getConsoleWidth());
         }
 
         File outputDirectoryFile = new File(outputDir);

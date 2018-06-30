@@ -1,18 +1,18 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2018, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
  *
- *     * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
  * copyright notice, this list of conditions and the following disclaimer
  * in the documentation and/or other materials provided with the
  * distribution.
- *     * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  *
@@ -29,16 +29,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.jf.util;
+package org.jf.dexlib2.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+public abstract class AlignmentUtils {
+    public static int alignOffset(int offset, int alignment) {
+        int mask = alignment - 1;
+        assert (alignment >= 0) && ((mask & alignment) == 0);
+        return (offset + mask) & ~mask;
+    }
 
-/**
- * A ByteArrayOutputStream that lets you grab its protected bits.
- */
-public class NakedByteArrayOutputStream extends ByteArrayOutputStream {
-    public byte[] getBuffer() throws IOException {
-        return buf;
+    public static boolean isAligned(int offset, int alignment) {
+        return (offset % alignment) == 0;
     }
 }
