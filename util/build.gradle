@@ -30,6 +30,7 @@
  */
 
 dependencies {
+    compile project(':dexlib2')
     compile depends.findbugs
     compile depends.guava
     compile depends.jcommander

@@ -34,7 +34,7 @@ package org.jf.dexlib2.dexbacked.raw;
 import com.google.common.collect.Maps;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
-import org.jf.util.AlignmentUtils;
+import org.jf.dexlib2.util.AlignmentUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

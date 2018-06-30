@@ -44,7 +44,7 @@ import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.util.MethodUtil;
-import org.jf.util.AlignmentUtils;
+import org.jf.dexlib2.util.AlignmentUtils;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
 

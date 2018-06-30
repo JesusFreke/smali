@@ -34,7 +34,6 @@ package org.jf.dexlib2.writer;
 import junit.framework.Assert;
 import org.jf.dexlib2.ValueType;
 import org.jf.util.ExceptionWithContext;
-import org.jf.util.NakedByteArrayOutputStream;
 import org.junit.Before;
 import org.junit.Test;
 
