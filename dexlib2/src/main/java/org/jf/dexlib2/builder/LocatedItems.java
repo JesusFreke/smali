@@ -13,16 +13,14 @@ public abstract class LocatedItems<T extends ItemWithLocation> {
     @Nullable
     private List<T> items = null;
 
-    @Nonnull
-    private List<T> getMutableItems() {
+    private void initItemsIfNull() {
         if (items == null) {
             items = new ArrayList<>(1);
         }
-        return items;
     }
 
     @Nonnull
-    private List<T> getImmutableItems() {
+    private List<T> getItems() {
         if (items == null) {
             return ImmutableList.of();
         }
@@ -32,23 +30,27 @@ public abstract class LocatedItems<T extends ItemWithLocation> {
     public Set<T> getModifiableItems(MethodLocation newItemsLocation) {
         return new AbstractSet<T>() {
             @Nonnull
-            @Override public Iterator<T> iterator() {
-                final Iterator<T> it = getImmutableItems().iterator();
+            @Override
+            public Iterator<T> iterator() {
+                final Iterator<T> it = getItems().iterator();
 
                 return new Iterator<T>() {
                     private @Nullable
                     T currentItem = null;
 
-                    @Override public boolean hasNext() {
+                    @Override
+                    public boolean hasNext() {
                         return it.hasNext();
                     }
 
-                    @Override public T next() {
+                    @Override
+                    public T next() {
                         currentItem = it.next();
                         return currentItem;
                     }
 
-                    @Override public void remove() {
+                    @Override
+                    public void remove() {
                         if (currentItem != null) {
                             currentItem.setLocation(null);
                         }
@@ -57,30 +59,37 @@ public abstract class LocatedItems<T extends ItemWithLocation> {
                 };
             }
 
-            @Override public int size() {
-                return getImmutableItems().size();
+            @Override
+            public int size() {
+                return getItems().size();
             }
 
-            @Override public boolean add(@Nonnull T item) {
+            @Override
+            public boolean add(@Nonnull T item) {
                 if (item.isPlaced()) {
-                    throw new IllegalArgumentException(addLocatedItemError());
+                    throw new IllegalArgumentException(getAddLocatedItemError());
                 }
                 item.setLocation(newItemsLocation);
-                getMutableItems().add(item);
+                initItemsIfNull();
+                items.add(item);
                 return true;
             }
         };
     }
 
-    protected abstract String addLocatedItemError();
+    protected abstract String getAddLocatedItemError();
 
-    public void mergeItemsInto(@Nonnull MethodLocation newLocation, LocatedItems<T> otherLocatedItems) {
-        if (items != null || otherLocatedItems.items != null) {
-            List<T> otherItems = otherLocatedItems.getMutableItems();
-            for (T item: getImmutableItems()) {
-                item.setLocation(newLocation);
-                otherItems.add(item);
+    public void mergeItemsIntoNext(@Nonnull MethodLocation nextLocation, LocatedItems<T> otherLocatedItems) {
+        if (otherLocatedItems == this) {
+            return;
+        }
+        if (items != null) {
+            for (T item : items) {
+                item.setLocation(nextLocation);
             }
+            List<T> mergedItems = items;
+            mergedItems.addAll(otherLocatedItems.getItems());
+            otherLocatedItems.items = mergedItems;
             items = null;
         }
     }

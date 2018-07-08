@@ -46,7 +46,6 @@ public class MethodLocation {
     int index;
 
     private final LocatedItems<Label> labels;
-    @Nullable
     private final LocatedItems<BuilderDebugItem> debugItems;
 
     MethodLocation(@Nullable BuilderInstruction instruction, int codeAddress, int index) {
@@ -70,9 +69,9 @@ public class MethodLocation {
         return index;
     }
 
-    void mergeInto(@Nonnull MethodLocation other) {
-        labels.mergeItemsInto(other, other.labels);
-        debugItems.mergeItemsInto(other, other.debugItems);
+    void mergeInto(@Nonnull MethodLocation nextLocation) {
+        labels.mergeItemsIntoNext(nextLocation, nextLocation.labels);
+        debugItems.mergeItemsIntoNext(nextLocation, nextLocation.debugItems);
     }
 
     @Nonnull
