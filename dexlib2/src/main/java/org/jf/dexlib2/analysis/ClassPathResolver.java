@@ -390,7 +390,7 @@ public class ClassPathResolver {
         for (int i=0; i<bcp.size(); i++) {
             String entry = bcp.get(i);
             if (entry.endsWith(originalSuffix)) {
-                bcp.set(i, entry.substring(0, entry.length() - 4) + newSuffix);
+                bcp.set(i, entry.substring(0, entry.length() - originalSuffix.length()) + newSuffix);
             }
         }
         return bcp;
