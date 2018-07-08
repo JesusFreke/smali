@@ -379,9 +379,9 @@ public class ClassPathResolver {
 
     private static List<String> bootClassPathForOat(@Nonnull OatDexFile dexFile) {
         List<String> bcp = dexFile.getContainer().getBootClassPath();
-        if(bcp.isEmpty()){
+        if(bcp.isEmpty()) {
             return Lists.newArrayList("boot.oat");
-        }else{
+        } else {
             return replaceElementsSuffix(bcp, ".art", ".oat");
         }
     }
