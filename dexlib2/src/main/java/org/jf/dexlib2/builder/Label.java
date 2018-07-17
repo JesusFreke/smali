@@ -34,7 +34,7 @@ package org.jf.dexlib2.builder;
 import javax.annotation.Nonnull;
 
 public class Label extends ItemWithLocation {
-    Label(){
+    Label() {
     }
 
     Label(MethodLocation location) {

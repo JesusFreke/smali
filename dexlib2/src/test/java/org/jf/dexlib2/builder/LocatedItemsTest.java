@@ -10,15 +10,15 @@ import java.util.List;
 
 public class LocatedItemsTest {
 
-    private List<BuilderDebugItem> createItems(int count){
+    private List<BuilderDebugItem> createItems(int count) {
         List<BuilderDebugItem> items = new ArrayList<>();
-        for(int i = 0; i < count; ++i){
+        for (int i = 0; i < count; ++i) {
             items.add(new BuilderLineNumber(i));
         }
         return items;
     }
 
-    private void doTestMergeIntoKeepsOrderOfDebugItems(int countLocation1, int countLocation2){
+    private void doTestMergeIntoKeepsOrderOfDebugItems(int countLocation1, int countLocation2) {
         MethodLocation location1 = new MethodLocation(null, 123, 1);
         MethodLocation location2 = new MethodLocation(null, 456, 2);
 
