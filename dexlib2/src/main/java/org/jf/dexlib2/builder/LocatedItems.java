@@ -10,12 +10,6 @@ public abstract class LocatedItems<T extends ItemWithLocation> {
     @Nullable
     private List<T> items = null;
 
-    private void initItemsIfNull() {
-        if (items == null) {
-            items = new ArrayList<>(1);
-        }
-    }
-
     @Nonnull
     private List<T> getItems() {
         if (items == null) {
@@ -67,17 +61,23 @@ public abstract class LocatedItems<T extends ItemWithLocation> {
                     throw new IllegalArgumentException(getAddLocatedItemError());
                 }
                 item.setLocation(newItemsLocation);
-                initItemsIfNull();
-                items.add(item);
+                addItem(item);
                 return true;
             }
         };
     }
 
+    private void addItem(@Nonnull T item) {
+        if (items == null) {
+            items = new ArrayList<>(1);
+        }
+        items.add(item);
+    }
+
     protected abstract String getAddLocatedItemError();
 
     public void mergeItemsIntoNext(@Nonnull MethodLocation nextLocation, LocatedItems<T> otherLocatedItems) {
-        if(otherLocatedItems == this){
+        if (otherLocatedItems == this) {
             return;
         }
         if (items != null) {
