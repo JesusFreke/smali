@@ -110,6 +110,7 @@ tokens {
   INSTRUCTION_FORMAT35c_CALL_SITE;
   INSTRUCTION_FORMAT35c_METHOD;
   INSTRUCTION_FORMAT35c_METHOD_ODEX;
+  INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE;
   INSTRUCTION_FORMAT35c_TYPE;
   INSTRUCTION_FORMAT35mi_METHOD;
   INSTRUCTION_FORMAT35ms_METHOD;
@@ -586,6 +587,7 @@ simple_name
   | INSTRUCTION_FORMAT35c_CALL_SITE -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_CALL_SITE]
   | INSTRUCTION_FORMAT35c_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_METHOD]
   | INSTRUCTION_FORMAT35c_METHOD_ODEX -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_METHOD_ODEX]
+  | INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE]
   | INSTRUCTION_FORMAT35c_TYPE -> SIMPLE_NAME[$INSTRUCTION_FORMAT35c_TYPE]
   | INSTRUCTION_FORMAT35mi_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35mi_METHOD]
   | INSTRUCTION_FORMAT35ms_METHOD -> SIMPLE_NAME[$INSTRUCTION_FORMAT35ms_METHOD]
@@ -724,7 +726,8 @@ call_site_reference
 
 method_handle_reference
   : METHOD_HANDLE_TYPE_FIELD AT field_reference -> METHOD_HANDLE_TYPE_FIELD field_reference
-  | METHOD_HANDLE_TYPE_METHOD AT method_reference -> METHOD_HANDLE_TYPE_METHOD method_reference;
+  | METHOD_HANDLE_TYPE_METHOD AT method_reference -> METHOD_HANDLE_TYPE_METHOD method_reference
+  | INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE AT method_reference -> INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE method_reference;
 
 method_handle_literal
   : method_handle_reference
@@ -826,6 +829,10 @@ instruction_format22s
 instruction_format31i
   : INSTRUCTION_FORMAT31i
   | INSTRUCTION_FORMAT31i_OR_ID -> INSTRUCTION_FORMAT31i[$INSTRUCTION_FORMAT31i_OR_ID];
+  
+instruction_format35c_method
+  : INSTRUCTION_FORMAT35c_METHOD
+  | INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE -> INSTRUCTION_FORMAT35c_METHOD[$INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE];
 
 instruction
   : insn_format10t
@@ -943,7 +950,7 @@ insn_format21c_field_odex
     -> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER field_reference);
 
 insn_format21c_method_handle
-  : //e.g. const-method-handle v0, static-invoke@Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+  : //e.g. const-method-handle v0, invoke-static@Ljava/lang/Integer;->toString(I)Ljava/lang/String;
     INSTRUCTION_FORMAT21c_METHOD_HANDLE REGISTER COMMA method_handle_reference
     -> ^(I_STATEMENT_FORMAT21c_METHOD_HANDLE[$start, "I_STATEMENT_FORMAT21c_METHOD_HANDLE"]
             INSTRUCTION_FORMAT21c_METHOD_HANDLE REGISTER method_handle_reference);
@@ -1069,8 +1076,8 @@ insn_format35c_call_site
 
 insn_format35c_method
   : //e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-    INSTRUCTION_FORMAT35c_METHOD OPEN_BRACE register_list CLOSE_BRACE COMMA method_reference
-    -> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] INSTRUCTION_FORMAT35c_METHOD register_list method_reference);
+    instruction_format35c_method OPEN_BRACE register_list CLOSE_BRACE COMMA method_reference
+    -> ^(I_STATEMENT_FORMAT35c_METHOD[$start, "I_STATEMENT_FORMAT35c_METHOD"] instruction_format35c_method register_list method_reference);
 
 insn_format35c_type
   : //e.g. filled-new-array {v0,v1}, I

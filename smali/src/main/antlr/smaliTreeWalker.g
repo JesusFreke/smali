@@ -514,7 +514,7 @@ call_site_reference returns[ImmutableCallSiteReference callSiteReference]
     {
         String callSiteName = $call_site_name.text;
         ImmutableMethodHandleReference methodHandleReference =
-            new ImmutableMethodHandleReference(MethodHandleType.STATIC_INVOKE,
+            new ImmutableMethodHandleReference(MethodHandleType.INVOKE_STATIC,
                 $method_reference.methodReference);
         $callSiteReference = new ImmutableCallSiteReference(
             callSiteName, methodHandleReference, $method_name.value, $method_prototype.proto,
@@ -522,7 +522,7 @@ call_site_reference returns[ImmutableCallSiteReference callSiteReference]
     };
 
 method_handle_type returns[int methodHandleType]
-  : METHOD_HANDLE_TYPE_FIELD | METHOD_HANDLE_TYPE_METHOD {
+  : (METHOD_HANDLE_TYPE_FIELD | METHOD_HANDLE_TYPE_METHOD | INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE) {
     $methodHandleType = MethodHandleType.getMethodHandleType($text);
   };
 
@@ -891,7 +891,7 @@ insn_format21c_field
     };
 
 insn_format21c_method_handle
-  : //e.g. const-method-handle v0, static-invoke@Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+  : //e.g. const-method-handle v0, invoke-static@Ljava/lang/Integer;->toString(I)Ljava/lang/String;
     ^(I_STATEMENT_FORMAT21c_METHOD_HANDLE inst=(INSTRUCTION_FORMAT21c_METHOD_HANDLE) REGISTER method_handle_reference)
     {
       Opcode opcode = opcodes.getOpcodeByName($inst.text);
