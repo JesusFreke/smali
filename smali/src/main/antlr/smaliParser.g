@@ -943,7 +943,7 @@ insn_format21c_field_odex
     -> ^(I_STATEMENT_FORMAT21c_FIELD[$start, "I_STATEMENT_FORMAT21c_FIELD"] INSTRUCTION_FORMAT21c_FIELD_ODEX REGISTER field_reference);
 
 insn_format21c_method_handle
-  : //e.g. const-method-handle v0, static-invoke@Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+  : //e.g. const-method-handle v0, mht-invoke-static@Ljava/lang/Integer;->toString(I)Ljava/lang/String;
     INSTRUCTION_FORMAT21c_METHOD_HANDLE REGISTER COMMA method_handle_reference
     -> ^(I_STATEMENT_FORMAT21c_METHOD_HANDLE[$start, "I_STATEMENT_FORMAT21c_METHOD_HANDLE"]
             INSTRUCTION_FORMAT21c_METHOD_HANDLE REGISTER method_handle_reference);

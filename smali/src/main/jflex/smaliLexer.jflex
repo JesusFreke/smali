@@ -409,11 +409,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     "vtable@0x" {HexDigit}+ { return newToken(VTABLE_INDEX); }
     "field@0x" {HexDigit}+ { return newToken(FIELD_OFFSET); }
 
-    "instance-get" | "instance-put" | "static-get" | "static-put" {
+    "mht-static-put" | "mht-static-get" | "mht-instance-put" | "mht-instance-get" {
         return newToken(METHOD_HANDLE_TYPE_FIELD);
     }
 
-    "instance-invoke" | "static-invoke" {
+    "mht-invoke-static" | "mht-invoke-instance" | "mht-invoke-constructor" | "mht-invoke-direct" | "mht-invoke-interface" {
         return newToken(METHOD_HANDLE_TYPE_METHOD);
     }
 
