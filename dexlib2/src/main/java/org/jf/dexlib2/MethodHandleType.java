@@ -69,7 +69,7 @@ public class MethodHandleType {
     }
 
     public static int getMethodHandleType(String methodHandleType) {
-    	Integer ret = methodHandleTypeNames.inverse().get(methodHandleType);
+        Integer ret = methodHandleTypeNames.inverse().get(methodHandleType);
         if (ret == null) {
             throw new ExceptionWithContext("Invalid method handle type: %s", methodHandleType);
         }
