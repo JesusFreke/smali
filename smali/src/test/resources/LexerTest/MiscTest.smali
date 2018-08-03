@@ -45,12 +45,15 @@ illegal-method-access
 class-change-error
 instantiation-error
 
-instance-invoke
-static-invoke
-instance-get
-instance-put
-static-get
-static-put
+mht-invoke-static
+mht-invoke-instance
+mht-invoke-constructor
+mht-invoke-direct
+mht-invoke-interface
+mht-static-put
+mht-static-get
+mht-instance-put
+mht-instance-get
 
 inline@0xABCD
 inline@0x0123
