@@ -609,15 +609,18 @@ public abstract class DexWriter<
             writer.writeUshort(0);
             int memberIndex;
             switch (methodHandleReference.getMethodHandleType()) {
-                case MethodHandleType.INSTANCE_GET:
-                case MethodHandleType.INSTANCE_PUT:
-                case MethodHandleType.STATIC_GET:
                 case MethodHandleType.STATIC_PUT:
+                case MethodHandleType.STATIC_GET:
+                case MethodHandleType.INSTANCE_PUT:
+                case MethodHandleType.INSTANCE_GET:
                     memberIndex = fieldSection.getItemIndex(
                             methodHandleSection.getFieldReference(methodHandleReference));
                     break;
-                case MethodHandleType.INSTANCE_INVOKE:
-                case MethodHandleType.STATIC_INVOKE:
+                case MethodHandleType.INVOKE_STATIC:
+                case MethodHandleType.INVOKE_INSTANCE:
+                case MethodHandleType.INVOKE_CONSTRUCTOR:
+                case MethodHandleType.INVOKE_DIRECT:
+                case MethodHandleType.INVOKE_INTERFACE:
                     memberIndex = methodSection.getItemIndex(
                             methodHandleSection.getMethodReference(methodHandleReference));
                     break;

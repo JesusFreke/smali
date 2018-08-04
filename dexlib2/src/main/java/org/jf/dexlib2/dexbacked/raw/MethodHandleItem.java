@@ -34,6 +34,7 @@ package org.jf.dexlib2.dexbacked.raw;
 import org.jf.dexlib2.MethodHandleType;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
+import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,11 +60,22 @@ public class MethodHandleItem {
 
                 int fieldOrMethodId = dexFile.readUshort(out.getCursor());
                 String fieldOrMethodDescriptor;
-                if (methodHandleType == MethodHandleType.STATIC_INVOKE ||
-                        methodHandleType == MethodHandleType.INSTANCE_INVOKE) {
-                    fieldOrMethodDescriptor = MethodIdItem.getReferenceAnnotation(dexFile, fieldOrMethodId);
-                } else {
-                    fieldOrMethodDescriptor = FieldIdItem.getReferenceAnnotation(dexFile, fieldOrMethodId);
+                switch (methodHandleType) {
+                    case MethodHandleType.STATIC_PUT:
+                    case MethodHandleType.STATIC_GET:
+                    case MethodHandleType.INSTANCE_PUT:
+                    case MethodHandleType.INSTANCE_GET:
+                        fieldOrMethodDescriptor = FieldIdItem.getReferenceAnnotation(dexFile, fieldOrMethodId);
+                        break;
+                    case MethodHandleType.INVOKE_STATIC:
+                    case MethodHandleType.INVOKE_INSTANCE:
+                    case MethodHandleType.INVOKE_CONSTRUCTOR:
+                    case MethodHandleType.INVOKE_DIRECT:
+                    case MethodHandleType.INVOKE_INTERFACE:
+                        fieldOrMethodDescriptor = MethodIdItem.getReferenceAnnotation(dexFile, fieldOrMethodId);
+                        break;
+                    default:
+                        throw new ExceptionWithContext("Invalid method handle type: %d", methodHandleType);
                 }
 
                 out.annotate(2, "field_or_method_id = %s", fieldOrMethodDescriptor);

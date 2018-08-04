@@ -74,7 +74,7 @@ public class CallSiteTest {
                                 new ImmutableMethodImplementation(10, ImmutableList.of(
                                         new ImmutableInstruction35c(Opcode.INVOKE_CUSTOM, 0, 0, 0, 0, 0, 0,
                                                 new ImmutableCallSiteReference("call_site_1",
-                                                        new ImmutableMethodHandleReference(MethodHandleType.STATIC_INVOKE,
+                                                        new ImmutableMethodHandleReference(MethodHandleType.INVOKE_STATIC,
                                                                 new ImmutableMethodReference("Lcls1", "loader",
                                                                         ImmutableList.of("Ljava/lang/invoke/Lookup;",
                                                                                 "Ljava/lang/String;",
@@ -96,7 +96,7 @@ public class CallSiteTest {
 
         BuilderCallSiteReference callSite = dexBuilder.internCallSite(new ImmutableCallSiteReference("call_site_1",
                 new ImmutableMethodHandleReference(
-                        MethodHandleType.STATIC_INVOKE,
+                        MethodHandleType.INVOKE_STATIC,
                         new ImmutableMethodReference("Lcls1", "loader", ImmutableList.of("Ljava/lang/invoke/Lookup;",
                                 "Ljava/lang/String;",
                                 "Ljava/lang/invoke/MethodType;"),

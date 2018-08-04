@@ -60,8 +60,8 @@ public class ReferenceFormatter {
         }
         writer.write(")@");
         MethodHandleReference methodHandle = callSite.getMethodHandle();
-        if (methodHandle.getMethodHandleType() != MethodHandleType.STATIC_INVOKE) {
-            throw new IllegalArgumentException("The linker method handle for a call site must be of type static-invoke");
+        if (methodHandle.getMethodHandleType() != MethodHandleType.INVOKE_STATIC) {
+            throw new IllegalArgumentException("The linker method handle for a call site must be of type invoke-static");
         }
         writeReference(writer, ReferenceType.METHOD, callSite.getMethodHandle().getMemberReference());
     }
