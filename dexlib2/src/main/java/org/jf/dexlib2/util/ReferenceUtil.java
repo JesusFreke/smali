@@ -193,7 +193,7 @@ public final class ReferenceUtil {
         writer.write(")@");
         MethodHandleReference methodHandle = callSiteReference.getMethodHandle();
         if (methodHandle.getMethodHandleType() != MethodHandleType.INVOKE_STATIC) {
-            throw new IllegalArgumentException("The linker method handle for a call site must be of type mht-invoke-static");
+            throw new IllegalArgumentException("The linker method handle for a call site must be of type invoke-static");
         }
         writeMethodDescriptor(writer, (MethodReference)callSiteReference.getMethodHandle().getMemberReference());
     }

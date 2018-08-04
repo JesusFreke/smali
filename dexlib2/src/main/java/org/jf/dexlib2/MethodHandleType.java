@@ -49,15 +49,15 @@ public class MethodHandleType {
     public static final int INVOKE_INTERFACE = 8;
 
     private static final BiMap<Integer, String> methodHandleTypeNames = new ImmutableBiMap.Builder<Integer, String>()
-            .put(STATIC_PUT, "mht-static-put")
-            .put(STATIC_GET, "mht-static-get")
-            .put(INSTANCE_PUT, "mht-instance-put")
-            .put(INSTANCE_GET, "mht-instance-get")
-            .put(INVOKE_STATIC, "mht-invoke-static")
-            .put(INVOKE_INSTANCE, "mht-invoke-instance")
-            .put(INVOKE_CONSTRUCTOR, "mht-invoke-constructor")
-            .put(INVOKE_DIRECT, "mht-invoke-direct")
-            .put(INVOKE_INTERFACE, "mht-invoke-interface")
+            .put(STATIC_PUT, "static-put")
+            .put(STATIC_GET, "static-get")
+            .put(INSTANCE_PUT, "instance-put")
+            .put(INSTANCE_GET, "instance-get")
+            .put(INVOKE_STATIC, "invoke-static")
+            .put(INVOKE_INSTANCE, "invoke-instance")
+            .put(INVOKE_CONSTRUCTOR, "invoke-constructor")
+            .put(INVOKE_DIRECT, "invoke-direct")
+            .put(INVOKE_INTERFACE, "invoke-interface")
             .build();
 
     @Nonnull public static String toString(int methodHandleType) {

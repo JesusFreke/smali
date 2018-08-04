@@ -409,11 +409,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     "vtable@0x" {HexDigit}+ { return newToken(VTABLE_INDEX); }
     "field@0x" {HexDigit}+ { return newToken(FIELD_OFFSET); }
 
-    "mht-static-put" | "mht-static-get" | "mht-instance-put" | "mht-instance-get" {
+    "static-put" | "static-get" | "instance-put" | "instance-get" {
         return newToken(METHOD_HANDLE_TYPE_FIELD);
     }
 
-    "mht-invoke-static" | "mht-invoke-instance" | "mht-invoke-constructor" | "mht-invoke-direct" | "mht-invoke-interface" {
+    "invoke-instance" | "invoke-constructor" {
         return newToken(METHOD_HANDLE_TYPE_METHOD);
     }
 
@@ -588,8 +588,12 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         return newToken(INSTRUCTION_FORMAT35c_CALL_SITE);
     }
 
-    "invoke-virtual" | "invoke-super" | "invoke-direct" | "invoke-static" | "invoke-interface" {
+    "invoke-virtual" | "invoke-super" {
         return newToken(INSTRUCTION_FORMAT35c_METHOD);
+    }
+    
+    "invoke-direct" | "invoke-static" | "invoke-interface" {
+        return newToken(INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE_METHOD);
     }
 
     "invoke-direct-empty" {
