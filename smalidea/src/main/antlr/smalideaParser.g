@@ -400,6 +400,7 @@ simple_name
   | INSTRUCTION_FORMAT31t
   | INSTRUCTION_FORMAT35c_METHOD
   | INSTRUCTION_FORMAT35c_METHOD_ODEX
+  | INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE
   | INSTRUCTION_FORMAT35c_TYPE
   | INSTRUCTION_FORMAT35mi_METHOD
   | INSTRUCTION_FORMAT35ms_METHOD
@@ -1253,7 +1254,7 @@ insn_format32x
 
 insn_format35c_method
   : //e.g. invoke-virtual {v0,v1} java/io/PrintStream/print(Ljava/lang/Stream;)V
-    INSTRUCTION_FORMAT35c_METHOD register_list comma fully_qualified_method;
+    (INSTRUCTION_FORMAT35c_METHOD | INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE) register_list comma fully_qualified_method;
 
 insn_format35c_type
   : //e.g. filled-new-array {v0,v1}, I
