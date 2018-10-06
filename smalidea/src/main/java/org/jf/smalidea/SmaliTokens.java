@@ -120,6 +120,7 @@ public class SmaliTokens {
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType INSTRUCTION_FORMAT32x;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType INSTRUCTION_FORMAT35c_METHOD;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType INSTRUCTION_FORMAT35c_METHOD_ODEX;
+    @SuppressWarnings({"UnusedDeclaration"}) public static IElementType INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType INSTRUCTION_FORMAT35c_TYPE;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType INSTRUCTION_FORMAT35mi_METHOD;
     @SuppressWarnings({"UnusedDeclaration"}) public static IElementType INSTRUCTION_FORMAT35ms_METHOD;
@@ -238,6 +239,7 @@ public class SmaliTokens {
         tokenColors.put("INSTRUCTION_FORMAT32x", SmaliHighlightingColors.INSTRUCTION);
         tokenColors.put("INSTRUCTION_FORMAT35c_METHOD", SmaliHighlightingColors.INSTRUCTION);
         tokenColors.put("INSTRUCTION_FORMAT35c_METHOD_ODEX", SmaliHighlightingColors.INSTRUCTION);
+        tokenColors.put("INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE", SmaliHighlightingColors.INSTRUCTION);
         tokenColors.put("INSTRUCTION_FORMAT35c_TYPE", SmaliHighlightingColors.INSTRUCTION);
         tokenColors.put("INSTRUCTION_FORMAT35mi_METHOD", SmaliHighlightingColors.INSTRUCTION);
         tokenColors.put("INSTRUCTION_FORMAT35ms_METHOD", SmaliHighlightingColors.INSTRUCTION);
@@ -343,6 +345,7 @@ public class SmaliTokens {
                 INSTRUCTION_FORMAT32x,
                 INSTRUCTION_FORMAT35c_METHOD,
                 INSTRUCTION_FORMAT35c_METHOD_ODEX,
+                INSTRUCTION_FORMAT35c_METHOD_OR_METHOD_HANDLE_TYPE,
                 INSTRUCTION_FORMAT35c_TYPE,
                 INSTRUCTION_FORMAT35mi_METHOD,
                 INSTRUCTION_FORMAT35ms_METHOD,
