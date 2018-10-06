@@ -428,10 +428,10 @@ public class SmalideaMethodTest extends LightCodeInsightFixtureTestCase {
         List<? extends SwitchElement> switchElements = packedSwitchPayload.getSwitchElements();
         Assert.assertEquals(4, switchElements.size());
 
-        checkSwitchElement(switchElements.get(0), 10, 6);
-        checkSwitchElement(switchElements.get(1), 11, 14);
-        checkSwitchElement(switchElements.get(2), 12, 22);
-        checkSwitchElement(switchElements.get(3), 13, 24);
+        checkSwitchElement(switchElements.get(0), 10, 3);
+        checkSwitchElement(switchElements.get(1), 11, 7);
+        checkSwitchElement(switchElements.get(2), 12, 11);
+        checkSwitchElement(switchElements.get(3), 13, 12);
     }
 
     public void testSparseSwitch() {
@@ -494,11 +494,11 @@ public class SmalideaMethodTest extends LightCodeInsightFixtureTestCase {
         List<? extends SwitchElement> switchElements = sparseSwitchPayload.getSwitchElements();
         Assert.assertEquals(5, switchElements.size());
 
-        checkSwitchElement(switchElements.get(0), 10, 6);
-        checkSwitchElement(switchElements.get(1), 13, 30);
-        checkSwitchElement(switchElements.get(2), 15, 22);
-        checkSwitchElement(switchElements.get(3), 20, 14);
-        checkSwitchElement(switchElements.get(4), 99, 32);
+        checkSwitchElement(switchElements.get(0), 10, 3);
+        checkSwitchElement(switchElements.get(1), 13, 15);
+        checkSwitchElement(switchElements.get(2), 15, 11);
+        checkSwitchElement(switchElements.get(3), 20, 7);
+        checkSwitchElement(switchElements.get(4), 99, 16);
     }
 
     public void testArrayData() {
