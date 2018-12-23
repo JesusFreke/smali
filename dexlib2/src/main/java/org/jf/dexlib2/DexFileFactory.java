@@ -230,7 +230,7 @@ public final class DexFileFactory {
      * @throws UnsupportedFileTypeException If the given file is not a valid dex/zip/odex/oat file
      */
     public static MultiDexContainer<? extends DexBackedDexFile> loadDexContainer(
-            @Nonnull File file, @Nonnull final Opcodes opcodes) throws IOException {
+            @Nonnull File file, @Nullable final Opcodes opcodes) throws IOException {
         if (!file.exists()) {
             throw new DexFileNotFoundException("%s does not exist", file.getName());
         }
