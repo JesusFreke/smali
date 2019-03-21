@@ -473,6 +473,9 @@ public class MutableMethodImplementation implements MethodImplementation {
     private int mapCodeAddressToIndex(@Nonnull int[] codeAddressToIndex, int codeAddress) {
         int index;
         do {
+            if (codeAddress >= codeAddressToIndex.length) {
+                codeAddress = codeAddressToIndex.length - 1;
+            }
             index = codeAddressToIndex[codeAddress];
             if (index < 0) {
                 codeAddress--;
