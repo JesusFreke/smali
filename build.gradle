@@ -185,7 +185,7 @@ buildscript {
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.6'
+wrapper {
+    gradleVersion = '5.1'
     distributionType = Wrapper.DistributionType.ALL
 }
