@@ -40,7 +40,7 @@ import org.jf.util.CollectionUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class BaseMethodReference implements MethodReference {
+public abstract class BaseMethodReference extends BaseReference implements MethodReference {
     @Override
     public int hashCode() {
         int hashCode = getDefiningClass().hashCode();

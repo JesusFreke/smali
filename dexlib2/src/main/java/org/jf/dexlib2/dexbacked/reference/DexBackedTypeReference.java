@@ -62,4 +62,11 @@ public class DexBackedTypeReference extends BaseTypeReference {
     public int getSize() {
         return TypeIdItem.ITEM_SIZE; //uint for descriptor_idx
     }
+
+    @Override
+    public void validateReference() throws InvalidReferenceException {
+        if (typeIndex < 0 || typeIndex >= dexFile.getTypeCount()) {
+            throw new InvalidReferenceException("type@" + typeIndex);
+        }
+    }
 }

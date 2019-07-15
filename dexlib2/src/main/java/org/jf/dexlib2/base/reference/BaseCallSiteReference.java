@@ -33,7 +33,7 @@ package org.jf.dexlib2.base.reference;
 
 import org.jf.dexlib2.iface.reference.CallSiteReference;
 
-public abstract class BaseCallSiteReference implements CallSiteReference {
+public abstract class BaseCallSiteReference extends BaseReference implements CallSiteReference {
     @Override
     public int hashCode() {
         int hashCode = getName().hashCode();

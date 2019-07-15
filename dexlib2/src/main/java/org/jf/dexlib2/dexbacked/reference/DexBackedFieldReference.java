@@ -39,29 +39,30 @@ import javax.annotation.Nonnull;
 
 public class DexBackedFieldReference extends BaseFieldReference {
     @Nonnull public final DexBackedDexFile dexFile;
-    public final int fieldIdItemOffset;
+    private final int fieldIndex;
 
     public DexBackedFieldReference(@Nonnull DexBackedDexFile dexFile, int fieldIndex) {
         this.dexFile = dexFile;
-        this.fieldIdItemOffset = dexFile.getFieldIdItemOffset(fieldIndex);
+        this.fieldIndex = fieldIndex;
     }
 
     @Nonnull
     @Override
     public String getDefiningClass() {
-        return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + FieldIdItem.CLASS_OFFSET));
+        return dexFile.getType(dexFile.readUshort(dexFile.getFieldIdItemOffset(fieldIndex) + FieldIdItem.CLASS_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getString(dexFile.readSmallUint(fieldIdItemOffset + FieldIdItem.NAME_OFFSET));
+        return dexFile.getString(dexFile.readSmallUint(dexFile.getFieldIdItemOffset(fieldIndex) +
+                FieldIdItem.NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getType(dexFile.readUshort(fieldIdItemOffset + FieldIdItem.TYPE_OFFSET));
+        return dexFile.getType(dexFile.readUshort(dexFile.getFieldIdItemOffset(fieldIndex) + FieldIdItem.TYPE_OFFSET));
     }
 
     /**
@@ -73,5 +74,12 @@ public class DexBackedFieldReference extends BaseFieldReference {
      */
     public int getSize() {
         return FieldIdItem.ITEM_SIZE;
+    }
+
+    @Override
+    public void validateReference() throws InvalidReferenceException {
+        if (fieldIndex < 0 || fieldIndex >= dexFile.getFieldCount()) {
+            throw new InvalidReferenceException("field@" + fieldIndex);
+        }
     }
 }

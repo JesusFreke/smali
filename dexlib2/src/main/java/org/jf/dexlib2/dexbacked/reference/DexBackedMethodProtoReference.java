@@ -38,22 +38,23 @@ import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
 import org.jf.dexlib2.dexbacked.raw.TypeListItem;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 
-import java.util.List;
 import javax.annotation.Nonnull;
+import java.util.List;
 
 public class DexBackedMethodProtoReference extends BaseMethodProtoReference {
     @Nonnull public final DexBackedDexFile dexFile;
-    private final int protoIdItemOffset;
+    private final int protoIndex;
 
     public DexBackedMethodProtoReference(@Nonnull DexBackedDexFile dexFile, int protoIndex) {
         this.dexFile = dexFile;
-        this.protoIdItemOffset = dexFile.getProtoIdItemOffset(protoIndex);
+        this.protoIndex = protoIndex;
     }
 
     @Nonnull
     @Override
     public List<String> getParameterTypes() {
-        final int parametersOffset = dexFile.readSmallUint(protoIdItemOffset + ProtoIdItem.PARAMETERS_OFFSET);
+        final int parametersOffset = dexFile.readSmallUint(dexFile.getProtoIdItemOffset(protoIndex) +
+                ProtoIdItem.PARAMETERS_OFFSET);
         if (parametersOffset > 0) {
             final int parameterCount = dexFile.readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
             final int paramListStart = parametersOffset + TypeListItem.LIST_OFFSET;
@@ -72,7 +73,8 @@ public class DexBackedMethodProtoReference extends BaseMethodProtoReference {
     @Nonnull
     @Override
     public String getReturnType() {
-        return dexFile.getType(dexFile.readSmallUint(protoIdItemOffset + ProtoIdItem.RETURN_TYPE_OFFSET));
+        return dexFile.getType(dexFile.readSmallUint(dexFile.getProtoIdItemOffset(protoIndex) +
+                ProtoIdItem.RETURN_TYPE_OFFSET));
     }
 
     /**
@@ -89,5 +91,12 @@ public class DexBackedMethodProtoReference extends BaseMethodProtoReference {
             size += 4 + parameters.size() * 2; //uint + size * ushort for type_idxs
         }
         return size;
+    }
+
+    @Override
+    public void validateReference() throws InvalidReferenceException {
+        if (protoIndex < 0 || protoIndex >= dexFile.getProtoCount()) {
+            throw new InvalidReferenceException("proto@" + protoIndex);
+        }
     }
 }

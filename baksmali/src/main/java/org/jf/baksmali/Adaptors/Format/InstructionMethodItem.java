@@ -32,12 +32,10 @@ import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.baksmali.Adaptors.MethodDefinition.InvalidSwitchPayload;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
-import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.baksmali.BaksmaliOptions;
+import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile.InvalidItemIndex;
 import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.instruction.formats.Instruction20bc;
 import org.jf.dexlib2.iface.instruction.formats.Instruction31t;
@@ -81,14 +79,6 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         return opcode.isVolatileFieldAccessor() || opcode == Opcode.THROW_VERIFICATION_ERROR;
     }
 
-    private String writeInvalidItemIndex(InvalidItemIndex ex, int type, IndentingWriter writer)
-            throws IOException {
-        writer.write("#");
-        writer.write(ex.getMessage());
-        writer.write("\n");
-        return String.format("%s@%d", ReferenceType.toString(type), ex.getInvalidIndex());
-    }
-
     private interface Writable {
         void writeTo(IndentingWriter writer) throws IOException;
     }
@@ -122,8 +112,11 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 classContext = null;
             }
 
+            Reference reference = referenceInstruction.getReference();
+
             try {
-                Reference reference = referenceInstruction.getReference();
+                reference.validateReference();
+
                 if (reference instanceof CallSiteReference) {
                     referenceWritable = indentingWriter -> {
                         ReferenceFormatter.writeCallSiteReference(indentingWriter, (CallSiteReference)reference);
@@ -133,16 +126,14 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                         indentingWriter.write(ReferenceUtil.getReferenceString(reference, classContext));
                     };
                 }
-            } catch (InvalidItemIndex ex) {
+            } catch (Reference.InvalidReferenceException ex) {
                 commentOutInstruction = true;
-                String referenceString = writeInvalidItemIndex(ex, referenceInstruction.getReferenceType(),
-                        writer);
-                referenceWritable = indentingWriter -> writer.write(referenceString);
-            } catch (ReferenceType.InvalidReferenceTypeException ex) {
-                writer.write("#invalid reference type: ");
-                writer.printSignedIntAsDec(ex.getReferenceType());
-                commentOutInstruction = true;
-                referenceWritable = indentingWriter -> writer.write("invalid_reference");
+                writer.write("#");
+                writer.write(ex.getMessage());
+                writer.write("\n");
+                referenceWritable = indentingWriter -> {
+                    indentingWriter.write(ex.getInvalidReferenceRepresentation());
+                };
             }
 
             if (instruction instanceof DualReferenceInstruction) {
@@ -150,19 +141,19 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                         (DualReferenceInstruction) instruction;
                 try {
                     Reference reference2 = dualReferenceInstruction.getReference2();
+                    reference2.validateReference();
+
                     referenceWritable2 = indentingWriter -> {
                         indentingWriter.write(ReferenceUtil.getReferenceString(reference2, classContext));
                     };
-                } catch (InvalidItemIndex ex) {
+                } catch (Reference.InvalidReferenceException ex) {
                     commentOutInstruction = true;
-                    String referenceString = writeInvalidItemIndex(ex,
-                            dualReferenceInstruction.getReferenceType2(), writer);
-                    referenceWritable2 = indentingWriter -> indentingWriter.write(referenceString);
-                } catch (ReferenceType.InvalidReferenceTypeException ex) {
-                    writer.write("#invalid reference type: ");
-                    writer.printSignedIntAsDec(ex.getReferenceType());
-                    commentOutInstruction = true;
-                    referenceWritable2 = indentingWriter -> indentingWriter.write("invalid reference");
+                    writer.write("#");
+                    writer.write(ex.getMessage());
+                    writer.write("\n");
+                    referenceWritable = indentingWriter -> {
+                        indentingWriter.write(ex.getInvalidReferenceRepresentation());
+                    };
                 }
             }
         }

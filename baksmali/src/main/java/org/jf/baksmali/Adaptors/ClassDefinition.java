@@ -31,18 +31,21 @@ package org.jf.baksmali.Adaptors;
 import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.dexbacked.DexBackedClassDef;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile.InvalidItemIndex;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
 import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.IndentingWriter;
 import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ClassDefinition {
     @Nonnull public final BaksmaliOptions options;
@@ -79,16 +82,14 @@ public class ClassDefinition {
                             case SPUT_SHORT:
                             case SPUT_WIDE: {
                                 Instruction21c ins = (Instruction21c)instruction;
-                                FieldReference fieldRef = null;
+                                FieldReference fieldRef = (FieldReference)ins.getReference();
                                 try {
-                                    fieldRef = (FieldReference)ins.getReference();
-                                } catch (InvalidItemIndex ex) {
-                                    // just ignore it for now. We'll deal with it later, when processing the instructions
-                                    // themselves
-                                }
-                                if (fieldRef != null &&
-                                        fieldRef.getDefiningClass().equals((classDef.getType()))) {
-                                    fieldsSetInStaticConstructor.add(ReferenceUtil.getShortFieldDescriptor(fieldRef));
+                                    fieldRef.validateReference();
+                                    if (fieldRef.getDefiningClass().equals((classDef.getType()))) {
+                                        fieldsSetInStaticConstructor.add(ReferenceUtil.getShortFieldDescriptor(fieldRef));
+                                    }
+                                } catch (Reference.InvalidReferenceException ex) {
+                                    // Just ignore for now. We'll deal with it when processing the instruction
                                 }
                                 break;
                             }

@@ -32,8 +32,49 @@
 package org.jf.dexlib2.iface.reference;
 
 /**
- * This class is the base interface for field/method/string/type references in a dex file. It has no functionality or
- * contract itself.
+ * This class is the base interface for field/method/string/type references in a dex file.
  */
 public interface Reference {
+
+    /**
+     * Verifies that this reference is valid.
+     *
+     * @throws InvalidReferenceException If the reference is not valid.
+     */
+    void validateReference() throws InvalidReferenceException;
+
+    class InvalidReferenceException extends Exception {
+        private final String invalidReferenceRepresentation;
+
+        public InvalidReferenceException(String invalidReferenceRepresentation) {
+            super("Invalid reference");
+            this.invalidReferenceRepresentation = invalidReferenceRepresentation;
+        }
+
+        public InvalidReferenceException(String invalidReferenceRepresentation, String msg) {
+            super(msg);
+            this.invalidReferenceRepresentation = invalidReferenceRepresentation;
+        }
+
+        public InvalidReferenceException(String invalidReferenceRepresentation, String s, Throwable throwable) {
+            super(s, throwable);
+            this.invalidReferenceRepresentation = invalidReferenceRepresentation;
+        }
+
+        public InvalidReferenceException(String invalidReferenceRepresentation, Throwable throwable) {
+            super(throwable);
+            this.invalidReferenceRepresentation = invalidReferenceRepresentation;
+        }
+
+        /**
+         * @return A string representation of the invalid reference. This should be a human-readable string that gives
+         * enough information to identify the reference in question.
+         *
+         * The format of the string is not specified, although as an illustrative example "string@123" could be
+         * used for a reference to the string at index 123.
+         */
+        public String getInvalidReferenceRepresentation() {
+            return invalidReferenceRepresentation;
+        }
+    }
 }

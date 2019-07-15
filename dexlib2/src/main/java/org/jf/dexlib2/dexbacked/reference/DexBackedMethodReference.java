@@ -44,24 +44,26 @@ import java.util.List;
 
 public class DexBackedMethodReference extends BaseMethodReference {
     @Nonnull public final DexBackedDexFile dexFile;
-    public final int methodIdItemOffset;
+    private final int methodIndex;
     private int protoIdItemOffset;
 
     public DexBackedMethodReference(@Nonnull DexBackedDexFile dexFile, int methodIndex) {
         this.dexFile = dexFile;
-        this.methodIdItemOffset = dexFile.getMethodIdItemOffset(methodIndex);
+        this.methodIndex = methodIndex;
     }
 
     @Nonnull
     @Override
     public String getDefiningClass() {
-        return dexFile.getType(dexFile.readUshort(methodIdItemOffset + MethodIdItem.CLASS_OFFSET));
+        return dexFile.getType(dexFile.readUshort(dexFile.getMethodIdItemOffset(methodIndex) +
+                MethodIdItem.CLASS_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getString(dexFile.readSmallUint(methodIdItemOffset + MethodIdItem.NAME_OFFSET));
+        return dexFile.getString(dexFile.readSmallUint(dexFile.getMethodIdItemOffset(methodIndex) +
+                MethodIdItem.NAME_OFFSET));
     }
 
     @Nonnull
@@ -94,7 +96,7 @@ public class DexBackedMethodReference extends BaseMethodReference {
     private int getProtoIdItemOffset() {
         if (protoIdItemOffset == 0) {
             protoIdItemOffset = dexFile.getProtoIdItemOffset(
-                    dexFile.readUshort(methodIdItemOffset + MethodIdItem.PROTO_OFFSET));
+                    dexFile.readUshort(dexFile.getMethodIdItemOffset(methodIndex) + MethodIdItem.PROTO_OFFSET));
         }
         return protoIdItemOffset;
     }
@@ -108,5 +110,12 @@ public class DexBackedMethodReference extends BaseMethodReference {
      */
     public int getSize() {
         return MethodIdItem.ITEM_SIZE; //ushort + ushort + uint for indices
+    }
+
+    @Override
+    public void validateReference() throws InvalidReferenceException {
+        if (methodIndex < 0 || methodIndex >= dexFile.getMethodCount()) {
+            throw new InvalidReferenceException("method@" + methodIndex);
+        }
     }
 }

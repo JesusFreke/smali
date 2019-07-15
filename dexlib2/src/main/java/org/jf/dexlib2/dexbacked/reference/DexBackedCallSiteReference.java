@@ -157,4 +157,11 @@ public class DexBackedCallSiteReference extends BaseCallSiteReference {
         }
         return callSiteOffset;
     }
+
+    @Override
+    public void validateReference() throws InvalidReferenceException {
+        if (callSiteIndex < 0 || callSiteIndex >= dexFile.getCallSiteCount()) {
+            throw new InvalidReferenceException("callsite@" + callSiteIndex);
+        }
+    }
 }

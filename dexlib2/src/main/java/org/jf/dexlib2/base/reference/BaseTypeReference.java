@@ -35,7 +35,7 @@ import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
 
-public abstract class BaseTypeReference implements TypeReference {
+public abstract class BaseTypeReference extends BaseReference implements TypeReference {
     @Override
     public int hashCode() {
         return getType().hashCode();

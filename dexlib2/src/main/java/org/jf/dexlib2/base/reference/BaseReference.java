@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Google Inc.
+ * Copyright 2019, Google Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,32 +31,11 @@
 
 package org.jf.dexlib2.base.reference;
 
-import org.jf.dexlib2.iface.reference.StringReference;
+import org.jf.dexlib2.iface.reference.Reference;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-public abstract class BaseStringReference extends BaseReference implements StringReference {
+public abstract class BaseReference implements Reference {
     @Override
-    public int hashCode() {
-        return getString().hashCode();
+    public void validateReference() throws InvalidReferenceException {
+        // A reference is valid by default
     }
-
-    @Override
-    public boolean equals(@Nullable Object o) {
-        if (o != null && o instanceof StringReference) {
-            return getString().equals(((StringReference)o).getString());
-        }
-        return false;
-    }
-
-    @Override
-    public int compareTo(@Nonnull CharSequence o) {
-        return getString().compareTo(o.toString());
-    }
-
-    @Override public int length() { return getString().length(); }
-    @Override public char charAt(int index) { return getString().charAt(index); }
-    @Override public CharSequence subSequence(int start, int end) { return getString().subSequence(start, end); }
-    @Override @Nonnull public String toString() { return getString(); }
 }

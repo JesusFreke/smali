@@ -73,4 +73,11 @@ public class DexBackedStringReference extends BaseStringReference {
         size += reader.peekStringLength(utf16Length);
         return size;
     }
+
+    @Override
+    public void validateReference() throws InvalidReferenceException {
+        if (stringIndex < 0 || stringIndex >= dexFile.getStringCount()) {
+            throw new InvalidReferenceException("string@" + stringIndex);
+        }
+    }
 }

@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 
-public abstract class BaseMethodProtoReference implements MethodProtoReference {
+public abstract class BaseMethodProtoReference extends BaseReference implements MethodProtoReference {
     @Override
     public int hashCode() {
         int hashCode = getReturnType().hashCode();

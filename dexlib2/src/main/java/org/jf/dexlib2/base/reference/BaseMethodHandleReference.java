@@ -39,7 +39,7 @@ import org.jf.dexlib2.iface.reference.Reference;
 
 import javax.annotation.Nonnull;
 
-public abstract class BaseMethodHandleReference implements MethodHandleReference {
+public abstract class BaseMethodHandleReference extends BaseReference implements MethodHandleReference {
     @Override
     public int hashCode() {
         int hashCode =  getMethodHandleType();

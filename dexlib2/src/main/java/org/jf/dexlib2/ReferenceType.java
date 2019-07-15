@@ -44,27 +44,6 @@ public final class ReferenceType {
     public static final int METHOD_HANDLE = 6;
     public static final int NONE = 7;
 
-    public static String toString(int referenceType) {
-        switch (referenceType) {
-            case STRING:
-                return "string";
-            case TYPE:
-                return "type";
-            case FIELD:
-                return "field";
-            case METHOD:
-                return "method";
-            case METHOD_PROTO:
-                return "method_proto";
-            case CALL_SITE:
-                return "call_site";
-            case METHOD_HANDLE:
-                return "method_handle";
-            default:
-                throw new InvalidReferenceTypeException(referenceType);
-        }
-    }
-
     public static int getReferenceType(Reference reference) {
         if (reference instanceof StringReference) {
             return STRING;

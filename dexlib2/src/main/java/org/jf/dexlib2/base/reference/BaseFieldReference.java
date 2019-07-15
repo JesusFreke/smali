@@ -37,7 +37,7 @@ import org.jf.dexlib2.util.ReferenceUtil;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class BaseFieldReference implements FieldReference {
+public abstract class BaseFieldReference extends BaseReference implements FieldReference {
     @Override
     public int hashCode() {
         int hashCode = getDefiningClass().hashCode();

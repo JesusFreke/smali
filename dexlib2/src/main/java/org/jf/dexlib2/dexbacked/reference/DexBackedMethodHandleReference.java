@@ -76,4 +76,17 @@ public class DexBackedMethodHandleReference extends BaseMethodHandleReference {
                 throw new ExceptionWithContext("Invalid method handle type: %d", getMethodHandleType());
         }
     }
+
+    @Override
+    public void validateReference() throws InvalidReferenceException {
+        if (methodHandleIndex < 0 || methodHandleIndex >= dexFile.getMethodHandleCount()) {
+            throw new InvalidReferenceException("methodhandle@" + methodHandleIndex);
+        }
+
+        try {
+            getMemberReference();
+        } catch (ExceptionWithContext ex) {
+            throw new InvalidReferenceException("methodhandle@" + methodHandleIndex, ex);
+        }
+    }
 }
