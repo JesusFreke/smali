@@ -69,10 +69,11 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     private int protoIdItemOffset;
     private int parametersOffset = -1;
 
-    public DexBackedMethod(@Nonnull DexReader reader,
+    public DexBackedMethod(@Nonnull DexBackedDexFile dexFile,
+                           @Nonnull DexReader reader,
                            @Nonnull DexBackedClassDef classDef,
                            int previousMethodIndex) {
-        this.dexFile = reader.dexBuf;
+        this.dexFile = dexFile;
         this.classDef = classDef;
         startOffset = reader.getOffset();
 
@@ -87,12 +88,13 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         this.parameterAnnotationSetListOffset = 0;
     }
 
-    public DexBackedMethod(@Nonnull DexReader reader,
+    public DexBackedMethod(@Nonnull DexBackedDexFile dexFile,
+                           @Nonnull DexReader reader,
                            @Nonnull DexBackedClassDef classDef,
                            int previousMethodIndex,
                            @Nonnull AnnotationsDirectory.AnnotationIterator methodAnnotationIterator,
                            @Nonnull AnnotationsDirectory.AnnotationIterator paramaterAnnotationIterator) {
-        this.dexFile = reader.dexBuf;
+        this.dexFile = dexFile;
         this.classDef = classDef;
         startOffset = reader.getOffset();
 
@@ -114,14 +116,15 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getStringSection().get(dexFile.readSmallUint(getMethodIdItemOffset() + MethodIdItem.NAME_OFFSET));
+        return dexFile.getStringSection().get(
+                dexFile.getBuffer().readSmallUint(getMethodIdItemOffset() + MethodIdItem.NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getReturnType() {
         return dexFile.getTypeSection().get(
-                dexFile.readSmallUint(getProtoIdItemOffset() + ProtoIdItem.RETURN_TYPE_OFFSET));
+                dexFile.getBuffer().readSmallUint(getProtoIdItemOffset() + ProtoIdItem.RETURN_TYPE_OFFSET));
     }
 
     @Nonnull
@@ -165,13 +168,13 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     public List<String> getParameterTypes() {
         final int parametersOffset = getParametersOffset();
         if (parametersOffset > 0) {
-            final int parameterCount = dexFile.readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
+            final int parameterCount = dexFile.getBuffer().readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
             final int paramListStart = parametersOffset + TypeListItem.LIST_OFFSET;
             return new FixedSizeList<String>() {
                 @Nonnull
                 @Override
                 public String readItem(final int index) {
-                    return dexFile.getTypeSection().get(dexFile.readUshort(paramListStart + 2*index));
+                    return dexFile.getTypeSection().get(dexFile.getBuffer().readUshort(paramListStart + 2*index));
                 }
                 @Override public int size() { return parameterCount; }
             };
@@ -203,7 +206,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
 
     private int getProtoIdItemOffset() {
         if (protoIdItemOffset == 0) {
-            int protoIndex = dexFile.readUshort(getMethodIdItemOffset() + MethodIdItem.PROTO_OFFSET);
+            int protoIndex = dexFile.getBuffer().readUshort(getMethodIdItemOffset() + MethodIdItem.PROTO_OFFSET);
             protoIdItemOffset = dexFile.getProtoSection().getOffset(protoIndex);
         }
         return protoIdItemOffset;
@@ -211,7 +214,8 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
 
     private int getParametersOffset() {
         if (parametersOffset == -1) {
-            parametersOffset = dexFile.readSmallUint(getProtoIdItemOffset() + ProtoIdItem.PARAMETERS_OFFSET);
+            parametersOffset = dexFile.getBuffer().readSmallUint(
+                    getProtoIdItemOffset() + ProtoIdItem.PARAMETERS_OFFSET);
         }
         return parametersOffset;
     }
@@ -241,7 +245,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     public int getSize() {
         int size = 0;
 
-        DexReader reader = dexFile.readerAt(startOffset);
+        DexReader reader = dexFile.getBuffer().readerAt(startOffset);
         reader.readLargeUleb128(); //method_idx_diff
         reader.readSmallUleb128(); //access_flags
         reader.readSmallUleb128(); //code_off

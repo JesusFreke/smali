@@ -59,12 +59,13 @@ public class DexBackedField extends BaseFieldReference implements Field {
 
     private int fieldIdItemOffset;
 
-    public DexBackedField(@Nonnull DexReader reader,
+    public DexBackedField(@Nonnull DexBackedDexFile dexFile,
+                          @Nonnull DexReader reader,
                           @Nonnull DexBackedClassDef classDef,
                           int previousFieldIndex,
                           @Nonnull EncodedArrayItemIterator staticInitialValueIterator,
                           @Nonnull AnnotationsDirectory.AnnotationIterator annotationIterator) {
-        this.dexFile = reader.dexBuf;
+        this.dexFile = dexFile;
         this.classDef = classDef;
 
         // large values may be used for the index delta, which cause the cumulative index to overflow upon
@@ -79,11 +80,12 @@ public class DexBackedField extends BaseFieldReference implements Field {
         this.initialValue = staticInitialValueIterator.getNextOrNull();
     }
 
-    public DexBackedField(@Nonnull DexReader reader,
+    public DexBackedField(@Nonnull DexBackedDexFile dexFile,
+                          @Nonnull DexReader reader,
                           @Nonnull DexBackedClassDef classDef,
                           int previousFieldIndex,
                           @Nonnull AnnotationsDirectory.AnnotationIterator annotationIterator) {
-        this.dexFile = reader.dexBuf;
+        this.dexFile = dexFile;
         this.classDef = classDef;
 
         // large values may be used for the index delta, which cause the cumulative index to overflow upon
@@ -101,13 +103,15 @@ public class DexBackedField extends BaseFieldReference implements Field {
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getStringSection().get(dexFile.readSmallUint(getFieldIdItemOffset() + FieldIdItem.NAME_OFFSET));
+        return dexFile.getStringSection().get(
+                dexFile.getBuffer().readSmallUint(getFieldIdItemOffset() + FieldIdItem.NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getTypeSection().get(dexFile.readUshort(getFieldIdItemOffset() + FieldIdItem.TYPE_OFFSET));
+        return dexFile.getTypeSection().get(
+                dexFile.getBuffer().readUshort(getFieldIdItemOffset() + FieldIdItem.TYPE_OFFSET));
     }
 
     @Nonnull @Override public String getDefiningClass() { return classDef.getType(); }
@@ -150,7 +154,7 @@ public class DexBackedField extends BaseFieldReference implements Field {
      */
     public int getSize() {
         int size = 0;
-        DexReader reader = dexFile.readerAt(startOffset);
+        DexReader reader = dexFile.getBuffer().readerAt(startOffset);
         reader.readLargeUleb128(); //field_idx_diff
         reader.readSmallUleb128(); //access_flags
         size += reader.getOffset() - startOffset;

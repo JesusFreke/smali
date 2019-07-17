@@ -54,11 +54,11 @@ public class MethodHandleItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                int methodHandleType = dexFile.readUshort(out.getCursor());
+                int methodHandleType = dexFile.getBuffer().readUshort(out.getCursor());
                 out.annotate(2, "type = %s", MethodHandleType.toString(methodHandleType));
                 out.annotate(2, "unused");
 
-                int fieldOrMethodId = dexFile.readUshort(out.getCursor());
+                int fieldOrMethodId = dexFile.getBuffer().readUshort(out.getCursor());
                 String fieldOrMethodDescriptor;
                 switch (methodHandleType) {
                     case MethodHandleType.STATIC_PUT:

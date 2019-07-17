@@ -46,8 +46,8 @@ public class DexBackedArrayEncodedValue extends BaseArrayEncodedValue implements
     private final int elementCount;
     private final int encodedArrayOffset;
 
-    public DexBackedArrayEncodedValue(@Nonnull DexReader reader) {
-        this.dexFile = reader.dexBuf;
+    public DexBackedArrayEncodedValue(@Nonnull DexBackedDexFile dexFile, @Nonnull DexReader reader) {
+        this.dexFile = dexFile;
         this.elementCount = reader.readSmallUleb128();
         this.encodedArrayOffset = reader.getOffset();
         skipElementsFrom(reader, elementCount);
@@ -71,7 +71,7 @@ public class DexBackedArrayEncodedValue extends BaseArrayEncodedValue implements
             @Nonnull
             @Override
             protected EncodedValue readNextItem(@Nonnull DexReader dexReader, int index) {
-                return DexBackedEncodedValue.readFrom(dexReader);
+                return DexBackedEncodedValue.readFrom(dexFile, dexReader);
             }
         };
     }

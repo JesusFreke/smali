@@ -114,7 +114,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
         @Nonnull
         @Override
         public Iterator<DebugItem> iterator() {
-            DexReader reader = dexFile.readerAt(debugInfoOffset);
+            DexReader reader = dexFile.getBuffer().readerAt(debugInfoOffset);
             final int lineNumberStart = reader.readBigUleb128();
             int registerCount = methodImpl.getRegisterCount();
 
@@ -282,7 +282,7 @@ public abstract class DebugInfo implements Iterable<DebugItem> {
         @Override
         public VariableSizeIterator<String> getParameterNames(@Nullable DexReader reader) {
             if (reader == null) {
-                reader = dexFile.readerAt(debugInfoOffset);
+                reader = dexFile.getBuffer().readerAt(debugInfoOffset);
                 reader.skipUleb128();
             }
             //TODO: make sure dalvik doesn't allow more parameter names than we have parameters

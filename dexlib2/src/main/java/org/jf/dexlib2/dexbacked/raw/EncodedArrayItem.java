@@ -48,8 +48,8 @@ public class EncodedArrayItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                DexReader reader = dexFile.readerAt(out.getCursor());
-                EncodedValue.annotateEncodedArray(out, reader);
+                DexReader reader = dexFile.getBuffer().readerAt(out.getCursor());
+                EncodedValue.annotateEncodedArray(dexFile, out, reader);
             }
         };
     }

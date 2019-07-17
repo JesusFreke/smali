@@ -43,8 +43,8 @@ public class DexBackedMethodEncodedValue extends BaseMethodEncodedValue {
     @Nonnull public final DexBackedDexFile dexFile;
     private final int methodIndex;
 
-    public DexBackedMethodEncodedValue(@Nonnull DexReader reader, int valueArg) {
-        this.dexFile = reader.dexBuf;
+    public DexBackedMethodEncodedValue(@Nonnull DexBackedDexFile dexFile, @Nonnull DexReader reader, int valueArg) {
+        this.dexFile = dexFile;
         methodIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 

@@ -34,15 +34,16 @@ package org.jf.dexlib2.dexbacked;
 import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 
-public class BaseDexBuffer {
+public class DexBuffer {
     @Nonnull final byte[] buf;
     final int baseOffset;
 
-    public BaseDexBuffer(@Nonnull byte[] buf) {
+    public DexBuffer(@Nonnull byte[] buf) {
         this(buf, 0);
     }
-    public BaseDexBuffer(@Nonnull byte[] buf, int offset) {
+    public DexBuffer(@Nonnull byte[] buf, int offset) {
         this.buf = buf;
         this.baseOffset = offset;
     }
@@ -135,12 +136,17 @@ public class BaseDexBuffer {
     }
 
     @Nonnull
-    public BaseDexReader readerAt(int offset) {
-        return new BaseDexReader<BaseDexBuffer>(this, offset);
+    public byte[] readByteRange(int start, int length) {
+        return Arrays.copyOfRange(buf, baseOffset + start, baseOffset + start + length);
     }
 
     @Nonnull
-    protected byte[] getBuf() {
+    public DexReader readerAt(int offset) {
+        return new DexReader<DexBuffer>(this, offset);
+    }
+
+    @Nonnull
+    public byte[] getBuf() {
         return buf;
     }
 

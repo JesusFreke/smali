@@ -50,7 +50,7 @@ public class TypeIdItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                int stringIndex = dexFile.readSmallUint(out.getCursor());
+                int stringIndex = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, StringIdItem.getReferenceAnnotation(dexFile, stringIndex));
             }
         };

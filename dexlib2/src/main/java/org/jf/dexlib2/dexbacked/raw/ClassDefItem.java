@@ -68,32 +68,32 @@ public class ClassDefItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                int classIndex = dexFile.readSmallUint(out.getCursor());
+                int classIndex = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "class_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, classIndex));
 
-                int accessFlags = dexFile.readInt(out.getCursor());
+                int accessFlags = dexFile.getBuffer().readInt(out.getCursor());
                 out.annotate(4, "access_flags = 0x%x: %s", accessFlags,
                         Joiner.on('|').join(AccessFlags.getAccessFlagsForClass(accessFlags)));
 
-                int superclassIndex = dexFile.readOptionalUint(out.getCursor());
+                int superclassIndex = dexFile.getBuffer().readOptionalUint(out.getCursor());
                 out.annotate(4, "superclass_idx = %s",
                         TypeIdItem.getOptionalReferenceAnnotation(dexFile, superclassIndex));
 
-                int interfacesOffset = dexFile.readSmallUint(out.getCursor());
+                int interfacesOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "interfaces_off = %s", TypeListItem.getReferenceAnnotation(dexFile, interfacesOffset));
 
-                int sourceFileIdx = dexFile.readOptionalUint(out.getCursor());
+                int sourceFileIdx = dexFile.getBuffer().readOptionalUint(out.getCursor());
                 out.annotate(4, "source_file_idx = %s", StringIdItem.getOptionalReferenceAnnotation(dexFile,
                         sourceFileIdx));
 
-                int annotationsOffset = dexFile.readSmallUint(out.getCursor());
+                int annotationsOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                 if (annotationsOffset == 0) {
                     out.annotate(4, "annotations_off = annotations_directory_item[NO_OFFSET]");
                 } else {
                     out.annotate(4, "annotations_off = annotations_directory_item[0x%x]", annotationsOffset);
                 }
 
-                int classDataOffset = dexFile.readSmallUint(out.getCursor());
+                int classDataOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                 if (classDataOffset == 0) {
                     out.annotate(4, "class_data_off = class_data_item[NO_OFFSET]");
                 } else {
@@ -101,7 +101,7 @@ public class ClassDefItem {
                     addClassDataIdentity(classDataOffset, dexFile.getTypeSection().get(classIndex));
                 }
 
-                int staticValuesOffset = dexFile.readSmallUint(out.getCursor());
+                int staticValuesOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                 if (staticValuesOffset == 0) {
                     out.annotate(4, "static_values_off = encoded_array_item[NO_OFFSET]");
                 } else {
@@ -120,7 +120,7 @@ public class ClassDefItem {
     @Nonnull
     public static String asString(@Nonnull DexBackedDexFile dexFile, int classIndex) {
         int offset = dexFile.getClassSection().getOffset(classIndex);
-        int typeIndex = dexFile.readSmallUint(offset + CLASS_OFFSET);
+        int typeIndex = dexFile.getBuffer().readSmallUint(offset + CLASS_OFFSET);
         return dexFile.getTypeSection().get(typeIndex);
     }
 

@@ -54,13 +54,13 @@ public class MethodIdItem {
 
             @Override
             public void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                int classIndex = dexFile.readUshort(out.getCursor());
+                int classIndex = dexFile.getBuffer().readUshort(out.getCursor());
                 out.annotate(2, "class_idx = %s", TypeIdItem.getReferenceAnnotation(dexFile, classIndex));
 
-                int protoIndex = dexFile.readUshort(out.getCursor());
+                int protoIndex = dexFile.getBuffer().readUshort(out.getCursor());
                 out.annotate(2, "proto_idx = %s", ProtoIdItem.getReferenceAnnotation(dexFile, protoIndex));
 
-                int nameIndex = dexFile.readSmallUint(out.getCursor());
+                int nameIndex = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "name_idx = %s", StringIdItem.getReferenceAnnotation(dexFile, nameIndex));
             }
         };
@@ -69,13 +69,13 @@ public class MethodIdItem {
     @Nonnull
     public static String asString(@Nonnull DexBackedDexFile dexFile, int methodIndex) {
         int methodOffset = dexFile.getMethodSection().getOffset(methodIndex);
-        int classIndex = dexFile.readUshort(methodOffset + CLASS_OFFSET);
+        int classIndex = dexFile.getBuffer().readUshort(methodOffset + CLASS_OFFSET);
         String classType = dexFile.getTypeSection().get(classIndex);
 
-        int protoIndex = dexFile.readUshort(methodOffset + PROTO_OFFSET);
+        int protoIndex = dexFile.getBuffer().readUshort(methodOffset + PROTO_OFFSET);
         String protoString = ProtoIdItem.asString(dexFile, protoIndex);
 
-        int nameIndex = dexFile.readSmallUint(methodOffset + NAME_OFFSET);
+        int nameIndex = dexFile.getBuffer().readSmallUint(methodOffset + NAME_OFFSET);
         String methodName = dexFile.getStringSection().get(nameIndex);
 
         return String.format("%s->%s%s", classType, methodName, protoString);

@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
-import org.jf.dexlib2.dexbacked.BaseDexBuffer;
+import org.jf.dexlib2.dexbacked.DexBuffer;
 
 public class OdexHeaderItem {
     public static final int ITEM_SIZE = 40;
@@ -112,12 +112,12 @@ public class OdexHeaderItem {
     }
 
     public static int getDexOffset(byte[] buf) {
-        BaseDexBuffer bdb = new BaseDexBuffer(buf);
+        DexBuffer bdb = new DexBuffer(buf);
         return bdb.readSmallUint(DEX_OFFSET);
     }
 
     public static int getDependenciesOffset(byte[] buf) {
-        BaseDexBuffer bdb = new BaseDexBuffer(buf);
+        DexBuffer bdb = new DexBuffer(buf);
         return bdb.readSmallUint(DEPENDENCIES_OFFSET);
     }
 }

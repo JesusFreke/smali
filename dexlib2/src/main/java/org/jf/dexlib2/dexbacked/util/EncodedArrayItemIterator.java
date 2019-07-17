@@ -62,11 +62,13 @@ public abstract class EncodedArrayItemIterator {
 
     private static class EncodedArrayItemIteratorImpl extends EncodedArrayItemIterator {
         @Nonnull private final DexReader reader;
+        @Nonnull private final DexBackedDexFile dexFile;
         private final int size;
         private int index = 0;
 
         public EncodedArrayItemIteratorImpl(@Nonnull DexBackedDexFile dexFile, int offset) {
-            this.reader = dexFile.readerAt(offset);
+            this.dexFile = dexFile;
+            this.reader = dexFile.getBuffer().readerAt(offset);
             this.size = reader.readSmallUleb128();
         }
 
@@ -74,7 +76,7 @@ public abstract class EncodedArrayItemIterator {
         public EncodedValue getNextOrNull() {
             if (index < size) {
                 index++;
-                return DexBackedEncodedValue.readFrom(reader);
+                return DexBackedEncodedValue.readFrom(dexFile, reader);
             }
             return null;
         }

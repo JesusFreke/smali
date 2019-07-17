@@ -58,7 +58,7 @@ public class ClassDataItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                DexReader reader = dexFile.readerAt(out.getCursor());
+                DexReader reader = dexFile.getBuffer().readerAt(out.getCursor());
 
                 int staticFieldsSize = reader.readSmallUleb128();
                 out.annotateTo(reader.getOffset(), "static_fields_size = %d", staticFieldsSize);

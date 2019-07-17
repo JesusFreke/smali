@@ -47,8 +47,8 @@ public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue 
     private final int elementCount;
     private final int elementsOffset;
 
-    public DexBackedAnnotationEncodedValue(@Nonnull DexReader reader) {
-        this.dexFile = reader.dexBuf;
+    public DexBackedAnnotationEncodedValue(@Nonnull DexBackedDexFile dexFile, @Nonnull DexReader reader) {
+        this.dexFile = dexFile;
         this.type = dexFile.getTypeSection().get(reader.readSmallUleb128());
         this.elementCount = reader.readSmallUleb128();
         this.elementsOffset = reader.getOffset();
@@ -77,7 +77,7 @@ public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue 
             @Nonnull
             @Override
             protected DexBackedAnnotationElement readNextItem(@Nonnull DexReader dexReader, int index) {
-                return new DexBackedAnnotationElement(dexReader);
+                return new DexBackedAnnotationElement(dexFile, dexReader);
             }
         };
     }

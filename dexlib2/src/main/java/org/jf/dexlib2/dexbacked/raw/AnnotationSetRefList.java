@@ -51,11 +51,11 @@ public class AnnotationSetRefList {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                int size = dexFile.readSmallUint(out.getCursor());
+                int size = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "size = %d", size);
 
                 for (int i=0; i<size; i++) {
-                    int annotationSetOffset = dexFile.readSmallUint(out.getCursor());
+                    int annotationSetOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                     out.annotate(4, "annotation_set_item[0x%x]", annotationSetOffset);
                 }
             }

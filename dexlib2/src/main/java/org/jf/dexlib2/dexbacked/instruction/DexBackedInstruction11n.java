@@ -47,12 +47,12 @@ public class DexBackedInstruction11n extends DexBackedInstruction implements Ins
 
     @Override
     public int getRegisterA() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.readByte(instructionStart + 1));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.getBuffer().readByte(instructionStart + 1));
     }
 
     @Override
     public int getNarrowLiteral() {
-        return NibbleUtils.extractHighSignedNibble(dexFile.readByte(instructionStart + 1));
+        return NibbleUtils.extractHighSignedNibble(dexFile.getBuffer().readByte(instructionStart + 1));
     }
 
     @Override public long getWideLiteral() { return getNarrowLiteral(); }

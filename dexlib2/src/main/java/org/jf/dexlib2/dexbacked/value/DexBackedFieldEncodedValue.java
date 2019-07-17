@@ -43,8 +43,8 @@ public class DexBackedFieldEncodedValue extends BaseFieldEncodedValue {
     @Nonnull public final DexBackedDexFile dexFile;
     private final int fieldIndex;
 
-    public DexBackedFieldEncodedValue(@Nonnull DexReader reader, int valueArg) {
-        this.dexFile = reader.dexBuf;
+    public DexBackedFieldEncodedValue(@Nonnull DexBackedDexFile dexFile, @Nonnull DexReader reader, int valueArg) {
+        this.dexFile = dexFile;
         fieldIndex = reader.readSizedSmallUint(valueArg + 1);
     }
 

@@ -50,21 +50,22 @@ public class DexBackedFieldReference extends BaseFieldReference {
     @Override
     public String getDefiningClass() {
         return dexFile.getTypeSection().get(
-                dexFile.readUshort(dexFile.getFieldSection().getOffset(fieldIndex) + FieldIdItem.CLASS_OFFSET));
+                dexFile.getBuffer().readUshort(
+                        dexFile.getFieldSection().getOffset(fieldIndex) + FieldIdItem.CLASS_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getStringSection().get(dexFile.readSmallUint(dexFile.getFieldSection().getOffset(fieldIndex) +
-                FieldIdItem.NAME_OFFSET));
+        return dexFile.getStringSection().get(dexFile.getBuffer().readSmallUint(
+                dexFile.getFieldSection().getOffset(fieldIndex) + FieldIdItem.NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getTypeSection().get(
-                dexFile.readUshort(dexFile.getFieldSection().getOffset(fieldIndex) + FieldIdItem.TYPE_OFFSET));
+        return dexFile.getTypeSection().get(dexFile.getBuffer().readUshort(
+                dexFile.getFieldSection().getOffset(fieldIndex) + FieldIdItem.TYPE_OFFSET));
     }
 
     /**

@@ -53,13 +53,13 @@ public class DexBackedMethodHandleReference extends BaseMethodHandleReference {
 
     @Override
     public int getMethodHandleType() {
-        return dexFile.readUshort(methodHandleOffset + MethodHandleItem.METHOD_HANDLE_TYPE_OFFSET);
+        return dexFile.getBuffer().readUshort(methodHandleOffset + MethodHandleItem.METHOD_HANDLE_TYPE_OFFSET);
     }
 
     @Nonnull
     @Override
     public Reference getMemberReference() {
-        int memberIndex = dexFile.readUshort(methodHandleOffset + MethodHandleItem.MEMBER_ID_OFFSET);
+        int memberIndex = dexFile.getBuffer().readUshort(methodHandleOffset + MethodHandleItem.MEMBER_ID_OFFSET);
         switch (getMethodHandleType()) {
             case MethodHandleType.STATIC_PUT:
             case MethodHandleType.STATIC_GET:

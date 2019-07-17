@@ -53,7 +53,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFile> {
+public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> {
     private static final byte[] ELF_MAGIC = new byte[] { 0x7f, 'E', 'L', 'F' };
     private static final byte[] OAT_MAGIC = new byte[] { 'o', 'a', 't', '\n' };
     private static final int MIN_ELF_HEADER_SIZE = 52;

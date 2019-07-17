@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.value;
 
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.*;
@@ -42,7 +43,7 @@ import javax.annotation.Nonnull;
 
 public abstract class DexBackedEncodedValue {
     @Nonnull
-    public static EncodedValue readFrom(@Nonnull DexReader reader) {
+    public static EncodedValue readFrom(@Nonnull DexBackedDexFile dexFile, @Nonnull DexReader reader) {
         int startOffset = reader.getOffset();
 
         try {
@@ -76,25 +77,25 @@ public abstract class DexBackedEncodedValue {
                             reader.readSizedRightExtendedLong(valueArg + 1)));
                 case ValueType.STRING:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new DexBackedStringEncodedValue(reader, valueArg);
+                    return new DexBackedStringEncodedValue(dexFile, reader, valueArg);
                 case ValueType.TYPE:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new DexBackedTypeEncodedValue(reader, valueArg);
+                    return new DexBackedTypeEncodedValue(dexFile, reader, valueArg);
                 case ValueType.FIELD:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new DexBackedFieldEncodedValue(reader, valueArg);
+                    return new DexBackedFieldEncodedValue(dexFile, reader, valueArg);
                 case ValueType.METHOD:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new DexBackedMethodEncodedValue(reader, valueArg);
+                    return new DexBackedMethodEncodedValue(dexFile, reader, valueArg);
                 case ValueType.ENUM:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new DexBackedEnumEncodedValue(reader, valueArg);
+                    return new DexBackedEnumEncodedValue(dexFile, reader, valueArg);
                 case ValueType.ARRAY:
                     Preconditions.checkValueArg(valueArg, 0);
-                    return new DexBackedArrayEncodedValue(reader);
+                    return new DexBackedArrayEncodedValue(dexFile, reader);
                 case ValueType.ANNOTATION:
                     Preconditions.checkValueArg(valueArg, 0);
-                    return new DexBackedAnnotationEncodedValue(reader);
+                    return new DexBackedAnnotationEncodedValue(dexFile, reader);
                 case ValueType.NULL:
                     Preconditions.checkValueArg(valueArg, 0);
                     return ImmutableNullEncodedValue.INSTANCE;
@@ -103,10 +104,10 @@ public abstract class DexBackedEncodedValue {
                     return ImmutableBooleanEncodedValue.forBoolean(valueArg == 1);
                 case ValueType.METHOD_HANDLE:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new DexBackedMethodHandleEncodedValue(reader, valueArg);
+                    return new DexBackedMethodHandleEncodedValue(dexFile, reader, valueArg);
                 case ValueType.METHOD_TYPE:
                     Preconditions.checkValueArg(valueArg, 3);
-                    return new DexBackedMethodTypeEncodedValue(reader, valueArg);
+                    return new DexBackedMethodTypeEncodedValue(dexFile, reader, valueArg);
                 default:
                     throw new ExceptionWithContext("Invalid encoded_value type: 0x%x", valueType);
             }

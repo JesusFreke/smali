@@ -45,7 +45,7 @@ public abstract class VariableSizeIterator<T> implements Iterator<T> {
     private int index;
 
     protected VariableSizeIterator(@Nonnull DexBackedDexFile dexFile, int offset, int size) {
-        this.reader = dexFile.readerAt(offset);
+        this.reader = dexFile.getBuffer().readerAt(offset);
         this.size = size;
     }
 

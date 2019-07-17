@@ -57,16 +57,16 @@ public abstract class DexBackedInstruction implements Instruction {
     @Override public int getCodeUnits() { return opcode.format.size / 2; }
 
     @Nonnull
-    public static Instruction readFrom(@Nonnull DexReader reader) {
+    public static Instruction readFrom(DexBackedDexFile dexFile, @Nonnull DexReader reader) {
         int opcodeValue = reader.peekUbyte();
 
         if (opcodeValue == 0) {
             opcodeValue = reader.peekUshort();
         }
 
-        Opcode opcode = reader.dexBuf.getOpcodes().getOpcodeByValue(opcodeValue);
+        Opcode opcode = dexFile.getOpcodes().getOpcodeByValue(opcodeValue);
 
-        Instruction instruction = buildInstruction(reader.dexBuf, opcode, reader.getOffset());
+        Instruction instruction = buildInstruction(dexFile, opcode, reader.getOffset());
         reader.moveRelative(instruction.getCodeUnits()*2);
         return instruction;
     }

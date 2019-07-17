@@ -50,7 +50,10 @@ import java.util.AbstractList;
 import java.util.List;
 import java.util.Set;
 
-public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
+public class DexBackedDexFile implements DexFile {
+
+    private final DexBuffer dexBuffer;
+
     @Nonnull private final Opcodes opcodes;
 
     private final int stringCount;
@@ -68,7 +71,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int mapOffset;
 
     protected DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
-        super(buf, offset);
+        dexBuffer = new DexBuffer(buf, offset);
 
         int dexVersion;
         if (verifyMagic) {
@@ -83,22 +86,26 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
             this.opcodes = opcodes;
         }
 
-        stringCount = readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
-        stringStartOffset = readSmallUint(HeaderItem.STRING_START_OFFSET);
-        typeCount = readSmallUint(HeaderItem.TYPE_COUNT_OFFSET);
-        typeStartOffset = readSmallUint(HeaderItem.TYPE_START_OFFSET);
-        protoCount = readSmallUint(HeaderItem.PROTO_COUNT_OFFSET);
-        protoStartOffset = readSmallUint(HeaderItem.PROTO_START_OFFSET);
-        fieldCount = readSmallUint(HeaderItem.FIELD_COUNT_OFFSET);
-        fieldStartOffset = readSmallUint(HeaderItem.FIELD_START_OFFSET);
-        methodCount = readSmallUint(HeaderItem.METHOD_COUNT_OFFSET);
-        methodStartOffset = readSmallUint(HeaderItem.METHOD_START_OFFSET);
-        classCount = readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
-        classStartOffset = readSmallUint(HeaderItem.CLASS_START_OFFSET);
-        mapOffset = readSmallUint(HeaderItem.MAP_OFFSET);
+        stringCount = dexBuffer.readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
+        stringStartOffset = dexBuffer.readSmallUint(HeaderItem.STRING_START_OFFSET);
+        typeCount = dexBuffer.readSmallUint(HeaderItem.TYPE_COUNT_OFFSET);
+        typeStartOffset = dexBuffer.readSmallUint(HeaderItem.TYPE_START_OFFSET);
+        protoCount = dexBuffer.readSmallUint(HeaderItem.PROTO_COUNT_OFFSET);
+        protoStartOffset = dexBuffer.readSmallUint(HeaderItem.PROTO_START_OFFSET);
+        fieldCount = dexBuffer.readSmallUint(HeaderItem.FIELD_COUNT_OFFSET);
+        fieldStartOffset = dexBuffer.readSmallUint(HeaderItem.FIELD_START_OFFSET);
+        methodCount = dexBuffer.readSmallUint(HeaderItem.METHOD_COUNT_OFFSET);
+        methodStartOffset = dexBuffer.readSmallUint(HeaderItem.METHOD_START_OFFSET);
+        classCount = dexBuffer.readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
+        classStartOffset = dexBuffer.readSmallUint(HeaderItem.CLASS_START_OFFSET);
+        mapOffset = dexBuffer.readSmallUint(HeaderItem.MAP_OFFSET);
     }
 
-    public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
+    public DexBuffer getBuffer() {
+        return dexBuffer;
+    }
+
+    public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull DexBuffer buf) {
         this(opcodes, buf.buf, buf.baseOffset);
     }
 
@@ -188,14 +195,8 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         }
     }
 
-    @Override
-    @Nonnull
-    public DexReader readerAt(int offset) {
-        return new DexReader(this, offset);
-    }
-
     public List<MapItem> getMapItems() {
-        final int mapSize = readSmallUint(mapOffset);
+        final int mapSize = dexBuffer.readSmallUint(mapOffset);
 
         return new FixedSizeList<MapItem>() {
             @Override
@@ -241,8 +242,8 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         @Override
         public String get(int index) {
             int stringOffset = getOffset(index);
-            int stringDataOffset = readSmallUint(stringOffset);
-            DexReader reader = readerAt(stringDataOffset);
+            int stringDataOffset = dexBuffer.readSmallUint(stringOffset);
+            DexReader reader = dexBuffer.readerAt(stringDataOffset);
             int utf16Length = reader.readSmallUleb128();
             return reader.readString(utf16Length);
         }
@@ -279,7 +280,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         @Override
         public String get(int index) {
             int typeOffset = getOffset(index);
-            int stringIndex = readSmallUint(typeOffset);
+            int stringIndex = dexBuffer.readSmallUint(typeOffset);
             return getStringSection().get(stringIndex);
         }
 

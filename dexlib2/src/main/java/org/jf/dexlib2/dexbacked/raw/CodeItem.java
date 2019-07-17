@@ -86,7 +86,7 @@ public class CodeItem {
             @Override
             public void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
                 try {
-                    DexReader reader = dexFile.readerAt(out.getCursor());
+                    DexReader reader = dexFile.getBuffer().readerAt(out.getCursor());
 
                     int registers = reader.readUshort();
                     out.annotate(2, "registers_size = %d", registers);
@@ -118,7 +118,7 @@ public class CodeItem {
                     int end = reader.getOffset() + instructionSize*2;
                     try {
                         while (reader.getOffset() < end) {
-                            Instruction instruction = DexBackedInstruction.readFrom(reader);
+                            Instruction instruction = DexBackedInstruction.readFrom(dexFile, reader);
 
                             // if we read past the end of the instruction list
                             if (reader.getOffset() > end) {

@@ -54,7 +54,7 @@ public class MapItem {
     }
 
     public int getType() {
-        return dexFile.readUshort(offset + TYPE_OFFSET);
+        return dexFile.getBuffer().readUshort(offset + TYPE_OFFSET);
     }
 
     @Nonnull
@@ -63,11 +63,11 @@ public class MapItem {
     }
 
     public int getItemCount() {
-        return dexFile.readSmallUint(offset + SIZE_OFFSET);
+        return dexFile.getBuffer().readSmallUint(offset + SIZE_OFFSET);
     }
 
     public int getOffset() {
-        return dexFile.readSmallUint(offset + OFFSET_OFFSET);
+        return dexFile.getBuffer().readSmallUint(offset + OFFSET_OFFSET);
     }
 
     @Nonnull
@@ -79,21 +79,21 @@ public class MapItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                int itemType = dexFile.readUshort(out.getCursor());
+                int itemType = dexFile.getBuffer().readUshort(out.getCursor());
                 out.annotate(2, "type = 0x%x: %s", itemType, ItemType.getItemTypeName(itemType));
 
                 out.annotate(2, "unused");
 
-                int size = dexFile.readSmallUint(out.getCursor());
+                int size = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "size = %d", size);
 
-                int offset = dexFile.readSmallUint(out.getCursor());
+                int offset = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "offset = 0x%x", offset);
             }
 
             @Override public void annotateSection(@Nonnull AnnotatedBytes out) {
                 out.moveTo(sectionOffset);
-                int mapItemCount = dexFile.readSmallUint(out.getCursor());
+                int mapItemCount = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "size = %d", mapItemCount);
 
                 super.annotateSectionInner(out, mapItemCount);

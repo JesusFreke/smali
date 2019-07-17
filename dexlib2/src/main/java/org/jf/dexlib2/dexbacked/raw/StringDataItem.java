@@ -49,7 +49,7 @@ public class StringDataItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                DexReader reader = dexFile.readerAt(out.getCursor());
+                DexReader reader = dexFile.getBuffer().readerAt(out.getCursor());
                 int utf16Length = reader.readSmallUleb128();
                 out.annotateTo(reader.getOffset(), "utf16_size = %d", utf16Length);
 

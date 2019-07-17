@@ -32,20 +32,18 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.Opcodes;
-import org.jf.dexlib2.dexbacked.BaseDexBuffer;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
 
 public class RawDexFile extends DexBackedDexFile {
     @Nonnull public final HeaderItem headerItem;
 
-    public RawDexFile(@Nonnull Opcodes opcodes, @Nonnull BaseDexBuffer buf) {
-        super(opcodes, buf);
+    public RawDexFile(@Nonnull Opcodes opcodes, @Nonnull DexBackedDexFile dexFile) {
+        super(opcodes, dexFile.getBuffer());
         this.headerItem = new HeaderItem(this);
     }
 
@@ -54,13 +52,8 @@ public class RawDexFile extends DexBackedDexFile {
         this.headerItem = new HeaderItem(this);
     }
 
-    @Nonnull
-    public byte[] readByteRange(int start, int length) {
-        return Arrays.copyOfRange(getBuf(), getBaseOffset() + start, getBaseOffset() + start + length);
-    }
-
     public void writeAnnotations(@Nonnull Writer out, @Nonnull AnnotatedBytes annotatedBytes) throws IOException {
         // TODO: need to pass in the offset
-        annotatedBytes.writeAnnotations(out, getBuf());
+        annotatedBytes.writeAnnotations(out, getBuffer().getBuf());
     }
 }

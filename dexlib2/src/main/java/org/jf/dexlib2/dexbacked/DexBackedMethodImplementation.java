@@ -62,11 +62,11 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         this.codeOffset = codeOffset;
     }
 
-    @Override public int getRegisterCount() { return dexFile.readUshort(codeOffset); }
+    @Override public int getRegisterCount() { return dexFile.getBuffer().readUshort(codeOffset); }
 
     @Nonnull @Override public Iterable<? extends Instruction> getInstructions() {
         // instructionsSize is the number of 16-bit code units in the instruction list, not the number of instructions
-        int instructionsSize = dexFile.readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET);
+        int instructionsSize = dexFile.getBuffer().readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET);
 
         final int instructionsStartOffset = codeOffset + CodeItem.INSTRUCTION_START_OFFSET;
         final int endOffset = instructionsStartOffset + (instructionsSize*2);
@@ -80,7 +80,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
                             return endOfData();
                         }
 
-                        Instruction instruction = DexBackedInstruction.readFrom(reader);
+                        Instruction instruction = DexBackedInstruction.readFrom(dexFile, reader);
 
                         // Does the instruction extend past the end of the method?
                         int offset = reader.getOffset();
@@ -97,9 +97,9 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull
     @Override
     public List<? extends DexBackedTryBlock> getTryBlocks() {
-        final int triesSize = dexFile.readUshort(codeOffset + CodeItem.TRIES_SIZE_OFFSET);
+        final int triesSize = dexFile.getBuffer().readUshort(codeOffset + CodeItem.TRIES_SIZE_OFFSET);
         if (triesSize > 0) {
-            int instructionsSize = dexFile.readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET);
+            int instructionsSize = dexFile.getBuffer().readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET);
             final int triesStartOffset = AlignmentUtils.alignOffset(
                     codeOffset + CodeItem.INSTRUCTION_START_OFFSET + (instructionsSize*2), 4);
             final int handlersStartOffset = triesStartOffset + triesSize*CodeItem.TryItem.ITEM_SIZE;
@@ -124,7 +124,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
 
     @Nonnull
     private DebugInfo getDebugInfo() {
-        int debugOffset = dexFile.readInt(codeOffset + CodeItem.DEBUG_INFO_OFFSET);
+        int debugOffset = dexFile.getBuffer().readInt(codeOffset + CodeItem.DEBUG_INFO_OFFSET);
 
         if (debugOffset == -1 || debugOffset == 0) {
             return DebugInfo.newOrEmpty(dexFile, 0, this);
@@ -133,7 +133,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
             System.err.println(String.format("%s: Invalid debug offset", method));
             return DebugInfo.newOrEmpty(dexFile, 0, this);
         }
-        if (debugOffset >= dexFile.buf.length) {
+        if (debugOffset >= dexFile.getBuffer().buf.length) {
             System.err.println(String.format("%s: Invalid debug offset", method));
             return DebugInfo.newOrEmpty(dexFile, 0, this);
         }
@@ -164,7 +164,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         int lastOffset = codeOffset + CodeItem.INSTRUCTION_START_OFFSET;
 
         //set code_item ending offset to the end of instructions list (insns_size * ushort)
-        lastOffset += dexFile.readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET) * 2;
+        lastOffset += dexFile.getBuffer().readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET) * 2;
 
         //read any exception handlers and move code_item offset to the end
         for (DexBackedTryBlock tryBlock: getTryBlocks()) {

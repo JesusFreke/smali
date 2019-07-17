@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
 import org.jf.dexlib2.util.AnnotatedBytes;
@@ -42,7 +43,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 public class EncodedValue {
-    public static void annotateEncodedValue(@Nonnull AnnotatedBytes out, @Nonnull DexReader reader) {
+    public static void annotateEncodedValue(
+            @Nonnull DexBackedDexFile dexFile,
+            @Nonnull AnnotatedBytes out,
+            @Nonnull DexReader reader) {
         int valueArgType = reader.readUbyte();
 
         int valueArg = valueArgType >>> 5;
@@ -66,15 +70,15 @@ public class EncodedValue {
                 out.annotate(1, "valueArg = %d, valueType = 0x%x: %s", valueArg, valueType,
                         ValueType.getValueTypeName(valueType));
                 reader.setOffset(reader.getOffset() - 1);
-                out.annotate(valueArg + 1, "value = %s", asString(reader));
+                out.annotate(valueArg + 1, "value = %s", asString(dexFile, reader));
                 break;
             case ValueType.ARRAY:
                 out.annotate(1, "valueArg = %d, valueType = 0x%x: array", valueArg, valueType);
-                annotateEncodedArray(out, reader);
+                annotateEncodedArray(dexFile, out, reader);
                 break;
             case ValueType.ANNOTATION:
                 out.annotate(1, "valueArg = %d, valueType = 0x%x: annotation", valueArg, valueType);
-                annotateEncodedAnnotation(out, reader);
+                annotateEncodedAnnotation(dexFile, out, reader);
                 break;
             case ValueType.NULL:
                 out.annotate(1, "valueArg = %d, valueType = 0x%x: null", valueArg, valueType);
@@ -88,11 +92,14 @@ public class EncodedValue {
         }
     }
 
-    public static void annotateEncodedAnnotation(@Nonnull AnnotatedBytes out, @Nonnull DexReader reader) {
+    public static void annotateEncodedAnnotation(
+            @Nonnull DexBackedDexFile dexFile,
+            @Nonnull AnnotatedBytes out,
+            @Nonnull DexReader reader) {
         assert out.getCursor() == reader.getOffset();
 
         int typeIndex = reader.readSmallUleb128();
-        out.annotateTo(reader.getOffset(), TypeIdItem.getReferenceAnnotation(reader.dexBuf, typeIndex));
+        out.annotateTo(reader.getOffset(), TypeIdItem.getReferenceAnnotation(dexFile, typeIndex));
 
         int size = reader.readSmallUleb128();
         out.annotateTo(reader.getOffset(), "size: %d", size);
@@ -103,15 +110,18 @@ public class EncodedValue {
 
             int nameIndex = reader.readSmallUleb128();
             out.annotateTo(reader.getOffset(), "name = %s",
-                    StringIdItem.getReferenceAnnotation(reader.dexBuf, nameIndex));
+                    StringIdItem.getReferenceAnnotation(dexFile, nameIndex));
 
-            annotateEncodedValue(out, reader);
+            annotateEncodedValue(dexFile, out, reader);
 
             out.deindent();
         }
     }
 
-    public static void annotateEncodedArray(@Nonnull AnnotatedBytes out, @Nonnull DexReader reader) {
+    public static void annotateEncodedArray(
+            @Nonnull DexBackedDexFile dexFile,
+            @Nonnull AnnotatedBytes out,
+            @Nonnull DexReader reader) {
         assert out.getCursor() == reader.getOffset();
 
         int size = reader.readSmallUleb128();
@@ -121,13 +131,13 @@ public class EncodedValue {
             out.annotate(0, "element[%d]", i);
             out.indent();
 
-            annotateEncodedValue(out, reader);
+            annotateEncodedValue(dexFile, out, reader);
 
             out.deindent();
         }
     }
 
-    public static String asString(@Nonnull DexReader reader) {
+    public static String asString(@Nonnull DexBackedDexFile dexFile, @Nonnull DexReader reader) {
         int valueArgType = reader.readUbyte();
 
         int valueArg = valueArgType >>> 5;
@@ -157,29 +167,29 @@ public class EncodedValue {
                 return String.format("%f", doubleValue);
             case ValueType.METHOD_TYPE:
                 int protoIndex = reader.readSizedSmallUint(valueArg + 1);
-                return ProtoIdItem.getReferenceAnnotation(reader.dexBuf, protoIndex);
+                return ProtoIdItem.getReferenceAnnotation(dexFile, protoIndex);
             case ValueType.STRING:
                 int stringIndex = reader.readSizedSmallUint(valueArg + 1);
-                return StringIdItem.getReferenceAnnotation(reader.dexBuf, stringIndex, true);
+                return StringIdItem.getReferenceAnnotation(dexFile, stringIndex, true);
             case ValueType.TYPE:
                 int typeIndex = reader.readSizedSmallUint(valueArg+1);
-                return TypeIdItem.getReferenceAnnotation(reader.dexBuf, typeIndex);
+                return TypeIdItem.getReferenceAnnotation(dexFile, typeIndex);
             case ValueType.FIELD:
                 int fieldIndex = reader.readSizedSmallUint(valueArg+1);
-                return FieldIdItem.getReferenceAnnotation(reader.dexBuf, fieldIndex);
+                return FieldIdItem.getReferenceAnnotation(dexFile, fieldIndex);
             case ValueType.METHOD:
                 int methodIndex = reader.readSizedSmallUint(valueArg+1);
-                return MethodIdItem.getReferenceAnnotation(reader.dexBuf, methodIndex);
+                return MethodIdItem.getReferenceAnnotation(dexFile, methodIndex);
             case ValueType.ENUM:
                 fieldIndex = reader.readSizedSmallUint(valueArg+1);
-                return FieldIdItem.getReferenceAnnotation(reader.dexBuf, fieldIndex);
+                return FieldIdItem.getReferenceAnnotation(dexFile, fieldIndex);
             case ValueType.ARRAY:
             case ValueType.ANNOTATION:
             case ValueType.METHOD_HANDLE:
                 StringWriter writer = new StringWriter();
                 reader.setOffset(reader.getOffset() - 1);
                 try {
-                    EncodedValueUtils.writeEncodedValue(writer, DexBackedEncodedValue.readFrom(reader));
+                    EncodedValueUtils.writeEncodedValue(writer, DexBackedEncodedValue.readFrom(dexFile, reader));
                 } catch (IOException ex) {
                     // Shouldn't happen with a StringWriter...
                     throw new RuntimeException(ex);

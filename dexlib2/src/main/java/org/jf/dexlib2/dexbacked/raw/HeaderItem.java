@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.VersionMap;
-import org.jf.dexlib2.dexbacked.BaseDexBuffer;
+import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.StringUtils;
@@ -90,67 +90,67 @@ public class HeaderItem {
     }
 
     public int getChecksum() {
-        return dexFile.readSmallUint(CHECKSUM_OFFSET);
+        return dexFile.getBuffer().readSmallUint(CHECKSUM_OFFSET);
     }
 
     @Nonnull public byte[] getSignature() {
-        return dexFile.readByteRange(SIGNATURE_OFFSET, SIGNATURE_SIZE);
+        return dexFile.getBuffer().readByteRange(SIGNATURE_OFFSET, SIGNATURE_SIZE);
     }
 
     public int getMapOffset() {
-        return dexFile.readSmallUint(MAP_OFFSET);
+        return dexFile.getBuffer().readSmallUint(MAP_OFFSET);
     }
 
     public int getHeaderSize() {
-        return dexFile.readSmallUint(HEADER_SIZE_OFFSET);
+        return dexFile.getBuffer().readSmallUint(HEADER_SIZE_OFFSET);
     }
 
     public int getStringCount() {
-        return dexFile.readSmallUint(STRING_COUNT_OFFSET);
+        return dexFile.getBuffer().readSmallUint(STRING_COUNT_OFFSET);
     }
 
     public int getStringOffset() {
-        return dexFile.readSmallUint(STRING_START_OFFSET);
+        return dexFile.getBuffer().readSmallUint(STRING_START_OFFSET);
     }
 
     public int getTypeCount() {
-        return dexFile.readSmallUint(TYPE_COUNT_OFFSET);
+        return dexFile.getBuffer().readSmallUint(TYPE_COUNT_OFFSET);
     }
 
     public int getTypeOffset() {
-        return dexFile.readSmallUint(TYPE_START_OFFSET);
+        return dexFile.getBuffer().readSmallUint(TYPE_START_OFFSET);
     }
 
     public int getProtoCount() {
-        return dexFile.readSmallUint(PROTO_COUNT_OFFSET);
+        return dexFile.getBuffer().readSmallUint(PROTO_COUNT_OFFSET);
     }
 
     public int getProtoOffset() {
-        return dexFile.readSmallUint(PROTO_START_OFFSET);
+        return dexFile.getBuffer().readSmallUint(PROTO_START_OFFSET);
     }
 
     public int getFieldCount() {
-        return dexFile.readSmallUint(FIELD_COUNT_OFFSET);
+        return dexFile.getBuffer().readSmallUint(FIELD_COUNT_OFFSET);
     }
 
     public int getFieldOffset() {
-        return dexFile.readSmallUint(FIELD_START_OFFSET);
+        return dexFile.getBuffer().readSmallUint(FIELD_START_OFFSET);
     }
 
     public int getMethodCount() {
-        return dexFile.readSmallUint(METHOD_COUNT_OFFSET);
+        return dexFile.getBuffer().readSmallUint(METHOD_COUNT_OFFSET);
     }
 
     public int getMethodOffset() {
-        return dexFile.readSmallUint(METHOD_START_OFFSET);
+        return dexFile.getBuffer().readSmallUint(METHOD_START_OFFSET);
     }
 
     public int getClassCount() {
-        return dexFile.readSmallUint(CLASS_COUNT_OFFSET);
+        return dexFile.getBuffer().readSmallUint(CLASS_COUNT_OFFSET);
     }
 
     public int getClassOffset() {
-        return dexFile.readSmallUint(CLASS_START_OFFSET);
+        return dexFile.getBuffer().readSmallUint(CLASS_START_OFFSET);
     }
 
     @Nonnull
@@ -167,45 +167,45 @@ public class HeaderItem {
 
                 StringBuilder magicBuilder = new StringBuilder();
                 for (int i=0; i<8; i++) {
-                    magicBuilder.append((char)dexFile.readUbyte(startOffset + i));
+                    magicBuilder.append((char)dexFile.getBuffer().readUbyte(startOffset + i));
                 }
 
                 out.annotate(8, "magic: %s", StringUtils.escapeString(magicBuilder.toString()));
                 out.annotate(4, "checksum");
                 out.annotate(20, "signature");
-                out.annotate(4, "file_size: %d", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "file_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
 
-                headerSize = dexFile.readInt(out.getCursor());
+                headerSize = dexFile.getBuffer().readInt(out.getCursor());
                 out.annotate(4, "header_size: %d", headerSize);
 
-                int endianTag = dexFile.readInt(out.getCursor());
+                int endianTag = dexFile.getBuffer().readInt(out.getCursor());
                 out.annotate(4, "endian_tag: 0x%x (%s)", endianTag, getEndianText(endianTag));
 
-                out.annotate(4, "link_size: %d", dexFile.readInt(out.getCursor()));
-                out.annotate(4, "link_offset: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "link_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
+                out.annotate(4, "link_offset: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
-                out.annotate(4, "map_off: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "map_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
-                out.annotate(4, "string_ids_size: %d", dexFile.readInt(out.getCursor()));
-                out.annotate(4, "string_ids_off: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "string_ids_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
+                out.annotate(4, "string_ids_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
-                out.annotate(4, "type_ids_size: %d", dexFile.readInt(out.getCursor()));
-                out.annotate(4, "type_ids_off: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "type_ids_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
+                out.annotate(4, "type_ids_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
-                out.annotate(4, "proto_ids_size: %d", dexFile.readInt(out.getCursor()));
-                out.annotate(4, "proto_ids_off: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "proto_ids_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
+                out.annotate(4, "proto_ids_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
-                out.annotate(4, "field_ids_size: %d", dexFile.readInt(out.getCursor()));
-                out.annotate(4, "field_ids_off: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "field_ids_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
+                out.annotate(4, "field_ids_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
-                out.annotate(4, "method_ids_size: %d", dexFile.readInt(out.getCursor()));
-                out.annotate(4, "method_ids_off: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "method_ids_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
+                out.annotate(4, "method_ids_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
-                out.annotate(4, "class_defs_size: %d", dexFile.readInt(out.getCursor()));
-                out.annotate(4, "class_defs_off: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "class_defs_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
+                out.annotate(4, "class_defs_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
-                out.annotate(4, "data_size: %d", dexFile.readInt(out.getCursor()));
-                out.annotate(4, "data_off: 0x%x", dexFile.readInt(out.getCursor()));
+                out.annotate(4, "data_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
+                out.annotate(4, "data_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
 
                 if (headerSize > ITEM_SIZE) {
                     out.annotateTo(headerSize, "header padding");
@@ -306,7 +306,7 @@ public class HeaderItem {
     }
 
     public static int getEndian(byte[] buf, int offset) {
-        BaseDexBuffer bdb = new BaseDexBuffer(buf);
+        DexBuffer bdb = new DexBuffer(buf);
         return bdb.readInt(offset + ENDIAN_TAG_OFFSET);
     }
 }

@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
-import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.dexbacked.value.DexBackedArrayEncodedValue;
 import org.jf.dexlib2.util.AnnotatedBytes;
@@ -54,12 +53,12 @@ public class CallSiteIdItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                int callSiteOffset = dexFile.readSmallUint(out.getCursor());
+                int callSiteOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
 
                 StringWriter writer = new StringWriter();
                 try {
                     EncodedValueUtils.writeEncodedValue(writer,
-                            new DexBackedArrayEncodedValue(new DexReader(dexFile, callSiteOffset)));
+                            new DexBackedArrayEncodedValue(dexFile, dexFile.getBuffer().readerAt(callSiteOffset)));
                 } catch (IOException ex) {
                     // Shouldn't get an IOException from a StringWriter..
                     throw new RuntimeException(ex);

@@ -52,18 +52,18 @@ public class DexBackedTryBlock extends BaseTryBlock<DexBackedExceptionHandler> {
     }
 
     @Override public int getStartCodeAddress() {
-        return dexFile.readSmallUint(tryItemOffset + CodeItem.TryItem.START_ADDRESS_OFFSET);
+        return dexFile.getBuffer().readSmallUint(tryItemOffset + CodeItem.TryItem.START_ADDRESS_OFFSET);
     }
 
     @Override public int getCodeUnitCount() {
-        return dexFile.readUshort(tryItemOffset + CodeItem.TryItem.CODE_UNIT_COUNT_OFFSET);
+        return dexFile.getBuffer().readUshort(tryItemOffset + CodeItem.TryItem.CODE_UNIT_COUNT_OFFSET);
     }
 
     @Nonnull
     @Override
     public List<? extends DexBackedExceptionHandler> getExceptionHandlers() {
-        DexReader reader = dexFile.readerAt(
-                handlersStartOffset + dexFile.readUshort(tryItemOffset + CodeItem.TryItem.HANDLER_OFFSET));
+        DexReader reader = dexFile.getBuffer().readerAt(
+                handlersStartOffset + dexFile.getBuffer().readUshort(tryItemOffset + CodeItem.TryItem.HANDLER_OFFSET));
         final int encodedSize = reader.readSleb128();
 
         if (encodedSize > 0) {
@@ -72,7 +72,7 @@ public class DexBackedTryBlock extends BaseTryBlock<DexBackedExceptionHandler> {
                 @Nonnull
                 @Override
                 protected DexBackedTypedExceptionHandler readNextItem(@Nonnull DexReader reader, int index) {
-                    return new DexBackedTypedExceptionHandler(reader);
+                    return new DexBackedTypedExceptionHandler(dexFile, reader);
                 }
             };
         } else {
@@ -85,7 +85,7 @@ public class DexBackedTryBlock extends BaseTryBlock<DexBackedExceptionHandler> {
                     if (index == sizeWithCatchAll-1) {
                         return new DexBackedCatchAllExceptionHandler(dexReader);
                     } else {
-                        return new DexBackedTypedExceptionHandler(dexReader);
+                        return new DexBackedTypedExceptionHandler(dexFile, dexReader);
                     }
                 }
             };

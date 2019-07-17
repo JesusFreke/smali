@@ -56,17 +56,17 @@ public class AnnotationDirectoryItem {
 
             @Override
             protected void annotateItem(@Nonnull AnnotatedBytes out, int itemIndex, @Nullable String itemIdentity) {
-                int classAnnotationsOffset = dexFile.readSmallUint(out.getCursor());
+                int classAnnotationsOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "class_annotations_off = %s",
                         AnnotationSetItem.getReferenceAnnotation(dexFile, classAnnotationsOffset));
 
-                int fieldsSize = dexFile.readSmallUint(out.getCursor());
+                int fieldsSize = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "fields_size = %d", fieldsSize);
 
-                int annotatedMethodsSize = dexFile.readSmallUint(out.getCursor());
+                int annotatedMethodsSize = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "annotated_methods_size = %d", annotatedMethodsSize);
 
-                int annotatedParameterSize = dexFile.readSmallUint(out.getCursor());
+                int annotatedParameterSize = dexFile.getBuffer().readSmallUint(out.getCursor());
                 out.annotate(4, "annotated_parameters_size = %d", annotatedParameterSize);
 
                 if (fieldsSize > 0) {
@@ -75,9 +75,9 @@ public class AnnotationDirectoryItem {
                     for (int i=0; i<fieldsSize; i++) {
                         out.annotate(0, "field_annotation[%d]", i);
                         out.indent();
-                        int fieldIndex = dexFile.readSmallUint(out.getCursor());
+                        int fieldIndex = dexFile.getBuffer().readSmallUint(out.getCursor());
                         out.annotate(4, "%s", FieldIdItem.getReferenceAnnotation(dexFile, fieldIndex));
-                        int annotationOffset = dexFile.readSmallUint(out.getCursor());
+                        int annotationOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                         out.annotate(4, "%s", AnnotationSetItem.getReferenceAnnotation(dexFile, annotationOffset));
                         out.deindent();
                     }
@@ -90,9 +90,9 @@ public class AnnotationDirectoryItem {
                     for (int i=0; i<annotatedMethodsSize; i++) {
                         out.annotate(0, "method_annotation[%d]", i);
                         out.indent();
-                        int methodIndex = dexFile.readSmallUint(out.getCursor());
+                        int methodIndex = dexFile.getBuffer().readSmallUint(out.getCursor());
                         out.annotate(4, "%s", MethodIdItem.getReferenceAnnotation(dexFile, methodIndex));
-                        int annotationOffset = dexFile.readSmallUint(out.getCursor());
+                        int annotationOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                         out.annotate(4, "%s", AnnotationSetItem.getReferenceAnnotation(dexFile, annotationOffset));
                         out.deindent();
                     }
@@ -105,9 +105,9 @@ public class AnnotationDirectoryItem {
                     for (int i=0; i<annotatedParameterSize; i++) {
                         out.annotate(0, "parameter_annotation[%d]", i);
                         out.indent();
-                        int methodIndex = dexFile.readSmallUint(out.getCursor());
+                        int methodIndex = dexFile.getBuffer().readSmallUint(out.getCursor());
                         out.annotate(4, "%s", MethodIdItem.getReferenceAnnotation(dexFile, methodIndex));
-                        int annotationOffset = dexFile.readSmallUint(out.getCursor());
+                        int annotationOffset = dexFile.getBuffer().readSmallUint(out.getCursor());
                         out.annotate(4, "%s", AnnotationSetRefList.getReferenceAnnotation(dexFile, annotationOffset));
                         out.deindent();
                     }

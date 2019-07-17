@@ -64,8 +64,8 @@ public class DexBackedStringReference extends BaseStringReference {
         int size = StringIdItem.ITEM_SIZE; //uint for string_data_off
         //add the string data length:
         int stringOffset = dexFile.getStringSection().getOffset(stringIndex);
-        int stringDataOffset = dexFile.readSmallUint(stringOffset);
-        DexReader reader = dexFile.readerAt(stringDataOffset);
+        int stringDataOffset = dexFile.getBuffer().readSmallUint(stringOffset);
+        DexReader reader = dexFile.getBuffer().readerAt(stringDataOffset);
         size += reader.peekSmallUleb128Size();
         int utf16Length = reader.readSmallUleb128();
         //and string data itself:

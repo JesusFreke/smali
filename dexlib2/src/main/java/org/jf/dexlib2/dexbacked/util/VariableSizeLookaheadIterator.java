@@ -43,7 +43,7 @@ public abstract class VariableSizeLookaheadIterator<T> extends AbstractIterator<
     @Nonnull private final DexReader reader;
 
     protected VariableSizeLookaheadIterator(@Nonnull DexBackedDexFile dexFile, int offset) {
-        this.reader = dexFile.readerAt(offset);
+        this.reader = dexFile.getBuffer().readerAt(offset);
     }
 
     /**

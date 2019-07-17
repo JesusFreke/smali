@@ -153,7 +153,7 @@ public class DexBackedCallSiteReference extends BaseCallSiteReference {
 
     private int getCallSiteOffset() {
         if (callSiteOffset < 0) {
-            callSiteOffset = dexFile.readSmallUint(callSiteIdOffset);
+            callSiteOffset = dexFile.getBuffer().readSmallUint(callSiteIdOffset);
         }
         return callSiteOffset;
     }
