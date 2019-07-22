@@ -38,7 +38,6 @@ import org.jf.dexlib2.DexFileFactory.DexFileNotFoundException;
 import org.jf.dexlib2.DexFileFactory.MultipleMatchingDexEntriesException;
 import org.jf.dexlib2.DexFileFactory.UnsupportedFileTypeException;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
 import org.jf.dexlib2.iface.MultiDexContainer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -63,7 +62,7 @@ public class DexEntryFinderTest {
         entries.put("/system/framework/framework.jar:classes2.dex", dexFile2);
         DexEntryFinder testFinder = new DexEntryFinder("blah.oat", new TestMultiDexContainer(entries));
 
-        Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true));
+        Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true).getDexFile());
 
         assertEntryNotFound(testFinder, "system/framework/framework.jar", true);
         assertEntryNotFound(testFinder, "/framework/framework.jar", true);
@@ -71,11 +70,11 @@ public class DexEntryFinderTest {
         assertEntryNotFound(testFinder, "/framework.jar", true);
         assertEntryNotFound(testFinder, "framework.jar", true);
 
-        Assert.assertEquals(dexFile1, testFinder.findEntry("system/framework/framework.jar", false));
-        Assert.assertEquals(dexFile1, testFinder.findEntry("/framework/framework.jar", false));
-        Assert.assertEquals(dexFile1, testFinder.findEntry("framework/framework.jar", false));
-        Assert.assertEquals(dexFile1, testFinder.findEntry("/framework.jar", false));
-        Assert.assertEquals(dexFile1, testFinder.findEntry("framework.jar", false));
+        Assert.assertEquals(dexFile1, testFinder.findEntry("system/framework/framework.jar", false).getDexFile());
+        Assert.assertEquals(dexFile1, testFinder.findEntry("/framework/framework.jar", false).getDexFile());
+        Assert.assertEquals(dexFile1, testFinder.findEntry("framework/framework.jar", false).getDexFile());
+        Assert.assertEquals(dexFile1, testFinder.findEntry("/framework.jar", false).getDexFile());
+        Assert.assertEquals(dexFile1, testFinder.findEntry("framework.jar", false).getDexFile());
 
         assertEntryNotFound(testFinder, "ystem/framework/framework.jar", false);
         assertEntryNotFound(testFinder, "ssystem/framework/framework.jar", false);
@@ -83,19 +82,22 @@ public class DexEntryFinderTest {
         assertEntryNotFound(testFinder, "ramework.jar", false);
         assertEntryNotFound(testFinder, "framework", false);
 
-        Assert.assertEquals(dexFile2, testFinder.findEntry("/system/framework/framework.jar:classes2.dex", true));
+        Assert.assertEquals(dexFile2,
+                testFinder.findEntry("/system/framework/framework.jar:classes2.dex", true).getDexFile());
 
         assertEntryNotFound(testFinder, "system/framework/framework.jar:classes2.dex", true);
         assertEntryNotFound(testFinder, "framework.jar:classes2.dex", true);
         assertEntryNotFound(testFinder, "classes2.dex", true);
 
-        Assert.assertEquals(dexFile2, testFinder.findEntry("system/framework/framework.jar:classes2.dex", false));
-        Assert.assertEquals(dexFile2, testFinder.findEntry("/framework/framework.jar:classes2.dex", false));
-        Assert.assertEquals(dexFile2, testFinder.findEntry("framework/framework.jar:classes2.dex", false));
-        Assert.assertEquals(dexFile2, testFinder.findEntry("/framework.jar:classes2.dex", false));
-        Assert.assertEquals(dexFile2, testFinder.findEntry("framework.jar:classes2.dex", false));
-        Assert.assertEquals(dexFile2, testFinder.findEntry(":classes2.dex", false));
-        Assert.assertEquals(dexFile2, testFinder.findEntry("classes2.dex", false));
+        Assert.assertEquals(dexFile2,
+                testFinder.findEntry("system/framework/framework.jar:classes2.dex", false).getDexFile());
+        Assert.assertEquals(dexFile2,
+                testFinder.findEntry("/framework/framework.jar:classes2.dex", false).getDexFile());
+        Assert.assertEquals(dexFile2, testFinder.findEntry("framework/framework.jar:classes2.dex", false).getDexFile());
+        Assert.assertEquals(dexFile2, testFinder.findEntry("/framework.jar:classes2.dex", false).getDexFile());
+        Assert.assertEquals(dexFile2, testFinder.findEntry("framework.jar:classes2.dex", false).getDexFile());
+        Assert.assertEquals(dexFile2, testFinder.findEntry(":classes2.dex", false).getDexFile());
+        Assert.assertEquals(dexFile2, testFinder.findEntry("classes2.dex", false).getDexFile());
 
         assertEntryNotFound(testFinder, "ystem/framework/framework.jar:classes2.dex", false);
         assertEntryNotFound(testFinder, "ramework.jar:classes2.dex", false);
@@ -112,8 +114,8 @@ public class DexEntryFinderTest {
         entries.put("system/framework/framework.jar", dexFile2);
         DexEntryFinder testFinder = new DexEntryFinder("blah.oat", new TestMultiDexContainer(entries));
 
-        Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true));
-        Assert.assertEquals(dexFile2, testFinder.findEntry("system/framework/framework.jar", true));
+        Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true).getDexFile());
+        Assert.assertEquals(dexFile2, testFinder.findEntry("system/framework/framework.jar", true).getDexFile());
 
         assertMultipleMatchingEntries(testFinder, "/system/framework/framework.jar");
         assertMultipleMatchingEntries(testFinder, "system/framework/framework.jar");
@@ -133,11 +135,11 @@ public class DexEntryFinderTest {
         entries.put("/framework/framework.jar", dexFile2);
         DexEntryFinder testFinder = new DexEntryFinder("blah.oat", new TestMultiDexContainer(entries));
 
-        Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true));
-        Assert.assertEquals(dexFile2, testFinder.findEntry("/framework/framework.jar", true));
+        Assert.assertEquals(dexFile1, testFinder.findEntry("/system/framework/framework.jar", true).getDexFile());
+        Assert.assertEquals(dexFile2, testFinder.findEntry("/framework/framework.jar", true).getDexFile());
 
-        Assert.assertEquals(dexFile2, testFinder.findEntry("/framework/framework.jar", false));
-        Assert.assertEquals(dexFile2, testFinder.findEntry("framework/framework.jar", false));
+        Assert.assertEquals(dexFile2, testFinder.findEntry("/framework/framework.jar", false).getDexFile());
+        Assert.assertEquals(dexFile2, testFinder.findEntry("framework/framework.jar", false).getDexFile());
 
         assertMultipleMatchingEntries(testFinder, "/framework.jar");
         assertMultipleMatchingEntries(testFinder, "framework.jar");
@@ -151,8 +153,8 @@ public class DexEntryFinderTest {
         entries.put("/blah/classes.dex", null);
         DexEntryFinder testFinder = new DexEntryFinder("blah.oat", new TestMultiDexContainer(entries));
 
-        Assert.assertEquals(dexFile1, testFinder.findEntry("classes.dex", true));
-        Assert.assertEquals(dexFile1, testFinder.findEntry("classes.dex", false));
+        Assert.assertEquals(dexFile1, testFinder.findEntry("classes.dex", true).getDexFile());
+        Assert.assertEquals(dexFile1, testFinder.findEntry("classes.dex", false).getDexFile());
 
         assertUnsupportedFileType(testFinder, "/blah/classes.dex", true);
         assertDexFileNotFound(testFinder, "/blah/classes.dex", false);
@@ -213,15 +215,41 @@ public class DexEntryFinderTest {
             return entryNames;
         }
 
-        @Nullable @Override public DexBackedDexFile getEntry(@Nonnull String entryName) throws IOException {
+        @Nullable
+        @Override
+        public DexEntry<DexBackedDexFile> getEntry(@Nonnull String entryName) throws IOException {
             if (entries.containsKey(entryName)) {
-                DexBackedDexFile entry = entries.get(entryName);
-                if (entry == null) {
-                    throw new NotADexFile();
+                DexBackedDexFile dexFile = entries.get(entryName);
+                if (dexFile == null) {
+                    throw new DexBackedDexFile.NotADexFile();
                 }
-                return entry;
+
+                return new DexEntry<DexBackedDexFile>() {
+                    @Nonnull
+                    @Override
+                    public String getEntryName() {
+                        return "classes.dex";
+                    }
+
+                    @Nonnull
+                    @Override
+                    public DexBackedDexFile getDexFile() {
+                        return dexFile;
+                    }
+
+                    @Nonnull
+                    @Override
+                    public MultiDexContainer<? extends DexBackedDexFile> getContainer() {
+                        return TestMultiDexContainer.this;
+                    }
+                };
             }
             return null;
+
+
+
         }
+
+
     }
 }

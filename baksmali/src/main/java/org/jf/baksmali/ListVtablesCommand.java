@@ -145,7 +145,7 @@ public class ListVtablesCommand extends DexInputCommand {
 
         try {
             options.classPath = analysisArguments.loadClassPathForDexFile(inputFile.getAbsoluteFile().getParentFile(),
-                    dexFile, checkPackagePrivateArgument.checkPackagePrivateAccess, oatVersion);
+                    dexEntry, checkPackagePrivateArgument.checkPackagePrivateAccess, oatVersion);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);

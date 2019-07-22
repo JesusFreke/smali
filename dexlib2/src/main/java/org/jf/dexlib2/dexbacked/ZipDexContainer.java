@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
-import org.jf.dexlib2.dexbacked.ZipDexContainer.ZipDexFile;
+import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.MultiDexContainer;
 import org.jf.dexlib2.util.DexUtil;
 import org.jf.dexlib2.util.DexUtil.InvalidFile;
@@ -55,7 +55,7 @@ import java.util.zip.ZipFile;
 /**
  * Represents a zip file that contains dex files (i.e. an apk or jar file)
  */
-public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
+public class ZipDexContainer implements MultiDexContainer<DexBackedDexFile> {
 
     private final File zipFilePath;
     @Nullable private final Opcodes opcodes;
@@ -104,7 +104,7 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
      * @return A ZipDexFile, or null if there is no entry with the given name
      * @throws NotADexFile If the entry isn't a dex file
      */
-    @Nullable @Override public ZipDexFile getEntry(@Nonnull String entryName) throws IOException {
+    @Nullable @Override public DexEntry<DexBackedDexFile> getEntry(@Nonnull String entryName) throws IOException {
         ZipFile zipFile = getZipFile();
         try {
             ZipEntry entry = zipFile.getEntry(entryName);
@@ -138,24 +138,6 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
         }
     }
 
-    public class ZipDexFile extends DexBackedDexFile implements MultiDexContainer.MultiDexFile {
-
-        private final String entryName;
-
-        protected ZipDexFile(@Nullable Opcodes opcodes, @Nonnull byte[] buf, @Nonnull String entryName) {
-            super(opcodes, buf, 0);
-            this.entryName = entryName;
-        }
-
-        @Nonnull @Override public String getEntryName() {
-            return entryName;
-        }
-
-        @Nonnull @Override public MultiDexContainer getContainer() {
-            return ZipDexContainer.this;
-        }
-    }
-
     protected boolean isDex(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
         InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(zipEntry));
         try {
@@ -181,11 +163,30 @@ public class ZipDexContainer implements MultiDexContainer<ZipDexFile> {
     }
 
     @Nonnull
-    protected ZipDexFile loadEntry(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
+    protected DexEntry loadEntry(@Nonnull ZipFile zipFile, @Nonnull ZipEntry zipEntry) throws IOException {
         InputStream inputStream = zipFile.getInputStream(zipEntry);
         try {
             byte[] buf = ByteStreams.toByteArray(inputStream);
-            return new ZipDexFile(opcodes, buf, zipEntry.getName());
+
+            return new DexEntry() {
+                @Nonnull
+                @Override
+                public String getEntryName() {
+                    return zipEntry.getName();
+                }
+
+                @Nonnull
+                @Override
+                public DexFile getDexFile() {
+                    return new DexBackedDexFile(opcodes, buf);
+                }
+
+                @Nonnull
+                @Override
+                public MultiDexContainer getContainer() {
+                    return ZipDexContainer.this;
+                }
+            };
         } finally {
             inputStream.close();
         }

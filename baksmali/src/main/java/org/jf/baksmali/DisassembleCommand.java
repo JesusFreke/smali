@@ -207,7 +207,7 @@ public class DisassembleCommand extends DexInputCommand {
         if (needsClassPath()) {
             try {
                 options.classPath = analysisArguments.loadClassPathForDexFile(
-                        inputFile.getAbsoluteFile().getParentFile(), dexFile, shouldCheckPackagePrivateAccess());
+                        inputFile.getAbsoluteFile().getParentFile(), dexEntry, shouldCheckPackagePrivateAccess());
             } catch (Exception ex) {
                 System.err.println("\n\nError occurred while loading class path files. Aborting.");
                 ex.printStackTrace(System.err);

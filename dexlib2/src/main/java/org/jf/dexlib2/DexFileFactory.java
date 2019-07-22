@@ -86,7 +86,7 @@ public final class DexFileFactory {
 
         try {
             ZipDexContainer container = new ZipDexContainer(file, opcodes);
-            return new DexEntryFinder(file.getPath(), container).findEntry("classes.dex", true);
+            return new DexEntryFinder(file.getPath(), container).findEntry("classes.dex", true).getDexFile();
         } catch (NotAZipFileException ex) {
             // eat it and continue
         }
@@ -175,8 +175,11 @@ public final class DexFileFactory {
      * valid dex file
      * @throws MultipleMatchingDexEntriesException If multiple entries match the given dexEntry
      */
-    public static DexBackedDexFile loadDexEntry(@Nonnull File file, @Nonnull String dexEntry,
-                                                boolean exactMatch, @Nullable Opcodes opcodes) throws IOException {
+    public static MultiDexContainer.DexEntry<? extends DexBackedDexFile> loadDexEntry(
+            @Nonnull File file,
+            @Nonnull String dexEntry,
+            boolean exactMatch,
+            @Nullable Opcodes opcodes) throws IOException {
         if (!file.exists()) {
             throw new DexFileNotFoundException("Container file %s does not exist", file.getName());
         }
@@ -376,14 +379,15 @@ public final class DexFileFactory {
         }
 
         @Nonnull
-        public DexBackedDexFile findEntry(@Nonnull String targetEntry, boolean exactMatch) throws IOException {
+        public MultiDexContainer.DexEntry<? extends DexBackedDexFile> findEntry(
+                @Nonnull String targetEntry, boolean exactMatch) throws IOException {
             if (exactMatch) {
                 try {
-                    DexBackedDexFile dexFile = dexContainer.getEntry(targetEntry);
-                    if (dexFile == null) {
+                    MultiDexContainer.DexEntry<? extends DexBackedDexFile> entry = dexContainer.getEntry(targetEntry);
+                    if (entry == null) {
                         throw new DexFileNotFoundException("Could not find entry %s in %s.", targetEntry, filename);
                     }
-                    return dexFile;
+                    return entry;
                 } catch (NotADexFile ex) {
                     throw new UnsupportedFileTypeException("Entry %s in %s is not a dex file", targetEntry, filename);
                 }
@@ -391,26 +395,30 @@ public final class DexFileFactory {
 
             // find all full and partial matches
             List<String> fullMatches = Lists.newArrayList();
-            List<DexBackedDexFile> fullEntries = Lists.newArrayList();
+            List<MultiDexContainer.DexEntry<? extends DexBackedDexFile>> fullEntries = Lists.newArrayList();
             List<String> partialMatches = Lists.newArrayList();
-            List<DexBackedDexFile> partialEntries = Lists.newArrayList();
+            List<MultiDexContainer.DexEntry<? extends DexBackedDexFile>> partialEntries = Lists.newArrayList();
             for (String entry: dexContainer.getDexEntryNames()) {
                 if (fullEntryMatch(entry, targetEntry)) {
                     // We want to grab all full matches, regardless of whether they're actually a dex file.
                     fullMatches.add(entry);
-                    fullEntries.add(dexContainer.getEntry(entry));
+                    MultiDexContainer.DexEntry<? extends DexBackedDexFile> dexEntry = dexContainer.getEntry(entry);
+                    assert dexEntry != null;
+                    fullEntries.add(dexEntry);
                 } else if (partialEntryMatch(entry, targetEntry)) {
                     partialMatches.add(entry);
-                    partialEntries.add(dexContainer.getEntry(entry));
+                    MultiDexContainer.DexEntry<? extends DexBackedDexFile> dexEntry = dexContainer.getEntry(entry);
+                    assert dexEntry != null;
+                    partialEntries.add(dexEntry);
                 }
             }
 
             // full matches always take priority
             if (fullEntries.size() == 1) {
                 try {
-                    DexBackedDexFile dexFile = fullEntries.get(0);
-                    assert dexFile != null;
-                    return dexFile;
+                    MultiDexContainer.DexEntry<? extends DexBackedDexFile> dexEntry = fullEntries.get(0);
+                    assert dexEntry != null;
+                    return dexEntry;
                 } catch (NotADexFile ex) {
                     throw new UnsupportedFileTypeException("Entry %s in %s is not a dex file",
                             fullMatches.get(0), filename);
@@ -446,13 +454,31 @@ public final class DexFileFactory {
             this.dexFile = dexFile;
         }
 
-        @Nonnull @Override public List<String> getDexEntryNames() throws IOException {
+        @Nonnull @Override public List<String> getDexEntryNames() {
             return ImmutableList.of(entryName);
         }
 
-        @Nullable @Override public DexBackedDexFile getEntry(@Nonnull String entryName) throws IOException {
+        @Nullable @Override public DexEntry<DexBackedDexFile> getEntry(@Nonnull String entryName) {
             if (entryName.equals(this.entryName)) {
-                return dexFile;
+                return new DexEntry<DexBackedDexFile>() {
+                    @Nonnull
+                    @Override
+                    public String getEntryName() {
+                        return entryName;
+                    }
+
+                    @Nonnull
+                    @Override
+                    public DexBackedDexFile getDexFile() {
+                        return dexFile;
+                    }
+
+                    @Nonnull
+                    @Override
+                    public MultiDexContainer<? extends DexBackedDexFile> getContainer() {
+                        return SingletonMultiDexContainer.this;
+                    }
+                };
             }
             return null;
         }

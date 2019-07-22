@@ -56,6 +56,7 @@ public class ClassPath {
     public final int oatVersion;
 
     public static final int NOT_ART = -1;
+    public static final int NOT_SPECIFIED = -2;
 
     /**
      * Creates a new ClassPath instance that can load classes from the given providers

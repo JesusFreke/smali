@@ -37,10 +37,8 @@ import com.google.common.collect.Lists;
 import org.jf.dexlib2.DexFileFactory.UnsupportedFileTypeException;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
-import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.iface.MultiDexContainer;
-import org.jf.dexlib2.iface.MultiDexContainer.MultiDexFile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -64,7 +62,7 @@ public class ClassPathResolver {
      *                             partial or absolute device path, and will be searched for in bootClassPathDirs
      * @param extraClassPathEntries A list of additional classpath entries to load. Can be empty. All entries must be
      *                              local paths. Device paths are not supported.
-     * @param dexFile The dex file that the classpath will be used to analyze
+     * @param dexEntry The dex entry containing the dex file that the classpath will be used to analyze
      * @throws IOException If any IOException occurs
      * @throws ResolveException If any classpath entries cannot be loaded for some reason
      *
@@ -72,40 +70,18 @@ public class ClassPathResolver {
      *                             depending on the the file type of dexFile and the api level. If empty, no boot
      *                             classpath entries will be loaded
      */
-    public ClassPathResolver(@Nonnull List<String> bootClassPathDirs, @Nonnull List<String> bootClassPathEntries,
-                             @Nonnull List<String> extraClassPathEntries, @Nonnull DexFile dexFile)
+    public ClassPathResolver(@Nonnull List<String> bootClassPathDirs,
+                             @Nullable List<String> bootClassPathEntries,
+                             @Nonnull List<String> extraClassPathEntries,
+                             @Nonnull MultiDexContainer.DexEntry<?> dexEntry)
             throws IOException {
-        this(bootClassPathDirs, bootClassPathEntries, extraClassPathEntries, dexFile, true);
-    }
+        DexFile dexFile = dexEntry.getDexFile();
 
-    /**
-     * Constructs a new ClassPathResolver using a default list of bootclasspath entries
-     *
-     * @param bootClassPathDirs A list of directories to search for boot classpath entries
-     * @param extraClassPathEntries A list of additional classpath entries to load. Can be empty. All entries must be
-     *                              local paths. Device paths are not supported.
-     * @param dexFile The dex file that the classpath will be used to analyze
-     * @throws IOException If any IOException occurs
-     * @throws ResolveException If any classpath entries cannot be loaded for some reason
-     *
-     *  If null, a default bootclasspath is used,
-     *                             depending on the the file type of dexFile and the api level. If empty, no boot
-     *                             classpath entries will be loaded
-     */
-    public ClassPathResolver(@Nonnull List<String> bootClassPathDirs, @Nonnull List<String> extraClassPathEntries,
-                             @Nonnull DexFile dexFile)
-            throws IOException {
-        this(bootClassPathDirs, null, extraClassPathEntries, dexFile, true);
-    }
-
-    private ClassPathResolver(@Nonnull List<String> bootClassPathDirs, @Nullable List<String> bootClassPathEntries,
-                              @Nonnull List<String> extraClassPathEntries, @Nonnull DexFile dexFile, boolean unused)
-            throws IOException {
         this.classPathDirs = bootClassPathDirs;
-        this.pathEntryLoader = new PathEntryLoader(dexFile.getOpcodes());
+        this.pathEntryLoader = new PathEntryLoader(dexEntry.getDexFile().getOpcodes());
 
         if (bootClassPathEntries == null) {
-            bootClassPathEntries = getDefaultBootClassPath(dexFile, dexFile.getOpcodes().api);
+            bootClassPathEntries = getDefaultBootClassPath(dexEntry, dexFile.getOpcodes().api);
         }
 
         for (String entry : bootClassPathEntries) {
@@ -129,7 +105,7 @@ public class ClassPathResolver {
                     String jarEntry = entry.substring(0, entry.length() - 5) + ".jar";
                     try {
                         loadLocalOrDeviceBootClassPathEntry(jarEntry);
-                        } catch (PathEntryLoader.NoDexException ex2) {
+                    } catch (PathEntryLoader.NoDexException ex2) {
                         throw new ResolveException("Neither %s nor %s contain a dex file", entry, jarEntry);
                     } catch (NotFoundException ex2) {
                         throw new ResolveException(ex);
@@ -150,14 +126,32 @@ public class ClassPathResolver {
             }
         }
 
-        if (dexFile instanceof MultiDexContainer.MultiDexFile) {
-            MultiDexContainer<? extends MultiDexFile> container = ((MultiDexFile)dexFile).getContainer();
-            for (String entry: container.getDexEntryNames()) {
-                pathEntryLoader.getClassProviders().add(new DexClassProvider(container.getEntry(entry)));
-            }
-        } else {
-            pathEntryLoader.getClassProviders().add(new DexClassProvider(dexFile));
+        MultiDexContainer<? extends DexFile> container = dexEntry.getContainer();
+        for (String entry: container.getDexEntryNames()) {
+            MultiDexContainer.DexEntry<? extends DexFile> tempDexEntry = container.getEntry(entry);
+            assert tempDexEntry != null;
+            pathEntryLoader.getClassProviders().add(new DexClassProvider(tempDexEntry.getDexFile()));
         }
+    }
+
+    /**
+     * Constructs a new ClassPathResolver using a default list of bootclasspath entries
+     *
+     * @param bootClassPathDirs A list of directories to search for boot classpath entries
+     * @param extraClassPathEntries A list of additional classpath entries to load. Can be empty. All entries must be
+     *                              local paths. Device paths are not supported.
+     * @param dexEntry The dex entry containing the dex file that the classpath will be used to analyze
+     * @throws IOException If any IOException occurs
+     * @throws ResolveException If any classpath entries cannot be loaded for some reason
+     *
+     *  If null, a default bootclasspath is used,
+     *                             depending on the the file type of dexFile and the api level. If empty, no boot
+     *                             classpath entries will be loaded
+     */
+    public ClassPathResolver(@Nonnull List<String> bootClassPathDirs, @Nonnull List<String> extraClassPathEntries,
+                             @Nonnull MultiDexContainer.DexEntry<?> dexEntry)
+            throws IOException {
+        this(bootClassPathDirs, null, extraClassPathEntries, dexEntry);
     }
 
     @Nonnull
@@ -241,11 +235,15 @@ public class ClassPathResolver {
      * Returns the default boot class path for the given dex file and api level.
      */
     @Nonnull
-    private static List<String> getDefaultBootClassPath(@Nonnull DexFile dexFile, int apiLevel) {
-        if (dexFile instanceof OatFile.OatDexFile) {
-            return bootClassPathForOat((OatDexFile) dexFile);
+    private static List<String> getDefaultBootClassPath(
+            @Nonnull MultiDexContainer.DexEntry<?> dexEntry, int apiLevel) {
+        MultiDexContainer<? extends DexFile> container = dexEntry.getContainer();
 
+        if (container instanceof OatFile) {
+            return bootClassPathForOat((OatFile) container);
         }
+
+        DexFile dexFile = dexEntry.getDexFile();
 
         if (dexFile instanceof DexBackedOdexFile) {
             return ((DexBackedOdexFile)dexFile).getDependencies();
@@ -377,8 +375,8 @@ public class ClassPathResolver {
         }
     }
 
-    private static List<String> bootClassPathForOat(@Nonnull OatDexFile dexFile) {
-        List<String> bcp = dexFile.getContainer().getBootClassPath();
+    private static List<String> bootClassPathForOat(@Nonnull OatFile oatFile) {
+        List<String> bcp = oatFile.getBootClassPath();
         if(bcp.isEmpty()) {
             return Lists.newArrayList("boot.oat");
         } else {

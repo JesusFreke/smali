@@ -38,6 +38,7 @@ import com.google.common.collect.Lists;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.iface.MultiDexContainer;
 import org.jf.util.jcommander.Command;
 import org.jf.util.jcommander.ExtendedParameter;
 
@@ -65,6 +66,7 @@ public abstract class DexInputCommand extends Command {
 
     protected File inputFile;
     protected String inputEntry;
+    protected MultiDexContainer.DexEntry<? extends DexBackedDexFile> dexEntry;
     protected DexBackedDexFile dexFile;
 
     public DexInputCommand(@Nonnull List<JCommander> commandAncestors) {
@@ -120,9 +122,9 @@ public abstract class DexInputCommand extends Command {
 
         inputFile = file;
 
-        String dexEntry = null;
+        String dexEntryName = null;
         if (file.getPath().length() < input.length()) {
-            dexEntry = input.substring(file.getPath().length() + 1);
+            dexEntryName = input.substring(file.getPath().length() + 1);
         }
 
         Opcodes opcodes = null;
@@ -130,23 +132,38 @@ public abstract class DexInputCommand extends Command {
             opcodes = Opcodes.forApi(apiLevel);
         }
 
-        if (!Strings.isNullOrEmpty(dexEntry)) {
+        if (!Strings.isNullOrEmpty(dexEntryName)) {
             boolean exactMatch = false;
-            if (dexEntry.length() > 2 && dexEntry.charAt(0) == '"' && dexEntry.charAt(dexEntry.length() - 1) == '"') {
-                dexEntry = dexEntry.substring(1, dexEntry.length() - 1);
+            if (dexEntryName.length() > 2 && dexEntryName.charAt(0) == '"' && dexEntryName.charAt(dexEntryName.length() - 1) == '"') {
+                dexEntryName = dexEntryName.substring(1, dexEntryName.length() - 1);
                 exactMatch = true;
             }
 
-            inputEntry = dexEntry;
+            inputEntry = dexEntryName;
 
             try {
-                dexFile = DexFileFactory.loadDexEntry(file, dexEntry, exactMatch, opcodes);
+                dexEntry = DexFileFactory.loadDexEntry(file, dexEntryName, exactMatch, opcodes);
+                dexFile = dexEntry.getDexFile();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
             try {
-                dexFile = DexFileFactory.loadDexFile(file, opcodes);
+                MultiDexContainer<? extends DexBackedDexFile> container =
+                        DexFileFactory.loadDexContainer(file, opcodes);
+
+                if (container.getDexEntryNames().size() == 1) {
+                    dexEntry = container.getEntry(container.getDexEntryNames().get(0));
+                    assert dexEntry != null;
+                    dexFile = dexEntry.getDexFile();
+                } else {
+                    dexEntry = container.getEntry("classes.dex");
+                    if (dexEntry == null) {
+                        dexEntry = container.getEntry(container.getDexEntryNames().get(0));
+                    }
+                    assert dexEntry != null;
+                    dexFile = dexEntry.getDexFile();
+                }
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

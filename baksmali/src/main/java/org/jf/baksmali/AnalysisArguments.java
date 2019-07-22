@@ -36,8 +36,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassPathResolver;
-import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
-import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.OatFile;
+import org.jf.dexlib2.iface.MultiDexContainer;
 import org.jf.util.jcommander.ColonParameterSplitter;
 import org.jf.util.jcommander.ExtendedParameter;
 
@@ -46,7 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static org.jf.dexlib2.analysis.ClassPath.NOT_ART;
+import static org.jf.dexlib2.analysis.ClassPath.NOT_SPECIFIED;
 
 public class AnalysisArguments {
     @Parameter(names = {"-b", "--bootclasspath", "--bcp"},
@@ -81,24 +82,25 @@ public class AnalysisArguments {
     }
 
     @Nonnull
-    public ClassPath loadClassPathForDexFile(@Nonnull File dexFileDir, @Nonnull DexFile dexFile,
+    public ClassPath loadClassPathForDexFile(@Nonnull File dexFileDir,
+                                             @Nonnull MultiDexContainer.DexEntry<? extends DexBackedDexFile> dexEntry,
                                              boolean checkPackagePrivateAccess) throws IOException {
-        return loadClassPathForDexFile(dexFileDir, dexFile, checkPackagePrivateAccess, NOT_ART);
+        return loadClassPathForDexFile(dexFileDir, dexEntry, checkPackagePrivateAccess, NOT_SPECIFIED);
     }
 
     @Nonnull
-    public ClassPath loadClassPathForDexFile(@Nonnull File dexFileDir, @Nonnull DexFile dexFile,
+    public ClassPath loadClassPathForDexFile(@Nonnull File dexFileDir,
+                                             @Nonnull MultiDexContainer.DexEntry<? extends DexBackedDexFile> dexEntry,
                                              boolean checkPackagePrivateAccess, int oatVersion)
             throws IOException {
         ClassPathResolver resolver;
 
-        // By default, oatVersion should be NOT_ART, and we'll automatically set it if dexFile is an oat file. In some
-        // cases the caller may choose to override the oat version, in which case we should use the given oat version
-        // regardless of the actual version of the oat file
-        if (oatVersion == NOT_ART) {
-            if (dexFile instanceof OatDexFile) {
+        MultiDexContainer<? extends DexBackedDexFile> container = dexEntry.getContainer();
+
+        if (oatVersion == NOT_SPECIFIED) {
+            if (container instanceof OatFile) {
                 checkPackagePrivateAccess = true;
-                oatVersion = ((OatDexFile)dexFile).getContainer().getOatVersion();
+                oatVersion = ((OatFile) container).getOatVersion();
             }
         } else {
             // this should always be true for ART
@@ -126,17 +128,17 @@ public class AnalysisArguments {
         if (bootClassPath == null) {
             // TODO: we should be able to get the api from the Opcodes object associated with the dexFile..
             // except that the oat version -> api mapping doesn't fully work yet
-            resolver = new ClassPathResolver(filteredClassPathDirectories, classPath, dexFile);
+            resolver = new ClassPathResolver(filteredClassPathDirectories, classPath, dexEntry);
         }  else if (bootClassPath.size() == 1 && bootClassPath.get(0).length() == 0) {
             // --bootclasspath "" is a special case, denoting that no bootclasspath should be used
             resolver = new ClassPathResolver(
-                    ImmutableList.<String>of(), ImmutableList.<String>of(), classPath, dexFile);
+                    ImmutableList.<String>of(), ImmutableList.<String>of(), classPath, dexEntry);
         } else {
-            resolver = new ClassPathResolver(filteredClassPathDirectories, bootClassPath, classPath, dexFile);
+            resolver = new ClassPathResolver(filteredClassPathDirectories, bootClassPath, classPath, dexEntry);
         }
 
-        if (oatVersion == 0 && dexFile instanceof OatDexFile) {
-            oatVersion = ((OatDexFile)dexFile).getContainer().getOatVersion();
+        if (oatVersion == 0 && container instanceof OatFile) {
+            oatVersion = ((OatFile) container).getOatVersion();
         }
         return new ClassPath(resolver.getResolvedClassProviders(), checkPackagePrivateAccess, oatVersion);
     }

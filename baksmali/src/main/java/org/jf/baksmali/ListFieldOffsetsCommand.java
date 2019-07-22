@@ -108,7 +108,7 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
 
         try {
             options.classPath = analysisArguments.loadClassPathForDexFile(
-                    inputFile.getAbsoluteFile().getParentFile(), dexFile, false);
+                    inputFile.getAbsoluteFile().getParentFile(), dexEntry, false);
         } catch (Exception ex) {
             System.err.println("Error occurred while loading class path files.");
             ex.printStackTrace(System.err);

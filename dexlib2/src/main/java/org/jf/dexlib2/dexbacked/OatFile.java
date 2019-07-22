@@ -185,8 +185,8 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
             }
 
             @Nonnull @Override public Iterator<OatDexFile> iterator() {
-                return Iterators.transform(new DexEntryIterator(), new Function<DexEntry, OatDexFile>() {
-                    @Nullable @Override public OatDexFile apply(DexEntry dexEntry) {
+                return Iterators.transform(new DexEntryIterator(), new Function<OatDexEntry, OatDexFile>() {
+                    @Nullable @Override public OatDexFile apply(OatDexEntry dexEntry) {
                         return dexEntry.getDexFile();
                     }
                 });
@@ -201,8 +201,8 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
             }
 
             @Nonnull @Override public Iterator<String> iterator() {
-                return Iterators.transform(new DexEntryIterator(), new Function<DexEntry, String>() {
-                    @Nullable @Override public String apply(DexEntry dexEntry) {
+                return Iterators.transform(new DexEntryIterator(), new Function<OatDexEntry, String>() {
+                    @Nullable @Override public String apply(OatDexEntry dexEntry) {
                         return dexEntry.entryName;
                     }
                 });
@@ -210,32 +210,22 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
         };
     }
 
-    @Nullable @Override public OatDexFile getEntry(@Nonnull String entryName) throws IOException {
+    @Nullable
+    @Override
+    public OatDexEntry getEntry(@Nonnull String entryName) throws IOException {
         DexEntryIterator iterator = new DexEntryIterator();
         while (iterator.hasNext()) {
-            DexEntry entry = iterator.next();
-
-            if (entry.entryName.equals(entryName)) {
-                return entry.getDexFile();
+            OatDexEntry entry = iterator.next();
+            if (entry.getEntryName().equals(entryName)) {
+                return entry;
             }
         }
         return null;
     }
 
-    public class OatDexFile extends DexBackedDexFile implements MultiDexContainer.MultiDexFile {
-        @Nonnull public final String filename;
-
-        public OatDexFile(byte[] buf, int offset, @Nonnull String filename) {
+    public class OatDexFile extends DexBackedDexFile {
+        public OatDexFile(@Nonnull byte[] buf, int offset) {
             super(opcodes, buf, offset);
-            this.filename = filename;
-        }
-
-        @Nonnull @Override public String getEntryName() {
-            return filename;
-        }
-
-        @Nonnull @Override public OatFile getContainer() {
-            return OatFile.this;
         }
 
         @Override public boolean supportsOptimizedOpcodes() {
@@ -556,24 +546,35 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
         }
     }
 
-    private class DexEntry {
+    private class OatDexEntry implements MultiDexContainer.DexEntry<OatDexFile> {
         public final String entryName;
         public final byte[] buf;
         public final int dexOffset;
 
-
-        public DexEntry(String entryName, byte[] buf, int dexOffset) {
+        public OatDexEntry(String entryName, byte[] buf, int dexOffset) {
             this.entryName = entryName;
             this.buf = buf;
             this.dexOffset = dexOffset;
         }
 
         public OatDexFile getDexFile() {
-            return new OatDexFile(buf, dexOffset, entryName);
+            return new OatDexFile(buf, dexOffset);
+        }
+
+        @Nonnull
+        @Override
+        public String getEntryName() {
+            return entryName;
+        }
+
+        @Nonnull
+        @Override
+        public MultiDexContainer<? extends OatDexFile> getContainer() {
+            return OatFile.this;
         }
     }
 
-    private class DexEntryIterator implements Iterator<DexEntry> {
+    private class DexEntryIterator implements Iterator<OatDexEntry> {
         int index = 0;
         int offset = oatHeader.getDexListStart();
 
@@ -581,7 +582,7 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
             return index < oatHeader.getDexFileCount();
         }
 
-        @Override public DexEntry next() {
+        @Override public OatDexEntry next() {
             int filenameLength = readSmallUint(offset);
             offset += 4;
 
@@ -625,7 +626,7 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
 
             index++;
 
-            return new DexEntry(filename, buf, dexOffset);
+            return new OatDexEntry(filename, buf, dexOffset);
         }
 
         @Override public void remove() {

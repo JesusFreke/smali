@@ -51,20 +51,25 @@ public interface MultiDexContainer<T extends DexFile> {
      * @param entryName The name of the entry
      * @return A DexFile, or null if no entry with that name is found
      */
-    @Nullable T getEntry(@Nonnull String entryName) throws IOException;
+    @Nullable DexEntry<T> getEntry(@Nonnull String entryName) throws IOException;
 
     /**
-     * This class represents a dex file that is contained in a MultiDexContainer
+     * This class represents a dex file entry in a MultiDexContainer
      */
-    interface MultiDexFile extends DexFile {
+    interface DexEntry<T extends DexFile> {
         /**
          * @return The name of this entry within its container
          */
         @Nonnull String getEntryName();
 
         /**
+         * @return The dex file associated with this entry
+         */
+        @Nonnull T getDexFile();
+
+        /**
          * @return The MultiDexContainer that contains this dex file
          */
-        @Nonnull MultiDexContainer<? extends MultiDexFile> getContainer();
+        @Nonnull MultiDexContainer<? extends T> getContainer();
     }
 }

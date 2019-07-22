@@ -59,7 +59,7 @@ public class PathEntryLoader {
         loadedFiles.add(entryFile);
 
         for (String entryName : entryNames) {
-            classProviders.add(new DexClassProvider(container.getEntry(entryName)));
+            classProviders.add(new DexClassProvider(container.getEntry(entryName).getDexFile()));
         }
 
         if (loadOatDependencies && container instanceof OatFile) {
