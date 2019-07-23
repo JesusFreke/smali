@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.VersionMap;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
@@ -83,9 +84,9 @@ public class HeaderItem {
     public static final int CLASS_COUNT_OFFSET = 96;
     public static final int CLASS_START_OFFSET = 100;
 
-    @Nonnull private RawDexFile dexFile;
+    @Nonnull private DexBackedDexFile dexFile;
 
-    public HeaderItem(@Nonnull RawDexFile dexFile) {
+    public HeaderItem(@Nonnull DexBackedDexFile dexFile) {
         this.dexFile = dexFile;
     }
 

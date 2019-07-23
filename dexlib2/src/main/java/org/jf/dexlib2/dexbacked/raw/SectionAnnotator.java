@@ -32,9 +32,10 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import com.google.common.collect.Maps;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
-import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.dexlib2.util.AlignmentUtils;
+import org.jf.dexlib2.util.AnnotatedBytes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,7 +43,7 @@ import java.util.Map;
 
 public abstract class SectionAnnotator {
     @Nonnull public final DexAnnotator annotator;
-    @Nonnull public final RawDexFile dexFile;
+    @Nonnull public final DexBackedDexFile dexFile;
     public final int itemType;
     public final int sectionOffset;
     public final int itemCount;

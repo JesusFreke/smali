@@ -124,7 +124,7 @@ public class ClassDefItem {
         return dexFile.getTypeSection().get(typeIndex);
     }
 
-    public static String[] getClasses(@Nonnull RawDexFile dexFile) {
+    public static String[] getClasses(@Nonnull DexBackedDexFile dexFile) {
         MapItem mapItem = dexFile.getMapItemForSection(ItemType.CLASS_DEF_ITEM);
         if (mapItem == null) {
             return new String[0];

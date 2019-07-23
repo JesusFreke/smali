@@ -35,7 +35,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.jcommander.ExtendedParameters;
@@ -100,8 +99,7 @@ public class DumpCommand extends DexInputCommand {
                 consoleWidth = 120;
             }
 
-            RawDexFile rawDexFile = new RawDexFile(dexFile.getOpcodes(), dexFile);
-            DexAnnotator annotator = new DexAnnotator(rawDexFile, consoleWidth);
+            DexAnnotator annotator = new DexAnnotator(dexFile, consoleWidth);
             annotator.writeAnnotations(writer);
         } finally {
             writer.close();

@@ -92,7 +92,7 @@ public class MethodIdItem {
         return String.format("method_id_item[%d]", methodIndex);
     }
 
-    public static String[] getMethods(@Nonnull RawDexFile dexFile) {
+    public static String[] getMethods(@Nonnull DexBackedDexFile dexFile) {
         MapItem mapItem = dexFile.getMapItemForSection(ItemType.METHOD_ID_ITEM);
         if (mapItem == null) {
             return new String[0];

@@ -95,7 +95,7 @@ public class ProtoIdItem {
         return sb.toString();
     }
 
-    public static String[] getProtos(@Nonnull RawDexFile dexFile) {
+    public static String[] getProtos(@Nonnull DexBackedDexFile dexFile) {
         MapItem mapItem = dexFile.getMapItemForSection(ItemType.PROTO_ID_ITEM);
         if (mapItem == null) {
             return new String[0];

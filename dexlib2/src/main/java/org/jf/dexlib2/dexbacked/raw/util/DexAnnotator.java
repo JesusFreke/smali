@@ -34,6 +34,7 @@ package org.jf.dexlib2.dexbacked.raw.util;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.util.AnnotatedBytes;
 
@@ -46,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DexAnnotator extends AnnotatedBytes {
-    @Nonnull public final RawDexFile dexFile;
+    @Nonnull public final DexBackedDexFile dexFile;
 
     private final Map<Integer, SectionAnnotator> annotators = Maps.newHashMap();
     private static final Map<Integer, Integer> sectionAnnotationOrder = Maps.newHashMap();
@@ -84,7 +85,7 @@ public class DexAnnotator extends AnnotatedBytes {
         }
     }
 
-    public DexAnnotator(@Nonnull RawDexFile dexFile, int width) {
+    public DexAnnotator(@Nonnull DexBackedDexFile dexFile, int width) {
         super(width);
 
         this.dexFile = dexFile;
@@ -174,7 +175,7 @@ public class DexAnnotator extends AnnotatedBytes {
                 annotator.annotateSection(this);
             }
         } finally {
-            dexFile.writeAnnotations(out, this);
+            writeAnnotations(out, dexFile.getBuffer().getBuf());
         }
     }
 

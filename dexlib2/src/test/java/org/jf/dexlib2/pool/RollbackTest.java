@@ -35,8 +35,8 @@ import com.google.common.collect.Lists;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.AnnotationVisibility;
 import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.MapItem;
-import org.jf.dexlib2.dexbacked.raw.RawDexFile;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
@@ -75,7 +75,7 @@ public class RollbackTest {
                                 AccessFlags.PUBLIC.getValue(), null, null))
         );
 
-        RawDexFile dexFile1;
+        DexBackedDexFile dexFile1;
         {
             MemoryDataStore dataStore = new MemoryDataStore();
             DexPool dexPool = new DexPool(Opcodes.getDefault());
@@ -84,16 +84,16 @@ public class RollbackTest {
             dexPool.internClass(class2);
             dexPool.reset();
             dexPool.writeTo(dataStore);
-            dexFile1 = new RawDexFile(Opcodes.getDefault(), dataStore.getBuffer());
+            dexFile1 = new DexBackedDexFile(Opcodes.getDefault(), dataStore.getBuffer());
         }
 
-        RawDexFile dexFile2;
+        DexBackedDexFile dexFile2;
         {
             MemoryDataStore dataStore = new MemoryDataStore();
             DexPool dexPool = new DexPool(Opcodes.getDefault());
             dexPool.internClass(class1);
             dexPool.writeTo(dataStore);
-            dexFile2 = new RawDexFile(Opcodes.getDefault(), dataStore.getBuffer());
+            dexFile2 = new DexBackedDexFile(Opcodes.getDefault(), dataStore.getBuffer());
         }
 
         List<MapItem> mapItems1 = dexFile1.getMapItems();

@@ -92,7 +92,7 @@ public class FieldIdItem {
         return String.format("field_id_item[%d]", fieldIndex);
     }
 
-    public static String[] getFields(@Nonnull RawDexFile dexFile) {
+    public static String[] getFields(@Nonnull DexBackedDexFile dexFile) {
         MapItem mapItem = dexFile.getMapItemForSection(ItemType.FIELD_ID_ITEM);
         if (mapItem == null) {
             return new String[0];
