@@ -41,7 +41,6 @@ import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.dexbacked.OatFile;
 import org.jf.dexlib2.dexbacked.OatFile.NotAnOatFileException;
-import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.dexbacked.OatFile.VdexProvider;
 import org.jf.dexlib2.dexbacked.ZipDexContainer;
 import org.jf.dexlib2.dexbacked.ZipDexContainer.NotAZipFileException;
@@ -120,7 +119,7 @@ public final class DexFileFactory {
                     throw new UnsupportedOatVersionException(oatFile);
                 }
 
-                List<OatDexFile> oatDexFiles = oatFile.getDexFiles();
+                List<DexBackedDexFile> oatDexFiles = oatFile.getDexFiles();
 
                 if (oatDexFiles.size() == 0) {
                     throw new DexFileNotFoundException("Oat file %s contains no dex files", file.getName());
@@ -205,7 +204,7 @@ public final class DexFileFactory {
                     throw new UnsupportedOatVersionException(oatFile);
                 }
 
-                List<OatDexFile> oatDexFiles = oatFile.getDexFiles();
+                List<? extends DexFile> oatDexFiles = oatFile.getDexFiles();
 
                 if (oatDexFiles.size() == 0) {
                     throw new DexFileNotFoundException("Oat file %s contains no dex files", file.getName());

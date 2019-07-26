@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.Opcodes;
-import org.jf.dexlib2.dexbacked.OatFile.OatDexFile;
 import org.jf.dexlib2.dexbacked.OatFile.SymbolTable.Symbol;
 import org.jf.dexlib2.dexbacked.raw.HeaderItem;
 import org.jf.dexlib2.iface.MultiDexContainer;
@@ -53,7 +52,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> {
+public class OatFile extends DexBuffer implements MultiDexContainer<DexBackedDexFile> {
     private static final byte[] ELF_MAGIC = new byte[] { 0x7f, 'E', 'L', 'F' };
     private static final byte[] OAT_MAGIC = new byte[] { 'o', 'a', 't', '\n' };
     private static final int MIN_ELF_HEADER_SIZE = 52;
@@ -178,15 +177,15 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
     }
 
     @Nonnull
-    public List<OatDexFile> getDexFiles() {
-        return new AbstractForwardSequentialList<OatDexFile>() {
+    public List<DexBackedDexFile> getDexFiles() {
+        return new AbstractForwardSequentialList<DexBackedDexFile>() {
             @Override public int size() {
                 return oatHeader.getDexFileCount();
             }
 
-            @Nonnull @Override public Iterator<OatDexFile> iterator() {
-                return Iterators.transform(new DexEntryIterator(), new Function<OatDexEntry, OatDexFile>() {
-                    @Nullable @Override public OatDexFile apply(OatDexEntry dexEntry) {
+            @Nonnull @Override public Iterator<DexBackedDexFile> iterator() {
+                return Iterators.transform(new DexEntryIterator(), new Function<OatDexEntry, DexBackedDexFile>() {
+                    @Nullable @Override public DexBackedDexFile apply(OatDexEntry dexEntry) {
                         return dexEntry.getDexFile();
                     }
                 });
@@ -546,7 +545,7 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
         }
     }
 
-    private class OatDexEntry implements MultiDexContainer.DexEntry<OatDexFile> {
+    private class OatDexEntry implements MultiDexContainer.DexEntry<DexBackedDexFile> {
         public final String entryName;
         public final byte[] buf;
         public final int dexOffset;
@@ -557,7 +556,7 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
             this.dexOffset = dexOffset;
         }
 
-        public OatDexFile getDexFile() {
+        public DexBackedDexFile getDexFile() {
             return new OatDexFile(buf, dexOffset);
         }
 
@@ -569,7 +568,7 @@ public class OatFile extends DexBuffer implements MultiDexContainer<OatDexFile> 
 
         @Nonnull
         @Override
-        public MultiDexContainer<? extends OatDexFile> getContainer() {
+        public MultiDexContainer<? extends DexBackedDexFile> getContainer() {
             return OatFile.this;
         }
     }
