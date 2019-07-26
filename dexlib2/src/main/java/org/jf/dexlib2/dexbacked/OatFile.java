@@ -232,6 +232,16 @@ public class OatFile extends DexBuffer implements MultiDexContainer<DexBackedDex
         }
     }
 
+    public class OatCDexFile extends CDexBackedDexFile {
+        public OatCDexFile(byte[] buf, int offset) {
+            super(opcodes, buf, offset);
+        }
+
+        @Override public boolean supportsOptimizedOpcodes() {
+            return true;
+        }
+    }
+
     private class OatHeader {
         private final int headerOffset;
         private final int keyValueStoreOffset;
@@ -557,7 +567,11 @@ public class OatFile extends DexBuffer implements MultiDexContainer<DexBackedDex
         }
 
         public DexBackedDexFile getDexFile() {
-            return new OatDexFile(buf, dexOffset);
+            if (CDexBackedDexFile.isCdex(buf, dexOffset)) {
+                return new OatCDexFile(buf, dexOffset);
+            } else {
+                return new OatDexFile(buf, dexOffset);
+            }
         }
 
         @Nonnull

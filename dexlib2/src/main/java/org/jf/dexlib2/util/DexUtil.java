@@ -34,6 +34,7 @@ package org.jf.dexlib2.util;
 import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile.NotAnOdexFile;
+import org.jf.dexlib2.dexbacked.raw.CdexHeaderItem;
 import org.jf.dexlib2.dexbacked.raw.HeaderItem;
 import org.jf.dexlib2.dexbacked.raw.OdexHeaderItem;
 
@@ -106,6 +107,42 @@ public class DexUtil {
         }
 
         return dexVersion;
+    }
+
+    /**
+     * Verifies that the cdex header is valid and a supported version
+     *
+     * @param buf A byte array containing at least the first 44 bytes of a cdex file
+     * @param offset The offset within the array to the dex header
+     * @return The dex version
+     * @throws NotADexFile If the file is not a cdex file
+     * @throws InvalidFile If the header appears to be a cdex file, but is not valid for some reason
+     * @throws UnsupportedFile If the cdex header is valid, but uses unsupported functionality
+     */
+    public static int verifyCdexHeader(@Nonnull byte[] buf, int offset) {
+        int cdexVersion = CdexHeaderItem.getVersion(buf, offset);
+        if (cdexVersion == -1) {
+            StringBuilder sb = new StringBuilder("Not a valid cdex magic value:");
+            for (int i=0; i<8; i++) {
+                sb.append(String.format(" %02x", buf[offset + i]));
+            }
+            throw new NotADexFile(sb.toString());
+        }
+
+        if (!CdexHeaderItem.isSupportedCdexVersion(cdexVersion)) {
+            throw new UnsupportedFile(String.format("Dex version %03d is not supported", cdexVersion));
+        }
+
+        int endian = HeaderItem.getEndian(buf, offset);
+        if (endian == HeaderItem.BIG_ENDIAN_TAG) {
+            throw new UnsupportedFile("Big endian dex files are not supported");
+        }
+
+        if (endian != HeaderItem.LITTLE_ENDIAN_TAG) {
+            throw new InvalidFile(String.format("Invalid endian tag: 0x%x", endian));
+        }
+
+        return cdexVersion;
     }
 
     /**

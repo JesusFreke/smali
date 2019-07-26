@@ -192,7 +192,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     @Override
     public DexBackedMethodImplementation getImplementation() {
         if (codeOffset > 0) {
-            return new DexBackedMethodImplementation(dexFile, this, codeOffset);
+            return dexFile.createMethodImplementation(dexFile, this, codeOffset);
         }
         return null;
     }

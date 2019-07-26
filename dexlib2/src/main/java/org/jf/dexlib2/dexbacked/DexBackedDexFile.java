@@ -36,8 +36,6 @@ import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.dexbacked.reference.*;
-import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
-import org.jf.dexlib2.dexbacked.util.EncodedArrayItemIterator;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
@@ -497,6 +495,11 @@ public class DexBackedDexFile implements DexFile {
 
     public IndexedSection<MethodHandleReference> getMethodHandleSection() {
         return methodHandleSection;
+    }
+
+    protected DexBackedMethodImplementation createMethodImplementation(
+            @Nonnull DexBackedDexFile dexFile, @Nonnull DexBackedMethod method, int codeOffset) {
+        return new DexBackedMethodImplementation(dexFile, method, codeOffset);
     }
 
     public static abstract class OptionalIndexedSection<T> extends IndexedSection<T> {

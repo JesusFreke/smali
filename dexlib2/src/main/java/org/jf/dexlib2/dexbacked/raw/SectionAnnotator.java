@@ -48,7 +48,7 @@ public abstract class SectionAnnotator {
     public final int sectionOffset;
     public final int itemCount;
 
-    private Map<Integer, String> itemIdentities = Maps.newHashMap();
+    protected Map<Integer, String> itemIdentities = Maps.newHashMap();
 
     public SectionAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
         this.annotator = annotator;

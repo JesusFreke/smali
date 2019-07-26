@@ -52,7 +52,7 @@ import java.util.List;
 public class DexBackedMethodImplementation implements MethodImplementation {
     @Nonnull public final DexBackedDexFile dexFile;
     @Nonnull public final DexBackedMethod method;
-    private final int codeOffset;
+    protected final int codeOffset;
 
     protected DexBackedMethodImplementation(@Nonnull DexBackedDexFile dexFile,
                                   @Nonnull DexBackedMethod method,

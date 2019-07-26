@@ -34,6 +34,7 @@ package org.jf.dexlib2.dexbacked.raw;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.jf.dexlib2.VerificationError;
+import org.jf.dexlib2.dexbacked.CDexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
@@ -46,6 +47,7 @@ import org.jf.util.NumberUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CodeItem {
@@ -57,6 +59,20 @@ public class CodeItem {
     public static final int INSTRUCTION_COUNT_OFFSET = 12;
     public static final int INSTRUCTION_START_OFFSET = 16;
 
+    public static int CDEX_TRIES_SIZE_SHIFT = 0;
+    public static int CDEX_OUTS_COUNT_SHIFT = 4;
+    public static int CDEX_INS_COUNT_SHIFT = 8;
+    public static int CDEX_REGISTER_COUNT_SHIFT = 12;
+
+    public static int CDEX_INSTRUCTIONS_SIZE_AND_PREHEADER_FLAGS_OFFSET = 2;
+    public static int CDEX_INSTRUCTIONS_SIZE_SHIFT = 5;
+    public static int CDEX_PREHEADER_FLAGS_MASK = 0x1f;
+    public static int CDEX_PREHEADER_FLAG_REGISTER_COUNT = 1 << 0;
+    public static int CDEX_PREHEADER_FLAG_INS_COUNT = 1 << 1;
+    public static int CDEX_PREHEADER_FLAG_OUTS_COUNT = 1 << 2;
+    public static int CDEX_PREHEADER_FLAG_TRIES_COUNT = 1 << 3;
+    public static int CDEX_PREHEADER_FLAG_INSTRUCTIONS_SIZE = 1 << 4;
+
     public static class TryItem {
         public static final int ITEM_SIZE = 8;
 
@@ -66,12 +82,145 @@ public class CodeItem {
     }
 
     public static SectionAnnotator makeAnnotator(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
-        return makeAnnotatorForDex(annotator, mapItem);
+        if (annotator.dexFile instanceof CDexBackedDexFile) {
+            return makeAnnotatorForCDex(annotator, mapItem);
+        } else {
+            return makeAnnotatorForDex(annotator, mapItem);
+        }
     }
 
     @Nonnull
     private static SectionAnnotator makeAnnotatorForDex(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
         return new CodeItemAnnotator(annotator, mapItem);
+    }
+
+    @Nonnull
+    private static SectionAnnotator makeAnnotatorForCDex(@Nonnull DexAnnotator annotator, @Nonnull MapItem mapItem) {
+        return new CodeItemAnnotator(annotator, mapItem) {
+
+            private List<Integer> sortedItems;
+
+            @Override public void annotateSection(@Nonnull AnnotatedBytes out) {
+                sortedItems = new ArrayList<>(itemIdentities.keySet());
+                sortedItems.sort(Integer::compareTo);
+
+                //debugInfoAnnotator = annotator.getAnnotator(ItemType.DEBUG_INFO_ITEM);
+                out.moveTo(sectionOffset);
+                annotateSectionInner(out, itemIdentities.size());
+            }
+
+            @Override
+            protected int getItemOffset(int itemIndex, int currentOffset) {
+                return sortedItems.get(itemIndex);
+            }
+
+            @Override
+            protected PreInstructionInfo annotatePreInstructionFields(
+                    @Nonnull AnnotatedBytes out, @Nonnull DexReader reader, @Nullable String itemIdentity) {
+                int sizeFields = reader.readUshort();
+
+                int triesCount = (sizeFields >> CDEX_TRIES_SIZE_SHIFT) & 0xf;
+                int outsCount = (sizeFields >> CDEX_OUTS_COUNT_SHIFT) & 0xf;
+                int insCount = (sizeFields >> CDEX_INS_COUNT_SHIFT) & 0xf;
+                int registerCount = (sizeFields >> CDEX_REGISTER_COUNT_SHIFT) & 0xf;
+
+                int startOffset = out.getCursor();
+
+                out.annotate(2, "tries_size = %d", triesCount);
+                out.annotate(0, "outs_size = %d", outsCount);
+                out.annotate(0, "ins_size = %d", insCount);
+                out.annotate(0, "registers_size = %d", registerCount);
+
+                int instructionsSizeAndPreheaderFlags = reader.readUshort();
+
+                int instructionsSize = instructionsSizeAndPreheaderFlags >> CDEX_INSTRUCTIONS_SIZE_SHIFT;
+
+                out.annotate(2, "insns_size = %d", instructionsSize);
+
+                int instructionsStartOffset = out.getCursor();
+                int preheaderOffset = startOffset;
+
+                int totalTriesCount = triesCount;
+                int totalInstructionsSize = instructionsSize;
+
+                if ((instructionsSizeAndPreheaderFlags & CDEX_PREHEADER_FLAGS_MASK) != 0) {
+                    int preheaderCount = Integer.bitCount(
+                            instructionsSizeAndPreheaderFlags & CDEX_PREHEADER_FLAGS_MASK);
+                    if ((instructionsSizeAndPreheaderFlags & CDEX_PREHEADER_FLAG_INSTRUCTIONS_SIZE) != 0) {
+                        // The instructions size preheader is 2 shorts
+                        preheaderCount++;
+                    }
+
+                    out.moveTo((startOffset - 2 * preheaderCount));
+                    out.deindent();
+                    out.annotate(0, "[preheader for next code_item]");
+                    out.indent();
+                    out.moveTo(instructionsStartOffset);
+                }
+
+                if ((instructionsSizeAndPreheaderFlags & CDEX_PREHEADER_FLAG_INSTRUCTIONS_SIZE) != 0) {
+                    out.annotate(0, "insns_size_preheader_flag=1");
+                    preheaderOffset -= 2;
+                    reader.setOffset(preheaderOffset);
+                    int extraInstructionsSize = reader.readUshort();
+                    preheaderOffset -= 2;
+                    reader.setOffset(preheaderOffset);
+                    extraInstructionsSize += reader.readUshort();
+
+                    out.moveTo(preheaderOffset);
+                    totalInstructionsSize += extraInstructionsSize;
+                    out.annotate(2, "insns_size = %d + %d = %d",
+                            instructionsSize, extraInstructionsSize, instructionsSize + extraInstructionsSize);
+                    out.moveTo(instructionsStartOffset);
+                }
+
+                if ((instructionsSizeAndPreheaderFlags & CDEX_PREHEADER_FLAG_REGISTER_COUNT) != 0) {
+                    out.annotate(0, "registers_size_preheader_flag=1");
+                    preheaderOffset -= 2;
+                    out.moveTo(preheaderOffset);
+                    reader.setOffset(preheaderOffset);
+                    int extraRegisterCount = reader.readUshort();
+                    out.annotate(2, "registers_size = %d + %d = %d",
+                            registerCount, extraRegisterCount, registerCount + extraRegisterCount);
+                    out.moveTo(instructionsStartOffset);
+                }
+                if ((instructionsSizeAndPreheaderFlags & CDEX_PREHEADER_FLAG_INS_COUNT) != 0) {
+                    out.annotate(0, "ins_size_preheader_flag=1");
+                    preheaderOffset -= 2;
+                    out.moveTo(preheaderOffset);
+                    reader.setOffset(preheaderOffset);
+                    int extraInsCount = reader.readUshort();
+                    out.annotate(2, "ins_size = %d + %d = %d",
+                            insCount, extraInsCount, insCount + extraInsCount);
+                    out.moveTo(instructionsStartOffset);
+                }
+                if ((instructionsSizeAndPreheaderFlags & CDEX_PREHEADER_FLAG_OUTS_COUNT) != 0) {
+                    out.annotate(0, "outs_size_preheader_flag=1");
+                    preheaderOffset -= 2;
+                    out.moveTo(preheaderOffset);
+                    reader.setOffset(preheaderOffset);
+                    int extraOutsCount = reader.readUshort();
+                    out.annotate(2, "outs_size = %d + %d = %d",
+                            outsCount, extraOutsCount, outsCount + extraOutsCount);
+                    out.moveTo(instructionsStartOffset);
+                }
+                if ((instructionsSizeAndPreheaderFlags & CDEX_PREHEADER_FLAG_TRIES_COUNT) != 0) {
+                    out.annotate(0, "tries_size_preheader_flag=1");
+                    preheaderOffset -= 2;
+                    out.moveTo(preheaderOffset);
+                    reader.setOffset(preheaderOffset);
+                    int extraTriesCount = reader.readUshort();
+                    totalTriesCount += extraTriesCount;
+                    out.annotate(2, "tries_size = %d + %d = %d",
+                            triesCount, extraTriesCount, triesCount + extraTriesCount);
+                    out.moveTo(instructionsStartOffset);
+                }
+
+                reader.setOffset(instructionsStartOffset);
+
+                return new PreInstructionInfo(totalTriesCount, totalInstructionsSize);
+            }
+        };
     }
 
     private static class CodeItemAnnotator extends SectionAnnotator {
