@@ -175,7 +175,7 @@ public class DexAnnotator extends AnnotatedBytes {
                 annotator.annotateSection(this);
             }
         } finally {
-            writeAnnotations(out, dexFile.getBuffer().getBuf());
+            writeAnnotations(out, dexFile.getBuffer().getBuf(), dexFile.getBuffer().getBaseOffset());
         }
     }
 

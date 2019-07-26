@@ -281,7 +281,7 @@ public class AnnotatedBytes {
      *
      * @param out non-null; where to write to
      */
-    public void writeAnnotations(Writer out, byte[] data) throws IOException {
+    public void writeAnnotations(Writer out, byte[] data, int offset) throws IOException {
         int rightWidth = getAnnotationWidth();
         int leftWidth = outputWidth - rightWidth - 1;
 
@@ -315,14 +315,14 @@ public class AnnotatedBytes {
                 right = "";
             }
 
-            String left = Hex.dump(data, rangeStart, rangeEnd - rangeStart, rangeStart, hexCols, 6);
+            String left = Hex.dump(data, rangeStart + offset, rangeEnd - rangeStart, rangeStart + offset, hexCols, 6);
 
             twoc.write(left, right);
         }
 
         int lastKey = keys[keys.length-1];
         if (lastKey < data.length) {
-            String left = Hex.dump(data, lastKey, data.length - lastKey, lastKey, hexCols, 6);
+            String left = Hex.dump(data, lastKey + offset, (data.length - offset) - lastKey, lastKey + offset, hexCols, 6);
             twoc.write(left, "");
         }
     }

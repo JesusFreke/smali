@@ -150,7 +150,7 @@ public class DexBuffer {
         return buf;
     }
 
-    protected int getBaseOffset() {
+    public int getBaseOffset() {
         return baseOffset;
     }
 }
