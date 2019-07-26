@@ -171,8 +171,14 @@ public class DexAnnotator extends AnnotatedBytes {
 
         try {
             for (MapItem mapItem: mapItems) {
-                SectionAnnotator annotator = annotators.get(mapItem.getType());
-                annotator.annotateSection(this);
+                try {
+                    SectionAnnotator annotator = annotators.get(mapItem.getType());
+                    annotator.annotateSection(this);
+                } catch (Exception ex) {
+                    System.err.println(String.format("There was an error while dumping the %s section",
+                            ItemType.getItemTypeName(mapItem.getType())));
+                    ex.printStackTrace(System.err);
+                }
             }
         } finally {
             writeAnnotations(out, dexFile.getBuffer().getBuf(), dexFile.getBuffer().getBaseOffset());
