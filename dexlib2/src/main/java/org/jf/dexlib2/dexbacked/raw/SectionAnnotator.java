@@ -77,9 +77,12 @@ public abstract class SectionAnnotator {
         annotateSectionInner(out, itemCount);
     }
 
+    protected int getItemOffset(int itemIndex, int currentOffset) {
+        return AlignmentUtils.alignOffset(currentOffset, getItemAlignment());
+    }
+
     protected void annotateSectionInner(@Nonnull AnnotatedBytes out, int itemCount) {
         String itemName = getItemName();
-        int itemAlignment = getItemAlignment();
         if (itemCount > 0) {
             out.annotate(0, "");
             out.annotate(0, "-----------------------------");
@@ -88,7 +91,7 @@ public abstract class SectionAnnotator {
             out.annotate(0, "");
 
             for (int i=0; i<itemCount; i++) {
-                out.moveTo(AlignmentUtils.alignOffset(out.getCursor(), itemAlignment));
+                out.moveTo(getItemOffset(i, out.getCursor()));
 
                 String itemIdentity = getItemIdentity(out.getCursor());
                 if (itemIdentity != null) {
