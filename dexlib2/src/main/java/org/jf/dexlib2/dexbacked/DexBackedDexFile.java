@@ -36,6 +36,8 @@ import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.dexbacked.reference.*;
+import org.jf.dexlib2.dexbacked.util.AnnotationsDirectory;
+import org.jf.dexlib2.dexbacked.util.EncodedArrayItemIterator;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
@@ -75,15 +77,10 @@ public class DexBackedDexFile implements DexFile {
         dexBuffer = new DexBuffer(buf, offset);
         dataBuffer = new DexBuffer(buf, offset + getBaseDataOffset());
 
-        int dexVersion;
-        if (verifyMagic) {
-            dexVersion = DexUtil.verifyDexHeader(buf, offset);
-        } else {
-            dexVersion = HeaderItem.getVersion(buf, offset);
-        }
+        int dexVersion = getVersion(buf, offset, verifyMagic);
 
         if (opcodes == null) {
-            this.opcodes = Opcodes.forDexVersion(dexVersion);
+            this.opcodes = getDefaultOpcodes(dexVersion);
         } else {
             this.opcodes = opcodes;
         }
@@ -109,6 +106,18 @@ public class DexBackedDexFile implements DexFile {
      */
     public int getBaseDataOffset() {
         return 0;
+    }
+
+    protected int getVersion(byte[] buf, int offset, boolean verifyMagic) {
+        if (verifyMagic) {
+            return DexUtil.verifyDexHeader(buf, offset);
+        } else {
+            return HeaderItem.getVersion(buf, offset);
+        }
+    }
+
+    protected Opcodes getDefaultOpcodes(int version) {
+        return Opcodes.forDexVersion(version);
     }
 
     public DexBuffer getBuffer() {
