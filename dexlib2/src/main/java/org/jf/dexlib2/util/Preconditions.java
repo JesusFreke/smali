@@ -35,7 +35,11 @@ import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
+import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.reference.*;
+
+import java.util.Collection;
+import java.util.List;
 
 public class Preconditions {
     public static void checkFormat(Opcode opcode, Format expectedFormat) {
@@ -186,6 +190,47 @@ public class Preconditions {
                             verificationError));
         }
         return verificationError;
+    }
+
+    public static <C extends Collection<? extends SwitchElement>> C checkSequentialOrderedKeys(C elements) {
+        Integer previousKey = null;
+        for (SwitchElement element : elements) {
+            int key = element.getKey();
+            if (previousKey != null && previousKey + 1 != key) {
+                throw new IllegalArgumentException("SwitchElement set is not sequential and ordered");
+            }
+
+            previousKey = key;
+        }
+
+        return elements;
+    }
+
+    public static int checkArrayPayloadElementWidth(int elementWidth) {
+        switch (elementWidth) {
+            case 1:
+            case 2:
+            case 4:
+            case 8:
+                return elementWidth;
+
+            default:
+                throw new IllegalArgumentException(String.format("Not a valid element width: %d", elementWidth));
+        }
+    }
+
+    public static <L extends List<? extends Number>> L checkArrayPayloadElements(int elementWidth, L elements) {
+        // mask of all bits that do not fit into an 'elementWidth'-bit number
+        long bitmask = -1L << elementWidth;
+
+        for (Number element : elements) {
+            if ((element.longValue() & bitmask) != 0) {
+                throw new IllegalArgumentException(
+                        String.format("Number %d must fit into a %d-bit number", element.longValue(), elementWidth));
+            }
+        }
+
+        return elements;
     }
 
     public static <T extends Reference> T checkReference(int referenceType, T reference) {

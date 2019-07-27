@@ -36,6 +36,7 @@ import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
+import org.jf.dexlib2.util.Preconditions;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
@@ -49,14 +50,13 @@ public class ImmutablePackedSwitchPayload extends ImmutableInstruction implement
 
     public ImmutablePackedSwitchPayload(@Nullable List<? extends SwitchElement> switchElements) {
         super(OPCODE);
-        //TODO: need to validate that the keys are sequential
-        this.switchElements = ImmutableSwitchElement.immutableListOf(switchElements);
+        this.switchElements = Preconditions.checkSequentialOrderedKeys(ImmutableSwitchElement.immutableListOf(switchElements));
     }
 
     public ImmutablePackedSwitchPayload(
             @Nullable ImmutableList<? extends ImmutableSwitchElement> switchElements) {
         super(OPCODE);
-        this.switchElements = ImmutableUtils.nullToEmptyList(switchElements);
+        this.switchElements = Preconditions.checkSequentialOrderedKeys(ImmutableUtils.nullToEmptyList(switchElements));
     }
 
     @Nonnull

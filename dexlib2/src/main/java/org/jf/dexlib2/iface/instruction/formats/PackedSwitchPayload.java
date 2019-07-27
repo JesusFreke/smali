@@ -31,7 +31,16 @@
 
 package org.jf.dexlib2.iface.instruction.formats;
 
+import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.SwitchPayload;
 
+import javax.annotation.Nonnull;
+import java.util.List;
+
 public interface PackedSwitchPayload extends SwitchPayload {
+    /**
+     * @return A list of the switch elements associated with this switch payload instruction. The returned list must
+     * have switch elements with keys that are ordered and sequential.
+     */
+    @Nonnull @Override List<? extends SwitchElement> getSwitchElements();
 }
