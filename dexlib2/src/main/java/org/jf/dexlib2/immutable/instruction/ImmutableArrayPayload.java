@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
+import org.jf.dexlib2.util.Preconditions;
 import org.jf.util.ImmutableUtils;
 
 import javax.annotation.Nonnull;
@@ -50,17 +51,16 @@ public class ImmutableArrayPayload extends ImmutableInstruction implements Array
     public ImmutableArrayPayload(int elementWidth,
                                  @Nullable List<Number> arrayElements) {
         super(OPCODE);
-        this.elementWidth = elementWidth;
-        this.arrayElements = arrayElements==null ? ImmutableList.<Number>of() : ImmutableList.copyOf(arrayElements);
+        this.elementWidth = Preconditions.checkArrayPayloadElementWidth(elementWidth);
+        this.arrayElements = Preconditions.checkArrayPayloadElements(elementWidth,
+                arrayElements==null ? ImmutableList.<Number>of() : ImmutableList.copyOf(arrayElements));
     }
 
     public ImmutableArrayPayload(int elementWidth,
                                  @Nullable ImmutableList<Number> arrayElements) {
         super(OPCODE);
-        //TODO: need to ensure this is a valid width (1, 2, 4, 8)
-        this.elementWidth = elementWidth;
-        //TODO: need to validate the elements fit within the width
-        this.arrayElements = ImmutableUtils.nullToEmptyList(arrayElements);
+        this.elementWidth = Preconditions.checkArrayPayloadElementWidth(elementWidth);
+        this.arrayElements = Preconditions.checkArrayPayloadElements(elementWidth, ImmutableUtils.nullToEmptyList(arrayElements));
     }
 
     @Nonnull

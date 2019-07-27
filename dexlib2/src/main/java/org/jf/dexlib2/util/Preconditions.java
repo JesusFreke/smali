@@ -31,11 +31,18 @@
 
 package org.jf.dexlib2.util;
 
+import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
+import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.immutable.instruction.ImmutableSwitchElement;
+
+import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class Preconditions {
     public static void checkFormat(Opcode opcode, Format expectedFormat) {
@@ -186,6 +193,48 @@ public class Preconditions {
                             verificationError));
         }
         return verificationError;
+    }
+
+    public static ImmutableList<? extends ImmutableSwitchElement> checkSequentialKeys(ImmutableList<? extends ImmutableSwitchElement> elements) {
+        TreeSet<Integer> sortedKeys = elements.stream()
+                .map(SwitchElement::getKey)
+                .collect(Collectors.toCollection(TreeSet::new));
+
+        Integer previous = null;
+        for (Integer key : sortedKeys) {
+            if (previous != null && previous + 1 != key) {
+                throw new IllegalArgumentException(String.format("Not a sequential key set: %s", sortedKeys));
+            }
+            previous = key;
+        }
+
+        return elements;
+    }
+
+    public static int checkArrayPayloadElementWidth(int elementWidth) {
+        switch (elementWidth) {
+            case 1:
+            case 2:
+            case 4:
+            case 8:
+                return elementWidth;
+
+            default:
+                throw new IllegalArgumentException(String.format("Not a valid element width: %d", elementWidth));
+        }
+    }
+
+    public static ImmutableList<Number> checkArrayPayloadElements(int elementWidth, ImmutableList<Number> elements) {
+        // mask of all bits that do not fit into an 'elementWidth'-bit number
+        long bitmask = -1L << elementWidth;
+
+        for (Number element : elements) {
+            if ((element.longValue() & bitmask) != 0) {
+                throw new IllegalArgumentException(String.format("Number %d must fit into a %d-bit number", element.longValue(), elementWidth));
+            }
+        }
+
+        return elements;
     }
 
     public static <T extends Reference> T checkReference(int referenceType, T reference) {
