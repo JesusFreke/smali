@@ -50,13 +50,13 @@ public class ImmutablePackedSwitchPayload extends ImmutableInstruction implement
 
     public ImmutablePackedSwitchPayload(@Nullable List<? extends SwitchElement> switchElements) {
         super(OPCODE);
-        this.switchElements = Preconditions.checkSequentialKeys(ImmutableSwitchElement.immutableListOf(switchElements));
+        this.switchElements = Preconditions.checkSequentialOrderedKeys(ImmutableSwitchElement.immutableListOf(switchElements));
     }
 
     public ImmutablePackedSwitchPayload(
             @Nullable ImmutableList<? extends ImmutableSwitchElement> switchElements) {
         super(OPCODE);
-        this.switchElements = Preconditions.checkSequentialKeys(ImmutableUtils.nullToEmptyList(switchElements));
+        this.switchElements = Preconditions.checkSequentialOrderedKeys(ImmutableUtils.nullToEmptyList(switchElements));
     }
 
     @Nonnull

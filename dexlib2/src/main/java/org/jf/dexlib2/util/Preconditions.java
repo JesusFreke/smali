@@ -40,8 +40,7 @@ import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.immutable.instruction.ImmutableSwitchElement;
 
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Preconditions {
@@ -195,17 +194,15 @@ public class Preconditions {
         return verificationError;
     }
 
-    public static ImmutableList<? extends ImmutableSwitchElement> checkSequentialKeys(ImmutableList<? extends ImmutableSwitchElement> elements) {
-        TreeSet<Integer> sortedKeys = elements.stream()
-                .map(SwitchElement::getKey)
-                .collect(Collectors.toCollection(TreeSet::new));
-
-        Integer previous = null;
-        for (Integer key : sortedKeys) {
-            if (previous != null && previous + 1 != key) {
-                throw new IllegalArgumentException(String.format("Not a sequential key set: %s", sortedKeys));
+    public static <E extends SwitchElement, C extends Collection<E>> C checkSequentialOrderedKeys(C elements) {
+        Integer previousKey = null;
+        for (E element : elements) {
+            int key = element.getKey();
+            if (previousKey != null && previousKey + 1 != key) {
+                throw new IllegalArgumentException("SwitchElement set is not sequential and ordered");
             }
-            previous = key;
+
+            previousKey = key;
         }
 
         return elements;
