@@ -221,7 +221,7 @@ public class Preconditions {
         }
     }
 
-    public static ImmutableList<Number> checkArrayPayloadElements(int elementWidth, ImmutableList<Number> elements) {
+    public static <L extends List<Number>> L checkArrayPayloadElements(int elementWidth, L elements) {
         // mask of all bits that do not fit into an 'elementWidth'-bit number
         long bitmask = -1L << elementWidth;
 
