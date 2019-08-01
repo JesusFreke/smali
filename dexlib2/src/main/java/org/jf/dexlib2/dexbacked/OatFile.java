@@ -614,6 +614,9 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
             if (getOatVersion() >= 127) {
                 offset += 4; // method bss mapping offset
             }
+            if (getOatVersion() >= 135) {
+                offset += 8; // type bss mapping and string bss mapping offsets
+            }
             if (getOatVersion() < 75) {
                 // prior to 75, the class offsets are included here directly
                 int classCount = readSmallUint(dexOffset + HeaderItem.CLASS_COUNT_OFFSET);
