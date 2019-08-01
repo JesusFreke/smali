@@ -71,7 +71,6 @@ public class StringIdItem {
     @Nonnull
     public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int stringIndex) {
         return getReferenceAnnotation(dexFile, stringIndex, false);
-
     }
 
     public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int stringIndex, boolean quote) {

@@ -47,12 +47,14 @@ public class DexBackedInstruction20bc extends DexBackedInstruction implements In
         super(dexFile, opcode, instructionStart);
     }
 
-    @Override public int getVerificationError() { return dexFile.getBuffer().readUbyte(instructionStart + 1) & 0x3f; }
+    @Override public int getVerificationError() {
+        return dexFile.getDataBuffer().readUbyte(instructionStart + 1) & 0x3f;
+    }
 
     @Nonnull
     @Override
     public Reference getReference() {
-        int referenceIndex = dexFile.getBuffer().readUshort(instructionStart + 2);
+        int referenceIndex = dexFile.getDataBuffer().readUshort(instructionStart + 2);
         try {
             int referenceType = getReferenceType();
             return DexBackedReference.makeReference(dexFile, referenceType, referenceIndex);
@@ -68,7 +70,7 @@ public class DexBackedInstruction20bc extends DexBackedInstruction implements In
     }
 
     @Override public int getReferenceType() {
-        int referenceType = (dexFile.getBuffer().readUbyte(instructionStart + 1) >>> 6) + 1;
+        int referenceType = (dexFile.getDataBuffer().readUbyte(instructionStart + 1) >>> 6) + 1;
         ReferenceType.validateReferenceType(referenceType);
         return referenceType;
     }

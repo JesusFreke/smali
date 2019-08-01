@@ -47,19 +47,19 @@ public class DexBackedInstruction4rcc extends DexBackedInstruction implements In
     }
 
     @Override public int getRegisterCount() {
-        return dexFile.getBuffer().readUbyte(instructionStart + 1);
+        return dexFile.getDataBuffer().readUbyte(instructionStart + 1);
     }
 
     @Override
     public int getStartRegister() {
-        return dexFile.getBuffer().readUshort(instructionStart + 4);
+        return dexFile.getDataBuffer().readUshort(instructionStart + 4);
     }
 
     @Nonnull
     @Override
     public Reference getReference() {
         return DexBackedReference.makeReference(dexFile, opcode.referenceType,
-                dexFile.getBuffer().readUshort(instructionStart + 2));
+                dexFile.getDataBuffer().readUshort(instructionStart + 2));
     }
 
     @Override
@@ -70,7 +70,7 @@ public class DexBackedInstruction4rcc extends DexBackedInstruction implements In
     @Override
     public Reference getReference2() {
         return DexBackedReference.makeReference(dexFile, opcode.referenceType2,
-                dexFile.getBuffer().readUshort(instructionStart + 6));
+                dexFile.getDataBuffer().readUshort(instructionStart + 6));
     }
 
     @Override

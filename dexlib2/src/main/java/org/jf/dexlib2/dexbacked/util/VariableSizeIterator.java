@@ -31,7 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
@@ -44,8 +44,8 @@ public abstract class VariableSizeIterator<T> implements Iterator<T> {
 
     private int index;
 
-    protected VariableSizeIterator(@Nonnull DexBackedDexFile dexFile, int offset, int size) {
-        this.reader = dexFile.getBuffer().readerAt(offset);
+    protected VariableSizeIterator(@Nonnull DexBuffer buffer, int offset, int size) {
+        this.reader = buffer.readerAt(offset);
         this.size = size;
     }
 

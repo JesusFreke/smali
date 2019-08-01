@@ -66,7 +66,9 @@ public abstract class DexBackedInstruction implements Instruction {
 
         Opcode opcode = dexFile.getOpcodes().getOpcodeByValue(opcodeValue);
 
-        Instruction instruction = buildInstruction(dexFile, opcode, reader.getOffset());
+        Instruction instruction = buildInstruction(dexFile, opcode,
+                reader.getOffset() + reader.dexBuf.getBaseOffset() -
+                        dexFile.getBuffer().getBaseOffset() - dexFile.getBaseDataOffset());
         reader.moveRelative(instruction.getCodeUnits()*2);
         return instruction;
     }

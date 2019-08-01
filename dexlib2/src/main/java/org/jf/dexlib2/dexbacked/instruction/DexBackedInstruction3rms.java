@@ -45,16 +45,16 @@ public class DexBackedInstruction3rms extends DexBackedInstruction implements In
     }
 
     @Override public int getRegisterCount() {
-        return dexFile.getBuffer().readUbyte(instructionStart + 1);
+        return dexFile.getDataBuffer().readUbyte(instructionStart + 1);
     }
 
     @Override
     public int getStartRegister() {
-        return dexFile.getBuffer().readUshort(instructionStart + 4);
+        return dexFile.getDataBuffer().readUshort(instructionStart + 4);
     }
 
     @Override
     public int getVtableIndex() {
-        return dexFile.getBuffer().readUshort(instructionStart + 2);
+        return dexFile.getDataBuffer().readUshort(instructionStart + 2);
     }
 }

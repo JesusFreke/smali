@@ -44,9 +44,9 @@ public class DexBackedUnknownInstruction extends DexBackedInstruction implements
     }
 
     @Override public int getOriginalOpcode() {
-        int opcode = dexFile.getBuffer().readUbyte(instructionStart);
+        int opcode = dexFile.getDataBuffer().readUbyte(instructionStart);
         if (opcode == 0) {
-            opcode = dexFile.getBuffer().readUshort(instructionStart);
+            opcode = dexFile.getDataBuffer().readUshort(instructionStart);
         }
 
         return opcode;

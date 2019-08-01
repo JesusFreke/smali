@@ -32,7 +32,7 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import com.google.common.collect.AbstractIterator;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
@@ -42,8 +42,8 @@ import java.util.Iterator;
 public abstract class VariableSizeLookaheadIterator<T> extends AbstractIterator<T> implements Iterator<T> {
     @Nonnull private final DexReader reader;
 
-    protected VariableSizeLookaheadIterator(@Nonnull DexBackedDexFile dexFile, int offset) {
-        this.reader = dexFile.getBuffer().readerAt(offset);
+    protected VariableSizeLookaheadIterator(@Nonnull DexBuffer buffer, int offset) {
+        this.reader = buffer.readerAt(offset);
     }
 
     /**

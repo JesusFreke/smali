@@ -68,7 +68,7 @@ public abstract class EncodedArrayItemIterator {
 
         public EncodedArrayItemIteratorImpl(@Nonnull DexBackedDexFile dexFile, int offset) {
             this.dexFile = dexFile;
-            this.reader = dexFile.getBuffer().readerAt(offset);
+            this.reader = dexFile.getDataBuffer().readerAt(offset);
             this.size = reader.readSmallUleb128();
         }
 

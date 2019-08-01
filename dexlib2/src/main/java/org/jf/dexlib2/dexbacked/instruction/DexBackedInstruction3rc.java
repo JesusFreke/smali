@@ -47,19 +47,19 @@ public class DexBackedInstruction3rc extends DexBackedInstruction implements Ins
     }
 
     @Override public int getRegisterCount() {
-        return dexFile.getBuffer().readUbyte(instructionStart + 1);
+        return dexFile.getDataBuffer().readUbyte(instructionStart + 1);
     }
 
     @Override
     public int getStartRegister() {
-        return dexFile.getBuffer().readUshort(instructionStart + 4);
+        return dexFile.getDataBuffer().readUshort(instructionStart + 4);
     }
 
     @Nonnull
     @Override
     public Reference getReference() {
         return DexBackedReference.makeReference(dexFile, opcode.referenceType,
-                dexFile.getBuffer().readUshort(instructionStart + 2));
+                dexFile.getDataBuffer().readUshort(instructionStart + 2));
     }
 
     @Override

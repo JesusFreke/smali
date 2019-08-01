@@ -52,7 +52,6 @@ public class ClassDataItem {
                 super.annotateSection(out);
             }
 
-
             @Nonnull @Override public String getItemName() {
                 return "class_data_item";
             }

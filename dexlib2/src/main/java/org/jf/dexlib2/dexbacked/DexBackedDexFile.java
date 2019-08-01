@@ -210,7 +210,7 @@ public class DexBackedDexFile implements DexFile {
     }
 
     public List<MapItem> getMapItems() {
-        final int mapSize = dexBuffer.readSmallUint(mapOffset);
+        final int mapSize = dataBuffer.readSmallUint(mapOffset);
 
         return new FixedSizeList<MapItem>() {
             @Override
@@ -257,7 +257,7 @@ public class DexBackedDexFile implements DexFile {
         public String get(int index) {
             int stringOffset = getOffset(index);
             int stringDataOffset = dexBuffer.readSmallUint(stringOffset);
-            DexReader reader = dexBuffer.readerAt(stringDataOffset);
+            DexReader reader = dataBuffer.readerAt(stringDataOffset);
             int utf16Length = reader.readSmallUleb128();
             return reader.readString(utf16Length);
         }

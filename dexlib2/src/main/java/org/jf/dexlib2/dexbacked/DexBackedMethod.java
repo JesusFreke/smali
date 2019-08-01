@@ -168,13 +168,13 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     public List<String> getParameterTypes() {
         final int parametersOffset = getParametersOffset();
         if (parametersOffset > 0) {
-            final int parameterCount = dexFile.getBuffer().readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
+            final int parameterCount = dexFile.getDataBuffer().readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
             final int paramListStart = parametersOffset + TypeListItem.LIST_OFFSET;
             return new FixedSizeList<String>() {
                 @Nonnull
                 @Override
                 public String readItem(final int index) {
-                    return dexFile.getTypeSection().get(dexFile.getBuffer().readUshort(paramListStart + 2*index));
+                    return dexFile.getTypeSection().get(dexFile.getDataBuffer().readUshort(paramListStart + 2*index));
                 }
                 @Override public int size() { return parameterCount; }
             };
@@ -245,7 +245,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     public int getSize() {
         int size = 0;
 
-        DexReader reader = dexFile.getBuffer().readerAt(startOffset);
+        DexReader reader = dexFile.getDataBuffer().readerAt(startOffset);
         reader.readLargeUleb128(); //method_idx_diff
         reader.readSmallUleb128(); //access_flags
         reader.readSmallUleb128(); //code_off

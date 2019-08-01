@@ -47,16 +47,16 @@ public class DexBackedInstruction22cs extends DexBackedInstruction implements In
 
     @Override
     public int getRegisterA() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.getBuffer().readByte(instructionStart + 1));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.getDataBuffer().readByte(instructionStart + 1));
     }
 
     @Override
     public int getRegisterB() {
-        return NibbleUtils.extractHighUnsignedNibble(dexFile.getBuffer().readByte(instructionStart + 1));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.getDataBuffer().readByte(instructionStart + 1));
     }
 
     @Override
     public int getFieldOffset() {
-        return dexFile.getBuffer().readUshort(instructionStart + 2);
+        return dexFile.getDataBuffer().readUshort(instructionStart + 2);
     }
 }

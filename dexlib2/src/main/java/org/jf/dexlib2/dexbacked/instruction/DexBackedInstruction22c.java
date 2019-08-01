@@ -49,19 +49,19 @@ public class DexBackedInstruction22c extends DexBackedInstruction implements Ins
 
     @Override
     public int getRegisterA() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.getBuffer().readByte(instructionStart + 1));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.getDataBuffer().readByte(instructionStart + 1));
     }
 
     @Override
     public int getRegisterB() {
-        return NibbleUtils.extractHighUnsignedNibble(dexFile.getBuffer().readByte(instructionStart + 1));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.getDataBuffer().readByte(instructionStart + 1));
     }
 
     @Nonnull
     @Override
     public Reference getReference() {
         return DexBackedReference.makeReference(
-                dexFile, opcode.referenceType, dexFile.getBuffer().readUshort(instructionStart + 2));
+                dexFile, opcode.referenceType, dexFile.getDataBuffer().readUshort(instructionStart + 2));
     }
 
     @Override

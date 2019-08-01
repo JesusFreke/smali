@@ -44,5 +44,5 @@ public class DexBackedInstruction11x extends DexBackedInstruction implements Ins
         super(dexFile, opcode, instructionStart);
     }
 
-    @Override public int getRegisterA() { return dexFile.getBuffer().readUbyte(instructionStart + 1); }
+    @Override public int getRegisterA() { return dexFile.getDataBuffer().readUbyte(instructionStart + 1); }
 }

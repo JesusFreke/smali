@@ -89,9 +89,9 @@ public class TypeListItem {
 
         StringBuilder sb = new StringBuilder();
 
-        int size = dexFile.getBuffer().readSmallUint(typeListOffset);
+        int size = dexFile.getDataBuffer().readSmallUint(typeListOffset);
         for (int i=0; i<size; i++) {
-            int typeIndex = dexFile.getBuffer().readUshort(typeListOffset + 4 + i*2);
+            int typeIndex = dexFile.getDataBuffer().readUshort(typeListOffset + 4 + i*2);
             String type = dexFile.getTypeSection().get(typeIndex);
             sb.append(type);
         }

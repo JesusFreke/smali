@@ -54,8 +54,8 @@ public class DexBackedArrayPayload extends DexBackedInstruction implements Array
                                  int instructionStart) {
         super(dexFile, OPCODE, instructionStart);
 
-        elementWidth = dexFile.getBuffer().readUshort(instructionStart + ELEMENT_WIDTH_OFFSET);
-        elementCount = dexFile.getBuffer().readSmallUint(instructionStart + ELEMENT_COUNT_OFFSET);
+        elementWidth = dexFile.getDataBuffer().readUshort(instructionStart + ELEMENT_WIDTH_OFFSET);
+        elementCount = dexFile.getDataBuffer().readSmallUint(instructionStart + ELEMENT_COUNT_OFFSET);
         if (((long)elementWidth) * elementCount > Integer.MAX_VALUE) {
             throw new ExceptionWithContext("Invalid array-payload instruction: element width*count overflows");
         }
@@ -78,7 +78,7 @@ public class DexBackedArrayPayload extends DexBackedInstruction implements Array
                     @Nonnull
                     @Override
                     public Number readItem(int index) {
-                        return dexFile.getBuffer().readByte(elementsStart + index);
+                        return dexFile.getDataBuffer().readByte(elementsStart + index);
                     }
                 };
             case 2:
@@ -86,7 +86,7 @@ public class DexBackedArrayPayload extends DexBackedInstruction implements Array
                     @Nonnull
                     @Override
                     public Number readItem(int index) {
-                        return dexFile.getBuffer().readShort(elementsStart + index*2);
+                        return dexFile.getDataBuffer().readShort(elementsStart + index*2);
                     }
                 };
             case 4:
@@ -94,7 +94,7 @@ public class DexBackedArrayPayload extends DexBackedInstruction implements Array
                     @Nonnull
                     @Override
                     public Number readItem(int index) {
-                        return dexFile.getBuffer().readInt(elementsStart + index*4);
+                        return dexFile.getDataBuffer().readInt(elementsStart + index*4);
                     }
                 };
             case 8:
@@ -102,7 +102,7 @@ public class DexBackedArrayPayload extends DexBackedInstruction implements Array
                     @Nonnull
                     @Override
                     public Number readItem(int index) {
-                        return dexFile.getBuffer().readLong(elementsStart + index*8);
+                        return dexFile.getDataBuffer().readLong(elementsStart + index*8);
                     }
                 };
             default:

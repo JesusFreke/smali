@@ -54,7 +54,7 @@ public class MapItem {
     }
 
     public int getType() {
-        return dexFile.getBuffer().readUshort(offset + TYPE_OFFSET);
+        return dexFile.getDataBuffer().readUshort(offset + TYPE_OFFSET);
     }
 
     @Nonnull
@@ -63,11 +63,11 @@ public class MapItem {
     }
 
     public int getItemCount() {
-        return dexFile.getBuffer().readSmallUint(offset + SIZE_OFFSET);
+        return dexFile.getDataBuffer().readSmallUint(offset + SIZE_OFFSET);
     }
 
     public int getOffset() {
-        return dexFile.getBuffer().readSmallUint(offset + OFFSET_OFFSET);
+        return dexFile.getDataBuffer().readSmallUint(offset + OFFSET_OFFSET);
     }
 
     @Nonnull

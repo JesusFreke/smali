@@ -58,7 +58,7 @@ public class CallSiteIdItem {
                 StringWriter writer = new StringWriter();
                 try {
                     EncodedValueUtils.writeEncodedValue(writer,
-                            new DexBackedArrayEncodedValue(dexFile, dexFile.getBuffer().readerAt(callSiteOffset)));
+                            new DexBackedArrayEncodedValue(dexFile, dexFile.getDataBuffer().readerAt(callSiteOffset)));
                 } catch (IOException ex) {
                     // Shouldn't get an IOException from a StringWriter..
                     throw new RuntimeException(ex);

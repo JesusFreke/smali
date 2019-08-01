@@ -31,19 +31,19 @@
 
 package org.jf.dexlib2.dexbacked.util;
 
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.DexReader;
 
 import javax.annotation.Nonnull;
 import java.util.AbstractCollection;
 
 public abstract class VariableSizeCollection<T> extends AbstractCollection<T> {
-    @Nonnull private final DexBackedDexFile dexFile;
+    @Nonnull private final DexBuffer buffer;
     private final int offset;
     private final int size;
 
-    public VariableSizeCollection(@Nonnull DexBackedDexFile dexFile, int offset, int size) {
-        this.dexFile = dexFile;
+    public VariableSizeCollection(@Nonnull DexBuffer buffer, int offset, int size) {
+        this.buffer = buffer;
         this.offset = offset;
         this.size = size;
     }
@@ -53,7 +53,7 @@ public abstract class VariableSizeCollection<T> extends AbstractCollection<T> {
     @Override
     @Nonnull
     public VariableSizeIterator<T> iterator() {
-        return new VariableSizeIterator<T>(dexFile, offset, size) {
+        return new VariableSizeIterator<T>(buffer, offset, size) {
             @Override
             protected T readNextItem(@Nonnull DexReader reader, int index) {
                 return VariableSizeCollection.this.readNextItem(reader, index);

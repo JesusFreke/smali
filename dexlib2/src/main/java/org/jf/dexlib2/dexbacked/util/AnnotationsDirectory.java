@@ -99,12 +99,12 @@ public abstract class AnnotationsDirectory {
     public static Set<? extends DexBackedAnnotation> getAnnotations(@Nonnull final DexBackedDexFile dexFile,
                                                                      final int annotationSetOffset) {
         if (annotationSetOffset != 0) {
-            final int size = dexFile.getBuffer().readSmallUint(annotationSetOffset);
+            final int size = dexFile.getDataBuffer().readSmallUint(annotationSetOffset);
             return new FixedSizeSet<DexBackedAnnotation>() {
                 @Nonnull
                 @Override
                 public DexBackedAnnotation readItem(int index) {
-                    int annotationOffset = dexFile.getBuffer().readSmallUint(annotationSetOffset + 4 + (4*index));
+                    int annotationOffset = dexFile.getDataBuffer().readSmallUint(annotationSetOffset + 4 + (4*index));
                     return new DexBackedAnnotation(dexFile, annotationOffset);
                 }
 
@@ -119,13 +119,13 @@ public abstract class AnnotationsDirectory {
     public static List<Set<? extends DexBackedAnnotation>> getParameterAnnotations(
             @Nonnull final DexBackedDexFile dexFile, final int annotationSetListOffset) {
         if (annotationSetListOffset > 0) {
-            final int size = dexFile.getBuffer().readSmallUint(annotationSetListOffset);
+            final int size = dexFile.getDataBuffer().readSmallUint(annotationSetListOffset);
 
             return new FixedSizeList<Set<? extends DexBackedAnnotation>>() {
                 @Nonnull
                 @Override
                 public Set<? extends DexBackedAnnotation> readItem(int index) {
-                    int annotationSetOffset = dexFile.getBuffer().readSmallUint(
+                    int annotationSetOffset = dexFile.getDataBuffer().readSmallUint(
                             annotationSetListOffset + 4 + index * 4);
                     return getAnnotations(dexFile, annotationSetOffset);
                 }
@@ -157,20 +157,20 @@ public abstract class AnnotationsDirectory {
         }
 
         public int getFieldAnnotationCount() {
-            return dexFile.getBuffer().readSmallUint(directoryOffset + FIELD_COUNT_OFFSET);
+            return dexFile.getDataBuffer().readSmallUint(directoryOffset + FIELD_COUNT_OFFSET);
         }
 
         public int getMethodAnnotationCount() {
-            return dexFile.getBuffer().readSmallUint(directoryOffset + METHOD_COUNT_OFFSET);
+            return dexFile.getDataBuffer().readSmallUint(directoryOffset + METHOD_COUNT_OFFSET);
         }
 
         public int getParameterAnnotationCount() {
-            return dexFile.getBuffer().readSmallUint(directoryOffset + PARAMETER_COUNT_OFFSET);
+            return dexFile.getDataBuffer().readSmallUint(directoryOffset + PARAMETER_COUNT_OFFSET);
         }
 
         @Nonnull
         public Set<? extends DexBackedAnnotation> getClassAnnotations() {
-            return getAnnotations(dexFile, dexFile.getBuffer().readSmallUint(directoryOffset));
+            return getAnnotations(dexFile, dexFile.getDataBuffer().readSmallUint(directoryOffset));
         }
 
         @Nonnull
@@ -217,24 +217,24 @@ public abstract class AnnotationsDirectory {
             public AnnotationIteratorImpl(int startOffset, int size) {
                 this.startOffset = startOffset;
                 this.size = size;
-                this.currentItemIndex = dexFile.getBuffer().readSmallUint(startOffset);
+                this.currentItemIndex = dexFile.getDataBuffer().readSmallUint(startOffset);
                 this.currentIndex = 0;
             }
 
             public int seekTo(int itemIndex) {
                 while (currentItemIndex < itemIndex && (currentIndex+1) < size) {
                     currentIndex++;
-                    currentItemIndex = dexFile.getBuffer().readSmallUint(startOffset + (currentIndex*8));
+                    currentItemIndex = dexFile.getDataBuffer().readSmallUint(startOffset + (currentIndex*8));
                 }
 
                 if (currentItemIndex == itemIndex) {
-                    return dexFile.getBuffer().readSmallUint(startOffset + (currentIndex*8)+4);
+                    return dexFile.getDataBuffer().readSmallUint(startOffset + (currentIndex*8)+4);
                 }
                 return 0;
             }
 
             public void reset() {
-                this.currentItemIndex = dexFile.getBuffer().readSmallUint(startOffset);
+                this.currentItemIndex = dexFile.getDataBuffer().readSmallUint(startOffset);
                 this.currentIndex = 0;
             }
         }

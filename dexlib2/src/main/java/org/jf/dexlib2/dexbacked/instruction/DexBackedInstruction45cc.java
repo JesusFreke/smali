@@ -48,39 +48,39 @@ public class DexBackedInstruction45cc extends DexBackedInstruction implements In
     }
 
     @Override public int getRegisterCount() {
-        return NibbleUtils.extractHighUnsignedNibble(dexFile.getBuffer().readUbyte(instructionStart + 1));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.getDataBuffer().readUbyte(instructionStart + 1));
     }
 
     @Override
     public int getRegisterC() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.getBuffer().readUbyte(instructionStart + 4));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.getDataBuffer().readUbyte(instructionStart + 4));
     }
 
     @Override
     public int getRegisterD() {
-        return NibbleUtils.extractHighUnsignedNibble(dexFile.getBuffer().readUbyte(instructionStart + 4));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.getDataBuffer().readUbyte(instructionStart + 4));
     }
 
     @Override
     public int getRegisterE() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.getBuffer().readUbyte(instructionStart + 5));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.getDataBuffer().readUbyte(instructionStart + 5));
     }
 
     @Override
     public int getRegisterF() {
-        return NibbleUtils.extractHighUnsignedNibble(dexFile.getBuffer().readUbyte(instructionStart + 5));
+        return NibbleUtils.extractHighUnsignedNibble(dexFile.getDataBuffer().readUbyte(instructionStart + 5));
     }
 
     @Override
     public int getRegisterG() {
-        return NibbleUtils.extractLowUnsignedNibble(dexFile.getBuffer().readUbyte(instructionStart + 1));
+        return NibbleUtils.extractLowUnsignedNibble(dexFile.getDataBuffer().readUbyte(instructionStart + 1));
     }
 
     @Nonnull
     @Override
     public Reference getReference() {
         return DexBackedReference.makeReference(dexFile, opcode.referenceType,
-                dexFile.getBuffer().readUshort(instructionStart + 2));
+                dexFile.getDataBuffer().readUshort(instructionStart + 2));
     }
 
     @Override
@@ -91,7 +91,7 @@ public class DexBackedInstruction45cc extends DexBackedInstruction implements In
     @Override
     public Reference getReference2() {
         return DexBackedReference.makeReference(dexFile, opcode.referenceType2,
-                dexFile.getBuffer().readUshort(instructionStart + 6));
+                dexFile.getDataBuffer().readUshort(instructionStart + 6));
     }
 
     @Override

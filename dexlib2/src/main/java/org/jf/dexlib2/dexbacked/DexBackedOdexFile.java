@@ -66,7 +66,8 @@ public class DexBackedOdexFile extends DexBackedDexFile {
         DexBuffer fromStartBuffer = new DexBuffer(getBuffer().buf, 0);
         int dependencyCount = fromStartBuffer.readInt(dependencyOffset + DEPENDENCY_COUNT_OFFSET);
 
-        return new VariableSizeList<String>(this, dependencyOffset + DEPENDENCY_START_OFFSET, dependencyCount) {
+        return new VariableSizeList<String>(
+                this.getDataBuffer(), dependencyOffset + DEPENDENCY_START_OFFSET, dependencyCount) {
             @Override protected String readNextItem(@Nonnull DexReader reader, int index) {
                 int length = reader.readInt();
                 int offset = reader.getOffset();

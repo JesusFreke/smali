@@ -55,7 +55,12 @@ public abstract class SectionAnnotator {
         this.dexFile = annotator.dexFile;
         this.itemType = mapItem.getType();
 
-        this.sectionOffset = mapItem.getOffset();
+        if (mapItem.getType() >= ItemType.MAP_LIST) {
+            this.sectionOffset = mapItem.getOffset() + dexFile.getBaseDataOffset();
+        } else {
+            this.sectionOffset = mapItem.getOffset();
+        }
+
         this.itemCount = mapItem.getItemCount();
     }
 
@@ -103,7 +108,7 @@ public abstract class SectionAnnotator {
     }
 
     public void setItemIdentity(int itemOffset, String identity) {
-        itemIdentities.put(itemOffset, identity);
+        itemIdentities.put(itemOffset + dexFile.getBaseDataOffset(), identity);
     }
 
     public int getItemAlignment() {

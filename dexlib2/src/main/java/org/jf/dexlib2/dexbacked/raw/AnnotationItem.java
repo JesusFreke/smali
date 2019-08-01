@@ -77,7 +77,7 @@ public class AnnotationItem {
 
     public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int annotationItemOffset) {
         try {
-            DexReader reader = dexFile.getBuffer().readerAt(annotationItemOffset);
+            DexReader reader = dexFile.getDataBuffer().readerAt(annotationItemOffset);
             reader.readUbyte();
             int typeIndex = reader.readSmallUleb128();
             String annotationType = dexFile.getTypeSection().get(typeIndex);
