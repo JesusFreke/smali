@@ -344,7 +344,8 @@ public final class DexFileFactory {
      * Performs a partial match against entry and targetEntry.
      *
      * This is considered a partial match if targetEntry is a suffix of entry, and if the suffix starts
-     * on a path "part" (ignoring the initial separator, if any). Both '/' and ':' are considered separators for this.
+     * on a path "part" (ignoring the initial separator, if any). '/' and ':' and '!' are considered separators for
+     * this.
      *
      * So entry="/blah/blah/something.dex" and targetEntry="lah/something.dex" shouldn't match, but
      * both targetEntry="blah/something.dex" and "/blah/something.dex" should match.
@@ -364,7 +365,8 @@ public final class DexFileFactory {
         char firstTargetChar = targetEntry.charAt(0);
         // This is a device path, so we should always use the linux separator '/', rather than the current platform's
         // separator
-        return firstTargetChar == ':' || firstTargetChar == '/' || precedingChar == ':' || precedingChar == '/';
+        return firstTargetChar == ':' || firstTargetChar == '/' || firstTargetChar == '!' ||
+                precedingChar == ':' || precedingChar == '/' || precedingChar == '!';
     }
 
     protected static class DexEntryFinder {
