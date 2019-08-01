@@ -53,6 +53,7 @@ import java.util.Set;
 public class DexBackedDexFile implements DexFile {
 
     private final DexBuffer dexBuffer;
+    private final DexBuffer dataBuffer;
 
     @Nonnull private final Opcodes opcodes;
 
@@ -72,6 +73,7 @@ public class DexBackedDexFile implements DexFile {
 
     protected DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
         dexBuffer = new DexBuffer(buf, offset);
+        dataBuffer = new DexBuffer(buf, offset + getBaseDataOffset());
 
         int dexVersion;
         if (verifyMagic) {
@@ -101,8 +103,20 @@ public class DexBackedDexFile implements DexFile {
         mapOffset = dexBuffer.readSmallUint(HeaderItem.MAP_OFFSET);
     }
 
+    /**
+     * @return The offset that various data offsets are relative to. This is always 0 for a dex file, but may be
+     * different for other related formats (e.g. cdex).
+     */
+    public int getBaseDataOffset() {
+        return 0;
+    }
+
     public DexBuffer getBuffer() {
         return dexBuffer;
+    }
+
+    public DexBuffer getDataBuffer() {
+        return dataBuffer;
     }
 
     public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull DexBuffer buf) {
