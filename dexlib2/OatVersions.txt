@@ -101,16 +101,63 @@ f977691961b5a49a074a535fcb29a5ad4a318974 - 124
 99cdddaf8e5bc6b31d0eb375755ec4071a9fb527 - 125
 c137cb03a90b9fd5a7d0ec7dd9b250db82ca88ef - 126
 0eb882bfc5d260e8014c26adfda11602065aa5d8 - 127
-    - The oat_dex_files_offset field is added to the OatHeader class in art/runtime/oat.h.
-    - The method_bss_mapping field is added to the OatDexFile class in art/runtime/oat_file.h.
+    - The oat_dex_files_offset field is added to OatHeader
+    - The method_bss_mapping field is added to OatDexFile
 7b0648aa7cb4b7a58e73bf353e031dfe4553d9d7 - 128
 0cb172874481f736c6b7c491dd621166cc25561b - 129
 a308a327884920cbb1e3e62964c4b5a01c29af8c - 130 (changed kMultiDexSeparator from ':' to '!')
 4147fcc43c2ee019a06e55384985e3eaf82dcb8c - 131
-75c5ed6e75f70002db5fa7c609137c04dd2bdf40 - 131
-    - The dex_layout_sections field is added to OatDexFile class in art/runtime/oat_file.h.
-    - They did some kind of rebase or something so this commit is not in the master branch anymore.
-    - Only indication is that they cherry picked some things from this commit for oat 132.
-120aa286ab6adf3e76a31bc61fb4e583e5158d71 - 132
-    - The commit containing cherry picked changes from commit 75c5ed6e.
-    - No other noteable changes to the Oat format.
+75c5ed6e75f70002db5fa7c609137c04dd2bdf40 - 132
+    - The dex_layout_sections field is added to OatDexFile
+0f3c7003e08a42a4ed8c9f8dfffb1bee1118de59 - 133
+6cfbdbc359ec5414d3e49f70d28f8c0e65b98d63 - 134
+f3c52b42a035902245d00a619fed0275afb063d2 - 135
+    - Add type_bss_mapping_ and string_bss_mapping_ fields to OatDexFile
+2c64a837e62c2839521c89060b5bb0dcb237ddda - 136
+dc682aa9d0eae1a851af059434adb6f6cf8f06f8 - 137
+4d17987da58d9411adbed1a18203d76d6119612d - 138
+    - introduced the concept of an uncompressed dex file: one that is not stored
+       in the oat/vdex file, but rather is left in the apk.
+b066d43b1d9184899aff32b1f243d092611ad9c6 - 139
+e47f60c482648172334aaca59e6c1ab7a3d42610 - 140
+dcd117e04b0831e4539544c38c524799114f3e66 - 141
+18259d7fb7164a5e029df4f883b3a79ccc2403e8 - 142
+dbaa5c7ba8935cf87ceb40a4054f9842929e9a51 - 143
+052f8ca1776ed7deb4f036498edd69eb6a1b942f - 144
+4b59d107f91601c4e0095d7a9db40970d4ed6956 - 145
+71ec1cc0665cdb9d39f4fd284d68962020417a53 - 146
+ea341d2830298b666d7c6faf369d2fc3fe94fef8 - 147
+    - Inline TypeLookupTable in OatDexFile
+4c8e12e66968929b36fac6a2237ca4b04160161e - 148
+50fac06c51864f293c61ff9d0983b82698cf6dac - 149
+f6ba5b316b51d0fb9f91cb51a42e51dfeee62ee4 - 150
+a38e6cf2aaf4fd3d92b05c0a7a146fb5525ea72d - 151
+afc97bca07c85d4c3b46801c557edd12d681fc96 - 152
+d109e30eab8ba25f8d89be2a83d9036e2d541af2 - 153
+2c76257e4bfcd6f522b0cd3487ba7d9900043243 - 154
+6ee06e97cef5ee92944deaeba0da4d10c4c33a2a - 155
+8808756b8fba036a9c73a45c800a56be09872364 - 156
+b73323c50d10d3850d2d8719a481f4f430fc51ce - 157
+8cd54547cec8a4537db5682c2da8be22843b1310 - 158
+3aaaa21055ab73562b8da7968ac4fa5fe9d44695 - 159
+a9f303c089aa2b2fc82d97201352945678ef54ae - 160
+a2d29a3a772f17014197e829aa8cb41026f88f05 - 161
+e0669326c0282b5b645aba75160425eef9d57617 - 162
+    - Removes image_patch_delta_ and image_file_location_oat_delta_begin_ fields in oat header
+776f3f7bfa33e0449e4e2c5535bae1babfdbaf83 - 163
+c10a0c60ca388ea5f45c11dd86ca0af11191015a - 164
+    - changed adler32_checksum_ to oat_checksum_ in oat header
+    - changed image_file_location_oat_checksum_ to boot_image_checksum_ in oat header
+    - no net size change
+91f1032505cfaec3aef51fc0a3085b213813f0ed - 165
+0ace5633680af8864b76b4f45d63b3407e4dcdf5 - 166
+    - removes the boot_image_checksum_ field in oat header
+e1412dacbf1d2a809bd1fca658cc8cb8f61f8ee6 - 167
+    - note: this commit was reverted and this version number was not re-used
+131f23a4c2c34b689c07e6efd05cea74190f0113 - 168
+    - note: this commit was reverted and this version number was not re-used
+e35ac04a1a9a22b1c4386b27f3a30cd840aa17b1 - 169
+    - note: this commit was reverted and this version number was not re-used
+98fb083a30e9b37685f943e2923e65e60e0a0971 - 170
+    - Removes the interpreter_to_interpreter_bridge_offset_ field in oat header
+    - Removes the interpreter_to_compiled_code_bridge_offset_ field in oat header
