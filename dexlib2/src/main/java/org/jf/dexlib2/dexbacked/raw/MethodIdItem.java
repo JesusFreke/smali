@@ -68,15 +68,15 @@ public class MethodIdItem {
 
     @Nonnull
     public static String asString(@Nonnull DexBackedDexFile dexFile, int methodIndex) {
-        int methodOffset = dexFile.getMethodIdItemOffset(methodIndex);
+        int methodOffset = dexFile.getMethodSection().getOffset(methodIndex);
         int classIndex = dexFile.readUshort(methodOffset + CLASS_OFFSET);
-        String classType = dexFile.getType(classIndex);
+        String classType = dexFile.getTypeSection().get(classIndex);
 
         int protoIndex = dexFile.readUshort(methodOffset + PROTO_OFFSET);
         String protoString = ProtoIdItem.asString(dexFile, protoIndex);
 
         int nameIndex = dexFile.readSmallUint(methodOffset + NAME_OFFSET);
-        String methodName = dexFile.getString(nameIndex);
+        String methodName = dexFile.getStringSection().get(nameIndex);
 
         return String.format("%s->%s%s", classType, methodName, protoString);
     }

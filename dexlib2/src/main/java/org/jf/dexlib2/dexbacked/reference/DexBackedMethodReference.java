@@ -55,14 +55,14 @@ public class DexBackedMethodReference extends BaseMethodReference {
     @Nonnull
     @Override
     public String getDefiningClass() {
-        return dexFile.getType(dexFile.readUshort(dexFile.getMethodIdItemOffset(methodIndex) +
+        return dexFile.getTypeSection().get(dexFile.readUshort(dexFile.getMethodSection().getOffset(methodIndex) +
                 MethodIdItem.CLASS_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getString(dexFile.readSmallUint(dexFile.getMethodIdItemOffset(methodIndex) +
+        return dexFile.getStringSection().get(dexFile.readSmallUint(dexFile.getMethodSection().getOffset(methodIndex) +
                 MethodIdItem.NAME_OFFSET));
     }
 
@@ -78,7 +78,7 @@ public class DexBackedMethodReference extends BaseMethodReference {
                 @Nonnull
                 @Override
                 public String readItem(final int index) {
-                    return dexFile.getType(dexFile.readUshort(paramListStart + 2*index));
+                    return dexFile.getTypeSection().get(dexFile.readUshort(paramListStart + 2*index));
                 }
                 @Override public int size() { return parameterCount; }
             };
@@ -90,13 +90,13 @@ public class DexBackedMethodReference extends BaseMethodReference {
     @Override
     public String getReturnType() {
         int protoIdItemOffset = getProtoIdItemOffset();
-        return dexFile.getType(dexFile.readSmallUint(protoIdItemOffset + ProtoIdItem.RETURN_TYPE_OFFSET));
+        return dexFile.getTypeSection().get(dexFile.readSmallUint(protoIdItemOffset + ProtoIdItem.RETURN_TYPE_OFFSET));
     }
 
     private int getProtoIdItemOffset() {
         if (protoIdItemOffset == 0) {
-            protoIdItemOffset = dexFile.getProtoIdItemOffset(
-                    dexFile.readUshort(dexFile.getMethodIdItemOffset(methodIndex) + MethodIdItem.PROTO_OFFSET));
+            protoIdItemOffset = dexFile.getProtoSection().getOffset(
+                    dexFile.readUshort(dexFile.getMethodSection().getOffset(methodIndex) + MethodIdItem.PROTO_OFFSET));
         }
         return protoIdItemOffset;
     }
@@ -114,7 +114,7 @@ public class DexBackedMethodReference extends BaseMethodReference {
 
     @Override
     public void validateReference() throws InvalidReferenceException {
-        if (methodIndex < 0 || methodIndex >= dexFile.getMethodCount()) {
+        if (methodIndex < 0 || methodIndex >= dexFile.getMethodSection().size()) {
             throw new InvalidReferenceException("method@" + methodIndex);
         }
     }

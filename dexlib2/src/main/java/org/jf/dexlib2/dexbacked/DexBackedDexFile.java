@@ -35,16 +35,12 @@ import com.google.common.io.ByteStreams;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.dexbacked.raw.*;
-import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
-import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
-import org.jf.dexlib2.dexbacked.reference.DexBackedStringReference;
-import org.jf.dexlib2.dexbacked.reference.DexBackedTypeReference;
+import org.jf.dexlib2.dexbacked.reference.*;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
-import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.util.DexUtil;
-import org.jf.util.ExceptionWithContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -123,7 +119,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         return new DexBackedDexFile(opcodes, buf, 0, false);
     }
 
-    @Override @Nonnull public Opcodes getOpcodes() {
+    @Nonnull public Opcodes getOpcodes() {
         return opcodes;
     }
 
@@ -132,13 +128,12 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     }
 
     @Nonnull
-    @Override
     public Set<? extends DexBackedClassDef> getClasses() {
         return new FixedSizeSet<DexBackedClassDef>() {
             @Nonnull
             @Override
             public DexBackedClassDef readItem(int index) {
-                return new DexBackedClassDef(DexBackedDexFile.this, getClassDefItemOffset(index));
+                return getClassSection().get(index);
             }
 
             @Override
@@ -148,192 +143,32 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         };
     }
 
-    public int getStringIdItemOffset(int stringIndex) {
-        if (stringIndex < 0 || stringIndex >= stringCount) {
-            throw new InvalidItemIndex(stringIndex, "String index out of bounds: %d", stringIndex);
-        }
-        return stringStartOffset + stringIndex*StringIdItem.ITEM_SIZE;
-    }
-
-    public int getTypeIdItemOffset(int typeIndex) {
-        if (typeIndex < 0 || typeIndex >= typeCount) {
-            throw new InvalidItemIndex(typeIndex, "Type index out of bounds: %d", typeIndex);
-        }
-        return typeStartOffset + typeIndex*TypeIdItem.ITEM_SIZE;
-    }
-
-    public int getFieldIdItemOffset(int fieldIndex) {
-        if (fieldIndex < 0 || fieldIndex >= fieldCount) {
-            throw new InvalidItemIndex(fieldIndex, "Field index out of bounds: %d", fieldIndex);
-        }
-        return fieldStartOffset + fieldIndex*FieldIdItem.ITEM_SIZE;
-    }
-
-    public int getMethodIdItemOffset(int methodIndex) {
-        if (methodIndex < 0 || methodIndex >= methodCount) {
-            throw new InvalidItemIndex(methodIndex, "Method index out of bounds: %d", methodIndex);
-        }
-        return methodStartOffset + methodIndex*MethodIdItem.ITEM_SIZE;
-    }
-
-    public int getProtoIdItemOffset(int protoIndex) {
-        if (protoIndex < 0 || protoIndex >= protoCount) {
-            throw new InvalidItemIndex(protoIndex, "Proto index out of bounds: %d", protoIndex);
-        }
-        return protoStartOffset + protoIndex*ProtoIdItem.ITEM_SIZE;
-    }
-
-    public int getClassDefItemOffset(int classIndex) {
-        if (classIndex < 0 || classIndex >= classCount) {
-            throw new InvalidItemIndex(classIndex, "Class index out of bounds: %d", classIndex);
-        }
-        return classStartOffset + classIndex*ClassDefItem.ITEM_SIZE;
-    }
-
-    public int getCallSiteIdItemOffset(int callSiteIndex) {
-        MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
-        if (mapItem == null || callSiteIndex >= mapItem.getItemCount()) {
-            throw new InvalidItemIndex(callSiteIndex, "Call site index out of bounds: %d", callSiteIndex);
-        }
-        return mapItem.getOffset() + callSiteIndex * CallSiteIdItem.ITEM_SIZE;
-    }
-
-    public int getMethodHandleItemOffset(int methodHandleIndex) {
-        MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
-        if (mapItem == null || methodHandleIndex >= mapItem.getItemCount()) {
-            throw new InvalidItemIndex(methodHandleIndex , "Method handle index out of bounds: %d", methodHandleIndex);
-        }
-        return mapItem.getOffset() + methodHandleIndex * MethodHandleItem.ITEM_SIZE;
-    }
-
-    public int getClassCount() {
-        return classCount;
-    }
-
-    public int getStringCount() {
-        return stringCount;
-    }
-
-    public int getTypeCount() {
-        return typeCount;
-    }
-
-    public int getProtoCount() {
-        return protoCount;
-    }
-
-    public int getFieldCount() {
-        return fieldCount;
-    }
-
-    public int getMethodCount() {
-        return methodCount;
-    }
-
-    public int getCallSiteCount() {
-        MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
-        if (mapItem == null) {
-            return 0;
-        }
-        return mapItem.getItemCount();
-    }
-
-    public int getMethodHandleCount() {
-        MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
-        if (mapItem == null) {
-            return 0;
-        }
-        return mapItem.getItemCount();
-    }
-
-    @Nonnull
-    public String getString(int stringIndex) {
-        int stringOffset = getStringIdItemOffset(stringIndex);
-        int stringDataOffset = readSmallUint(stringOffset);
-        DexReader reader = readerAt(stringDataOffset);
-        int utf16Length = reader.readSmallUleb128();
-        return reader.readString(utf16Length);
-    }
-
-    @Nullable
-    public String getOptionalString(int stringIndex) {
-        if (stringIndex == -1) {
-            return null;
-        }
-        return getString(stringIndex);
-    }
-
-    @Nonnull
-    public String getType(int typeIndex) {
-        int typeOffset = getTypeIdItemOffset(typeIndex);
-        int stringIndex = readSmallUint(typeOffset);
-        return getString(stringIndex);
-    }
-
-    @Nullable
-    public String getOptionalType(int typeIndex) {
-        if (typeIndex == -1) {
-            return null;
-        }
-        return getType(typeIndex);
-    }
-
-    public List<DexBackedStringReference> getStrings() {
+    public List<DexBackedStringReference> getStringReferences() {
         return new AbstractList<DexBackedStringReference>() {
             @Override public DexBackedStringReference get(int index) {
-                if (index < 0 || index >= getStringCount()) {
+                if (index < 0 || index >= getStringSection().size()) {
                     throw new IndexOutOfBoundsException();
                 }
                 return new DexBackedStringReference(DexBackedDexFile.this, index);
             }
 
             @Override public int size() {
-                return getStringCount();
+                return getStringSection().size();
             }
         };
     }
 
-    public List<DexBackedTypeReference> getTypes() {
+    public List<DexBackedTypeReference> getTypeReferences() {
         return new AbstractList<DexBackedTypeReference>() {
             @Override public DexBackedTypeReference get(int index) {
-                if (index < 0 || index >= getTypeCount()) {
+                if (index < 0 || index >= getTypeSection().size()) {
                     throw new IndexOutOfBoundsException();
                 }
                 return new DexBackedTypeReference(DexBackedDexFile.this, index);
             }
 
             @Override public int size() {
-                return getTypeCount();
-            }
-        };
-    }
-
-    public List<DexBackedMethodReference> getMethods() {
-        return new AbstractList<DexBackedMethodReference>() {
-            @Override public DexBackedMethodReference get(int index) {
-                if (index < 0 || index >= getMethodCount()) {
-                    throw new IndexOutOfBoundsException();
-                }
-                return new DexBackedMethodReference(DexBackedDexFile.this, index);
-            }
-
-            @Override public int size() {
-                return getMethodCount();
-            }
-        };
-    }
-
-    public List<DexBackedFieldReference> getFields() {
-        return new AbstractList<DexBackedFieldReference>() {
-            @Override public DexBackedFieldReference get(int index) {
-                if (index < 0 || index >= getFieldCount()) {
-                    throw new IndexOutOfBoundsException();
-                }
-                return new DexBackedFieldReference(DexBackedDexFile.this, index);
-            }
-
-            @Override public int size() {
-                return getFieldCount();
+                return getTypeSection().size();
             }
         };
     }
@@ -341,13 +176,13 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     public List<? extends Reference> getReferences(int referenceType) {
         switch (referenceType) {
             case ReferenceType.STRING:
-                return getStrings();
+                return getStringReferences();
             case ReferenceType.TYPE:
-                return getTypes();
+                return getTypeReferences();
             case ReferenceType.METHOD:
-                return getMethods();
+                return getMethodSection();
             case ReferenceType.FIELD:
-                return getFields();
+                return getFieldSection();
             default:
                 throw new IllegalArgumentException(String.format("Invalid reference type: %d", referenceType));
         }
@@ -402,21 +237,259 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         }
     }
 
-    public static class InvalidItemIndex extends ExceptionWithContext {
-        private final int itemIndex;
-
-        public InvalidItemIndex(int itemIndex) {
-            super("");
-            this.itemIndex = itemIndex;
+    private OptionalIndexedSection<String> stringSection = new OptionalIndexedSection<String>() {
+        @Override
+        public String get(int index) {
+            int stringOffset = getOffset(index);
+            int stringDataOffset = readSmallUint(stringOffset);
+            DexReader reader = readerAt(stringDataOffset);
+            int utf16Length = reader.readSmallUleb128();
+            return reader.readString(utf16Length);
         }
 
-        public InvalidItemIndex(int itemIndex, String message, Object... formatArgs) {
-            super(message, formatArgs);
-            this.itemIndex = itemIndex;
+        @Override
+        public int size() {
+            return stringCount;
         }
 
-        public int getInvalidIndex() {
-            return itemIndex;
+        @Nullable
+        @Override
+        public String getOptional(int index) {
+            if (index == -1) {
+                return null;
+            }
+            return get(index);
         }
+
+        @Override
+        public int getOffset(int index) {
+            if (index < 0 || index >= size()) {
+                throw new IndexOutOfBoundsException(
+                        String.format("Invalid string index %d, not in [0, %d)", index, size()));
+            }
+            return stringStartOffset + index*StringIdItem.ITEM_SIZE;
+        }
+    };
+
+    public OptionalIndexedSection<String> getStringSection() {
+        return stringSection;
+    }
+
+    private OptionalIndexedSection<String> typeSection = new OptionalIndexedSection<String>() {
+        @Override
+        public String get(int index) {
+            int typeOffset = getOffset(index);
+            int stringIndex = readSmallUint(typeOffset);
+            return getStringSection().get(stringIndex);
+        }
+
+        @Override
+        public int size() {
+            return typeCount;
+        }
+
+        @Nullable
+        @Override
+        public String getOptional(int index) {
+            if (index == -1) {
+                return null;
+            }
+            return get(index);
+        }
+
+        @Override
+        public int getOffset(int index) {
+            if (index < 0 || index >= size()) {
+                throw new IndexOutOfBoundsException(
+                        String.format("Invalid type index %d, not in [0, %d)", index, size()));
+            }
+            return typeStartOffset + index * TypeIdItem.ITEM_SIZE;
+        }
+    };
+
+    public OptionalIndexedSection<String> getTypeSection() {
+        return typeSection;
+    }
+
+    private IndexedSection<FieldReference> fieldSection = new IndexedSection<FieldReference>() {
+        @Override
+        public FieldReference get(int index) {
+            return new DexBackedFieldReference(DexBackedDexFile.this, index);
+        }
+
+        @Override
+        public int size() {
+            return fieldCount;
+        }
+
+        @Override
+        public int getOffset(int index) {
+            if (index < 0 || index >= size()) {
+                throw new IndexOutOfBoundsException(
+                        String.format("Invalid field index %d, not in [0, %d)", index, size()));
+            }
+
+            return fieldStartOffset + index * FieldIdItem.ITEM_SIZE;
+        }
+    };
+
+    public IndexedSection<FieldReference> getFieldSection() {
+        return fieldSection;
+    }
+
+    private IndexedSection<MethodReference> methodSection = new IndexedSection<MethodReference>() {
+        @Override
+        public MethodReference get(int index) {
+            return new DexBackedMethodReference(DexBackedDexFile.this, index);
+        }
+
+        @Override
+        public int size() {
+            return methodCount;
+        }
+
+        @Override
+        public int getOffset(int index) {
+            if (index < 0 || index >= size()) {
+                throw new IndexOutOfBoundsException(
+                        String.format("Invalid method index %d, not in [0, %d)", index, size()));
+            }
+
+            return methodStartOffset + index * MethodIdItem.ITEM_SIZE;
+        }
+    };
+
+    public IndexedSection<MethodReference> getMethodSection() {
+        return methodSection;
+    }
+
+    private IndexedSection<MethodProtoReference> protoSection = new IndexedSection<MethodProtoReference>() {
+        @Override
+        public MethodProtoReference get(int index) {
+            return new DexBackedMethodProtoReference(DexBackedDexFile.this, index);
+        }
+
+        @Override
+        public int size() {
+            return protoCount;
+        }
+
+        @Override
+        public int getOffset(int index) {
+            if (index < 0 || index >= size()) {
+                throw new IndexOutOfBoundsException(
+                        String.format("Invalid proto index %d, not in [0, %d)", index, size()));
+            }
+
+            return protoStartOffset + index * ProtoIdItem.ITEM_SIZE;
+        }
+    };
+
+    public IndexedSection<MethodProtoReference> getProtoSection() {
+        return protoSection;
+    }
+
+    private IndexedSection<DexBackedClassDef> classSection = new IndexedSection<DexBackedClassDef>() {
+        @Override
+        public DexBackedClassDef get(int index) {
+            return new DexBackedClassDef(DexBackedDexFile.this, getOffset(index));
+        }
+
+        @Override
+        public int size() {
+            return classCount;
+        }
+
+        @Override
+        public int getOffset(int index) {
+            if (index < 0 || index >= size()) {
+                throw new IndexOutOfBoundsException(
+                        String.format("Invalid class index %d, not in [0, %d)", index, size()));
+            }
+
+            return classStartOffset + index * ClassDefItem.ITEM_SIZE;
+        }
+    };
+
+    public IndexedSection<DexBackedClassDef> getClassSection() {
+        return classSection;
+    }
+
+    private IndexedSection<CallSiteReference> callSiteSection = new IndexedSection<CallSiteReference>() {
+        @Override
+        public CallSiteReference get(int index) {
+            return new DexBackedCallSiteReference(DexBackedDexFile.this, index);
+        }
+
+        @Override
+        public int size() {
+            MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
+            if (mapItem == null) {
+                return 0;
+            }
+            return mapItem.getItemCount();
+        }
+
+        @Override
+        public int getOffset(int index) {
+            MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
+            if (index < 0 || index >= size()) {
+                throw new IndexOutOfBoundsException(
+                        String.format("Invalid callsite index %d, not in [0, %d)", index, size()));
+            }
+            return mapItem.getOffset() + index * CallSiteIdItem.ITEM_SIZE;
+        }
+    };
+
+    public IndexedSection<CallSiteReference> getCallSiteSection() {
+        return callSiteSection;
+    }
+
+    private IndexedSection<MethodHandleReference> methodHandleSection = new IndexedSection<MethodHandleReference>() {
+        @Override
+        public MethodHandleReference get(int index) {
+            return new DexBackedMethodHandleReference(DexBackedDexFile.this, index);
+        }
+
+        @Override
+        public int size() {
+            MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
+            if (mapItem == null) {
+                return 0;
+            }
+            return mapItem.getItemCount();
+        }
+
+        @Override
+        public int getOffset(int index) {
+            MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
+            if (index < 0 || index >= size()) {
+                throw new IndexOutOfBoundsException(
+                        String.format("Invalid method handle index %d, not in [0, %d)", index, size()));
+            }
+            return mapItem.getOffset() + index * MethodHandleItem.ITEM_SIZE;
+        }
+    };
+
+    public IndexedSection<MethodHandleReference> getMethodHandleSection() {
+        return methodHandleSection;
+    }
+
+    public static abstract class OptionalIndexedSection<T> extends IndexedSection<T> {
+        /**
+         * @param index The index of the item, or -1 for a null item.
+         * @return The value at the given index, or null if index is -1.
+         * @throws IndexOutOfBoundsException if the index is out of bounds and is not -1.
+         */
+        @Nullable public abstract T getOptional(int index);
+    }
+
+    public static abstract class IndexedSection<T> extends AbstractList<T> {
+        /**
+         * @param index The index of the item to get the offset for.
+         * @return The offset from the beginning of the dex file to the specified item.
+         * @throws IndexOutOfBoundsException if the index is out of bounds.
+         */
+        public abstract int getOffset(int index);
     }
 }

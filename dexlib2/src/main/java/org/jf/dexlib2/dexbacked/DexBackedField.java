@@ -101,13 +101,13 @@ public class DexBackedField extends BaseFieldReference implements Field {
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getString(dexFile.readSmallUint(getFieldIdItemOffset() + FieldIdItem.NAME_OFFSET));
+        return dexFile.getStringSection().get(dexFile.readSmallUint(getFieldIdItemOffset() + FieldIdItem.NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getType(dexFile.readUshort(getFieldIdItemOffset() + FieldIdItem.TYPE_OFFSET));
+        return dexFile.getTypeSection().get(dexFile.readUshort(getFieldIdItemOffset() + FieldIdItem.TYPE_OFFSET));
     }
 
     @Nonnull @Override public String getDefiningClass() { return classDef.getType(); }
@@ -135,7 +135,7 @@ public class DexBackedField extends BaseFieldReference implements Field {
 
     private int getFieldIdItemOffset() {
         if (fieldIdItemOffset == 0) {
-            fieldIdItemOffset = dexFile.getFieldIdItemOffset(fieldIndex);
+            fieldIdItemOffset = dexFile.getFieldSection().getOffset(fieldIndex);
         }
         return fieldIdItemOffset;
     }

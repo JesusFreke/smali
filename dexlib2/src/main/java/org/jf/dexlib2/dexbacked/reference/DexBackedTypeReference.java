@@ -48,7 +48,7 @@ public class DexBackedTypeReference extends BaseTypeReference {
     }
 
     @Nonnull public String getType() {
-        return dexFile.getType(typeIndex);
+        return dexFile.getTypeSection().get(typeIndex);
     }
 
 
@@ -65,7 +65,7 @@ public class DexBackedTypeReference extends BaseTypeReference {
 
     @Override
     public void validateReference() throws InvalidReferenceException {
-        if (typeIndex < 0 || typeIndex >= dexFile.getTypeCount()) {
+        if (typeIndex < 0 || typeIndex >= dexFile.getTypeSection().size()) {
             throw new InvalidReferenceException("type@" + typeIndex);
         }
     }

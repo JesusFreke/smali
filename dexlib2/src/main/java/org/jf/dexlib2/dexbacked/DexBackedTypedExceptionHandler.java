@@ -44,6 +44,6 @@ public class DexBackedTypedExceptionHandler extends DexBackedExceptionHandler {
         this.handlerCodeAddress = reader.readSmallUleb128();
     }
 
-    @Nonnull @Override public String getExceptionType() { return dexFile.getType(typeId); }
+    @Nonnull @Override public String getExceptionType() { return dexFile.getTypeSection().get(typeId); }
     @Override public int getHandlerCodeAddress() { return handlerCodeAddress; }
 }

@@ -48,6 +48,6 @@ public class DexBackedAnnotationElement extends BaseAnnotationElement {
         this.value = DexBackedEncodedValue.readFrom(reader);
     }
 
-    @Nonnull @Override public String getName() { return dexFile.getString(nameIndex); }
+    @Nonnull @Override public String getName() { return dexFile.getStringSection().get(nameIndex); }
     @Nonnull @Override public EncodedValue getValue() { return value; }
 }

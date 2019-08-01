@@ -63,7 +63,7 @@ public class DisassemblyTest extends DexTest {
     protected void runTest(@Nonnull String testName, @Nonnull BaksmaliOptions options) {
         try {
             DexBackedDexFile inputDex = getInputDexFile(testName, options);
-            Assert.assertEquals(1, inputDex.getClassCount());
+            Assert.assertEquals(1, inputDex.getClassSection().size());
             ClassDef inputClass = Iterables.getFirst(inputDex.getClasses(), null);
             Assert.assertNotNull(inputClass);
             String input = BaksmaliTestUtils.getNormalizedSmali(inputClass, options, true);

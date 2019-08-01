@@ -79,7 +79,7 @@ public class ProtoIdItem {
 
     @Nonnull
     public static String asString(@Nonnull DexBackedDexFile dexFile, int protoIndex) {
-        int offset = dexFile.getProtoIdItemOffset(protoIndex);
+        int offset = dexFile.getProtoSection().getOffset(protoIndex);
 
         StringBuilder sb = new StringBuilder();
         sb.append("(");
@@ -89,7 +89,7 @@ public class ProtoIdItem {
         sb.append(")");
 
         int returnTypeIndex = dexFile.readSmallUint(offset + RETURN_TYPE_OFFSET);
-        String returnType = dexFile.getType(returnTypeIndex);
+        String returnType = dexFile.getTypeSection().get(returnTypeIndex);
         sb.append(returnType);
 
         return sb.toString();

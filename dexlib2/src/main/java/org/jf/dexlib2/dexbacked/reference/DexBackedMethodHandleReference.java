@@ -48,7 +48,7 @@ public class DexBackedMethodHandleReference extends BaseMethodHandleReference {
     public DexBackedMethodHandleReference(DexBackedDexFile dexFile, int methodHandleIndex) {
         this.dexFile = dexFile;
         this.methodHandleIndex = methodHandleIndex;
-        this.methodHandleOffset = dexFile.getMethodHandleItemOffset(methodHandleIndex);
+        this.methodHandleOffset = dexFile.getMethodHandleSection().getOffset(methodHandleIndex);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class DexBackedMethodHandleReference extends BaseMethodHandleReference {
 
     @Override
     public void validateReference() throws InvalidReferenceException {
-        if (methodHandleIndex < 0 || methodHandleIndex >= dexFile.getMethodHandleCount()) {
+        if (methodHandleIndex < 0 || methodHandleIndex >= dexFile.getMethodHandleSection().size()) {
             throw new InvalidReferenceException("methodhandle@" + methodHandleIndex);
         }
 

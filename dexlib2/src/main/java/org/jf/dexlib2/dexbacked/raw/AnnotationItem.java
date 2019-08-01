@@ -80,7 +80,7 @@ public class AnnotationItem {
             DexReader reader = dexFile.readerAt(annotationItemOffset);
             reader.readUbyte();
             int typeIndex = reader.readSmallUleb128();
-            String annotationType = dexFile.getType(typeIndex);
+            String annotationType = dexFile.getTypeSection().get(typeIndex);
             return String.format("annotation_item[0x%x]: %s", annotationItemOffset, annotationType);
         } catch (Exception ex) {
             ex.printStackTrace(System.err);

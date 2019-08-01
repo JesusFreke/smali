@@ -95,13 +95,13 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getType(dexFile.readSmallUint(classDefOffset + ClassDefItem.CLASS_OFFSET));
+        return dexFile.getTypeSection().get(dexFile.readSmallUint(classDefOffset + ClassDefItem.CLASS_OFFSET));
     }
 
     @Nullable
     @Override
     public String getSuperclass() {
-        return dexFile.getOptionalType(dexFile.readOptionalUint(classDefOffset + ClassDefItem.SUPERCLASS_OFFSET));
+        return dexFile.getTypeSection().getOptional(dexFile.readOptionalUint(classDefOffset + ClassDefItem.SUPERCLASS_OFFSET));
     }
 
     @Override
@@ -112,7 +112,8 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
     @Nullable
     @Override
     public String getSourceFile() {
-        return dexFile.getOptionalString(dexFile.readOptionalUint(classDefOffset + ClassDefItem.SOURCE_FILE_OFFSET));
+        return dexFile.getStringSection().getOptional(
+                dexFile.readOptionalUint(classDefOffset + ClassDefItem.SOURCE_FILE_OFFSET));
     }
 
     @Nonnull
@@ -125,7 +126,7 @@ public class DexBackedClassDef extends BaseTypeReference implements ClassDef {
                 @Override
                 @Nonnull
                 public String get(int index) {
-                    return dexFile.getType(dexFile.readUshort(interfacesOffset + 4 + (2*index)));
+                    return dexFile.getTypeSection().get(dexFile.readUshort(interfacesOffset + 4 + (2*index)));
                 }
 
                 @Override public int size() { return size; }

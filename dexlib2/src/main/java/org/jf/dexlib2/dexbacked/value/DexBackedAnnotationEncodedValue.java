@@ -49,7 +49,7 @@ public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue 
 
     public DexBackedAnnotationEncodedValue(@Nonnull DexReader reader) {
         this.dexFile = reader.dexBuf;
-        this.type = dexFile.getType(reader.readSmallUleb128());
+        this.type = dexFile.getTypeSection().get(reader.readSmallUleb128());
         this.elementCount = reader.readSmallUleb128();
         this.elementsOffset = reader.getOffset();
         skipElements(reader, elementCount);

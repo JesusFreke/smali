@@ -59,7 +59,7 @@ public class TypeIdItem {
     @Nonnull
     public static String getReferenceAnnotation(@Nonnull DexBackedDexFile dexFile, int typeIndex) {
         try {
-            String typeString = dexFile.getType(typeIndex);
+            String typeString = dexFile.getTypeSection().get(typeIndex);
             return String.format("type_id_item[%d]: %s", typeIndex, typeString);
         } catch (Exception ex) {
             ex.printStackTrace(System.err);
@@ -73,19 +73,5 @@ public class TypeIdItem {
             return "type_id_item[NO_INDEX]";
         }
         return getReferenceAnnotation(dexFile, typeIndex);
-    }
-
-    public static String[] getTypes(@Nonnull RawDexFile dexFile) {
-        MapItem mapItem = dexFile.getMapItemForSection(ItemType.TYPE_ID_ITEM);
-        if (mapItem == null) {
-            return new String[0];
-        }
-
-        int typeCount = mapItem.getItemCount();
-        String[] ret = new String[typeCount];
-        for (int i=0; i<typeCount; i++) {
-            ret[i] = dexFile.getType(i);
-        }
-        return ret;
     }
 }

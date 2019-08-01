@@ -56,7 +56,7 @@ public class DexBackedCallSiteReference extends BaseCallSiteReference {
     public DexBackedCallSiteReference(DexBackedDexFile dexFile, int callSiteIndex) {
         this.dexFile = dexFile;
         this.callSiteIndex = callSiteIndex;
-        this.callSiteIdOffset = dexFile.getCallSiteIdItemOffset(callSiteIndex);
+        this.callSiteIdOffset = dexFile.getCallSiteSection().getOffset(callSiteIndex);
     }
 
     @Nonnull
@@ -160,7 +160,7 @@ public class DexBackedCallSiteReference extends BaseCallSiteReference {
 
     @Override
     public void validateReference() throws InvalidReferenceException {
-        if (callSiteIndex < 0 || callSiteIndex >= dexFile.getCallSiteCount()) {
+        if (callSiteIndex < 0 || callSiteIndex >= dexFile.getCallSiteSection().size()) {
             throw new InvalidReferenceException("callsite@" + callSiteIndex);
         }
     }

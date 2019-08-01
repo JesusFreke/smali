@@ -49,20 +49,22 @@ public class DexBackedFieldReference extends BaseFieldReference {
     @Nonnull
     @Override
     public String getDefiningClass() {
-        return dexFile.getType(dexFile.readUshort(dexFile.getFieldIdItemOffset(fieldIndex) + FieldIdItem.CLASS_OFFSET));
+        return dexFile.getTypeSection().get(
+                dexFile.readUshort(dexFile.getFieldSection().getOffset(fieldIndex) + FieldIdItem.CLASS_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return dexFile.getString(dexFile.readSmallUint(dexFile.getFieldIdItemOffset(fieldIndex) +
+        return dexFile.getStringSection().get(dexFile.readSmallUint(dexFile.getFieldSection().getOffset(fieldIndex) +
                 FieldIdItem.NAME_OFFSET));
     }
 
     @Nonnull
     @Override
     public String getType() {
-        return dexFile.getType(dexFile.readUshort(dexFile.getFieldIdItemOffset(fieldIndex) + FieldIdItem.TYPE_OFFSET));
+        return dexFile.getTypeSection().get(
+                dexFile.readUshort(dexFile.getFieldSection().getOffset(fieldIndex) + FieldIdItem.TYPE_OFFSET));
     }
 
     /**
@@ -78,7 +80,7 @@ public class DexBackedFieldReference extends BaseFieldReference {
 
     @Override
     public void validateReference() throws InvalidReferenceException {
-        if (fieldIndex < 0 || fieldIndex >= dexFile.getFieldCount()) {
+        if (fieldIndex < 0 || fieldIndex >= dexFile.getFieldSection().size()) {
             throw new InvalidReferenceException("field@" + fieldIndex);
         }
     }

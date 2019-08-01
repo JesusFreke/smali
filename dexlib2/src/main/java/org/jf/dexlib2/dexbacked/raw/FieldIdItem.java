@@ -68,15 +68,15 @@ public class FieldIdItem {
 
     @Nonnull
     public static String asString(@Nonnull DexBackedDexFile dexFile, int fieldIndex) {
-        int fieldOffset = dexFile.getFieldIdItemOffset(fieldIndex);
+        int fieldOffset = dexFile.getFieldSection().getOffset(fieldIndex);
         int classIndex = dexFile.readUshort(fieldOffset + CLASS_OFFSET);
-        String classType = dexFile.getType(classIndex);
+        String classType = dexFile.getTypeSection().get(classIndex);
 
         int typeIndex = dexFile.readUshort(fieldOffset + TYPE_OFFSET);
-        String fieldType = dexFile.getType(typeIndex);
+        String fieldType = dexFile.getTypeSection().get(typeIndex);
 
         int nameIndex = dexFile.readSmallUint(fieldOffset + NAME_OFFSET);
-        String fieldName = dexFile.getString(nameIndex);
+        String fieldName = dexFile.getStringSection().get(nameIndex);
 
         return String.format("%s->%s:%s", classType, fieldName, fieldType);
     }

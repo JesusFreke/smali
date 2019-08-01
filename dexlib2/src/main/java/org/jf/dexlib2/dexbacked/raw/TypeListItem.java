@@ -92,7 +92,7 @@ public class TypeListItem {
         int size = dexFile.readSmallUint(typeListOffset);
         for (int i=0; i<size; i++) {
             int typeIndex = dexFile.readUshort(typeListOffset + 4 + i*2);
-            String type = dexFile.getType(typeIndex);
+            String type = dexFile.getTypeSection().get(typeIndex);
             sb.append(type);
         }
         return sb.toString();

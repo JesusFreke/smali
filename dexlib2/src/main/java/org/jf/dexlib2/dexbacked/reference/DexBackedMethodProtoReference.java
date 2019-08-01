@@ -53,7 +53,7 @@ public class DexBackedMethodProtoReference extends BaseMethodProtoReference {
     @Nonnull
     @Override
     public List<String> getParameterTypes() {
-        final int parametersOffset = dexFile.readSmallUint(dexFile.getProtoIdItemOffset(protoIndex) +
+        final int parametersOffset = dexFile.readSmallUint(dexFile.getProtoSection().getOffset(protoIndex) +
                 ProtoIdItem.PARAMETERS_OFFSET);
         if (parametersOffset > 0) {
             final int parameterCount = dexFile.readSmallUint(parametersOffset + TypeListItem.SIZE_OFFSET);
@@ -62,7 +62,7 @@ public class DexBackedMethodProtoReference extends BaseMethodProtoReference {
                 @Nonnull
                 @Override
                 public String readItem(final int index) {
-                    return dexFile.getType(dexFile.readUshort(paramListStart + 2*index));
+                    return dexFile.getTypeSection().get(dexFile.readUshort(paramListStart + 2*index));
                 }
                 @Override public int size() { return parameterCount; }
             };
@@ -73,7 +73,7 @@ public class DexBackedMethodProtoReference extends BaseMethodProtoReference {
     @Nonnull
     @Override
     public String getReturnType() {
-        return dexFile.getType(dexFile.readSmallUint(dexFile.getProtoIdItemOffset(protoIndex) +
+        return dexFile.getTypeSection().get(dexFile.readSmallUint(dexFile.getProtoSection().getOffset(protoIndex) +
                 ProtoIdItem.RETURN_TYPE_OFFSET));
     }
 
@@ -95,7 +95,7 @@ public class DexBackedMethodProtoReference extends BaseMethodProtoReference {
 
     @Override
     public void validateReference() throws InvalidReferenceException {
-        if (protoIndex < 0 || protoIndex >= dexFile.getProtoCount()) {
+        if (protoIndex < 0 || protoIndex >= dexFile.getProtoSection().size()) {
             throw new InvalidReferenceException("proto@" + protoIndex);
         }
     }

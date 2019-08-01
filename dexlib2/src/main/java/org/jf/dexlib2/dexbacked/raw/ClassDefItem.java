@@ -98,7 +98,7 @@ public class ClassDefItem {
                     out.annotate(4, "class_data_off = class_data_item[NO_OFFSET]");
                 } else {
                     out.annotate(4, "class_data_off = class_data_item[0x%x]", classDataOffset);
-                    addClassDataIdentity(classDataOffset, dexFile.getType(classIndex));
+                    addClassDataIdentity(classDataOffset, dexFile.getTypeSection().get(classIndex));
                 }
 
                 int staticValuesOffset = dexFile.readSmallUint(out.getCursor());
@@ -119,9 +119,9 @@ public class ClassDefItem {
 
     @Nonnull
     public static String asString(@Nonnull DexBackedDexFile dexFile, int classIndex) {
-        int offset = dexFile.getClassDefItemOffset(classIndex);
+        int offset = dexFile.getClassSection().getOffset(classIndex);
         int typeIndex = dexFile.readSmallUint(offset + CLASS_OFFSET);
-        return dexFile.getType(typeIndex);
+        return dexFile.getTypeSection().get(typeIndex);
     }
 
     public static String[] getClasses(@Nonnull RawDexFile dexFile) {

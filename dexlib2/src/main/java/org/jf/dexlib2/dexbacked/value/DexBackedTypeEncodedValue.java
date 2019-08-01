@@ -47,6 +47,6 @@ public class DexBackedTypeEncodedValue extends BaseTypeEncodedValue {
     }
 
     @Nonnull @Override public String getValue() {
-        return dexFile.getType(typeIndex);
+        return dexFile.getTypeSection().get(typeIndex);
     }
 }

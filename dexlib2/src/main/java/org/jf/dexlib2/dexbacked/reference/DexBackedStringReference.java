@@ -50,9 +50,8 @@ public class DexBackedStringReference extends BaseStringReference {
 
     @Nonnull
     public String getString() {
-        return dexFile.getString(stringIndex);
+        return dexFile.getStringSection().get(stringIndex);
     }
-
 
     /**
      * Calculate and return the private size of a string reference.
@@ -64,7 +63,7 @@ public class DexBackedStringReference extends BaseStringReference {
     public int getSize() {
         int size = StringIdItem.ITEM_SIZE; //uint for string_data_off
         //add the string data length:
-        int stringOffset = dexFile.getStringIdItemOffset(stringIndex);
+        int stringOffset = dexFile.getStringSection().getOffset(stringIndex);
         int stringDataOffset = dexFile.readSmallUint(stringOffset);
         DexReader reader = dexFile.readerAt(stringDataOffset);
         size += reader.peekSmallUleb128Size();
@@ -76,7 +75,7 @@ public class DexBackedStringReference extends BaseStringReference {
 
     @Override
     public void validateReference() throws InvalidReferenceException {
-        if (stringIndex < 0 || stringIndex >= dexFile.getStringCount()) {
+        if (stringIndex < 0 || stringIndex >= dexFile.getStringSection().size()) {
             throw new InvalidReferenceException("string@" + stringIndex);
         }
     }

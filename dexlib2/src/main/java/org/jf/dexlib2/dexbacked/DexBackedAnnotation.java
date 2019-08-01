@@ -55,7 +55,7 @@ public class DexBackedAnnotation extends BaseAnnotation {
     }
 
     @Override public int getVisibility() { return visibility; }
-    @Nonnull @Override public String getType() { return dexFile.getType(typeIndex); }
+    @Nonnull @Override public String getType() { return dexFile.getTypeSection().get(typeIndex); }
 
     @Nonnull
     @Override
