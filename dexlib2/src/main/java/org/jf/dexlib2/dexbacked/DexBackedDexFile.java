@@ -127,13 +127,7 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         return opcodes;
     }
 
-    // Will only be true for a dalvik-style odex file
-    public boolean isOdexFile() {
-        return false;
-    }
-
-    // Will be true for both a dalvik-style odex file, and an art-style odex file embedded in an oat file
-    public boolean hasOdexOpcodes() {
+    public boolean supportsOptimizedOpcodes() {
         return false;
     }
 

@@ -161,7 +161,7 @@ public class DisassembleCommand extends DexInputCommand {
         String input = inputList.get(0);
         loadDexFile(input);
 
-        if (showDeodexWarning() && dexFile.hasOdexOpcodes()) {
+        if (showDeodexWarning() && dexFile.supportsOptimizedOpcodes()) {
             StringWrapper.printWrappedString(System.err,
                     "Warning: You are disassembling an odex/oat file without deodexing it. You won't be able to " +
                             "re-assemble the results unless you deodex it. See \"baksmali help deodex\"",

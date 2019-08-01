@@ -55,11 +55,7 @@ public class DexBackedOdexFile extends DexBackedDexFile {
         this.odexBuf = odexBuf;
     }
 
-    @Override public boolean isOdexFile() {
-        return true;
-    }
-
-    @Override public boolean hasOdexOpcodes() {
+    @Override public boolean supportsOptimizedOpcodes() {
         return true;
     }
 

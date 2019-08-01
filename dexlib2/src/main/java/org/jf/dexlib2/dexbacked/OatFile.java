@@ -238,7 +238,7 @@ public class OatFile extends BaseDexBuffer implements MultiDexContainer<OatDexFi
             return OatFile.this;
         }
 
-        @Override public boolean hasOdexOpcodes() {
+        @Override public boolean supportsOptimizedOpcodes() {
             return true;
         }
     }
