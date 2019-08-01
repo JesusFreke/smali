@@ -156,13 +156,15 @@ public abstract class DexInputCommand extends Command {
                     dexEntry = container.getEntry(container.getDexEntryNames().get(0));
                     assert dexEntry != null;
                     dexFile = dexEntry.getDexFile();
-                } else {
+                } else if (container.getDexEntryNames().size() > 1) {
                     dexEntry = container.getEntry("classes.dex");
                     if (dexEntry == null) {
                         dexEntry = container.getEntry(container.getDexEntryNames().get(0));
                     }
                     assert dexEntry != null;
                     dexFile = dexEntry.getDexFile();
+                } else {
+                    throw new RuntimeException(String.format("\"%s\" has no dex files", input));
                 }
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
