@@ -31,11 +31,20 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.util.AnnotatedBytes;
+
+import javax.annotation.Nonnull;
+
 public class CdexHeaderItem {
 
     private static final byte[] MAGIC_VALUE = new byte[] { 0x63, 0x64, 0x65, 0x78, 0x00, 0x00, 0x00, 0x00 };
     private static final int[] SUPPORTED_CDEX_VERSIONS = new int[] { 1 };
 
+    public static final int FEATURE_FLAGS_OFFSET = 112;
+    public static final int DEBUG_INFO_OFFSETS_POS_OFFSET = 116;
+    public static final int DEBUG_INFO_OFFSETS_TABLE_OFFSET = 120;
+    public static final int DEBUG_INFO_BASE = 124;
 
     /**
      * Verifies the magic value at the beginning of a cdex file
@@ -97,5 +106,12 @@ public class CdexHeaderItem {
             }
         }
         return false;
+    }
+
+    public static void annotateCdexHeaderFields(@Nonnull AnnotatedBytes out, DexBuffer buf) {
+        out.annotate(4, "feature_flags: 0x%x", buf.readInt(out.getCursor()));
+        out.annotate(4, "debug_info_offsets_pos: 0x%x", buf.readInt(out.getCursor()));
+        out.annotate(4, "debug_info_offsets_table_offset: 0x%x", buf.readInt(out.getCursor()));
+        out.annotate(4, "debug_info_base: 0x%x", buf.readInt(out.getCursor()));
     }
 }

@@ -90,6 +90,18 @@ public class CDexBackedDexFile extends DexBackedDexFile {
         return getBuffer().readSmallUint(HeaderItem.DATA_START_OFFSET);
     }
 
+    public int getDebugInfoOffsetsPos() {
+        return getBuffer().readSmallUint(CdexHeaderItem.DEBUG_INFO_OFFSETS_POS_OFFSET);
+    }
+
+    public int getDebugInfoOffsetsTableOffset() {
+        return getBuffer().readSmallUint(CdexHeaderItem.DEBUG_INFO_OFFSETS_TABLE_OFFSET);
+    }
+
+    public int getDebugInfoBase() {
+        return getBuffer().readSmallUint(CdexHeaderItem.DEBUG_INFO_BASE);
+    }
+
     @Override
     protected DexBackedMethodImplementation createMethodImplementation(
             @Nonnull DexBackedDexFile dexFile, @Nonnull DexBackedMethod method, int codeOffset) {

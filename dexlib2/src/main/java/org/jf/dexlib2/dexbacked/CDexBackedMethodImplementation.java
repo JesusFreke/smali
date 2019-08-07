@@ -113,7 +113,31 @@ public class CDexBackedMethodImplementation extends DexBackedMethodImplementatio
 
     @Override
     protected int getDebugOffset() {
-        // TODO: figure out the new debug stuff in cdex
-        return 0;
+        CDexBackedDexFile cdexFile = ((CDexBackedDexFile) dexFile);
+
+        int debugTableItemOffset = (method.methodIndex / 16) * 4;
+        int bitIndex = method.methodIndex % 16;
+
+        int debugInfoOffsetsPos = cdexFile.getDebugInfoOffsetsPos();
+        int debugTableOffset = debugInfoOffsetsPos + cdexFile.getDebugInfoOffsetsTableOffset();
+
+        int debugOffsetsOffset = cdexFile.getDataBuffer().readSmallUint(debugTableOffset + debugTableItemOffset);
+
+        DexReader reader = cdexFile.getDataBuffer().readerAt(debugInfoOffsetsPos + debugOffsetsOffset);
+
+        int bitMask = reader.readUbyte() << 8;
+        bitMask += reader.readUbyte();
+
+        if ((bitMask & (1 << bitIndex)) == 0) {
+            return 0;
+        }
+
+        int offsetCount = Integer.bitCount(bitMask & 0xFFFF >> (16-bitIndex));
+        int baseDebugOffset = cdexFile.getDebugInfoBase();
+        for (int i=0; i<offsetCount; i++) {
+            baseDebugOffset += reader.readBigUleb128();
+        }
+        baseDebugOffset += reader.readBigUleb128();
+        return baseDebugOffset;
     }
 }

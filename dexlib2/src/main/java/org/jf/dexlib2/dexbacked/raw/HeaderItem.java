@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.raw;
 
 import org.jf.dexlib2.VersionMap;
+import org.jf.dexlib2.dexbacked.CDexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBuffer;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
@@ -210,6 +211,10 @@ public class HeaderItem {
 
                 out.annotate(4, "data_size: %d", dexFile.getBuffer().readInt(out.getCursor()));
                 out.annotate(4, "data_off: 0x%x", dexFile.getBuffer().readInt(out.getCursor()));
+
+                if (annotator.dexFile instanceof CDexBackedDexFile) {
+                    CdexHeaderItem.annotateCdexHeaderFields(out, dexFile.getBuffer());
+                }
 
                 if (headerSize > ITEM_SIZE) {
                     out.annotateTo(headerSize, "header padding");

@@ -34,6 +34,7 @@ package org.jf.dexlib2.dexbacked.raw.util;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
+import org.jf.dexlib2.dexbacked.CDexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.*;
 import org.jf.dexlib2.util.AnnotatedBytes;
@@ -170,6 +171,12 @@ public class DexAnnotator extends AnnotatedBytes {
         mapItems = ordering.immutableSortedCopy(mapItems);
 
         try {
+            // Need to annotate the debug info offset table first, to propagate the debug info identities
+            if (dexFile instanceof CDexBackedDexFile) {
+                moveTo(dexFile.getBaseDataOffset() + ((CDexBackedDexFile) dexFile).getDebugInfoOffsetsPos());
+                CdexDebugOffsetTable.annotate(this, dexFile.getBuffer());
+            }
+
             for (MapItem mapItem: mapItems) {
                 try {
                     SectionAnnotator annotator = annotators.get(mapItem.getType());
