@@ -500,9 +500,22 @@ public final class DexFileFactory {
 
         @Nullable @Override public byte[] getVdex() {
             if (!loadedVdex) {
-                if (vdexFile.exists()) {
+                File candidateFile = vdexFile;
+
+                if (!candidateFile.exists()) {
+                    // On api 28, for framework files, the vdex file in the architecture-specific directory is just a
+                    // symlink to a common vdex file in the framework directory. When loop-mounting a system image, that
+                    // symlink won't resolve because it uses an absolute path. As a workaround, we'll just search upward
+                    // one directory to see if it's there.
+                    File parentDirectory = candidateFile.getParentFile().getParentFile();
+                    if (parentDirectory != null) {
+                        candidateFile = new File(parentDirectory, vdexFile.getName());
+                    }
+                }
+
+                if (candidateFile.exists()) {
                     try {
-                        buf = ByteStreams.toByteArray(new FileInputStream(vdexFile));
+                        buf = ByteStreams.toByteArray(new FileInputStream(candidateFile));
                     } catch (FileNotFoundException e) {
                         buf = null;
                     } catch (IOException ex) {
