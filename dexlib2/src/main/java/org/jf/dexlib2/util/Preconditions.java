@@ -220,13 +220,13 @@ public class Preconditions {
     }
 
     public static <L extends List<? extends Number>> L checkArrayPayloadElements(int elementWidth, L elements) {
-        // mask of all bits that do not fit into an 'elementWidth'-bit number
-        long bitmask = -1L << elementWidth;
+        // mask of all bits that do not fit into an 'elementWidth'-byte number
+        long bitmask = -1L << (elementWidth * 8);
 
         for (Number element : elements) {
             if ((element.longValue() & bitmask) != 0) {
                 throw new IllegalArgumentException(
-                        String.format("Number %d must fit into a %d-bit number", element.longValue(), elementWidth));
+                        String.format("Number %d must fit into a %d-byte number", element.longValue(), elementWidth));
             }
         }
 
