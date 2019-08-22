@@ -11,13 +11,13 @@ import org.junit.Test;
 public class PreconditionsTest {
 
   @Test
-  public void test() {
+  public void checkArrayPayloadElements() {
     int intSize = 4;
     int bigNumber = 16843071;
     List<Number> numbers = new ArrayList<>();
     numbers.add(bigNumber);
 
+    // Shouldn't throw any arrays, payload is correct.
     Preconditions.checkArrayPayloadElements(intSize, numbers);
   }
-
 }
