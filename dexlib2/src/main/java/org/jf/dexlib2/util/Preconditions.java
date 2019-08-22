@@ -221,7 +221,7 @@ public class Preconditions {
 
     public static <L extends List<? extends Number>> L checkArrayPayloadElements(int elementWidth, L elements) {
         // mask of all bits that do not fit into an 'elementWidth'-bit number
-        long bitmask = -1L << elementWidth;
+        long bitmask = -1L << (elementWidth * 8);
 
         for (Number element : elements) {
             if ((element.longValue() & bitmask) != 0) {
