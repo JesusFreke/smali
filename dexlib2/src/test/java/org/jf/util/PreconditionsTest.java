@@ -17,7 +17,7 @@ public class PreconditionsTest {
     List<Number> numbers = new ArrayList<>();
     numbers.add(bigNumber);
 
-    // Shouldn't throw any arrays, payload is correct.
+    // Shouldn't throw any exceptions, payload is correct.
     Preconditions.checkArrayPayloadElements(intSize, numbers);
   }
 }
