@@ -333,9 +333,9 @@ public class DexBackedDexFile implements DexFile {
         return typeSection;
     }
 
-    private IndexedSection<FieldReference> fieldSection = new IndexedSection<FieldReference>() {
+    private IndexedSection<DexBackedFieldReference> fieldSection = new IndexedSection<DexBackedFieldReference>() {
         @Override
-        public FieldReference get(int index) {
+        public DexBackedFieldReference get(int index) {
             return new DexBackedFieldReference(DexBackedDexFile.this, index);
         }
 
@@ -355,13 +355,13 @@ public class DexBackedDexFile implements DexFile {
         }
     };
 
-    public IndexedSection<FieldReference> getFieldSection() {
+    public IndexedSection<DexBackedFieldReference> getFieldSection() {
         return fieldSection;
     }
 
-    private IndexedSection<MethodReference> methodSection = new IndexedSection<MethodReference>() {
+    private IndexedSection<DexBackedMethodReference> methodSection = new IndexedSection<DexBackedMethodReference>() {
         @Override
-        public MethodReference get(int index) {
+        public DexBackedMethodReference get(int index) {
             return new DexBackedMethodReference(DexBackedDexFile.this, index);
         }
 
@@ -381,33 +381,34 @@ public class DexBackedDexFile implements DexFile {
         }
     };
 
-    public IndexedSection<MethodReference> getMethodSection() {
+    public IndexedSection<DexBackedMethodReference> getMethodSection() {
         return methodSection;
     }
 
-    private IndexedSection<MethodProtoReference> protoSection = new IndexedSection<MethodProtoReference>() {
-        @Override
-        public MethodProtoReference get(int index) {
-            return new DexBackedMethodProtoReference(DexBackedDexFile.this, index);
-        }
+    private IndexedSection<DexBackedMethodProtoReference> protoSection =
+            new IndexedSection<DexBackedMethodProtoReference>() {
+                @Override
+                public DexBackedMethodProtoReference get(int index) {
+                    return new DexBackedMethodProtoReference(DexBackedDexFile.this, index);
+                }
 
-        @Override
-        public int size() {
-            return protoCount;
-        }
+                @Override
+                public int size() {
+                    return protoCount;
+                }
 
-        @Override
-        public int getOffset(int index) {
-            if (index < 0 || index >= size()) {
-                throw new IndexOutOfBoundsException(
-                        String.format("Invalid proto index %d, not in [0, %d)", index, size()));
-            }
+                @Override
+                public int getOffset(int index) {
+                    if (index < 0 || index >= size()) {
+                        throw new IndexOutOfBoundsException(
+                                String.format("Invalid proto index %d, not in [0, %d)", index, size()));
+                    }
 
-            return protoStartOffset + index * ProtoIdItem.ITEM_SIZE;
-        }
-    };
+                    return protoStartOffset + index * ProtoIdItem.ITEM_SIZE;
+                }
+            };
 
-    public IndexedSection<MethodProtoReference> getProtoSection() {
+    public IndexedSection<DexBackedMethodProtoReference> getProtoSection() {
         return protoSection;
     }
 
@@ -437,63 +438,65 @@ public class DexBackedDexFile implements DexFile {
         return classSection;
     }
 
-    private IndexedSection<CallSiteReference> callSiteSection = new IndexedSection<CallSiteReference>() {
-        @Override
-        public CallSiteReference get(int index) {
-            return new DexBackedCallSiteReference(DexBackedDexFile.this, index);
-        }
+    private IndexedSection<DexBackedCallSiteReference> callSiteSection =
+            new IndexedSection<DexBackedCallSiteReference>() {
+                @Override
+                public DexBackedCallSiteReference get(int index) {
+                    return new DexBackedCallSiteReference(DexBackedDexFile.this, index);
+                }
 
-        @Override
-        public int size() {
-            MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
-            if (mapItem == null) {
-                return 0;
-            }
-            return mapItem.getItemCount();
-        }
+                @Override
+                public int size() {
+                    MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
+                    if (mapItem == null) {
+                        return 0;
+                    }
+                    return mapItem.getItemCount();
+                }
 
-        @Override
-        public int getOffset(int index) {
-            MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
-            if (index < 0 || index >= size()) {
-                throw new IndexOutOfBoundsException(
-                        String.format("Invalid callsite index %d, not in [0, %d)", index, size()));
-            }
-            return mapItem.getOffset() + index * CallSiteIdItem.ITEM_SIZE;
-        }
-    };
+                @Override
+                public int getOffset(int index) {
+                    MapItem mapItem = getMapItemForSection(ItemType.CALL_SITE_ID_ITEM);
+                    if (index < 0 || index >= size()) {
+                        throw new IndexOutOfBoundsException(
+                                String.format("Invalid callsite index %d, not in [0, %d)", index, size()));
+                    }
+                    return mapItem.getOffset() + index * CallSiteIdItem.ITEM_SIZE;
+                }
+            };
 
-    public IndexedSection<CallSiteReference> getCallSiteSection() {
+    public IndexedSection<DexBackedCallSiteReference> getCallSiteSection() {
         return callSiteSection;
     }
 
-    private IndexedSection<MethodHandleReference> methodHandleSection = new IndexedSection<MethodHandleReference>() {
-        @Override
-        public MethodHandleReference get(int index) {
-            return new DexBackedMethodHandleReference(DexBackedDexFile.this, index);
-        }
+    private IndexedSection<DexBackedMethodHandleReference> methodHandleSection =
+            new IndexedSection<DexBackedMethodHandleReference>() {
+                @Override
+                public DexBackedMethodHandleReference get(int index) {
+                    return new DexBackedMethodHandleReference(DexBackedDexFile.this, index);
+                }
 
-        @Override
-        public int size() {
-            MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
-            if (mapItem == null) {
-                return 0;
-            }
-            return mapItem.getItemCount();
-        }
+                @Override
+                public int size() {
+                    MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
+                    if (mapItem == null) {
+                        return 0;
+                    }
+                    return mapItem.getItemCount();
+                }
 
-        @Override
-        public int getOffset(int index) {
-            MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
-            if (index < 0 || index >= size()) {
-                throw new IndexOutOfBoundsException(
-                        String.format("Invalid method handle index %d, not in [0, %d)", index, size()));
-            }
-            return mapItem.getOffset() + index * MethodHandleItem.ITEM_SIZE;
-        }
-    };
+                @Override
+                public int getOffset(int index) {
+                    MapItem mapItem = getMapItemForSection(ItemType.METHOD_HANDLE_ITEM);
+                    if (index < 0 || index >= size()) {
+                        throw new IndexOutOfBoundsException(
+                                String.format("Invalid method handle index %d, not in [0, %d)", index, size()));
+                    }
+                    return mapItem.getOffset() + index * MethodHandleItem.ITEM_SIZE;
+                }
+            };
 
-    public IndexedSection<MethodHandleReference> getMethodHandleSection() {
+    public IndexedSection<DexBackedMethodHandleReference> getMethodHandleSection() {
         return methodHandleSection;
     }
 
