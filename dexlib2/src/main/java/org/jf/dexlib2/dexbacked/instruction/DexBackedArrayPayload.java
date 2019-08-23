@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.dexbacked.instruction;
 
+import com.google.common.collect.ImmutableList;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
@@ -54,10 +55,18 @@ public class DexBackedArrayPayload extends DexBackedInstruction implements Array
                                  int instructionStart) {
         super(dexFile, OPCODE, instructionStart);
 
-        elementWidth = dexFile.getDataBuffer().readUshort(instructionStart + ELEMENT_WIDTH_OFFSET);
-        elementCount = dexFile.getDataBuffer().readSmallUint(instructionStart + ELEMENT_COUNT_OFFSET);
-        if (((long)elementWidth) * elementCount > Integer.MAX_VALUE) {
-            throw new ExceptionWithContext("Invalid array-payload instruction: element width*count overflows");
+        int localElementWidth = dexFile.getDataBuffer().readUshort(instructionStart + ELEMENT_WIDTH_OFFSET);
+
+        if (localElementWidth == 0) {
+            elementWidth = 1;
+            elementCount = 0;
+        } else {
+            elementWidth = localElementWidth;
+
+            elementCount = dexFile.getDataBuffer().readSmallUint(instructionStart + ELEMENT_COUNT_OFFSET);
+            if (((long) elementWidth) * elementCount > Integer.MAX_VALUE) {
+                throw new ExceptionWithContext("Invalid array-payload instruction: element width*count overflows");
+            }
         }
     }
 
@@ -70,6 +79,10 @@ public class DexBackedArrayPayload extends DexBackedInstruction implements Array
 
         abstract class ReturnedList extends FixedSizeList<Number> {
             @Override public int size() { return elementCount; }
+        }
+
+        if (elementCount == 0) {
+            return ImmutableList.of();
         }
 
         switch (elementWidth) {

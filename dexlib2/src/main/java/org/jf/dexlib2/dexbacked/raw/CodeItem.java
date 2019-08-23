@@ -540,22 +540,26 @@ public class CodeItem {
             out.indent();
             out.annotate(2, "element_width = %d", elementWidth);
             out.annotate(4, "size = %d", elements.size());
-            out.annotate(0, "elements:");
+            if (elements.size() > 0) {
+                out.annotate(0, "elements:");
+            }
             out.indent();
-            for (int i=0; i<elements.size(); i++) {
-                if (elementWidth == 8) {
-                    long value = elements.get(i).longValue();
-                    if (NumberUtils.isLikelyDouble(value)) {
-                        out.annotate(elementWidth, "element[%d] = %d # %f", i, value, Double.longBitsToDouble(value));
+            if (elements.size() > 0) {
+                for (int i = 0; i < elements.size(); i++) {
+                    if (elementWidth == 8) {
+                        long value = elements.get(i).longValue();
+                        if (NumberUtils.isLikelyDouble(value)) {
+                            out.annotate(elementWidth, "element[%d] = %d # %f", i, value, Double.longBitsToDouble(value));
+                        } else {
+                            out.annotate(elementWidth, "element[%d] = %d", i, value);
+                        }
                     } else {
-                        out.annotate(elementWidth, "element[%d] = %d", i, value);
-                    }
-                } else {
-                    int value = elements.get(i).intValue();
-                    if (NumberUtils.isLikelyFloat(value)) {
-                        out.annotate(elementWidth, "element[%d] = %d # %f", i, value, Float.intBitsToFloat(value));
-                    } else {
-                        out.annotate(elementWidth, "element[%d] = %d", i, value);
+                        int value = elements.get(i).intValue();
+                        if (NumberUtils.isLikelyFloat(value)) {
+                            out.annotate(elementWidth, "element[%d] = %d # %f", i, value, Float.intBitsToFloat(value));
+                        } else {
+                            out.annotate(elementWidth, "element[%d] = %d", i, value);
+                        }
                     }
                 }
             }
