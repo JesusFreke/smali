@@ -58,6 +58,10 @@ public class CDexBackedDexFile extends DexBackedDexFile {
     }
 
     public static boolean isCdex(byte[] buf, int offset) {
+        if (offset + 4 > buf.length) {
+            return false;
+        }
+
         byte[] cdexMagic;
         try {
             cdexMagic = "cdex".getBytes("US-ASCII");

@@ -35,10 +35,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.io.ByteStreams;
+import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.OatFile.SymbolTable.Symbol;
 import org.jf.dexlib2.dexbacked.raw.HeaderItem;
 import org.jf.dexlib2.iface.MultiDexContainer;
+import org.jf.dexlib2.util.DexUtil;
 import org.jf.util.AbstractForwardSequentialList;
 
 import javax.annotation.Nonnull;
@@ -571,6 +573,17 @@ public class OatFile extends DexBuffer implements MultiDexContainer<DexBackedDex
             if (CDexBackedDexFile.isCdex(buf, dexOffset)) {
                 return new OatCDexFile(buf, dexOffset);
             } else {
+                try {
+                    DexUtil.verifyDexHeader(buf, dexOffset);
+                } catch (DexBackedDexFile.NotADexFile ex) {
+                    if (getOatVersion() >= 87) {
+                        throw new DexFileFactory.DexFileNotFoundException(ex,
+                                "Could not locate the embedded dex file %s. Is the vdex file missing?", entryName);
+                    } else {
+                        throw new DexFileFactory.DexFileNotFoundException(ex,
+                                "The embedded dex file %s does not appear to be a valid dex file.", entryName);
+                    }
+                }
                 return new OatDexFile(buf, dexOffset);
             }
         }

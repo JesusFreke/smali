@@ -298,6 +298,10 @@ public final class DexFileFactory {
         public DexFileNotFoundException(@Nullable String message, Object... formatArgs) {
             super(message, formatArgs);
         }
+
+        public DexFileNotFoundException(Throwable cause, @Nullable String message, Object... formatArgs) {
+            super(cause, message, formatArgs);
+        }
     }
 
     public static class UnsupportedOatVersionException extends ExceptionWithContext {
