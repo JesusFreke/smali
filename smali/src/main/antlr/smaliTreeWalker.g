@@ -538,7 +538,7 @@ method_handle_reference returns[ImmutableMethodHandleReference methodHandle]
   };
 
 method_handle_literal returns[ImmutableMethodHandleReference value]
-  : (I_ENCODED_METHOD_HANDLE method_handle_reference) {
+  : ^(I_ENCODED_METHOD_HANDLE method_handle_reference) {
     $value = $method_handle_reference.methodHandle;
   };
 

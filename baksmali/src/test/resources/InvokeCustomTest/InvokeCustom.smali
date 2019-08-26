@@ -36,3 +36,9 @@
 
     invoke-virtual {v3, v2}, Ljava/io/PrintStream;->println(Ljava/lang/String;)V
 .end method
+
+.method public static invokeCustomWithMethodHandleArgument([Ljava/lang/String;)V
+    .registers 15
+
+    invoke-custom {v0, v1}, call_site_2("doSomething", (LCustom;Ljava/lang/String;)Ljava/lang/String;, invoke-static@Lnonsense;->somemethod()V)@LBootstrapLinker;->normalLink(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;)Ljava/lang/invoke/CallSite;
+.end method
