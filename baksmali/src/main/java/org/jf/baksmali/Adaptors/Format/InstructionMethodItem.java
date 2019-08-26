@@ -118,12 +118,18 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 reference.validateReference();
 
                 if (reference instanceof CallSiteReference) {
-                    referenceWritable = indentingWriter -> {
-                        ReferenceFormatter.writeCallSiteReference(indentingWriter, (CallSiteReference)reference);
+                    referenceWritable = new Writable() {
+                        @Override
+                        public void writeTo(IndentingWriter indentingWriter) throws IOException {
+                            ReferenceFormatter.writeCallSiteReference(indentingWriter, (CallSiteReference)reference);
+                        }
                     };
                 } else {
-                    referenceWritable = indentingWriter -> {
-                        indentingWriter.write(ReferenceUtil.getReferenceString(reference, classContext));
+                    referenceWritable = new Writable() {
+                        @Override
+                        public void writeTo(IndentingWriter indentingWriter) throws IOException {
+                            indentingWriter.write(ReferenceUtil.getReferenceString(reference, classContext));
+                        }
                     };
                 }
             } catch (Reference.InvalidReferenceException ex) {
