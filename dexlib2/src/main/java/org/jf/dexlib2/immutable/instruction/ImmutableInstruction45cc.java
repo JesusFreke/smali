@@ -59,12 +59,12 @@ public class ImmutableInstruction45cc extends ImmutableInstruction implements In
         }
     }
 
-    @Override public int getRegisterCount() { return 0; }
-    @Override public int getRegisterC() { return 0; }
-    @Override public int getRegisterD() { return 0; }
-    @Override public int getRegisterE() { return 0; }
-    @Override public int getRegisterF() { return 0; }
-    @Override public int getRegisterG() { return 0; }
+    @Override public int getRegisterCount() { return registerCount; }
+    @Override public int getRegisterC() { return registerC; }
+    @Override public int getRegisterD() { return registerD; }
+    @Override public int getRegisterE() { return registerE; }
+    @Override public int getRegisterF() { return registerF; }
+    @Override public int getRegisterG() { return registerG; }
 
     @Override public ImmutableReference getReference() { return reference; }
     @Override public int getReferenceType() { return opcode.referenceType; }
