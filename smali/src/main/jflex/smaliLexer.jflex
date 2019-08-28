@@ -225,8 +225,11 @@ HighSurrogate = [\ud800-\udbff]
 LowSurrogate = [\udc00-\udfff]
 
 SimpleNameCharacter = ({HighSurrogate} {LowSurrogate}) | [A-Za-z0-9$\-_\u00a1-\u1fff\u2010-\u2027\u2030-\ud7ff\ue000-\uffef]
+UnicodeSpace = [\u0020\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000] /* Zs category */
 
-SimpleName = {SimpleNameCharacter}+
+SimpleNameRaw = {SimpleNameCharacter}+
+SimpleNameQuoted = [`] ({SimpleNameCharacter} | {UnicodeSpace})+ [`]
+SimpleName = {SimpleNameRaw} | {SimpleNameQuoted}
 
 PrimitiveType = [ZBSCIJFD]
 
@@ -682,8 +685,13 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         yybegin(PARAM_LIST);
     }
 
-    {SimpleName} { return newToken(SIMPLE_NAME); }
-    "<" {SimpleName} ">" { return newToken(MEMBER_NAME); }
+    {SimpleNameRaw} { return newToken(SIMPLE_NAME); }
+    {SimpleNameQuoted} {
+        String quoted = yytext();
+        String raw = quoted.substring(1, quoted.length() - 1); /* strip backticks */
+        return newToken(SIMPLE_NAME, raw);
+    }
+    "<" {SimpleNameRaw} ">" { return newToken(MEMBER_NAME); }
 }
 
 /*Symbols/Whitespace/EOF*/
