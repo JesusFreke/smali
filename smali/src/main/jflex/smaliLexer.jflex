@@ -18,6 +18,11 @@ import static org.jf.smali.smaliParser.*;
 %column
 %char
 
+%ctorarg int apiLevel
+%init{
+    this.apiLevel = apiLevel;
+%init}
+
 %{
     private StringBuffer sb = new StringBuffer();
     private String stringOrCharError = null;
@@ -30,6 +35,8 @@ import static org.jf.smali.smaliParser.*;
     private File sourceFile;
 
     private boolean suppressErrors;
+
+    private int apiLevel;
 
     public Token nextToken() {
         try {
@@ -127,6 +134,13 @@ import static org.jf.smali.smaliParser.*;
 
     private Token invalidToken(String message) {
         return invalidToken(message, yytext());
+    }
+
+    private Token simpleNameToken(String text, boolean quoted) {
+        if (quoted) {
+          text = text.substring(1, text.length() - 1); /* strip backticks */
+        }
+        return newToken(SIMPLE_NAME, text);
     }
 
     private void beginStringOrChar(int state) {
@@ -228,8 +242,9 @@ SimpleNameCharacter = ({HighSurrogate} {LowSurrogate}) | [A-Za-z0-9$\-_\u00a1-\u
 UnicodeSpace = [\u0020\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000] /* Zs category */
 
 SimpleNameRaw = {SimpleNameCharacter}+
-SimpleNameQuoted = [`] ({SimpleNameCharacter} | {UnicodeSpace})+ [`]
-SimpleName = {SimpleNameRaw} | {SimpleNameQuoted}
+SimpleNameQuoted = [`] {SimpleNameCharacter}+ [`]
+SimpleNameQuotedWithSpaces = [`] ({SimpleNameCharacter} | {UnicodeSpace})+ [`]
+SimpleName = {SimpleNameRaw} | {SimpleNameQuoted} | {SimpleNameQuotedWithSpaces}
 
 PrimitiveType = [ZBSCIJFD]
 
@@ -685,11 +700,14 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         yybegin(PARAM_LIST);
     }
 
-    {SimpleNameRaw} { return newToken(SIMPLE_NAME); }
-    {SimpleNameQuoted} {
-        String quoted = yytext();
-        String raw = quoted.substring(1, quoted.length() - 1); /* strip backticks */
-        return newToken(SIMPLE_NAME, raw);
+    {SimpleNameRaw} { return simpleNameToken(yytext(), false); }
+    {SimpleNameQuoted} { return simpleNameToken(yytext(), true); }
+    {SimpleNameQuotedWithSpaces} {
+      if (apiLevel < 30) {
+        String message = "spaces in SimpleName are not allowed prior to API level 30";
+        return new InvalidToken(message, yytext());
+      }
+      return simpleNameToken(yytext(), true);
     }
     "<" {SimpleNameRaw} ">" { return newToken(MEMBER_NAME); }
 }

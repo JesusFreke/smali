@@ -158,7 +158,8 @@ public class LexerTest {
         if (smaliStream == null) {
             Assert.fail("Could not load " + smaliFile);
         }
-        smaliFlexLexer lexer = new smaliFlexLexer(new InputStreamReader(smaliStream));
+        smaliFlexLexer lexer = new smaliFlexLexer(new InputStreamReader(smaliStream),
+            10000 /* most recent API level */);
         lexer.setSourceFile(new File(test + ".smali"));
         lexer.setSuppressErrors(true);
 
