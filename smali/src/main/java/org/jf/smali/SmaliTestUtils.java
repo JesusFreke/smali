@@ -61,7 +61,7 @@ public class SmaliTestUtils {
 
         Reader reader = new StringReader(smaliText);
 
-        lexer = new smaliFlexLexer(reader);
+        lexer = new smaliFlexLexer(reader, apiLevel);
         tokens = new CommonTokenStream((TokenSource)lexer);
 
         smaliParser parser = new smaliParser(tokens);

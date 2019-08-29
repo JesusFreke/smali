@@ -153,7 +153,7 @@ public class Smali {
             fis = new FileInputStream(smaliFile);
             InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
 
-            LexerErrorInterface lexer = new smaliFlexLexer(reader);
+            LexerErrorInterface lexer = new smaliFlexLexer(reader, options.apiLevel);
             ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
             CommonTokenStream tokens = new CommonTokenStream((TokenSource)lexer);
 
