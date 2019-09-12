@@ -220,13 +220,14 @@ public class Preconditions {
     }
 
     public static <L extends List<? extends Number>> L checkArrayPayloadElements(int elementWidth, L elements) {
-        // mask of all bits that do not fit into an 'elementWidth'-byte number
-        long bitmask = -1L << (elementWidth * 8);
+        long maxValue = (1L << ((8 * elementWidth) - 1)) - 1;
+        long minValue = -maxValue - 1;
 
         for (Number element : elements) {
-            if ((element.longValue() & bitmask) != 0) {
+            if (element.longValue() < minValue || element.longValue() > maxValue) {
                 throw new IllegalArgumentException(
-                        String.format("Number %d must fit into a %d-byte number", element.longValue(), elementWidth));
+                        String.format("%d does not fit into a %d-byte signed integer",
+                                element.longValue(), elementWidth));
             }
         }
 
