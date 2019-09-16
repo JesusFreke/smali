@@ -40,6 +40,7 @@ import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.writer.builder.DexBuilder;
 import org.jf.dexlib2.writer.io.FileDataStore;
+import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -47,7 +48,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -133,6 +133,47 @@ public class Smali {
         return true;
     }
 
+    /**
+     * Prints the lexical tokens for the given files.
+     *
+     * @param options a SmaliOptions object with the options to use
+     * @param input The files/directories to process
+     * @return true if assembly completed with no errors, or false if errors were encountered
+     */
+    public static boolean printTokens(final SmaliOptions options, List<String> input) throws IOException {
+        TreeSet<File> filesToProcessSet = new TreeSet<File>();
+
+        for (String fileToProcess: input) {
+            File argFile = new File(fileToProcess);
+
+            if (!argFile.exists()) {
+                throw new IllegalArgumentException("Cannot find file or directory \"" + fileToProcess + "\"");
+            }
+
+            if (argFile.isDirectory()) {
+                getSmaliFilesInDir(argFile, filesToProcessSet);
+            } else if (argFile.isFile()) {
+                filesToProcessSet.add(argFile);
+            }
+        }
+
+        boolean errors = false;
+
+        for (final File file: filesToProcessSet) {
+            try {
+                errors |= !printTokensForSingleFile(file, options);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        if (errors) {
+            return false;
+        }
+
+        return true;
+    }
+
     private static void getSmaliFilesInDir(@Nonnull File dir, @Nonnull Set<File> smaliFiles) {
         File[] files = dir.listFiles();
         if (files != null) {
@@ -166,7 +207,13 @@ public class Smali {
                         continue;
                     }
 
-                    System.out.println(smaliParser.tokenNames[token.getType()] + ": " + token.getText());
+                    String tokenName;
+                    if (token.getType() == -1) {
+                        tokenName = "EOF";
+                    } else {
+                        tokenName = smaliParser.tokenNames[token.getType()];
+                    }
+                    System.out.println(tokenName + ": " + token.getText());
                 }
 
                 System.out.flush();
@@ -200,6 +247,42 @@ public class Smali {
             dexGen.smali_file();
 
             return dexGen.getNumberOfSyntaxErrors() == 0;
+        } finally {
+            if (fis != null) {
+                fis.close();
+            }
+        }
+    }
+
+    private static boolean printTokensForSingleFile(File smaliFile, SmaliOptions options)
+            throws Exception {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(smaliFile);
+            InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
+
+            LexerErrorInterface lexer = new smaliFlexLexer(reader, options.apiLevel);
+            ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
+            CommonTokenStream tokens = new CommonTokenStream((TokenSource)lexer);
+            tokens.fill();
+
+            for (int i=0; i<tokens.size(); i++) {
+                Token token = tokens.get(i);
+                if (token.getChannel() == smaliParser.HIDDEN) {
+                    continue;
+                }
+
+                String tokenName;
+                if (token.getType() == -1) {
+                    tokenName = "EOF";
+                } else {
+                    tokenName = smaliParser.tokenNames[token.getType()];
+                }
+                System.out.println(tokenName + "(\"" + StringUtils.escapeString(token.getText()) + "\")");
+            }
+            System.out.flush();
+
+            return lexer.getNumberOfSyntaxErrors() == 0;
         } finally {
             if (fis != null) {
                 fis.close();
