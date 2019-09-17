@@ -47,6 +47,7 @@ import static org.jf.smali.expectedTokensTestGrammarParser.ExpectedToken;
 
 public class LexerTest {
     private static final HashMap<String, Integer> tokenTypesByName;
+    private static final int MOST_RECENT_API = 10000;
 
     static {
         tokenTypesByName = new HashMap<String, Integer>();
@@ -117,6 +118,11 @@ public class LexerTest {
     }
 
     @Test
+    public void TypeAndIdentifierTest_api29() {
+        runTest("TypeAndIdentifierTest_api29", 29);
+    }
+
+    @Test
     public void SymbolTest() {
         runTest("SymbolTest", false);
     }
@@ -127,10 +133,18 @@ public class LexerTest {
     }
 
     public void runTest(String test) {
-        runTest(test, true);
+        runTest(test, true, MOST_RECENT_API);
     }
 
     public void runTest(String test, boolean discardHiddenTokens) {
+        runTest(test, discardHiddenTokens, MOST_RECENT_API);
+    }
+
+    public void runTest(String test, int apiLevel) {
+        runTest(test, true, apiLevel);
+    }
+
+    public void runTest(String test, boolean discardHiddenTokens, int apiLevel) {
         String smaliFile = String.format("LexerTest%s%s.smali", File.separatorChar, test);
         String tokensFile = String.format("LexerTest%s%s.tokens", File.separatorChar, test);
 
@@ -159,7 +173,7 @@ public class LexerTest {
             Assert.fail("Could not load " + smaliFile);
         }
         smaliFlexLexer lexer = new smaliFlexLexer(new InputStreamReader(smaliStream),
-            10000 /* most recent API level */);
+            apiLevel);
         lexer.setSourceFile(new File(test + ".smali"));
         lexer.setSuppressErrors(true);
 
