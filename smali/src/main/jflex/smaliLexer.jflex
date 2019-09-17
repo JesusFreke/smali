@@ -25,10 +25,10 @@ import static org.jf.smali.smaliParser.*;
 
 %{
     private StringBuffer sb = new StringBuffer();
-    private String stringOrCharError = null;
-    private int stringStartLine;
-    private int stringStartCol;
-    private int stringStartChar;
+    private String tokenError = null;
+    private int tokenStartLine;
+    private int tokenStartCol;
+    private int tokenStartChar;
 
     private int lexerErrors = 0;
 
@@ -136,51 +136,44 @@ import static org.jf.smali.smaliParser.*;
         return invalidToken(message, yytext());
     }
 
-    private Token simpleNameToken(String text, boolean quoted) {
-        if (quoted) {
-          text = text.substring(1, text.length() - 1); /* strip backticks */
-        }
-        return newToken(SIMPLE_NAME, text);
-    }
-
-    private void beginStringOrChar(int state) {
+    private void beginStateBasedToken(int state) {
         yybegin(state);
         sb.setLength(0);
-        stringStartLine = getLine();
-        stringStartCol = getColumn();
-        stringStartChar = yychar;
-        stringOrCharError = null;
+        tokenStartLine = getLine();
+        tokenStartCol = getColumn();
+        tokenStartChar = yychar;
+        tokenError = null;
     }
 
-    private Token endStringOrChar(int type) {
+    private Token endStateBasedToken(int type) {
         yybegin(YYINITIAL);
 
-        if (stringOrCharError != null) {
-            return invalidStringOrChar(stringOrCharError);
+        if (tokenError != null) {
+            return invalidStateBasedToken(tokenError);
         }
 
         CommonToken token = new CommonToken(type, sb.toString());
-        token.setStartIndex(stringStartChar);
+        token.setStartIndex(tokenStartChar);
         token.setStopIndex(yychar + yylength() - 1);
-        token.setLine(stringStartLine);
-        token.setCharPositionInLine(stringStartCol);
+        token.setLine(tokenStartLine);
+        token.setCharPositionInLine(tokenStartCol);
         return token;
     }
 
-    private void setStringOrCharError(String message) {
-        if (stringOrCharError == null) {
-            stringOrCharError = message;
+    private void setStateBasedTokenError(String message) {
+        if (tokenError == null) {
+            tokenError = message;
         }
     }
 
-    private Token invalidStringOrChar(String message) {
+    private Token invalidStateBasedToken(String message) {
         yybegin(YYINITIAL);
 
         InvalidToken token = new InvalidToken(message, sb.toString());
-        token.setStartIndex(stringStartChar);
+        token.setStartIndex(tokenStartChar);
         token.setStopIndex(yychar + yylength() - 1);
-        token.setLine(stringStartLine);
-        token.setCharPositionInLine(stringStartCol);
+        token.setLine(tokenStartLine);
+        token.setCharPositionInLine(tokenStartCol);
         return token;
     }
 
@@ -200,6 +193,19 @@ import static org.jf.smali.smaliParser.*;
         zzAtBOL = true;
         zzAtEOF = false;
         yybegin(initialState);
+    }
+
+    private String processQuotedSimpleName(String text) {
+        // strip backticks
+        return text.substring(1, text.length() - 1);
+    }
+
+    private String processQuotedSimpleNameWithSpaces(String text) {
+        if (apiLevel < 30) {
+            setStateBasedTokenError("spaces in class descriptors and member names are not supported prior to API " +
+                "level 30/dex version 040");
+        }
+        return processQuotedSimpleName(text);
     }
 %}
 
@@ -260,6 +266,8 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
 %state ARRAY_DESCRIPTOR
 %state STRING
 %state CHAR
+%state CLASS_DESCRIPTOR_BEGINNING
+%state CLASS_DESCRIPTOR_REMAINING
 
 %%
 
@@ -320,9 +328,9 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     "true"|"false" { return newToken(BOOL_LITERAL); }
     "null" { return newToken(NULL_LITERAL); }
 
-    "\"" { beginStringOrChar(STRING); sb.append('"'); }
+    "\"" { beginStateBasedToken(STRING); sb.append('"'); }
 
-    ' { beginStringOrChar(CHAR); sb.append('\''); }
+    ' { beginStateBasedToken(CHAR); sb.append('\''); }
 }
 
 <PARAM_LIST_OR_ID> {
@@ -333,14 +341,54 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
 
 <PARAM_LIST> {
     {PrimitiveType} { return newToken(PRIMITIVE_TYPE); }
-    {ClassDescriptor} { return newToken(CLASS_DESCRIPTOR); }
+    {ClassDescriptor} {
+        yypushback(yylength());
+        beginStateBasedToken(CLASS_DESCRIPTOR_BEGINNING);
+        sb.append(yytext());
+    }
     {ArrayPrefix} { return newToken(ARRAY_TYPE_PREFIX); }
     [^] { yypushback(1); yybegin(YYINITIAL);}
     <<EOF>> { yybegin(YYINITIAL);}
 }
 
+<CLASS_DESCRIPTOR_BEGINNING> {
+    "L" {SimpleNameRaw} {
+        sb.append(yytext());
+        yybegin(CLASS_DESCRIPTOR_REMAINING);
+    }
+    "L" {SimpleNameQuoted} {
+        sb.append("L");
+        sb.append(processQuotedSimpleName(yytext().substring(1)));
+        yybegin(CLASS_DESCRIPTOR_REMAINING);
+    }
+    "L" {SimpleNameQuotedWithSpaces} {
+        sb.append("L");
+        sb.append(processQuotedSimpleNameWithSpaces(yytext().substring(1)));
+        yybegin(CLASS_DESCRIPTOR_REMAINING);
+    }
+}
+
+<CLASS_DESCRIPTOR_REMAINING> {
+    "/" {SimpleNameRaw} {
+        sb.append(yytext());
+    }
+    "/" {SimpleNameQuoted} {
+        sb.append("/");
+        sb.append(processQuotedSimpleName(yytext().substring(1)));
+    }
+    "/" {SimpleNameQuotedWithSpaces} {
+        sb.append("/");
+        sb.append(processQuotedSimpleNameWithSpaces(yytext().substring(1)));
+    }
+
+    ";" {
+        sb.append(yytext());
+        return endStateBasedToken(CLASS_DESCRIPTOR);
+    }
+}
+
 <STRING> {
-    "\""  { sb.append('"'); return endStringOrChar(STRING_LITERAL); }
+    "\""  { sb.append('"'); return endStateBasedToken(STRING_LITERAL); }
 
     [^\r\n\"\\]+ { sb.append(yytext()); }
     "\\b" { sb.append('\b'); }
@@ -355,28 +403,28 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
 
     "\\u" {FewerHexDigits} {
         sb.append(yytext());
-        setStringOrCharError("Invalid \\u sequence. \\u must be followed by 4 hex digits");
+        setStateBasedTokenError("Invalid \\u sequence. \\u must be followed by 4 hex digits");
     }
 
     "\\" [^btnfr'\"\\u] {
         sb.append(yytext());
-        setStringOrCharError("Invalid escape sequence " + yytext());
+        setStateBasedTokenError("Invalid escape sequence " + yytext());
     }
 
-    [\r\n] { return invalidStringOrChar("Unterminated string literal"); }
-    <<EOF>> { return invalidStringOrChar("Unterminated string literal"); }
+    [\r\n] { return invalidStateBasedToken("Unterminated string literal"); }
+    <<EOF>> { return invalidStateBasedToken("Unterminated string literal"); }
 }
 
 <CHAR> {
     ' {
         sb.append('\'');
         if (sb.length() == 2) {
-            return invalidStringOrChar("Empty character literal");
+            return invalidStateBasedToken("Empty character literal");
         } else if (sb.length() > 3) {
-            return invalidStringOrChar("Character literal with multiple chars");
+            return invalidStateBasedToken("Character literal with multiple chars");
         }
 
-        return endStringOrChar(CHAR_LITERAL);
+        return endStateBasedToken(CHAR_LITERAL);
     }
 
     [^\r\n'\\]+ { sb.append(yytext()); }
@@ -392,16 +440,16 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
 
     "\\u" {HexDigit}* {
         sb.append(yytext());
-        setStringOrCharError("Invalid \\u sequence. \\u must be followed by exactly 4 hex digits");
+        setStateBasedTokenError("Invalid \\u sequence. \\u must be followed by exactly 4 hex digits");
     }
 
     "\\" [^btnfr'\"\\u] {
         sb.append(yytext());
-        setStringOrCharError("Invalid escape sequence " + yytext());
+        setStateBasedTokenError("Invalid escape sequence " + yytext());
     }
 
-    [\r\n] { return invalidStringOrChar("Unterminated character literal"); }
-    <<EOF>> { return invalidStringOrChar("Unterminated character literal"); }
+    [\r\n] { return invalidStateBasedToken("Unterminated character literal"); }
+    <<EOF>> { return invalidStateBasedToken("Unterminated character literal"); }
 }
 
 /*Misc*/
@@ -669,17 +717,25 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
 }
 
 <ARRAY_DESCRIPTOR> {
-   {PrimitiveType} { yybegin(YYINITIAL); return newToken(PRIMITIVE_TYPE); }
-   {ClassDescriptor} { yybegin(YYINITIAL); return newToken(CLASS_DESCRIPTOR); }
-   [^] { yypushback(1); yybegin(YYINITIAL); }
-   <<EOF>> { yybegin(YYINITIAL); }
+    {PrimitiveType} { yybegin(YYINITIAL); return newToken(PRIMITIVE_TYPE); }
+    {ClassDescriptor} {
+        yypushback(yylength());
+        beginStateBasedToken(CLASS_DESCRIPTOR_BEGINNING);
+        sb.append(yytext());
+    }
+    [^] { yypushback(1); yybegin(YYINITIAL); }
+    <<EOF>> { yybegin(YYINITIAL); }
 }
 
 /*Types*/
 <YYINITIAL> {
     {PrimitiveType} { return newToken(PRIMITIVE_TYPE); }
     V { return newToken(VOID_TYPE); }
-    {ClassDescriptor} { return newToken(CLASS_DESCRIPTOR); }
+    {ClassDescriptor} {
+        yypushback(yylength());
+        beginStateBasedToken(CLASS_DESCRIPTOR_BEGINNING);
+        sb.append(yytext());
+    }
 
     // we have to drop into a separate state so that we don't parse something like
     // "[I->" as "[" followed by "I-" as a SIMPLE_NAME
@@ -700,15 +756,9 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         yybegin(PARAM_LIST);
     }
 
-    {SimpleNameRaw} { return simpleNameToken(yytext(), false); }
-    {SimpleNameQuoted} { return simpleNameToken(yytext(), true); }
-    {SimpleNameQuotedWithSpaces} {
-      if (apiLevel < 30) {
-        String message = "spaces in SimpleName are not allowed prior to API level 30";
-        return new InvalidToken(message, yytext());
-      }
-      return simpleNameToken(yytext(), true);
-    }
+    {SimpleNameRaw} { return newToken(SIMPLE_NAME, yytext()); }
+    {SimpleNameQuoted} { return newToken(SIMPLE_NAME, processQuotedSimpleName(yytext())); }
+    {SimpleNameQuotedWithSpaces} { return newToken(SIMPLE_NAME, processQuotedSimpleNameWithSpaces(yytext())); }
     "<" {SimpleNameRaw} ">" { return newToken(MEMBER_NAME); }
 }
 
