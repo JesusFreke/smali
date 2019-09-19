@@ -1,6 +1,7 @@
 package org.jf.smali;
 
 import java.io.*;
+import java.util.Stack;
 import org.antlr.runtime.*;
 import org.jf.smali.util.*;
 import org.jf.util.*;
@@ -37,6 +38,8 @@ import static org.jf.smali.smaliParser.*;
     private boolean suppressErrors;
 
     private int apiLevel;
+
+    private Stack<Integer> stateStack = new Stack<>();
 
     public Token nextToken() {
         try {
@@ -137,6 +140,7 @@ import static org.jf.smali.smaliParser.*;
     }
 
     private void beginStateBasedToken(int state) {
+        stateStack.push(yystate());
         yybegin(state);
         sb.setLength(0);
         tokenStartLine = getLine();
@@ -146,11 +150,11 @@ import static org.jf.smali.smaliParser.*;
     }
 
     private Token endStateBasedToken(int type) {
-        yybegin(YYINITIAL);
-
         if (tokenError != null) {
             return invalidStateBasedToken(tokenError);
         }
+
+        yybegin(stateStack.pop());
 
         CommonToken token = new CommonToken(type, sb.toString());
         token.setStartIndex(tokenStartChar);
@@ -167,7 +171,7 @@ import static org.jf.smali.smaliParser.*;
     }
 
     private Token invalidStateBasedToken(String message) {
-        yybegin(YYINITIAL);
+        yybegin(stateStack.pop());
 
         InvalidToken token = new InvalidToken(message, sb.toString());
         token.setStartIndex(tokenStartChar);
@@ -734,7 +738,6 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     {ClassDescriptor} {
         yypushback(yylength());
         beginStateBasedToken(CLASS_DESCRIPTOR_BEGINNING);
-        sb.append(yytext());
     }
 
     // we have to drop into a separate state so that we don't parse something like
