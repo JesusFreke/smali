@@ -59,7 +59,7 @@ public class OatFile extends DexBuffer implements MultiDexContainer<DexBackedDex
     // These are the "known working" versions that I have manually inspected the source for.
     // Later version may or may not work, depending on what changed.
     private static final int MIN_OAT_VERSION = 56;
-    private static final int MAX_OAT_VERSION = 86;
+    private static final int MAX_OAT_VERSION = 173;
 
     public static final int UNSUPPORTED = 0;
     public static final int SUPPORTED = 1;
@@ -251,7 +251,13 @@ public class OatFile extends DexBuffer implements MultiDexContainer<DexBackedDex
 
         public OatHeader(int offset) {
             this.headerOffset = offset;
-            if (getVersion() >= 127) {
+            if (getVersion() >= 170) {
+                this.keyValueStoreOffset = 14 * 4;
+            } else if (getVersion() >= 166) {
+                this.keyValueStoreOffset = 16 * 4;
+            } else if (getVersion() >= 162) {
+                this.keyValueStoreOffset = 17 * 4;
+            } else if (getVersion() >= 127) {
                 this.keyValueStoreOffset = 19 * 4;
             } else {
                 this.keyValueStoreOffset = 18 * 4;
