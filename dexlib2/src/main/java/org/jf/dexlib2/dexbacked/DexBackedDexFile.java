@@ -98,6 +98,35 @@ public class DexBackedDexFile implements DexFile {
         mapOffset = dexBuffer.readSmallUint(HeaderItem.MAP_OFFSET);
     }
 
+    protected DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull DexBuffer dexBuffer, @Nonnull DexBuffer dataBuffer, int offset, boolean verifyMagic) {
+        this.dexBuffer = dexBuffer;
+        this.dataBuffer = dataBuffer;
+
+        byte[] headerBuf = dexBuffer.readByteRange(offset, /* lengthOfHeader= */ 112);
+
+        int dexVersion = getVersion(headerBuf, offset, verifyMagic);
+
+        if (opcodes == null) {
+            this.opcodes = getDefaultOpcodes(dexVersion);
+        } else {
+            this.opcodes = opcodes;
+        }
+
+        stringCount = dexBuffer.readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
+        stringStartOffset = dexBuffer.readSmallUint(HeaderItem.STRING_START_OFFSET);
+        typeCount = dexBuffer.readSmallUint(HeaderItem.TYPE_COUNT_OFFSET);
+        typeStartOffset = dexBuffer.readSmallUint(HeaderItem.TYPE_START_OFFSET);
+        protoCount = dexBuffer.readSmallUint(HeaderItem.PROTO_COUNT_OFFSET);
+        protoStartOffset = dexBuffer.readSmallUint(HeaderItem.PROTO_START_OFFSET);
+        fieldCount = dexBuffer.readSmallUint(HeaderItem.FIELD_COUNT_OFFSET);
+        fieldStartOffset = dexBuffer.readSmallUint(HeaderItem.FIELD_START_OFFSET);
+        methodCount = dexBuffer.readSmallUint(HeaderItem.METHOD_COUNT_OFFSET);
+        methodStartOffset = dexBuffer.readSmallUint(HeaderItem.METHOD_START_OFFSET);
+        classCount = dexBuffer.readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
+        classStartOffset = dexBuffer.readSmallUint(HeaderItem.CLASS_START_OFFSET);
+        mapOffset = dexBuffer.readSmallUint(HeaderItem.MAP_OFFSET);
+    }
+
     /**
      * @return The offset that various data offsets are relative to. This is always 0 for a dex file, but may be
      * different for other related formats (e.g. cdex).
