@@ -31,16 +31,17 @@
 
 package org.jf.dexlib2.dexbacked.raw;
 
+import java.nio.MappedByteBuffer;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.jf.dexlib2.VersionMap;
 import org.jf.dexlib2.dexbacked.CDexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBuffer;
+import org.jf.dexlib2.dexbacked.MappedDexBuffer;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
 import org.jf.dexlib2.util.AnnotatedBytes;
 import org.jf.util.StringUtils;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class HeaderItem {
     public static final int ITEM_SIZE = 0x70;
@@ -288,6 +289,36 @@ public class HeaderItem {
     }
 
     /**
+     * Verifies the magic value at the beginning of a dex file
+     *
+     * @param buf A mapped byte buffer containing at least the first 8 bytes of a dex file
+     * @param offset The offset within the buffer to the beginning of the dex header
+     * @return True if the magic value is valid
+     */
+    public static boolean verifyMagic(MappedByteBuffer buf, int offset) {
+        if (buf.limit() - offset < 8) {
+            return false;
+        }
+
+        for (int i=0; i<4; i++) {
+            if (buf.get(offset + i) != MAGIC_VALUE[i]) {
+                return false;
+            }
+        }
+        for (int i=4; i<7; i++) {
+            if (buf.get(offset + i) < '0' ||
+                buf.get(offset + i) > '9') {
+                return false;
+            }
+        }
+        if (buf.get(offset + 7) != MAGIC_VALUE[7]) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Gets the dex version from a dex header
      *
      * @param buf A byte array containing at least the first 7 bytes of a dex file
@@ -295,6 +326,21 @@ public class HeaderItem {
      * @return The dex version if the header is valid or -1 if the header is invalid
      */
     public static int getVersion(byte[] buf, int offset) {
+        if (!verifyMagic(buf, offset)) {
+            return -1;
+        }
+
+        return getVersionUnchecked(buf, offset);
+    }
+
+    /**
+     * Gets the dex version from a mapped dex header
+     *
+     * @param buf A mapped byte buffer containing at least the first 7 bytes of a dex file
+     * @param offset The offset within the buffer to the beginning of the dex header
+     * @return The dex version if the header is valid or -1 if the header is invalid
+     */
+    public static int getVersion(MappedByteBuffer buf, int offset) {
         if (!verifyMagic(buf, offset)) {
             return -1;
         }
@@ -310,12 +356,25 @@ public class HeaderItem {
         return version;
     }
 
+    private static int getVersionUnchecked(MappedByteBuffer buf, int offset) {
+        int version = (buf.get(offset + 4) - '0') * 100;
+        version += (buf.get(offset + 5) - '0') * 10;
+        version += buf.get(offset + 6) - '0';
+
+        return version;
+    }
+
     public static boolean isSupportedDexVersion(int version) {
         return VersionMap.mapDexVersionToApi(version) != VersionMap.NO_VERSION;
     }
 
     public static int getEndian(byte[] buf, int offset) {
         DexBuffer bdb = new DexBuffer(buf);
+        return bdb.readInt(offset + ENDIAN_TAG_OFFSET);
+    }
+
+    public static int getEndian(MappedByteBuffer buf, int offset) {
+        DexBuffer bdb = new MappedDexBuffer(buf);
         return bdb.readInt(offset + ENDIAN_TAG_OFFSET);
     }
 }

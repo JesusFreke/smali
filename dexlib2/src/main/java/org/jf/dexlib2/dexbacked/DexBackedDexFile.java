@@ -32,23 +32,39 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.io.ByteStreams;
-import org.jf.dexlib2.Opcodes;
-import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.dexbacked.raw.*;
-import org.jf.dexlib2.dexbacked.reference.*;
-import org.jf.dexlib2.dexbacked.util.FixedSizeList;
-import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
-import org.jf.dexlib2.iface.DexFile;
-import org.jf.dexlib2.iface.reference.*;
-import org.jf.dexlib2.util.DexUtil;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.MappedByteBuffer;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.dexbacked.raw.CallSiteIdItem;
+import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
+import org.jf.dexlib2.dexbacked.raw.FieldIdItem;
+import org.jf.dexlib2.dexbacked.raw.HeaderItem;
+import org.jf.dexlib2.dexbacked.raw.ItemType;
+import org.jf.dexlib2.dexbacked.raw.MapItem;
+import org.jf.dexlib2.dexbacked.raw.MethodHandleItem;
+import org.jf.dexlib2.dexbacked.raw.MethodIdItem;
+import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
+import org.jf.dexlib2.dexbacked.raw.StringIdItem;
+import org.jf.dexlib2.dexbacked.raw.TypeIdItem;
+import org.jf.dexlib2.dexbacked.reference.DexBackedCallSiteReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedMethodHandleReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedMethodProtoReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedStringReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedTypeReference;
+import org.jf.dexlib2.dexbacked.util.FixedSizeList;
+import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
+import org.jf.dexlib2.iface.DexFile;
+import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.util.DexUtil;
 
 public class DexBackedDexFile implements DexFile {
 
@@ -98,6 +114,33 @@ public class DexBackedDexFile implements DexFile {
         mapOffset = dexBuffer.readSmallUint(HeaderItem.MAP_OFFSET);
     }
 
+    protected DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull MappedByteBuffer buf, int offset, boolean verifyMagic) {
+        dexBuffer = new MappedDexBuffer(buf, offset);
+        dataBuffer = new MappedDexBuffer(buf, offset + getBaseDataOffset());
+
+        int dexVersion = getVersion(buf, offset, verifyMagic);
+
+        if (opcodes == null) {
+            this.opcodes = getDefaultOpcodes(dexVersion);
+        } else {
+            this.opcodes = opcodes;
+        }
+
+        stringCount = dexBuffer.readSmallUint(HeaderItem.STRING_COUNT_OFFSET);
+        stringStartOffset = dexBuffer.readSmallUint(HeaderItem.STRING_START_OFFSET);
+        typeCount = dexBuffer.readSmallUint(HeaderItem.TYPE_COUNT_OFFSET);
+        typeStartOffset = dexBuffer.readSmallUint(HeaderItem.TYPE_START_OFFSET);
+        protoCount = dexBuffer.readSmallUint(HeaderItem.PROTO_COUNT_OFFSET);
+        protoStartOffset = dexBuffer.readSmallUint(HeaderItem.PROTO_START_OFFSET);
+        fieldCount = dexBuffer.readSmallUint(HeaderItem.FIELD_COUNT_OFFSET);
+        fieldStartOffset = dexBuffer.readSmallUint(HeaderItem.FIELD_START_OFFSET);
+        methodCount = dexBuffer.readSmallUint(HeaderItem.METHOD_COUNT_OFFSET);
+        methodStartOffset = dexBuffer.readSmallUint(HeaderItem.METHOD_START_OFFSET);
+        classCount = dexBuffer.readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
+        classStartOffset = dexBuffer.readSmallUint(HeaderItem.CLASS_START_OFFSET);
+        mapOffset = dexBuffer.readSmallUint(HeaderItem.MAP_OFFSET);
+    }
+
     /**
      * @return The offset that various data offsets are relative to. This is always 0 for a dex file, but may be
      * different for other related formats (e.g. cdex).
@@ -107,6 +150,14 @@ public class DexBackedDexFile implements DexFile {
     }
 
     protected int getVersion(byte[] buf, int offset, boolean verifyMagic) {
+        if (verifyMagic) {
+            return DexUtil.verifyDexHeader(buf, offset);
+        } else {
+            return HeaderItem.getVersion(buf, offset);
+        }
+    }
+
+    protected int getVersion(MappedByteBuffer buf, int offset, boolean verifyMagic) {
         if (verifyMagic) {
             return DexUtil.verifyDexHeader(buf, offset);
         } else {
@@ -136,6 +187,10 @@ public class DexBackedDexFile implements DexFile {
 
     public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull byte[] buf) {
         this(opcodes, buf, 0, true);
+    }
+
+    public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull MappedDexBuffer buf) {
+        this(opcodes, buf.buf, buf.baseOffset);
     }
 
     @Nonnull
