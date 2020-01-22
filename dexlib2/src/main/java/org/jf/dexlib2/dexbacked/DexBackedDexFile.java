@@ -34,7 +34,6 @@ package org.jf.dexlib2.dexbacked;
 import com.google.common.io.ByteStreams;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.MappedByteBuffer;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.Set;
@@ -114,11 +113,13 @@ public class DexBackedDexFile implements DexFile {
         mapOffset = dexBuffer.readSmallUint(HeaderItem.MAP_OFFSET);
     }
 
-    protected DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull MappedByteBuffer buf, int offset, boolean verifyMagic) {
-        dexBuffer = new MappedDexBuffer(buf, offset);
-        dataBuffer = new MappedDexBuffer(buf, offset + getBaseDataOffset());
+    protected DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull DexBuffer dexBuffer, @Nonnull DexBuffer dataBuffer, int offset, boolean verifyMagic) {
+        this.dexBuffer = dexBuffer;
+        this.dataBuffer = dataBuffer;
 
-        int dexVersion = getVersion(buf, offset, verifyMagic);
+        byte[] headerBuf = dexBuffer.readByteRange(offset, /* lengthOfHeader= */ 112);
+
+        int dexVersion = getVersion(headerBuf, offset, verifyMagic);
 
         if (opcodes == null) {
             this.opcodes = getDefaultOpcodes(dexVersion);
@@ -150,14 +151,6 @@ public class DexBackedDexFile implements DexFile {
     }
 
     protected int getVersion(byte[] buf, int offset, boolean verifyMagic) {
-        if (verifyMagic) {
-            return DexUtil.verifyDexHeader(buf, offset);
-        } else {
-            return HeaderItem.getVersion(buf, offset);
-        }
-    }
-
-    protected int getVersion(MappedByteBuffer buf, int offset, boolean verifyMagic) {
         if (verifyMagic) {
             return DexUtil.verifyDexHeader(buf, offset);
         } else {

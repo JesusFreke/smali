@@ -35,7 +35,6 @@ import com.google.common.io.ByteStreams;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.MappedByteBuffer;
 import javax.annotation.Nonnull;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile.NotAnOdexFile;
@@ -89,32 +88,6 @@ public class DexUtil {
             StringBuilder sb = new StringBuilder("Not a valid dex magic value:");
             for (int i=0; i<8; i++) {
                 sb.append(String.format(" %02x", buf[i]));
-            }
-            throw new NotADexFile(sb.toString());
-        }
-
-        if (!HeaderItem.isSupportedDexVersion(dexVersion)) {
-            throw new UnsupportedFile(String.format("Dex version %03d is not supported", dexVersion));
-        }
-
-        int endian = HeaderItem.getEndian(buf, offset);
-        if (endian == HeaderItem.BIG_ENDIAN_TAG) {
-            throw new UnsupportedFile("Big endian dex files are not supported");
-        }
-
-        if (endian != HeaderItem.LITTLE_ENDIAN_TAG) {
-            throw new InvalidFile(String.format("Invalid endian tag: 0x%x", endian));
-        }
-
-        return dexVersion;
-    }
-
-    public static int verifyDexHeader(@Nonnull MappedByteBuffer buf, int offset) {
-        int dexVersion = HeaderItem.getVersion(buf, offset);
-        if (dexVersion == -1) {
-            StringBuilder sb = new StringBuilder("Not a valid dex magic value:");
-            for (int i=0; i<8; i++) {
-                sb.append(String.format(" %02x", buf.get(i)));
             }
             throw new NotADexFile(sb.toString());
         }
