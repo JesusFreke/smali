@@ -182,10 +182,6 @@ public class DexBackedDexFile implements DexFile {
         this(opcodes, buf, 0, true);
     }
 
-    public DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull MappedDexBuffer buf) {
-        this(opcodes, buf.buf, buf.baseOffset);
-    }
-
     @Nonnull
     public static DexBackedDexFile fromInputStream(@Nullable Opcodes opcodes, @Nonnull InputStream is)
             throws IOException {
