@@ -102,7 +102,7 @@ public class DexBackedDexFile implements DexFile {
         this.dexBuffer = dexBuffer;
         this.dataBuffer = dataBuffer;
 
-        byte[] headerBuf = dexBuffer.readByteRange(offset, /* lengthOfHeader= */ 112);
+        byte[] headerBuf = dexBuffer.readByteRange(offset, HeaderItem.ITEM_SIZE);
 
         int dexVersion = getVersion(headerBuf, offset, verifyMagic);
 
