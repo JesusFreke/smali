@@ -54,6 +54,7 @@ public class ItemType {
     public static final int ANNOTATION_ITEM = 0x2004;
     public static final int ENCODED_ARRAY_ITEM = 0x2005;
     public static final int ANNOTATION_DIRECTORY_ITEM = 0x2006;
+    public static final int HIDDENAPI_CLASS_DATA_ITEM = 0xF000;
 
     @Nonnull
     public static String getItemTypeName(int itemType) {
@@ -78,6 +79,7 @@ public class ItemType {
             case ANNOTATION_ITEM: return "annotation_item";
             case ENCODED_ARRAY_ITEM: return "encoded_array_item";
             case ANNOTATION_DIRECTORY_ITEM: return "annotation_directory_item";
+            case HIDDENAPI_CLASS_DATA_ITEM: return "hiddenapi_class_data_item";
             default: return "unknown dex item type";
         }
     }

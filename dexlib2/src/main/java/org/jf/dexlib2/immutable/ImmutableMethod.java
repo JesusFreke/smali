@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Method;
@@ -54,6 +55,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
     @Nonnull protected final String returnType;
     protected final int accessFlags;
     @Nonnull protected final ImmutableSet<? extends ImmutableAnnotation> annotations;
+    @Nonnull protected final ImmutableSet<HiddenApiRestriction> hiddenApiRestrictions;
     @Nullable protected final ImmutableMethodImplementation methodImplementation;
 
     public ImmutableMethod(@Nonnull String definingClass,
@@ -62,6 +64,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
                            @Nonnull String returnType,
                            int accessFlags,
                            @Nullable Set<? extends Annotation> annotations,
+                           @Nullable Set<HiddenApiRestriction> hiddenApiRestrictions,
                            @Nullable MethodImplementation methodImplementation) {
         this.definingClass = definingClass;
         this.name = name;
@@ -69,6 +72,8 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
         this.returnType = returnType;
         this.accessFlags = accessFlags;
         this.annotations = ImmutableAnnotation.immutableSetOf(annotations);
+        this.hiddenApiRestrictions =
+                hiddenApiRestrictions == null ? ImmutableSet.of() : ImmutableSet.copyOf(hiddenApiRestrictions);
         this.methodImplementation = ImmutableMethodImplementation.of(methodImplementation);
     }
 
@@ -78,6 +83,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
                            @Nonnull String returnType,
                            int accessFlags,
                            @Nullable ImmutableSet<? extends ImmutableAnnotation> annotations,
+                           @Nullable ImmutableSet<HiddenApiRestriction> hiddenApiRestrictions,
                            @Nullable ImmutableMethodImplementation methodImplementation) {
         this.definingClass = definingClass;
         this.name = name;
@@ -85,6 +91,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
         this.returnType = returnType;
         this.accessFlags = accessFlags;
         this.annotations = ImmutableUtils.nullToEmptySet(annotations);
+        this.hiddenApiRestrictions = ImmutableUtils.nullToEmptySet(hiddenApiRestrictions);
         this.methodImplementation = methodImplementation;
     }
 
@@ -99,6 +106,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
                 method.getReturnType(),
                 method.getAccessFlags(),
                 method.getAnnotations(),
+                method.getHiddenApiRestrictions(),
                 method.getImplementation());
     }
 
@@ -109,6 +117,7 @@ public class ImmutableMethod extends BaseMethodReference implements Method {
     @Override @Nonnull public String getReturnType() { return returnType; }
     @Override public int getAccessFlags() { return accessFlags; }
     @Override @Nonnull public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
+    @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() { return hiddenApiRestrictions; }
     @Override @Nullable public ImmutableMethodImplementation getImplementation() { return methodImplementation; }
 
     @Nonnull

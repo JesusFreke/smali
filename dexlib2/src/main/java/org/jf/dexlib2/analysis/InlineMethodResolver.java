@@ -67,7 +67,7 @@ public abstract class InlineMethodResolver {
     private static Method inlineMethod(int accessFlags, @Nonnull String cls, @Nonnull String name,
                                        @Nonnull String params, @Nonnull String returnType) {
         ImmutableList<ImmutableMethodParameter> paramList = ImmutableList.copyOf(ParamUtil.parseParamString(params));
-        return new ImmutableMethod(cls, name, paramList, returnType, accessFlags, null, null);
+        return new ImmutableMethod(cls, name, paramList, returnType, accessFlags, null, null, null);
     }
 
     @Nonnull public abstract Method resolveExecuteInline(@Nonnull AnalyzedInstruction instruction);

@@ -133,6 +133,6 @@ public class CustomInlineMethodResolver extends InlineMethodResolver {
             throw new RuntimeException("Cannot resolve inline method: " + inlineMethod);
         }
 
-        return new ImmutableMethod(className, methodName, methodParams, methodRet, accessFlags, null, null);
+        return new ImmutableMethod(className, methodName, methodParams, methodRet, accessFlags, null, null, null);
     }
 }

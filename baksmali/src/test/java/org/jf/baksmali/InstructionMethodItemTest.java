@@ -38,6 +38,7 @@ import org.jf.baksmali.Adaptors.Format.InstructionMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
 import org.jf.dexlib2.Format;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
@@ -198,6 +199,10 @@ public class InstructionMethodItemTest {
         @Override
         public String getReturnType() {
             return "V";
+        }
+
+        @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+            return ImmutableSet.of();
         }
     }
 

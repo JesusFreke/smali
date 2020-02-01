@@ -32,6 +32,7 @@
 package org.jf.dexlib2.writer.pool;
 
 import com.google.common.base.Function;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Method;
@@ -85,6 +86,10 @@ class PoolMethod extends BaseMethodReference implements Method {
 
     @Override @Nonnull public Set<? extends Annotation> getAnnotations() {
         return method.getAnnotations();
+    }
+
+    @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+        return method.getHiddenApiRestrictions();
     }
 
     @Override @Nullable public MethodImplementation getImplementation() {

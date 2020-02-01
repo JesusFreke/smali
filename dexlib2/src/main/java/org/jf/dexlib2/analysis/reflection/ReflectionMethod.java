@@ -32,6 +32,7 @@
 package org.jf.dexlib2.analysis.reflection;
 
 import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.analysis.reflection.util.ReflectionUtils;
 import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
@@ -116,5 +117,9 @@ public class ReflectionMethod extends BaseMethodReference implements Method {
 
     @Nonnull @Override public String getReturnType() {
         return ReflectionUtils.javaToDexName(method.getReturnType().getName());
+    }
+
+    @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+        return ImmutableSet.of();
     }
 }

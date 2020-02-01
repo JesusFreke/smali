@@ -56,23 +56,23 @@ public class RollbackTest {
         ClassDef class1 = new ImmutableClassDef("Lcls1;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null, null,
                 Lists.newArrayList(new ImmutableAnnotation(AnnotationVisibility.RUNTIME, "Lannotation;", null)),
                 Lists.<Field>newArrayList(
-                        new ImmutableField("Lcls1;", "field1", "I", AccessFlags.PUBLIC.getValue(), null, null)
+                        new ImmutableField("Lcls1;", "field1", "I", AccessFlags.PUBLIC.getValue(), null, null, null)
                 ),
                 Lists.<Method>newArrayList(
                         new ImmutableMethod("Lcls1", "method1",
                                 Lists.<MethodParameter>newArrayList(new ImmutableMethodParameter("L", null, null)), "V",
-                                AccessFlags.PUBLIC.getValue(), null, null))
+                                AccessFlags.PUBLIC.getValue(), null, null, null))
                 );
 
         ClassDef class2 = new ImmutableClassDef("Lcls2;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null, null,
                 Lists.newArrayList(new ImmutableAnnotation(AnnotationVisibility.RUNTIME, "Lannotation2;", null)),
                 Lists.<Field>newArrayList(
-                        new ImmutableField("Lcls2;", "field2", "D", AccessFlags.PUBLIC.getValue(), null, null)
+                        new ImmutableField("Lcls2;", "field2", "D", AccessFlags.PUBLIC.getValue(), null, null, null)
                 ),
                 Lists.<Method>newArrayList(
                         new ImmutableMethod("Lcls2;", "method2",
                                 Lists.<MethodParameter>newArrayList(new ImmutableMethodParameter("D", null, null)), "V",
-                                AccessFlags.PUBLIC.getValue(), null, null))
+                                AccessFlags.PUBLIC.getValue(), null, null, null))
         );
 
         DexBackedDexFile dexFile1;

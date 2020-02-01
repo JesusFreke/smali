@@ -70,7 +70,7 @@ public class CallSiteTest {
                 null, null,
                 Lists.<Method>newArrayList(
                         new ImmutableMethod("Lcls1", "method1",
-                                ImmutableList.of(), "V", AccessFlags.PUBLIC.getValue(), null,
+                                ImmutableList.of(), "V", AccessFlags.PUBLIC.getValue(), null, null,
                                 new ImmutableMethodImplementation(10, ImmutableList.of(
                                         new ImmutableInstruction35c(Opcode.INVOKE_CUSTOM, 0, 0, 0, 0, 0, 0,
                                                 new ImmutableCallSiteReference("call_site_1",

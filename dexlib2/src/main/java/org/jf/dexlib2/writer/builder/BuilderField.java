@@ -31,12 +31,15 @@
 
 package org.jf.dexlib2.writer.builder;
 
+import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.writer.builder.BuilderEncodedValues.BuilderEncodedValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Set;
 
 public class BuilderField extends BaseFieldReference implements Field {
     @Nonnull final BuilderFieldReference fieldReference;
@@ -76,5 +79,9 @@ public class BuilderField extends BaseFieldReference implements Field {
 
     @Nonnull @Override public String getType() {
         return fieldReference.fieldType.getType();
+    }
+
+    @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+        return ImmutableSet.of();
     }
 }

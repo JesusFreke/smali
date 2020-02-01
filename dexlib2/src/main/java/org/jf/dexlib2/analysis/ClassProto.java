@@ -38,13 +38,14 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.*;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.analysis.util.TypeProtoUtils;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.util.MethodUtil;
 import org.jf.dexlib2.util.AlignmentUtils;
+import org.jf.dexlib2.util.MethodUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseArray;
 
@@ -1283,6 +1284,10 @@ public class ClassProto implements TypeProto {
 
         @Nonnull @Override public Set<? extends Annotation> getAnnotations() {
             return method.getAnnotations();
+        }
+
+        @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+            return method.getHiddenApiRestrictions();
         }
 
         @Nullable @Override public MethodImplementation getImplementation() {

@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.iface;
 
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.annotation.Nonnull;
@@ -96,6 +97,16 @@ public interface Method extends MethodReference, Member {
      * @return A set of the annotations that are applied to this method
      */
     @Override @Nonnull Set<? extends Annotation> getAnnotations();
+
+    /**
+     * Gets the hidden api restrictions for this method.
+     *
+     * This will contain at most 1 normal flag (with isDomainSpecificApiFlag() = false), and 1
+     * domain-specific api flag (with isDomainSpecificApiFlag() = true)
+     *
+     * @return A set of the hidden api restrictions for this method.
+     */
+    @Nonnull Set<HiddenApiRestriction> getHiddenApiRestrictions();
 
     /**
      * Gets a MethodImplementation object that defines the implementation of the method.

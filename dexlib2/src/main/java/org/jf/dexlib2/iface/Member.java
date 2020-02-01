@@ -31,7 +31,10 @@
 
 package org.jf.dexlib2.iface;
 
+import org.jf.dexlib2.HiddenApiRestriction;
+
 import javax.annotation.Nonnull;
+import java.util.Set;
 
 /**
  * This class represents a generic class member
@@ -60,4 +63,14 @@ public interface Member extends Annotatable {
      * @return The access flags for this member
      */
     int getAccessFlags();
+
+    /**
+     * Gets the hidden api restrictions for this member.
+     *
+     * This will contain at most 1 normal flag (with isDomainSpecificApiFlag() = false), and 1
+     * domain-specific api flag (with isDomainSpecificApiFlag() = true)
+     *
+     * @return A set of the hidden api restrictions for this member.
+     */
+    @Nonnull Set<HiddenApiRestriction> getHiddenApiRestrictions();
 }

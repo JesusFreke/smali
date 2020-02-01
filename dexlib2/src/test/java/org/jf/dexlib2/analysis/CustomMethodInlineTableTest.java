@@ -60,7 +60,7 @@ public class CustomMethodInlineTableTest {
 
         ImmutableMethodImplementation methodImpl = new ImmutableMethodImplementation(1, instructions, null, null);
         ImmutableMethod method = new ImmutableMethod("Lblah;", "blah", null, "V", AccessFlags.PUBLIC.getValue(), null,
-                methodImpl);
+                null, methodImpl);
 
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, null, ImmutableList.of(method));
@@ -91,7 +91,7 @@ public class CustomMethodInlineTableTest {
 
         ImmutableMethodImplementation methodImpl = new ImmutableMethodImplementation(1, instructions, null, null);
         ImmutableMethod method = new ImmutableMethod("Lblah;", "blah", null, "V", AccessFlags.STATIC.getValue(), null,
-                methodImpl);
+                null, methodImpl);
 
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, ImmutableList.of(method), null);
@@ -122,7 +122,7 @@ public class CustomMethodInlineTableTest {
 
         ImmutableMethodImplementation methodImpl = new ImmutableMethodImplementation(1, instructions, null, null);
         ImmutableMethod method = new ImmutableMethod("Lblah;", "blah", null, "V", AccessFlags.PRIVATE.getValue(), null,
-                methodImpl);
+                null, methodImpl);
 
         ClassDef classDef = new ImmutableClassDef("Lblah;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, null, ImmutableList.of(method), null);

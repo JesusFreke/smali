@@ -31,6 +31,8 @@
 
 package org.jf.dexlib2.writer.builder;
 
+import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodImplementation;
@@ -39,6 +41,7 @@ import org.jf.dexlib2.writer.DexWriter;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 public class BuilderMethod extends BaseMethodReference implements Method {
     @Nonnull final BuilderMethodReference methodReference;
@@ -69,5 +72,10 @@ public class BuilderMethod extends BaseMethodReference implements Method {
     @Override @Nonnull public List<? extends BuilderMethodParameter> getParameters() { return parameters; }
     @Override public int getAccessFlags() { return accessFlags; }
     @Override @Nonnull public BuilderAnnotationSet getAnnotations() { return annotations; }
+
+    @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+        return ImmutableSet.of();
+    }
+
     @Override @Nullable public MethodImplementation getImplementation() { return methodImplementation; }
 }

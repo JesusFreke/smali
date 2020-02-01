@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.iface;
 
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
@@ -93,4 +94,14 @@ public interface Field extends FieldReference, Member {
      * @return A set of the annotations that are applied to this field
      */
     @Override @Nonnull Set<? extends Annotation> getAnnotations();
+
+    /**
+     * Gets the hidden api restrictions for this field.
+     *
+     * This will contain at most 1 normal flag (with isDomainSpecificApiFlag() = false), and 1
+     * domain-specific api flag (with isDomainSpecificApiFlag() = true)
+     *
+     * @return A set of the hidden api restrictions for this field.
+     */
+    @Nonnull Set<HiddenApiRestriction> getHiddenApiRestrictions();
 }

@@ -32,6 +32,7 @@
 package org.jf.dexlib2.analysis.reflection;
 
 import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.analysis.reflection.util.ReflectionUtils;
 import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.iface.Annotation;
@@ -71,5 +72,9 @@ public class ReflectionField extends BaseFieldReference implements Field {
 
     @Nonnull @Override public String getType() {
         return ReflectionUtils.javaToDexName(field.getType().getName());
+    }
+
+    @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+        return ImmutableSet.of();
     }
 }

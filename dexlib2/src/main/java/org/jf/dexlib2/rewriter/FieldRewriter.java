@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.rewriter;
 
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
@@ -80,6 +81,10 @@ public class FieldRewriter implements Rewriter<Field> {
 
         @Nonnull public Set<? extends Annotation> getAnnotations() {
             return RewriterUtils.rewriteSet(rewriters.getAnnotationRewriter(), field.getAnnotations());
+        }
+
+        @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+            return field.getHiddenApiRestrictions();
         }
     }
 }

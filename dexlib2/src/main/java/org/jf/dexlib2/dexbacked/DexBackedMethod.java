@@ -33,6 +33,7 @@ package org.jf.dexlib2.dexbacked;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.raw.MethodIdItem;
 import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
@@ -48,6 +49,7 @@ import org.jf.util.AbstractForwardSequentialList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -61,6 +63,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     private final int codeOffset;
     private final int parameterAnnotationSetListOffset;
     private final int methodAnnotationSetOffset;
+    private final int hiddenApiRestrictions;
 
     public final int methodIndex;
     private final int startOffset;
@@ -72,7 +75,8 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     public DexBackedMethod(@Nonnull DexBackedDexFile dexFile,
                            @Nonnull DexReader reader,
                            @Nonnull DexBackedClassDef classDef,
-                           int previousMethodIndex) {
+                           int previousMethodIndex,
+                           int hiddenApiRestrictions) {
         this.dexFile = dexFile;
         this.classDef = classDef;
         startOffset = reader.getOffset();
@@ -83,6 +87,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         this.methodIndex = methodIndexDiff + previousMethodIndex;
         this.accessFlags = reader.readSmallUleb128();
         this.codeOffset = reader.readSmallUleb128();
+        this.hiddenApiRestrictions = hiddenApiRestrictions;
 
         this.methodAnnotationSetOffset = 0;
         this.parameterAnnotationSetListOffset = 0;
@@ -93,7 +98,8 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
                            @Nonnull DexBackedClassDef classDef,
                            int previousMethodIndex,
                            @Nonnull AnnotationsDirectory.AnnotationIterator methodAnnotationIterator,
-                           @Nonnull AnnotationsDirectory.AnnotationIterator paramaterAnnotationIterator) {
+                           @Nonnull AnnotationsDirectory.AnnotationIterator paramaterAnnotationIterator,
+                           int hiddenApiRestrictions) {
         this.dexFile = dexFile;
         this.classDef = classDef;
         startOffset = reader.getOffset();
@@ -104,6 +110,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         this.methodIndex = methodIndexDiff + previousMethodIndex;
         this.accessFlags = reader.readSmallUleb128();
         this.codeOffset = reader.readSmallUleb128();
+        this.hiddenApiRestrictions = hiddenApiRestrictions;
 
         this.methodAnnotationSetOffset = methodAnnotationIterator.seekTo(methodIndex);
         this.parameterAnnotationSetListOffset = paramaterAnnotationIterator.seekTo(methodIndex);
@@ -186,6 +193,16 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
     @Override
     public Set<? extends Annotation> getAnnotations() {
         return AnnotationsDirectory.getAnnotations(dexFile, methodAnnotationSetOffset);
+    }
+
+    @Nonnull
+    @Override
+    public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+        if (hiddenApiRestrictions == DexBackedClassDef.NO_HIDDEN_API_RESTRICTIONS) {
+            return ImmutableSet.of();
+        } else {
+            return EnumSet.copyOf(HiddenApiRestriction.getAllFlags(hiddenApiRestrictions));
+        }
     }
 
     @Nullable

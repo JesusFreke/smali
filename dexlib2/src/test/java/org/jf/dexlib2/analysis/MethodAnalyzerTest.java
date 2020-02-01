@@ -76,7 +76,7 @@ public class MethodAnalyzerTest {
 
         Method method = new ImmutableMethod("Lmain;", "narrowing",
                 Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
-                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+                AccessFlags.PUBLIC.getValue(), null, null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
         DexFile dexFile = new ImmutableDexFile(forArtVersion(56), Collections.singletonList(classDef));
@@ -107,7 +107,7 @@ public class MethodAnalyzerTest {
 
         Method method = new ImmutableMethod("Lmain;", "narrowing",
                 Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
-                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+                AccessFlags.PUBLIC.getValue(), null, null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
         DexFile dexFile = new ImmutableDexFile(Opcodes.forApi(19), Collections.singletonList(classDef));
@@ -139,7 +139,7 @@ public class MethodAnalyzerTest {
 
         Method method = new ImmutableMethod("Lmain;", "narrowing",
                 Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
-                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+                AccessFlags.PUBLIC.getValue(), null, null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
         DexFile dexFile = new ImmutableDexFile(forArtVersion(56), Collections.singletonList(classDef));
@@ -170,7 +170,7 @@ public class MethodAnalyzerTest {
 
         Method method = new ImmutableMethod("Lmain;", "narrowing",
                 Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
-                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+                AccessFlags.PUBLIC.getValue(), null, null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
         DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), Collections.singletonList(classDef));
@@ -203,7 +203,7 @@ public class MethodAnalyzerTest {
 
         Method method = new ImmutableMethod("Lmain;", "narrowing",
                 Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
-                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+                AccessFlags.PUBLIC.getValue(), null, null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
         DexFile dexFile = new ImmutableDexFile(forArtVersion(56), Collections.singletonList(classDef));
@@ -238,7 +238,7 @@ public class MethodAnalyzerTest {
 
         Method method = new ImmutableMethod("Lmain;", "narrowing",
                 Collections.singletonList(new ImmutableMethodParameter("Ljava/lang/Object;", null, null)), "V",
-                AccessFlags.PUBLIC.getValue(), null, methodImplementation);
+                AccessFlags.PUBLIC.getValue(), null, null, methodImplementation);
         ClassDef classDef = new ImmutableClassDef("Lmain;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null,
                 null, null, null, Collections.singletonList(method));
         DexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), Collections.singletonList(classDef));

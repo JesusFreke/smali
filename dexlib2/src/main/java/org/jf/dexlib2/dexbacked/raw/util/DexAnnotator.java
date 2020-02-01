@@ -78,7 +78,9 @@ public class DexAnnotator extends AnnotatedBytes {
                 ItemType.STRING_DATA_ITEM,
                 ItemType.ANNOTATION_ITEM,
                 ItemType.ENCODED_ARRAY_ITEM,
-                ItemType.ANNOTATION_DIRECTORY_ITEM
+                ItemType.ANNOTATION_DIRECTORY_ITEM,
+
+                ItemType.HIDDENAPI_CLASS_DATA_ITEM
         };
 
         for (int i=0; i<sectionOrder.length; i++) {
@@ -152,6 +154,9 @@ public class DexAnnotator extends AnnotatedBytes {
                     break;
                 case ItemType.METHOD_HANDLE_ITEM:
                     annotators.put(mapItem.getType(), MethodHandleItem.makeAnnotator(this, mapItem));
+                    break;
+                case ItemType.HIDDENAPI_CLASS_DATA_ITEM:
+                    annotators.put(mapItem.getType(), HiddenApiClassDataItem.makeAnnotator(this, mapItem));
                     break;
                 default:
                     throw new RuntimeException(String.format("Unrecognized item type: 0x%x", mapItem.getType()));

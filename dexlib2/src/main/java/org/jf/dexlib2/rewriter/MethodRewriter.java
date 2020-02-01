@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.rewriter;
 
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Method;
@@ -90,6 +91,10 @@ public class MethodRewriter implements Rewriter<Method> {
 
         @Override @Nonnull public Set<? extends Annotation> getAnnotations() {
             return RewriterUtils.rewriteSet(rewriters.getAnnotationRewriter(), method.getAnnotations());
+        }
+
+        @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
+            return method.getHiddenApiRestrictions();
         }
 
         @Override @Nullable public MethodImplementation getImplementation() {
