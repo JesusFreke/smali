@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.writer;
 
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.builder.MutableMethodImplementation;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.TryBlock;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface ClassSection<StringKey extends CharSequence, TypeKey extends CharSequence, TypeListKey, ClassKey,
         FieldKey, MethodKey, AnnotationSetKey, EncodedArrayKey> extends IndexSection<ClassKey> {
@@ -66,6 +68,9 @@ public interface ClassSection<StringKey extends CharSequence, TypeKey extends Ch
 
     int getFieldAccessFlags(@Nonnull FieldKey key);
     int getMethodAccessFlags(@Nonnull MethodKey key);
+
+    @Nonnull Set<HiddenApiRestriction> getFieldHiddenApiRestrictions(@Nonnull FieldKey key);
+    @Nonnull Set<HiddenApiRestriction> getMethodHiddenApiRestrictions(@Nonnull MethodKey key);
 
     @Nullable AnnotationSetKey getClassAnnotations(@Nonnull ClassKey key);
     @Nullable AnnotationSetKey getFieldAnnotations(@Nonnull FieldKey key);

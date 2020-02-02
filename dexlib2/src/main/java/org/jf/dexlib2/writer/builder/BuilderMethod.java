@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.writer.builder;
 
-import com.google.common.collect.ImmutableSet;
 import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.iface.Method;
@@ -48,6 +47,7 @@ public class BuilderMethod extends BaseMethodReference implements Method {
     @Nonnull final List<? extends BuilderMethodParameter> parameters;
     final int accessFlags;
     @Nonnull final BuilderAnnotationSet annotations;
+    @Nonnull final Set<HiddenApiRestriction> hiddenApiRestrictions;
     @Nullable final MethodImplementation methodImplementation;
 
     int annotationSetRefListOffset = DexWriter.NO_OFFSET;
@@ -57,11 +57,13 @@ public class BuilderMethod extends BaseMethodReference implements Method {
                   @Nonnull List<? extends BuilderMethodParameter> parameters,
                   int accessFlags,
                   @Nonnull BuilderAnnotationSet annotations,
+                  @Nonnull Set<HiddenApiRestriction> hiddenApiRestrictions,
                   @Nullable MethodImplementation methodImplementation) {
         this.methodReference = methodReference;
         this.parameters = parameters;
         this.accessFlags = accessFlags;
         this.annotations = annotations;
+        this.hiddenApiRestrictions = hiddenApiRestrictions;
         this.methodImplementation = methodImplementation;
     }
 
@@ -72,10 +74,6 @@ public class BuilderMethod extends BaseMethodReference implements Method {
     @Override @Nonnull public List<? extends BuilderMethodParameter> getParameters() { return parameters; }
     @Override public int getAccessFlags() { return accessFlags; }
     @Override @Nonnull public BuilderAnnotationSet getAnnotations() { return annotations; }
-
-    @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
-        return ImmutableSet.of();
-    }
-
+    @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() { return hiddenApiRestrictions; }
     @Override @Nullable public MethodImplementation getImplementation() { return methodImplementation; }
 }

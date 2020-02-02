@@ -33,6 +33,7 @@ package org.jf.dexlib2.writer.builder;
 
 import com.google.common.base.Function;
 import com.google.common.collect.*;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.Annotation;
@@ -75,11 +76,13 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
                                              @Nonnull String type,
                                              int accessFlags,
                                              @Nullable EncodedValue initialValue,
-                                             @Nonnull Set<? extends Annotation> annotations) {
+                                             @Nonnull Set<? extends Annotation> annotations,
+                                             @Nonnull Set<HiddenApiRestriction> hiddenApiRestrictions) {
         return new BuilderField(fieldSection.internField(definingClass, name, type),
                 accessFlags,
                 internNullableEncodedValue(initialValue),
-                annotationSetSection.internAnnotationSet(annotations));
+                annotationSetSection.internAnnotationSet(annotations),
+                hiddenApiRestrictions);
     }
 
     @Nonnull public BuilderMethod internMethod(@Nonnull String definingClass,
@@ -88,6 +91,7 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
                                                @Nonnull String returnType,
                                                int accessFlags,
                                                @Nonnull Set<? extends Annotation> annotations,
+                                               @Nonnull Set<HiddenApiRestriction> hiddenApiRestrictions,
                                                @Nullable MethodImplementation methodImplementation) {
         if (parameters == null) {
             parameters = ImmutableList.of();
@@ -96,6 +100,7 @@ public class DexBuilder extends DexWriter<BuilderStringReference, BuilderStringR
                 internMethodParameters(parameters),
                 accessFlags,
                 annotationSetSection.internAnnotationSet(annotations),
+                hiddenApiRestrictions,
                 methodImplementation);
     }
 

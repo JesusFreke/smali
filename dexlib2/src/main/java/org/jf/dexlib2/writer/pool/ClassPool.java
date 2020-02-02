@@ -38,6 +38,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.builder.MutableMethodImplementation;
 import org.jf.dexlib2.iface.*;
@@ -285,6 +286,14 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
 
     @Override public int getMethodAccessFlags(@Nonnull PoolMethod method) {
         return method.getAccessFlags();
+    }
+
+    @Nonnull @Override public Set<HiddenApiRestriction> getFieldHiddenApiRestrictions(@Nonnull Field field) {
+        return field.getHiddenApiRestrictions();
+    }
+
+    @Nonnull @Override public Set<HiddenApiRestriction> getMethodHiddenApiRestrictions(@Nonnull PoolMethod poolMethod) {
+        return poolMethod.getHiddenApiRestrictions();
     }
 
     @Nullable @Override public Set<? extends Annotation> getClassAnnotations(@Nonnull PoolClassDef classDef) {

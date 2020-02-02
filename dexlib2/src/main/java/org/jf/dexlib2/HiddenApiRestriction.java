@@ -107,4 +107,31 @@ public enum HiddenApiRestriction {
         }
         return joiner.toString();
     }
+
+    public static int combineFlags(Iterable<HiddenApiRestriction> flags) {
+        boolean gotHiddenApiFlag = false;
+        boolean gotDomainSpecificApiFlag = false;
+
+        int value = 0;
+
+        for (HiddenApiRestriction flag : flags) {
+            if (flag.isDomainSpecificApiFlag) {
+                if (gotDomainSpecificApiFlag) {
+                    throw new IllegalArgumentException(
+                            "Cannot combine multiple flags for domain-specific api restrictions");
+                }
+                gotDomainSpecificApiFlag = true;
+                value += flag.value;
+            } else {
+                if (gotHiddenApiFlag) {
+                    throw new IllegalArgumentException(
+                            "Cannot combine multiple flags for hidden api restrictions");
+                }
+                gotHiddenApiFlag = true;
+                value += flag.value;
+            }
+        }
+
+        return value;
+    }
 }

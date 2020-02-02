@@ -109,7 +109,7 @@ public class CallSiteTest {
                 callSite));
 
         BuilderMethod method = dexBuilder.internMethod("Lcls1", "method1", null, "V", 0, ImmutableSet.of(),
-                methodImplementationBuilder.getMethodImplementation());
+                ImmutableSet.of(), methodImplementationBuilder.getMethodImplementation());
         dexBuilder.internClassDef("Lcls1;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null, null,
                 ImmutableSet.of(), null,
                 ImmutableList.of(method));

@@ -264,7 +264,7 @@ field returns [BuilderField field]
     }
 
     $field = dexBuilder.internField(classType, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type, $access_list.value,
-            $field_initial_value.encodedValue, $annotations.annotations);
+            $field_initial_value.encodedValue, $annotations.annotations, ImmutableSet.of());
   };
 
 
@@ -467,6 +467,7 @@ method returns[BuilderMethod ret]
             $method_name_and_prototype.returnType,
             accessFlags,
             $annotations.annotations,
+            ImmutableSet.of(),
             methodImplementation);
   };
 

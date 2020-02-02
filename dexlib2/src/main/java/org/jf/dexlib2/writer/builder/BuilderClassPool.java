@@ -35,6 +35,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.jf.dexlib2.DebugItemType;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.builder.MutableMethodImplementation;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.Field;
@@ -56,10 +57,7 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
@@ -196,6 +194,16 @@ public class BuilderClassPool extends BaseBuilderPool implements ClassSection<Bu
 
     @Override public int getMethodAccessFlags(@Nonnull BuilderMethod builderMethod) {
         return builderMethod.accessFlags;
+    }
+
+    @Nonnull @Override
+    public Set<HiddenApiRestriction> getFieldHiddenApiRestrictions(@Nonnull BuilderField builderField) {
+        return builderField.getHiddenApiRestrictions();
+    }
+
+    @Nonnull @Override
+    public Set<HiddenApiRestriction> getMethodHiddenApiRestrictions(@Nonnull BuilderMethod builderMethod) {
+        return builderMethod.getHiddenApiRestrictions();
     }
 
     @Nullable @Override public BuilderAnnotationSet getClassAnnotations(@Nonnull BuilderClassDef builderClassDef) {

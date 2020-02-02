@@ -130,7 +130,10 @@ public abstract class DexWriter<
     protected int annotationDirectorySectionOffset = NO_OFFSET;
     protected int debugSectionOffset = NO_OFFSET;
     protected int codeSectionOffset = NO_OFFSET;
+    protected int hiddenApiRestrictionsOffset = NO_OFFSET;
     protected int mapSectionOffset = NO_OFFSET;
+
+    protected boolean hasHiddenApiRestrictions = false;
 
     protected int numAnnotationSetRefItems = 0;
     protected int numAnnotationDirectoryItems = 0;
@@ -304,6 +307,7 @@ public abstract class DexWriter<
             DexDataWriter headerWriter = outputAt(dest, 0);
             DexDataWriter indexWriter = outputAt(dest, HeaderItem.ITEM_SIZE);
             DexDataWriter offsetWriter = outputAt(dest, dataSectionOffset);
+
             try {
                 writeStrings(indexWriter, offsetWriter);
                 writeTypes(indexWriter);
@@ -339,7 +343,7 @@ public abstract class DexWriter<
                 writeAnnotationSetRefs(offsetWriter);
                 writeAnnotationDirectories(offsetWriter);
                 writeDebugAndCodeItems(offsetWriter, tempFactory.makeDeferredOutputStream());
-                writeClasses(indexWriter, offsetWriter);
+                writeClasses(dest, indexWriter, offsetWriter);
 
                 writeMapItem(offsetWriter);
                 writeHeader(headerWriter, dataSectionOffset, offsetWriter.getPosition());
@@ -481,7 +485,8 @@ public abstract class DexWriter<
         }
     }
 
-    private void writeClasses(@Nonnull DexDataWriter indexWriter, @Nonnull DexDataWriter offsetWriter) throws IOException {
+    private void writeClasses(@Nonnull DexDataStore dataStore, @Nonnull DexDataWriter indexWriter,
+                              @Nonnull DexDataWriter offsetWriter) throws IOException {
         classIndexSectionOffset = indexWriter.getPosition();
         classDataSectionOffset = offsetWriter.getPosition();
 
@@ -491,6 +496,124 @@ public abstract class DexWriter<
         int index = 0;
         for (Map.Entry<? extends ClassKey, Integer> key: classEntries) {
             index = writeClass(indexWriter, offsetWriter, index, key);
+        }
+
+        if (!shouldWriteHiddenApiRestrictions()) {
+            return;
+        }
+
+        hiddenApiRestrictionsOffset = offsetWriter.getPosition();
+
+        RestrictionsWriter restrictionsWriter = new RestrictionsWriter(dataStore, offsetWriter, classEntries.size());
+
+        try {
+            for (Map.Entry<? extends ClassKey, Integer> key : classEntries) {
+
+                for (FieldKey fieldKey : classSection.getSortedStaticFields(key.getKey())) {
+                    restrictionsWriter.writeRestriction(classSection.getFieldHiddenApiRestrictions(fieldKey));
+                }
+
+                for (FieldKey fieldKey : classSection.getSortedInstanceFields(key.getKey())) {
+                    restrictionsWriter.writeRestriction(classSection.getFieldHiddenApiRestrictions(fieldKey));
+                }
+
+                for (MethodKey methodKey : classSection.getSortedDirectMethods(key.getKey())) {
+                    restrictionsWriter.writeRestriction(classSection.getMethodHiddenApiRestrictions(methodKey));
+                }
+
+                for (MethodKey methodKey : classSection.getSortedVirtualMethods(key.getKey())) {
+                    restrictionsWriter.writeRestriction(classSection.getMethodHiddenApiRestrictions(methodKey));
+                }
+
+                restrictionsWriter.finishClass();
+            }
+        } finally {
+            restrictionsWriter.close();
+        }
+    }
+
+    private boolean shouldWriteHiddenApiRestrictions() {
+        return hasHiddenApiRestrictions && opcodes.api >= 29;
+    }
+
+    private static class RestrictionsWriter {
+        private final int startOffset;
+
+        private final DexDataStore dataStore;
+        private final DexDataWriter offsetsWriter;
+        private final DexDataWriter restrictionsWriter;
+
+        private boolean writeRestrictionsForClass = false;
+        private int pendingBlankEntries = 0;
+
+        public RestrictionsWriter(DexDataStore dataStore, DexDataWriter offsetWriter, int numClasses)
+                throws IOException {
+            this.startOffset = offsetWriter.getPosition();
+            this.dataStore = dataStore;
+            this.restrictionsWriter = offsetWriter;
+
+            int offsetsSize = numClasses * HiddenApiClassDataItem.OFFSET_ITEM_SIZE;
+
+            // We don't know the size yet, so skip over it
+            restrictionsWriter.writeInt(0);
+
+            this.offsetsWriter = outputAt(dataStore, restrictionsWriter.getPosition());
+
+            // Skip over the offsets
+            for (int i=0; i<offsetsSize; i++) {
+                restrictionsWriter.write(0);
+            }
+            restrictionsWriter.flush();
+        }
+
+        public void finishClass() throws IOException {
+            if (!writeRestrictionsForClass) {
+                // Normally the offset gets written when the first non-blank restriction gets written. If only blank
+                // restrictions were added, nothing actually gets written, and we write out a blank offset here.
+                offsetsWriter.writeInt(0);
+            }
+
+            writeRestrictionsForClass = false;
+            pendingBlankEntries = 0;
+        }
+
+        private void addBlankEntry() throws IOException {
+            if (writeRestrictionsForClass) {
+                restrictionsWriter.writeUleb128(HiddenApiRestriction.WHITELIST.getValue());
+            } else {
+                pendingBlankEntries++;
+            }
+        }
+
+        public void writeRestriction(@Nonnull Set<HiddenApiRestriction> hiddenApiRestrictions) throws IOException {
+            if (hiddenApiRestrictions.isEmpty()) {
+                addBlankEntry();
+                return;
+            }
+
+            if (!writeRestrictionsForClass) {
+                writeRestrictionsForClass = true;
+                offsetsWriter.writeInt(restrictionsWriter.getPosition() - startOffset);
+
+                for (int i = 0; i < pendingBlankEntries; i++) {
+                    restrictionsWriter.writeUleb128(HiddenApiRestriction.WHITELIST.getValue());
+                }
+                pendingBlankEntries = 0;
+            }
+            restrictionsWriter.writeUleb128(HiddenApiRestriction.combineFlags(hiddenApiRestrictions));
+        }
+
+        public void close() throws IOException {
+            DexDataWriter writer = null;
+            offsetsWriter.close();
+            try {
+                writer = outputAt(dataStore, startOffset);
+                writer.writeInt(restrictionsWriter.getPosition() - startOffset);
+            } finally {
+                if (writer != null) {
+                    writer.close();
+                }
+            }
         }
     }
 
@@ -639,6 +762,9 @@ public abstract class DexWriter<
         int prevIndex = 0;
         for (FieldKey key: fields) {
             int index = fieldSection.getFieldIndex(key);
+            if (!classSection.getFieldHiddenApiRestrictions(key).isEmpty()) {
+                hasHiddenApiRestrictions = true;
+            }
             writer.writeUleb128(index - prevIndex);
             writer.writeUleb128(classSection.getFieldAccessFlags(key));
             prevIndex = index;
@@ -650,6 +776,9 @@ public abstract class DexWriter<
         int prevIndex = 0;
         for (MethodKey key: methods) {
             int index = methodSection.getMethodIndex(key);
+            if (!classSection.getMethodHiddenApiRestrictions(key).isEmpty()) {
+                hasHiddenApiRestrictions = true;
+            }
             writer.writeUleb128(index-prevIndex);
             writer.writeUleb128(classSection.getMethodAccessFlags(key));
             writer.writeUleb128(classSection.getCodeItemOffset(key));
@@ -1324,6 +1453,9 @@ public abstract class DexWriter<
         if (numClassDataItems > 0) {
             numItems++;
         }
+        if (shouldWriteHiddenApiRestrictions()) {
+            numItems++;
+        }
         // map item itself
         numItems++;
 
@@ -1364,6 +1496,11 @@ public abstract class DexWriter<
         writeMapItem(writer, ItemType.DEBUG_INFO_ITEM, numDebugInfoItems, debugSectionOffset);
         writeMapItem(writer, ItemType.CODE_ITEM, numCodeItemItems, codeSectionOffset);
         writeMapItem(writer, ItemType.CLASS_DATA_ITEM, numClassDataItems, classDataSectionOffset);
+
+        if (shouldWriteHiddenApiRestrictions()) {
+            writeMapItem(writer, ItemType.HIDDENAPI_CLASS_DATA_ITEM, 1, hiddenApiRestrictionsOffset);
+        }
+
         writeMapItem(writer, ItemType.MAP_LIST, 1, mapSectionOffset);
     }
 

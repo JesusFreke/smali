@@ -46,15 +46,18 @@ public class BuilderField extends BaseFieldReference implements Field {
     final int accessFlags;
     @Nullable final BuilderEncodedValue initialValue;
     @Nonnull final BuilderAnnotationSet annotations;
+    @Nonnull Set<HiddenApiRestriction> hiddenApiRestrictions;
 
     BuilderField(@Nonnull BuilderFieldReference fieldReference,
                  int accessFlags,
                  @Nullable BuilderEncodedValue initialValue,
-                 @Nonnull BuilderAnnotationSet annotations) {
+                 @Nonnull BuilderAnnotationSet annotations,
+                 @Nonnull Set<HiddenApiRestriction> hiddenApiRestrictions) {
         this.fieldReference = fieldReference;
         this.accessFlags = accessFlags;
         this.initialValue = initialValue;
         this.annotations = annotations;
+        this.hiddenApiRestrictions = hiddenApiRestrictions;
     }
 
     @Override public int getAccessFlags() {
@@ -82,6 +85,6 @@ public class BuilderField extends BaseFieldReference implements Field {
     }
 
     @Nonnull @Override public Set<HiddenApiRestriction> getHiddenApiRestrictions() {
-        return ImmutableSet.of();
+        return hiddenApiRestrictions;
     }
 }

@@ -87,6 +87,7 @@ public class JumboStringConversionTest {
                                 "V",
                                 0,
                                 ImmutableSet.<Annotation>of(),
+                                ImmutableSet.of(),
                                 methodBuilder.getMethodImplementation())));
 
         MemoryDataStore dexStore = new MemoryDataStore();
@@ -184,6 +185,7 @@ public class JumboStringConversionTest {
                                 "V",
                                 0,
                                 ImmutableSet.<Annotation>of(),
+                                ImmutableSet.of(),
                                 methodImpl)));
 
         MemoryDataStore dexStore = new MemoryDataStore();
