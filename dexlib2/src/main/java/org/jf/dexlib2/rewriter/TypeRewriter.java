@@ -57,7 +57,7 @@ public class TypeRewriter implements Rewriter<String> {
      * @return The modified version of the unwrapped type. This will be re-array-ified if the original wrapped type was
      * an array.
      */
-    @Nonnull public String rewriteUnwrappedType(@Nonnull String value) {
+    @Nonnull protected String rewriteUnwrappedType(@Nonnull String value) {
         return value;
     }
 }
