@@ -99,6 +99,13 @@ public class DexBackedDexFile implements DexFile {
         classCount = dexBuffer.readSmallUint(HeaderItem.CLASS_COUNT_OFFSET);
         classStartOffset = dexBuffer.readSmallUint(HeaderItem.CLASS_START_OFFSET);
         mapOffset = dexBuffer.readSmallUint(HeaderItem.MAP_OFFSET);
+
+        MapItem mapItem = getMapItemForSection(ItemType.HIDDENAPI_CLASS_DATA_ITEM);
+        if (mapItem != null) {
+            hiddenApiRestrictionsOffset = mapItem.getOffset();
+        } else {
+            hiddenApiRestrictionsOffset = NO_OFFSET;
+        }
     }
 
     protected DexBackedDexFile(@Nullable Opcodes opcodes, @Nonnull DexBuffer dexBuffer, @Nonnull DexBuffer dataBuffer, int offset, boolean verifyMagic) {
