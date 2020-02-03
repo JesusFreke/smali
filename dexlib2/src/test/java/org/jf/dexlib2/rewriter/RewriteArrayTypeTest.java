@@ -80,4 +80,29 @@ public class RewriteArrayTypeTest {
         Assert.assertEquals(rewrittenClassDef.getType(), "Lcls2;");
         Assert.assertEquals(rewrittenMethodDef.getParameterTypes().get(0), "[[[Lcls2;");
     }
+
+    @Test
+    public void testUnmodifiedArrayTypeTest() {
+        ClassDef class1 = new ImmutableClassDef("Lcls1;", AccessFlags.PUBLIC.getValue(), "Ljava/lang/Object;", null, null,
+                Lists.newArrayList(new ImmutableAnnotation(AnnotationVisibility.RUNTIME, "Lannotation;", null)),
+                Lists.<Field>newArrayList(
+                        new ImmutableField("Lcls1;", "field1", "I", AccessFlags.PUBLIC.getValue(), null, null, null)
+                ),
+                Lists.<Method>newArrayList(
+                        new ImmutableMethod("Lcls1", "method1",
+                                Lists.<MethodParameter>newArrayList(new ImmutableMethodParameter("[[[Lcls1;", null, null)), "V",
+                                AccessFlags.PUBLIC.getValue(), null, null, null)));
+
+        ImmutableDexFile dexFile = new ImmutableDexFile(Opcodes.getDefault(), ImmutableSet.of(class1));
+
+        DexRewriter rewriter = new DexRewriter(new RewriterModule());
+
+        DexFile rewrittenDexFile = rewriter.getDexFileRewriter().rewrite(dexFile);
+
+        ClassDef rewrittenClassDef = Lists.newArrayList(rewrittenDexFile.getClasses()).get(0);
+        Method rewrittenMethodDef = Lists.newArrayList(rewrittenClassDef.getMethods()).get(0);
+
+        Assert.assertEquals(rewrittenClassDef.getType(), "Lcls1;");
+        Assert.assertEquals(rewrittenMethodDef.getParameterTypes().get(0), "[[[Lcls1;");
+    }
 }

@@ -36,12 +36,20 @@ import javax.annotation.Nonnull;
 public class TypeRewriter implements Rewriter<String> {
     @Nonnull @Override public String rewrite(@Nonnull String value) {
         if (value.length() > 0 && value.charAt(0) == '[') {
-            int dimensions = value.lastIndexOf("[") + 1;
+            int dimensions = 0;
+            while (value.charAt(dimensions) == '[') {
+                dimensions++;
+            }
 
-            String arraySpecifiers = value.substring(0, dimensions);
             String unwrappedType = value.substring(dimensions);
             String rewrittenType = rewriteUnwrappedType(unwrappedType);
-            return arraySpecifiers + rewrittenType;
+
+            // instance equality, to avoid a value comparison in the common case of the type being unmodified
+            if (unwrappedType != rewrittenType) {
+                return new StringBuilder(dimensions + rewrittenType.length())
+                        .append(value, 0, dimensions).append(rewrittenType).toString();
+            }
+            return value;
         } else {
             return rewriteUnwrappedType(value);
         }
