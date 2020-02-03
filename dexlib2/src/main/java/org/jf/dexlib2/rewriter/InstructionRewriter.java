@@ -81,7 +81,7 @@ public class InstructionRewriter implements Rewriter<Instruction> {
         }
 
         @Override @Nonnull public Reference getReference() {
-            switch (getReferenceType()) {
+            switch (instruction.getReferenceType()) {
                 case ReferenceType.TYPE:
                     return RewriterUtils.rewriteTypeReference(rewriters.getTypeRewriter(),
                             (TypeReference)instruction.getReference());
