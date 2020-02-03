@@ -41,6 +41,7 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 import javax.annotation.Nonnull;
 
 public interface Rewriters {
+    @Nonnull Rewriter<DexFile> getDexFileRewriter();
     @Nonnull Rewriter<ClassDef> getClassDefRewriter();
     @Nonnull Rewriter<Field> getFieldRewriter();
 

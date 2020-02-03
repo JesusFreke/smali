@@ -31,7 +31,6 @@
 
 package org.jf.dexlib2.rewriter;
 
-import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -40,7 +39,6 @@ import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
-import java.util.Set;
 
 /**
  * Out-of-the box, this class does nothing except make a picture-perfect copy of a dex file.
@@ -68,6 +66,7 @@ import java.util.Set;
  * </pre>
  */
 public class DexRewriter implements Rewriters {
+    private final Rewriter<DexFile> dexFileRewriter;
     private final Rewriter<ClassDef> classDefRewriter;
     private final Rewriter<Field> fieldRewriter;
     private final Rewriter<Method> methodRewriter;
@@ -85,6 +84,7 @@ public class DexRewriter implements Rewriters {
     private final Rewriter<EncodedValue> encodedValueRewriter;
 
     public DexRewriter(RewriterModule module) {
+        this.dexFileRewriter = module.getDexFileRewriter(this);
         this.classDefRewriter = module.getClassDefRewriter(this);
         this.fieldRewriter = module.getFieldRewriter(this);
         this.methodRewriter = module.getMethodRewriter(this);
@@ -102,27 +102,7 @@ public class DexRewriter implements Rewriters {
         this.encodedValueRewriter = module.getEncodedValueRewriter(this);
     }
 
-    @Nonnull
-    public DexFile rewriteDexFile(@Nonnull DexFile dexFile) {
-        return new RewrittenDexFile(dexFile);
-    }
-
-    protected class RewrittenDexFile implements DexFile {
-        @Nonnull protected final DexFile dexFile;
-
-        public RewrittenDexFile(@Nonnull DexFile dexFile) {
-            this.dexFile = dexFile;
-        }
-
-        @Override @Nonnull public Set<? extends ClassDef> getClasses() {
-            return RewriterUtils.rewriteSet(getClassDefRewriter(), dexFile.getClasses());
-        }
-
-        @Nonnull @Override public Opcodes getOpcodes() {
-            return dexFile.getOpcodes();
-        }
-    }
-
+    @Nonnull @Override public Rewriter<DexFile> getDexFileRewriter() { return dexFileRewriter; }
     @Nonnull @Override public Rewriter<ClassDef> getClassDefRewriter() { return classDefRewriter; }
     @Nonnull @Override public Rewriter<Field> getFieldRewriter() { return fieldRewriter; }
     @Nonnull @Override public Rewriter<Method> getMethodRewriter() { return methodRewriter; }

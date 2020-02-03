@@ -72,7 +72,7 @@ public class RewriteArrayTypeTest {
             }
         });
 
-        DexFile rewrittenDexFile = rewriter.rewriteDexFile(dexFile);
+        DexFile rewrittenDexFile = rewriter.getDexFileRewriter().rewrite(dexFile);
 
         ClassDef rewrittenClassDef = Lists.newArrayList(rewrittenDexFile.getClasses()).get(0);
         Method rewrittenMethodDef = Lists.newArrayList(rewrittenClassDef.getMethods()).get(0);
