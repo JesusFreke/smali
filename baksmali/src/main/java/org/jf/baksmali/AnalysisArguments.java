@@ -34,6 +34,7 @@ package org.jf.baksmali;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.jf.dexlib2.VersionMap;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassPathResolver;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
@@ -101,6 +102,8 @@ public class AnalysisArguments {
             if (container instanceof OatFile) {
                 checkPackagePrivateAccess = true;
                 oatVersion = ((OatFile) container).getOatVersion();
+            } else {
+                oatVersion = VersionMap.mapApiToArtVersion(dexEntry.getDexFile().getOpcodes().api);
             }
         } else {
             // this should always be true for ART
