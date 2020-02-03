@@ -35,6 +35,29 @@ import javax.annotation.Nonnull;
 
 public class TypeRewriter implements Rewriter<String> {
     @Nonnull @Override public String rewrite(@Nonnull String value) {
+        if (value.length() > 0 && value.charAt(0) == '[') {
+            int dimensions = value.lastIndexOf("[") + 1;
+
+            String arraySpecifiers = value.substring(0, dimensions);
+            String unwrappedType = value.substring(dimensions);
+            String rewrittenType = rewriteUnwrappedType(unwrappedType);
+            return arraySpecifiers + rewrittenType;
+        } else {
+            return rewriteUnwrappedType(value);
+        }
+    }
+
+    /**
+     * This is called by the default rewrite implementation with the unwrapped type.
+     *
+     * <p>For array types, the unwrapped type is the type with the array specifiers removed. And there is no difference
+     * for non-array types.
+     *
+     * @param value The unwrapped type
+     * @return The modified version of the unwrapped type. This will be re-array-ified if the original wrapped type was
+     * an array.
+     */
+    @Nonnull public String rewriteUnwrappedType(@Nonnull String value) {
         return value;
     }
 }
