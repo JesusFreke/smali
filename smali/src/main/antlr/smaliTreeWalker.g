@@ -223,7 +223,7 @@ source_spec returns[String source]
     ^(I_SOURCE string_literal {$source = $string_literal.value;})
   | /*epsilon*/;
 
-access_list returns [int value]
+access_list returns[int value]
   @init
   {
     $value = 0;
@@ -235,6 +235,51 @@ access_list returns [int value]
           $value |= AccessFlags.getAccessFlag($ACCESS_SPEC.getText()).getValue();
         }
       )*);
+
+access_or_restriction_list returns[int value, Set<HiddenApiRestriction> hiddenApiRestrictions]
+  @init
+  {
+    $value = 0;
+    HiddenApiRestriction hiddenApiRestriction = null;
+    HiddenApiRestriction domainSpecificApiRestriction = null;
+  }
+  : ^(I_ACCESS_OR_RESTRICTION_LIST
+      (
+        ACCESS_SPEC
+        {
+          $value |= AccessFlags.getAccessFlag($ACCESS_SPEC.getText()).getValue();
+        }
+        |
+        HIDDENAPI_RESTRICTION
+        {
+          if (opcodes.api < 29) {
+              throw new SemanticException(input, $HIDDENAPI_RESTRICTION, "Hidden API restrictions are only supported on api 29 and above.");
+          }
+
+          HiddenApiRestriction restriction = HiddenApiRestriction.forName($HIDDENAPI_RESTRICTION.getText());
+          if (restriction.isDomainSpecificApiFlag()) {
+             if (domainSpecificApiRestriction != null) {
+                throw new SemanticException(input, $HIDDENAPI_RESTRICTION, "Only one domain-specific api restriction may be specified.");
+             }
+             domainSpecificApiRestriction = restriction;
+          } else {
+            if (hiddenApiRestriction != null) {
+              throw new SemanticException(input, $HIDDENAPI_RESTRICTION, "Only one hidden api restriction may be specified.");
+            }
+            hiddenApiRestriction = restriction;
+          }
+        }
+      )*)
+      {
+        List<HiddenApiRestriction> restrictions = new ArrayList<>(2);
+        if (hiddenApiRestriction != null) {
+          restrictions.add(hiddenApiRestriction);
+        }
+        if (domainSpecificApiRestriction != null) {
+          restrictions.add(domainSpecificApiRestriction);
+        }
+        $hiddenApiRestrictions = ImmutableSet.copyOf(restrictions);
+      };
 
 
 fields returns[List<BuilderField> fields]
@@ -254,17 +299,17 @@ methods returns[List<BuilderMethod> methods]
       })*);
 
 field returns [BuilderField field]
-  :^(I_FIELD SIMPLE_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
+  :^(I_FIELD SIMPLE_NAME access_or_restriction_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
   {
-    int accessFlags = $access_list.value;
-
+    int accessFlags = $access_or_restriction_list.value;
+    Set<HiddenApiRestriction> hiddenApiRestrictions = $access_or_restriction_list.hiddenApiRestrictions;
 
     if (!AccessFlags.STATIC.isSet(accessFlags) && $field_initial_value.encodedValue != null) {
         throw new SemanticException(input, "Initial field values can only be specified for static fields.");
     }
 
-    $field = dexBuilder.internField(classType, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type, $access_list.value,
-            $field_initial_value.encodedValue, $annotations.annotations, ImmutableSet.of());
+    $field = dexBuilder.internField(classType, $SIMPLE_NAME.text, $nonvoid_type_descriptor.type, accessFlags,
+            $field_initial_value.encodedValue, $annotations.annotations, hiddenApiRestrictions);
   };
 
 
@@ -363,13 +408,15 @@ method returns[BuilderMethod ret]
     $method::methodParameterRegisters = 0;
     int accessFlags = 0;
     $method::isStatic = false;
+    Set<HiddenApiRestriction> hiddenApiRestrictions = null;
   }
   :
     ^(I_METHOD
       method_name_and_prototype
-      access_list
+      access_or_restriction_list
       {
-        accessFlags = $access_list.value;
+        accessFlags = $access_or_restriction_list.value;
+        hiddenApiRestrictions = $access_or_restriction_list.hiddenApiRestrictions;
         $method::isStatic = AccessFlags.STATIC.isSet(accessFlags);
         $method::methodParameterRegisters =
                 MethodUtil.getParameterRegisterCount($method_name_and_prototype.parameters, $method::isStatic);
@@ -467,7 +514,7 @@ method returns[BuilderMethod ret]
             $method_name_and_prototype.returnType,
             accessFlags,
             $annotations.annotations,
-            ImmutableSet.of(),
+            hiddenApiRestrictions,
             methodImplementation);
   };
 

@@ -33,6 +33,8 @@ package org.jf.dexlib2;
 
 import com.google.common.collect.ImmutableSet;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -57,6 +59,15 @@ public enum HiddenApiRestriction {
     private static final HiddenApiRestriction[] domainSpecificApiFlags = new HiddenApiRestriction[] {
             CORE_PLATFORM_API
     };
+
+    private static final Map<String, HiddenApiRestriction> hiddenApiRestrictionsByName;
+
+    static {
+        hiddenApiRestrictionsByName = new HashMap<>();
+        for (HiddenApiRestriction hiddenApiRestriction : HiddenApiRestriction.values()) {
+            hiddenApiRestrictionsByName.put(hiddenApiRestriction.toString(), hiddenApiRestriction);
+        }
+    }
 
     private static final int HIDDENAPI_FLAG_MASK = 0x7;
 
@@ -133,5 +144,9 @@ public enum HiddenApiRestriction {
         }
 
         return value;
+    }
+
+    public static HiddenApiRestriction forName(String name) {
+        return hiddenApiRestrictionsByName.get(name);
     }
 }

@@ -33,10 +33,7 @@ import com.google.common.collect.Lists;
 import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
 import org.jf.baksmali.BaksmaliOptions;
-import org.jf.dexlib2.AccessFlags;
-import org.jf.dexlib2.Format;
-import org.jf.dexlib2.Opcode;
-import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.*;
 import org.jf.dexlib2.analysis.AnalysisException;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.MethodAnalyzer;
@@ -165,7 +162,7 @@ public class MethodDefinition {
     public static void writeEmptyMethodTo(IndentingWriter writer, Method method,
                                           BaksmaliOptions options) throws IOException {
         writer.write(".method ");
-        writeAccessFlags(writer, method.getAccessFlags());
+        writeAccessFlagsAndRestrictions(writer, method.getAccessFlags(), method.getHiddenApiRestrictions());
         writer.write(method.getName());
         writer.write("(");
         ImmutableList<MethodParameter> methodParameters = ImmutableList.copyOf(method.getParameters());
@@ -196,7 +193,7 @@ public class MethodDefinition {
         }
 
         writer.write(".method ");
-        writeAccessFlags(writer, method.getAccessFlags());
+        writeAccessFlagsAndRestrictions(writer, method.getAccessFlags(), method.getHiddenApiRestrictions());
         writer.write(method.getName());
         writer.write("(");
         for (MethodParameter parameter: methodParameters) {
@@ -303,10 +300,15 @@ public class MethodDefinition {
         }
     }
 
-    private static void writeAccessFlags(IndentingWriter writer, int accessFlags)
+    private static void writeAccessFlagsAndRestrictions(
+            IndentingWriter writer, int accessFlags, Set<HiddenApiRestriction> hiddenApiRestrictions)
             throws IOException {
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(accessFlags)) {
             writer.write(accessFlag.toString());
+            writer.write(' ');
+        }
+        for (HiddenApiRestriction hiddenApiRestriction : hiddenApiRestrictions) {
+            writer.write(hiddenApiRestriction.toString());
             writer.write(' ');
         }
     }

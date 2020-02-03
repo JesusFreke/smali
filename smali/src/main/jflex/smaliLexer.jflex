@@ -470,6 +470,11 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         return newToken(ACCESS_SPEC);
     }
 
+    "whitelist" | "greylist" | "blacklist" | "greylist-max-o" | "greylist-max-p" | "greylist-max-q" |
+    "core-platform-api" {
+        return newToken(HIDDENAPI_RESTRICTION);
+    }
+
     "no-error" | "generic-error" | "no-such-class" | "no-such-field" | "no-such-method" | "illegal-class-access" |
     "illegal-field-access" | "illegal-method-access" | "class-change-error" | "instantiation-error" {
         return newToken(VERIFICATION_ERROR_TYPE);

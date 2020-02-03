@@ -31,6 +31,7 @@ package org.jf.baksmali.Adaptors;
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
 import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.AccessFlags;
+import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.value.EncodedValue;
@@ -39,6 +40,7 @@ import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Set;
 
 public class FieldDefinition {
     public static void writeTo(BaksmaliOptions options, IndentingWriter writer, Field field,
@@ -60,7 +62,7 @@ public class FieldDefinition {
         }
 
         writer.write(".field ");
-        writeAccessFlags(writer, field.getAccessFlags());
+        writeAccessFlagsAndRestrictions(writer, field.getAccessFlags(), field.getHiddenApiRestrictions());
         writer.write(field.getName());
         writer.write(':');
         writer.write(field.getType());
@@ -92,9 +94,15 @@ public class FieldDefinition {
         }
     }
 
-    private static void writeAccessFlags(IndentingWriter writer, int accessFlags) throws IOException {
+    private static void writeAccessFlagsAndRestrictions(
+            IndentingWriter writer, int accessFlags, Set<HiddenApiRestriction> hiddenApiRestrictions)
+            throws IOException {
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForField(accessFlags)) {
             writer.write(accessFlag.toString());
+            writer.write(' ');
+        }
+        for (HiddenApiRestriction hiddenApiRestriction : hiddenApiRestrictions) {
+            writer.write(hiddenApiRestriction.toString());
             writer.write(' ');
         }
     }

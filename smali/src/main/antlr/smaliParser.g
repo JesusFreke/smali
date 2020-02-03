@@ -72,6 +72,7 @@ tokens {
   FIELD_OFFSET;
   FLOAT_LITERAL;
   FLOAT_LITERAL_OR_ID;
+  HIDDENAPI_RESTRICTION;
   IMPLEMENTS_DIRECTIVE;
   INLINE_INDEX;
   INSTRUCTION_FORMAT10t;
@@ -167,6 +168,7 @@ tokens {
   I_IMPLEMENTS;
   I_SOURCE;
   I_ACCESS_LIST;
+  I_ACCESS_OR_RESTRICTION_LIST;
   I_METHODS;
   I_FIELDS;
   I_FIELD;
@@ -479,6 +481,13 @@ source_spec
 access_list
   : ACCESS_SPEC* -> ^(I_ACCESS_LIST[$start,"I_ACCESS_LIST"] ACCESS_SPEC*);
 
+access_or_restriction
+  : ACCESS_SPEC | HIDDENAPI_RESTRICTION;
+
+access_or_restriction_list
+  : access_or_restriction*
+  -> ^(I_ACCESS_OR_RESTRICTION_LIST[$start,"I_ACCESS_AND_RESTRICTION_LIST"] access_or_restriction*);
+
 
 /*When there are annotations immediately after a field definition, we don't know whether they are field annotations
 or class annotations until we determine if there is an .end field directive. In either case, we still "consume" and parse
@@ -486,19 +495,19 @@ the annotations. If it turns out that they are field annotations, we include the
 add them to the $smali_file::classAnnotations list*/
 field
   @init {List<CommonTree> annotations = new ArrayList<CommonTree>();}
-  : FIELD_DIRECTIVE access_list member_name COLON nonvoid_type_descriptor (EQUAL literal)?
+  : FIELD_DIRECTIVE access_or_restriction_list member_name COLON nonvoid_type_descriptor (EQUAL literal)?
     ( ({input.LA(1) == ANNOTATION_DIRECTIVE}? annotation {annotations.add($annotation.tree);})*
       ( END_FIELD_DIRECTIVE
-        -> ^(I_FIELD[$start, "I_FIELD"] member_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*))
+        -> ^(I_FIELD[$start, "I_FIELD"] member_name access_or_restriction_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS annotation*))
       | /*epsilon*/ {$smali_file::classAnnotations.addAll(annotations);}
-        -> ^(I_FIELD[$start, "I_FIELD"] member_name access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS))
+        -> ^(I_FIELD[$start, "I_FIELD"] member_name access_or_restriction_list ^(I_FIELD_TYPE nonvoid_type_descriptor) ^(I_FIELD_INITIAL_VALUE literal)? ^(I_ANNOTATIONS))
       )
     );
 
 method
-  : METHOD_DIRECTIVE access_list member_name method_prototype statements_and_directives
+  : METHOD_DIRECTIVE access_or_restriction_list member_name method_prototype statements_and_directives
     END_METHOD_DIRECTIVE
-    -> ^(I_METHOD[$start, "I_METHOD"] member_name method_prototype access_list statements_and_directives);
+    -> ^(I_METHOD[$start, "I_METHOD"] member_name method_prototype access_or_restriction_list statements_and_directives);
 
 statements_and_directives
   scope
