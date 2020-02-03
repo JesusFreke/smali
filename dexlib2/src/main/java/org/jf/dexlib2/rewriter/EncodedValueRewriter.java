@@ -124,7 +124,7 @@ public class EncodedValueRewriter implements Rewriter<EncodedValue> {
         }
 
         @Override @Nonnull public List<? extends EncodedValue> getValue() {
-            return RewriterUtils.rewriteList(EncodedValueRewriter.this, arrayEncodedValue.getValue());
+            return RewriterUtils.rewriteList(rewriters.getEncodedValueRewriter(), arrayEncodedValue.getValue());
         }
     }
 
