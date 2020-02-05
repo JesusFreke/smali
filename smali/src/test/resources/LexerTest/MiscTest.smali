@@ -34,6 +34,14 @@ annotation
 volatile
 transient
 
+whitelist
+greylist
+blacklist
+greylist-max-o
+greylist-max-p
+greylist-max-q
+core-platform-api
+
 no-error
 generic-error
 no-such-class
