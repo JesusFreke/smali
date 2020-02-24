@@ -1,8 +1,0 @@
-smali.FILE
-  SmaliClass(CLASS)
-    SmaliExtendsList(EXTENDS_LIST)
-      <empty list>
-    SmaliImplementsList(IMPLEMENTS_LIST)
-      <empty list>
-    PsiErrorElement:required (...)+ loop did not match anything at input '<EOF>'
-      <empty list>

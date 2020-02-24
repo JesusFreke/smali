@@ -1,5 +1,1 @@
 include 'util', 'dexlib2', 'baksmali', 'smali', 'dexlib2:accessorTestGenerator'
-
-if (System.getProperty("user.dir").startsWith(file("smalidea").absolutePath)) {
-    include 'smalidea'
-}

@@ -1,8 +1,0 @@
-.method blah .blah )V
-.end method
-
-.method blah(I .blah V
-.end method
-
-.method blah())V
-.end method

@@ -1,7 +1,0 @@
-.method public blah()V
-    .local v0,
-.end method
-
-.method public blah()V
-    .local v0,"":
-.end method
