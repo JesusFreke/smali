@@ -1,5 +1,7 @@
 package org.jf.smali;
 
+import static java.lang.Math.toIntExact;
+
 import java.io.*;
 import java.util.Stack;
 import org.antlr.runtime.*;
@@ -104,9 +106,9 @@ import static org.jf.smali.smaliParser.*;
         if (hidden) {
             token.setChannel(Token.HIDDEN_CHANNEL);
         }
-
-        token.setStartIndex(yychar);
-        token.setStopIndex(yychar + yylength() - 1);
+        // yychar is long, but antlr CommonToken only takes an int.
+        token.setStartIndex(toIntExact(yychar));
+        token.setStopIndex(stopIndex());
         token.setLine(getLine());
         token.setCharPositionInLine(getColumn());
         return token;
@@ -126,9 +128,9 @@ import static org.jf.smali.smaliParser.*;
 
     private Token invalidToken(String message, String text) {
         InvalidToken token = new InvalidToken(message, text);
-
-        token.setStartIndex(yychar);
-        token.setStopIndex(yychar + yylength() - 1);
+        // yychar is long, but antlr CommonToken only takes an int.
+        token.setStartIndex(toIntExact(yychar));
+        token.setStopIndex(stopIndex());
         token.setLine(getLine());
         token.setCharPositionInLine(getColumn());
 
@@ -145,7 +147,8 @@ import static org.jf.smali.smaliParser.*;
         sb.setLength(0);
         tokenStartLine = getLine();
         tokenStartCol = getColumn();
-        tokenStartChar = yychar;
+        // yychar is long, but antlr CommonToken only takes an int.
+        tokenStartChar = toIntExact(yychar);
         tokenError = null;
     }
 
@@ -158,7 +161,7 @@ import static org.jf.smali.smaliParser.*;
 
         CommonToken token = new CommonToken(type, sb.toString());
         token.setStartIndex(tokenStartChar);
-        token.setStopIndex(yychar + yylength() - 1);
+        token.setStopIndex(stopIndex());
         token.setLine(tokenStartLine);
         token.setCharPositionInLine(tokenStartCol);
         return token;
@@ -175,7 +178,7 @@ import static org.jf.smali.smaliParser.*;
 
         InvalidToken token = new InvalidToken(message, sb.toString());
         token.setStartIndex(tokenStartChar);
-        token.setStopIndex(yychar + yylength() - 1);
+        token.setStopIndex(stopIndex());
         token.setLine(tokenStartLine);
         token.setCharPositionInLine(tokenStartCol);
         return token;
@@ -210,6 +213,12 @@ import static org.jf.smali.smaliParser.*;
                 "level 30/dex version 040");
         }
         return processQuotedSimpleName(text);
+    }
+
+    private int stopIndex() {
+      // jflex yychar is long, but antlr CommonToken only takes an int for
+      // stopIndex.
+      return toIntExact(yychar + yylength() - 1);
     }
 %}
 
