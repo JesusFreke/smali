@@ -40,6 +40,8 @@ import java.nio.IntBuffer;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
+import static org.jf.util.StringUtils.escapeString;
+
 /**
  * This class handles the complexities of translating a class name into a file name. i.e. dealing with case insensitive
  * file systems, windows reserved filenames, class names with extremely long package/class elements, etc.
@@ -130,8 +132,11 @@ public class ClassFileNameHandler {
     @Nonnull
     private File addUniqueChild(@Nonnull DirectoryEntry parent, @Nonnull String[] packageElements,
                                 int packageElementIndex) {
+        //some filesystems treat different unicode characters as identical,
+        //e.g. macOS treats Lo/ε (\u03b5) and Lo/ϵ (\u03f5) as the same character for filenames.
+        //So escape packageElements strings to only use standard ascii
         if (packageElementIndex == packageElements.length - 1) {
-            FileEntry fileEntry = new FileEntry(parent, packageElements[packageElementIndex] + fileExtension);
+            FileEntry fileEntry = new FileEntry(parent, escapeString(packageElements[packageElementIndex]) + fileExtension);
             parent.addChild(fileEntry);
 
             String physicalName = fileEntry.getPhysicalName();
@@ -141,7 +146,7 @@ public class ClassFileNameHandler {
 
             return new File(parent.file, physicalName);
         } else {
-            DirectoryEntry directoryEntry = new DirectoryEntry(parent, packageElements[packageElementIndex]);
+            DirectoryEntry directoryEntry = new DirectoryEntry(parent, escapeString(packageElements[packageElementIndex]));
             directoryEntry = (DirectoryEntry)parent.addChild(directoryEntry);
             return addUniqueChild(directoryEntry, packageElements, packageElementIndex+1);
         }
