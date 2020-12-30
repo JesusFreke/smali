@@ -533,7 +533,7 @@ public abstract class DexWriter<
     }
 
     private boolean shouldWriteHiddenApiRestrictions() {
-        return hasHiddenApiRestrictions && opcodes.api >= 29;
+        return hasHiddenApiRestrictions && opcodes.api >= 30;
     }
 
     private static class RestrictionsWriter {

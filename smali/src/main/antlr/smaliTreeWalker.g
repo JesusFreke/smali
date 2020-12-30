@@ -252,8 +252,8 @@ access_or_restriction_list returns[int value, Set<HiddenApiRestriction> hiddenAp
         |
         HIDDENAPI_RESTRICTION
         {
-          if (opcodes.api < 29) {
-              throw new SemanticException(input, $HIDDENAPI_RESTRICTION, "Hidden API restrictions are only supported on api 29 and above.");
+          if (opcodes.api < 30) {
+              throw new SemanticException(input, $HIDDENAPI_RESTRICTION, "Hidden API restrictions are only supported on api 30 and above.");
           }
 
           HiddenApiRestriction restriction = HiddenApiRestriction.forName($HIDDENAPI_RESTRICTION.getText());

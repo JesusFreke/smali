@@ -208,9 +208,9 @@ import static org.jf.smali.smaliParser.*;
     }
 
     private String processQuotedSimpleNameWithSpaces(String text) {
-        if (apiLevel < 30) {
+        if (apiLevel < 31) {
             setStateBasedTokenError("spaces in class descriptors and member names are not supported prior to API " +
-                "level 30/dex version 040");
+                "level 31/dex version 040");
         }
         return processQuotedSimpleName(text);
     }
@@ -479,7 +479,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         return newToken(ACCESS_SPEC);
     }
 
-    "whitelist" | "greylist" | "blacklist" | "greylist-max-o" | "greylist-max-p" | "greylist-max-q" |
+    "whitelist" | "greylist" | "blacklist" | "greylist-max-o" | "greylist-max-p" | "greylist-max-q" | "greylist-max-r" |
     "core-platform-api" {
         return newToken(HIDDENAPI_RESTRICTION);
     }

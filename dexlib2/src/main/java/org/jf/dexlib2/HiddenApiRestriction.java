@@ -45,7 +45,8 @@ public enum HiddenApiRestriction {
     GREYLIST_MAX_O(3, "greylist-max-o", false),
     GREYLIST_MAX_P(4, "greylist-max-p", false),
     GREYLIST_MAX_Q(5, "greylist-max-q", false),
-    CORE_PLATFORM_API(8, "core-platform-api", true);
+    GREYLIST_MAX_R(6, "greylist-max-r", false),
+    CORE_PLATFORM_API(9, "core-platform-api", true);
 
     private static final HiddenApiRestriction[] hiddenApiFlags = new HiddenApiRestriction[] {
             WHITELIST,
@@ -53,7 +54,8 @@ public enum HiddenApiRestriction {
             BLACKLIST,
             GREYLIST_MAX_O,
             GREYLIST_MAX_P,
-            GREYLIST_MAX_Q
+            GREYLIST_MAX_Q,
+            GREYLIST_MAX_R
     };
 
     private static final HiddenApiRestriction[] domainSpecificApiFlags = new HiddenApiRestriction[] {
@@ -105,10 +107,10 @@ public enum HiddenApiRestriction {
         HiddenApiRestriction normalRestriction = hiddenApiFlags[value & HIDDENAPI_FLAG_MASK];
 
         int domainSpecificPart = (value & ~HIDDENAPI_FLAG_MASK);
-        if (domainSpecificPart == 0) {
+        if (domainSpecificPart == 0 | domainSpecificPart != value) {
             return ImmutableSet.of(normalRestriction);
         }
-        return ImmutableSet.of(normalRestriction, domainSpecificApiFlags[(domainSpecificPart >> 3) - 1]);
+        return ImmutableSet.of(normalRestriction, domainSpecificApiFlags[(domainSpecificPart >> 4) - 1]);
     }
 
     public static String formatHiddenRestrictions(int value) {
