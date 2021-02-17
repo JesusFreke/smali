@@ -33,12 +33,17 @@ import com.google.common.collect.Multimap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.IntBuffer;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
+
+import static org.jf.util.PathUtil.testCaseSensitivity;
 
 /**
  * This class handles the complexities of translating a class name into a file name. i.e. dealing with case insensitive
@@ -84,7 +89,7 @@ public class ClassFileNameHandler {
         return MAX_FILENAME_LENGTH - NUMERIC_SUFFIX_RESERVE;
     }
 
-    public File getUniqueFilenameForClass(String className) {
+    public File getUniqueFilenameForClass(String className) throws IOException {
         //class names should be passed in the normal dalvik style, with a leading L, a trailing ;, and using
         //'/' as a separator.
         if (className.charAt(0) != 'L' || className.charAt(className.length()-1) != ';') {
@@ -129,7 +134,7 @@ public class ClassFileNameHandler {
 
     @Nonnull
     private File addUniqueChild(@Nonnull DirectoryEntry parent, @Nonnull String[] packageElements,
-                                int packageElementIndex) {
+                                int packageElementIndex) throws IOException {
         if (packageElementIndex == packageElements.length - 1) {
             FileEntry fileEntry = new FileEntry(parent, packageElements[packageElementIndex] + fileExtension);
             parent.addChild(fileEntry);
@@ -271,7 +276,7 @@ public class ClassFileNameHandler {
             return physicalName;
         }
 
-        public void setSuffix(int suffix) {
+        public void setSuffix(int suffix) throws IOException {
             if (suffix < 0 || suffix > 99999) {
                 throw new IllegalArgumentException("suffix must be in [0, 100000)");
             }
@@ -279,10 +284,18 @@ public class ClassFileNameHandler {
             if (this.physicalName != null) {
                 throw new IllegalStateException("The suffix can only be set once");
             }
-            this.physicalName = makePhysicalName(suffix);
+            String physicalName = getPhysicalNameWithSuffix(suffix);
+            File file = new File(parent.file, physicalName).getCanonicalFile();
+            this.physicalName = file.getName();
+            createIfNeeded();
         }
 
-        protected abstract String makePhysicalName(int suffix);
+        /**
+         * Actually create the (empty) file or directory, if it doesn't exist.
+         */
+        protected abstract void createIfNeeded() throws IOException;
+
+        public abstract String getPhysicalNameWithSuffix(int suffix);
     }
 
     private class DirectoryEntry extends FileSystemEntry {
@@ -290,9 +303,11 @@ public class ClassFileNameHandler {
         private int caseSensitivity = forcedCaseSensitivity;
 
         // maps a normalized (but not suffixed) entry name to 1 or more FileSystemEntries.
-        // Each FileSystemEntry asociated with a normalized entry name must have a distinct
+        // Each FileSystemEntry associated with a normalized entry name must have a distinct
         // physical name
         private final Multimap<String, FileSystemEntry> children = ArrayListMultimap.create();
+        private final Map<String, FileSystemEntry> physicalToEntry = new HashMap<>();
+        private final Map<String, Integer> lastSuffixMap = new HashMap<>();
 
         public DirectoryEntry(@Nonnull File path) {
             super(null, path.getName());
@@ -304,7 +319,7 @@ public class ClassFileNameHandler {
             super(parent, logicalName);
         }
 
-        public synchronized FileSystemEntry addChild(FileSystemEntry entry) {
+        public synchronized FileSystemEntry addChild(FileSystemEntry entry) throws IOException {
             String normalizedChildName = entry.getNormalizedName(false);
             Collection<FileSystemEntry> entries = children.get(normalizedChildName);
             if (entry instanceof DirectoryEntry) {
@@ -314,25 +329,52 @@ public class ClassFileNameHandler {
                     }
                 }
             }
-            entry.setSuffix(entries.size());
+
+            Integer lastSuffix = lastSuffixMap.get(normalizedChildName);
+            if (lastSuffix == null) {
+                lastSuffix = -1;
+            }
+
+            int suffix = lastSuffix;
+            while (true) {
+                suffix++;
+
+                String entryPhysicalName = entry.getPhysicalNameWithSuffix(suffix);
+                File entryFile = new File(this.file, entryPhysicalName);
+                entryPhysicalName = entryFile.getCanonicalFile().getName();
+
+                if (!this.physicalToEntry.containsKey(entryPhysicalName)) {
+                    entry.setSuffix(suffix);
+                    lastSuffixMap.put(normalizedChildName, suffix);
+                    physicalToEntry.put(entry.getPhysicalName(), entry);
+                    break;
+                }
+            }
             entries.add(entry);
             return entry;
         }
 
         @Override
-        protected String makePhysicalName(int suffix) {
+        public String getPhysicalNameWithSuffix(int suffix) {
             if (suffix > 0) {
-                return getNormalizedName(true) + "." + Integer.toString(suffix);
+                return getNormalizedName(true) + "." + suffix;
             }
             return getNormalizedName(true);
         }
 
-        @Override
-        public void setSuffix(int suffix) {
-            super.setSuffix(suffix);
+        @Override protected void createIfNeeded() throws IOException {
             String physicalName = getPhysicalName();
             if (parent != null && physicalName != null) {
-                file = new File(parent.file, physicalName);
+                file = new File(parent.file, physicalName).getCanonicalFile();
+
+                // If there are 2 non-existent files with different names that collide after filesystem
+                // canonicalization, getCanonicalPath() for each will return different values. But once one of the 2
+                // files gets created, the other will return the same name as the one that was created.
+                //
+                // In order to detect these collisions, we need to ensure that the same value would be returned for any
+                // future potential filename that would end up colliding. So we have to actually create the file here,
+                // to force the Schrodinger filename to collapse to this particular version.
+                file.mkdirs();
             }
         }
 
@@ -366,59 +408,6 @@ public class ClassFileNameHandler {
             }
         }
 
-        private boolean testCaseSensitivity(File path) throws IOException {
-            int num = 1;
-            File f, f2;
-            do {
-                f = new File(path, "test." + num);
-                f2 = new File(path, "TEST." + num++);
-            } while(f.exists() || f2.exists());
-
-            try {
-                try {
-                    FileWriter writer = new FileWriter(f);
-                    writer.write("test");
-                    writer.flush();
-                    writer.close();
-                } catch (IOException ex) {
-                    try {f.delete();} catch (Exception ex2) {}
-                    throw ex;
-                }
-
-                if (f2.exists()) {
-                    return false;
-                }
-
-                if (f2.createNewFile()) {
-                    return true;
-                }
-
-                //the above 2 tests should catch almost all cases. But maybe there was a failure while creating f2
-                //that isn't related to case sensitivity. Let's see if we can open the file we just created using
-                //f2
-                try {
-                    CharBuffer buf = CharBuffer.allocate(32);
-                    FileReader reader = new FileReader(f2);
-
-                    while (reader.read(buf) != -1 && buf.length() < 4);
-                    if (buf.length() == 4 && buf.toString().equals("test")) {
-                        return false;
-                    } else {
-                        //we probably shouldn't get here. If the filesystem was case-sensetive, creating a new
-                        //FileReader should have thrown a FileNotFoundException. Otherwise, we should have opened
-                        //the file and read in the string "test". It's remotely possible that someone else modified
-                        //the file after we created it. Let's be safe and return false here as well
-                        assert(false);
-                        return false;
-                    }
-                } catch (FileNotFoundException ex) {
-                    return true;
-                }
-            } finally {
-                try { f.delete(); } catch (Exception ex) {}
-                try { f2.delete(); } catch (Exception ex) {}
-            }
-        }
     }
 
     private class FileEntry extends FileSystemEntry {
@@ -427,11 +416,27 @@ public class ClassFileNameHandler {
         }
 
         @Override
-        protected String makePhysicalName(int suffix) {
+        public String getPhysicalNameWithSuffix(int suffix) {
             if (suffix > 0) {
                 return addSuffixBeforeExtension(getNormalizedName(true), '.' + Integer.toString(suffix));
             }
             return getNormalizedName(true);
+        }
+
+        @Override protected void createIfNeeded() throws IOException {
+            String physicalName = getPhysicalName();
+            if (parent != null && physicalName != null) {
+                File file = new File(parent.file, physicalName).getCanonicalFile();
+
+                // If there are 2 non-existent files with different names that collide after filesystem
+                // canonicalization, getCanonicalPath() for each will return different values. But once one of the 2
+                // files gets created, the other will return the same name as the one that was created.
+                //
+                // In order to detect these collisions, we need to ensure that the same value would be returned for any
+                // future potential filename that would end up colliding. So we have to actually create the file here,
+                // to force the Schrodinger filename to collapse to this particular version.
+                file.createNewFile();
+            }
         }
     }
 

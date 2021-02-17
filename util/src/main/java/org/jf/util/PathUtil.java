@@ -30,8 +30,8 @@ package org.jf.util;
 
 import com.google.common.collect.Lists;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,5 +114,59 @@ public class PathUtil {
         }
 
         return Lists.reverse(path);
+    }
+
+    public static boolean testCaseSensitivity(File path) throws IOException {
+        int num = 1;
+        File f, f2;
+        do {
+            f = new File(path, "test." + num);
+            f2 = new File(path, "TEST." + num++);
+        } while(f.exists() || f2.exists());
+
+        try {
+            try {
+                FileWriter writer = new FileWriter(f);
+                writer.write("test");
+                writer.flush();
+                writer.close();
+            } catch (IOException ex) {
+                try {f.delete();} catch (Exception ex2) {}
+                throw ex;
+            }
+
+            if (f2.exists()) {
+                return false;
+            }
+
+            if (f2.createNewFile()) {
+                return true;
+            }
+
+            //the above 2 tests should catch almost all cases. But maybe there was a failure while creating f2
+            //that isn't related to case sensitivity. Let's see if we can open the file we just created using
+            //f2
+            try {
+                CharBuffer buf = CharBuffer.allocate(32);
+                FileReader reader = new FileReader(f2);
+
+                while (reader.read(buf) != -1 && buf.length() < 4);
+                if (buf.length() == 4 && buf.toString().equals("test")) {
+                    return false;
+                } else {
+                    //we probably shouldn't get here. If the filesystem was case-sensetive, creating a new
+                    //FileReader should have thrown a FileNotFoundException. Otherwise, we should have opened
+                    //the file and read in the string "test". It's remotely possible that someone else modified
+                    //the file after we created it. Let's be safe and return false here as well
+                    assert(false);
+                    return false;
+                }
+            } catch (FileNotFoundException ex) {
+                return true;
+            }
+        } finally {
+            try { f.delete(); } catch (Exception ex) {}
+            try { f2.delete(); } catch (Exception ex) {}
+        }
     }
 }

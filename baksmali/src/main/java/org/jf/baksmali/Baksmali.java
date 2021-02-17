@@ -118,7 +118,14 @@ public class Baksmali {
             return false;
         }
 
-        File smaliFile = fileNameHandler.getUniqueFilenameForClass(classDescriptor);
+        File smaliFile = null;
+        try {
+            smaliFile = fileNameHandler.getUniqueFilenameForClass(classDescriptor);
+        } catch (IOException ex) {
+            System.err.println("\n\nError occurred while creating file for class " + classDescriptor);
+            ex.printStackTrace();
+            return false;
+        }
 
         //create and initialize the top level string template
         ClassDefinition classDefinition = new ClassDefinition(options, classDef);

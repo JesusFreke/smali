@@ -37,6 +37,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 public class ClassFileNameHandlerTest {
@@ -115,10 +116,10 @@ public class ClassFileNameHandlerTest {
     }
 
     @Test
-    public void testMultipleLongNames() {
+    public void testMultipleLongNames() throws IOException {
         String filenameFragment = Strings.repeat("a", 512);
 
-        File tempDir = Files.createTempDir();
+        File tempDir = Files.createTempDir().getCanonicalFile();
         ClassFileNameHandler handler = new ClassFileNameHandler(tempDir, ".smali");
 
         // put the differentiating character in the middle, where it will get stripped out by the filename shortening
@@ -133,8 +134,8 @@ public class ClassFileNameHandlerTest {
     }
 
     @Test
-    public void testBasicFunctionality() {
-        File tempDir = Files.createTempDir();
+    public void testBasicFunctionality() throws IOException {
+        File tempDir = Files.createTempDir().getCanonicalFile();
         ClassFileNameHandler handler = new ClassFileNameHandler(tempDir, ".smali");
 
         File file = handler.getUniqueFilenameForClass("La/b/c/d;");
@@ -154,8 +155,8 @@ public class ClassFileNameHandlerTest {
     }
 
     @Test
-    public void testCaseInsensitiveFilesystem() {
-        File tempDir = Files.createTempDir();
+    public void testCaseInsensitiveFilesystem() throws IOException {
+        File tempDir = Files.createTempDir().getCanonicalFile();
         ClassFileNameHandler handler = new ClassFileNameHandler(tempDir, ".smali", false, false);
 
         File file = handler.getUniqueFilenameForClass("La/b/c;");
@@ -169,8 +170,14 @@ public class ClassFileNameHandlerTest {
     }
 
     @Test
-    public void testCaseSensitiveFilesystem() {
-        File tempDir = Files.createTempDir();
+    public void testCaseSensitiveFilesystem() throws IOException {
+
+        File tempDir = Files.createTempDir().getCanonicalFile();
+        if (!PathUtil.testCaseSensitivity(tempDir)) {
+            // Test can only be performed on case sensitive systems
+            return;
+        }
+
         ClassFileNameHandler handler = new ClassFileNameHandler(tempDir, ".smali", true, false);
 
         File file = handler.getUniqueFilenameForClass("La/b/c;");
@@ -184,8 +191,8 @@ public class ClassFileNameHandlerTest {
     }
 
     @Test
-    public void testWindowsReservedFilenames() {
-        File tempDir = Files.createTempDir();
+    public void testWindowsReservedFilenames() throws IOException {
+        File tempDir = Files.createTempDir().getCanonicalFile();
         ClassFileNameHandler handler = new ClassFileNameHandler(tempDir, ".smali", false, true);
 
         File file = handler.getUniqueFilenameForClass("La/con/c;");
@@ -210,21 +217,29 @@ public class ClassFileNameHandlerTest {
     }
 
     @Test
-    public void testIgnoringWindowsReservedFilenames() {
-        File tempDir = Files.createTempDir();
+    public void testIgnoringWindowsReservedFilenames() throws IOException {
+        File tempDir = Files.createTempDir().getCanonicalFile();
         ClassFileNameHandler handler = new ClassFileNameHandler(tempDir, ".smali", true, false);
 
         File file = handler.getUniqueFilenameForClass("La/con/c;");
         checkFilename(tempDir, file, "a", "con", "c.smali");
 
         file = handler.getUniqueFilenameForClass("La/Con/c;");
-        checkFilename(tempDir, file, "a", "Con", "c.smali");
+        if (PathUtil.testCaseSensitivity(tempDir)) {
+            checkFilename(tempDir, file, "a", "Con", "c.smali");
+        } else {
+            checkFilename(tempDir, file, "a", "Con.1", "c.smali");
+        }
 
         file = handler.getUniqueFilenameForClass("La/b/PRN;");
         checkFilename(tempDir, file, "a", "b", "PRN.smali");
 
         file = handler.getUniqueFilenameForClass("La/b/prN;");
-        checkFilename(tempDir, file, "a", "b", "prN.smali");
+        if (PathUtil.testCaseSensitivity(tempDir)) {
+            checkFilename(tempDir, file, "a", "b", "prN.smali");
+        } else {
+            checkFilename(tempDir, file, "a", "b", "prN.1.smali");
+        }
 
         file = handler.getUniqueFilenameForClass("La/b/com0;");
         checkFilename(tempDir, file, "a", "b", "com0.smali");
@@ -233,6 +248,35 @@ public class ClassFileNameHandlerTest {
             file = handler.getUniqueFilenameForClass("L" + reservedName + ";");
             checkFilename(tempDir, file, reservedName +".smali");
         }
+    }
+
+    @Test
+    public void testUnicodeCollisionOnMac() throws IOException {
+        if (!System.getProperty("os.name").toLowerCase().contains("mac")) {
+            // The test is only applicable when run on a mac system
+            return;
+        }
+
+        File tempDir = Files.createTempDir().getCanonicalFile();
+        ClassFileNameHandler handler = new ClassFileNameHandler(tempDir, ".smali", true, false);
+
+        File file = handler.getUniqueFilenameForClass("Lε;");
+        checkFilename(tempDir, file, "ε.smali");
+
+        file = handler.getUniqueFilenameForClass("Lϵ;");
+        checkFilename(tempDir, file, "ϵ.1.smali");
+
+        file = handler.getUniqueFilenameForClass("Lε/ε;");
+        checkFilename(tempDir, file, "ε", "ε.smali");
+
+        file = handler.getUniqueFilenameForClass("Lε/ϵ;");
+        checkFilename(tempDir, file, "ε", "ϵ.1.smali");
+
+        file = handler.getUniqueFilenameForClass("Lϵ/ϵ;");
+        checkFilename(tempDir, file, "ϵ.1", "ϵ.smali");
+
+        file = handler.getUniqueFilenameForClass("Lϵ/ε;");
+        checkFilename(tempDir, file, "ϵ.1", "ε.1.smali");
     }
 
     private void checkFilename(File base, File file, String... elements) {
