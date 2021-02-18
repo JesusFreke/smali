@@ -11,6 +11,8 @@
 
 .field public blacklist instanceField:I
 
+.field public whitelist test-api testApiField:I
+
 
 # direct methods
 .method private greylist-max-q core-platform-api corePlatformApiAndHiddenApiTest()V
@@ -31,6 +33,15 @@
     return-void
 .end method
 
+.method private greylist-max-q core-platform-api test-api testAndCorePlatformApiMethod()V
+    .registers 1
+    return-void
+.end method
+
+.method private greylist-max-q test-api testApiMethod()V
+    .registers 1
+    return-void
+.end method
 
 # virtual methods
 .method public blacklist virtualMethod()V

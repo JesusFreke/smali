@@ -241,7 +241,7 @@ access_or_restriction_list returns[int value, Set<HiddenApiRestriction> hiddenAp
   {
     $value = 0;
     HiddenApiRestriction hiddenApiRestriction = null;
-    HiddenApiRestriction domainSpecificApiRestriction = null;
+    List<HiddenApiRestriction> domainSpecificApiRestrictions = new ArrayList<>();
   }
   : ^(I_ACCESS_OR_RESTRICTION_LIST
       (
@@ -258,10 +258,7 @@ access_or_restriction_list returns[int value, Set<HiddenApiRestriction> hiddenAp
 
           HiddenApiRestriction restriction = HiddenApiRestriction.forName($HIDDENAPI_RESTRICTION.getText());
           if (restriction.isDomainSpecificApiFlag()) {
-             if (domainSpecificApiRestriction != null) {
-                throw new SemanticException(input, $HIDDENAPI_RESTRICTION, "Only one domain-specific api restriction may be specified.");
-             }
-             domainSpecificApiRestriction = restriction;
+             domainSpecificApiRestrictions.add(restriction);
           } else {
             if (hiddenApiRestriction != null) {
               throw new SemanticException(input, $HIDDENAPI_RESTRICTION, "Only one hidden api restriction may be specified.");
@@ -271,16 +268,13 @@ access_or_restriction_list returns[int value, Set<HiddenApiRestriction> hiddenAp
         }
       )*)
       {
-        List<HiddenApiRestriction> restrictions = new ArrayList<>(2);
+        ImmutableSet.Builder builder = ImmutableSet.builder();
         if (hiddenApiRestriction != null) {
-          restrictions.add(hiddenApiRestriction);
+          builder.add(hiddenApiRestriction);
         }
-        if (domainSpecificApiRestriction != null) {
-          restrictions.add(domainSpecificApiRestriction);
-        }
-        $hiddenApiRestrictions = ImmutableSet.copyOf(restrictions);
+        builder.addAll(domainSpecificApiRestrictions);
+        $hiddenApiRestrictions = builder.build();
       };
-
 
 fields returns[List<BuilderField> fields]
   @init {$fields = Lists.newArrayList();}

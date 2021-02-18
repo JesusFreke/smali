@@ -480,7 +480,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
     }
 
     "whitelist" | "greylist" | "blacklist" | "greylist-max-o" | "greylist-max-p" | "greylist-max-q" |
-    "core-platform-api" {
+    "core-platform-api" | "test-api" {
         return newToken(HIDDENAPI_RESTRICTION);
     }
 

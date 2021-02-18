@@ -41,6 +41,7 @@ HIDDENAPI_RESTRICTION("greylist-max-o")
 HIDDENAPI_RESTRICTION("greylist-max-p")
 HIDDENAPI_RESTRICTION("greylist-max-q")
 HIDDENAPI_RESTRICTION("core-platform-api")
+HIDDENAPI_RESTRICTION("test-api")
 
 VERIFICATION_ERROR_TYPE("no-error")
 VERIFICATION_ERROR_TYPE("generic-error")

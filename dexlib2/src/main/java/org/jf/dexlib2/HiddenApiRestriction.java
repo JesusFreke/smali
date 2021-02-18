@@ -32,6 +32,7 @@
 package org.jf.dexlib2;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +46,8 @@ public enum HiddenApiRestriction {
     GREYLIST_MAX_O(3, "greylist-max-o", false),
     GREYLIST_MAX_P(4, "greylist-max-p", false),
     GREYLIST_MAX_Q(5, "greylist-max-q", false),
-    CORE_PLATFORM_API(8, "core-platform-api", true);
+    CORE_PLATFORM_API(8, "core-platform-api", true),
+    TEST_API(16, "test-api", true);
 
     private static final HiddenApiRestriction[] hiddenApiFlags = new HiddenApiRestriction[] {
             WHITELIST,
@@ -57,7 +59,8 @@ public enum HiddenApiRestriction {
     };
 
     private static final HiddenApiRestriction[] domainSpecificApiFlags = new HiddenApiRestriction[] {
-            CORE_PLATFORM_API
+            CORE_PLATFORM_API,
+            TEST_API
     };
 
     private static final Map<String, HiddenApiRestriction> hiddenApiRestrictionsByName;
@@ -91,7 +94,7 @@ public enum HiddenApiRestriction {
 
     public boolean isSet(int value) {
         if (isDomainSpecificApiFlag) {
-            return (value & ~HIDDENAPI_FLAG_MASK) == this.value;
+            return (value & this.value) != 0;
         } else {
             return (value & HIDDENAPI_FLAG_MASK) == this.value;
         }
@@ -108,7 +111,14 @@ public enum HiddenApiRestriction {
         if (domainSpecificPart == 0) {
             return ImmutableSet.of(normalRestriction);
         }
-        return ImmutableSet.of(normalRestriction, domainSpecificApiFlags[(domainSpecificPart >> 3) - 1]);
+        Builder<HiddenApiRestriction> builder = ImmutableSet.builder();
+        builder.add(normalRestriction);
+        for (HiddenApiRestriction domainSpecificApiFlag : domainSpecificApiFlags) {
+            if (domainSpecificApiFlag.isSet(value)) {
+                builder.add(domainSpecificApiFlag);
+            }
+        }
+        return builder.build();
     }
 
     public static String formatHiddenRestrictions(int value) {
@@ -121,17 +131,11 @@ public enum HiddenApiRestriction {
 
     public static int combineFlags(Iterable<HiddenApiRestriction> flags) {
         boolean gotHiddenApiFlag = false;
-        boolean gotDomainSpecificApiFlag = false;
 
         int value = 0;
 
         for (HiddenApiRestriction flag : flags) {
             if (flag.isDomainSpecificApiFlag) {
-                if (gotDomainSpecificApiFlag) {
-                    throw new IllegalArgumentException(
-                            "Cannot combine multiple flags for domain-specific api restrictions");
-                }
-                gotDomainSpecificApiFlag = true;
                 value += flag.value;
             } else {
                 if (gotHiddenApiFlag) {

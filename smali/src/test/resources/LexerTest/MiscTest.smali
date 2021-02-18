@@ -41,6 +41,7 @@ greylist-max-o
 greylist-max-p
 greylist-max-q
 core-platform-api
+test-api
 
 no-error
 generic-error
