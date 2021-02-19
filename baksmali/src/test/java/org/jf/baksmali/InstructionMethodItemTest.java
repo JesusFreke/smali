@@ -144,7 +144,8 @@ public class InstructionMethodItemTest {
         IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
         methodItem.writeTo(indentingWriter);
 
-        Assert.assertEquals("#Invalid reference\n#const-string v0, blahblahblah\nnop", stringWriter.toString());
+        String line = System.getProperty("line.separator");
+        Assert.assertEquals("#Invalid reference" + line + "#const-string v0, blahblahblah" + line + "nop", stringWriter.toString());
     }
 
     private static class TestMethod extends BaseMethodReference implements Method {

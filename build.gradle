@@ -142,6 +142,8 @@ subprojects {
                     repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
                         authentication(userName: sonatypeUsername, password: sonatypePassword)
                     }
+                } else {
+                    repository(url: "file://release")
                 }
 
                 pom.artifactId = project.name
