@@ -57,6 +57,10 @@ public class StringUtils {
         writer.write(Character.forDigit(c & 0x0f, 16));
     }
 
+    /**
+     * @deprecated Use {@link org.jf.dexlib2.formatter.DexFormattedWriter#writeQuotedString(CharSequence)}
+     */
+    @Deprecated
     public static void writeEscapedString(Writer writer, String value) throws IOException {
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);

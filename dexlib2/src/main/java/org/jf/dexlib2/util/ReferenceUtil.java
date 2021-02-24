@@ -42,6 +42,12 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 
+/**
+ * Some utilities for generating human-readable strings for the various types of references.
+ *
+ * @deprecated use {@link org.jf.dexlib2.formatter.DefaultDexFormatter} instead.
+ */
+@Deprecated
 public final class ReferenceUtil {
     public static String getMethodDescriptor(MethodReference methodReference) {
         return getMethodDescriptor(methodReference, false);

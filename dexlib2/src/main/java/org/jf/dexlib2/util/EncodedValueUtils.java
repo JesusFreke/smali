@@ -40,6 +40,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
 
+/**
+ * Some utilities for generating human-readable strings for encoded values.
+ */
 public final class EncodedValueUtils {
     public static boolean isDefaultValue(EncodedValue encodedValue) {
         switch (encodedValue.getValueType()) {
@@ -65,6 +68,10 @@ public final class EncodedValueUtils {
         return false;
     }
 
+    /**
+     * @deprecated use {@link org.jf.dexlib2.formatter.DefaultDexFormatter} instead.
+     */
+    @Deprecated
     public static void writeEncodedValue(Writer writer, EncodedValue encodedValue) throws IOException {
         switch (encodedValue.getValueType()) {
             case ValueType.BOOLEAN:
