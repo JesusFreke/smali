@@ -33,6 +33,7 @@ package org.jf.dexlib2.base.value;
 
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.EnumEncodedValue;
 
@@ -61,4 +62,8 @@ public abstract class BaseEnumEncodedValue implements EnumEncodedValue {
     }
 
     public int getValueType() { return ValueType.ENUM; }
+
+    @Override public String toString() {
+        return DexFormatter.INSTANCE.getEncodedValue(this);
+    }
 }

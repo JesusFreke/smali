@@ -32,8 +32,8 @@
 package org.jf.dexlib2.base.reference;
 
 import com.google.common.collect.Ordering;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.reference.MethodProtoReference;
-import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.CharSequenceUtils;
 import org.jf.util.CollectionUtils;
 
@@ -66,6 +66,6 @@ public abstract class BaseMethodProtoReference extends BaseReference implements 
     }
 
     @Override public String toString() {
-        return ReferenceUtil.getMethodProtoDescriptor(this);
+        return DexFormatter.INSTANCE.getMethodProtoDescriptor(this);
     }
 }

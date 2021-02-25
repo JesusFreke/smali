@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.base.reference;
 
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.reference.CallSiteReference;
 
 public abstract class BaseCallSiteReference extends BaseReference implements CallSiteReference {
@@ -54,5 +55,9 @@ public abstract class BaseCallSiteReference extends BaseReference implements Cal
                     getExtraArguments().equals(other.getExtraArguments());
         }
         return false;
+    }
+
+    @Override public String toString() {
+        return DexFormatter.INSTANCE.getCallSite(this);
     }
 }

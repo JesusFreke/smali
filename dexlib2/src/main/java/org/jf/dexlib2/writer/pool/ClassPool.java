@@ -41,6 +41,7 @@ import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.builder.MutableMethodImplementation;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -48,7 +49,6 @@ import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
-import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.writer.ClassSection;
 import org.jf.dexlib2.writer.DebugWriter;
 import org.jf.dexlib2.writer.util.StaticInitializerUtil;
@@ -84,7 +84,7 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
 
         HashSet<String> fields = new HashSet<String>();
         for (Field field: poolClassDef.getFields()) {
-            String fieldDescriptor = ReferenceUtil.getShortFieldDescriptor(field);
+            String fieldDescriptor = DexFormatter.INSTANCE.getShortFieldDescriptor(field);
             if (!fields.add(fieldDescriptor)) {
                 throw new ExceptionWithContext("Multiple definitions for field %s->%s",
                         poolClassDef.getType(), fieldDescriptor);
@@ -106,7 +106,7 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
 
         HashSet<String> methods = new HashSet<String>();
         for (PoolMethod method: poolClassDef.getMethods()) {
-            String methodDescriptor = ReferenceUtil.getMethodDescriptor(method, true);
+            String methodDescriptor = DexFormatter.INSTANCE.getShortMethodDescriptor(method);
             if (!methods.add(methodDescriptor)) {
                 throw new ExceptionWithContext("Multiple definitions for method %s->%s",
                         poolClassDef.getType(), methodDescriptor);
@@ -139,7 +139,7 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
                             dexPool.stringSection.intern((StringReference)reference);
                             break;
                         case ReferenceType.TYPE:
-                            dexPool.typeSection.intern((TypeReference)reference);
+                            dexPool.typeSection.intern(((TypeReference)reference).getType());
                             break;
                         case ReferenceType.FIELD:
                             dexPool.fieldSection.intern((FieldReference) reference);
@@ -159,8 +159,7 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
 
             List<? extends TryBlock> tryBlocks = methodImpl.getTryBlocks();
             if (!hasInstruction && tryBlocks.size() > 0) {
-                throw new ExceptionWithContext("Method %s has no instructions, but has try blocks.",
-                        ReferenceUtil.getMethodDescriptor(method));
+                throw new ExceptionWithContext("Method %s has no instructions, but has try blocks.", method);
             }
 
             for (TryBlock<? extends ExceptionHandler> tryBlock: methodImpl.getTryBlocks()) {

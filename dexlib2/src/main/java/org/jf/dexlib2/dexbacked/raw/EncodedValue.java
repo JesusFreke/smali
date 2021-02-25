@@ -36,11 +36,8 @@ import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.value.DexBackedEncodedValue;
 import org.jf.dexlib2.util.AnnotatedBytes;
-import org.jf.dexlib2.util.EncodedValueUtils;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.StringWriter;
 
 public class EncodedValue {
     public static void annotateEncodedValue(
@@ -186,15 +183,8 @@ public class EncodedValue {
             case ValueType.ARRAY:
             case ValueType.ANNOTATION:
             case ValueType.METHOD_HANDLE:
-                StringWriter writer = new StringWriter();
                 reader.setOffset(reader.getOffset() - 1);
-                try {
-                    EncodedValueUtils.writeEncodedValue(writer, DexBackedEncodedValue.readFrom(dexFile, reader));
-                } catch (IOException ex) {
-                    // Shouldn't happen with a StringWriter...
-                    throw new RuntimeException(ex);
-                }
-                return writer.toString();
+                return DexBackedEncodedValue.readFrom(dexFile, reader).toString();
             case ValueType.NULL:
                 return "null";
             case ValueType.BOOLEAN:

@@ -59,8 +59,8 @@ public class RollbackTest {
                         new ImmutableField("Lcls1;", "field1", "I", AccessFlags.PUBLIC.getValue(), null, null, null)
                 ),
                 Lists.<Method>newArrayList(
-                        new ImmutableMethod("Lcls1", "method1",
-                                Lists.<MethodParameter>newArrayList(new ImmutableMethodParameter("L", null, null)), "V",
+                        new ImmutableMethod("Lcls1;", "method1",
+                                Lists.<MethodParameter>newArrayList(new ImmutableMethodParameter("I", null, null)), "V",
                                 AccessFlags.PUBLIC.getValue(), null, null, null))
                 );
 

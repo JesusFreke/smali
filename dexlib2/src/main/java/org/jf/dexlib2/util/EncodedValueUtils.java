@@ -32,6 +32,7 @@
 package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.util.StringUtils;
@@ -69,7 +70,7 @@ public final class EncodedValueUtils {
     }
 
     /**
-     * @deprecated use {@link org.jf.dexlib2.formatter.DefaultDexFormatter} instead.
+     * @deprecated use {@link DexFormatter} instead.
      */
     @Deprecated
     public static void writeEncodedValue(Writer writer, EncodedValue encodedValue) throws IOException {

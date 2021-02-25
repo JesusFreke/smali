@@ -34,6 +34,7 @@ package org.jf.dexlib2.base.value;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.value.BooleanEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
@@ -62,4 +63,8 @@ public abstract class BaseBooleanEncodedValue implements BooleanEncodedValue {
     }
 
     public int getValueType() { return ValueType.BOOLEAN; }
+
+    @Override public String toString() {
+        return DexFormatter.INSTANCE.getEncodedValue(this);
+    }
 }

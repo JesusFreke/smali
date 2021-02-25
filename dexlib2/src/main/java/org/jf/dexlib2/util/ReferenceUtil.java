@@ -32,6 +32,7 @@
 package org.jf.dexlib2.util;
 
 import org.jf.dexlib2.MethodHandleType;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.util.StringUtils;
@@ -45,7 +46,7 @@ import java.io.Writer;
 /**
  * Some utilities for generating human-readable strings for the various types of references.
  *
- * @deprecated use {@link org.jf.dexlib2.formatter.DefaultDexFormatter} instead.
+ * @deprecated use {@link DexFormatter} instead.
  */
 @Deprecated
 public final class ReferenceUtil {

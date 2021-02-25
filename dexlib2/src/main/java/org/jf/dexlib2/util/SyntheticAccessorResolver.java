@@ -71,7 +71,7 @@ public class SyntheticAccessorResolver {
 
     private final SyntheticAccessorFSM syntheticAccessorFSM;
     private final Map<String, ClassDef> classDefMap;
-    private final Map<String, AccessedMember> resolvedAccessors = Maps.newConcurrentMap();
+    private final Map<MethodReference, AccessedMember> resolvedAccessors = Maps.newConcurrentMap();
 
     public SyntheticAccessorResolver(@Nonnull Opcodes opcodes, @Nonnull Iterable<? extends ClassDef> classDefs) {
         this.syntheticAccessorFSM = new SyntheticAccessorFSM(opcodes);
@@ -90,9 +90,7 @@ public class SyntheticAccessorResolver {
 
     @Nullable
     public AccessedMember getAccessedMember(@Nonnull MethodReference methodReference) {
-        String methodDescriptor = ReferenceUtil.getMethodDescriptor(methodReference);
-
-        AccessedMember accessedMember = resolvedAccessors.get(methodDescriptor);
+        AccessedMember accessedMember = resolvedAccessors.get(methodReference);
         if (accessedMember != null) {
             return accessedMember;
         }
@@ -133,7 +131,7 @@ public class SyntheticAccessorResolver {
         if (accessType >= 0) {
             AccessedMember member =
                     new AccessedMember(accessType, ((ReferenceInstruction)instructions.get(0)).getReference());
-            resolvedAccessors.put(methodDescriptor, member);
+            resolvedAccessors.put(methodReference, member);
             return member;
         }
         return null;

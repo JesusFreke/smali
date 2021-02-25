@@ -31,6 +31,7 @@
 
 package org.jf.dexlib2.base.reference;
 
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.annotation.Nonnull;
@@ -62,5 +63,8 @@ public abstract class BaseTypeReference extends BaseReference implements TypeRef
     @Override public int length() { return getType().length(); }
     @Override public char charAt(int index) { return getType().charAt(index); }
     @Override public CharSequence subSequence(int start, int end) { return getType().subSequence(start, end); }
-    @Override @Nonnull public String toString() { return getType(); }
+
+    @Override @Nonnull public String toString() {
+        return DexFormatter.INSTANCE.getType(this);
+    }
 }

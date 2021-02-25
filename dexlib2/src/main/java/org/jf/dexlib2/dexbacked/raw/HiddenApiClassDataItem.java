@@ -39,7 +39,6 @@ import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.Field;
 import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.util.AnnotatedBytes;
-import org.jf.dexlib2.util.ReferenceUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -66,7 +65,7 @@ public class HiddenApiClassDataItem {
 
                 int index = 0;
                 for (ClassDef classDef : dexFile.getClasses()) {
-                    out.annotate(0, "[%d] %s", index, ReferenceUtil.getReferenceString(classDef));
+                    out.annotate(0, "[%d] %s", index, classDef);
                     out.indent();
 
                     int offset = dexFile.getDataBuffer().readSmallUint(out.getCursor());
@@ -85,7 +84,7 @@ public class HiddenApiClassDataItem {
                         DexReader<? extends DexBuffer> reader = dexFile.getBuffer().readerAt(out.getCursor());
 
                         for (Field field : classDef.getStaticFields()) {
-                            out.annotate(0, "%s:", ReferenceUtil.getReferenceString(field));
+                            out.annotate(0, "%s:", field);
                             out.indent();
                             int restrictions = reader.readSmallUleb128();
                             out.annotateTo(reader.getOffset(), "restriction = 0x%x: %s",
@@ -94,7 +93,7 @@ public class HiddenApiClassDataItem {
                             out.deindent();
                         }
                         for (Field field : classDef.getInstanceFields()) {
-                            out.annotate(0, "%s:", ReferenceUtil.getReferenceString(field));
+                            out.annotate(0, "%s:", field);
                             out.indent();
                             int restrictions = reader.readSmallUleb128();
                             out.annotateTo(reader.getOffset(), "restriction = 0x%x: %s",
@@ -103,7 +102,7 @@ public class HiddenApiClassDataItem {
                             out.deindent();
                         }
                         for (Method method : classDef.getDirectMethods()) {
-                            out.annotate(0, "%s:", ReferenceUtil.getReferenceString(method));
+                            out.annotate(0, "%s:", method);
                             out.indent();
                             int restrictions = reader.readSmallUleb128();
                             out.annotateTo(reader.getOffset(), "restriction = 0x%x: %s",
@@ -112,7 +111,7 @@ public class HiddenApiClassDataItem {
                             out.deindent();
                         }
                         for (Method method : classDef.getVirtualMethods()) {
-                            out.annotate(0, "%s:", ReferenceUtil.getReferenceString(method));
+                            out.annotate(0, "%s:", method);
                             out.indent();
                             int restrictions = reader.readSmallUleb128();
                             out.annotateTo(reader.getOffset(), "restriction = 0x%x: %s",

@@ -33,15 +33,18 @@ package org.jf.dexlib2.dexbacked.raw;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
 import org.jf.dexlib2.dexbacked.CDexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction;
 import org.jf.dexlib2.dexbacked.raw.util.DexAnnotator;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.util.AnnotatedBytes;
-import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.NumberUtils;
 
@@ -461,19 +464,16 @@ public class CodeItem {
                 args.add(formatRegister(instruction.getRegisterG()));
             }
 
-            String reference = ReferenceUtil.getReferenceString(instruction.getReference());
-
             out.annotate(6, String.format("%s {%s}, %s",
-                    instruction.getOpcode().name, Joiner.on(", ").join(args), reference));
+                    instruction.getOpcode().name, Joiner.on(", ").join(args), instruction.getReference()));
         }
 
         private void annotateInstruction3rc(@Nonnull AnnotatedBytes out, @Nonnull Instruction3rc instruction) {
             int startRegister = instruction.getStartRegister();
             int endRegister = startRegister + instruction.getRegisterCount() - 1;
-            String reference = ReferenceUtil.getReferenceString(instruction.getReference());
             out.annotate(6, String.format("%s {%s .. %s}, %s",
                     instruction.getOpcode().name, formatRegister(startRegister), formatRegister(endRegister),
-                    reference));
+                    instruction.getReference()));
         }
 
         private void annotateDefaultInstruction(@Nonnull AnnotatedBytes out, @Nonnull Instruction instruction) {
@@ -498,7 +498,17 @@ public class CodeItem {
             }
 
             if (instruction instanceof ReferenceInstruction) {
-                args.add(ReferenceUtil.getReferenceString(((ReferenceInstruction)instruction).getReference()));
+                ReferenceInstruction referenceInstruction = ((ReferenceInstruction)instruction);
+                Reference reference = ((ReferenceInstruction)instruction).getReference();
+
+                String referenceString;
+                if (referenceInstruction.getReferenceType() == ReferenceType.STRING) {
+                    referenceString = DexFormatter.INSTANCE.getQuotedString((StringReference)reference);
+                } else {
+                    referenceString = referenceInstruction.getReference().toString();
+                }
+
+                args.add(referenceString);
             } else if (instruction instanceof OffsetInstruction) {
                 int offset = ((OffsetInstruction)instruction).getCodeOffset();
                 String sign = offset>=0?"+":"-";

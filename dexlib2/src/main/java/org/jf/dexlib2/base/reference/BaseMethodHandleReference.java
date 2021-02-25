@@ -32,6 +32,7 @@
 package org.jf.dexlib2.base.reference;
 
 import com.google.common.primitives.Ints;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodHandleReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
@@ -76,5 +77,9 @@ public abstract class BaseMethodHandleReference extends BaseReference implements
             }
             return ((MethodReference) reference).compareTo((MethodReference) o.getMemberReference());
         }
+    }
+
+    @Override public String toString() {
+        return DexFormatter.INSTANCE.getMethodHandle(this);
     }
 }

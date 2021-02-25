@@ -48,7 +48,6 @@ import org.jf.dexlib2.immutable.instruction.*;
 import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
 import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
 import org.jf.dexlib2.util.MethodUtil;
-import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.util.TypeUtils;
 import org.jf.dexlib2.writer.util.TryListBuilder;
 import org.jf.util.BitSetUtils;
@@ -211,7 +210,7 @@ public class MethodAnalyzer {
                         ex.codeAddress = codeAddress;
                         ex.addContext(String.format("opcode: %s", instructionToAnalyze.instruction.getOpcode().name));
                         ex.addContext(String.format("code address: %d", codeAddress));
-                        ex.addContext(String.format("method: %s", ReferenceUtil.getReferenceString(method)));
+                        ex.addContext(String.format("method: %s", method));
                         break;
                     }
 
@@ -1707,7 +1706,7 @@ public class MethodAnalyzer {
                 String superclass = fieldClass.getSuperclass();
                 if (superclass == null) {
                     throw new ExceptionWithContext("Couldn't find accessible class while resolving field %s",
-                            ReferenceUtil.getShortFieldDescriptor(resolvedField));
+                            resolvedField);
                 }
 
                 fieldClass = classPath.getClassDef(superclass);
@@ -1718,7 +1717,7 @@ public class MethodAnalyzer {
             FieldReference newResolvedField = classPath.getClass(fieldClass.getType()).getFieldByOffset(fieldOffset);
             if (newResolvedField == null) {
                 throw new ExceptionWithContext("Couldn't find accessible class while resolving field %s",
-                        ReferenceUtil.getShortFieldDescriptor(resolvedField));
+                        resolvedField);
             }
             resolvedField = new ImmutableFieldReference(fieldClass.getType(), newResolvedField.getName(),
                     newResolvedField.getType());
@@ -1839,7 +1838,7 @@ public class MethodAnalyzer {
                 String superclass = methodClass.getSuperclass();
                 if (superclass == null) {
                     throw new ExceptionWithContext("Couldn't find accessible class while resolving method %s",
-                            ReferenceUtil.getMethodDescriptor(resolvedMethod, true));
+                            resolvedMethod);
                 }
 
                 methodClass = classPath.getClassDef(superclass);
@@ -1851,7 +1850,7 @@ public class MethodAnalyzer {
                     classPath.getClass(methodClass.getType()).getMethodByVtableIndex(methodIndex);
             if (newResolvedMethod == null) {
                 throw new ExceptionWithContext("Couldn't find accessible class while resolving method %s",
-                        ReferenceUtil.getMethodDescriptor(resolvedMethod, true));
+                        resolvedMethod);
             }
             resolvedMethod = newResolvedMethod;
             resolvedMethod = new ImmutableMethodReference(methodClass.getType(), resolvedMethod.getName(),

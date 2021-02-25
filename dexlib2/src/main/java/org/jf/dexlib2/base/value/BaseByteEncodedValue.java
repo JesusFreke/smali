@@ -33,6 +33,7 @@ package org.jf.dexlib2.base.value;
 
 import com.google.common.primitives.Ints;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.value.ByteEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
@@ -61,4 +62,8 @@ public abstract class BaseByteEncodedValue implements ByteEncodedValue {
     }
 
     public int getValueType() { return ValueType.BYTE; }
+
+    @Override public String toString() {
+        return DexFormatter.INSTANCE.getEncodedValue(this);
+    }
 }

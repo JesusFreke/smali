@@ -34,6 +34,7 @@ package org.jf.dexlib2.base.value;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.ShortEncodedValue;
 
@@ -62,4 +63,8 @@ public abstract class BaseShortEncodedValue implements ShortEncodedValue {
     }
 
     public int getValueType() { return ValueType.SHORT; }
+
+    @Override public String toString() {
+        return DexFormatter.INSTANCE.getEncodedValue(this);
+    }
 }

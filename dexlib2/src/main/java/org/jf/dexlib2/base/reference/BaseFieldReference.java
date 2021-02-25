@@ -31,8 +31,8 @@
 
 package org.jf.dexlib2.base.reference;
 
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.util.ReferenceUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -67,6 +67,6 @@ public abstract class BaseFieldReference extends BaseReference implements FieldR
     }
 
     @Override public String toString() {
-        return ReferenceUtil.getFieldDescriptor(this);
+        return DexFormatter.INSTANCE.getFieldDescriptor(this);
     }
 }

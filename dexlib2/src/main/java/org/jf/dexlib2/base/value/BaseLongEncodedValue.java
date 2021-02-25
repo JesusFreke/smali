@@ -34,6 +34,7 @@ package org.jf.dexlib2.base.value;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.LongEncodedValue;
 
@@ -64,4 +65,8 @@ public abstract class BaseLongEncodedValue implements LongEncodedValue {
     }
 
     public int getValueType() { return ValueType.LONG; }
+
+    @Override public String toString() {
+        return DexFormatter.INSTANCE.getEncodedValue(this);
+    }
 }
