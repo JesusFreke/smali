@@ -280,6 +280,94 @@ public class BaksmaliWriterTest {
                 stringWriter.toString());
     }
 
+    @Test
+    public void testWriteUnsignedLongAsHex() throws IOException {
+        Assert.assertEquals("ffffffffffffffff", performWriteUnsignedLongAsHex(-1));
+        Assert.assertEquals("7fffffff", performWriteUnsignedLongAsHex(Integer.MAX_VALUE));
+        Assert.assertEquals("ffffffff80000000", performWriteUnsignedLongAsHex(Integer.MIN_VALUE));
+        Assert.assertEquals("0", performWriteUnsignedLongAsHex(0));
+        Assert.assertEquals("1", performWriteUnsignedLongAsHex(1));
+
+        Assert.assertEquals("80000000", performWriteUnsignedLongAsHex(((long) Integer.MAX_VALUE) + 1));
+        Assert.assertEquals("ffffffff7fffffff", performWriteUnsignedLongAsHex(((long) Integer.MIN_VALUE) - 1));
+
+        Assert.assertEquals("7fffffffffffffff", performWriteUnsignedLongAsHex(Long.MAX_VALUE));
+        Assert.assertEquals("8000000000000000", performWriteUnsignedLongAsHex(Long.MIN_VALUE));
+    }
+
+    private String performWriteUnsignedLongAsHex(long value) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
+        BaksmaliWriter writer = new BaksmaliWriter(indentingWriter);
+
+        writer.writeUnsignedLongAsHex(value);
+        writer.close();
+        return stringWriter.toString();
+    }
+
+    @Test
+    public void testWriteSignedLongAsDec() throws IOException {
+        Assert.assertEquals("-1", performWriteSignedLongAsDec(-1));
+        Assert.assertEquals("2147483647", performWriteSignedLongAsDec(Integer.MAX_VALUE));
+        Assert.assertEquals("-2147483648", performWriteSignedLongAsDec(Integer.MIN_VALUE));
+        Assert.assertEquals("0", performWriteSignedLongAsDec(0));
+        Assert.assertEquals("1", performWriteSignedLongAsDec(1));
+
+        Assert.assertEquals("2147483648", performWriteSignedLongAsDec(((long) Integer.MAX_VALUE) + 1));
+        Assert.assertEquals("-2147483649", performWriteSignedLongAsDec(((long) Integer.MIN_VALUE) - 1));
+
+        Assert.assertEquals("9223372036854775807", performWriteSignedLongAsDec(Long.MAX_VALUE));
+        Assert.assertEquals("-9223372036854775808", performWriteSignedLongAsDec(Long.MIN_VALUE));
+    }
+
+    private String performWriteSignedLongAsDec(long value) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
+        BaksmaliWriter writer = new BaksmaliWriter(indentingWriter);
+
+        writer.writeSignedLongAsDec(value);
+        writer.close();
+        return stringWriter.toString();
+    }
+
+    @Test
+    public void testWriteSignedIntAsDec() throws IOException {
+        Assert.assertEquals("-1", performWriteSignedIntAsDec(-1));
+        Assert.assertEquals("2147483647", performWriteSignedIntAsDec(Integer.MAX_VALUE));
+        Assert.assertEquals("-2147483648", performWriteSignedIntAsDec(Integer.MIN_VALUE));
+        Assert.assertEquals("0", performWriteSignedIntAsDec(0));
+        Assert.assertEquals("1", performWriteSignedIntAsDec(1));
+    }
+
+    private String performWriteSignedIntAsDec(int value) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
+        BaksmaliWriter writer = new BaksmaliWriter(indentingWriter);
+
+        writer.writeSignedIntAsDec(value);
+        writer.close();
+        return stringWriter.toString();
+    }
+
+    @Test
+    public void testWriteUnsignedIntAsDec() throws IOException {
+        Assert.assertEquals("4294967295", performWriteUnsignedIntAsDec(-1));
+        Assert.assertEquals("2147483647", performWriteUnsignedIntAsDec(Integer.MAX_VALUE));
+        Assert.assertEquals("2147483648", performWriteUnsignedIntAsDec(Integer.MIN_VALUE));
+        Assert.assertEquals("0", performWriteUnsignedIntAsDec(0));
+        Assert.assertEquals("1", performWriteUnsignedIntAsDec(1));
+    }
+
+    private String performWriteUnsignedIntAsDec(int value) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
+        BaksmaliWriter writer = new BaksmaliWriter(indentingWriter);
+
+        writer.writeUnsignedIntAsDec(value);
+        writer.close();
+        return stringWriter.toString();
+    }
+
     private ImmutableMethodReference getMethodReferenceWithSpaces() {
         return new ImmutableMethodReference(
                 "Ldefining/class/with spaces;",

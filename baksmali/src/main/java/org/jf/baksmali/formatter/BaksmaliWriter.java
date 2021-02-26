@@ -48,6 +48,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 
+import static java.lang.Math.abs;
+
 
 /**
  * A specialized version of DexFormattedWriter that handles quoting
@@ -232,10 +234,10 @@ public class BaksmaliWriter extends DexFormattedWriter {
     protected void writeIntegralValue(long value, @Nullable Character suffix) throws IOException {
         if (value < 0) {
             writer.write("-0x");
-            indentingWriter().printUnsignedLongAsHex(-value);
+            writeUnsignedLongAsHex(-value);
         } else {
             writer.write("0x");
-            indentingWriter().printUnsignedLongAsHex(value);
+            writeUnsignedLongAsHex(value);
         }
         if (suffix != null) {
             writer.write(suffix);
@@ -356,6 +358,86 @@ public class BaksmaliWriter extends DexFormattedWriter {
 
     public IndentingWriter indentingWriter() {
         return (IndentingWriter) writer;
+    }
+
+    public void writeUnsignedLongAsHex(long value) throws IOException {
+        int bufferIndex = 23;
+        do {
+            int digit = (int)(value & 15);
+            if (digit < 10) {
+                buffer[bufferIndex--] = (char)(digit + '0');
+            } else {
+                buffer[bufferIndex--] = (char)((digit - 10) + 'a');
+            }
+
+            value >>>= 4;
+        } while (value != 0);
+
+        bufferIndex++;
+
+        write(buffer, bufferIndex, 24-bufferIndex);
+    }
+
+    public void writeSignedLongAsDec(long value) throws IOException {
+        int bufferIndex = 23;
+
+        if (value < 0) {
+            write('-');
+        }
+
+        do {
+            long digit = abs(value % 10);
+            buffer[bufferIndex--] = (char)(digit + '0');
+
+            value = value / 10;
+        } while (value != 0);
+
+        bufferIndex++;
+
+        write(buffer, bufferIndex, 24-bufferIndex);
+    }
+
+    public void writeSignedIntAsDec(int value) throws IOException {
+        int bufferIndex = 15;
+
+        if (value < 0) {
+            write('-');
+        }
+
+        do {
+            int digit = abs(value % 10);
+            buffer[bufferIndex--] = (char)(digit + '0');
+
+            value = value / 10;
+        } while (value != 0);
+
+        bufferIndex++;
+
+        write(buffer, bufferIndex, 16-bufferIndex);
+    }
+
+    public void writeUnsignedIntAsDec(int value) throws IOException {
+        if (value < 0) {
+            writeSignedLongAsDec(value & 0xFFFFFFFFL);
+        } else {
+            writeSignedIntAsDec(value);
+        }
+    }
+
+    public void writeSignedIntOrLongTo(long val) throws IOException {
+        if (val<0) {
+            writer.write("-0x");
+            writeUnsignedLongAsHex(-val);
+            if (val < Integer.MIN_VALUE) {
+                writer.write('L');
+            }
+        } else {
+            writer.write("0x");
+            writeUnsignedLongAsHex(val);
+            if (val > Integer.MAX_VALUE) {
+                writer.write('L');
+            }
+        }
     }
 
     public void indent(int indentAmount) {
