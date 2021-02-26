@@ -29,8 +29,8 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.MethodDefinition;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.analysis.UnresolvedOdexInstruction;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -41,12 +41,12 @@ public class UnresolvedOdexInstructionMethodItem extends InstructionMethodItem<U
         super(methodDef, codeAddress, instruction);
     }
 
-    public boolean writeTo(IndentingWriter writer) throws IOException {
+    public boolean writeTo(BaksmaliWriter writer) throws IOException {
         writeThrowTo(writer);
         return true;
     }
 
-    private void writeThrowTo(IndentingWriter writer) throws IOException {
+    private void writeThrowTo(BaksmaliWriter writer) throws IOException {
         writer.write("#Replaced unresolvable odex instruction with a throw\n");
         writer.write("throw ");
         writeRegister(writer, instruction.objectRegisterNum);

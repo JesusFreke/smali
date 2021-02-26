@@ -31,8 +31,8 @@
 
 package org.jf.baksmali.Adaptors.Debug;
 
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.debug.LineNumber;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -46,9 +46,9 @@ public class LineNumberMethodItem extends DebugMethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingWriter writer) throws IOException {
+    public boolean writeTo(BaksmaliWriter writer) throws IOException {
         writer.write(".line ");
-        writer.printUnsignedIntAsDec(lineNumber);
+        writer.writeUnsignedIntAsDec(lineNumber);
         return true;
     }
 }

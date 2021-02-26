@@ -28,23 +28,23 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import java.io.IOException;
 
 public class IntegerRenderer {
-    public static void writeTo(IndentingWriter writer, int val) throws IOException {
+    public static void writeTo(BaksmaliWriter writer, int val) throws IOException {
         if (val<0) {
             writer.write("-0x");
-            writer.printUnsignedLongAsHex(-((long) val));
+            writer.writeUnsignedLongAsHex(-((long) val));
         } else {
             writer.write("0x");
-            writer.printUnsignedLongAsHex(val);
+            writer.writeUnsignedLongAsHex(val);
         }
     }
 
-    public static void writeUnsignedTo(IndentingWriter writer, int val) throws IOException {
+    public static void writeUnsignedTo(BaksmaliWriter writer, int val) throws IOException {
         writer.write("0x");
-        writer.printUnsignedLongAsHex(val & 0xFFFFFFFFL);
+        writer.writeUnsignedLongAsHex(val & 0xFFFFFFFFL);
     }
 }

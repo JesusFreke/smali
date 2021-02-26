@@ -29,9 +29,9 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.AnnotationEncodedValueAdaptor;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.AnnotationVisibility;
 import org.jf.dexlib2.iface.Annotation;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,7 +40,7 @@ import java.util.Collection;
 
 public class AnnotationFormatter {
 
-    public static void writeTo(@Nonnull IndentingWriter writer,
+    public static void writeTo(@Nonnull BaksmaliWriter writer,
                                @Nonnull Collection<? extends Annotation> annotations,
                                @Nullable String containingClass) throws IOException {
         boolean first = true;
@@ -54,7 +54,7 @@ public class AnnotationFormatter {
         }
     }
 
-    public static void writeTo(@Nonnull IndentingWriter writer, @Nonnull Annotation annotation,
+    public static void writeTo(@Nonnull BaksmaliWriter writer, @Nonnull Annotation annotation,
                                @Nullable String containingClass) throws IOException {
         writer.write(".annotation ");
         writer.write(AnnotationVisibility.getVisibility(annotation.getVisibility()));

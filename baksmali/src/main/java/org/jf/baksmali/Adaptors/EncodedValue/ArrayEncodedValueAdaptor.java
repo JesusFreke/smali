@@ -28,9 +28,9 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 public class ArrayEncodedValueAdaptor {
-    public static void writeTo(@Nonnull IndentingWriter writer,
+    public static void writeTo(@Nonnull BaksmaliWriter writer,
                                @Nonnull ArrayEncodedValue arrayEncodedValue,
                                @Nullable String containingClass) throws IOException {
         writer.write('{');

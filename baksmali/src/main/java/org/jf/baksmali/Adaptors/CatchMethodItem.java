@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.BaksmaliOptions;
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -79,7 +79,7 @@ public class CatchMethodItem extends MethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingWriter writer) throws IOException {
+    public boolean writeTo(BaksmaliWriter writer) throws IOException {
         if (exceptionType == null) {
             writer.write(".catchall");
         } else {

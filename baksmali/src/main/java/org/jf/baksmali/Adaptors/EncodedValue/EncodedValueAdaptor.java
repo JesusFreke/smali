@@ -30,18 +30,18 @@ package org.jf.baksmali.Adaptors.EncodedValue;
 
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.Renderers.*;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.*;
 import org.jf.dexlib2.util.ReferenceUtil;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
 public abstract class EncodedValueAdaptor {
-    public static void writeTo(@Nonnull IndentingWriter writer, @Nonnull EncodedValue encodedValue,
+    public static void writeTo(@Nonnull BaksmaliWriter writer, @Nonnull EncodedValue encodedValue,
                                @Nullable String containingClass)
             throws IOException {
         switch (encodedValue.getValueType()) {

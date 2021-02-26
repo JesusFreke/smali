@@ -28,9 +28,9 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,7 +39,7 @@ import java.util.Collection;
 
 public abstract class AnnotationEncodedValueAdaptor {
 
-    public static void writeTo(@Nonnull IndentingWriter writer,
+    public static void writeTo(@Nonnull BaksmaliWriter writer,
                                @Nonnull AnnotationEncodedValue annotationEncodedValue,
                                @Nullable String containingClass) throws IOException {
         writer.write(".subannotation ");
@@ -50,7 +50,7 @@ public abstract class AnnotationEncodedValueAdaptor {
         writer.write(".end subannotation");
     }
 
-    public static void writeElementsTo(@Nonnull IndentingWriter writer,
+    public static void writeElementsTo(@Nonnull BaksmaliWriter writer,
                                        @Nonnull Collection<? extends AnnotationElement> annotationElements,
                                        @Nullable String containingClass) throws IOException {
         writer.indent(4);

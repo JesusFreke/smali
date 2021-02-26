@@ -29,11 +29,11 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.BaksmaliOptions;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.MethodAnalyzer;
 import org.jf.dexlib2.analysis.RegisterType;
 import org.jf.dexlib2.iface.instruction.*;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -63,7 +63,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingWriter writer) throws IOException {
+    public boolean writeTo(BaksmaliWriter writer) throws IOException {
         int registerCount = analyzedInstruction.getRegisterCount();
         BitSet registers = new BitSet(registerCount);
         BitSet mergeRegisters = null;
@@ -171,7 +171,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
         registers.set(registerCount-parameterRegisterCount, registerCount);
     }
 
-    private void writeFullMerge(IndentingWriter writer, int registerNum) throws IOException {
+    private void writeFullMerge(BaksmaliWriter writer, int registerNum) throws IOException {
         registerFormatter.writeTo(writer, registerNum);
         writer.write('=');
         analyzedInstruction.getPreInstructionRegisterType(registerNum).writeTo(writer);
@@ -192,7 +192,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
                 writer.write("Start:");
             } else {
                 writer.write("0x");
-                writer.printUnsignedLongAsHex(methodAnalyzer.getInstructionAddress(predecessor));
+                writer.writeUnsignedLongAsHex(methodAnalyzer.getInstructionAddress(predecessor));
                 writer.write(':');
             }
             predecessorRegisterType.writeTo(writer);
@@ -202,7 +202,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
         writer.write('}');
     }
 
-    private boolean writeRegisterInfo(IndentingWriter writer, BitSet registers,
+    private boolean writeRegisterInfo(BaksmaliWriter writer, BitSet registers,
                                       BitSet fullMergeRegisters) throws IOException {
         boolean firstRegister = true;
         boolean previousWasFullMerge = false;

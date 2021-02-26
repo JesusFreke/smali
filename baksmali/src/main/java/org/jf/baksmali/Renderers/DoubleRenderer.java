@@ -28,12 +28,12 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import java.io.IOException;
 
 public class DoubleRenderer {
-    public static void writeTo(IndentingWriter writer, double val) throws IOException {
+    public static void writeTo(BaksmaliWriter writer, double val) throws IOException {
         writer.write(Double.toString(val));
     }
 }

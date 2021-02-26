@@ -32,8 +32,8 @@
 package org.jf.baksmali.Adaptors.Debug;
 
 import org.jf.baksmali.Adaptors.RegisterFormatter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.debug.RestartLocal;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class RestartLocalMethodItem extends DebugMethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingWriter writer) throws IOException {
+    public boolean writeTo(BaksmaliWriter writer) throws IOException {
         writer.write(".restart local ");
         registerFormatter.writeTo(writer, restartLocal.getRegister());
 

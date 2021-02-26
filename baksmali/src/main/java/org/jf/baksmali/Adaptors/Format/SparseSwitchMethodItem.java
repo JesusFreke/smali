@@ -28,13 +28,12 @@
 
 package org.jf.baksmali.Adaptors.Format;
 
-import org.jf.baksmali.Adaptors.CommentingIndentingWriter;
 import org.jf.baksmali.Adaptors.LabelMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
+import org.jf.baksmali.Renderers.IntegerRenderer;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.SparseSwitchPayload;
-import org.jf.util.IndentingWriter;
-import org.jf.baksmali.Renderers.IntegerRenderer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,9 +68,9 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchPa
     }
 
     @Override
-    public boolean writeTo(IndentingWriter writer) throws IOException {
+    public boolean writeTo(BaksmaliWriter writer) throws IOException {
         if (commentedOut) {
-            writer = new CommentingIndentingWriter(writer);
+            writer = methodDef.classDef.getCommentingWriter(writer);
         }
 
         writer.write(".sparse-switch\n");
@@ -94,7 +93,7 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchPa
             this.key = key;
         }
         public int getKey() { return key; }
-        public abstract void writeTargetTo(IndentingWriter writer) throws IOException;
+        public abstract void writeTargetTo(BaksmaliWriter writer) throws IOException;
     }
 
     private static class SparseSwitchLabelTarget extends SparseSwitchTarget {
@@ -104,7 +103,7 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchPa
             this.target = target;
         }
 
-        public void writeTargetTo(IndentingWriter writer) throws IOException {
+        public void writeTargetTo(BaksmaliWriter writer) throws IOException {
             target.writeTo(writer);
         }
     }
@@ -116,11 +115,11 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchPa
             this.target = target;
         }
 
-        public void writeTargetTo(IndentingWriter writer) throws IOException {
+        public void writeTargetTo(BaksmaliWriter writer) throws IOException {
             if (target >= 0) {
                 writer.write('+');
             }
-            writer.printSignedIntAsDec(target);
+            writer.writeSignedIntAsDec(target);
         }
     }
 }

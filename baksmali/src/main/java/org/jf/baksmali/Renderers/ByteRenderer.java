@@ -28,26 +28,26 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import java.io.IOException;
 
 public class ByteRenderer  {
-    public static void writeTo(IndentingWriter writer, byte val) throws IOException {
+    public static void writeTo(BaksmaliWriter writer, byte val) throws IOException {
         if (val<0) {
             writer.write("-0x");
-            writer.printUnsignedLongAsHex(-val);
+            writer.writeUnsignedLongAsHex(-val);
             writer.write('t');
         } else {
             writer.write("0x");
-            writer.printUnsignedLongAsHex(val);
+            writer.writeUnsignedLongAsHex(val);
             writer.write('t');
         }
     }
 
-    public static void writeUnsignedTo(IndentingWriter writer, byte val) throws IOException {
+    public static void writeUnsignedTo(BaksmaliWriter writer, byte val) throws IOException {
         writer.write("0x");
-        writer.printUnsignedLongAsHex(val & 0xFF);
+        writer.writeUnsignedLongAsHex(val & 0xFF);
         writer.write('t');
     }
 }

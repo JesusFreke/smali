@@ -28,33 +28,33 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import java.io.IOException;
 
 public class LongRenderer {
-    public static void writeTo(IndentingWriter writer, long val) throws IOException {
+    public static void writeTo(BaksmaliWriter writer, long val) throws IOException {
         if (val<0) {
             writer.write("-0x");
-            writer.printUnsignedLongAsHex(-val);
+            writer.writeUnsignedLongAsHex(-val);
             writer.write('L');
         } else {
             writer.write("0x");
-            writer.printUnsignedLongAsHex(val);
+            writer.writeUnsignedLongAsHex(val);
             writer.write('L');
         }
     }
 
-    public static void writeSignedIntOrLongTo(IndentingWriter writer, long val) throws IOException {
+    public static void writeSignedIntOrLongTo(BaksmaliWriter writer, long val) throws IOException {
         if (val<0) {
             writer.write("-0x");
-            writer.printUnsignedLongAsHex(-val);
+            writer.writeUnsignedLongAsHex(-val);
             if (val < Integer.MIN_VALUE) {
                 writer.write('L');
             }
         } else {
             writer.write("0x");
-            writer.printUnsignedLongAsHex(val);
+            writer.writeUnsignedLongAsHex(val);
             if (val > Integer.MAX_VALUE) {
                 writer.write('L');
             }

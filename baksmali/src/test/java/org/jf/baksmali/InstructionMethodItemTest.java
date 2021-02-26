@@ -37,6 +37,7 @@ import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.HiddenApiRestriction;
 import org.jf.dexlib2.Opcode;
@@ -49,7 +50,6 @@ import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
 import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.util.IndentingWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -141,7 +141,7 @@ public class InstructionMethodItemTest {
         InstructionMethodItem methodItem = new InstructionMethodItem<Instruction21c>(methodDefinition, 0, instruction);
 
         StringWriter stringWriter = new StringWriter();
-        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
+        BaksmaliWriter indentingWriter = new BaksmaliWriter(stringWriter);
         methodItem.writeTo(indentingWriter);
 
         Assert.assertEquals("#Invalid reference\n#const-string v0, blahblahblah\nnop", stringWriter.toString());

@@ -28,19 +28,19 @@
 
 package org.jf.baksmali.Renderers;
 
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import java.io.IOException;
 
 public class ShortRenderer {
-    public static void writeTo(IndentingWriter writer, short val) throws IOException {
+    public static void writeTo(BaksmaliWriter writer, short val) throws IOException {
         if (val < 0) {
             writer.write("-0x");
-            writer.printUnsignedLongAsHex(-val);
+            writer.writeUnsignedLongAsHex(-val);
             writer.write('s');
         } else {
             writer.write("0x");
-            writer.printUnsignedLongAsHex(val);
+            writer.writeUnsignedLongAsHex(val);
             writer.write('s');
         }
     }

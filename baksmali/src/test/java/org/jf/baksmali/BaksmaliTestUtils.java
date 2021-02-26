@@ -35,9 +35,9 @@ import com.google.common.io.ByteStreams;
 import junit.framework.Assert;
 import org.antlr.runtime.RecognitionException;
 import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.smali.SmaliTestUtils;
-import org.jf.util.IndentingWriter;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -88,7 +88,7 @@ public class BaksmaliTestUtils {
                                             boolean stripComments)
             throws IOException {
         StringWriter stringWriter = new StringWriter();
-        IndentingWriter writer = new IndentingWriter(stringWriter);
+        BaksmaliWriter writer = new BaksmaliWriter(stringWriter);
         ClassDefinition classDefinition = new ClassDefinition(options, classDef);
         classDefinition.writeTo(writer);
         writer.close();

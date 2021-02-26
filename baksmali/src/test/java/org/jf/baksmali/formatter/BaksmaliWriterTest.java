@@ -38,7 +38,6 @@ import org.jf.dexlib2.iface.reference.MethodHandleReference;
 import org.jf.dexlib2.immutable.ImmutableAnnotationElement;
 import org.jf.dexlib2.immutable.reference.*;
 import org.jf.dexlib2.immutable.value.*;
-import org.jf.util.IndentingWriter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,102 +47,92 @@ import java.io.StringWriter;
 
 public class BaksmaliWriterTest {
 
-    private StringWriter stringWriter;
-    private IndentingWriter output;
+    private StringWriter output;
 
     @Before
     public void setup() {
-        stringWriter = new StringWriter();
-        output = new IndentingWriter(stringWriter);
+        output = new StringWriter();
     }
 
     @Test
     public void testWriteMethodDescriptor_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeMethodDescriptor(getMethodReferenceWithSpaces());
 
         Assert.assertEquals(
                 "Ldefining/class/`with spaces`;->`methodName with spaces`(L`param with spaces 1`;L`param with spaces 2`;)" +
                         "Lreturn/type/`with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteShortMethodDescriptor_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeShortMethodDescriptor(getMethodReferenceWithSpaces());
 
         Assert.assertEquals(
                 "`methodName with spaces`(L`param with spaces 1`;L`param with spaces 2`;)" +
                         "Lreturn/type/`with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteMethodProtoDescriptor_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeMethodProtoDescriptor(getMethodProtoReferenceWithSpaces());
 
         Assert.assertEquals(
                 "(L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteFieldDescriptor_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeFieldDescriptor(getFieldReferenceWithSpaces());
 
         Assert.assertEquals("Ldefining/class/`with spaces`;->`fieldName with spaces`:Lfield/`type with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteShortFieldDescriptor_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeShortFieldDescriptor(getFieldReferenceWithSpaces());
 
         Assert.assertEquals("`fieldName with spaces`:Lfield/`type with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteMethodHandle_fieldAccess_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeMethodHandle(getMethodHandleReferenceForFieldWithSpaces());
 
         Assert.assertEquals("instance-get@Ldefining/class/`with spaces`;->`fieldName with spaces`:" +
-                "Lfield/`type with spaces`;", stringWriter.toString());
+                "Lfield/`type with spaces`;", output.toString());
     }
 
     @Test
     public void testWriteMethodHandle_methodAccess_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeMethodHandle(getMethodHandleReferenceForMethodWithSpaces());
 
         Assert.assertEquals("invoke-instance@Ldefining/class/`with spaces`;->`methodName with spaces`(" +
                         "L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteCallsite_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeCallSite(new ImmutableCallSiteReference(
                 "callsiteName with spaces",
@@ -162,13 +151,12 @@ public class BaksmaliWriterTest {
                         "L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;)@" +
                         "Ldefining/class/`with spaces`;->`methodName with spaces`(" +
                         "L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteEncodedValue_annotation_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeEncodedValue(new ImmutableAnnotationEncodedValue(
                 "Lannotation/type with spaces;",
@@ -185,13 +173,12 @@ public class BaksmaliWriterTest {
                         "    `element with spaces 2` = Ldefining/class/`with spaces`;->`methodName with spaces`(" +
                         "L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;\n" +
                         ".end subannotation",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteEncodedValue_array_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeEncodedValue(new ImmutableArrayEncodedValue(ImmutableList.of(
                 new ImmutableFieldEncodedValue(getFieldReferenceWithSpaces()),
@@ -202,74 +189,68 @@ public class BaksmaliWriterTest {
                         "    Ldefining/class/`with spaces`;->`fieldName with spaces`:Lfield/`type with spaces`;,\n" +
                         "    Ldefining/class/`with spaces`;->`methodName with spaces`(L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;\n" +
                         "}",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteEncodedValue_field_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeEncodedValue(new ImmutableFieldEncodedValue(getFieldReferenceWithSpaces()));
 
         Assert.assertEquals(
                 "Ldefining/class/`with spaces`;->`fieldName with spaces`:Lfield/`type with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteEncodedValue_enum_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeEncodedValue(new ImmutableEnumEncodedValue(getFieldReferenceWithSpaces()));
 
         Assert.assertEquals(
                 ".enum Ldefining/class/`with spaces`;->`fieldName with spaces`:Lfield/`type with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteEncodedValue_method_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeEncodedValue(new ImmutableMethodEncodedValue(getMethodReferenceWithSpaces()));
 
         Assert.assertEquals(
                 "Ldefining/class/`with spaces`;->`methodName with spaces`(" +
                         "L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteEncodedValue_type_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeEncodedValue(new ImmutableTypeEncodedValue("Ltest/type with spaces;"));
 
         Assert.assertEquals(
                 "Ltest/`type with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteEncodedValue_methodType_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeEncodedValue(new ImmutableMethodTypeEncodedValue(getMethodProtoReferenceWithSpaces()));
 
         Assert.assertEquals(
                 "(L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
     public void testWriteEncodedValue_methodHandle_withSpaces() throws IOException {
-        BaksmaliWriter writer =
-                new BaksmaliWriter(output);
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeEncodedValue(
                 new ImmutableMethodHandleEncodedValue(getMethodHandleReferenceForMethodWithSpaces()));
@@ -277,7 +258,7 @@ public class BaksmaliWriterTest {
         Assert.assertEquals(
                 "invoke-instance@Ldefining/class/`with spaces`;->`methodName with spaces`(" +
                         "L`param with spaces 1`;L`param with spaces 2`;)Lreturn/type/`with spaces`;",
-                stringWriter.toString());
+                output.toString());
     }
 
     @Test
@@ -296,13 +277,12 @@ public class BaksmaliWriterTest {
     }
 
     private String performWriteUnsignedLongAsHex(long value) throws IOException {
-        StringWriter stringWriter = new StringWriter();
-        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
-        BaksmaliWriter writer = new BaksmaliWriter(indentingWriter);
+        output = new StringWriter();
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeUnsignedLongAsHex(value);
         writer.close();
-        return stringWriter.toString();
+        return output.toString();
     }
 
     @Test
@@ -321,13 +301,12 @@ public class BaksmaliWriterTest {
     }
 
     private String performWriteSignedLongAsDec(long value) throws IOException {
-        StringWriter stringWriter = new StringWriter();
-        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
-        BaksmaliWriter writer = new BaksmaliWriter(indentingWriter);
+        output = new StringWriter();
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeSignedLongAsDec(value);
         writer.close();
-        return stringWriter.toString();
+        return output.toString();
     }
 
     @Test
@@ -340,13 +319,12 @@ public class BaksmaliWriterTest {
     }
 
     private String performWriteSignedIntAsDec(int value) throws IOException {
-        StringWriter stringWriter = new StringWriter();
-        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
-        BaksmaliWriter writer = new BaksmaliWriter(indentingWriter);
+        output = new StringWriter();
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeSignedIntAsDec(value);
         writer.close();
-        return stringWriter.toString();
+        return output.toString();
     }
 
     @Test
@@ -359,13 +337,12 @@ public class BaksmaliWriterTest {
     }
 
     private String performWriteUnsignedIntAsDec(int value) throws IOException {
-        StringWriter stringWriter = new StringWriter();
-        IndentingWriter indentingWriter = new IndentingWriter(stringWriter);
-        BaksmaliWriter writer = new BaksmaliWriter(indentingWriter);
+        output = new StringWriter();
+        BaksmaliWriter writer = new BaksmaliWriter(output);
 
         writer.writeUnsignedIntAsDec(value);
         writer.close();
-        return stringWriter.toString();
+        return output.toString();
     }
 
     private ImmutableMethodReference getMethodReferenceWithSpaces() {

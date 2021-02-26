@@ -31,10 +31,10 @@ package org.jf.baksmali;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ClassFileNameHandler;
-import org.jf.util.IndentingWriter;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -131,7 +131,7 @@ public class Baksmali {
         ClassDefinition classDefinition = new ClassDefinition(options, classDef);
 
         //write the disassembly
-        Writer writer = null;
+        BaksmaliWriter writer = null;
         try
         {
             File smaliParent = smaliFile.getParentFile();
@@ -155,8 +155,10 @@ public class Baksmali {
             BufferedWriter bufWriter = new BufferedWriter(new OutputStreamWriter(
                     new FileOutputStream(smaliFile), "UTF8"));
 
-            writer = new IndentingWriter(bufWriter);
-            classDefinition.writeTo((IndentingWriter)writer);
+            writer = new BaksmaliWriter(
+                    bufWriter,
+                    options.implicitReferences ? classDef.getType() : null);
+            classDefinition.writeTo(writer);
         } catch (Exception ex) {
             System.err.println("\n\nError occurred while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
             ex.printStackTrace();

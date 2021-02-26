@@ -29,7 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.BaksmaliOptions;
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -73,13 +73,13 @@ public class LabelMethodItem extends MethodItem {
     }
 
 
-    public boolean writeTo(IndentingWriter writer) throws IOException {
+    public boolean writeTo(BaksmaliWriter writer) throws IOException {
         writer.write(':');
         writer.write(labelPrefix);
         if (options.sequentialLabels) {
-            writer.printUnsignedLongAsHex(labelSequence);
+            writer.writeUnsignedLongAsHex(labelSequence);
         } else {
-            writer.printUnsignedLongAsHex(this.getLabelAddress());
+            writer.writeUnsignedLongAsHex(this.getLabelAddress());
         }
         return true;
     }

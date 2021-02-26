@@ -31,7 +31,7 @@
 
 package org.jf.baksmali.Adaptors.Debug;
 
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import java.io.IOException;
 
@@ -41,7 +41,7 @@ public class BeginEpilogueMethodItem extends DebugMethodItem {
     }
 
     @Override
-    public boolean writeTo(IndentingWriter writer) throws IOException {
+    public boolean writeTo(BaksmaliWriter writer) throws IOException {
         writer.write(".prologue");
         return true;
     }

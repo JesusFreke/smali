@@ -35,13 +35,13 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import junit.framework.Assert;
 import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassProvider;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
-import org.jf.util.IndentingWriter;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -111,7 +111,7 @@ public class AnalysisTest {
 
         for (ClassDef classDef: dexFile.getClasses()) {
             StringWriter stringWriter = new StringWriter();
-            IndentingWriter writer = new IndentingWriter(stringWriter);
+            BaksmaliWriter writer = new BaksmaliWriter(stringWriter);
             ClassDefinition classDefinition = new ClassDefinition(options, classDef);
             classDefinition.writeTo(writer);
             writer.close();

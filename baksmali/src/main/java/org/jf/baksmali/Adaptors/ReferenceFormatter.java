@@ -29,24 +29,24 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.MethodHandleType;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.reference.*;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.util.ReferenceUtil;
-import org.jf.util.IndentingWriter;
 import org.jf.util.StringUtils;
 
 import java.io.IOException;
 
 public class ReferenceFormatter {
-    public static void writeStringReference(IndentingWriter writer, String item) throws IOException {
+    public static void writeStringReference(BaksmaliWriter writer, String item) throws IOException {
         writer.write('"');
         StringUtils.writeEscapedString(writer, item);
         writer.write('"');
     }
 
-    public static void writeCallSiteReference(IndentingWriter writer, CallSiteReference callSite) throws IOException {
+    public static void writeCallSiteReference(BaksmaliWriter writer, CallSiteReference callSite) throws IOException {
         writer.write(callSite.getName());
         writer.write('(');
         writer.write('"');
@@ -66,7 +66,7 @@ public class ReferenceFormatter {
         writeReference(writer, ReferenceType.METHOD, callSite.getMethodHandle().getMemberReference());
     }
 
-    public static void writeReference(IndentingWriter writer, int referenceType,
+    public static void writeReference(BaksmaliWriter writer, int referenceType,
                                       Reference reference) throws IOException {
         switch (referenceType) {
             case ReferenceType.STRING:

@@ -32,7 +32,7 @@
 package org.jf.baksmali.Adaptors.Debug;
 
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
-import org.jf.util.IndentingWriter;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,7 +52,7 @@ public class LocalFormatter {
      *
      * One of name, type or signature must be non-null
      */
-    public static void writeLocal(@Nonnull IndentingWriter writer, @Nullable String name, @Nullable String type,
+    public static void writeLocal(@Nonnull BaksmaliWriter writer, @Nullable String name, @Nullable String type,
                                   @Nullable String signature) throws IOException {
         if (name != null) {
             ReferenceFormatter.writeStringReference(writer, name);

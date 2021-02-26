@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
 import org.jf.baksmali.BaksmaliOptions;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.*;
 import org.jf.dexlib2.analysis.AnalysisException;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
@@ -53,7 +54,6 @@ import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.dexlib2.util.SyntheticAccessorResolver.AccessedMember;
 import org.jf.dexlib2.util.TypeUtils;
 import org.jf.util.ExceptionWithContext;
-import org.jf.util.IndentingWriter;
 import org.jf.util.SparseIntArray;
 
 import javax.annotation.Nonnull;
@@ -159,7 +159,7 @@ public class MethodDefinition {
         }
     }
 
-    public static void writeEmptyMethodTo(IndentingWriter writer, Method method,
+    public static void writeEmptyMethodTo(BaksmaliWriter writer, Method method,
                                           BaksmaliOptions options) throws IOException {
         writer.write(".method ");
         writeAccessFlagsAndRestrictions(writer, method.getAccessFlags(), method.getHiddenApiRestrictions());
@@ -186,7 +186,7 @@ public class MethodDefinition {
         writer.write(".end method\n");
     }
 
-    public void writeTo(IndentingWriter writer) throws IOException {
+    public void writeTo(BaksmaliWriter writer) throws IOException {
         int parameterRegisterCount = 0;
         if (!AccessFlags.STATIC.isSet(method.getAccessFlags())) {
             parameterRegisterCount++;
@@ -211,10 +211,10 @@ public class MethodDefinition {
         writer.indent(4);
         if (classDef.options.localsDirective) {
             writer.write(".locals ");
-            writer.printSignedIntAsDec(methodImpl.getRegisterCount() - parameterRegisterCount);
+            writer.writeSignedIntAsDec(methodImpl.getRegisterCount() - parameterRegisterCount);
         } else {
             writer.write(".registers ");
-            writer.printSignedIntAsDec(methodImpl.getRegisterCount());
+            writer.writeSignedIntAsDec(methodImpl.getRegisterCount());
         }
         writer.write('\n');
         writeParameters(writer, method, methodParameters, classDef.options);
@@ -301,7 +301,7 @@ public class MethodDefinition {
     }
 
     private static void writeAccessFlagsAndRestrictions(
-            IndentingWriter writer, int accessFlags, Set<HiddenApiRestriction> hiddenApiRestrictions)
+            BaksmaliWriter writer, int accessFlags, Set<HiddenApiRestriction> hiddenApiRestrictions)
             throws IOException {
         for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(accessFlags)) {
             writer.write(accessFlag.toString());
@@ -313,7 +313,7 @@ public class MethodDefinition {
         }
     }
 
-    private static void writeParameters(IndentingWriter writer, Method method,
+    private static void writeParameters(BaksmaliWriter writer, Method method,
                                         List<? extends MethodParameter> parameters,
                                         BaksmaliOptions options) throws IOException {
         boolean isStatic = AccessFlags.STATIC.isSet(method.getAccessFlags());
@@ -324,7 +324,7 @@ public class MethodDefinition {
             Collection<? extends Annotation> annotations = parameter.getAnnotations();
             if ((options.debugInfo && parameterName != null) || annotations.size() != 0) {
                 writer.write(".param p");
-                writer.printSignedIntAsDec(registerNumber);
+                writer.writeSignedIntAsDec(registerNumber);
 
                 if (parameterName != null && options.debugInfo) {
                     writer.write(", ");
@@ -426,9 +426,9 @@ public class MethodDefinition {
                     }
 
                     @Override
-                    public boolean writeTo(IndentingWriter writer) throws IOException {
+                    public boolean writeTo(BaksmaliWriter writer) throws IOException {
                         writer.write("#@");
-                        writer.printUnsignedLongAsHex(codeAddress & 0xFFFFFFFFL);
+                        writer.writeUnsignedLongAsHex(codeAddress & 0xFFFFFFFFL);
                         return true;
                     }
                 });
@@ -505,9 +505,9 @@ public class MethodDefinition {
                     }
 
                     @Override
-                    public boolean writeTo(IndentingWriter writer) throws IOException {
+                    public boolean writeTo(BaksmaliWriter writer) throws IOException {
                         writer.write("#@");
-                        writer.printUnsignedLongAsHex(codeAddress & 0xFFFFFFFFL);
+                        writer.writeUnsignedLongAsHex(codeAddress & 0xFFFFFFFFL);
                         return true;
                     }
                 });
