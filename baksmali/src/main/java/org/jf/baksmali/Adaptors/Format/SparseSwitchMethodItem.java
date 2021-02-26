@@ -30,10 +30,10 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.LabelMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.SparseSwitchPayload;
+import org.jf.dexlib2.immutable.value.ImmutableIntEncodedValue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,7 +76,7 @@ public class SparseSwitchMethodItem extends InstructionMethodItem<SparseSwitchPa
         writer.write(".sparse-switch\n");
         writer.indent(4);
         for (SparseSwitchTarget target: targets) {
-            IntegerRenderer.writeTo(writer, target.getKey());
+            writer.writeEncodedValue(new ImmutableIntEncodedValue(target.getKey()));
             writer.write(" -> ");
             target.writeTargetTo(writer);
             writeCommentIfResourceId(writer, target.getKey());

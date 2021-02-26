@@ -31,8 +31,8 @@
 
 package org.jf.baksmali.Adaptors.Debug;
 
-import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.formatter.BaksmaliWriter;
+import org.jf.dexlib2.immutable.value.ImmutableNullEncodedValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,22 +52,24 @@ public class LocalFormatter {
      *
      * One of name, type or signature must be non-null
      */
-    public static void writeLocal(@Nonnull BaksmaliWriter writer, @Nullable String name, @Nullable String type,
-                                  @Nullable String signature) throws IOException {
+    public static void writeLocal(@Nonnull BaksmaliWriter writer, @Nullable String name,
+                                  @Nullable String type, @Nullable String signature)
+            throws IOException {
+
         if (name != null) {
-            ReferenceFormatter.writeStringReference(writer, name);
+            writer.writeQuotedString(name);
         } else {
-            writer.write("null");
+            writer.writeEncodedValue(ImmutableNullEncodedValue.INSTANCE);
         }
         writer.write(':');
         if (type != null) {
-            writer.write(type);
+            writer.writeType(type);
         } else {
-            writer.write("V");
+            writer.writeType("V");
         }
         if (signature != null) {
             writer.write(", ");
-            ReferenceFormatter.writeStringReference(writer, signature);
+            writer.writeQuotedString(signature);
         }
     }
 }

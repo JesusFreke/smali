@@ -31,6 +31,7 @@
 
 package org.jf.baksmali.Adaptors.Debug;
 
+import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Adaptors.MethodItem;
 import org.jf.baksmali.Adaptors.RegisterFormatter;
 import org.jf.dexlib2.DebugItemType;
@@ -47,15 +48,18 @@ public abstract class DebugMethodItem extends MethodItem {
 
     @Override public double getSortOrder() { return sortOrder; }
 
-    public static DebugMethodItem build(RegisterFormatter registerFormatter, DebugItem debugItem) {
+    public static DebugMethodItem build(
+            ClassDefinition classDef, RegisterFormatter registerFormatter, DebugItem debugItem) {
+
         int codeAddress = debugItem.getCodeAddress();
         switch (debugItem.getDebugItemType()) {
             case DebugItemType.START_LOCAL:
-                return new StartLocalMethodItem(codeAddress, -1, registerFormatter, (StartLocal)debugItem);
+                return new StartLocalMethodItem(classDef, codeAddress, -1, registerFormatter, (StartLocal)debugItem);
             case DebugItemType.END_LOCAL:
                 return new EndLocalMethodItem(codeAddress, -1, registerFormatter, (EndLocal)debugItem);
             case DebugItemType.RESTART_LOCAL:
-                return new RestartLocalMethodItem(codeAddress, -1, registerFormatter, (RestartLocal)debugItem);
+                return new RestartLocalMethodItem(
+                        classDef, codeAddress, -1, registerFormatter, (RestartLocal)debugItem);
             case DebugItemType.EPILOGUE_BEGIN:
                 return new BeginEpilogueMethodItem(codeAddress, -4);
             case DebugItemType.PROLOGUE_END:

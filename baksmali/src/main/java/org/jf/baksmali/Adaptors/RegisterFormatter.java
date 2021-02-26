@@ -57,7 +57,8 @@ public class RegisterFormatter {
      * @param startRegister the first register in the range
      * @param lastRegister the last register in the range
      */
-    public void writeRegisterRange(BaksmaliWriter writer, int startRegister, int lastRegister) throws IOException {
+    public void writeRegisterRange(
+            BaksmaliWriter writer, int startRegister, int lastRegister) throws IOException {
         if (options.parameterRegisters) {
             assert startRegister <= lastRegister;
 

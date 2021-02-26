@@ -28,21 +28,19 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.Adaptors.EncodedValue.AnnotationEncodedValueAdaptor;
+import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.AnnotationVisibility;
 import org.jf.dexlib2.iface.Annotation;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 
 public class AnnotationFormatter {
 
     public static void writeTo(@Nonnull BaksmaliWriter writer,
-                               @Nonnull Collection<? extends Annotation> annotations,
-                               @Nullable String containingClass) throws IOException {
+                               @Nonnull Collection<? extends Annotation> annotations) throws IOException {
         boolean first = true;
         for (Annotation annotation: annotations) {
             if (!first) {
@@ -50,19 +48,19 @@ public class AnnotationFormatter {
             }
             first = false;
 
-            writeTo(writer, annotation, containingClass);
+            writeTo(writer, annotation);
         }
     }
 
-    public static void writeTo(@Nonnull BaksmaliWriter writer, @Nonnull Annotation annotation,
-                               @Nullable String containingClass) throws IOException {
+    public static void writeTo(
+            @Nonnull BaksmaliWriter writer, @Nonnull Annotation annotation) throws IOException {
         writer.write(".annotation ");
         writer.write(AnnotationVisibility.getVisibility(annotation.getVisibility()));
         writer.write(' ');
         writer.write(annotation.getType());
         writer.write('\n');
 
-        AnnotationEncodedValueAdaptor.writeElementsTo(writer, annotation.getElements(), containingClass);
+        writer.writeAnnotationElements(annotation.getElements());
 
         writer.write(".end annotation\n");
     }

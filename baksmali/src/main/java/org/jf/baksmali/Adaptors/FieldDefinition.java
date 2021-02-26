@@ -28,8 +28,6 @@
 
 package org.jf.baksmali.Adaptors;
 
-import org.jf.baksmali.Adaptors.EncodedValue.EncodedValueAdaptor;
-import org.jf.baksmali.BaksmaliOptions;
 import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.HiddenApiRestriction;
@@ -43,7 +41,7 @@ import java.util.Collection;
 import java.util.Set;
 
 public class FieldDefinition {
-    public static void writeTo(BaksmaliOptions options, BaksmaliWriter writer, Field field,
+    public static void writeTo(BaksmaliWriter writer, Field field,
                                boolean setInStaticConstructor) throws IOException {
         EncodedValue initialValue = field.getInitialValue();
         int accessFlags = field.getAccessFlags();
@@ -63,18 +61,13 @@ public class FieldDefinition {
 
         writer.write(".field ");
         writeAccessFlagsAndRestrictions(writer, field.getAccessFlags(), field.getHiddenApiRestrictions());
-        writer.write(field.getName());
+        writer.writeSimpleName(field.getName());
         writer.write(':');
-        writer.write(field.getType());
+        writer.writeType(field.getType());
+
         if (initialValue != null) {
             writer.write(" = ");
-
-            String containingClass = null;
-            if (options.implicitReferences) {
-                containingClass = field.getDefiningClass();
-            }
-
-            EncodedValueAdaptor.writeTo(writer, initialValue, containingClass);
+            writer.writeEncodedValue(initialValue);
         }
 
         writer.write('\n');
@@ -83,12 +76,7 @@ public class FieldDefinition {
         if (annotations.size() > 0) {
             writer.indent(4);
 
-            String containingClass = null;
-            if (options.implicitReferences) {
-                containingClass = field.getDefiningClass();
-            }
-
-            AnnotationFormatter.writeTo(writer, annotations, containingClass);
+            AnnotationFormatter.writeTo(writer, annotations);
             writer.deindent(4);
             writer.write(".end field\n");
         }

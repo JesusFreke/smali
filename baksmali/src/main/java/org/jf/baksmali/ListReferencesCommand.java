@@ -33,8 +33,8 @@ package org.jf.baksmali;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.jf.baksmali.formatter.BaksmaliFormatter;
 import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.util.ReferenceUtil;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -67,8 +67,10 @@ public abstract class ListReferencesCommand extends DexInputCommand {
         String input = inputList.get(0);
         loadDexFile(input);
 
+        BaksmaliFormatter formatter = new BaksmaliFormatter();
+
         for (Reference reference: dexFile.getReferences(referenceType)) {
-            System.out.println(ReferenceUtil.getReferenceString(reference));
+            System.out.println(formatter.getReference(reference));
         }
     }
 }

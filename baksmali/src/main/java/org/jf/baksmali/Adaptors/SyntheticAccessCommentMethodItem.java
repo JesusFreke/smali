@@ -29,17 +29,19 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.baksmali.formatter.BaksmaliWriter;
-import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.util.ExceptionWithContext;
 
 import java.io.IOException;
 
 public class SyntheticAccessCommentMethodItem extends MethodItem {
+    private final ClassDefinition classDef;
     private final SyntheticAccessorResolver.AccessedMember accessedMember;
 
-    public SyntheticAccessCommentMethodItem(SyntheticAccessorResolver.AccessedMember accessedMember, int codeAddress) {
+    public SyntheticAccessCommentMethodItem(
+            ClassDefinition classDef, SyntheticAccessorResolver.AccessedMember accessedMember, int codeAddress) {
         super(codeAddress);
+        this.classDef = classDef;
         this.accessedMember = accessedMember;
     }
 
@@ -109,13 +111,7 @@ public class SyntheticAccessCommentMethodItem extends MethodItem {
                 throw new ExceptionWithContext("Unknown access type: %d", accessedMember.accessedMemberType);
         }
 
-        int referenceType;
-        if (accessedMember.accessedMemberType == SyntheticAccessorResolver.METHOD) {
-            referenceType = ReferenceType.METHOD;
-        } else {
-            referenceType = ReferenceType.FIELD;
-        }
-        ReferenceFormatter.writeReference(writer, referenceType, accessedMember.accessedMember);
+        writer.writeReference(accessedMember.accessedMember);
         return true;
     }
 }

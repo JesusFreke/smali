@@ -35,6 +35,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
+import org.jf.baksmali.formatter.BaksmaliFormatter;
 import org.jf.dexlib2.analysis.ClassProto;
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.reference.FieldReference;
@@ -78,11 +79,13 @@ public class ListFieldOffsetsCommand extends DexInputCommand {
         loadDexFile(input);
         BaksmaliOptions options = getOptions();
 
+        BaksmaliFormatter formatter = new BaksmaliFormatter();
+
         try {
             for (ClassDef classDef: dexFile.getClasses()) {
                 ClassProto classProto = (ClassProto) options.classPath.getClass(classDef);
                 SparseArray<FieldReference> fields = classProto.getInstanceFields();
-                String className = "Class "  + classDef.getType() + " : " + fields.size() + " instance fields\n";
+                String className = "Class "  + formatter.getType(classDef.getType()) + " : " + fields.size() + " instance fields\n";
                 System.out.write(className.getBytes());
                 for (int i=0;i<fields.size();i++) {
                     String field = fields.keyAt(i) + ":" + fields.valueAt(i).getType() + " " + fields.valueAt(i).getName() + "\n";

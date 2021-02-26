@@ -43,7 +43,7 @@ public class EndLocalMethodItem extends DebugMethodItem {
     @Nonnull private final RegisterFormatter registerFormatter;
 
     public EndLocalMethodItem(int codeAddress, int sortOrder, @Nonnull RegisterFormatter registerFormatter,
-                                @Nonnull EndLocal endLocal) {
+                              @Nonnull EndLocal endLocal) {
         super(codeAddress, sortOrder);
         this.endLocal = endLocal;
         this.registerFormatter = registerFormatter;

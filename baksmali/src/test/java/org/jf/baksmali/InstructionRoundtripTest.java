@@ -38,6 +38,7 @@ public class InstructionRoundtripTest extends IdenticalRoundtripTest {
     public void testConstMethodHandle() {
         BaksmaliOptions options = new BaksmaliOptions();
         options.apiLevel = 28;
+        options.implicitReferences = false;
         runTest("ConstMethodHandle", options);
     }
 

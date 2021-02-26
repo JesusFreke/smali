@@ -31,9 +31,7 @@ package org.jf.baksmali.Adaptors.Format;
 import org.jf.baksmali.Adaptors.MethodDefinition;
 import org.jf.baksmali.Adaptors.MethodDefinition.InvalidSwitchPayload;
 import org.jf.baksmali.Adaptors.MethodItem;
-import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.baksmali.BaksmaliOptions;
-import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.VerificationError;
@@ -41,9 +39,7 @@ import org.jf.dexlib2.iface.instruction.*;
 import org.jf.dexlib2.iface.instruction.formats.Instruction20bc;
 import org.jf.dexlib2.iface.instruction.formats.Instruction31t;
 import org.jf.dexlib2.iface.instruction.formats.UnknownInstruction;
-import org.jf.dexlib2.iface.reference.CallSiteReference;
 import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.NumberUtils;
 
@@ -80,7 +76,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     private interface Writable {
-        void writeTo(BaksmaliWriter writer) throws IOException;
+        void write() throws IOException;
     }
 
     @Override
@@ -105,41 +101,17 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
         if (instruction instanceof ReferenceInstruction) {
             ReferenceInstruction referenceInstruction = (ReferenceInstruction)instruction;
-            final String classContext;
-            if (methodDef.classDef.options.implicitReferences) {
-                classContext = methodDef.method.getDefiningClass();
-            } else {
-                classContext = null;
-            }
-
             Reference reference = referenceInstruction.getReference();
 
             try {
                 reference.validateReference();
-
-                if (reference instanceof CallSiteReference) {
-                    referenceWritable = new Writable() {
-                        @Override
-                        public void writeTo(BaksmaliWriter indentingWriter) throws IOException {
-                            ReferenceFormatter.writeCallSiteReference(indentingWriter, (CallSiteReference)reference);
-                        }
-                    };
-                } else {
-                    referenceWritable = new Writable() {
-                        @Override
-                        public void writeTo(BaksmaliWriter indentingWriter) throws IOException {
-                            indentingWriter.write(ReferenceUtil.getReferenceString(reference, classContext));
-                        }
-                    };
-                }
+                referenceWritable = () ->  writer.writeReference(reference);
             } catch (Reference.InvalidReferenceException ex) {
                 commentOutInstruction = true;
                 writer.write("#");
                 writer.write(ex.getMessage());
                 writer.write("\n");
-                referenceWritable = indentingWriter -> {
-                    indentingWriter.write(ex.getInvalidReferenceRepresentation());
-                };
+                referenceWritable = () -> writer.write(ex.getInvalidReferenceRepresentation());
             }
 
             if (instruction instanceof DualReferenceInstruction) {
@@ -148,18 +120,13 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 try {
                     Reference reference2 = dualReferenceInstruction.getReference2();
                     reference2.validateReference();
-
-                    referenceWritable2 = indentingWriter -> {
-                        indentingWriter.write(ReferenceUtil.getReferenceString(reference2, classContext));
-                    };
+                    referenceWritable2 = () -> writer.writeReference(reference2);
                 } catch (Reference.InvalidReferenceException ex) {
                     commentOutInstruction = true;
                     writer.write("#");
                     writer.write(ex.getMessage());
                     writer.write("\n");
-                    referenceWritable = indentingWriter -> {
-                        indentingWriter.write(ex.getInvalidReferenceRepresentation());
-                    };
+                    referenceWritable = () -> writer.write(ex.getInvalidReferenceRepresentation());
                 }
             }
         }
@@ -213,6 +180,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
         switch (instruction.getOpcode().format) {
             case Format10t:
+            case Format20t:
+            case Format30t:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeTargetLabel(writer);
@@ -249,13 +218,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(' ');
                 writer.write(verificationErrorName);
                 writer.write(", ");
-                referenceWritable.writeTo(writer);
-                break;
-            case Format20t:
-            case Format30t:
-                writeOpcode(writer);
-                writer.write(' ');
-                writeTargetLabel(writer);
+                assert referenceWritable != null;
+                referenceWritable.write();
                 break;
             case Format21c:
             case Format31c:
@@ -263,7 +227,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(' ');
                 writeFirstRegister(writer);
                 writer.write(", ");
-                referenceWritable.writeTo(writer);
+                referenceWritable.write();
                 break;
             case Format21ih:
             case Format21lh:
@@ -307,7 +271,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(", ");
                 writeSecondRegister(writer);
                 writer.write(", ");
-                referenceWritable.writeTo(writer);
+                assert referenceWritable != null;
+                referenceWritable.write();
                 break;
             case Format22cs:
                 writeOpcode(writer);
@@ -349,7 +314,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(' ');
                 writeInvokeRegisters(writer);
                 writer.write(", ");
-                referenceWritable.writeTo(writer);
+                assert referenceWritable != null;
+                referenceWritable.write();
                 break;
             case Format35mi:
                 writeOpcode(writer);
@@ -370,7 +336,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(' ');
                 writeInvokeRangeRegisters(writer);
                 writer.write(", ");
-                referenceWritable.writeTo(writer);
+                assert referenceWritable != null;
+                referenceWritable.write();
                 break;
             case Format3rmi:
                 writeOpcode(writer);
@@ -391,18 +358,22 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 writer.write(' ');
                 writeInvokeRegisters(writer);
                 writer.write(", ");
-                referenceWritable.writeTo(writer);
+                assert referenceWritable != null;
+                referenceWritable.write();
                 writer.write(", ");
-                referenceWritable2.writeTo(writer);
+                assert referenceWritable2 != null;
+                referenceWritable2.write();
                 break;
             case Format4rcc:
                 writeOpcode(writer);
                 writer.write(' ');
                 writeInvokeRangeRegisters(writer);
                 writer.write(", ");
-                referenceWritable.writeTo(writer);
+                assert referenceWritable != null;
+                referenceWritable.write();
                 writer.write(", ");
-                referenceWritable2.writeTo(writer);
+                assert referenceWritable2 != null;
+                referenceWritable2.write();
                 break;
             default:
                 assert false;
@@ -500,7 +471,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeLiteral(BaksmaliWriter writer) throws IOException {
-        LongRenderer.writeSignedIntOrLongTo(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
+        writer.writeSignedIntOrLongTo(((WideLiteralInstruction)instruction).getWideLiteral());
     }
 
     protected void writeCommentIfLikelyFloat(BaksmaliWriter writer) throws IOException {

@@ -38,8 +38,6 @@ import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.util.ReferenceUtil;
-import org.jf.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -68,7 +66,7 @@ public class ClassDefinition {
     }
 
     @Nonnull
-    private static HashSet<String> findFieldsSetInStaticConstructor(@Nonnull ClassDef classDef) {
+    private HashSet<String> findFieldsSetInStaticConstructor(@Nonnull ClassDef classDef) {
         HashSet<String> fieldsSetInStaticConstructor = new HashSet<String>();
 
         for (Method method: classDef.getDirectMethods()) {
@@ -89,7 +87,8 @@ public class ClassDefinition {
                                 try {
                                     fieldRef.validateReference();
                                     if (fieldRef.getDefiningClass().equals((classDef.getType()))) {
-                                        fieldsSetInStaticConstructor.add(ReferenceUtil.getShortFieldDescriptor(fieldRef));
+                                        fieldsSetInStaticConstructor.add(
+                                                formatter.getShortFieldDescriptor(fieldRef));
                                     }
                                 } catch (Reference.InvalidReferenceException ex) {
                                     // Just ignore for now. We'll deal with it when processing the instruction
@@ -119,7 +118,7 @@ public class ClassDefinition {
     private void writeClass(BaksmaliWriter writer) throws IOException {
         writer.write(".class ");
         writeAccessFlags(writer);
-        writer.write(classDef.getType());
+        writer.writeType(classDef.getType());
         writer.write('\n');
     }
 
@@ -134,7 +133,7 @@ public class ClassDefinition {
         String superClass = classDef.getSuperclass();
         if (superClass != null) {
             writer.write(".super ");
-            writer.write(superClass);
+            writer.writeType(superClass);
             writer.write('\n');
         }
     }
@@ -142,9 +141,9 @@ public class ClassDefinition {
     private void writeSourceFile(BaksmaliWriter writer) throws IOException {
         String sourceFile = classDef.getSourceFile();
         if (sourceFile != null) {
-            writer.write(".source \"");
-            StringUtils.writeEscapedString(writer, sourceFile);
-            writer.write("\"\n");
+            writer.write(".source ");
+            writer.writeQuotedString(sourceFile);
+            writer.write("\n");
         }
     }
 
@@ -156,7 +155,7 @@ public class ClassDefinition {
             writer.write("# interfaces\n");
             for (String interfaceName: interfaces) {
                 writer.write(".implements ");
-                writer.write(interfaceName);
+                writer.writeType(interfaceName);
                 writer.write('\n');
             }
         }
@@ -168,12 +167,7 @@ public class ClassDefinition {
             writer.write("\n\n");
             writer.write("# annotations\n");
 
-            String containingClass = null;
-            if (options.implicitReferences) {
-                containingClass = classDef.getType();
-            }
-
-            AnnotationFormatter.writeTo(writer, classAnnotations, containingClass);
+            AnnotationFormatter.writeTo(writer, classAnnotations);
         }
     }
 
@@ -198,7 +192,7 @@ public class ClassDefinition {
 
             boolean setInStaticConstructor;
             BaksmaliWriter fieldWriter = writer;
-            String fieldString = ReferenceUtil.getShortFieldDescriptor(field);
+            String fieldString = formatter.getShortFieldDescriptor(field);
             if (!writtenFields.add(fieldString)) {
                 writer.write("# duplicate field ignored\n");
                 fieldWriter = getCommentingWriter(writer);
@@ -207,7 +201,7 @@ public class ClassDefinition {
             } else {
                 setInStaticConstructor = fieldsSetInStaticConstructor.contains(fieldString);
             }
-            FieldDefinition.writeTo(options, fieldWriter, field, setInStaticConstructor);
+            FieldDefinition.writeTo(fieldWriter, field, setInStaticConstructor);
         }
         return writtenFields;
     }
@@ -232,7 +226,7 @@ public class ClassDefinition {
             writer.write('\n');
 
             BaksmaliWriter fieldWriter = writer;
-            String fieldString = ReferenceUtil.getShortFieldDescriptor(field);
+            String fieldString = formatter.getShortFieldDescriptor(field);
             if (!writtenFields.add(fieldString)) {
                 writer.write("# duplicate field ignored\n");
                 fieldWriter = getCommentingWriter(writer);
@@ -245,7 +239,7 @@ public class ClassDefinition {
                 writer.write("# There is both a static and instance field with this signature.\n" +
                              "# You will need to rename one of these fields, including all references.\n");
             }
-            FieldDefinition.writeTo(options, fieldWriter, field, false);
+            FieldDefinition.writeTo(fieldWriter, field, false);
         }
     }
 
@@ -269,7 +263,7 @@ public class ClassDefinition {
             writer.write('\n');
 
             // TODO: check for method validation errors
-            String methodString = ReferenceUtil.getMethodDescriptor(method, true);
+            String methodString = formatter.getShortMethodDescriptor(method);
 
             BaksmaliWriter methodWriter = writer;
             if (!writtenMethods.add(methodString)) {
@@ -279,7 +273,7 @@ public class ClassDefinition {
 
             MethodImplementation methodImpl = method.getImplementation();
             if (methodImpl == null) {
-                MethodDefinition.writeEmptyMethodTo(methodWriter, method, options);
+                MethodDefinition.writeEmptyMethodTo(methodWriter, method, this);
             } else {
                 MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
                 methodDefinition.writeTo(methodWriter);
@@ -288,7 +282,8 @@ public class ClassDefinition {
         return writtenMethods;
     }
 
-    private void writeVirtualMethods(BaksmaliWriter writer, Set<String> directMethods) throws IOException {
+    private void writeVirtualMethods(BaksmaliWriter writer, Set<String> directMethods)
+            throws IOException {
         boolean wroteHeader = false;
         Set<String> writtenMethods = new HashSet<String>();
 
@@ -308,7 +303,7 @@ public class ClassDefinition {
             writer.write('\n');
 
             // TODO: check for method validation errors
-            String methodString = ReferenceUtil.getMethodDescriptor(method, true);
+            String methodString = formatter.getShortMethodDescriptor(method);
 
             BaksmaliWriter methodWriter = writer;
             if (!writtenMethods.add(methodString)) {
@@ -324,7 +319,7 @@ public class ClassDefinition {
 
             MethodImplementation methodImpl = method.getImplementation();
             if (methodImpl == null) {
-                MethodDefinition.writeEmptyMethodTo(methodWriter, method, options);
+                MethodDefinition.writeEmptyMethodTo(methodWriter, method, this);
             } else {
                 MethodDefinition methodDefinition = new MethodDefinition(this, method, methodImpl);
                 methodDefinition.writeTo(methodWriter);

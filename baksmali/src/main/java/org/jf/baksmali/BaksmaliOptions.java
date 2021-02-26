@@ -79,7 +79,7 @@ public class BaksmaliOptions {
     /**
      * Load the resource ids from a set of public.xml files.
      *
-     * @param resourceFiles A map of resource prefixes -> public.xml files
+     * @param resourceFiles A map of resource prefixes -&gt; public.xml files
      */
     public void loadResourceIds(Map<String, File> resourceFiles) throws SAXException, IOException {
         for (Map.Entry<String, File> entry: resourceFiles.entrySet()) {

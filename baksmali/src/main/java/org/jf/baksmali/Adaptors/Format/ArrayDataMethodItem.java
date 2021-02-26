@@ -29,7 +29,6 @@
 package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.baksmali.Renderers.LongRenderer;
 import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
 
@@ -63,7 +62,7 @@ public class ArrayDataMethodItem extends InstructionMethodItem<ArrayPayload> {
         }
 
         for (Number number: elements) {
-            LongRenderer.writeSignedIntOrLongTo(writer, number.longValue());
+            writer.writeSignedIntOrLongTo(number.longValue());
             writer.write(suffix);
             if (elementWidth == 8) {
                 writeCommentIfLikelyDouble(writer, number.longValue());

@@ -88,7 +88,9 @@ public class BaksmaliTestUtils {
                                             boolean stripComments)
             throws IOException {
         StringWriter stringWriter = new StringWriter();
-        BaksmaliWriter writer = new BaksmaliWriter(stringWriter);
+        BaksmaliWriter writer = new BaksmaliWriter(
+                stringWriter,
+                options.implicitReferences ? classDef.getType() : null);
         ClassDefinition classDefinition = new ClassDefinition(options, classDef);
         classDefinition.writeTo(writer);
         writer.close();

@@ -30,10 +30,10 @@ package org.jf.baksmali.Adaptors.Format;
 
 import org.jf.baksmali.Adaptors.LabelMethodItem;
 import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.baksmali.Renderers.IntegerRenderer;
 import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
+import org.jf.dexlib2.immutable.value.ImmutableIntEncodedValue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,7 +85,7 @@ public class PackedSwitchMethodItem extends InstructionMethodItem<PackedSwitchPa
             writer = methodDef.classDef.getCommentingWriter(writer);
         }
         writer.write(".packed-switch ");
-        IntegerRenderer.writeTo(writer, firstKey);
+        writer.writeEncodedValue(new ImmutableIntEncodedValue(firstKey));
         writer.indent(4);
         writer.write('\n');
         int key = firstKey;

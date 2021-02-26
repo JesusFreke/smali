@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
-import org.jf.baksmali.BaksmaliOptions;
 import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.*;
 import org.jf.dexlib2.analysis.AnalysisException;
@@ -49,7 +48,6 @@ import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.immutable.instruction.ImmutableInstruction31t;
 import org.jf.dexlib2.util.InstructionOffsetMap;
 import org.jf.dexlib2.util.InstructionOffsetMap.InvalidInstructionOffset;
-import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
 import org.jf.dexlib2.util.SyntheticAccessorResolver.AccessedMember;
 import org.jf.dexlib2.util.TypeUtils;
@@ -57,7 +55,6 @@ import org.jf.util.ExceptionWithContext;
 import org.jf.util.SparseIntArray;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 
@@ -151,7 +148,7 @@ public class MethodDefinition {
         } catch (Exception ex) {
             String methodString;
             try {
-                methodString = ReferenceUtil.getMethodDescriptor(method);
+                methodString = classDef.getFormatter().getMethodDescriptor(method);
             } catch (Exception ex2) {
                 throw ExceptionWithContext.withContext(ex, "Error while processing method");
             }
@@ -160,27 +157,23 @@ public class MethodDefinition {
     }
 
     public static void writeEmptyMethodTo(BaksmaliWriter writer, Method method,
-                                          BaksmaliOptions options) throws IOException {
+                                          ClassDefinition classDef) throws IOException {
         writer.write(".method ");
         writeAccessFlagsAndRestrictions(writer, method.getAccessFlags(), method.getHiddenApiRestrictions());
         writer.write(method.getName());
         writer.write("(");
         ImmutableList<MethodParameter> methodParameters = ImmutableList.copyOf(method.getParameters());
         for (MethodParameter parameter: methodParameters) {
-            writer.write(parameter.getType());
+            writer.writeType(parameter.getType());
         }
         writer.write(")");
         writer.write(method.getReturnType());
         writer.write('\n');
 
         writer.indent(4);
-        writeParameters(writer, method, methodParameters, options);
+        writeParameters(classDef, writer, method, methodParameters);
 
-        String containingClass = null;
-        if (options.implicitReferences) {
-            containingClass = method.getDefiningClass();
-        }
-        AnnotationFormatter.writeTo(writer, method.getAnnotations(), containingClass);
+        AnnotationFormatter.writeTo(writer, method.getAnnotations());
 
         writer.deindent(4);
         writer.write(".end method\n");
@@ -194,18 +187,18 @@ public class MethodDefinition {
 
         writer.write(".method ");
         writeAccessFlagsAndRestrictions(writer, method.getAccessFlags(), method.getHiddenApiRestrictions());
-        writer.write(method.getName());
+        writer.writeSimpleName(method.getName());
         writer.write("(");
         for (MethodParameter parameter: methodParameters) {
             String type = parameter.getType();
-            writer.write(type);
+            writer.writeType(type);
             parameterRegisterCount++;
             if (TypeUtils.isWideType(type)) {
                 parameterRegisterCount++;
             }
         }
         writer.write(")");
-        writer.write(method.getReturnType());
+        writer.writeType(method.getReturnType());
         writer.write('\n');
 
         writer.indent(4);
@@ -217,18 +210,14 @@ public class MethodDefinition {
             writer.writeSignedIntAsDec(methodImpl.getRegisterCount());
         }
         writer.write('\n');
-        writeParameters(writer, method, methodParameters, classDef.options);
+        writeParameters(classDef, writer, method, methodParameters);
 
         if (registerFormatter == null) {
             registerFormatter = new RegisterFormatter(classDef.options, methodImpl.getRegisterCount(),
                     parameterRegisterCount);
         }
 
-        String containingClass = null;
-        if (classDef.options.implicitReferences) {
-            containingClass = method.getDefiningClass();
-        }
-        AnnotationFormatter.writeTo(writer, method.getAnnotations(), containingClass);
+        AnnotationFormatter.writeTo(writer, method.getAnnotations());
 
         writer.write('\n');
 
@@ -313,34 +302,30 @@ public class MethodDefinition {
         }
     }
 
-    private static void writeParameters(BaksmaliWriter writer, Method method,
-                                        List<? extends MethodParameter> parameters,
-                                        BaksmaliOptions options) throws IOException {
+    private static void writeParameters(ClassDefinition classDef, BaksmaliWriter writer, Method method,
+                                        List<? extends MethodParameter> parameters) throws IOException {
         boolean isStatic = AccessFlags.STATIC.isSet(method.getAccessFlags());
         int registerNumber = isStatic?0:1;
+
         for (MethodParameter parameter: parameters) {
             String parameterType = parameter.getType();
             String parameterName = parameter.getName();
             Collection<? extends Annotation> annotations = parameter.getAnnotations();
-            if ((options.debugInfo && parameterName != null) || annotations.size() != 0) {
+            if ((classDef.options.debugInfo && parameterName != null) || annotations.size() != 0) {
                 writer.write(".param p");
                 writer.writeSignedIntAsDec(registerNumber);
 
-                if (parameterName != null && options.debugInfo) {
+                if (parameterName != null && classDef.options.debugInfo) {
                     writer.write(", ");
-                    ReferenceFormatter.writeStringReference(writer, parameterName);
+                    writer.writeQuotedString(parameterName);
                 }
                 writer.write("    # ");
-                writer.write(parameterType);
+
+                writer.writeType(parameterType);
                 writer.write("\n");
                 if (annotations.size() > 0) {
                     writer.indent(4);
-
-                    String containingClass = null;
-                    if (options.implicitReferences) {
-                        containingClass = method.getDefiningClass();
-                    }
-                    AnnotationFormatter.writeTo(writer, annotations, containingClass);
+                    AnnotationFormatter.writeTo(writer, annotations);
                     writer.deindent(4);
                     writer.write(".end param\n");
                 }
@@ -449,7 +434,8 @@ public class MethodDefinition {
                             AccessedMember accessedMember =
                                     classDef.options.syntheticAccessorResolver.getAccessedMember(methodReference);
                             if (accessedMember != null) {
-                                methodItems.add(new SyntheticAccessCommentMethodItem(accessedMember, currentCodeAddress));
+                                methodItems.add(new SyntheticAccessCommentMethodItem(
+                                        classDef, accessedMember, currentCodeAddress));
                             }
                         }
                     } catch (Reference.InvalidReferenceException e) {
@@ -577,7 +563,7 @@ public class MethodDefinition {
 
     private void addDebugInfo(final List<MethodItem> methodItems) {
         for (DebugItem debugItem: methodImpl.getDebugItems()) {
-            methodItems.add(DebugMethodItem.build(registerFormatter, debugItem));
+            methodItems.add(DebugMethodItem.build(classDef, registerFormatter, debugItem));
         }
     }
 
@@ -596,14 +582,6 @@ public class MethodDefinition {
             labelMethodItem.setLabelSequence(labelSequence);
             nextLabelSequenceByType.put(labelMethodItem.getLabelPrefix(), labelSequence + 1);
         }
-    }
-
-    @Nullable
-    private String getContainingClassForImplicitReference() {
-        if (classDef.options.implicitReferences) {
-            return classDef.classDef.getType();
-        }
-        return null;
     }
 
     public static class LabelCache {

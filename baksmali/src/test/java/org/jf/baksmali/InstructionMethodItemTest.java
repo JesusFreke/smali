@@ -141,8 +141,8 @@ public class InstructionMethodItemTest {
         InstructionMethodItem methodItem = new InstructionMethodItem<Instruction21c>(methodDefinition, 0, instruction);
 
         StringWriter stringWriter = new StringWriter();
-        BaksmaliWriter indentingWriter = new BaksmaliWriter(stringWriter);
-        methodItem.writeTo(indentingWriter);
+        BaksmaliWriter writer = new BaksmaliWriter(stringWriter);
+        methodItem.writeTo(writer);
 
         Assert.assertEquals("#Invalid reference\n#const-string v0, blahblahblah\nnop", stringWriter.toString());
     }
