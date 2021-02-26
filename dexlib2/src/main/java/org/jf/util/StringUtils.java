@@ -35,6 +35,11 @@ import java.io.IOException;
 import java.io.Writer;
 
 public class StringUtils {
+
+    /**
+     * @deprecated Use {@link org.jf.baksmali.formatter.BaksmaliWriter#writeCharEncodedValue}
+     */
+    @Deprecated
     public static void writeEscapedChar(Writer writer, char c) throws IOException {
         if ((c >= ' ') && (c < 0x7f)) {
             if ((c == '\'') || (c == '\"') || (c == '\\')) {
