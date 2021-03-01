@@ -93,12 +93,16 @@ task generateAccessorTestDex(type: JavaExec, dependsOn: compileAccessorTestJava)
     args sourceSets.accessorTest.output.classesDirs
 }
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'dexlib2 is a library for reading/modifying/writing Android dex files'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/dexlib2'
+publish {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                pom {
+                    description = 'dexlib2 is a library for reading/modifying/writing Android dex files'
+                    scm {
+                        url = 'https://github.com/JesusFreke/smali/tree/master/dexlib2'
+                    }
+                }
             }
         }
     }

@@ -71,12 +71,16 @@ task fatJar(type: Jar) {
 }
 tasks.getByPath('build').dependsOn(fatJar)
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'baksmali is a disassembler for dalvik bytecode'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/baksmali'
+publish {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                pom {
+                    description = 'baksmali is a disassembler for dalvik bytecode'
+                    scm {
+                        url = 'https://github.com/JesusFreke/smali/tree/master/baksmali'
+                    }
+                }
             }
         }
     }

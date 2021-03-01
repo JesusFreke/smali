@@ -107,72 +107,74 @@ subprojects {
     }
 
     if (project.name in maven_release_projects) {
-        apply plugin: 'maven'
+        apply plugin: 'maven-publish'
         apply plugin: 'signing'
 
         group = 'org.smali'
 
-        task javadocJar(type: Jar, dependsOn: javadoc) {
-            classifier = 'javadoc'
-            from 'build/docs/javadoc'
-        }
-
-        task sourcesJar(type: Jar) {
-            classifier = 'sources'
-            from sourceSets.main.allJava
-        }
-
-        artifacts {
-            archives javadocJar
-            archives sourcesJar
-        }
-
-        signing {
-            required { gradle.taskGraph.hasTask('uploadArchives') }
-            sign configurations.archives
-        }
-
-        uploadArchives {
-            repositories.mavenDeployer {
-                configuration = configurations.archives
-
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                if (rootProject.hasProperty('sonatypeUsername') && rootProject.hasProperty('sonatypePassword')) {
-                    repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-                        authentication(userName: sonatypeUsername, password: sonatypePassword)
-                    }
-                }
-
-                pom.artifactId = project.name
-
-                pom.project {
-                    name project.name
-                    url 'http://smali.org'
-                    packaging 'jar'
-                    licenses {
-                        license {
-                            name 'The BSD 3-Clause License'
-                            url 'http://opensource.org/licenses/BSD-3-Clause'
-                            distribution 'repo'
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    artifactId = project.name
+                    from components.java
+                    versionMapping {
+                        usage('java-api') {
+                            fromResolutionOf('runtimeClasspath')
+                        }
+                        usage('java-runtime') {
+                            fromResolutionResult()
                         }
                     }
-                    scm {
-                        connection 'scm:git:git://github.com/JesusFreke/smali.git'
-                        developerConnection 'scm:git:git@github.com:JesusFreke/smali.git'
+
+                    pom {
+                        name = project.name
+                        url = 'http://smali.org'
+
+                        licenses {
+                            license {
+                                name = 'The BSD 3-Clause License'
+                                url = 'http://opensource.org/licenses/BSD-3-Clause'
+                                distribution = 'repo'
+                            }
+                        }
+                        scm {
+                            connection = 'scm:git:git://github.com/JesusFreke/smali.git'
+                            developerConnection = 'scm:git:git@github.com:JesusFreke/smali.git'
+                        }
+                        developers {
+                            developer {
+                                id = 'jesusfreke'
+                                name = 'Ben Gruver'
+                                email = 'jesusfreke@jesusfreke.com'
+                            }
+                        }
                     }
-                    developers {
-                        developer {
-                            id 'jesusfreke'
-                            name 'Ben Gruver'
-                            email 'jesusfreke@jesusfreke.com'
+                }
+            }
+            if (rootProject.hasProperty('sonatypeUsername') && rootProject.hasProperty('sonatypePassword')) {
+                repositories {
+                    maven {
+                        url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                        credentials {
+                            username sonatypeUsername
+                            password sonatypePassword
                         }
                     }
                 }
             }
         }
 
-        tasks.getByPath(':release').dependsOn(uploadArchives)
+        signing {
+            required { gradle.taskGraph.hasTask('publish') }
+            sign(publishing.publications["mavenJava"])
+        }
+
+        java {
+            withJavadocJar()
+            withSourcesJar()
+        }
+
+        tasks.getByPath(':release').dependsOn(publish)
     }
 }
 

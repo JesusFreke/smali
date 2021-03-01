@@ -119,12 +119,16 @@ jflex {
     generateDir = new File(generateDir, 'org/jf/smali')
 }
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.project {
-            description 'smali is an assembler for dalvik bytecode'
-            scm {
-                url 'https://github.com/JesusFreke/smali/tree/master/smali'
+publish {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                pom {
+                    description = 'smali is an assembler for dalvik bytecode'
+                    scm {
+                        url = 'https://github.com/JesusFreke/smali/tree/master/smali'
+                    }
+                }
             }
         }
     }
