@@ -45,7 +45,7 @@ buildscript {
 configurations {
     // Remove the full antlr library that's added by the antlr plugin. We manually
     // add the smaller antlr_runtime library instead
-    compile.exclude group: 'org.antlr', module: 'antlr'
+    implementation.exclude group: 'org.antlr', module: 'antlr'
 }
 
 sourceSets {
@@ -73,13 +73,14 @@ idea {
 }
 
 dependencies {
-    compile project(':util')
-    compile project(':dexlib2')
-    compile depends.antlr_runtime
-    compile depends.jcommander
-    compile depends.stringtemplate
+    implementation project(':util')
+    implementation project(':dexlib2')
+    implementation depends.antlr_runtime
+    implementation depends.jcommander
+    implementation depends.stringtemplate
+    implementation depends.guava
 
-    testCompile depends.junit
+    testImplementation depends.junit
 
     antlr depends.antlr
 }
@@ -90,7 +91,7 @@ processResources.expand('version': version)
 // Build a separate jar that contains all dependencies
 task fatJar(type: Jar, dependsOn: jar) {
     from sourceSets.main.output
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 
     classifier = 'fat'
 

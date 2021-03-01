@@ -30,11 +30,11 @@
  */
 
 dependencies {
-    compile project(':dexlib2')
-    compile depends.findbugs
-    compile depends.guava
-    compile depends.jcommander
-    testCompile depends.junit
+    implementation project(':dexlib2')
+    implementation depends.findbugs
+    implementation depends.guava
+    implementation depends.jcommander
+    testImplementation depends.junit
 }
 
 uploadArchives {

@@ -46,11 +46,11 @@ configurations {
 }
 
 dependencies {
-    compile depends.findbugs
-    compile depends.guava
+    implementation depends.findbugs
+    implementation depends.guava
 
-    testCompile depends.junit
-    testCompile depends.mockito
+    testImplementation depends.junit
+    testImplementation depends.mockito
 
     accessorTestGenerator project('accessorTestGenerator')
 

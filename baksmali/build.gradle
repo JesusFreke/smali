@@ -39,13 +39,14 @@ buildscript {
 }
 
 dependencies {
-    compile project(':util')
-    compile project(':dexlib2')
-    compile depends.guava
-    compile depends.jcommander
+    implementation project(':util')
+    implementation project(':dexlib2')
+    implementation depends.guava
+    implementation depends.jcommander
 
-    testCompile depends.junit
-    testCompile project(':smali')
+    testImplementation depends.junit
+    testImplementation project(':smali')
+    testImplementation depends.antlr_runtime
 }
 
 processResources.inputs.property('version', version)
@@ -54,7 +55,7 @@ processResources.expand('version': version)
 // Build a separate jar that contains all dependencies
 task fatJar(type: Jar) {
     from sourceSets.main.output
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 
     classifier = 'fat'
 
