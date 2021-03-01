@@ -101,7 +101,7 @@ task fatJar(type: Jar, dependsOn: jar) {
 
     doLast {
         if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
-            ant.symlink(link: file("${destinationDir}/smali.jar"), resource: archivePath, overwrite: true)
+            ant.symlink(link: file("${destinationDirectory.get()}/smali.jar"), resource: archivePath, overwrite: true)
         }
     }
 }
@@ -135,8 +135,8 @@ publish {
 }
 
 task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
-    def outFile = fatJar.destinationDir.getPath() + '/' + fatJar.baseName + '-' +
-            fatJar.version + '-small' + '.' + fatJar.extension
+    def outFile = fatJar.destinationDirectory.file(
+            "${fatJar.archiveBaseName.get()}-${fatJar.archiveVersion.get()}-small.${fatJar.archiveExtension.get()}")
 
     injars fatJar.archivePath
     outjars outFile
