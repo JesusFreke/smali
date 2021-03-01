@@ -85,6 +85,11 @@ subprojects {
 
     version = parent.version
 
+    java {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     ext {
         depends = [
                 guava: 'com.google.guava:guava:27.1-android',
