@@ -158,4 +158,8 @@ task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
     dontnote 'com.google.common.**'
 }
 
+sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 tasks.getByPath(':release').dependsOn(proguard)
