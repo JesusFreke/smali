@@ -90,10 +90,14 @@ task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
     def outFile = fatJar.destinationDirectory.file(
             "${fatJar.archiveBaseName.get()}-${fatJar.archiveVersion.get()}-small.${fatJar.archiveExtension.get()}")
 
-    injars fatJar.archivePath
+    injars fatJar
     outjars outFile
 
-    libraryjars "${System.properties['java.home']}/lib/rt.jar"
+    if (JavaVersion.current().isJava9Compatible()) {
+        libraryjars(System.getProperty("java.home") + "/jmods")
+    } else {
+        libraryjars(System.getProperty("java.home") + "/lib/rt.jar")
+    }
 
     dontobfuscate
     dontoptimize
