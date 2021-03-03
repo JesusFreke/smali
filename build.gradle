@@ -72,7 +72,7 @@ task(install).doLast {
 def maven_release_projects = ['smali', 'baksmali', 'dexlib2', 'util']
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
 
     if (JavaVersion.current().isJava8Compatible()) {

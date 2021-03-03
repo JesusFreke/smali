@@ -40,7 +40,7 @@ buildscript {
 
 dependencies {
     implementation project(':util')
-    implementation project(':dexlib2')
+    api project(':dexlib2')
     implementation depends.guava
     implementation depends.jcommander
 
