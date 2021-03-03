@@ -245,29 +245,37 @@ public class BaksmaliWriter extends DexFormattedWriter {
     }
 
     protected void writeCharEncodedValue(CharEncodedValue encodedValue) throws IOException {
-        writer.write('\'');
+
 
         char c = encodedValue.getValue();
         if ((c >= ' ') && (c < 0x7f)) {
+            writer.write('\'');
             if ((c == '\'') || (c == '\"') || (c == '\\')) {
                 writer.write('\\');
             }
             writer.write(c);
+            writer.write('\'');
             return;
         } else if (c <= 0x7f) {
             switch (c) {
-                case '\n': writer.write("\\n"); return;
-                case '\r': writer.write("\\r"); return;
-                case '\t': writer.write("\\t"); return;
+                case '\n':
+                    writer.write("'\\n'");
+                    return;
+                case '\r':
+                    writer.write("'\\r'");
+                    return;
+                case '\t':
+                    writer.write("'\\t'");
+                    return;
             }
         }
 
+        writer.write('\'');
         writer.write("\\u");
         writer.write(Character.forDigit(c >> 12, 16));
         writer.write(Character.forDigit((c >> 8) & 0x0f, 16));
         writer.write(Character.forDigit((c >> 4) & 0x0f, 16));
         writer.write(Character.forDigit(c & 0x0f, 16));
-
         writer.write('\'');
     }
 

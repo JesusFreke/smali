@@ -262,6 +262,23 @@ public class BaksmaliWriterTest {
     }
 
     @Test
+    public void testWriteEncodedValue_char_normal() throws IOException {
+        Assert.assertEquals("'&'", performWriteChar('&'));
+        Assert.assertEquals("'\\\\'", performWriteChar('\\'));
+        Assert.assertEquals("'\\n'", performWriteChar('\n'));
+        Assert.assertEquals("'\\u7777'", performWriteChar('\u7777'));
+    }
+
+    private String performWriteChar(char c) throws IOException {
+        output = new StringWriter();
+        BaksmaliWriter writer = new BaksmaliWriter(output);
+
+        writer.writeEncodedValue(new ImmutableCharEncodedValue(c));
+        writer.close();
+        return output.toString();
+    }
+
+    @Test
     public void testWriteUnsignedLongAsHex() throws IOException {
         Assert.assertEquals("ffffffffffffffff", performWriteUnsignedLongAsHex(-1));
         Assert.assertEquals("7fffffff", performWriteUnsignedLongAsHex(Integer.MAX_VALUE));
