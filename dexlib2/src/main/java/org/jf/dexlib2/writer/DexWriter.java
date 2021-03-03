@@ -69,6 +69,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
@@ -916,7 +917,7 @@ public abstract class DexWriter<
                 tempBuffer.order(ByteOrder.LITTLE_ENDIAN);
             }
 
-            tempBuffer.clear();
+            ((Buffer) tempBuffer).clear();
 
             int fieldAnnotations = 0;
             int methodAnnotations = 0;
