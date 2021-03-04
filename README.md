@@ -1,3 +1,7 @@
+# smali
+
+[![ci][1]][2]
+
 ### About
 
 smali/baksmali is an assembler/disassembler for the dex format used by dalvik, Android's Java VM implementation. The syntax is loosely based on Jasmin's/dedexer's syntax, and supports the full functionality of the dex format (annotations, debug info, line info, etc.)
@@ -17,3 +21,6 @@ See [the wiki](https://github.com/JesusFreke/smali/wiki) for more info/news/rele
 - [Registers wiki page](https://github.com/JesusFreke/smali/wiki/Registers)
 - [Types, Methods and Fields wiki page](https://github.com/JesusFreke/smali/wiki/TypesMethodsAndFields)
 - [Official dex format reference](https://source.android.com/devices/tech/dalvik/dex-format.html)
+
+[1]: https://github.com/JesusFreke/smali/workflows/ci/badge.svg
+[2]: https://github.com/JesusFreke/smali/actions
