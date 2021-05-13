@@ -221,6 +221,14 @@ public abstract class DexWriter<
         };
     }
 
+    private static <T extends Comparable<? super T>> Comparator<Entry<?, ? extends T>> comparableValueComparator() {
+        return new Comparator<Entry<?, ? extends T>>() {
+            @Override public int compare(Entry<?, ? extends T> o1, Entry<?, ? extends T> o2) {
+                return o1.getValue().compareTo(o2.getValue());
+            }
+        };
+    }
+
     protected class InternalEncodedValueWriter extends EncodedValueWriter<StringKey, TypeKey, FieldRefKey, MethodRefKey,
             AnnotationElement, ProtoRefKey, MethodHandleKey, EncodedValue> {
         private InternalEncodedValueWriter(@Nonnull DexDataWriter writer) {
@@ -491,11 +499,11 @@ public abstract class DexWriter<
         classIndexSectionOffset = indexWriter.getPosition();
         classDataSectionOffset = offsetWriter.getPosition();
 
-        List<Map.Entry<? extends ClassKey, Integer>> classEntries = Lists.newArrayList(classSection.getItems());
-        Collections.sort(classEntries, DexWriter.<ClassKey>comparableKeyComparator());
+        List<Map.Entry<? extends ClassKey, Integer>> classEntriesKeySorted = Lists.newArrayList(classSection.getItems());
+        Collections.sort(classEntriesKeySorted, DexWriter.<ClassKey>comparableKeyComparator());
 
         int index = 0;
-        for (Map.Entry<? extends ClassKey, Integer> key: classEntries) {
+        for (Map.Entry<? extends ClassKey, Integer> key: classEntriesKeySorted) {
             index = writeClass(indexWriter, offsetWriter, index, key);
         }
 
@@ -503,12 +511,15 @@ public abstract class DexWriter<
             return;
         }
 
+        offsetWriter.align();
         hiddenApiRestrictionsOffset = offsetWriter.getPosition();
 
-        RestrictionsWriter restrictionsWriter = new RestrictionsWriter(dataStore, offsetWriter, classEntries.size());
+        List<Map.Entry<? extends ClassKey, Integer>> classEntriesValueSorted = Lists.newArrayList(classSection.getItems());
+        Collections.sort(classEntriesValueSorted, DexWriter.comparableValueComparator());
+        RestrictionsWriter restrictionsWriter = new RestrictionsWriter(dataStore, offsetWriter, classEntriesValueSorted.size());
 
         try {
-            for (Map.Entry<? extends ClassKey, Integer> key : classEntries) {
+            for (Map.Entry<? extends ClassKey, Integer> key : classEntriesValueSorted) {
 
                 for (FieldKey fieldKey : classSection.getSortedStaticFields(key.getKey())) {
                     restrictionsWriter.writeRestriction(classSection.getFieldHiddenApiRestrictions(fieldKey));
