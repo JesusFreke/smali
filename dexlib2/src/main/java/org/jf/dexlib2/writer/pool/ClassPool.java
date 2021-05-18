@@ -44,6 +44,7 @@ import org.jf.dexlib2.builder.MutableMethodImplementation;
 import org.jf.dexlib2.formatter.DexFormatter;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.debug.*;
+import org.jf.dexlib2.iface.instruction.DualReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.reference.*;
@@ -133,27 +134,12 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
             for (Instruction instruction: methodImpl.getInstructions()) {
                 hasInstruction = true;
                 if (instruction instanceof ReferenceInstruction) {
-                    Reference reference = ((ReferenceInstruction)instruction).getReference();
-                    switch (instruction.getOpcode().referenceType) {
-                        case ReferenceType.STRING:
-                            dexPool.stringSection.intern((StringReference)reference);
-                            break;
-                        case ReferenceType.TYPE:
-                            dexPool.typeSection.intern(((TypeReference)reference).getType());
-                            break;
-                        case ReferenceType.FIELD:
-                            dexPool.fieldSection.intern((FieldReference) reference);
-                            break;
-                        case ReferenceType.METHOD:
-                            dexPool.methodSection.intern((MethodReference)reference);
-                            break;
-                        case ReferenceType.CALL_SITE:
-                            dexPool.callSiteSection.intern((CallSiteReference) reference);
-                            break;
-                        default:
-                            throw new ExceptionWithContext("Unrecognized reference type: %d",
-                                    instruction.getOpcode().referenceType);
-                    }
+                    ReferenceInstruction refInst = (ReferenceInstruction)instruction;
+                    internReference(refInst.getReference(), refInst.getReferenceType());
+                }
+                if (instruction instanceof DualReferenceInstruction) {
+                    DualReferenceInstruction dualRefInst = (DualReferenceInstruction)instruction;
+                    internReference(dualRefInst.getReference2(), dualRefInst.getReferenceType2());
                 }
             }
 
@@ -167,6 +153,32 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
                     dexPool.typeSection.internNullable(handler.getExceptionType());
                 }
             }
+        }
+    }
+
+    private void internReference(@Nonnull Reference reference, int referenceType) {
+        switch (referenceType) {
+            case ReferenceType.STRING:
+                dexPool.stringSection.intern((StringReference)reference);
+                break;
+            case ReferenceType.TYPE:
+                dexPool.typeSection.intern(((TypeReference)reference).getType());
+                break;
+            case ReferenceType.FIELD:
+                dexPool.fieldSection.intern((FieldReference) reference);
+                break;
+            case ReferenceType.METHOD:
+                dexPool.methodSection.intern((MethodReference)reference);
+                break;
+            case ReferenceType.METHOD_PROTO:
+                dexPool.protoSection.intern((MethodProtoReference)reference);
+                break;
+            case ReferenceType.CALL_SITE:
+                dexPool.callSiteSection.intern((CallSiteReference) reference);
+                break;
+            default:
+                throw new ExceptionWithContext("Unrecognized reference type: %d",
+                        referenceType);
         }
     }
 
