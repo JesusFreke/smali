@@ -3,7 +3,9 @@
 #Ye olde hello world application
 #To assemble and run this on a phone or emulator:
 #
-#java -jar smali.jar -o classes.dex HelloWorld.smali
+#### This command did not run--- (use below command) java -jar smali.jar -o classes.dex HelloWorld.smali
+# java -jar smali.jar a HelloWorld.smali  (This will output out.dex. Rename it to classes.dex)
+#
 #zip HelloWorld.zip classes.dex
 #adb push HelloWorld.zip /data/local
 #adb shell dalvikvm -cp /data/local/HelloWorld.zip HelloWorld
