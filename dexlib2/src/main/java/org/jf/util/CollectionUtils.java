@@ -78,11 +78,10 @@ public class CollectionUtils {
         Iterator<? extends T> elements2 = it2.iterator();
         for (T element1: it1) {
             T element2;
-            try {
-                element2 = elements2.next();
-            } catch (NoSuchElementException ex) {
+            if (!elements2.hasNext()) {
                 return 1;
             }
+            element2 = elements2.next();
             int res = comparator.compare(element1, element2);
             if (res != 0) return res;
         }
@@ -97,11 +96,10 @@ public class CollectionUtils {
         Iterator<? extends T> elements2 = it2.iterator();
         for (T element1: it1) {
             T element2;
-            try {
-                element2 = elements2.next();
-            } catch (NoSuchElementException ex) {
+            if (!elements2.hasNext()) {
                 return 1;
             }
+            element2 = elements2.next();
             int res = element1.compareTo(element2);
             if (res != 0) return res;
         }
