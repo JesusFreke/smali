@@ -37,7 +37,7 @@ public class HiddenApiRestrictionsRoundtripTest extends RoundtripTest {
     @Test
     public void testHiddenApiRestrictions() {
         BaksmaliOptions options = new BaksmaliOptions();
-        options.apiLevel = 29;
+        options.apiLevel = 31;
         runTest("HiddenApiRestrictions", options);
     }
 }

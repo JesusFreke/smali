@@ -21,6 +21,12 @@
     return-void
 .end method
 
+.method private greylist-max-r core-platform-api corePlatformApiAndHiddenApiTestR()V
+    .registers 1
+
+    return-void
+.end method
+
 .method private whitelist core-platform-api corePlatformApiTest()V
     .registers 1
 
@@ -38,7 +44,17 @@
     return-void
 .end method
 
+.method private greylist-max-r core-platform-api test-api testAndCorePlatformApiMethodR()V
+    .registers 1
+    return-void
+.end method
+
 .method private greylist-max-q test-api testApiMethod()V
+    .registers 1
+    return-void
+.end method
+
+.method private greylist-max-r test-api testApiMethodR()V
     .registers 1
     return-void
 .end method

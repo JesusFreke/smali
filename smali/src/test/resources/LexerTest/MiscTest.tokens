@@ -40,6 +40,7 @@ HIDDENAPI_RESTRICTION("blacklist")
 HIDDENAPI_RESTRICTION("greylist-max-o")
 HIDDENAPI_RESTRICTION("greylist-max-p")
 HIDDENAPI_RESTRICTION("greylist-max-q")
+HIDDENAPI_RESTRICTION("greylist-max-r")
 HIDDENAPI_RESTRICTION("core-platform-api")
 HIDDENAPI_RESTRICTION("test-api")
 

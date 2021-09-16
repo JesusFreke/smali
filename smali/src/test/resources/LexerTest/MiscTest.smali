@@ -40,6 +40,7 @@ blacklist
 greylist-max-o
 greylist-max-p
 greylist-max-q
+greylist-max-r
 core-platform-api
 test-api
 
