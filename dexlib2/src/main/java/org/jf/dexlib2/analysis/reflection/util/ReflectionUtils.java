@@ -68,6 +68,6 @@ public class ReflectionUtils {
             return primitiveMap.inverse().get(dexName);
         }
 
-        return dexName.replace('/', '.').substring(1, dexName.length()-2);
+        return dexName.replace('/', '.').substring(1, dexName.length()-1);
     }
 }
