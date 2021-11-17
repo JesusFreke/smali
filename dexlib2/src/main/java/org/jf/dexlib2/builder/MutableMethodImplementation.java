@@ -657,6 +657,9 @@ public class MutableMethodImplementation implements MethodImplementation {
             case Format3rms:
                 setInstruction(location, newBuilderInstruction3rms((Instruction3rms)instruction));
                 return;
+            case Format45cc:
+                setInstruction(location, newBuilderInstruction45cc((Instruction45cc) instruction));
+                return;
             case Format51l:
                 setInstruction(location, newBuilderInstruction51l((Instruction51l)instruction));
                 return;
@@ -946,6 +949,21 @@ public class MutableMethodImplementation implements MethodImplementation {
                 instruction.getStartRegister(),
                 instruction.getRegisterCount(),
                 instruction.getVtableIndex());
+    }
+
+    @Nonnull
+    private BuilderInstruction45cc newBuilderInstruction45cc(@Nonnull Instruction45cc instruction) {
+        return new BuilderInstruction45cc(
+                instruction.getOpcode(),
+                instruction.getRegisterCount(),
+                instruction.getRegisterC(),
+                instruction.getRegisterD(),
+                instruction.getRegisterE(),
+                instruction.getRegisterF(),
+                instruction.getRegisterG(),
+                instruction.getReference(),
+                instruction.getReference2()
+        );
     }
 
     @Nonnull

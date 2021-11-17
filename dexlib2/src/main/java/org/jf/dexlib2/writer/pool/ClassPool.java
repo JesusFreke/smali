@@ -138,7 +138,7 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
                     internReference(refInst.getReference(), refInst.getReferenceType());
                 }
                 if (instruction instanceof DualReferenceInstruction) {
-                    DualReferenceInstruction dualRefInst = (DualReferenceInstruction)instruction;
+                    DualReferenceInstruction dualRefInst = (DualReferenceInstruction) instruction;
                     internReference(dualRefInst.getReference2(), dualRefInst.getReferenceType2());
                 }
             }
