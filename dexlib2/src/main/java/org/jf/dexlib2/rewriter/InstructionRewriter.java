@@ -65,6 +65,8 @@ public class InstructionRewriter implements Rewriter<Instruction> {
                     return new RewrittenInstruction35c((Instruction35c)instruction);
                 case Format3rc:
                     return new RewrittenInstruction3rc((Instruction3rc)instruction);
+                case Format45cc:
+                    return new RewrittenInstruction45cc((Instruction45cc) instruction);
                 default:
                     throw new IllegalArgumentException();
             }
@@ -200,6 +202,59 @@ public class InstructionRewriter implements Rewriter<Instruction> {
 
         public int getRegisterCount() {
             return instruction.getRegisterCount();
+        }
+    }
+
+    protected class RewrittenInstruction45cc extends BaseRewrittenReferenceInstruction<Instruction45cc>
+            implements Instruction45cc {
+        public RewrittenInstruction45cc(@Nonnull Instruction45cc instruction) {
+            super(instruction);
+        }
+
+        @Nonnull public Reference getReference2() {
+            switch (instruction.getReferenceType2()) {
+                case ReferenceType.TYPE:
+                    return RewriterUtils.rewriteTypeReference(rewriters.getTypeRewriter(),
+                            (TypeReference)instruction.getReference2());
+                case ReferenceType.FIELD:
+                    return rewriters.getFieldReferenceRewriter().rewrite((FieldReference)instruction.getReference2());
+                case ReferenceType.METHOD:
+                    return rewriters.getMethodReferenceRewriter().rewrite((MethodReference)instruction.getReference2());
+                case ReferenceType.STRING:
+                    return instruction.getReference2();
+                case ReferenceType.METHOD_PROTO:
+                    return instruction.getReference2();
+                default:
+                    throw new IllegalArgumentException();
+            }
+        }
+
+        public int getReferenceType2() {
+            return instruction.getReferenceType2();
+        }
+
+        public int getRegisterC() {
+            return instruction.getRegisterC();
+        }
+
+        public int getRegisterE() {
+            return instruction.getRegisterE();
+        }
+
+        public int getRegisterG() {
+            return instruction.getRegisterG();
+        }
+
+        public int getRegisterCount() {
+            return instruction.getRegisterCount();
+        }
+
+        public int getRegisterD() {
+            return instruction.getRegisterD();
+        }
+
+        public int getRegisterF() {
+            return instruction.getRegisterF();
         }
     }
 }
