@@ -224,7 +224,7 @@ public class Preconditions {
         long minValue;
         if (elementWidth == 2) {
             //Could be a short or character.
-            //Characters are signed, Shorts are not.
+            //Characters are unsigned, Shorts are signed.
             //Short.MAX_VALUE = 32767
             //Short.MIN_VALUE = -32768
             //(int) Character.MAX_VALUE = 65535
