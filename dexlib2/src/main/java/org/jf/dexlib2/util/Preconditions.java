@@ -220,9 +220,24 @@ public class Preconditions {
     }
 
     public static <L extends List<? extends Number>> L checkArrayPayloadElements(int elementWidth, L elements) {
-        long maxValue = (1L << ((8 * elementWidth) - 1)) - 1;
-        long minValue = -maxValue - 1;
-
+        long maxValue;
+        long minValue;
+        if (elementWidth == 2) {
+            //Could be a short or character.
+            //Characters are signed, Shorts are not.
+            //Short.MAX_VALUE = 32767
+            //Short.MIN_VALUE = -32768
+            //(int) Character.MAX_VALUE = 65535
+            //(int) Character.MIN_VALUE = 0
+            //See https://docs.oracle.com/javase/specs/jvms/se6/html/Overview.doc.html for details
+            //As such, we use the combined interval range of both.
+            maxValue = (int) Character.MAX_VALUE;
+            minValue = Short.MIN_VALUE;
+        } else {
+            //Two's complement.
+            maxValue = (1L << ((8 * elementWidth) - 1)) - 1;
+            minValue = -maxValue - 1;
+        }
         for (Number element : elements) {
             if (element.longValue() < minValue || element.longValue() > maxValue) {
                 throw new IllegalArgumentException(
