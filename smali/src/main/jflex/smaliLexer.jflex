@@ -479,7 +479,7 @@ Type = {PrimitiveType} | {ClassDescriptor} | {ArrayPrefix} ({ClassDescriptor} | 
         return newToken(ACCESS_SPEC);
     }
 
-    "whitelist" | "greylist" | "blacklist" | "greylist-max-o" | "greylist-max-p" | "greylist-max-q" |
+    "whitelist" | "greylist" | "blacklist" | "greylist-max-o" | "greylist-max-p" | "greylist-max-q" | "greylist-max-r" |
     "core-platform-api" | "test-api" {
         return newToken(HIDDENAPI_RESTRICTION);
     }
