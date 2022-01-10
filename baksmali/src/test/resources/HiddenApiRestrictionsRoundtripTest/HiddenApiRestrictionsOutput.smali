@@ -33,6 +33,11 @@
     return-void
 .end method
 
+.method private greylist-max-r greylistMaxR()V
+    .registers 1
+    return-void
+.end method
+
 .method private greylist-max-q core-platform-api test-api testAndCorePlatformApiMethod()V
     .registers 1
     return-void

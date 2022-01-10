@@ -46,6 +46,7 @@ public enum HiddenApiRestriction {
     GREYLIST_MAX_O(3, "greylist-max-o", false),
     GREYLIST_MAX_P(4, "greylist-max-p", false),
     GREYLIST_MAX_Q(5, "greylist-max-q", false),
+    GREYLIST_MAX_R(6, "greylist-max-r", false),
     CORE_PLATFORM_API(8, "core-platform-api", true),
     TEST_API(16, "test-api", true);
 
@@ -55,7 +56,8 @@ public enum HiddenApiRestriction {
             BLACKLIST,
             GREYLIST_MAX_O,
             GREYLIST_MAX_P,
-            GREYLIST_MAX_Q
+            GREYLIST_MAX_Q,
+            GREYLIST_MAX_R
     };
 
     private static final HiddenApiRestriction[] domainSpecificApiFlags = new HiddenApiRestriction[] {

@@ -39,3 +39,7 @@
     return-void
 .end method
 
+.method private greylist-max-r greylistMaxR()V
+    .registers 1
+    return-void
+.end method
