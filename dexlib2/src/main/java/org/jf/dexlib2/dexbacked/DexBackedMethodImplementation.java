@@ -66,7 +66,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
         return dexFile.getDataBuffer().readUshort(codeOffset);
     }
 
-    protected int getInstructionsSize() {
+    public int getInstructionsSize() {
         return dexFile.getDataBuffer().readSmallUint(codeOffset + CodeItem.INSTRUCTION_COUNT_OFFSET);
     }
 
