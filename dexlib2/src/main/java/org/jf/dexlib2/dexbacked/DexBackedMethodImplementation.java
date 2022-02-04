@@ -172,13 +172,11 @@ public class DexBackedMethodImplementation implements MethodImplementation {
     /**
      * Calculate and return the private size of a method implementation.
      *
-     * Calculated as: debug info size + instructions size + try-catch size
+     * Calculated as: instructions size + try-catch size
      *
      * @return size in bytes
      */
     public int getSize() {
-        int debugSize = getDebugInfo().getSize();
-
         //set last offset just before bytecode instructions (after insns_size)
         int lastOffset = getInstructionsStartOffset();
 
@@ -195,7 +193,7 @@ public class DexBackedMethodImplementation implements MethodImplementation {
             lastOffset = ((VariableSizeListIterator)tryHandlerIter).getReaderOffset();
         }
 
-        //method impl size = debug block size + code_item size
-        return debugSize + (lastOffset - codeOffset);
+        //method impl size = code_item size
+        return lastOffset - codeOffset;
     }
 }
