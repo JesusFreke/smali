@@ -38,6 +38,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -84,9 +85,12 @@ public class BaksmaliOptions {
     public void loadResourceIds(Map<String, File> resourceFiles) throws SAXException, IOException {
         for (Map.Entry<String, File> entry: resourceFiles.entrySet()) {
             try {
-                SAXParser saxp = SAXParserFactory.newInstance().newSAXParser();
+                SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+                parserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                SAXParser parser = parserFactory.newSAXParser();
+
                 final String prefix = entry.getKey();
-                saxp.parse(entry.getValue(), new DefaultHandler() {
+                parser.parse(entry.getValue(), new DefaultHandler() {
                     @Override
                     public void startElement(String uri, String localName, String qName,
                                              Attributes attr) throws SAXException {
