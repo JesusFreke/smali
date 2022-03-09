@@ -55,7 +55,7 @@ import static org.jf.util.PathUtil.testCaseSensitivity;
  * - append a '#' if an individual path element would otherwise be considered a reserved filename
  */
 public class ClassFileNameHandler {
-    private static final int MAX_FILENAME_LENGTH = 255;
+    private static final int MAX_FILENAME_LENGTH = 180;
     // How many characters to reserve in the physical filename for numeric suffixes
     // Dex files can currently only have 64k classes, so 5 digits plus 1 for an '#' should
     // be sufficient to handle the case when every class has a conflicting name
