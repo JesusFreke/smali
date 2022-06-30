@@ -8,7 +8,7 @@ See [the wiki](https://github.com/JesusFreke/smali/wiki) for more info/news/rele
 
 #### Support
 - [github Issue tracker](https://github.com/JesusFreke/smali/issues) - For any bugs/issues/feature requests
-- [#smali on freenode](http://webchat.freenode.net/?channels=smali) - Free free to drop by and ask a question. Don't expect an instant response, but if you hang around someone will respond.
+- [#smali on freenode](http://webchat.freenode.net/?channels=smali) - Feel free to drop by and ask a question. Don't expect an instant response, but if you hang around someone will respond.
 
 
 #### Some useful links for getting started with smali
