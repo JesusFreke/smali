@@ -33,6 +33,7 @@ package org.jf.dexlib2.rewriter;
 
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
+import org.jf.dexlib2.iface.instruction.DualReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
@@ -67,11 +68,40 @@ public class InstructionRewriter implements Rewriter<Instruction> {
                     return new RewrittenInstruction3rc((Instruction3rc)instruction);
                 case Format45cc:
                     return new RewrittenInstruction45cc((Instruction45cc) instruction);
+                case Format4rcc:
+                    return new RewrittenInstruction4rcc((Instruction4rcc) instruction);
                 default:
                     throw new IllegalArgumentException();
             }
         }
         return instruction;
+    }
+
+    @Nonnull private Reference rewriteReference(int type,
+                                                @Nonnull Reference reference) {
+        switch (type) {
+            case ReferenceType.TYPE:
+                return RewriterUtils.rewriteTypeReference(rewriters.getTypeRewriter(),
+                        (TypeReference)reference);
+            case ReferenceType.FIELD:
+                return rewriters.getFieldReferenceRewriter().rewrite((FieldReference)reference);
+            case ReferenceType.METHOD:
+                return rewriters.getMethodReferenceRewriter().rewrite((MethodReference)reference);
+            case ReferenceType.STRING:
+                return reference;
+            case ReferenceType.METHOD_PROTO:
+                return RewriterUtils.rewriteMethodProtoReference(
+                        rewriters.getTypeRewriter(),
+                        (MethodProtoReference)reference);
+            case ReferenceType.METHOD_HANDLE:
+                return RewriterUtils.rewriteMethodHandleReference(
+                        rewriters, (MethodHandleReference)reference);
+            case ReferenceType.CALL_SITE:
+                return rewriters.getCallSiteReferenceRewriter().rewrite((CallSiteReference)reference);
+            default:
+                throw new ExceptionWithContext("Invalid reference type: %d",
+                                type);
+        }
     }
 
     protected class BaseRewrittenReferenceInstruction<T extends ReferenceInstruction>
@@ -92,6 +122,9 @@ public class InstructionRewriter implements Rewriter<Instruction> {
                 case ReferenceType.METHOD:
                     return rewriters.getMethodReferenceRewriter().rewrite((MethodReference)instruction.getReference());
                 case ReferenceType.STRING:
+                case ReferenceType.METHOD_PROTO:
+                case ReferenceType.METHOD_HANDLE:
+                case ReferenceType.CALL_SITE:
                     return instruction.getReference();
                 default:
                     throw new IllegalArgumentException();
@@ -205,9 +238,10 @@ public class InstructionRewriter implements Rewriter<Instruction> {
         }
     }
 
-    protected class RewrittenInstruction45cc extends BaseRewrittenReferenceInstruction<Instruction45cc>
-            implements Instruction45cc {
-        public RewrittenInstruction45cc(@Nonnull Instruction45cc instruction) {
+    protected class BaseRewrittenDualReferenceInstruction<T extends DualReferenceInstruction>
+            extends BaseRewrittenReferenceInstruction<T>
+            implements DualReferenceInstruction {
+        public BaseRewrittenDualReferenceInstruction(@Nonnull T instruction) {
             super(instruction);
         }
 
@@ -221,8 +255,9 @@ public class InstructionRewriter implements Rewriter<Instruction> {
                 case ReferenceType.METHOD:
                     return rewriters.getMethodReferenceRewriter().rewrite((MethodReference)instruction.getReference2());
                 case ReferenceType.STRING:
-                    return instruction.getReference2();
                 case ReferenceType.METHOD_PROTO:
+                case ReferenceType.METHOD_HANDLE:
+                case ReferenceType.CALL_SITE:
                     return instruction.getReference2();
                 default:
                     throw new IllegalArgumentException();
@@ -231,6 +266,13 @@ public class InstructionRewriter implements Rewriter<Instruction> {
 
         public int getReferenceType2() {
             return instruction.getReferenceType2();
+        }
+    }
+
+    protected class RewrittenInstruction45cc extends BaseRewrittenDualReferenceInstruction<Instruction45cc>
+            implements Instruction45cc {
+        public RewrittenInstruction45cc(@Nonnull Instruction45cc instruction) {
+            super(instruction);
         }
 
         public int getRegisterC() {
@@ -255,6 +297,36 @@ public class InstructionRewriter implements Rewriter<Instruction> {
 
         public int getRegisterF() {
             return instruction.getRegisterF();
+        }
+    }
+
+    protected class RewrittenInstruction4rcc extends BaseRewrittenDualReferenceInstruction<Instruction4rcc>
+            implements Instruction4rcc {
+        public RewrittenInstruction4rcc(@Nonnull Instruction4rcc instruction) {
+            super(instruction);
+        }
+
+        public int getStartRegister() {
+            return instruction.getStartRegister();
+        }
+
+        public int getRegisterCount() {
+            return instruction.getRegisterCount();
+        }
+    }
+
+    protected class RewrittenInstruction4rcc extends BaseRewrittenDualReferenceInstruction<Instruction4rcc>
+            implements Instruction4rcc {
+        public RewrittenInstruction4rcc(@Nonnull Instruction4rcc instruction) {
+            super(instruction);
+        }
+
+        public int getStartRegister() {
+            return instruction.getStartRegister();
+        }
+
+        public int getRegisterCount() {
+            return instruction.getRegisterCount();
         }
     }
 }

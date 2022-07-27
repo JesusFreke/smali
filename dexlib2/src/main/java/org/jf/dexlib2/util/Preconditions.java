@@ -271,6 +271,21 @@ public class Preconditions {
                     throw new IllegalArgumentException("Invalid reference type, expecting a method reference");
                 }
                 break;
+            case ReferenceType.METHOD_PROTO:
+                if (!(reference instanceof MethodProtoReference)) {
+                    throw new IllegalArgumentException("Invalid reference type, expecting a method proto reference");
+                }
+                break;
+            case ReferenceType.METHOD_HANDLE:
+                if (!(reference instanceof MethodHandleReference)) {
+                    throw new IllegalArgumentException("Invalid reference type, expecting a method handle reference");
+                }
+                break;
+            case ReferenceType.CALL_SITE:
+                if (!(reference instanceof CallSiteReference)) {
+                    throw new IllegalArgumentException("Invalid reference type, expecting a call site reference");
+                }
+                break;
             default:
                 throw new IllegalArgumentException(String.format("Not a valid reference type: %d", referenceType));
         }

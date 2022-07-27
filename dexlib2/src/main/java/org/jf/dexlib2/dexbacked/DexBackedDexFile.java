@@ -257,6 +257,12 @@ public class DexBackedDexFile implements DexFile {
                 return getMethodSection();
             case ReferenceType.FIELD:
                 return getFieldSection();
+            case ReferenceType.METHOD_PROTO:
+                return getMethodSection();
+            case ReferenceType.METHOD_HANDLE:
+                return getMethodHandleSection();
+            case ReferenceType.CALL_SITE:
+                return getCallSiteSection();
             default:
                 throw new IllegalArgumentException(String.format("Invalid reference type: %d", referenceType));
         }

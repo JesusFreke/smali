@@ -173,6 +173,9 @@ public class ClassPool extends BasePool<String, PoolClassDef> implements ClassSe
             case ReferenceType.METHOD_PROTO:
                 dexPool.protoSection.intern((MethodProtoReference)reference);
                 break;
+            case ReferenceType.METHOD_HANDLE:
+                dexPool.methodHandleSection.intern((MethodHandleReference) reference);
+                break;
             case ReferenceType.CALL_SITE:
                 dexPool.callSiteSection.intern((CallSiteReference) reference);
                 break;

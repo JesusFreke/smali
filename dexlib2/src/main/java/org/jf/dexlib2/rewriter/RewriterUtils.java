@@ -31,8 +31,22 @@
 
 package org.jf.dexlib2.rewriter;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import org.jf.util.ExceptionWithContext;
+import org.jf.dexlib2.MethodHandleType;
+import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.reference.BaseMethodHandleReference;
+import org.jf.dexlib2.base.reference.BaseMethodProtoReference;
 import org.jf.dexlib2.base.reference.BaseTypeReference;
+import org.jf.dexlib2.base.value.*;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodHandleReference;
+import org.jf.dexlib2.iface.reference.MethodProtoReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.iface.value.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -112,6 +126,119 @@ public class RewriterUtils {
                 return typeRewriter.rewrite(typeReference.getType());
             }
         };
+    }
+
+    @Nonnull public static MethodHandleReference rewriteMethodHandleReference(
+            @Nonnull final Rewriters rewriters,
+            @Nonnull final MethodHandleReference methodHandleReference) {
+        switch (methodHandleReference.getMethodHandleType()) {
+            case MethodHandleType.STATIC_PUT:
+            case MethodHandleType.STATIC_GET:
+            case MethodHandleType.INSTANCE_PUT:
+            case MethodHandleType.INSTANCE_GET:
+                return new BaseMethodHandleReference() {
+                    @Override public int getMethodHandleType() {
+                        return methodHandleReference.getMethodHandleType();
+                    }
+
+                    @Nonnull @Override public Reference getMemberReference() {
+                        return rewriters.getFieldReferenceRewriter().rewrite((FieldReference)methodHandleReference.getMemberReference());
+                    }
+                };
+            case MethodHandleType.INVOKE_STATIC:
+            case MethodHandleType.INVOKE_INSTANCE:
+            case MethodHandleType.INVOKE_CONSTRUCTOR:
+            case MethodHandleType.INVOKE_DIRECT:
+            case MethodHandleType.INVOKE_INTERFACE:
+                return new BaseMethodHandleReference() {
+                    @Override public int getMethodHandleType() {
+                        return methodHandleReference.getMethodHandleType();
+                    }
+
+                    @Nonnull @Override public Reference getMemberReference() {
+                        return rewriters.getMethodReferenceRewriter().rewrite((MethodReference)methodHandleReference.getMemberReference());
+                    }
+                };
+            default:
+                throw new ExceptionWithContext("Invalid method handle type: %d",
+                        methodHandleReference.getMethodHandleType());
+        }
+    }
+
+    @Nonnull public static MethodProtoReference rewriteMethodProtoReference(
+            @Nonnull final Rewriter<String> typeRewriter,
+            @Nonnull final MethodProtoReference methodProtoReference) {
+        return new BaseMethodProtoReference() {
+            @Nonnull @Override public List<? extends CharSequence> getParameterTypes() {
+                return rewriteList(typeRewriter,
+                        Lists.transform(methodProtoReference.getParameterTypes(),
+                        new Function<CharSequence, String>() {
+                            @Nonnull @Override public String apply(CharSequence input) {
+                                return input.toString();
+                            }
+                        }));
+            }
+
+            @Nonnull @Override public String getReturnType() {
+                return typeRewriter.rewrite(methodProtoReference.getReturnType());
+            }
+        };
+    }
+
+    @Nonnull public static EncodedValue rewriteValue(
+            @Nonnull final Rewriters rewriters,
+            @Nonnull final EncodedValue encodedValue) {
+        switch (encodedValue.getValueType()) {
+            case ValueType.INT:
+            case ValueType.FLOAT:
+            case ValueType.LONG:
+            case ValueType.DOUBLE:
+            case ValueType.STRING:
+                return encodedValue;
+
+            case ValueType.METHOD_TYPE:
+                return new BaseMethodTypeEncodedValue () {
+                    @Override @Nonnull public MethodProtoReference getValue() {
+                        return rewriteMethodProtoReference(
+                            rewriters.getTypeRewriter(),
+                            ((MethodTypeEncodedValue) encodedValue).getValue());
+                    }
+                };
+
+            case ValueType.METHOD_HANDLE:
+                return new BaseMethodHandleEncodedValue () {
+                    @Override @Nonnull public MethodHandleReference getValue() {
+                        return rewriteMethodHandleReference(
+                            rewriters,
+                            ((MethodHandleEncodedValue) encodedValue).getValue());
+                    }
+                };
+
+            case ValueType.TYPE:
+                return new BaseTypeEncodedValue () {
+                    @Override @Nonnull public String getValue() {
+                        return rewriters.getTypeRewriter().rewrite(((TypeEncodedValue) encodedValue).getValue());
+                    }
+                };
+
+            case ValueType.FIELD:
+                return new BaseFieldEncodedValue () {
+                    @Override @Nonnull public FieldReference getValue() {
+                        return rewriters.getFieldReferenceRewriter().rewrite(((FieldEncodedValue) encodedValue).getValue());
+                    }
+                };
+
+            case ValueType.METHOD:
+                return new BaseMethodEncodedValue () {
+                    @Override @Nonnull public MethodReference getValue() {
+                        return rewriters.getMethodReferenceRewriter().rewrite(((MethodEncodedValue) encodedValue).getValue());
+                    }
+                };
+
+            default:
+                throw new ExceptionWithContext("Unsupported encoded value type: %d",
+                        encodedValue.getValueType());
+        }
     }
 }
 

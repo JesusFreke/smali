@@ -36,6 +36,7 @@ import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.CallSiteReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
@@ -79,6 +80,7 @@ public class DexRewriter implements Rewriters {
     private final Rewriter<String> typeRewriter;
     private final Rewriter<FieldReference> fieldReferenceRewriter;
     private final Rewriter<MethodReference> methodReferenceRewriter;
+    private final Rewriter<CallSiteReference> callSiteReferenceRewriter;
     private final Rewriter<Annotation> annotationRewriter;
     private final Rewriter<AnnotationElement> annotationElementRewriter;
     private final Rewriter<EncodedValue> encodedValueRewriter;
@@ -97,6 +99,7 @@ public class DexRewriter implements Rewriters {
         this.typeRewriter = module.getTypeRewriter(this);
         this.fieldReferenceRewriter = module.getFieldReferenceRewriter(this);
         this.methodReferenceRewriter = module.getMethodReferenceRewriter(this);
+        this.callSiteReferenceRewriter = module.getCallSiteReferenceRewriter(this);
         this.annotationRewriter = module.getAnnotationRewriter(this);
         this.annotationElementRewriter = module.getAnnotationElementRewriter(this);
         this.encodedValueRewriter = module.getEncodedValueRewriter(this);
@@ -115,6 +118,7 @@ public class DexRewriter implements Rewriters {
     @Nonnull @Override public Rewriter<String> getTypeRewriter() { return typeRewriter; }
     @Nonnull @Override public Rewriter<FieldReference> getFieldReferenceRewriter() { return fieldReferenceRewriter; }
     @Nonnull @Override public Rewriter<MethodReference> getMethodReferenceRewriter() { return methodReferenceRewriter; }
+    @Nonnull @Override public Rewriter<CallSiteReference> getCallSiteReferenceRewriter() { return callSiteReferenceRewriter; }
     @Nonnull @Override public Rewriter<Annotation> getAnnotationRewriter() { return annotationRewriter; }
     @Nonnull @Override public Rewriter<AnnotationElement> getAnnotationElementRewriter() { return annotationElementRewriter; }
     @Nonnull @Override public Rewriter<EncodedValue> getEncodedValueRewriter() { return encodedValueRewriter; }

@@ -36,6 +36,7 @@ import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.CallSiteReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 
 import javax.annotation.Nonnull;
@@ -56,6 +57,7 @@ public interface Rewriters {
     @Nonnull Rewriter<String> getTypeRewriter();
     @Nonnull Rewriter<FieldReference> getFieldReferenceRewriter();
     @Nonnull Rewriter<MethodReference> getMethodReferenceRewriter();
+    @Nonnull Rewriter<CallSiteReference> getCallSiteReferenceRewriter();
 
     @Nonnull Rewriter<Annotation> getAnnotationRewriter();
     @Nonnull Rewriter<AnnotationElement> getAnnotationElementRewriter();
