@@ -40,6 +40,13 @@ sourceSets {
     }
 }
 
+test {
+    jvmArgs += [
+        '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+        '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+    ]
+}
+
 configurations {
     accessorTestGenerator
     dx
@@ -71,7 +78,7 @@ task generateAccessorTestSource(type: JavaExec) {
     outputs.dir file(testAccessorOutputDir)
 
     classpath = configurations.accessorTestGenerator
-    main = 'org.jf.dexlib2.AccessorTestGenerator'
+    mainClass = 'org.jf.dexlib2.AccessorTestGenerator'
     args testAccessorOutputFile
 }
 compileAccessorTestJava.dependsOn(generateAccessorTestSource)
@@ -84,7 +91,7 @@ task generateAccessorTestDex(type: JavaExec, dependsOn: compileAccessorTestJava)
     inputs.dir(project.sourceSets.accessorTest.output.classesDirs)
     outputs.file outputDex
 
-    main 'com.android.dx.command.Main'
+    mainClass = 'com.android.dx.command.Main'
     classpath = configurations.dx
 
     args '--dex'

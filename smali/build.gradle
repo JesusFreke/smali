@@ -48,11 +48,17 @@ configurations {
     implementation.exclude group: 'org.antlr', module: 'antlr'
 }
 
+compileJava.dependsOn(generateGrammarSource, jflex)
+
 sourceSets {
     main {
         resources {
             // This adds the generated .tokens files to the jar
             srcDir 'build/generated-src/antlr/main'
+        }
+		java {
+            srcDir 'build/generated-src/antlr/main'
+            srcDir 'build/generated-src/jflex'
         }
     }
 }
@@ -63,7 +69,8 @@ idea {
         if (buildDir.exists()) {
             excludeDirs.addAll(buildDir.listFiles())
         }
-        for (sourceDir in (sourceDirs + testSourceDirs)) {
+		def allSourceDirs = project.sourceSets.main.allSource.srcDirs + project.sourceSets.test.allSource.srcDirs
+        for (sourceDir in allSourceDirs) {
             excludeDirs.remove(sourceDir);
             while ((sourceDir = sourceDir.getParentFile()) != null) {
                 excludeDirs.remove(sourceDir);
@@ -87,21 +94,24 @@ dependencies {
 
 processResources.inputs.property('version', version)
 processResources.expand('version': version)
+processResources.dependsOn(generateGrammarSource)
 
 // Build a separate jar that contains all dependencies
-task fatJar(type: Jar, dependsOn: jar) {
+task fatJar(type: Jar, dependsOn: [jar, ':util:jar', ':dexlib2:jar']) {
     from sourceSets.main.output
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 
-    classifier = 'fat'
+    archiveClassifier = 'fat'
 
     manifest {
         attributes('Main-Class': 'org.jf.smali.Main')
     }
 
     doLast {
+		def rootLibsDirProvider = rootProject.layout.buildDirectory.dir('libs')
         if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
-            ant.symlink(link: file("${destinationDirectory.get()}/smali.jar"), resource: archivePath, overwrite: true)
+            mkdir rootLibsDirProvider.get()
+            ant.symlink(link: file("${rootLibsDirProvider.get()}/smali.jar"), resource: archiveFile.get().asFile, overwrite: true)
         }
     }
 }
@@ -160,6 +170,7 @@ task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
 
 sourcesJar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	dependsOn jflex, generateGrammarSource
 }
 
 tasks.getByPath(':release').dependsOn(proguard)

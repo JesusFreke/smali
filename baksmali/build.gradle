@@ -57,7 +57,7 @@ task fatJar(type: Jar) {
     from sourceSets.main.output
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 
-    classifier = 'fat'
+    archiveClassifier = 'fat'
 
     manifest {
         attributes('Main-Class': 'org.jf.baksmali.Main')
@@ -65,9 +65,12 @@ task fatJar(type: Jar) {
 
     doLast {
         if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
-            ant.symlink(link: file("${destinationDirectory.get()}/baksmali.jar"), resource: archivePath, overwrite: true)
+            ant.symlink(link: file("${destinationDirectory.get()}/baksmali.jar"), resource: archiveFile.get().asFile, overwrite: true)
         }
     }
+
+	dependsOn ':util:jar'
+	dependsOn ':dexlib2:jar'
 }
 tasks.getByPath('build').dependsOn(fatJar)
 

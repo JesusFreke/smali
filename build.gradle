@@ -31,6 +31,8 @@
 
 apply plugin: 'idea'
 
+
+
 version = '2.5.2'
 def jcommanderVersion = ''
 
@@ -71,9 +73,16 @@ task(install).doLast {
 // The projects that get pushed to maven
 def maven_release_projects = ['smali', 'baksmali', 'dexlib2', 'util']
 
+
 subprojects {
     apply plugin: 'java-library'
     apply plugin: 'idea'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
 
     if (JavaVersion.current().isJava8Compatible()) {
         allprojects {
@@ -86,8 +95,8 @@ subprojects {
     version = parent.version
 
     java {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     ext {
@@ -100,7 +109,7 @@ subprojects {
                 antlr: 'org.antlr:antlr:3.5.2',
                 stringtemplate: 'org.antlr:stringtemplate:3.2.1',
                 jflex_plugin: 'org.xbib.gradle.plugin:gradle-plugin-jflex:1.1.0',
-                proguard_gradle: 'net.sf.proguard:proguard-gradle:6.2.2',
+                proguard_gradle: 'com.guardsquare:proguard-gradle:7.5.0',
                 dx: 'com.google.android.tools:dx:1.7',
                 gson: 'com.google.code.gson:gson:2.3.1',
                 jcommander: jcommanderVersion
@@ -170,7 +179,7 @@ subprojects {
         }
 
         signing {
-            required { gradle.taskGraph.hasTask('publish') }
+            required = gradle.taskGraph.hasTask('publish')
             sign(publishing.publications["mavenJava"])
         }
 
